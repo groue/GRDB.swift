@@ -1,13 +1,5 @@
 extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable {
     /// Returns a ValueObservation which filters out consecutive equal values.
-    @available(*, deprecated, renamed: "removeDuplicates")
-    public func distinctUntilChanged()
-        -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
-    {
-        return removeDuplicates()
-    }
-    
-    /// Returns a ValueObservation which filters out consecutive equal values.
     public func removeDuplicates()
         -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
@@ -16,14 +8,6 @@ extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable
 }
 
 extension ValueReducer where Value: Equatable {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns a ValueReducer which filters out consecutive equal values.
-    @available(*, deprecated, renamed: "removeDuplicates")
-    public func distinctUntilChanged() -> ValueReducers.RemoveDuplicates<Self> {
-        return removeDuplicates()
-    }
-    
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns a ValueReducer which filters out consecutive equal values.
@@ -63,8 +47,3 @@ extension ValueReducers {
         }
     }
 }
-
-/// :nodoc:
-@available(*, deprecated, renamed: "ValueReducers.RemoveDuplicates")
-public typealias DistinctUntilChangedValueReducer<Base> = ValueReducers.RemoveDuplicates<Base>
-    where Base: ValueReducer, Base.Value: Equatable

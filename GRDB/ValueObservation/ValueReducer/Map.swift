@@ -47,7 +47,3 @@ extension ValueReducers {
         }
     }
 }
-
-/// :nodoc:
-@available(*, deprecated, renamed: "ValueReducers.Map")
-public typealias MapValueReducer<Base, Value> = ValueReducers.Map<Base, Value> where Base: ValueReducer

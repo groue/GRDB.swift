@@ -88,6 +88,68 @@ extension Statement {
     { preconditionFailure() }
 }
 
+extension ValueObservation where Reducer == Void {
+    @available(*, unavailable, message: "Use request.observationForCount() instead")
+    public static func trackingCount<Request: FetchRequest>(_ request: Request)
+        -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
+        -> ValueObservation<ValueReducers.AllValues<Request.RowDecoder>>
+        where Request.RowDecoder: DatabaseValueConvertible
+    { preconditionFailure() }
+
+    @available(*, unavailable, message: "Use request.observationForFirst() instead")
+    public static func trackingOne<Request: FetchRequest>(_ request: Request)
+        -> ValueObservation<ValueReducers.AllValues<Request.RowDecoder>>
+        where Request.RowDecoder: DatabaseValueConvertible
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
+        -> ValueObservation<ValueReducers.AllOptionalValues<Request.RowDecoder._Wrapped>>
+        where Request.RowDecoder: _OptionalProtocol,
+        Request.RowDecoder._Wrapped: DatabaseValueConvertible
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
+        -> ValueObservation<ValueReducers.AllRecords<Request.RowDecoder>>
+        where Request.RowDecoder: FetchableRecord
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use request.observationForFirst() instead")
+    public static func trackingOne<Request: FetchRequest>(_ request: Request) ->
+        ValueObservation<ValueReducers.OneRecord<Request.RowDecoder>>
+        where Request.RowDecoder: FetchableRecord
+    { preconditionFailure() }
+
+    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    public static func trackingAll<Request: FetchRequest>(_ request: Request)
+        -> ValueObservation<ValueReducers.AllRows>
+        where Request.RowDecoder == Row
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use request.observationForFirst() instead")
+    public static func trackingOne<Request: FetchRequest>(_ request: Request)
+        -> ValueObservation<ValueReducers.OneRow>
+        where Request.RowDecoder == Row
+    { preconditionFailure() }
+}
+
+extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable {
+    @available(*, unavailable, renamed: "removeDuplicates")
+    public func distinctUntilChanged() -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
+    { preconditionFailure() }
+}
+
+extension ValueReducer where Value: Equatable {
+    @available(*, unavailable, renamed: "removeDuplicates")
+    public func distinctUntilChanged() -> ValueReducers.RemoveDuplicates<Self>
+    { preconditionFailure() }
+}
+
 #if SQLITE_HAS_CODEC
 extension Configuration {
     @available(*, unavailable, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")

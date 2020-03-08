@@ -59,73 +59,6 @@ extension FetchRequest where RowDecoder == Row {
     }
 }
 
-extension ValueObservation where Reducer == Void {
-    
-    // MARK: - Row Observation
-    
-    /// Creates a ValueObservation which observes *request*, and notifies
-    /// fresh rows whenever the request is modified by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player")
-    ///     let observation = ValueObservation.trackingAll(request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { rows: [Row] in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(in:onError:onChange:)` method, a fresh
-    /// value is immediately notified on the main queue.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    @available(*, deprecated, message: "Use request.observationForAll() instead")
-    public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<RowsReducer>
-        where Request.RowDecoder == Row
-    {
-        return request.observationForAll()
-    }
-    
-    /// Creates a ValueObservation which observes *request*, and notifies a
-    /// fresh row whenever the request is modified by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player WHERE id = ?", arguments: [1])
-    ///     let observation = ValueObservation.trackingOne(request)
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { row: Row? in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// The returned observation has the default configuration:
-    ///
-    /// - When started with the `start(in:onError:onChange:)` method, a fresh
-    /// value is immediately notified on the main queue.
-    /// - Upon subsequent database changes, fresh values are notified on the
-    /// main queue.
-    /// - The observation lasts until the observer returned by
-    /// `start` is deallocated.
-    ///
-    /// - parameter request: the observed request.
-    /// - returns: a ValueObservation.
-    @available(*, deprecated, message: "Use request.observationForFirst() instead")
-    public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<RowReducer>
-        where Request.RowDecoder == Row
-    {
-        return request.observationForFirst()
-    }
-}
-
 extension ValueReducers {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -183,11 +116,3 @@ extension ValueReducers {
         }
     }
 }
-
-/// :nodoc:
-@available(*, deprecated, renamed: "ValueReducers.AllRows")
-public typealias RowsReducer = ValueReducers.AllRows
-
-/// :nodoc:
-@available(*, deprecated, renamed: "ValueReducers.OneRow")
-public typealias RowReducer = ValueReducers.OneRow
