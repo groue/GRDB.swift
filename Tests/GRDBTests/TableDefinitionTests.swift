@@ -552,7 +552,7 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\")")
             
             // Sanity check
-            XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a", "test_on_a_b"])
         }
     }
     
@@ -569,7 +569,7 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE \"a\" = 1")
             
             // Sanity check
-            XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a_b"])
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a_b"])
         }
     }
 

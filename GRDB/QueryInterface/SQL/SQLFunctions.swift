@@ -6,7 +6,7 @@ extension DatabaseFunction {
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
     public func apply(_ arguments: SQLExpressible...) -> SQLExpression {
-        return SQLExpressionFunction(SQLFunctionName(name), arguments: arguments.map { $0.sqlExpression })
+        return SQLExpressionFunction(SQLFunctionName(name), arguments: arguments.map(\.sqlExpression))
     }
 }
 

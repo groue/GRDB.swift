@@ -464,7 +464,7 @@ public struct ForeignKey {
     /// foreign key. When nil (the default), GRDB automatically uses the
     /// primary key.
     public init(_ originColumns: [ColumnExpression], to destinationColumns: [ColumnExpression]? = nil) {
-        self.init(originColumns.map { $0.name }, to: destinationColumns?.map { $0.name })
+        self.init(originColumns.map(\.name), to: destinationColumns?.map(\.name))
     }
 }
 

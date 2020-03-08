@@ -41,7 +41,7 @@ struct SQLExpressionsArray: SQLCollection {
     let expressions: [SQLExpression]
     
     init<S: Sequence>(_ expressions: S) where S.Iterator.Element: SQLExpressible {
-        self.expressions = expressions.map { $0.sqlExpression }
+        self.expressions = expressions.map(\.sqlExpression)
     }
     
     func collectionSQL(_ context: inout SQLGenerationContext) -> String {

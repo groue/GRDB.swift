@@ -108,7 +108,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE id IN \(ids)
     ///         """
     public mutating func appendInterpolation<S>(_ sequence: S) where S: Sequence, S.Element: SQLExpressible {
-        appendInterpolation(sequence.lazy.map { $0.sqlExpression })
+        appendInterpolation(sequence.lazy.map(\.sqlExpression))
     }
     
     /// Appends a sequence of expressions, wrapped in parentheses.

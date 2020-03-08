@@ -54,7 +54,7 @@ class ValueObservationRecordTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0.row }}, [
+            XCTAssertEqual(results.map { $0.map(\.row)}, [
                 [],
                 [["id":1, "name":"foo"]],
                 [["id":1, "name":"foo"], ["id":2, "name":"bar"]],
@@ -90,7 +90,7 @@ class ValueObservationRecordTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0.row }}, [
+            XCTAssertEqual(results.map { $0.map(\.row)}, [
                 [],
                 [["id":1, "name":"foo"]],
                 [["id":1, "name":"foo"], ["id":2, "name":"bar"]],
@@ -126,7 +126,7 @@ class ValueObservationRecordTests: GRDBTestCase {
             }
             
             waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0.row }}, [
+            XCTAssertEqual(results.map { $0.map(\.row)}, [
                 nil,
                 ["id":1, "name":"foo"],
                 ["id":2, "name":"bar"],

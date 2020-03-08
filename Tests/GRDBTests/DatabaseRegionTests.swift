@@ -57,7 +57,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(unions.map { $0.description }, [
+        XCTAssertEqual(unions.map(\.description), [
             "full database",
             "full database",
             "full database",
@@ -144,7 +144,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(unions.map { $0.description }, ["foo(a)[1]", "foo(a,b)[1,2]", "foo(a,b)[1,2]", "foo(b)[2]"])
+        XCTAssertEqual(unions.map(\.description), ["foo(a)[1]", "foo(a,b)[1,2]", "foo(a,b)[1,2]", "foo(b)[2]"])
     }
     
     func testRegionIntersection() {
@@ -165,7 +165,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(intersection.map { $0.description }, [
+        XCTAssertEqual(intersection.map(\.description), [
             "full database",
             "empty",
             "foo(*)",
@@ -252,7 +252,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(intersection.map { $0.description }, ["foo(a)[1]", "empty", "empty", "foo(b)[2]"])
+        XCTAssertEqual(intersection.map(\.description), ["foo(a)[1]", "empty", "empty", "foo(b)[2]"])
     }
 
     func testSelectStatement() throws {

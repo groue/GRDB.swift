@@ -68,7 +68,7 @@ final class Pool<T> {
             itemsGroup.enter()
             do {
                 let item = try items.write { items -> Item in
-                    if let item = items.first(where: { $0.isAvailable }) {
+                    if let item = items.first(where: \.isAvailable) {
                         item.isAvailable = false
                         return item
                     } else {

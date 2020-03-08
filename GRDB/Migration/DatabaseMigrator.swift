@@ -162,7 +162,7 @@ public struct DatabaseMigrator {
     public func appliedMigrations(_ db: Database) throws -> [String] {
         do {
             let appliedIdentifiers = try Set(String.fetchCursor(db, sql: "SELECT identifier FROM grdb_migrations"))
-            return migrations.map { $0.identifier }.filter { appliedIdentifiers.contains($0) }
+            return migrations.map(\.identifier).filter { appliedIdentifiers.contains($0) }
         } catch {
             // Rethrow if we can't prove grdb_migrations does not exist yet
             if (try? !db.tableExists("grdb_migrations")) ?? false {
@@ -179,7 +179,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual database error.
     public func completedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try appliedMigrations(db)
-        let knownIdentifiers = migrations.map { $0.identifier }
+        let knownIdentifiers = migrations.map(\.identifier)
         return Array(zip(appliedIdentifiers, knownIdentifiers)
             .prefix(while: { $0 == $1 })
             .map { $0.0 })

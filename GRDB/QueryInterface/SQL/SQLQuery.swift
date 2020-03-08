@@ -81,7 +81,7 @@ extension SQLQuery: OrderedRequest {
 
 extension SQLQuery: AggregatingRequest {
     func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> SQLQuery {
-        return with(\.groupPromise, DatabasePromise { db in try expressions(db).map { $0.sqlExpression } })
+        return with(\.groupPromise, DatabasePromise { db in try expressions(db).map(\.sqlExpression) })
     }
     
     func having(_ predicate: SQLExpressible) -> SQLQuery {

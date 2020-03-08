@@ -603,7 +603,7 @@ public struct SQLExpressionFunction: SQLExpression {
     ///     // ABS(-1)
     ///     SQLExpressionFunction(.abs, arguments: -1)
     public init(_ functionName: SQLFunctionName, arguments: SQLExpressible...) {
-        self.init(functionName, arguments: arguments.map { $0.sqlExpression })
+        self.init(functionName, arguments: arguments.map(\.sqlExpression))
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

@@ -204,8 +204,8 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: [Fetched]) {
-                XCTAssertEqual(array.map { $0.int }, [1,2])
-                XCTAssertEqual(array.map { $0.fast }, [true, true])
+                XCTAssertEqual(array.map(\.int), [1,2])
+                XCTAssertEqual(array.map(\.fast), [true, true])
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT 2"

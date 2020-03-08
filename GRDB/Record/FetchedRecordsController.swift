@@ -368,7 +368,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         guard let fetchedItems = fetchedItems else {
             fatalError("the performFetch() method must be called before accessing fetched records")
         }
-        return fetchedItems.map { $0.record }
+        return fetchedItems.map(\.record)
     }
     
     
@@ -1058,7 +1058,7 @@ public struct FetchedRecordsSectionInfo<Record: FetchableRecord> {
             // Programmer error
             fatalError("the performFetch() method must be called before accessing section contents")
         }
-        return items.map { $0.record }
+        return items.map(\.record)
     }
 }
 

@@ -96,7 +96,7 @@ extension QueryInterfaceRequest: FetchRequest {
             // Build the query for prefetched rows.
             // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
             let pivotMappings = try association.pivot.condition.columnMappings(db)
-            let pivotColumns = pivotMappings.map { $0.right }
+            let pivotColumns = pivotMappings.map(\.right)
             let pivotAlias = TableAlias()
             let prefetchedRelation = association
                 .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
@@ -575,7 +575,7 @@ private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [
             //      // FROM book
             //      // WHERE authorId IN (1, 2, 3)
             //      Author.including(all: Author.books)
-            let pivotColumns = pivotMappings.map { $0.right }
+            let pivotColumns = pivotMappings.map(\.right)
             let pivotAlias = TableAlias()
             let prefetchedRelation = association
                 .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
@@ -587,7 +587,7 @@ private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [
             // TODO: can we remove those grdb_ columns now that grouping has been done?
         }
         
-        let groupingIndexes = firstRow.indexes(ofColumns: pivotMappings.map { $0.left })
+        let groupingIndexes = firstRow.indexes(ofColumns: pivotMappings.map(\.left))
         for row in rows {
             let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
             let prefetchedRows = prefetchedRows[groupingKey, default: []]

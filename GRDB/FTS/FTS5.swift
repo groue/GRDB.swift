@@ -137,10 +137,10 @@ public struct FTS5: VirtualTableModule {
             let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
             let ftsTable = tableName.quotedDatabaseIdentifier
             let content = contentTable.quotedDatabaseIdentifier
-            let indexedColumns = definition.columns.map { $0.name }
+            let indexedColumns = definition.columns.map(\.name)
             
             let ftsColumns = (["rowid"] + indexedColumns)
-                .map { $0.quotedDatabaseIdentifier }
+                .map(\.quotedDatabaseIdentifier)
                 .joined(separator: ", ")
             
             let newContentColumns = ([rowIDColumn] + indexedColumns)
