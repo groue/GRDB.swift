@@ -349,14 +349,8 @@ test_install_SPM: test_install_SPM_Package test_install_SPM_Project
 
 test_install_SPM_Package:
 	cd Tests/SPM/PlainPackage && \
-	( if [ -a .build ] && [ -a Package.resolved ]; then $(SWIFT) package reset; fi ) && \
-	rm -rf Packages/GRDB && \
-	$(SWIFT) package edit GRDB --revision master && \
-	rm -rf Packages/GRDB && \
-	ln -s ../../../.. Packages/GRDB && \
 	$(SWIFT) build && \
-	./.build/debug/SPM && \
-	$(SWIFT) package unedit --force GRDB
+	./.build/debug/SPM
 
 test_install_SPM_Project:
 	$(XCODEBUILD) \
