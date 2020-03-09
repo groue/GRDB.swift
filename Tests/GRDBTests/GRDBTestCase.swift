@@ -28,7 +28,7 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String? = nil) throws -> DatabaseQueue {
-        return try makeDatabaseQueue(filename: filename, configuration: dbConfiguration)
+        try makeDatabaseQueue(filename: filename, configuration: dbConfiguration)
     }
     
     // Builds a database queue
@@ -42,7 +42,7 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String? = nil) throws -> DatabasePool {
-        return try makeDatabasePool(filename: filename, configuration: dbConfiguration)
+        try makeDatabasePool(filename: filename, configuration: dbConfiguration)
     }
     
     // Builds a database pool
@@ -66,9 +66,7 @@ class GRDBTestCase: XCTestCase {
     var sqlQueries: [String]!   // TODO: protect against concurrent accesses
     
     // Populated by default configuration
-    var lastSQLQuery: String! {
-        return sqlQueries.last!
-    }
+    var lastSQLQuery: String! { sqlQueries.last! }
     
     override func setUp() {
         super.setUp()
@@ -171,7 +169,7 @@ class GRDBTestCase: XCTestCase {
     }
     
     func sql<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request) -> String {
-        return try! databaseReader.unsafeRead { db in
+        try! databaseReader.unsafeRead { db in
             let request = try request.makePreparedRequest(db, forSingleResult: false)
             try request.statement.makeCursor().next()
             return lastSQLQuery

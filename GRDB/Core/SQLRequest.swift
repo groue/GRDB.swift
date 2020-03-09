@@ -19,14 +19,14 @@ public struct SQLRequest<T>: FetchRequest {
     ///     let id = 42
     ///     let request: SQLRequest<Player> = "SELECT * FROM player WHERE id = \(id)"
     ///     request.sql // "SELECT * FROM player WHERE id = ?"
-    public var sql: String { return sqlLiteral.sql }
+    public var sql: String { sqlLiteral.sql }
     
     /// The request argument
     ///
     ///     let id = 42
     ///     let request: SQLRequest<Player> = "SELECT * FROM player WHERE id = \(id)"
     ///     request.arguments // [42]
-    public var arguments: StatementArguments { return sqlLiteral.arguments }
+    public var arguments: StatementArguments { sqlLiteral.arguments }
     
     /// The request adapter
     public var adapter: RowAdapter?

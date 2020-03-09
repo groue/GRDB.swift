@@ -23,13 +23,14 @@ public final class DatabasePool: DatabaseWriter {
     
     // MARK: - Database Information
     
-    /// The path to the database.
-    public var path: String {
-        return writer.path
+    /// The database configuration
+    public var configuration: Configuration {
+        writer.configuration
     }
     
-    public var configuration: Configuration {
-        return writer.configuration
+    /// The path to the database.
+    public var path: String {
+        writer.path
     }
     
     // MARK: - Initializer
@@ -637,7 +638,7 @@ extension DatabasePool: DatabaseReader {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(updates)
+        try writer.sync(updates)
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
@@ -654,7 +655,7 @@ extension DatabasePool: DatabaseReader {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try readerPool.barrier {
+        try readerPool.barrier {
             try writer.sync(updates)
         }
     }
@@ -711,7 +712,7 @@ extension DatabasePool: DatabaseReader {
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.reentrantSync(updates)
+        try writer.reentrantSync(updates)
     }
     
     /// Asynchronously executes database updates in a protected dispatch queue,

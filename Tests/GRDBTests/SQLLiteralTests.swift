@@ -260,11 +260,11 @@ extension SQLLiteralTests {
         
         struct V: DatabaseValueConvertible {
             var databaseValue: DatabaseValue {
-                return "V".databaseValue
+                "V".databaseValue
             }
             
             static func fromDatabaseValue(_ dbValue: DatabaseValue) -> V? {
-                return nil
+                nil
             }
         }
         
@@ -477,7 +477,7 @@ extension SQLLiteralTests {
                 // Here we test that users can define functions that return
                 // literal expressions.
                 func date(_ value: SQLExpressible) -> SQLExpression {
-                    return SQLLiteral("DATE(\(value))").sqlExpression
+                    SQLLiteral("DATE(\(value))").sqlExpression
                 }
                 let createdAt = Column("createdAt")
                 let request = Player.filter(date(createdAt) == "2020-01-23")
@@ -491,7 +491,7 @@ extension SQLLiteralTests {
                 // return literal expressions with the previously
                 // supported technique.
                 func date(_ value: SQLExpressible) -> SQLExpression {
-                    return SQLLiteral("DATE(\(value.sqlExpression))").sqlExpression
+                    SQLLiteral("DATE(\(value.sqlExpression))").sqlExpression
                 }
                 let createdAt = Column("createdAt")
                 let request = Player.filter(date(createdAt) == "2020-01-23")

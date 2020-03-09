@@ -14,11 +14,11 @@ extension DatabaseValueConvertible where Self: RawRepresentable, Self.RawValue: 
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return rawValue.databaseValue
+        rawValue.databaseValue
     }
     
     /// Returns a value initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
-        return RawValue.fromDatabaseValue(dbValue).flatMap { self.init(rawValue: $0) }
+        RawValue.fromDatabaseValue(dbValue).flatMap { self.init(rawValue: $0) }
     }
 }

@@ -15,7 +15,7 @@ class SQLiteDateParser {
     }
     
     func components(from dateString: String) -> DatabaseDateComponents? {
-        return dateString.withCString { cString in
+        dateString.withCString { cString in
             components(cString: cString, length: strlen(cString))
         }
     }

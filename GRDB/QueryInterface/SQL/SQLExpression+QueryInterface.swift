@@ -80,7 +80,7 @@ public struct SQLExpressionUnary: SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionUnary(op, expression.qualifiedExpression(with: alias))
+        SQLExpressionUnary(op, expression.qualifiedExpression(with: alias))
     }
 }
 
@@ -190,7 +190,7 @@ public struct SQLExpressionBinary: SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionBinary(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
+        SQLExpressionBinary(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
     }
 }
 
@@ -280,7 +280,7 @@ struct SQLExpressionBinaryReduce: SQLExpression {
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionBinaryReduce(op, expressions.map { $0.qualifiedExpression(with: alias) })
+        SQLExpressionBinaryReduce(op, expressions.map { $0.qualifiedExpression(with: alias) })
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -343,7 +343,7 @@ extension Sequence where Element == SQLExpression {
     ///     // SELECT * FROM player WHERE 0
     ///     Player.filter([].joined(operator: .or))
     public func joined(operator: SQLAssociativeBinaryOperator) -> SQLExpression {
-        return SQLExpressionBinaryReduce(`operator`, Array(self))
+        SQLExpressionBinaryReduce(`operator`, Array(self))
     }
 }
 
@@ -388,11 +388,11 @@ struct SQLExpressionEqual: SQLExpression {
     }
     
     var negated: SQLExpression {
-        return SQLExpressionEqual(op.negated, lhs, rhs)
+        SQLExpressionEqual(op.negated, lhs, rhs)
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionEqual(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
+        SQLExpressionEqual(op, lhs.qualifiedExpression(with: alias), rhs.qualifiedExpression(with: alias))
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -459,11 +459,11 @@ struct SQLExpressionContains: SQLExpression {
     }
     
     var negated: SQLExpression {
-        return SQLExpressionContains(expression, collection, negated: !isNegated)
+        SQLExpressionContains(expression, collection, negated: !isNegated)
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
+        SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
@@ -529,11 +529,11 @@ struct SQLExpressionBetween: SQLExpression {
     }
     
     var negated: SQLExpression {
-        return SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
+        SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionBetween(
+        SQLExpressionBetween(
             expression.qualifiedExpression(with: alias),
             lowerBound.qualifiedExpression(with: alias),
             upperBound.qualifiedExpression(with: alias),
@@ -621,7 +621,7 @@ public struct SQLExpressionFunction: SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionFunction(functionName, arguments: arguments.map { $0.qualifiedExpression(with: alias) })
+        SQLExpressionFunction(functionName, arguments: arguments.map { $0.qualifiedExpression(with: alias) })
     }
 }
 
@@ -640,11 +640,11 @@ struct SQLExpressionCount: SQLExpression {
     }
     
     func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        return "COUNT(" + counted.countedSQL(&context) + ")"
+        "COUNT(" + counted.countedSQL(&context) + ")"
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionCount(counted.qualifiedSelectable(with: alias))
+        SQLExpressionCount(counted.qualifiedSelectable(with: alias))
     }
 }
 
@@ -662,11 +662,11 @@ struct SQLExpressionCountDistinct: SQLExpression {
     }
     
     func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        return "COUNT(DISTINCT " + counted.expressionSQL(&context, wrappedInParenthesis: false) + ")"
+        "COUNT(DISTINCT " + counted.expressionSQL(&context, wrappedInParenthesis: false) + ")"
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionCountDistinct(counted.qualifiedExpression(with: alias))
+        SQLExpressionCountDistinct(counted.qualifiedExpression(with: alias))
     }
 }
 
@@ -686,7 +686,7 @@ struct SQLExpressionIsEmpty: SQLExpression {
     }
     
     var negated: SQLExpression {
-        return SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
+        SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
     }
     
     func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
@@ -700,7 +700,7 @@ struct SQLExpressionIsEmpty: SQLExpression {
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionIsEmpty(countExpression.qualifiedExpression(with: alias), isEmpty: isEmpty)
+        SQLExpressionIsEmpty(countExpression.qualifiedExpression(with: alias), isEmpty: isEmpty)
     }
 }
 
@@ -722,7 +722,7 @@ struct TableMatchExpression: SQLExpression {
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return TableMatchExpression(
+        TableMatchExpression(
             alias: self.alias,
             pattern: pattern.qualifiedExpression(with: alias))
     }
@@ -755,6 +755,6 @@ struct SQLExpressionCollate: SQLExpression {
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionCollate(expression.qualifiedExpression(with: alias), collationName: collationName)
+        SQLExpressionCollate(expression.qualifiedExpression(with: alias), collationName: collationName)
     }
 }

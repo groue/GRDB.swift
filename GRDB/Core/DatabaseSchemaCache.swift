@@ -15,7 +15,7 @@ struct DatabaseSchemaCache {
     }
     
     func primaryKey(_ table: String) -> PrimaryKeyInfo? {
-        return primaryKeys[table]
+        primaryKeys[table]
     }
     
     mutating func set(primaryKey: PrimaryKeyInfo, forTable table: String) {
@@ -23,7 +23,7 @@ struct DatabaseSchemaCache {
     }
     
     func columns(in table: String) -> [ColumnInfo]? {
-        return columns[table]
+        columns[table]
     }
     
     mutating func set(columns: [ColumnInfo], forTable table: String) {
@@ -31,7 +31,7 @@ struct DatabaseSchemaCache {
     }
     
     func indexes(on table: String) -> [IndexInfo]? {
-        return indexes[table]
+        indexes[table]
     }
     
     mutating func set(indexes: [IndexInfo], forTable table: String) {
@@ -39,7 +39,7 @@ struct DatabaseSchemaCache {
     }
     
     func foreignKeys(on table: String) -> [ForeignKeyInfo]? {
-        return foreignKeys[table]
+        foreignKeys[table]
     }
     
     mutating func set(foreignKeys: [ForeignKeyInfo], forTable table: String) {

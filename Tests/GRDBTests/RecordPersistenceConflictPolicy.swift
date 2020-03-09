@@ -10,7 +10,7 @@ class RecordWithoutPersistenceConflictPolicy : Record {
 
 class RecordWithPersistenceConflictPolicy : Record {
     override class var persistenceConflictPolicy: PersistenceConflictPolicy {
-        return PersistenceConflictPolicy(insert: .fail, update: .ignore)
+        PersistenceConflictPolicy(insert: .fail, update: .ignore)
     }
 }
 

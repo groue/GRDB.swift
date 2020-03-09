@@ -54,7 +54,7 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public var negated: SQLExpression {
-        return SQLExpressionNot(self)
+        SQLExpressionNot(self)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -63,7 +63,7 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        return nil
+        nil
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -72,7 +72,7 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        return qualifiedExpression(with: alias)
+        qualifiedExpression(with: alias)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -81,7 +81,7 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        return qualifiedExpression(with: alias)
+        qualifiedExpression(with: alias)
     }
 }
 
@@ -92,7 +92,7 @@ extension SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
-        return self
+        self
     }
 }
 
@@ -134,10 +134,10 @@ struct SQLExpressionNot: SQLExpression {
     }
     
     var negated: SQLExpression {
-        return expression
+        expression
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionNot(expression.qualifiedExpression(with: alias))
+        SQLExpressionNot(expression.qualifiedExpression(with: alias))
     }
 }

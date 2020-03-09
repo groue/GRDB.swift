@@ -170,7 +170,7 @@ extension DatabaseRegion {
     /// Returns whether the content in the region would be impacted if the
     /// database were modified by an event of this kind.
     public func isModified(byEventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return intersection(eventKind.modifiedRegion).isEmpty == false
+        intersection(eventKind.modifiedRegion).isEmpty == false
     }
     
     /// Returns whether the content in the region is impacted by this event.
@@ -319,7 +319,7 @@ public protocol DatabaseRegionConvertible {
 extension DatabaseRegion: DatabaseRegionConvertible {
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        return self
+        self
     }
 }
 
@@ -337,7 +337,7 @@ public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
     
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        return try _region(db)
+        try _region(db)
     }
 }
 
@@ -345,7 +345,7 @@ public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
 
 extension DatabaseRegion {
     static func union(_ regions: DatabaseRegion...) -> DatabaseRegion {
-        return regions.reduce(into: DatabaseRegion()) { union, region in
+        regions.reduce(into: DatabaseRegion()) { union, region in
             union.formUnion(region)
         }
     }

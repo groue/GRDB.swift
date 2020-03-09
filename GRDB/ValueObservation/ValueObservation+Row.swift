@@ -25,7 +25,7 @@ extension FetchRequest where RowDecoder == Row {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllRows> {
-        return ValueObservation.tracking(self, reducer: { _ in
+        ValueObservation.tracking(self, reducer: { _ in
             ValueReducers.AllRows(fetch: self.fetchAll)
         })
     }
@@ -53,7 +53,7 @@ extension FetchRequest where RowDecoder == Row {
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneRow> {
-        return ValueObservation.tracking(self, reducer: { _ in
+        ValueObservation.tracking(self, reducer: { _ in
             ValueReducers.OneRow(fetch: self.fetchOne)
         })
     }
@@ -75,7 +75,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> [Row] {
-            return try _fetch(db)
+            try _fetch(db)
         }
         
         public mutating func value(_ rows: [Row]) -> [Row]? {
@@ -103,7 +103,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Row? {
-            return try _fetch(db)
+            try _fetch(db)
         }
         
         public mutating func value(_ row: Row?) -> Row?? {

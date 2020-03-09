@@ -9,7 +9,7 @@ private struct FTS3TokenizeModule : VirtualTableModule {
     let moduleName = "fts3tokenize"
     
     func makeTableDefinition() -> FTS3TokenizeTableDefinition {
-        return FTS3TokenizeTableDefinition()
+        FTS3TokenizeTableDefinition()
     }
     
     func moduleArguments(for definition: FTS3TokenizeTableDefinition, in db: Database) -> [String] {
@@ -27,7 +27,7 @@ private struct ThrowingFTS3TokenizeModule : VirtualTableModule {
     let moduleName = "fts3tokenize"
     
     func makeTableDefinition() -> FTS3TokenizeTableDefinition {
-        return FTS3TokenizeTableDefinition()
+        FTS3TokenizeTableDefinition()
     }
     
     func moduleArguments(for definition: FTS3TokenizeTableDefinition, in db: Database) -> [String] {

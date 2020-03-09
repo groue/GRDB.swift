@@ -54,17 +54,15 @@
 public /* TODO: internal */ struct SQLAssociation {
     // All steps, from pivot to destination. Never empty.
     private(set) var steps: [SQLAssociationStep]
-    var keyPath: [String] {
-        return steps.map(\.keyName)
-    }
+    var keyPath: [String] { steps.map(\.keyName) }
     
     var destination: SQLAssociationStep {
-        get { return steps[steps.count - 1] }
+        get { steps[steps.count - 1] }
         set { steps[steps.count - 1] = newValue }
     }
     
     var pivot: SQLAssociationStep {
-        get { return steps[0] }
+        get { steps[0] }
         set { steps[0] = newValue }
     }
     
@@ -89,12 +87,12 @@ public /* TODO: internal */ struct SQLAssociation {
     
     /// Changes the destination key
     func forDestinationKey(_ key: SQLAssociationKey) -> SQLAssociation {
-        return with(\.destination.key, key)
+        with(\.destination.key, key)
     }
     
     /// Returns a new association
     func through(_ other: SQLAssociation) -> SQLAssociation {
-        return SQLAssociation(steps: other.steps + steps)
+        SQLAssociation(steps: other.steps + steps)
     }
     
     /// Given an origin alias and rows, returns the destination of the
@@ -205,9 +203,7 @@ struct SQLAssociationStep: KeyPathRefining {
     var relation: SQLRelation
     var cardinality: SQLAssociationCardinality
     
-    var keyName: String {
-        return key.name(for: cardinality)
-    }
+    var keyName: String { key.name(for: cardinality) }
 }
 
 enum SQLAssociationCardinality {

@@ -7,14 +7,14 @@ extension SQLSpecificExpressible {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var asc: SQLOrderingTerm {
-        return SQLOrdering.asc(sqlExpression)
+        SQLOrdering.asc(sqlExpression)
     }
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var desc: SQLOrderingTerm {
-        return SQLOrdering.desc(sqlExpression)
+        SQLOrdering.desc(sqlExpression)
     }
     
     #if GRDBCUSTOMSQLITE
@@ -22,14 +22,14 @@ extension SQLSpecificExpressible {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var ascNullsLast: SQLOrderingTerm {
-        return SQLOrdering.ascNullsLast(sqlExpression)
+        SQLOrdering.ascNullsLast(sqlExpression)
     }
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var descNullsFirst: SQLOrderingTerm {
-        return SQLOrdering.descNullsFirst(sqlExpression)
+        SQLOrdering.descNullsFirst(sqlExpression)
     }
     #endif
 }
@@ -50,7 +50,7 @@ extension SQLSpecificExpressible {
     ///         let area: Int = row["area"]
     ///     }
     public func forKey(_ key: String) -> SQLSelectable {
-        return SQLAliasedExpression(sqlExpression, name: key)
+        SQLAliasedExpression(sqlExpression, name: key)
     }
     
     /// Give the expression the same SQL name as the coding key.
@@ -72,7 +72,7 @@ extension SQLSpecificExpressible {
     ///     // SELECT width, height, (width * height) AS area FROM shape
     ///     let shapes: [Shape] = try Shape.fetchAll(db)
     public func forKey(_ key: CodingKey) -> SQLSelectable {
-        return forKey(key.stringValue)
+        forKey(key.stringValue)
     }
 }
 
@@ -88,7 +88,7 @@ extension SQLSpecificExpressible {
     ///
     ///     Player.filter(Column("email").collating(.nocase) == "contact@example.com")
     public func collating(_ collation: Database.CollationName) -> SQLCollatedExpression {
-        return SQLCollatedExpression(sqlExpression, collationName: collation)
+        SQLCollatedExpression(sqlExpression, collationName: collation)
     }
     
     /// Returns a collated expression.
@@ -97,6 +97,6 @@ extension SQLSpecificExpressible {
     ///
     ///     Player.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
     public func collating(_ collation: DatabaseCollation) -> SQLCollatedExpression {
-        return SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(collation.name))
+        SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(collation.name))
     }
 }

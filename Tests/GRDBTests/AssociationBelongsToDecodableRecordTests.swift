@@ -33,7 +33,7 @@ private struct PlayerWithOptionalTeam: Decodable, FetchableRecord {
 
 extension QueryInterfaceRequest where T == Player {
     func filter(teamName: String) -> QueryInterfaceRequest<Player> {
-        return joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
+        joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
     }
     
     func orderedByTeamName() -> QueryInterfaceRequest<Player> {

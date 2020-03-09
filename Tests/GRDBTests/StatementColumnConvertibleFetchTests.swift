@@ -26,9 +26,7 @@ private struct Fetched: DatabaseValueConvertible, StatementColumnConvertible {
         self.init(int: Int(sqlite3_column_int64(sqliteStatement, index)), fast: true)
     }
     
-    var databaseValue: DatabaseValue {
-        return int.databaseValue
-    }
+    var databaseValue: DatabaseValue { int.databaseValue }
     
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Fetched? {
         guard let int = Int.fromDatabaseValue(dbValue) else {

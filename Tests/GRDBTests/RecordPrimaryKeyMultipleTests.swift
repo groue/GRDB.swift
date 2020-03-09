@@ -31,7 +31,7 @@ private class Citizenship : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "citizenships"
+        "citizenships"
     }
     
     required init(row: Row) {

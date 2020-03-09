@@ -21,7 +21,7 @@ public struct SQLLiteral {
         
         // TODO: remove and use default case argument when compiler >= 5.1
         static func sql(_ sql: String) -> Element {
-            return .sql(sql, StatementArguments())
+            .sql(sql, StatementArguments())
         }
         
         fileprivate func sql(_ context: inout SQLGenerationContext) -> String {
@@ -103,11 +103,11 @@ public struct SQLLiteral {
     }
     
     func sql(_ context: inout SQLGenerationContext) -> String {
-        return elements.map { $0.sql(&context) }.joined()
+        elements.map { $0.sql(&context) }.joined()
     }
     
     fileprivate func qualified(with alias: TableAlias) -> SQLLiteral {
-        return SQLLiteral(elements: elements.map { $0.qualified(with: alias) })
+        SQLLiteral(elements: elements.map { $0.qualified(with: alias) })
     }
 }
 
@@ -159,15 +159,15 @@ extension SQLLiteral {
     ///     SQLLiteral(sql: "? + ?", arguments: [1, 2]).sqlExpression
     ///     SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]).sqlExpression
     public var sqlExpression: SQLExpression {
-        return _SQLExpressionLiteral(sqlLiteral: self)
+        _SQLExpressionLiteral(sqlLiteral: self)
     }
     
     var sqlSelectable: SQLSelectable {
-        return _SQLSelectionLiteral(sqlLiteral: self)
+        _SQLSelectionLiteral(sqlLiteral: self)
     }
     
     var sqlOrderingTerm: SQLOrderingTerm {
-        return _SQLOrderingLiteral(sqlLiteral: self)
+        _SQLOrderingLiteral(sqlLiteral: self)
     }
 }
 
@@ -265,7 +265,7 @@ private struct _SQLExpressionLiteral: SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return sqlLiteral.qualified(with: alias).sqlExpression
+        sqlLiteral.qualified(with: alias).sqlExpression
     }
 }
 
@@ -280,7 +280,7 @@ private struct _SQLSelectionLiteral: SQLSelectable {
     }
     
     func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        return sqlLiteral.sql(&context)
+        sqlLiteral.sql(&context)
     }
     
     func countedSQL(_ context: inout SQLGenerationContext) -> String {
@@ -308,7 +308,7 @@ private struct _SQLSelectionLiteral: SQLSelectable {
     }
     
     func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        return sqlLiteral.qualified(with: alias).sqlSelectable
+        sqlLiteral.qualified(with: alias).sqlSelectable
     }
 }
 
@@ -330,10 +330,10 @@ private struct _SQLOrderingLiteral: SQLOrderingTerm {
     }
     
     func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
-        return sqlLiteral.sql(&context)
+        sqlLiteral.sql(&context)
     }
     
     func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        return sqlLiteral.qualified(with: alias).sqlOrderingTerm
+        sqlLiteral.qualified(with: alias).sqlOrderingTerm
     }
 }

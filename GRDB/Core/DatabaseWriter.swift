@@ -205,7 +205,7 @@ extension DatabaseWriter {
     /// - throws: The error thrown by the updates, or by the
     ///   wrapping transaction.
     public func write<T>(_ updates: (Database) throws -> T) throws -> T {
-        return try writeWithoutTransaction { db in
+        try writeWithoutTransaction { db in
             var result: T?
             try db.inTransaction {
                 result = try updates(db)
@@ -568,7 +568,7 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     
     /// :nodoc:
     public var configuration: Configuration {
-        return base.configuration
+        base.configuration
     }
     
     // MARK: - Interrupting Database Operations
@@ -582,7 +582,7 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     
     /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.read(block)
+        try base.read(block)
     }
     
     /// :nodoc:
@@ -592,17 +592,17 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeRead(block)
+        try base.unsafeRead(block)
     }
     
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeReentrantRead(block)
+        try base.unsafeReentrantRead(block)
     }
     
     /// :nodoc:
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
-        return base.concurrentRead(block)
+        base.concurrentRead(block)
     }
     
     /// :nodoc:
@@ -614,17 +614,17 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     
     /// :nodoc:
     public func write<T>(_ updates: (Database) throws -> T) throws -> T {
-        return try base.write(updates)
+        try base.write(updates)
     }
     
     /// :nodoc:
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try base.writeWithoutTransaction(updates)
+        try base.writeWithoutTransaction(updates)
     }
     
     /// :nodoc:
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try base.barrierWriteWithoutTransaction(updates)
+        try base.barrierWriteWithoutTransaction(updates)
     }
     
     /// :nodoc:
@@ -642,7 +642,7 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     
     /// :nodoc:
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try base.unsafeReentrantWrite(updates)
+        try base.unsafeReentrantWrite(updates)
     }
     
     // MARK: - Functions

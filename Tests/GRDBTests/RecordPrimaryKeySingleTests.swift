@@ -27,7 +27,7 @@ class Pet : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "pets"
+        "pets"
     }
     
     required init(row: Row) {

@@ -36,7 +36,7 @@ extension DatabaseValueConvertible {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
-        return databaseValue
+        databaseValue
     }
 }
 
@@ -404,7 +404,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder> {
-        return try RowDecoder.fetchCursor(db, self)
+        try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched values.
@@ -416,7 +416,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
-        return try RowDecoder.fetchAll(db, self)
+        try RowDecoder.fetchAll(db, self)
     }
     
     /// The first fetched value.
@@ -431,7 +431,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// - returns: An optional value.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
-        return try RowDecoder.fetchOne(db, self)
+        try RowDecoder.fetchOne(db, self)
     }
 }
 
@@ -620,7 +620,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> NullableDatabaseValueCursor<RowDecoder._Wrapped> {
-        return try Optional<RowDecoder._Wrapped>.fetchCursor(db, self)
+        try Optional<RowDecoder._Wrapped>.fetchCursor(db, self)
     }
     
     /// An array of fetched optional values.
@@ -632,6 +632,6 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder._Wrapped?] {
-        return try Optional<RowDecoder._Wrapped>.fetchAll(db, self)
+        try Optional<RowDecoder._Wrapped>.fetchAll(db, self)
     }
 }

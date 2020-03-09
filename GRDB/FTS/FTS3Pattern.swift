@@ -74,13 +74,13 @@ public struct FTS3Pattern {
 extension FTS3Pattern: DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return rawPattern.databaseValue
+        rawPattern.databaseValue
     }
     
     /// Returns an FTS3Pattern initialized from *dbValue*, if it contains
     /// a suitable value.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS3Pattern? {
-        return String
+        String
             .fromDatabaseValue(dbValue)
             .flatMap { try? FTS3Pattern(rawPattern: $0) }
     }

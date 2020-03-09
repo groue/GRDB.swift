@@ -23,12 +23,10 @@ public struct FTS5TokenizerDescriptor {
     ///
     ///     // "unicode61"
     ///     FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).name
-    var name: String {
-        return components[0]
-    }
+    var name: String { components[0] }
     
     var arguments: [String] {
-        return Array(components.suffix(from: 1))
+        Array(components.suffix(from: 1))
     }
     
     /// Creates an FTS5 tokenizer descriptor.

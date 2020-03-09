@@ -18,7 +18,7 @@ extension String {
 ///     databaseQuestionMarks(count: 3) // "?,?,?"
 @inlinable
 public func databaseQuestionMarks(count: Int) -> String {
-    return repeatElement("?", count: count).joined(separator: ",")
+    repeatElement("?", count: count).joined(separator: ",")
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -64,7 +64,7 @@ func GRDBPrecondition(
 
 // Workaround Swift inconvenience around factory methods of non-final classes
 func cast<T, U>(_ value: T) -> U? {
-    return value as? U
+    value as? U
 }
 
 extension RangeReplaceableCollection {
@@ -93,7 +93,7 @@ extension DispatchQueue {
     }()
     
     static var isMain: Bool {
-        return DispatchQueue.getSpecific(key: mainKey) != nil
+        DispatchQueue.getSpecific(key: mainKey) != nil
     }
 }
 

@@ -30,7 +30,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue {
-        return date.timeIntervalSince1970.databaseValue
+        date.timeIntervalSince1970.databaseValue
     }
     
     /// Returns a value initialized from *dbValue*, if possible.

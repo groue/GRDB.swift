@@ -29,7 +29,7 @@ public struct FTS4: VirtualTableModule {
     ///
     /// See Database.create(virtualTable:using:)
     public func makeTableDefinition() -> FTS4TableDefinition {
-        return FTS4TableDefinition()
+        FTS4TableDefinition()
     }
     
     /// Reserved; part of the VirtualTableModule protocol.

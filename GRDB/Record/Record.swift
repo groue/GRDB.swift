@@ -57,7 +57,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// See https://www.sqlite.org/lang_conflict.html
     open class var persistenceConflictPolicy: PersistenceConflictPolicy {
-        return PersistenceConflictPolicy(insert: .abort, update: .abort)
+        PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
     /// The default request selection.
@@ -90,7 +90,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///     // SELECT *, rowid FROM player
     ///     try ExtendedPlayer.fetchAll(db)
     open class var databaseSelection: [SQLSelectable] {
-        return [AllColumns()]
+        [AllColumns()]
     }
     
     
@@ -175,7 +175,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     /// false does not prevent it from turning true on subsequent modifications
     /// of the record.
     public var hasDatabaseChanges: Bool {
-        get { return databaseChangesIterator().next() != nil }
+        get { databaseChangesIterator().next() != nil }
         set { referenceRow = newValue ? nil : Row(self) }
     }
     
@@ -189,7 +189,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     ///
     /// See `hasDatabaseChanges` for more information.
     public var databaseChanges: [String: DatabaseValue?] {
-        return Dictionary(uniqueKeysWithValues: databaseChangesIterator())
+        Dictionary(uniqueKeysWithValues: databaseChangesIterator())
     }
     
     // A change iterator that is used by both hasDatabaseChanges and

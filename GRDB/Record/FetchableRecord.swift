@@ -116,7 +116,7 @@ public protocol FetchableRecord {
 
 extension FetchableRecord {
     public static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] {
-        return [:]
+        [:]
     }
     
     /// Returns a JSONDecoder with the following properties:
@@ -133,7 +133,7 @@ extension FetchableRecord {
     }
     
     public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
-        return .deferredToDate
+        .deferredToDate
     }
 }
 
@@ -382,7 +382,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
-        return try RowDecoder.fetchCursor(db, self)
+        try RowDecoder.fetchCursor(db, self)
     }
     
     /// An array of fetched records.
@@ -394,7 +394,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchAll(_ db: Database) throws -> [RowDecoder] {
-        return try RowDecoder.fetchAll(db, self)
+        try RowDecoder.fetchAll(db, self)
     }
     
     /// The first fetched record.
@@ -406,7 +406,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder? {
-        return try RowDecoder.fetchOne(db, self)
+        try RowDecoder.fetchOne(db, self)
     }
 }
 

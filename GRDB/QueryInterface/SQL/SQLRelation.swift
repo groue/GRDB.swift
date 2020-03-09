@@ -158,7 +158,7 @@ struct SQLRelation {
     var children: OrderedDictionary<String, Child>
     
     var prefetchedAssociations: [SQLAssociation] {
-        return children.flatMap { key, child -> [SQLAssociation] in
+        children.flatMap { key, child -> [SQLAssociation] in
             switch child.kind {
             case .allPrefetched:
                 return [child.makeAssociationForKey(key)]
@@ -193,22 +193,21 @@ struct SQLRelation {
 
 extension SQLRelation: KeyPathRefining {
     func select(_ selection: [SQLSelectable]) -> SQLRelation {
-        return with(\.selection, selection)
+        with(\.selection, selection)
     }
     
     /// Removes all selections from chidren
     func selectOnly(_ selection: [SQLSelectable]) -> SQLRelation {
-        return self
-            .with(\.selection, selection)
+        self.with(\.selection, selection)
             .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
     }
     
     func annotated(with selection: [SQLSelectable]) -> SQLRelation {
-        return mapInto(\.selection, { $0.append(contentsOf: selection) })
+        mapInto(\.selection, { $0.append(contentsOf: selection) })
     }
     
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
-        return map(\.filtersPromise, { filtersPromise in
+        map(\.filtersPromise, { filtersPromise in
             filtersPromise.flatMap { filters in
                 DatabasePromise { try filters + [predicate($0).sqlExpression] }
             }
@@ -216,21 +215,20 @@ extension SQLRelation: KeyPathRefining {
     }
     
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLRelation {
-        return with(\.ordering, SQLRelation.Ordering(orderings: orderings))
+        with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
     
     func reversed() -> SQLRelation {
-        return map(\.ordering, \.reversed)
+        map(\.ordering, \.reversed)
     }
     
     func unordered() -> SQLRelation {
-        return self
-            .with(\.ordering, SQLRelation.Ordering())
+        self.with(\.ordering, SQLRelation.Ordering())
             .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.unordered() }) } })
     }
     
     func qualified(with alias: TableAlias) -> SQLRelation {
-        return map(\.source, { $0.qualified(with: alias) })
+        map(\.source, { $0.qualified(with: alias) })
     }
 }
 
@@ -351,33 +349,33 @@ extension SQLRelation {
     }
     
     func removingChild(forKey key: String) -> SQLRelation {
-        return mapInto(\.children, { $0.removeValue(forKey: key) })
+        mapInto(\.children, { $0.removeValue(forKey: key) })
     }
     
     func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> SQLRelation {
-        return try map(\.children, { try $0.filter { try included($1) } })
+        try map(\.children, { try $0.filter { try included($1) } })
     }
 }
 
 extension SQLRelation: _JoinableRequest {
     func _including(all association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association, kind: .allPrefetched)
+        appendingChild(for: association, kind: .allPrefetched)
     }
     
     func _including(optional association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association, kind: .oneOptional)
+        appendingChild(for: association, kind: .oneOptional)
     }
     
     func _including(required association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association, kind: .oneRequired)
+        appendingChild(for: association, kind: .oneRequired)
     }
     
     func _joining(optional association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
+        appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
     }
     
     func _joining(required association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
+        appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
     }
 }
 
@@ -443,9 +441,7 @@ extension SQLRelation {
         private var elements: [Element] = []
         var isReversed: Bool
         
-        var isEmpty: Bool {
-            return elements.isEmpty
-        }
+        var isEmpty: Bool { elements.isEmpty }
         
         private init(elements: [Element], isReversed: Bool) {
             self.elements = elements
@@ -465,19 +461,19 @@ extension SQLRelation {
         }
         
         var reversed: Ordering {
-            return Ordering(
+            Ordering(
                 elements: elements,
                 isReversed: !isReversed)
         }
         
         func qualified(with alias: TableAlias) -> Ordering {
-            return Ordering(
+            Ordering(
                 elements: elements.map { $0.qualified(with: alias) },
                 isReversed: isReversed)
         }
         
         func appending(_ ordering: Ordering) -> Ordering {
-            return Ordering(
+            Ordering(
                 elements: elements + [.ordering(ordering)],
                 isReversed: isReversed)
         }
@@ -543,7 +539,7 @@ struct SQLAssociationCondition: Equatable {
     var originIsLeft: Bool
     
     var reversed: SQLAssociationCondition {
-        return SQLAssociationCondition(
+        SQLAssociationCondition(
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: !originIsLeft)
     }
@@ -572,7 +568,7 @@ struct SQLAssociationCondition: Equatable {
     /// - Returns: An array of SQL expression that should be joined with
     ///   the AND operator.
     func expressions(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> [SQLExpression] {
-        return try columnMappings(db).map {
+        try columnMappings(db).map {
             QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias)
         }
     }

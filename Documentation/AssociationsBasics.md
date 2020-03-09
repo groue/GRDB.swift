@@ -91,14 +91,14 @@ With GRDB associations, we can streamline these operations (and others), by decl
 extension Author {
     static let books = hasMany(Book.self)
     var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
+        request(for: Author.books)
     }
 }
 
 extension Book {
     static let author = belongsTo(Author.self)
     var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
+        request(for: Book.author)
     }
 }
 ```
@@ -165,7 +165,7 @@ Generally speaking, associations use the [TableRecord], [FetchableRecord], and [
     extension Book: EncodableRecord {
         // The request for the author of a book.
         var author: QueryInterfaceRequest<Author> {
-            return request(for: Book.author)
+            request(for: Book.author)
         }
     }
     
@@ -327,7 +327,7 @@ As in the examples above, **HasManyThrough** association is always built from tw
 ```swift
 struct Document: TableRecord {
     static let paragraphs = hasMany(
-        Paragraph.self, 
+        Paragraph.self,
         through: Document.hasMany(Section.self),
         using: Section.hasMany(Paragraph.self))
     ...
@@ -785,7 +785,7 @@ struct Book: TableRecord, EncodableRecord {
     
     /// The request for the author of a book
     var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
+        request(for: Book.author)
     }
 }
 ```
@@ -806,7 +806,7 @@ struct Author: TableRecord, EncodableRecord {
     
     /// The request for the books of an author
     var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
+        request(for: Author.books)
     }
 }
 
@@ -1140,7 +1140,7 @@ extension Team {
     static let players = hasMany(Player.self).order(Column("position"))
     
     var players: QueryInterfaceRequest<Player> {
-        return request(for: Team.players)
+        request(for: Team.players)
     }
 }
 ```
@@ -1174,7 +1174,7 @@ extension Team {
     static let players = hasMany(Player.self, through: playerRoles, using: PlayerRole.player)
     
     var players: QueryInterfaceRequest<Player> {
-        return request(for: Team.players)
+        request(for: Team.players)
     }
 }
 
@@ -1383,7 +1383,7 @@ For example, we can start by defining base requests as extensions to the [Deriva
 extension DerivableRequest where RowDecoder == Author {
     /// Filters authors by country
     func filter(country: String) -> Self {
-        return filter(Column("country") == country)
+        filter(Column("country") == country)
     }
 }
 
@@ -1391,7 +1391,7 @@ extension DerivableRequest where RowDecoder == Author {
 extension DerivableRequest where RowDecoder == Book {
     /// Filters books by author country
     func filter(authorCountry: String) -> Self {
-        return joining(required: Book.author.filter(country: country))
+        joining(required: Book.author.filter(country: country))
     }
     
     /// Order books by author name and then book title
@@ -1610,8 +1610,7 @@ And who is the most able to know those coding keys? BookInfo itself, thanks to i
 ```swift
 extension BookInfo {
     static func all() -> QueryInterfaceRequest<BookInfo> {
-        return Book
-            .including(optional: Book.coverImage)
+        Book.including(optional: Book.coverImage)
             .including(required: Book.author
                 .forKey(CodingKeys.authorInfo)        // (1)
                 .including(optional: Person.country))
@@ -1758,7 +1757,7 @@ When you need to compute aggregates **from a single record**, you use [regular a
 struct Author: TableRecord, EncodableRecord {
     static let books = hasMany(Book.self)
     var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
+        request(for: Author.books)
     }
 }
 
@@ -2306,17 +2305,17 @@ Those methods are defined on extensions to the `DerivableRequest` protocol:
 ```swift
 extension DerivableRequest where RowDecoder == Author {
     func filter(country: String) -> Self {
-        return filter(Column("country") == country)
+        filter(Column("country") == country)
     }
     
     func orderedByName() -> Self {
-        return order(Column("name").collating(.localizedCaseInsensitiveCompare))
+        order(Column("name").collating(.localizedCaseInsensitiveCompare))
     }
 }
 
 extension DerivableRequest where RowDecoder == Book {
     func filter(country: String) -> Self {
-        return joining(required: Book.author.filter(country: country))
+        joining(required: Book.author.filter(country: country))
     }
 }
 ```

@@ -86,7 +86,7 @@ extension FTS5Tokenizer {
     ///     - .query: Tokenize like the search pattern of the MATCH operator.
     /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
     func tokenize(_ string: String, for tokenization: FTS5Tokenization) throws -> [(String, FTS5TokenFlags)] {
-        return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
+        try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
             guard let addr = buffer.baseAddress else {
                 return []
             }

@@ -8,7 +8,7 @@
 # make distclean - Restore repository to a pristine state
 
 default: test
-
+smokeTest: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget test_framework_SQLCipher4 test_framework_GRDBCustomSQLiteiOS_maxTarget test_SPM
 
 # Requirements
 # ============
@@ -436,4 +436,4 @@ clean:
 	if [ -a Tests/Performance/Realm/build.sh ]; then cd Tests/Performance/Realm && sh build.sh clean; fi
 	find . -name Package.resolved | xargs rm -f
 
-.PHONY: distclean clean doc test SQLiteCustom
+.PHONY: distclean clean doc test smokeTest SQLiteCustom

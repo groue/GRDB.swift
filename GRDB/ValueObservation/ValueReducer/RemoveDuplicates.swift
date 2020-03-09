@@ -12,7 +12,7 @@ extension ValueReducer where Value: Equatable {
     ///
     /// Returns a ValueReducer which filters out consecutive equal values.
     public func removeDuplicates() -> ValueReducers.RemoveDuplicates<Self> {
-        return ValueReducers.RemoveDuplicates(self)
+        ValueReducers.RemoveDuplicates(self)
     }
 }
 
@@ -31,7 +31,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Base.Fetched {
-            return try base.fetch(db)
+            try base.fetch(db)
         }
         
         public mutating func value(_ fetched: Base.Fetched) -> Base.Value? {

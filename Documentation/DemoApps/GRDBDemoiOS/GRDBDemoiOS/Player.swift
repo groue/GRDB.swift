@@ -35,11 +35,11 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
 // See https://github.com/groue/GRDB.swift/blob/master/README.md#requests
 extension Player {
     static func orderedByName() -> QueryInterfaceRequest<Player> {
-        return Player.order(Columns.name)
+        Player.order(Columns.name)
     }
     
     static func orderedByScore() -> QueryInterfaceRequest<Player> {
-        return Player.order(Columns.score.desc, Columns.name)
+        Player.order(Columns.score.desc, Columns.name)
     }
 }
 
@@ -57,10 +57,10 @@ extension Player {
         "Zazie", "Zoé"]
     
     static func randomName() -> String {
-        return names.randomElement()!
+        names.randomElement()!
     }
     
     static func randomScore() -> Int {
-        return 10 * Int.random(in: 0...100)
+        10 * Int.random(in: 0...100)
     }
 }

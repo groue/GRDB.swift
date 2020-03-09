@@ -53,10 +53,10 @@ final class SchedulingWatchdog {
     }
     
     static var current: SchedulingWatchdog? {
-        return DispatchQueue.getSpecific(key: watchDogKey)
+        DispatchQueue.getSpecific(key: watchDogKey)
     }
     
     func allows(_ db: Database) -> Bool {
-        return allowedDatabases.contains { $0 === db }
+        allowedDatabases.contains { $0 === db }
     }
 }

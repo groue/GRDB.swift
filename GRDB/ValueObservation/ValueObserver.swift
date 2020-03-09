@@ -158,7 +158,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
 
 class ValueObserverToken<Reducer: ValueReducer>: TransactionObserver {
     // Useless junk
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
     func databaseDidChange(with event: DatabaseEvent) { }
     func databaseDidCommit(_ db: Database) { }
     func databaseDidRollback(_ db: Database) { }

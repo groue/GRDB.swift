@@ -11,7 +11,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
             }
         }
         
@@ -36,7 +36,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Int
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
             }
         }
         
@@ -64,7 +64,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = CustomRecord
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
             }
         }
         
@@ -89,7 +89,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
             }
         }
         
@@ -112,12 +112,10 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "INVALID"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "INVALID"))
             }
             
-            func fetchCount(_ db: Database) throws -> Int {
-                return 2
-            }
+            func fetchCount(_ db: Database) throws -> Int { 2 }
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -195,9 +193,9 @@ class FetchRequestTests: GRDBTestCase {
             do {
                 struct Value: DatabaseValueConvertible {
                     var string: String
-                    var databaseValue: DatabaseValue { return string.databaseValue }
+                    var databaseValue: DatabaseValue { string.databaseValue }
                     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Value? {
-                        return String.fromDatabaseValue(dbValue).map(Value.init)
+                        String.fromDatabaseValue(dbValue).map(Value.init)
                     }
                 }
                 do {
@@ -248,9 +246,9 @@ class FetchRequestTests: GRDBTestCase {
                     init(sqliteStatement: SQLiteStatement, index: Int32) {
                         self.init(string: String(sqliteStatement: sqliteStatement, index: index))
                     }
-                    var databaseValue: DatabaseValue { return string.databaseValue }
+                    var databaseValue: DatabaseValue { string.databaseValue }
                     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Value? {
-                        return String.fromDatabaseValue(dbValue).map { Value(string: $0) }
+                        String.fromDatabaseValue(dbValue).map { Value(string: $0) }
                     }
                 }
                 do {

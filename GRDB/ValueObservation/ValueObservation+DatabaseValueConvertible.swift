@@ -26,7 +26,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllValues<RowDecoder>> {
-        return ValueObservation.tracking(self, reducer: { _ in
+        ValueObservation.tracking(self, reducer: { _ in
             ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) }
         })
     }
@@ -55,7 +55,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder>> {
-        return ValueObservation.tracking(self, reducer: { _ in
+        ValueObservation.tracking(self, reducer: { _ in
             ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) }
         })
     }
@@ -89,7 +89,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllOptionalValues<RowDecoder._Wrapped>> {
-        return ValueObservation.tracking(self, reducer: { _ in
+        ValueObservation.tracking(self, reducer: { _ in
             ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) }
         })
     }
@@ -118,7 +118,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder._Wrapped>> {
-        return ValueObservation.tracking(self, reducer: { _ in
+        ValueObservation.tracking(self, reducer: { _ in
             ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) }
         })
     }
@@ -142,7 +142,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> [DatabaseValue] {
-            return try _fetch(db)
+            try _fetch(db)
         }
         
         public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder]? {
@@ -175,7 +175,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> DatabaseValue? {
-            return try _fetch(db)
+            try _fetch(db)
         }
         
         public mutating func value(_ dbValue: DatabaseValue?) -> RowDecoder?? {
@@ -216,7 +216,7 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> [DatabaseValue] {
-            return try _fetch(db)
+            try _fetch(db)
         }
         
         public mutating func value(_ dbValues: [DatabaseValue]) -> [RowDecoder?]? {

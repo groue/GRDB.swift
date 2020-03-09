@@ -209,12 +209,12 @@ extension DatabaseValue {
 extension DatabaseValue {
     /// Returns self
     public var databaseValue: DatabaseValue {
-        return self
+        self
     }
     
     /// Returns the database value
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> DatabaseValue? {
-        return dbValue
+        dbValue
     }
 }
 
@@ -223,7 +223,7 @@ extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
-        return self
+        self
     }
 }
 
@@ -277,7 +277,7 @@ extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return self
+        self
     }
 }
 

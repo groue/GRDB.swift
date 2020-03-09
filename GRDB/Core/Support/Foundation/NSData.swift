@@ -6,7 +6,7 @@ extension NSData: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return (self as Data).databaseValue
+        (self as Data).databaseValue
     }
     
     /// Returns an NSData initialized from *dbValue*, if it contains

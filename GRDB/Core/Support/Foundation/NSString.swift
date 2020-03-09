@@ -6,7 +6,7 @@ extension NSString: DatabaseValueConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return (self as String).databaseValue
+        (self as String).databaseValue
     }
     
     /// Returns an NSString initialized from *dbValue*, if possible.

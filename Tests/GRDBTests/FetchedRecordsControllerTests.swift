@@ -69,7 +69,7 @@ private class Person : Record {
     }
     
     override class var databaseTableName: String {
-        return "persons"
+        "persons"
     }
     
     override func encode(to container: inout PersistenceContainer) {

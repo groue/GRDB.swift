@@ -27,7 +27,7 @@ extension SQLCollection {
     ///
     /// Returns a SQLExpressionContains which applies the `IN` SQL operator.
     public func contains(_ value: SQLExpressible) -> SQLExpression {
-        return SQLExpressionContains(value, self)
+        SQLExpressionContains(value, self)
     }
 }
 
@@ -45,7 +45,7 @@ struct SQLExpressionsArray: SQLCollection {
     }
     
     func collectionSQL(_ context: inout SQLGenerationContext) -> String {
-        return expressions
+        expressions
             .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
             .joined(separator: ", ")
     }

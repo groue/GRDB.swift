@@ -246,7 +246,7 @@ try db.execute(literal: "UPDATE player SET score = \(score) WHERE id = \(id)")
 
 extension Player {
     static func filter(name: String) -> SQLRequest<Player> {
-        return "SELECT * FROM \(self) WHERE \(CodingKeys.name) = \(name)"
+        "SELECT * FROM player WHERE name = \(name)"
     }
 }
 

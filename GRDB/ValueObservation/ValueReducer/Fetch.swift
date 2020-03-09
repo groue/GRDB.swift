@@ -12,11 +12,11 @@ extension ValueReducers {
         }
         
         public func fetch(_ db: Database) throws -> Value {
-            return try _fetch(db)
+            try _fetch(db)
         }
         
         public func value(_ fetched: Value) -> Value? {
-            return fetched
+            fetched
         }
     }
 }

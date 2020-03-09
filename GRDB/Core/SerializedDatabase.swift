@@ -6,9 +6,7 @@ final class SerializedDatabase {
     private let db: Database
     
     /// The database configuration
-    var configuration: Configuration {
-        return db.configuration
-    }
+    var configuration: Configuration { db.configuration }
     
     /// The path to the database file
     var path: String
@@ -188,7 +186,7 @@ final class SerializedDatabase {
     
     /// Returns true if any only if the current dispatch queue is valid.
     var onValidQueue: Bool {
-        return SchedulingWatchdog.current?.allows(db) ?? false
+        SchedulingWatchdog.current?.allows(db) ?? false
     }
     
     /// Executes the block in the current queue.

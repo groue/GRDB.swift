@@ -19,7 +19,7 @@ extension SQLFunctionName {
 ///     // STRFTIME('%Y', date)
 ///     strftime("%Y", Column("date"))
 func strftime(_ format: String, _ date: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.strftime, arguments: format, date)
+    SQLExpressionFunction(.strftime, arguments: format, date)
 }
 
 
@@ -31,14 +31,14 @@ extension SQLBinaryOperator {
 }
 
 func ~= (_ lhs: SQLExpressible, _ rhs: Column) -> SQLExpression {
-    return SQLExpressionBinary(.match, rhs, lhs)
+    SQLExpressionBinary(.match, rhs, lhs)
 }
 
 
 // CAST
 
 private func cast<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
-    return SQLLiteral("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
+    SQLLiteral("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
 }
 
 

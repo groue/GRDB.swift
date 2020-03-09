@@ -32,7 +32,7 @@ private class Person : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "persons"
+        "persons"
     }
     
     required init(row: Row) {
@@ -101,7 +101,7 @@ private class PersonWithModifiedCaseColumns: Record {
     // Record
     
     override class var databaseTableName: String {
-        return "persons"
+        "persons"
     }
     
     required init(row: Row) {

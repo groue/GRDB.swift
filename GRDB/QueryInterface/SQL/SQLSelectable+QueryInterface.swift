@@ -22,13 +22,13 @@ extension AllColumns: SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        return "*"
+        "*"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func countedSQL(_ context: inout SQLGenerationContext) -> String {
-        return "*"
+        "*"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -48,7 +48,7 @@ extension AllColumns: SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        return QualifiedAllColumns(alias: alias)
+        QualifiedAllColumns(alias: alias)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -102,9 +102,7 @@ extension QualifiedAllColumns: SQLSelectable {
         return "*"
     }
     
-    func count(distinct: Bool) -> SQLCount? {
-        return nil
-    }
+    func count(distinct: Bool) -> SQLCount? { nil }
     
     func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
         // Never requalify
@@ -112,7 +110,7 @@ extension QualifiedAllColumns: SQLSelectable {
     }
     
     func columnCount(_ db: Database) throws -> Int {
-        return try db.columns(in: alias.tableName).count
+        try db.columns(in: alias.tableName).count
     }
 }
 
@@ -128,22 +126,20 @@ struct SQLAliasedExpression: SQLSelectable {
     }
     
     func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        return expression.resultColumnSQL(&context) + " AS " + name.quotedDatabaseIdentifier
+        expression.resultColumnSQL(&context) + " AS " + name.quotedDatabaseIdentifier
     }
     
     func countedSQL(_ context: inout SQLGenerationContext) -> String {
-        return expression.countedSQL(&context)
+        expression.countedSQL(&context)
     }
     
     func count(distinct: Bool) -> SQLCount? {
-        return expression.count(distinct: distinct)
+        expression.count(distinct: distinct)
     }
     
     func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        return SQLAliasedExpression(expression.qualifiedExpression(with: alias), name: name)
+        SQLAliasedExpression(expression.qualifiedExpression(with: alias), name: name)
     }
     
-    func columnCount(_ db: Database) throws -> Int {
-        return 1
-    }
+    func columnCount(_ db: Database) throws -> Int { 1 }
 }

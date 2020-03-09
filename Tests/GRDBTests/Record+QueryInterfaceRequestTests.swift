@@ -25,7 +25,7 @@ private class Reader : Record {
     }
     
     override class var databaseTableName: String {
-        return "readers"
+        "readers"
     }
     
     override func encode(to container: inout PersistenceContainer) {

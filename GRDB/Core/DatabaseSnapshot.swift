@@ -11,7 +11,7 @@ public class DatabaseSnapshot: DatabaseReader {
     
     /// The database configuration
     public var configuration: Configuration {
-        return serializedDatabase.configuration
+        serializedDatabase.configuration
     }
     
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
@@ -65,7 +65,7 @@ extension DatabaseSnapshot {
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        try serializedDatabase.sync(block)
     }
     
     /// Asynchronously executes a read-only block in a protected dispatch queue.
@@ -86,12 +86,12 @@ extension DatabaseSnapshot {
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        return try serializedDatabase.sync(block)
+        try serializedDatabase.sync(block)
     }
     
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try serializedDatabase.reentrantSync(block)
+        try serializedDatabase.reentrantSync(block)
     }
     
     // MARK: - Functions
@@ -167,7 +167,7 @@ extension DatabaseSnapshot {
 /// An observer that does nothing, support for
 /// `DatabaseSnapshot.add(observation:onError:onChange:)`.
 private class SnapshotValueObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
     func databaseDidChange(with event: DatabaseEvent) { }
     func databaseDidCommit(_ db: Database) { }
     func databaseDidRollback(_ db: Database) { }

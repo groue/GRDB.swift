@@ -116,7 +116,7 @@ class ItemClass : Record {
     }
     
     override class var databaseTableName: String {
-        return "items"
+        "items"
     }
     
     required init(row: GRDB.Row) {

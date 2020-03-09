@@ -24,7 +24,7 @@ class BadlyMangledStuff : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "stuffs"
+        "stuffs"
     }
     
     required init(row: Row) {

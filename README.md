@@ -1879,7 +1879,7 @@ struct MaxLength : DatabaseAggregate {
     }
     
     func finalize() -> DatabaseValueConvertible? {
-        return maxLength
+        maxLength
     }
 }
 
@@ -2472,9 +2472,7 @@ Subclasses of the [Record](#record-class) class must always override their super
 
 ```swift
 class Place: Record {
-    override class var databaseTableName: String {
-        return "place"
-    }
+    override class var databaseTableName: String { "place" }
 }
 print(Place.databaseTableName) // prints "place"
 ```
@@ -2910,9 +2908,7 @@ class Place: Record {
     }
     
     /// The table name
-    override class var databaseTableName: String {
-        return "place"
-    }
+    override class var databaseTableName: String { "place" }
     
     /// The table columns
     enum Columns: String, ColumnExpression {
@@ -3226,7 +3222,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     // When you subclass Record, you need an override:
     class Book : Record {
         override class var databaseSelection: [SQLSelectable] {
-            return [AllColums(), Column.rowID]
+            [AllColums(), Column.rowID]
         }
     }
     ```
@@ -3344,7 +3340,7 @@ struct Place: Codable {
     
     var coordinate: CLLocationCoordinate2D {
         get {
-            return CLLocationCoordinate2D(
+            CLLocationCoordinate2D(
                 latitude: latitude,
                 longitude: longitude)
         }
@@ -3452,7 +3448,7 @@ struct Place: Encodable {
     
     var coordinate: CLLocationCoordinate2D {
         get {
-            return CLLocationCoordinate2D(
+            CLLocationCoordinate2D(
                 latitude: latitude,
                 longitude: longitude)
         }
@@ -3530,9 +3526,7 @@ class Place: Record {
     }
     
     /// The table name
-    override class var databaseTableName: String {
-        return "place"
-    }
+    override class var databaseTableName: String { "place" }
     
     /// The table columns
     enum Columns: String, ColumnExpression {
@@ -4814,7 +4808,7 @@ let request = Player.all()
     ```swift
     extension Player {
         static func filter(color: Color) -> SQLRequest<Player> {
-            return SQLRequest<Player>(
+            SQLRequest<Player>(
                 sql: "SELECT * FROM player WHERE color = ?"
                 arguments: [color])
         }
@@ -4829,7 +4823,7 @@ let request = Player.all()
     ```swift
     extension Player {
         static func filter(color: Color) -> SQLRequest<Player> {
-            return "SELECT * FROM player WHERE color = \(color)"
+            "SELECT * FROM player WHERE color = \(color)"
         }
     }
     ```
@@ -5318,7 +5312,7 @@ extension PlayerInfo {
     
     /// Fetches all player infos
     static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
-        return try all().fetchAll(db)
+        try all().fetchAll(db)
     }
 }
 ```
@@ -5389,7 +5383,7 @@ extension PlayerInfo {
     
     /// Fetches all player infos
     static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
-        return try all().fetchAll(db)
+        try all().fetchAll(db)
     }
 }
 
@@ -6380,7 +6374,7 @@ class PlayerObserver: TransactionObserver {
     var playerTableWasModified = false
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return eventKind.tableName == "player"
+        eventKind.tableName == "player"
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
@@ -7247,7 +7241,7 @@ Those guarantees hold as long as you follow three rules:
     ```swift
     // SAFE CONCURRENCY
     func fetchCurrentUser(_ db: Database) throws -> User? {
-        return try User.fetchOne(db)
+        try User.fetchOne(db)
     }
     // dbQueue is a singleton defined somewhere in your app
     let user = try dbQueue.read { db in // or dbPool.read
@@ -7399,7 +7393,7 @@ let futureCount: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db i
     
     // <- not in a transaction here
     let futureCount = dbPool.concurrentRead { db
-        return try Player.fetchCount(db)
+        try Player.fetchCount(db)
     }
     return futureCount
 }
@@ -7420,7 +7414,7 @@ try dbPool.writeWithoutTransaction { db in
     
     let futureCount = dbPool.concurrentRead { db
         // Guaranteed to be non-zero
-        return try Player.fetchCount(db)
+        try Player.fetchCount(db)
     }
     
     try Player.deleteAll(db)

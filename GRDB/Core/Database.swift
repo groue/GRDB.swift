@@ -126,10 +126,10 @@ public final class Database {
     lazy var publicStatementCache = StatementCache(database: self)
     
     /// The last error code
-    public var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
+    public var lastErrorCode: ResultCode { ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
     
     /// The last error message
-    public var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
+    public var lastErrorMessage: String? { String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     /// Statement authorizer. Use withAuthorizer(_:_:).
     fileprivate var _authorizer: StatementAuthorizer?

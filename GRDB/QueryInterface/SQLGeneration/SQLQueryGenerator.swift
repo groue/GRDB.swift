@@ -97,7 +97,7 @@ struct SQLQueryGenerator {
     }
     
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        return try (makeSelectStatement(db), rowAdapter(db))
+        try (makeSelectStatement(db), rowAdapter(db))
     }
     
     private func optimizedDatabaseRegion(_ db: Database, _ databaseRegion: DatabaseRegion) throws -> DatabaseRegion {
@@ -406,7 +406,7 @@ struct SQLQueryGenerator {
     ///         let author: Author = row["author"]
     ///     }
     private func rowAdapter(_ db: Database) throws -> RowAdapter? {
-        return try relation.rowAdapter(db, fromIndex: 0)?.adapter
+        try relation.rowAdapter(db, fromIndex: 0)?.adapter
     }
 }
 
@@ -421,11 +421,11 @@ struct SQLQueryGenerator {
 ///            • selection
 private struct SQLQualifiedRelation {
     /// The source alias
-    var sourceAlias: TableAlias { return source.alias }
+    var sourceAlias: TableAlias { source.alias }
     
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
-        return joins.reduce(into: source.allAliases) {
+        joins.reduce(into: source.allAliases) {
             $0.append(contentsOf: $1.value.relation.allAliases)
         }
     }
@@ -446,7 +446,7 @@ private struct SQLQualifiedRelation {
     ///            |
     ///            • selection
     var selection: [SQLSelectable] {
-        return joins.reduce(into: sourceSelection) {
+        joins.reduce(into: sourceSelection) {
             $0.append(contentsOf: $1.value.relation.selection)
         }
     }
@@ -467,7 +467,7 @@ private struct SQLQualifiedRelation {
     ///                                                     |
     ///                                                     • ordering
     var ordering: SQLRelation.Ordering {
-        return joins.reduce(sourceOrdering) {
+        joins.reduce(sourceOrdering) {
             $0.appending($1.value.relation.ordering)
         }
     }
@@ -574,8 +574,7 @@ private struct SQLQualifiedRelation {
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedRelation {
-        return self
-            .with(\.sourceSelection, selection.map { $0.qualifiedSelectable(with: sourceAlias) })
+        self.with(\.sourceSelection, selection.map { $0.qualifiedSelectable(with: sourceAlias) })
             .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
     }
 }
@@ -641,12 +640,12 @@ private struct SQLQualifiedJoin {
     let relation: SQLQualifiedRelation
     
     func sql(_ db: Database, _ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
-        return try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
+        try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
     }
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedJoin {
-        return SQLQualifiedJoin(
+        SQLQualifiedJoin(
             kind: kind,
             condition: condition,
             relation: relation.selectOnly(selection))

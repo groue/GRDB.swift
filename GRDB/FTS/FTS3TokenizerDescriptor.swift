@@ -89,14 +89,14 @@ public struct FTS3TokenizerDescriptor {
     }
     
     func tokenize(_ string: String) -> [String] {
-        return _tokenize(string)
+        _tokenize(string)
     }
     
     /// Returns an array of tokens found in the string argument.
     ///
     ///     FTS3TokenizerDescriptor.simple.tokenize("foo bar") // ["foo", "bar"]
     private func _tokenize(_ string: String) -> [String] {
-        return DatabaseQueue().inDatabase { db in
+        DatabaseQueue().inDatabase { db in
             var tokenizerChunks: [String] = []
             tokenizerChunks.append(name)
             for option in arguments {

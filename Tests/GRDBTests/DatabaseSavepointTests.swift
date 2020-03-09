@@ -10,7 +10,7 @@ func insertItem(_ db: Database, name: String) throws {
 }
 
 func fetchAllItemNames(_ dbReader: DatabaseReader) throws -> [String] {
-    return try dbReader.read { db in
+    try dbReader.read { db in
         try String.fetchAll(db, sql: "SELECT * FROM items ORDER BY name")
     }
 }
@@ -32,9 +32,7 @@ private class Observer : TransactionObserver {
     }
     #endif
     
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return true
-    }
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
     
     func databaseDidChange(with event: DatabaseEvent) {
         allRecordedEvents.append(event.copy())

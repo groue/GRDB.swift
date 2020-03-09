@@ -6,9 +6,7 @@ import XCTest
 #endif
 
 private struct CustomValueType : DatabaseValueConvertible {
-    var databaseValue: DatabaseValue {
-        return "CustomValueType".databaseValue
-    }
+    var databaseValue: DatabaseValue { "CustomValueType".databaseValue }
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> CustomValueType? {
         guard let string = String.fromDatabaseValue(dbValue), string == "CustomValueType" else {
             return nil

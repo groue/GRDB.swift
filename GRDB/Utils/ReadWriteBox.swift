@@ -6,7 +6,7 @@ final class ReadWriteBox<T> {
     private var queue: DispatchQueue
     
     var value: T {
-        get { return read { $0 } }
+        get { read { $0 } }
         set { write { $0 = newValue } }
     }
     
@@ -16,13 +16,13 @@ final class ReadWriteBox<T> {
     }
     
     func read<U>(_ block: (T) throws -> U) rethrows -> U {
-        return try queue.sync {
+        try queue.sync {
             try block(_value)
         }
     }
     
     func write<U>(_ block: (inout T) throws -> U) rethrows -> U {
-        return try queue.sync(flags: [.barrier]) {
+        try queue.sync(flags: [.barrier]) {
             try block(&_value)
         }
     }
@@ -31,7 +31,7 @@ final class ReadWriteBox<T> {
 extension ReadWriteBox where T: Numeric {
     @discardableResult
     func increment() -> T {
-        return write { n in
+        write { n in
             n += 1
             return n
         }
@@ -39,7 +39,7 @@ extension ReadWriteBox where T: Numeric {
     
     @discardableResult
     func decrement() -> T {
-        return write { n in
+        write { n in
             n -= 1
             return n
         }

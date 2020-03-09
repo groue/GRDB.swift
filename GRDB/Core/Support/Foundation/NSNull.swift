@@ -4,12 +4,8 @@ import Foundation
 extension NSNull: DatabaseValueConvertible {
     
     /// Returns DatabaseValue.null.
-    public var databaseValue: DatabaseValue {
-        return .null
-    }
+    public var databaseValue: DatabaseValue { .null }
     
     /// Returns nil.
-    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
-        return nil
-    }
+    public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? { nil }
 }

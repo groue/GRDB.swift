@@ -49,12 +49,12 @@ private enum StrategyCustom: StrategyProvider {
 }
 
 private struct RecordWithDate<Strategy: StrategyProvider>: FetchableRecord, Decodable {
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { return Strategy.strategy }
+    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { Strategy.strategy }
     var date: Date
 }
 
 private struct RecordWithOptionalDate<Strategy: StrategyProvider>: FetchableRecord, Decodable {
-    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { return Strategy.strategy }
+    static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { Strategy.strategy }
     var date: Date?
 }
 

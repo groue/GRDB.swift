@@ -11,7 +11,7 @@ private struct Author: FetchableRecord, PersistableRecord, Codable {
     var lastName: String?
     var country: String
     var fullName: String {
-        return [firstName, lastName]
+        [firstName, lastName]
             .compactMap { $0 }
             .joined(separator: " ")
     }
@@ -19,9 +19,7 @@ private struct Author: FetchableRecord, PersistableRecord, Codable {
     static let databaseTableName = "author"
     static let books = hasMany(Book.self)
     
-    var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
-    }
+    var books: QueryInterfaceRequest<Book> { request(for: Author.books) }
 }
 
 private struct Book: FetchableRecord, PersistableRecord, Codable {
@@ -36,9 +34,7 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
     static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
     #endif
     
-    var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
-    }
+    var author: QueryInterfaceRequest<Author> { request(for: Book.author) }
 }
 
 private struct BookFts4: TableRecord { }
@@ -85,17 +81,17 @@ private var libraryMigrator: DatabaseMigrator = {
 extension DerivableRequest where RowDecoder == Author {
     // SelectionRequest
     func selectCountry() -> Self {
-        return select(Column("country"))
+        select(Column("country"))
     }
     
     // FilteredRequest
     func filter(country: String) -> Self {
-        return filter(Column("country") == country)
+        filter(Column("country") == country)
     }
     
     // OrderedRequest
     func orderByFullName() -> Self {
-        return order(
+        order(
             Column("lastName").collating(.localizedCaseInsensitiveCompare),
             Column("firstName").collating(.localizedCaseInsensitiveCompare))
     }
@@ -104,35 +100,31 @@ extension DerivableRequest where RowDecoder == Author {
 extension DerivableRequest where RowDecoder == Book {
     // OrderedRequest
     func orderByTitle() -> Self {
-        return order(Column("title").collating(.localizedCaseInsensitiveCompare))
+        order(Column("title").collating(.localizedCaseInsensitiveCompare))
     }
     
     // JoinableRequest
     func filter(authorCountry: String) -> Self {
-        return joining(required: Book.author.filter(country: authorCountry))
+        joining(required: Book.author.filter(country: authorCountry))
     }
     
     // TableRequest & FilteredRequest
-    func filter(id: Int) -> Self {
-        return filter(key: id)
-    }
+    func filter(id: Int) -> Self { filter(key: id) }
     
     // TableRequest & FilteredRequest
     func matchingFts4(_ pattern: FTS3Pattern?) -> Self {
-        return joining(required: Book.bookFts4.matching(pattern))
+        joining(required: Book.bookFts4.matching(pattern))
     }
     
     #if SQLITE_ENABLE_FTS5
     // TableRequest & FilteredRequest
     func matchingFts5(_ pattern: FTS3Pattern?) -> Self {
-        return joining(required: Book.bookFts5.matching(pattern))
+        joining(required: Book.bookFts5.matching(pattern))
     }
     #endif
     
     // TableRequest & OrderedRequest
-    func orderById() -> Self {
-        return orderByPrimaryKey()
-    }
+    func orderById() -> Self { orderByPrimaryKey() }
 }
 
 class DerivableRequestTests: GRDBTestCase {

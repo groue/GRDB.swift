@@ -293,7 +293,7 @@ extension MutablePersistableRecordEncodableTests {
             // DatabaseValueConvertible adoption
             
             var databaseValue: DatabaseValue {
-                return (string + " (DatabaseValueConvertible)").databaseValue
+                (string + " (DatabaseValueConvertible)").databaseValue
             }
             
             static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {

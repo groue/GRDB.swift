@@ -224,9 +224,7 @@ extension FetchableRecordDecodableTests {
             
             // DatabaseValueConvertible adoption
             
-            var databaseValue: DatabaseValue {
-                fatalError("irrelevant")
-            }
+            var databaseValue: DatabaseValue { fatalError("irrelevant") }
             
             static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
                 if let string = String.fromDatabaseValue(databaseValue) {

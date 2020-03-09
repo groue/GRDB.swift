@@ -182,7 +182,7 @@ extension MutablePersistableRecord {
     /// The default value specifies ABORT policy for both insertions and
     /// updates, which has GRDB generate regular INSERT and UPDATE queries.
     public static var persistenceConflictPolicy: PersistenceConflictPolicy {
-        return PersistenceConflictPolicy(insert: .abort, update: .abort)
+        PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
     /// Notifies the record that it was succesfully inserted.
@@ -276,7 +276,7 @@ extension MutablePersistableRecord {
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
     public func updateChanges<Record: MutablePersistableRecord>(_ db: Database, from record: Record) throws -> Bool {
-        return try updateChanges(db, from: PersistenceContainer(db, record))
+        try updateChanges(db, from: PersistenceContainer(db, record))
     }
     
     /// Mutates the record according to the provided closure, and then, if the
@@ -322,7 +322,7 @@ extension MutablePersistableRecord {
     /// The default implementation for delete() invokes performDelete().
     @discardableResult
     public func delete(_ db: Database) throws -> Bool {
-        return try performDelete(db)
+        try performDelete(db)
     }
     
     /// Returns true if and only if the primary key matches a row in
@@ -330,7 +330,7 @@ extension MutablePersistableRecord {
     ///
     /// The default implementation for exists() invokes performExists().
     public func exists(_ db: Database) throws -> Bool {
-        return try performExists(db)
+        try performExists(db)
     }
     
     // MARK: - Record Comparison
@@ -515,7 +515,7 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func deleteAll(_ db: Database) throws -> Int {
-        return try all().deleteAll(db)
+        try all().deleteAll(db)
     }
     
     // MARK: Batch Update
@@ -674,7 +674,7 @@ extension MutablePersistableRecord {
     /// - returns: Whether a database row was deleted.
     @discardableResult
     public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
-        return try deleteAll(db, keys: [key]) > 0
+        try deleteAll(db, keys: [key]) > 0
     }
 }
 

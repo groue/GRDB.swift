@@ -26,7 +26,7 @@ class Email : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "emails"
+        "emails"
     }
     
     required init(row: Row) {
