@@ -95,6 +95,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#721](https://github.com/groue/GRDB.swift/pull/721): SE-0249: Key Path Expressions as Functions
 - [#722](https://github.com/groue/GRDB.swift/pull/722): SE-0253: Callable values of user-defined nominal types
 - [#723](https://github.com/groue/GRDB.swift/pull/723): SE-0255: Implicit returns from single-expression functions
+- [#724](https://github.com/groue/GRDB.swift/pull/724): SE-0242: Synthesize default values for the memberwise initializer
 
 
 ## 4.11.0
