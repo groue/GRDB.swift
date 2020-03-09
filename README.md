@@ -3340,7 +3340,7 @@ struct Place: Codable {
     
     var coordinate: CLLocationCoordinate2D {
         get {
-            return CLLocationCoordinate2D(
+            CLLocationCoordinate2D(
                 latitude: latitude,
                 longitude: longitude)
         }
@@ -3448,7 +3448,7 @@ struct Place: Encodable {
     
     var coordinate: CLLocationCoordinate2D {
         get {
-            return CLLocationCoordinate2D(
+            CLLocationCoordinate2D(
                 latitude: latitude,
                 longitude: longitude)
         }
@@ -7393,7 +7393,7 @@ let futureCount: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db i
     
     // <- not in a transaction here
     let futureCount = dbPool.concurrentRead { db
-        return try Player.fetchCount(db)
+        try Player.fetchCount(db)
     }
     return futureCount
 }
@@ -7414,7 +7414,7 @@ try dbPool.writeWithoutTransaction { db in
     
     let futureCount = dbPool.concurrentRead { db
         // Guaranteed to be non-zero
-        return try Player.fetchCount(db)
+        try Player.fetchCount(db)
     }
     
     try Player.deleteAll(db)

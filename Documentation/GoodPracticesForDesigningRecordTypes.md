@@ -231,7 +231,7 @@ extension DerivableRequest where RowDecoder == Book {
         // A book is from a country if it can be
         // joined with an author from that country:
         // ---------------------------------v
-        return joining(required: Book.author.filter(country: authorCountry))
+        self.joining(required: Book.author.filter(country: authorCountry))
     }
 }
 
