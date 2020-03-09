@@ -30,11 +30,9 @@
 /// See https://github.com/groue/GRDB.swift#the-query-interface
 public struct QueryInterfaceRequest<T> {
     var query: SQLQuery
-    
-    init(query: SQLQuery) {
-        self.query = query
-    }
-    
+}
+
+extension QueryInterfaceRequest {
     init(relation: SQLRelation) {
         self.init(query: SQLQuery(relation: relation))
     }

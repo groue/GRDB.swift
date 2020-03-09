@@ -55,10 +55,6 @@ private struct DatabaseValueEncoder: Encoder {
     /// Any contextual information set by the user for encoding.
     var userInfo: [CodingUserInfoKey: Any] = [:]
     
-    init(encode: @escaping (DatabaseValue) -> Void) {
-        self.encode = encode
-    }
-    
     /// Returns an encoding container appropriate for holding multiple values keyed by the given key type.
     ///
     /// - parameter type: The key type to use for the container.

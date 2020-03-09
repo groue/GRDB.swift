@@ -63,11 +63,7 @@ public struct AssociationAggregate<RowDecoder> {
     let prepare: AssociationAggregatePreparation<RowDecoder>
     
     /// The SQL name for the value of this aggregate. See forKey(_:).
-    var key: String?
-    
-    init(_ prepare: @escaping AssociationAggregatePreparation<RowDecoder>) {
-        self.prepare = prepare
-    }
+    var key: String? = nil
 }
 
 extension AssociationAggregate: KeyPathRefining {

@@ -11,11 +11,6 @@ struct Migration {
     let identifier: String
     let migrate: (Database) throws -> Void
     
-    init(identifier: String, migrate: @escaping (Database) throws -> Void) {
-        self.identifier = identifier
-        self.migrate = migrate
-    }
-    
     func run(_ db: Database) throws {
         // PRAGMA foreign_key_check and SQLITE_CONSTRAINT_FOREIGNKEY were
         // introduced in SQLite 3.7.16
@@ -26,7 +21,6 @@ struct Migration {
             try runWithoutDisabledForeignKeys(db)
         }
     }
-    
     
     private func runWithoutDisabledForeignKeys(_ db: Database) throws {
         try db.inTransaction(.immediate) {
