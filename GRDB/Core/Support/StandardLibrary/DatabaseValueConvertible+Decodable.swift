@@ -151,13 +151,6 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
 
 private struct DatabaseValueDecoder: Decoder {
     let dbValue: DatabaseValue
-    
-    init(dbValue: DatabaseValue, codingPath: [CodingKey]) {
-        self.dbValue = dbValue
-        self.codingPath = codingPath
-    }
-    
-    // Decoder
     let codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { [:] }
     

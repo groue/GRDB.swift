@@ -3,30 +3,14 @@
 /// See SQLQueryGenerator for actual SQL generation.
 struct SQLQuery {
     var relation: SQLRelation
-    var isDistinct: Bool
-    var expectsSingleResult: Bool
+    var isDistinct: Bool = false
+    var expectsSingleResult: Bool = false
     var groupPromise: DatabasePromise<[SQLExpression]>?
     // Having clause is an array of expressions that we'll join with
     // the AND operator. This gives nicer output in generated SQL:
     // `(a AND b AND c)` instead of `((a AND b) AND c)`.
-    var havingExpressions: [SQLExpression]
+    var havingExpressions: [SQLExpression] = []
     var limit: SQLLimit?
-    
-    init(
-        relation: SQLRelation,
-        isDistinct: Bool = false,
-        expectsSingleResult: Bool = false,
-        groupPromise: DatabasePromise<[SQLExpression]>? = nil,
-        havingExpressions: [SQLExpression] = [],
-        limit: SQLLimit? = nil)
-    {
-        self.relation = relation
-        self.isDistinct = isDistinct
-        self.expectsSingleResult = expectsSingleResult
-        self.groupPromise = groupPromise
-        self.havingExpressions = havingExpressions
-        self.limit = limit
-    }
 }
 
 extension SQLQuery: KeyPathRefining {

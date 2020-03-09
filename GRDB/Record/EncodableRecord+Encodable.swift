@@ -48,11 +48,6 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     private struct KeyedContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
         var recordEncoder: RecordEncoder
         var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
-        
-        init(recordEncoder: RecordEncoder) {
-            self.recordEncoder = recordEncoder
-        }
-        
         var codingPath: [CodingKey] { [] }
         
         // swiftlint:disable comma
@@ -235,10 +230,6 @@ private struct JSONRequiredError: Error { }
 private struct JSONRequiredEncoder<Record: EncodableRecord>: Encoder {
     var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
-    
-    init(codingPath: [CodingKey]) {
-        self.codingPath = codingPath
-    }
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
         let container = KeyedContainer<Key>(codingPath: codingPath)

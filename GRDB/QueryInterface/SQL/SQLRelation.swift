@@ -149,13 +149,13 @@ struct SQLRelation {
     }
     
     var source: SQLSource
-    var selection: [SQLSelectable]
+    var selection: [SQLSelectable] = []
     // Filter is an array of expressions that we'll join with the AND operator.
     // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
     // `((a AND b) AND c)`.
-    var filtersPromise: DatabasePromise<[SQLExpression]>
-    var ordering: SQLRelation.Ordering
-    var children: OrderedDictionary<String, Child>
+    var filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
+    var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
+    var children: OrderedDictionary<String, Child> = [:]
     
     var prefetchedAssociations: [SQLAssociation] {
         children.flatMap { key, child -> [SQLAssociation] in
@@ -174,20 +174,6 @@ struct SQLRelation {
                 }
             }
         }
-    }
-    
-    init(
-        source: SQLSource,
-        selection: [SQLSelectable] = [],
-        filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: []),
-        ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
-        children: OrderedDictionary<String, Child> = [:])
-    {
-        self.source = source
-        self.selection = selection
-        self.filtersPromise = filtersPromise
-        self.ordering = ordering
-        self.children = children
     }
 }
 
