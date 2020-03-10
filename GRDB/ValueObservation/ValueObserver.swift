@@ -129,6 +129,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     func reduce(future: DatabaseFuture<Reducer.Fetched>) {
         do {
             if let value = try reducer.value(future.wait()) {
+                if self.isCancelled { return }
                 if let queue = notificationQueue {
                     queue.async { [weak self] in
                         guard let self = self else { return }

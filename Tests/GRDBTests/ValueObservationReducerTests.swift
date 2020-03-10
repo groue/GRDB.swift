@@ -438,75 +438,88 @@ class ValueObservationReducerTests: GRDBTestCase {
         }
     }
     
-    // TODO: make this test pass reliably
-//    func testObserverInvalidation1() throws {
-//        func test(_ dbWriter: DatabaseWriter) throws {
-//            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-//
-//            let notificationExpectation = expectation(description: "notification")
-//            notificationExpectation.isInverted = true
-//
-//            do {
-//                var observer: TransactionObserver? = nil
-//                _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
-//                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
-//                    AnyValueReducer<Void, Void>(
-//                        fetch: { _ in observer = nil /* deallocation */  },
-//                        value: { _ in () })
-//                })
-//                observation.scheduling = .unsafe(startImmediately: false)
-//                observer = observation.start(
-//                    in: dbWriter,
-//                    onError: { error in XCTFail("Unexpected error: \(error)") },
-//                    onChange: { count in
-//                        XCTFail("unexpected change notification: \(String(describing: observer))")
-//                        notificationExpectation.fulfill()
-//                })
-//            }
-//
-//            try dbWriter.write { db in
-//                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-//            }
-//            waitForExpectations(timeout: 0.1, handler: nil)
-//        }
-//
-//        try test(makeDatabaseQueue())
-//        try test(makeDatabasePool())
-//    }
+    func testObserverInvalidation1() throws {
+        // Test that observation stops when observer is deallocated
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+
+            let notificationExpectation = expectation(description: "notification")
+            notificationExpectation.isInverted = true
+            notificationExpectation.expectedFulfillmentCount = 2
+
+            do {
+                var observer: TransactionObserver? = nil
+                _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
+                var shouldStopObservation = false
+                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
+                    AnyValueReducer<Void, Void>(
+                        fetch: { _ in
+                            if shouldStopObservation {
+                                observer = nil /* deallocation */
+                            }
+                            shouldStopObservation = true
+                    },
+                        value: { _ in () })
+                })
+                observation.scheduling = .unsafe
+                observer = observation.start(
+                    in: dbWriter,
+                    onError: { error in XCTFail("Unexpected error: \(error)") },
+                    onChange: { _ in
+                        notificationExpectation.fulfill()
+                })
+            }
+
+            try dbWriter.write { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            waitForExpectations(timeout: 0.2, handler: nil)
+        }
+
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
     
-    // TODO: make this test pass reliably
-//    func testObserverInvalidation2() throws {
-//        func test(_ dbWriter: DatabaseWriter) throws {
-//            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-//            
-//            let notificationExpectation = expectation(description: "notification")
-//            notificationExpectation.isInverted = true
-//            
-//            do {
-//                var observer: TransactionObserver? = nil
-//                _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
-//                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
-//                    AnyValueReducer<Void, Void>(
-//                        fetch: { _ in },
-//                        value: { _ in observer = nil /* deallocation right before notification */ })
-//                })
-//                observation.scheduling = .unsafe(startImmediately: false)
-//                observer = observation.start(
-//                    in: dbWriter,
-//                    onError: { error in XCTFail("Unexpected error: \(error)") },
-//                    onChange: { count in
-//                        XCTFail("unexpected change notification: \(String(describing: observer))")
-//                        notificationExpectation.fulfill()
-//                })
-//            }
-//            
-//            try dbWriter.write { db in
-//                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-//            }
-//            waitForExpectations(timeout: 0.1, handler: nil)
-//        }
-//        
-//        try test(makeDatabaseQueue())
-//        try test(makeDatabasePool())
-//    }
+    func testObserverInvalidation2() throws {
+        // Test that observation stops when observer is deallocated
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let notificationExpectation = expectation(description: "notification")
+            notificationExpectation.isInverted = true
+            notificationExpectation.expectedFulfillmentCount = 2
+            
+            do {
+                var observer: TransactionObserver? = nil
+                _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
+                var shouldStopObservation = false
+                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
+                    AnyValueReducer<Void, Void>(
+                        fetch: { _ in },
+                        value: { _ in
+                            if shouldStopObservation {
+                                observer = nil /* deallocation right before notification */
+                            }
+                            shouldStopObservation = true
+                            return ()
+                    })
+                })
+                observation.scheduling = .unsafe
+                observer = observation.start(
+                    in: dbWriter,
+                    onError: { error in XCTFail("Unexpected error: \(error)") },
+                    onChange: { _ in
+                        notificationExpectation.fulfill()
+                })
+            }
+            
+            try dbWriter.write { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            waitForExpectations(timeout: 0.2, handler: nil)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
 }
