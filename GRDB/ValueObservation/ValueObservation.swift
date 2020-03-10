@@ -46,7 +46,7 @@ public enum ValueObservationScheduling {
     ///
     ///     // On any queue
     ///     var observation = Player.observationForAll()
-    ///     observation.scheduling = .unsafe(startImmediately: true)
+    ///     observation.scheduling = .unsafe
     ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
     ///         print("fresh players: \(players)")
     ///     }
@@ -95,59 +95,6 @@ public struct ValueObservation<Reducer> {
     
     /// `scheduling` controls how fresh values are notified. Default
     /// is `.mainQueue`.
-    ///
-    /// - `.mainQueue`: all values are notified on the main queue.
-    ///
-    ///     If the observation starts on the main queue, an initial value is
-    ///     notified right upon subscription, synchronously::
-    ///
-    ///         // On main queue
-    ///         let observation = Player.observationForAll()
-    ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///             print("fresh players: \(players)")
-    ///         }
-    ///         // <- here "fresh players" is already printed.
-    ///
-    ///     If the observation does not start on the main queue, an initial
-    ///     value is also notified on the main queue, but asynchronously:
-    ///
-    ///         // Not on the main queue: "fresh players" is eventually printed
-    ///         // on the main queue.
-    ///         let observation = Player.observationForAll()
-    ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///             print("fresh players: \(players)")
-    ///         }
-    ///
-    ///     When the database changes, fresh values are asynchronously notified:
-    ///
-    ///         // Eventually prints "fresh players" on the main queue
-    ///         try dbQueue.write { db in
-    ///             try Player(...).insert(db)
-    ///         }
-    ///
-    /// - `.onQueue(_:startImmediately:)`: all values are asychronously notified
-    /// on the specified queue.
-    ///
-    ///     An initial value is fetched and notified if `startImmediately`
-    ///     is true.
-    ///
-    /// - `unsafe(startImmediately:)`: values are not all notified on the same
-    /// dispatch queue.
-    ///
-    ///     If `startImmediately` is true, an initial value is notified right
-    ///     upon subscription, synchronously, on the dispatch queue which starts
-    ///     the observation.
-    ///
-    ///         // On any queue
-    ///         var observation = Player.observationForAll()
-    ///         observation.scheduling = .unsafe(startImmediately: true)
-    ///         let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///             print("fresh players: \(players)")
-    ///         }
-    ///         // <- here "fresh players" is already printed.
-    ///
-    ///     When the database changes, other values are notified on
-    ///     unspecified queues.
     public var scheduling: ValueObservationScheduling
 }
 
