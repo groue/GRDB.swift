@@ -201,11 +201,6 @@ extension ValueObservation where Reducer: ValueReducer {
     }
 }
 
-// TODO: remove when not needed any longer
-private class ErrorCatcher {
-    var error: Error?
-}
-
 extension ValueObservation where Reducer: ValueReducer {
     
     // MARK: - Creating ValueObservation from ValueReducer
