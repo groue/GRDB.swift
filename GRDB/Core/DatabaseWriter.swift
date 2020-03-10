@@ -389,7 +389,7 @@ extension DatabaseWriter {
                 }
             }
             
-        case let .async(onQueue: queue, startImmediately: startImmediately):
+        case let .async(onQueue: queue):
             // Use case: observation must not block the target queue
             asyncWriteWithoutTransaction { db in
                 do {
@@ -398,23 +398,17 @@ extension DatabaseWriter {
                     observer.reducer = try observation.makeReducer(db)
                     
                     // Initial value & selected region
-                    if startImmediately {
-                        let fetchedValue: Reducer.Fetched
-                        if observation.observesSelectedRegion {
-                            (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                        } else {
-                            fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                        }
-                        if let value = observer.reducer.value(fetchedValue) {
-                            queue.async {
-                                onChange(value)
-                            }
-                        }
-                    } else if observation.observesSelectedRegion {
-                        (_, observer.selectedRegion) = try db.recordingSelectedRegion {
+                    let fetchedValue: Reducer.Fetched
+                    if observation.observesSelectedRegion {
+                        (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
                             try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+                        }
+                    } else {
+                        fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+                    }
+                    if let value = observer.reducer.value(fetchedValue) {
+                        queue.async {
+                            onChange(value)
                         }
                     }
                     
@@ -426,79 +420,48 @@ extension DatabaseWriter {
                 }
             }
             
-        case let .unsafe(startImmediately: startImmediately):
-            if startImmediately {
-                // Use case: third-party integration (RxSwift, Combine, ...) that
-                // need a synchronous initial fetch.
-                //
-                // This is really super extra unsafe.
-                //
-                // If the observation is started on one dispatch queue, then
-                // the onChange and onError callbacks must be asynchronously
-                // dispatched on the *same* queue.
-                //
-                // A failure to follow this rule may mess with the ordering of
-                // initial values.
-                var startValue: Reducer.Value? = nil
-                defer {
-                    if let startValue = startValue {
-                        onChange(startValue)
-                    }
+        case .unsafe:
+            // Use case: third-party integration (RxSwift, Combine, ...) that
+            // need a synchronous initial fetch.
+            //
+            // This is really super extra unsafe.
+            //
+            // If the observation is started on one dispatch queue, then
+            // the onChange and onError callbacks must be asynchronously
+            // dispatched on the *same* queue.
+            //
+            // A failure to follow this rule may mess with the ordering of
+            // initial values.
+            var startValue: Reducer.Value? = nil
+            defer {
+                if let startValue = startValue {
+                    onChange(startValue)
                 }
-                
-                do {
-                    try unsafeReentrantWrite { db in
-                        observer.notificationQueue = nil
-                        observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                        observer.reducer = try observation.makeReducer(db)
-                        
-                        // Initial value & selected region
-                        if startImmediately {
-                            let fetchedValue: Reducer.Fetched
-                            if observation.observesSelectedRegion {
-                                (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                    try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                                }
-                            } else {
-                                fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                            if let value = observer.reducer.value(fetchedValue) {
-                                startValue = value
-                            }
-                        } else if observation.observesSelectedRegion {
-                            (_, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
+            }
+            
+            do {
+                try unsafeReentrantWrite { db in
+                    observer.notificationQueue = nil
+                    observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
+                    observer.reducer = try observation.makeReducer(db)
+                    
+                    // Initial value & selected region
+                    let fetchedValue: Reducer.Fetched
+                    if observation.observesSelectedRegion {
+                        (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
+                            try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                         }
-                        
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    } else {
+                        fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                     }
-                } catch {
-                    onError(error)
-                }
-            } else {
-                // Use case: ?
-                //
-                // This is unsafe because no promise is made on the dispatch
-                // queue on which the onChange and onError callbacks are called.
-                asyncWriteWithoutTransaction { db in
-                    do {
-                        observer.notificationQueue = nil
-                        observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                        observer.reducer = try observation.makeReducer(db)
-                        
-                        // Selected region
-                        if observation.observesSelectedRegion {
-                            (_, observer.selectedRegion) = try db.recordingSelectedRegion {
-                                try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                            }
-                        }
-                        
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
-                    } catch {
-                        onError(error)
+                    if let value = observer.reducer.value(fetchedValue) {
+                        startValue = value
                     }
+                    
+                    db.add(transactionObserver: observer, extent: .observerLifetime)
                 }
+            } catch {
+                onError(error)
             }
         }
         

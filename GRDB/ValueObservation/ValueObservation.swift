@@ -7,7 +7,7 @@ import Dispatch
 public enum ValueObservationScheduling {
     /// All values are notified on the main queue.
     ///
-    /// If the observation starts on the main queue, an initial value is
+    /// If the observation starts on the main queue, the initial value is
     /// notified right upon subscription, synchronously:
     ///
     ///     // On main queue
@@ -17,7 +17,7 @@ public enum ValueObservationScheduling {
     ///     }
     ///     // <- here "fresh players" is already printed.
     ///
-    /// If the observation does not start on the main queue, an initial value
+    /// If the observation does not start on the main queue, the initial value
     /// is also notified on the main queue, but asynchronously:
     ///
     ///     // Not on the main queue: "fresh players" is eventually printed
@@ -37,16 +37,12 @@ public enum ValueObservationScheduling {
     case mainQueue
     
     /// All values are asychronously notified on the specified queue.
-    ///
-    /// An initial value is fetched and notified if `startImmediately`
-    /// is true.
-    case async(onQueue: DispatchQueue, startImmediately: Bool)
+    case async(onQueue: DispatchQueue)
     
     /// Values are not all notified on the same dispatch queue.
     ///
-    /// If `startImmediately` is true, an initial value is notified right upon
-    /// subscription, synchronously, on the dispatch queue which starts
-    /// the observation.
+    /// The initial value is notified right upon subscription, synchronously, on
+    /// the dispatch queue which starts the observation.
     ///
     ///     // On any queue
     ///     var observation = Player.observationForAll()
@@ -58,7 +54,7 @@ public enum ValueObservationScheduling {
     ///
     /// When the database changes, other values are notified on
     /// unspecified queues.
-    case unsafe(startImmediately: Bool)
+    case unsafe
 }
 
 // MARK: - ValueObservation
@@ -73,6 +69,8 @@ public enum ValueObservationScheduling {
 ///         print("Players have changed.")
 ///     }
 public struct ValueObservation<Reducer> {
+    // TODO: all calls to this closure are followed by ignoringViews().
+    // We should embed this ignoringViews() call.
     /// A closure that is evaluated when the observation starts, and returns
     /// a "base" observed database region.
     ///
@@ -178,6 +176,7 @@ extension ValueObservation where Reducer: ValueReducer {
     // TODO: make public if it helps fetching an initial value before starting
     // the observation, in order to avoid waiting for long write transactions to
     // complete.
+    // TODO: make the result non-optional when compactMap is removed.
     /// Returns the observed value.
     ///
     /// This method returns nil if observation would not notify any

@@ -145,7 +145,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testCustomQueueStartImmediately() throws {
+    func testCustomQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -162,7 +162,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.scheduling = .async(onQueue: queue, startImmediately: true)
+            observation.scheduling = .async(onQueue: queue)
             
             let observer = observation.start(
                 in: dbWriter,
@@ -186,48 +186,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testCustomQueueDontStartImmediately() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            // We need something to change
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            var counts: [Int] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 1
-            
-            let queue = DispatchQueue(label: "")
-            let key = DispatchSpecificKey<()>()
-            queue.setSpecific(key: key, value: ())
-            
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
-            observation.scheduling = .async(onQueue: queue, startImmediately: false)
-            
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.write {
-                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, [1])
-            }
-        }
-        
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-    }
-    
-    func testCustomQueueError() throws {
+    func testCustomQueueImmediateError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -246,7 +205,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 fetch: { _ in throw TestError() },
                 value: { $0 })
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            observation.scheduling = .async(onQueue: queue, startImmediately: false)
+            observation.scheduling = .async(onQueue: queue)
             
             let observer = observation.start(
                 in: dbWriter,
@@ -255,7 +214,52 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     errorCount += 1
                     notificationExpectation.fulfill()
             },
-                onChange: { _ in fatalError() })
+                onChange: { _ in XCTFail("Unexpected value") })
+            withExtendedLifetime(observer) {
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(errorCount, 1)
+            }
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
+    func testCustomQueueDelayedError() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            // We need something to change
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            var errorCount = 0
+            let notificationExpectation = expectation(description: "notification")
+            notificationExpectation.assertForOverFulfill = true
+            notificationExpectation.expectedFulfillmentCount = 1
+            
+            let queue = DispatchQueue(label: "")
+            let key = DispatchSpecificKey<()>()
+            queue.setSpecific(key: key, value: ())
+            
+            struct TestError: Error { }
+            var shouldThrow = false
+            let reducer = AnyValueReducer(
+                fetch: { _ in
+                    if shouldThrow {
+                        throw TestError()
+                    }
+                    shouldThrow = true
+            },
+                value: { $0 })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            observation.scheduling = .async(onQueue: queue)
+            
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in
+                    XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
+                    errorCount += 1
+                    notificationExpectation.fulfill()
+            },
+                onChange: { _ in })
             try withExtendedLifetime(observer) {
                 try dbWriter.write {
                     try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -270,7 +274,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testUnsafeStartImmediatelyFromMainQueue() throws {
+    func testUnsafeStartFromMainQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -286,7 +290,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.scheduling = .unsafe(startImmediately: true)
+            observation.scheduling = .unsafe
             
             let observer = observation.start(
                 in: dbWriter,
@@ -313,7 +317,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testUnsafeStartImmediatelyFromCustomQueue() throws {
+    func testUnsafeStartFromCustomQueue() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -330,7 +334,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            observation.scheduling = .unsafe(startImmediately: true)
+            observation.scheduling = .unsafe
             var observer: TransactionObserver?
             queue.async {
                 observer = observation.start(
@@ -359,43 +363,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testUnsafeDontStartImmediately() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            // We need something to change
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            var counts: [Int] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 1
-            
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
-            observation.scheduling = .unsafe(startImmediately: false)
-            
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.write {
-                    try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, [1])
-            }
-        }
-        
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-    }
-    
-    func testUnsafeError() throws {
+    func testUnsafeImmediateError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -410,7 +378,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                 fetch: { _ in throw TestError() },
                 value: { $0 })
             var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            observation.scheduling = .unsafe(startImmediately: false)
+            observation.scheduling = .unsafe
             
             let observer = observation.start(
                 in: dbWriter,
@@ -418,7 +386,47 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     errorCount += 1
                     notificationExpectation.fulfill()
             },
-                onChange: { _ in fatalError() })
+                onChange: { _ in XCTFail("Unexpected value") })
+            withExtendedLifetime(observer) {
+                waitForExpectations(timeout: 1, handler: nil)
+                XCTAssertEqual(errorCount, 1)
+            }
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+
+    func testUnsafeDelayedError() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            // We need something to change
+            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            var errorCount = 0
+            let notificationExpectation = expectation(description: "notification")
+            notificationExpectation.assertForOverFulfill = true
+            notificationExpectation.expectedFulfillmentCount = 1
+            
+            struct TestError: Error { }
+            var shouldThrow = false
+            let reducer = AnyValueReducer(
+                fetch: { _ in
+                    if shouldThrow {
+                        throw TestError()
+                    }
+                    shouldThrow = true
+            },
+                value: { $0 })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            observation.scheduling = .unsafe
+            
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in
+                    errorCount += 1
+                    notificationExpectation.fulfill()
+            },
+                onChange: { _ in })
             try withExtendedLifetime(observer) {
                 try dbWriter.write {
                     try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
