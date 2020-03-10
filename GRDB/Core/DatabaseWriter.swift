@@ -277,7 +277,7 @@ extension DatabaseWriter {
     /// Default implementation for the DatabaseReader requirement.
     /// :nodoc:
     public func remove(transactionObserver: TransactionObserver) {
-        writeWithoutTransaction { $0.remove(transactionObserver: transactionObserver) }
+        unsafeReentrantWrite { $0.remove(transactionObserver: transactionObserver) }
     }
     
     // MARK: - Erasing the content of the database
