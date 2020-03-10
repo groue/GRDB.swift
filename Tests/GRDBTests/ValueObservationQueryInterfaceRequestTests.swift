@@ -62,10 +62,13 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
         let observation = request.observationForFirst()
-        let observer = try observation.start(in: dbQueue) { row in
-            results.append(row)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { row in
+                results.append(row)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "DELETE FROM child")
@@ -97,10 +100,13 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
         let observation = request.observationForAll()
-        let observer = try observation.start(in: dbQueue) { rows in
-            results.append(rows)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { rows in
+                results.append(rows)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "DELETE FROM child")
@@ -139,10 +145,13 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .orderByPrimaryKey()
             .asRequest(of: ParentInfo.self)
         let observation = request.observationForFirst()
-        let observer = try observation.start(in: dbQueue) { parentInfo in
-            results.append(parentInfo)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { parentInfo in
+                results.append(parentInfo)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "DELETE FROM child")
@@ -176,10 +185,13 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .orderByPrimaryKey()
             .asRequest(of: ParentInfo.self)
         let observation = request.observationForAll()
-        let observer = try observation.start(in: dbQueue) { parentInfos in
-            results.append(parentInfos)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { parentInfos in
+                results.append(parentInfos)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "DELETE FROM child")

@@ -5892,15 +5892,6 @@ An error does not stop the observation. After an error has been received, subseq
 
 Depending on the way your application wants to deal with such errors, you may want to tighten your control on the scheduling of database accesses with [DatabaseRegionObservation]. See also the reactive companion libraries [GRDBCombine] and [RxGRDB], which stop observation whenever a ValueObservation error happens.
 
-The `onError` callback can be omitted, but this is **not recommended**:
-
-```swift
-// Not recommended: omitting the onError callback
-let observer = try observation.start(in: dbQueue) { value in
-    print("fresh value: \(value)")
-}
-```
-
 
 ### ValueObservation Options
 

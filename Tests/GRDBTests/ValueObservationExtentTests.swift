@@ -32,13 +32,16 @@ class ValueObservationExtentTests: GRDBTestCase {
         
         // Start observation and deallocate observer after second change
         var observer: TransactionObserver?
-        observer = try observation.start(in: dbQueue) {
-            changesCount += 1
-            if changesCount == 2 {
-                observer = nil
-            }
-            notificationExpectation.fulfill()
-        }
+        observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: {
+                changesCount += 1
+                if changesCount == 2 {
+                    observer = nil
+                }
+                notificationExpectation.fulfill()
+        })
         
         // notified
         try dbQueue.write { db in

@@ -32,10 +32,13 @@ class ValueObservationFetchTests: GRDBTestCase {
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            let observer = try observation.start(in: dbWriter) { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
-            }
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    counts.append(count)
+                    notificationExpectation.fulfill()
+            })
             try withExtendedLifetime(observer) {
                 try dbWriter.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -64,10 +67,13 @@ class ValueObservationFetchTests: GRDBTestCase {
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             }).removeDuplicates()
-            let observer = try observation.start(in: dbWriter) { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
-            }
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    counts.append(count)
+                    notificationExpectation.fulfill()
+            })
             try withExtendedLifetime(observer) {
                 try dbWriter.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")

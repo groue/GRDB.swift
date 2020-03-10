@@ -173,6 +173,14 @@ extension ValueObservation where Reducer == Void {
     { preconditionFailure() }
 }
 
+extension ValueObservation where Reducer: ValueReducer {
+    @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
+    public func start(
+        in reader: DatabaseReader,
+        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    { preconditionFailure() }
+}
+
 extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable {
     @available(*, unavailable, renamed: "removeDuplicates")
     public func distinctUntilChanged() -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>

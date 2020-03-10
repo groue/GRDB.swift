@@ -108,10 +108,13 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         
-        let observer = try observation.start(in: dbQueue) { count in
-            results.append(count)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                results.append(count)
+                notificationExpectation.fulfill()
+        })
         
         let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
         XCTAssertEqual(token.observer.observedRegion.description, "a(value),source(name)")
@@ -156,10 +159,13 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
         observation.scheduling = .async(onQueue: DispatchQueue.main, startImmediately: false)
         
-        let observer = try observation.start(in: dbQueue) { count in
-            results.append(count)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                results.append(count)
+                notificationExpectation.fulfill()
+        })
         
         // Can't test observedRegion because it is defined asynchronously
         
@@ -203,10 +209,13 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
         observation.scheduling = .async(onQueue: DispatchQueue.main, startImmediately: true)
         
-        let observer = try observation.start(in: dbQueue) { count in
-            results.append(count)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                results.append(count)
+                notificationExpectation.fulfill()
+        })
         
         // Can't test observedRegion because it is defined asynchronously
         
@@ -250,10 +259,13 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
         observation.scheduling = .unsafe(startImmediately: false)
         
-        let observer = try observation.start(in: dbQueue) { count in
-            results.append(count)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                results.append(count)
+                notificationExpectation.fulfill()
+        })
         
         // Can't test observedRegion because it is defined asynchronously
         
@@ -297,10 +309,13 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
         observation.scheduling = .unsafe(startImmediately: true)
         
-        let observer = try observation.start(in: dbQueue) { count in
-            results.append(count)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                results.append(count)
+                notificationExpectation.fulfill()
+        })
         
         let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
         XCTAssertEqual(token.observer.observedRegion.description, "a(value),source(name)")

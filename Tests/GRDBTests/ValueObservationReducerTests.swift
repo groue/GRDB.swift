@@ -122,30 +122,6 @@ class ValueObservationReducerTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testInitialErrorWithoutErrorHandling() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            struct TestError: Error { }
-            let reducer = AnyValueReducer(
-                fetch: { _ in throw TestError() },
-                value: { _ in fatalError() })
-            
-            // Create an observation
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            
-            // Start observation
-            do {
-                _ = try observation.start(
-                    in: dbWriter,
-                    onChange: { _ in })
-                XCTFail("Expected error")
-            } catch is TestError {
-            }
-        }
-        
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-    }
-    
     func testInitialErrorWithErrorHandling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             struct TestError: Error { }
@@ -248,10 +224,13 @@ class ValueObservationReducerTests: GRDBTestCase {
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer})
             
             // Start observation
-            let observer = try observation.start(in: dbWriter) { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
-            }
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    counts.append(count)
+                    notificationExpectation.fulfill()
+            })
             try withExtendedLifetime(observer) {
                 try dbWriter.write { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -295,10 +274,13 @@ class ValueObservationReducerTests: GRDBTestCase {
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             
             // Start observation
-            let observer = try observation.start(in: dbWriter) { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
-            }
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    counts.append(count)
+                    notificationExpectation.fulfill()
+            })
             try withExtendedLifetime(observer) {
                 try dbWriter.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -344,10 +326,13 @@ class ValueObservationReducerTests: GRDBTestCase {
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
             
             // Start observation
-            let observer = try observation.start(in: dbWriter) { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
-            }
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    counts.append(count)
+                    notificationExpectation.fulfill()
+            })
             try withExtendedLifetime(observer) {
                 try dbWriter.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -374,10 +359,13 @@ class ValueObservationReducerTests: GRDBTestCase {
             
             struct T: TableRecord { }
             let observation = T.observationForCount().map { "\($0)" }
-            let observer = try observation.start(in: dbWriter) { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
-            }
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    counts.append(count)
+                    notificationExpectation.fulfill()
+            })
             try withExtendedLifetime(observer) {
                 try dbWriter.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -411,7 +399,10 @@ class ValueObservationReducerTests: GRDBTestCase {
                 reduceExpectation.fulfill()
             })
             let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            let observer = try observation.start(in: dbWriter, onChange: { _ in })
+            let observer = observation.start(
+                in: dbWriter,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { _ in })
             try withExtendedLifetime(observer) {
                 try dbWriter.write { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -464,10 +455,13 @@ class ValueObservationReducerTests: GRDBTestCase {
 //                        value: { _ in () })
 //                })
 //                observation.scheduling = .unsafe(startImmediately: false)
-//                observer = try observation.start(in: dbWriter) { count in
-//                    XCTFail("unexpected change notification: \(String(describing: observer))")
-//                    notificationExpectation.fulfill()
-//                }
+//                observer = observation.start(
+//                    in: dbWriter,
+//                    onError: { error in XCTFail("Unexpected error: \(error)") },
+//                    onChange: { count in
+//                        XCTFail("unexpected change notification: \(String(describing: observer))")
+//                        notificationExpectation.fulfill()
+//                })
 //            }
 //
 //            try dbWriter.write { db in
@@ -497,10 +491,13 @@ class ValueObservationReducerTests: GRDBTestCase {
 //                        value: { _ in observer = nil /* deallocation right before notification */ })
 //                })
 //                observation.scheduling = .unsafe(startImmediately: false)
-//                observer = try observation.start(in: dbWriter) { count in
-//                    XCTFail("unexpected change notification: \(String(describing: observer))")
-//                    notificationExpectation.fulfill()
-//                }
+//                observer = observation.start(
+//                    in: dbWriter,
+//                    onError: { error in XCTFail("Unexpected error: \(error)") },
+//                    onChange: { count in
+//                        XCTFail("unexpected change notification: \(String(describing: observer))")
+//                        notificationExpectation.fulfill()
+//                })
 //            }
 //            
 //            try dbWriter.write { db in

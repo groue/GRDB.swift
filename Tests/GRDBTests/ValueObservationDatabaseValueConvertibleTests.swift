@@ -36,10 +36,13 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 4
         
         let observation = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id").observationForAll()
-        let observer = try observation.start(in: dbQueue) { names in
-            results.append(names)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { names in
+                results.append(names)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
@@ -72,10 +75,13 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 7
         
         let observation = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC").observationForFirst()
-        let observer = try observation.start(in: dbQueue) { name in
-            results.append(name)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { name in
+                results.append(name)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
@@ -116,10 +122,13 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 4
         
         let observation = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id").observationForAll()
-        let observer = try observation.start(in: dbQueue) { names in
-            results.append(names)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { names in
+                results.append(names)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
@@ -152,10 +161,13 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 7
         
         let observation = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id DESC").observationForFirst()
-        let observer = try observation.start(in: dbQueue) { name in
-            results.append(name)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { name in
+                results.append(name)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
@@ -211,10 +223,13 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         // This optimization helps observation of views that feed from a
         // single table.
         let observation = request.observationForAll()
-        let observer = try observation.start(in: dbQueue) { names in
-            results.append(names)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { names in
+                results.append(names)
+                notificationExpectation.fulfill()
+        })
         let token = observer as! ValueObserverToken<ValueReducers.AllValues<Name>> // Non-public implementation detail
         XCTAssertEqual(token.observer.observedRegion.description, "t(id,name)") // view is not tracked
         try withExtendedLifetime(observer) {
