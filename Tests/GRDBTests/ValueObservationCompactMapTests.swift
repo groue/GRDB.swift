@@ -64,7 +64,7 @@ class ValueObservationCompactMapTests: GRDBTestCase {
     func testCompactMapPreservesConfiguration() {
         var observation = ValueObservation.tracking(DatabaseRegion(), fetch: { _ in })
         observation.requiresWriteAccess = true
-        observation.scheduling = .unsafe(startImmediately: true)
+        observation.scheduling = .unsafe
         
         let mappedObservation = observation.compactMap { _ in }
         XCTAssertEqual(mappedObservation.requiresWriteAccess, observation.requiresWriteAccess)

@@ -193,6 +193,9 @@ extension ValueReducer where Value: Equatable {
     { preconditionFailure() }
 }
 
+@available(*, unavailable, renamed: "ValueObservationScheduling")
+typealias ValueScheduling = ValueObservationScheduling
+
 #if SQLITE_HAS_CODEC
 extension Configuration {
     @available(*, unavailable, message: "Use Database.usePassphrase(_:) in Configuration.prepareDatabase instead.")

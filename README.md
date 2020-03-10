@@ -5529,9 +5529,9 @@ try dbQueue.write { db in
 
 ## ValueObservation
 
-**ValueObservation tracks changes in the results of database [requests](#requests), and notifies fresh values whenever the database changes.**
+**ValueObservation tracks changes in database [requests](#requests), and notifies fresh values whenever the database changes.**
 
-Changes are only notified after they have been committed in the database. No insertion, update, or deletion in tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+Changes are notified after they have been committed in the database. No insertion, update, or deletion in tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
 
 - **[ValueObservation Usage](#valueobservation-usage)**
@@ -5585,7 +5585,7 @@ class PlayerViewController: UIViewController {
 
 By default, all values and errors are notified on the main queue. Views can be updated right from the `onChange` callback.
 
-By default, an initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
+An initial fetch is performed as soon as the observation starts: the view is set up and ready when the `viewWillAppear` method returns.
 
 The observer returned by the `start` method is stored in a property of the view controller. This allows the view controller to control the duration of the observation. When the observer is deallocated, the observation stops. Meanwhile, all transactions that modify the observed player are notified, and the `nameLabel` is kept up-to-date.
 
@@ -5603,7 +5603,7 @@ The observer returned by the `start` method is stored in a property of the view 
 >     }
 >
 >     // Observation is asynchronous
->     observation.scheduling = .async(onQueue: .main, startImmediately: true)
+>     observation.scheduling = .async(onQueue: .main)
 >
 >     // Start observing the database
 >     observer = observation.start(
@@ -5649,7 +5649,7 @@ observer = observation.start(
 
 **You can observe several requests and several tables if you need**: all writes that have an impact on the fetched values will trigger the observation, and call the `onChange` function.
 
-**It may happen that such an observation notifies identical consecutive values.** This is because it will fetch a fresh value whenever a change *could* happen. For example, the observation for the maximum player score will notify a fresh value every time a score is changed, inserted, or deleted, even if the maximum score is unchanged:
+**The observation may notify identical consecutive values.** This is because it will fetch a fresh value whenever a change *could* happen. For example, the observation for the maximum player score will notify a fresh value every time a score is changed, inserted, or deleted, even if the maximum score is unchanged:
 
 ```swift
 // Track changes in the maximum player score
@@ -5659,7 +5659,7 @@ let observation = ValueObservation.tracking { db in
 }
 ```
 
-You can filter out those duplicates with the [ValueObservation.removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
+You can filter out those duplicates with the [removeDuplicates](#valueobservationremoveduplicates) method. It requires the observed value to adopt the Equatable protocol:
     
 ```swift
 let observation = ValueObservation
@@ -5907,7 +5907,7 @@ The `scheduling` property lets you control how fresh values are notified:
 
 - `.mainQueue` (the default): all values are notified on the main queue.
     
-    If the observation starts on the main queue, an initial value is notified right upon subscription, synchronously:
+    If the observation starts on the main queue, the initial value is notified right upon subscription, synchronously:
     
     ```swift
     // On main queue
@@ -5921,7 +5921,7 @@ The `scheduling` property lets you control how fresh values are notified:
     // <- Here "fresh value" is already printed.
     ```
     
-    If the observation does not start on the main queue, an initial value is also notified on the main queue, but asynchronously:
+    If the observation does not start on the main queue, the initial value is also notified on the main queue, but asynchronously:
     
     ```swift
     // Not on the main queue
@@ -5941,16 +5941,14 @@ The `scheduling` property lets you control how fresh values are notified:
     // <- Eventually prints "fresh value" on the main queue
     ```
 
-- `.async(onQueue:startImmediately:)`: all values are asynchronously notified on the specified queue.
-    
-    An initial value is fetched and notified if `startImmediately` is true.
+- `.async(onQueue:)`: all values, including the initial value, are asynchronously notified on the specified queue.
     
     For example:
     
     ```swift
     // On main queue
     var observation = ...
-    observation.scheduling = .async(onQueue: .main, startImmediately: true)
+    observation.scheduling = .async(onQueue: .main)
     let observer = observation.start(
         in: dbQueue,
         onError: { error in ... },
@@ -5961,14 +5959,14 @@ The `scheduling` property lets you control how fresh values are notified:
     // <- Eventually prints "fresh value"
     ```
 
-- `unsafe(startImmediately:)`: values are not all notified on the same dispatch queue.
+- `unsafe`: values are not all notified on the same dispatch queue.
     
-    If `startImmediately` is true, an initial value is notified right upon subscription, synchronously, on the dispatch queue which starts the observation.
+    The initial value is notified right upon subscription, synchronously, on the dispatch queue which starts the observation.
     
     ```swift
     // On any queue
     var observation = ...
-    observation.scheduling = .unsafe(startImmediately: true)
+    observation.scheduling = .unsafe
     let observer = observation.start(
         in: dbQueue,
         onError: { error in ... },

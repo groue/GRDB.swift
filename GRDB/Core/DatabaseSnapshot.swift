@@ -122,37 +122,51 @@ extension DatabaseSnapshot {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        // TODO: fetch asynchronously when possible
-        do {
-            // Deal with initial value
-            switch observation.scheduling {
-            case .mainQueue:
-                if let value = try unsafeReentrantRead(observation.fetchFirst) {
-                    if DispatchQueue.isMain {
+        switch observation.scheduling {
+        case .mainQueue:
+            if DispatchQueue.isMain {
+                do {
+                    if let value = try read(observation.fetchFirst) {
                         onChange(value)
-                    } else {
-                        DispatchQueue.main.async {
-                            onChange(value)
-                        }
                     }
+                } catch {
+                    onError(error)
                 }
-            case let .async(onQueue: queue, startImmediately: startImmediately):
-                if startImmediately {
-                    if let value = try unsafeReentrantRead(observation.fetchFirst) {
-                        queue.async {
-                            onChange(value)
+            } else {
+                serializedDatabase.async { db in
+                    let result = Result { try observation.fetchFirst(db) }
+                    DispatchQueue.main.async {
+                        do {
+                            if let value = try result.get() {
+                                onChange(value)
+                            }
+                        } catch {
+                            onError(error)
                         }
-                    }
-                }
-            case let .unsafe(startImmediately: startImmediately):
-                if startImmediately {
-                    if let value = try unsafeReentrantRead(observation.fetchFirst) {
-                        onChange(value)
                     }
                 }
             }
-        } catch {
-            onError(error)
+        case let .async(onQueue: queue):
+            serializedDatabase.async { db in
+                let result = Result { try observation.fetchFirst(db) }
+                queue.async {
+                    do {
+                        if let value = try result.get() {
+                            onChange(value)
+                        }
+                    } catch {
+                        onError(error)
+                    }
+                }
+            }
+        case .unsafe:
+            do {
+                if let value = try unsafeReentrantRead(observation.fetchFirst) {
+                    onChange(value)
+                }
+            } catch {
+                onError(error)
+            }
         }
         
         // Return a dummy observer, because snapshots never change

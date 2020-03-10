@@ -3,10 +3,9 @@ import Foundation
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
 class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
-    // Reducer and notificationQueue must be set before observer is
+    // Reducer must be set before observer is
     // added to a database.
     var reducer: Reducer!
-    var notificationQueue: DispatchQueue?
     
     var baseRegion = DatabaseRegion() {
         didSet { observedRegion = baseRegion.union(selectedRegion) }
@@ -15,9 +14,10 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         didSet { observedRegion = baseRegion.union(selectedRegion) }
     }
     var observedRegion: DatabaseRegion! // internal for testability
-    private var requiresWriteAccess: Bool
-    private var observesSelectedRegion: Bool
-    private unowned var writer: DatabaseWriter
+    private let requiresWriteAccess: Bool
+    private let observesSelectedRegion: Bool
+    private unowned let writer: DatabaseWriter
+    private let notificationQueue: DispatchQueue?
     private let reduceQueue: DispatchQueue
     private let onError: (Error) -> Void
     private let onChange: (Reducer.Value) -> Void
@@ -28,6 +28,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         requiresWriteAccess: Bool,
         observesSelectedRegion: Bool,
         writer: DatabaseWriter,
+        notificationQueue: DispatchQueue?,
         reduceQueue: DispatchQueue,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -35,6 +36,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
         self.writer = writer
         self.requiresWriteAccess = requiresWriteAccess
         self.observesSelectedRegion = observesSelectedRegion
+        self.notificationQueue = notificationQueue
         self.reduceQueue = reduceQueue
         self.onError = onError
         self.onChange = onChange
@@ -84,7 +86,6 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
                     future = DatabaseFuture(.failure(error))
                 }
             } else {
-                // Synchronous read/write fetch
                 future = DatabaseFuture(Result {
                     var fetchedValue: Reducer.Fetched!
                     try db.inTransaction {
@@ -128,6 +129,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     func reduce(future: DatabaseFuture<Reducer.Fetched>) {
         do {
             if let value = try reducer.value(future.wait()) {
+                if self.isCancelled { return }
                 if let queue = notificationQueue {
                     queue.async { [weak self] in
                         guard let self = self else { return }
