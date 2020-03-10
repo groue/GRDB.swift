@@ -119,12 +119,22 @@ extension Sequence {
 ///         finally: cleanup)
 @inline(__always)
 func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) throws -> T {
+    var result: T?
+    var firstError: Error?
     do {
-        let result = try execute()
-        try finally()
-        return result
+        result = try execute()
     } catch {
-        try? finally()
-        throw error
+        firstError = error
     }
+    do {
+        try finally()
+    } catch {
+        if firstError == nil {
+            firstError = error
+        }
+    }
+    if let firstError = firstError {
+        throw firstError
+    }
+    return result!
 }
