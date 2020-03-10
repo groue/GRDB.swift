@@ -21,10 +21,13 @@ class ValueObservationRowTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 4
         
         let observation = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id").observationForAll()
-        let observer = try observation.start(in: dbQueue) { rows in
-            results.append(rows)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { rows in
+                results.append(rows)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
@@ -57,10 +60,13 @@ class ValueObservationRowTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 4
         
         let observation = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id DESC").observationForFirst()
-        let observer = try observation.start(in: dbQueue) { row in
-            results.append(row)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { row in
+                results.append(row)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1

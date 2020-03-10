@@ -24,10 +24,13 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
             try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
         })
-        let observer = try observation.start(in: dbQueue) { count in
-            counts.append(count)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                counts.append(count)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write {
                 try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -38,28 +41,6 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         }
     }
     
-    func testWriteObservationFailsByDefaultWithoutErrorHandling() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-        
-        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            return 0
-        })
-        
-        do {
-            _ = try observation.start(
-                in: dbQueue,
-                onChange: { _ in fatalError() })
-            XCTFail("Expected error")
-        } catch let error as DatabaseError {
-            XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
-            XCTAssertEqual(error.message, "attempt to write a readonly database")
-            XCTAssertEqual(error.sql!, "INSERT INTO t DEFAULT VALUES")
-            XCTAssertEqual(error.description, "SQLite error 8 with statement `INSERT INTO t DEFAULT VALUES`: attempt to write a readonly database")
-        }
-    }
-
     func testWriteObservationFailsByDefaultWithErrorHandling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -98,10 +79,13 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             return result
         })
         observation.requiresWriteAccess = true
-        let observer = try observation.start(in: dbQueue) { count in
-            counts.append(count)
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                counts.append(count)
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write {
                 try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -111,32 +95,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             XCTAssertEqual(counts, [0, 1])
         }
     }
-
-    func testWriteObservationIsWrappedInSavepointWithoutErrorHandling() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write {
-            try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
-        }
-        
-        struct TestError: Error { }
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            throw TestError()
-        })
-        observation.requiresWriteAccess = true
-        
-        do {
-            _ = try observation.start(
-                in: dbQueue,
-                onChange: { _ in fatalError() })
-            XCTFail("Expected error")
-        } catch is TestError {
-        }
-        
-        let count = try dbQueue.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
-        XCTAssertEqual(count, 0)
-    }
-
+    
     func testWriteObservationIsWrappedInSavepointWithErrorHandling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {

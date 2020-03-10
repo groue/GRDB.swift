@@ -30,10 +30,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation1 = T1.observationForCount()
         let observation2 = T2.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2)
-        let observer = try observation.start(in: dbQueue) { v0, v1 in
-            values.append([v0, v1])
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { v0, v1 in
+                values.append([v0, v1])
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
@@ -90,10 +93,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = T2.observationForCount()
         let observation3 = T3.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3)
-        let observer = try observation.start(in: dbQueue) { v0, v1, v2 in
-            values.append([v0, v1, v2])
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { v0, v1, v2 in
+                values.append([v0, v1, v2])
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
@@ -164,10 +170,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = T3.observationForCount()
         let observation4 = T4.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
-        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3 in
-            values.append([v0, v1, v2, v3])
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { v0, v1, v2, v3 in
+                values.append([v0, v1, v2, v3])
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
@@ -252,10 +261,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation4 = T4.observationForCount()
         let observation5 = T5.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
-        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4 in
-            values.append([v0, v1, v2, v3, v4])
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { v0, v1, v2, v3, v4 in
+                values.append([v0, v1, v2, v3, v4])
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
@@ -354,10 +366,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation5 = T5.observationForCount()
         let observation6 = T6.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6)
-        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5 in
-            values.append([v0, v1, v2, v3, v4, v5])
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { v0, v1, v2, v3, v4, v5 in
+                values.append([v0, v1, v2, v3, v4, v5])
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
@@ -470,10 +485,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation6 = T6.observationForCount()
         let observation7 = T7.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
-        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5, v6 in
-            values.append([v0, v1, v2, v3, v4, v5, v6])
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { v0, v1, v2, v3, v4, v5, v6 in
+                values.append([v0, v1, v2, v3, v4, v5, v6])
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
@@ -600,10 +618,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation7 = T7.observationForCount()
         let observation8 = T8.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
-        let observer = try observation.start(in: dbQueue) { v0, v1, v2, v3, v4, v5, v6, v7 in
-            values.append([v0, v1, v2, v3, v4, v5, v6, v7])
-            notificationExpectation.fulfill()
-        }
+        let observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { v0, v1, v2, v3, v4, v5, v6, v7 in
+                values.append([v0, v1, v2, v3, v4, v5, v6, v7])
+                notificationExpectation.fulfill()
+        })
         try withExtendedLifetime(observer) {
             try dbQueue.write { db in
                 try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
@@ -703,7 +724,7 @@ class ValueObservationCombineTests: GRDBTestCase {
                 [2, 2, 2, 2, 2, 2, 2, 2]])
         }
     }
-
+    
     func testHeterogeneusCombine2() throws {
         struct V1 { }
         struct V2 { }
@@ -711,7 +732,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
         let observation = ValueObservation.combine(observation1, observation2)
         var value: (V1, V2)?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -724,7 +748,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
         let observation = ValueObservation.combine(observation1, observation2, observation3)
         var value: (V1, V2, V3)?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -739,7 +766,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation4 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V4() })
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
         var value: (V1, V2, V3, V4)?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -756,7 +786,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation5 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V5() })
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
         var value: (V1, V2, V3, V4, V5)?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -775,7 +808,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation6 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V6() })
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6)
         var value: (V1, V2, V3, V4, V5, V6)?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -796,7 +832,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation7 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V7() })
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
         var value: (V1, V2, V3, V4, V5, V6, V7)?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -819,7 +858,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation8 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V8() })
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
         var value: (V1, V2, V3, V4, V5, V6, V7, V8)?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -831,7 +873,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V2() })
         let observation = observation1.combine(observation2) { (v1: V1, v2: V2) -> Combined in Combined() }
         var value: Combined?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -845,7 +890,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V3() })
         let observation = observation1.combine(observation2, observation3) { (v1: V1, v2: V2, v3: V3) -> Combined in Combined() }
         var value: Combined?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -861,7 +909,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation4 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V4() })
         let observation = observation1.combine(observation2, observation3, observation4) { (v1: V1, v2: V2, v3: V3, v4: V4) -> Combined in Combined() }
         var value: Combined?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
     
@@ -879,7 +930,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation5 = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in V5() })
         let observation = observation1.combine(observation2, observation3, observation4, observation5) { (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5) -> Combined in Combined() }
         var value: Combined?
-        _ = try observation.start(in: makeDatabaseQueue()) { value = $0 }
+        _ = try observation.start(
+            in: makeDatabaseQueue(),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { value = $0 })
         XCTAssertNotNil(value)
     }
 }

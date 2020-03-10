@@ -161,30 +161,6 @@ extension ValueObservation where Reducer: ValueReducer {
     /// a database queue or database pool), and returns a transaction observer.
     ///
     /// - parameter reader: A DatabaseReader.
-    /// - parameter onChange: A closure that is provided fresh values
-    /// - returns: a TransactionObserver
-    public func start(
-        in reader: DatabaseReader,
-        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
-    {
-        // ErrorCatcher is a workaround this aging API.
-        // We catch the eventual error synchronously sent to the onError
-        // handler and rethrow it.
-        let errorCatcher = ErrorCatcher()
-        let observer = reader.add(
-            observation: self,
-            onError: { [weak errorCatcher] in errorCatcher?.error = $0 },
-            onChange: onChange)
-        if let error = errorCatcher.error {
-            throw error
-        }
-        return observer
-    }
-    
-    /// Starts the value observation in the provided database reader (such as
-    /// a database queue or database pool), and returns a transaction observer.
-    ///
-    /// - parameter reader: A DatabaseReader.
     /// - parameter onError: A closure that is provided eventual errors that
     /// happen during observation
     /// - parameter onChange: A closure that is provided fresh values
@@ -199,6 +175,9 @@ extension ValueObservation where Reducer: ValueReducer {
     
     // MARK: - Fetching Values
     
+    // TODO: make public if it helps fetching an initial value before starting
+    // the observation, in order to avoid waiting for long write transactions to
+    // complete.
     /// Returns the observed value.
     ///
     /// This method returns nil if observation would not notify any
