@@ -139,7 +139,7 @@ func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) 
         try finally()
         return result
     } catch {
-        try? finally()
+        try? finally() // FIXME: finally is called twice if it throws
         throw error
     }
 }
