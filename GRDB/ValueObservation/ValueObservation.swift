@@ -2,9 +2,9 @@ import Dispatch
 
 // MARK: - ValueScheduling
 
-/// ValueScheduling controls how ValueObservation schedules the notifications
-/// of fresh values to your application.
-public enum ValueScheduling {
+/// ValueObservationScheduling controls how ValueObservation schedules the
+/// fresh values to your application.
+public enum ValueObservationScheduling {
     /// All values are notified on the main queue.
     ///
     /// If the observation starts on the main queue, an initial value is
@@ -150,7 +150,7 @@ public struct ValueObservation<Reducer> {
     ///
     ///     When the database changes, other values are notified on
     ///     unspecified queues.
-    public var scheduling: ValueScheduling
+    public var scheduling: ValueObservationScheduling
 }
 
 extension ValueObservation where Reducer: ValueReducer {
