@@ -5541,7 +5541,6 @@ Changes are notified after they have been committed in the database. No insertio
 - [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 - [ValueObservation Options](#valueobservation-options)
-- [Advanced: ValueObservation.tracking(_:reducer:)](#advanced-valueobservationtracking_reducer)
 
 
 ### ValueObservation Usage
@@ -5994,52 +5993,6 @@ observation.requiresWriteAccess = true
 ```
 
 When you use a [database pool](#database-pools), don't use this flag unless you really need it. Observations with write access are less efficient because they block all writes for the whole duration of a fetch.
-
-
-### Advanced: ValueObservation.tracking(_:reducer:)
-
-The most low-level way to define a ValueObservation is to create one from an observed database region (see above), and a **reducer** that adopts the **ValueReducer** protocol ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)):
-
-```swift
-protocol ValueReducer {
-    associatedtype Fetched
-    associatedtype Value
-    
-    /// Fetches a database value
-    func fetch(_ db: Database) throws -> Fetched
-    
-    /// Returns a notified value
-    mutating func value(_ fetched: Fetched) -> Value?
-}
-```
-
-The `fetch` method is called upon changes in the observed [database region](#databaseregion). It runs inside a protected dispatch queue and is guaranteed an immutable view of the last committed state of the database.
-
-The `value` method transforms a fetched value into a notified value. It returns nil if the observer should not be notified. It runs inside a dispatch queue called the "reduce queue", which is not the main queue, and not a database queue.
-
-The sample code below counts the number of times the player table is modified:
-
-```swift
-var count = 0
-let reducer = AnyValueReducer(
-    fetch: { _ in /* don't fetch anything */ },
-    value: { _ -> Int? in
-        defer { count += 1 }
-        return count })
-let observation = ValueObservation.tracking(Player.all(), reducer: { _ in reducer })
-let observer = observation.start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (count: Int) in
-        print("Number of transactions that have modified players: \(count)")
-    })
-// Prints "Number of transactions that have modified players: 0"
-
-try dbQueue.write { db in
-    try Player(...).insert(db)
-}
-// Prints "Number of transactions that have modified players: 1"
-```
 
 
 ## DatabaseRegionObservation
