@@ -142,8 +142,9 @@ extension ValueObservation {
     ///         try observation.fetchFirst(db)
     ///     }
     func fetchFirst(_ db: Database) throws -> Reducer.Value? {
-        var reducer = try makeReducer()
-        return try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess))
+        var reducer = makeReducer()
+        let fetchedValue = try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+        return reducer.value(fetchedValue)
     }
 }
 
