@@ -66,7 +66,7 @@ extension ValueReducers {
     /// consecutive identical arrays.
     ///
     /// :nodoc:
-    public struct AllRows: ValueReducer {
+    public struct AllRows: _ValueReducer {
         private let _fetch: (Database) throws -> [Row]
         private var previousRows: [Row]?
         
@@ -94,7 +94,7 @@ extension ValueReducers {
     /// identical database rows.
     ///
     /// :nodoc:
-    public struct OneRow: ValueReducer {
+    public struct OneRow: _ValueReducer {
         private let _fetch: (Database) throws -> Row?
         private var previousRow: Row??
         

@@ -2,7 +2,7 @@ import Foundation
 
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
-class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
+class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
     // Reducer must be set before observer is
     // added to a database.
     var reducer: Reducer!
@@ -158,7 +158,7 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     }
 }
 
-class ValueObserverToken<Reducer: ValueReducer>: TransactionObserver {
+class ValueObserverToken<Reducer: _ValueReducer>: TransactionObserver {
     // Useless junk
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
     func databaseDidChange(with event: DatabaseEvent) { }

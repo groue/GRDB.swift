@@ -176,3 +176,27 @@ class GRDBTestCase: XCTestCase {
         }
     }
 }
+
+/// A type-erased ValueReducer.
+public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
+    private var _fetch: (Database) throws -> Fetched
+    private var _value: (Fetched) -> Value?
+    
+    public init(
+        fetch: @escaping (Database) throws -> Fetched,
+        value: @escaping (Fetched) -> Value?)
+    {
+        self._fetch = fetch
+        self._value = value
+    }
+    
+    /// :nodoc:
+    public func fetch(_ db: Database) throws -> Fetched {
+        try _fetch(db)
+    }
+    
+    /// :nodoc:
+    public func value(_ fetched: Fetched) -> Value? {
+        _value(fetched)
+    }
+}

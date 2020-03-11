@@ -131,7 +131,7 @@ extension ValueReducers {
     /// identical database values.
     ///
     /// :nodoc:
-    public struct AllValues<RowDecoder>: ValueReducer
+    public struct AllValues<RowDecoder>: _ValueReducer
         where RowDecoder: DatabaseValueConvertible
     {
         private let _fetch: (Database) throws -> [DatabaseValue]
@@ -163,7 +163,7 @@ extension ValueReducers {
     /// identical database values.
     ///
     /// :nodoc:
-    public struct OneValue<RowDecoder>: ValueReducer
+    public struct OneValue<RowDecoder>: _ValueReducer
         where RowDecoder: DatabaseValueConvertible
     {
         private let _fetch: (Database) throws -> DatabaseValue?
@@ -205,7 +205,7 @@ extension ValueReducers {
     /// identical database values.
     ///
     /// :nodoc:
-    public struct AllOptionalValues<RowDecoder>: ValueReducer
+    public struct AllOptionalValues<RowDecoder>: _ValueReducer
         where RowDecoder: DatabaseValueConvertible
     {
         private let _fetch: (Database) throws -> [DatabaseValue]

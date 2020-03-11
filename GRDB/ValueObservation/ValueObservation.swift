@@ -98,7 +98,7 @@ public struct ValueObservation<Reducer> {
     public var scheduling: ValueObservationScheduling
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     
     // MARK: - Starting Observation
     
@@ -147,9 +147,9 @@ extension ValueObservation where Reducer: ValueReducer {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     
-    // MARK: - Creating ValueObservation from ValueReducer
+    // MARK: - Creating ValueObservation from _ValueReducer
     
     /// Returns a ValueObservation which observes *regions*, and notifies the
     /// values returned by the *reducer* whenever one of the observed
@@ -183,7 +183,7 @@ extension ValueObservation where Reducer: ValueReducer {
     /// - parameter regions: A list of observed regions.
     /// - parameter reducer: A reducer that turns database changes in the
     /// modified regions into fresh values. Currently only reducers that adopt
-    /// the ValueReducer protocol are supported.
+    /// the _ValueReducer protocol are supported.
     public static func tracking(
         _ regions: DatabaseRegionConvertible...,
         reducer: @escaping (Database) throws -> Reducer)
@@ -224,7 +224,7 @@ extension ValueObservation where Reducer: ValueReducer {
     /// - parameter regions: A list of observed regions.
     /// - parameter reducer: A reducer that turns database changes in the
     /// modified regions into fresh values. Currently only reducers that adopt
-    /// the ValueReducer protocol are supported.
+    /// the _ValueReducer protocol are supported.
     public static func tracking(
         _ regions: [DatabaseRegionConvertible],
         reducer: @escaping (Database) throws -> Reducer)

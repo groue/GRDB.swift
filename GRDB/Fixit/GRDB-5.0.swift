@@ -10,6 +10,25 @@ extension AnyFetchRequest {
     { preconditionFailure() }
 }
 
+@available(*, unavailable, message: "Custom reducers are no longer supported")
+public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
+    /// :nodoc:
+    public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
+    { preconditionFailure() }
+    
+    /// :nodoc:
+    public init<Base: _ValueReducer>(_ reducer: Base) where Base.Fetched == Fetched, Base.Value == Value
+    { preconditionFailure() }
+    
+    /// :nodoc:
+    public func fetch(_ db: Database) throws -> Fetched
+    { preconditionFailure() }
+    
+    /// :nodoc:
+    public func value(_ fetched: Fetched) -> Value?
+    { preconditionFailure() }
+}
+
 extension AssociationAggregate {
     @available(*, unavailable, renamed: "forKey(_:)")
     public func aliased(_ name: String) -> AssociationAggregate<RowDecoder>
@@ -173,7 +192,7 @@ extension ValueObservation where Reducer == Void {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
     public func start(
         in reader: DatabaseReader,
@@ -181,13 +200,16 @@ extension ValueObservation where Reducer: ValueReducer {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable {
+extension ValueObservation where Reducer: _ValueReducer, Reducer.Value: Equatable {
     @available(*, unavailable, renamed: "removeDuplicates")
     public func distinctUntilChanged() -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     { preconditionFailure() }
 }
 
-extension ValueReducer where Value: Equatable {
+@available(*, unavailable, message: "Custom reducers are no longer supported")
+typealias ValueReducer = _ValueReducer
+
+extension _ValueReducer where Value: Equatable {
     @available(*, unavailable, renamed: "removeDuplicates")
     public func distinctUntilChanged() -> ValueReducers.RemoveDuplicates<Self>
     { preconditionFailure() }

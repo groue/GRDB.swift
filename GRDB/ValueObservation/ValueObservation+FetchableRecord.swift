@@ -125,7 +125,7 @@ extension ValueReducers {
     /// identical database rows.
     ///
     /// :nodoc:
-    public struct AllRecords<RowDecoder>: ValueReducer
+    public struct AllRecords<RowDecoder>: _ValueReducer
         where RowDecoder: FetchableRecord
     {
         private let _fetch: (Database) throws -> [Row]
@@ -155,7 +155,7 @@ extension ValueReducers {
     /// identical database rows.
     ///
     /// :nodoc:
-    public struct OneRecord<RowDecoder>: ValueReducer
+    public struct OneRecord<RowDecoder>: _ValueReducer
         where RowDecoder: FetchableRecord
     {
         private let _fetch: (Database) throws -> Row?

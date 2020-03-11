@@ -1,4 +1,4 @@
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     /// Returns a ValueObservation which notifies the results of calling the
     /// given transformation which each element notified by this
     /// value observation.
@@ -9,7 +9,7 @@ extension ValueObservation where Reducer: ValueReducer {
     }
 }
 
-extension ValueReducer {
+extension _ValueReducer {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns a reducer which outputs the results of calling the given
@@ -22,13 +22,13 @@ extension ValueReducer {
 extension ValueReducers {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// A ValueReducer whose values consist of those in a Base ValueReducer passed
+    /// A _ValueReducer whose values consist of those in a Base _ValueReducer passed
     /// through a transform function.
     ///
-    /// See ValueReducer.map(_:)
+    /// See _ValueReducer.map(_:)
     ///
     /// :nodoc:
-    public struct Map<Base: ValueReducer, Value>: ValueReducer {
+    public struct Map<Base: _ValueReducer, Value>: _ValueReducer {
         private var base: Base
         private let transform: (Base.Value) -> Value
         

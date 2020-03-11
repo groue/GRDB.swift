@@ -304,7 +304,7 @@ extension DatabaseWriter {
     
     /// Default implementation for the DatabaseReader requirement.
     /// :nodoc:
-    public func add<Reducer: ValueReducer>(
+    public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)

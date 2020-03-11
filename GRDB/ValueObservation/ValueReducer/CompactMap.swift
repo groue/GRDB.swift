@@ -1,4 +1,4 @@
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     /// Returns a ValueObservation which notifies the non-nil results of calling
     /// the given transformation which each element notified by this
     /// value observation.
@@ -9,7 +9,7 @@ extension ValueObservation where Reducer: ValueReducer {
     }
 }
 
-extension ValueReducer {
+extension _ValueReducer {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns a reducer which outputs the non-nil results of calling the given
@@ -25,7 +25,7 @@ extension ValueReducers {
     /// See ValueObservation.compactMap(_:)
     ///
     /// :nodoc:
-    public struct CompactMap<Base: ValueReducer, Value>: ValueReducer {
+    public struct CompactMap<Base: _ValueReducer, Value>: _ValueReducer {
         private var base: Base
         private let transform: (Base.Value) -> Value?
         

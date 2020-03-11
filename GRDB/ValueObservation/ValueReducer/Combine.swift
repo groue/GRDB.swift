@@ -2,8 +2,8 @@
 
 extension ValueReducers {
     public struct Combine2<
-        R1: ValueReducer,
-        R2: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched)
         public typealias Value = (R1.Value, R2.Value)
@@ -44,8 +44,8 @@ extension ValueReducers {
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>)
         -> ValueObservation<ValueReducers.Combine2<R1, R2>>
@@ -65,9 +65,9 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
+        R1: _ValueReducer,
         Combined>(
         _ other: ValueObservation<R1>,
         _ transform: @escaping (Reducer.Value, R1.Value) -> Combined)
@@ -81,9 +81,9 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine3<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value)
@@ -131,9 +131,9 @@ extension ValueReducers {
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>)
@@ -158,10 +158,10 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
+        R1: _ValueReducer,
+        R2: _ValueReducer,
         Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
@@ -181,10 +181,10 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine4<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value)
@@ -239,10 +239,10 @@ extension ValueReducers {
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -272,11 +272,11 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
         Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
@@ -298,11 +298,11 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine5<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value)
@@ -364,11 +364,11 @@ extension ValueReducers {
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -403,12 +403,12 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
         Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
@@ -432,12 +432,12 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine6<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched, R6.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value)
@@ -506,12 +506,12 @@ extension ValueReducers {
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -555,13 +555,13 @@ extension ValueObservation where Reducer == Void {
 
 extension ValueReducers {
     public struct Combine7<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched, R6.Fetched, R7.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value)
@@ -637,13 +637,13 @@ extension ValueReducers {
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -692,14 +692,14 @@ extension ValueObservation where Reducer == Void {
 
 extension ValueReducers {
     public struct Combine8<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer,
-        R8: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer,
+        R8: _ValueReducer>: _ValueReducer
     {
         // swiftlint:disable:next line_length
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched, R6.Fetched, R7.Fetched, R8.Fetched)
@@ -783,14 +783,14 @@ extension ValueReducers {
 
 extension ValueObservation where Reducer == Void {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer,
-        R8: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer,
+        R8: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
