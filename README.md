@@ -3887,7 +3887,7 @@ Other **table constraints** can involve several columns:
     t.primaryKey(["a", "b"])
     
     // UNIQUE (a, b) ON CONFLICT REPLACE,
-    t.uniqueKey(["a", "b"], onConfict: .replace)
+    t.uniqueKey(["a", "b"], onConflict: .replace)
     
     // FOREIGN KEY (a, b) REFERENCES parents(c, d),
     t.foreignKey(["a", "b"], references: "parents")
