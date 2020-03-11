@@ -1,34 +1,24 @@
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation {
     /// Returns a ValueObservation which notifies the results of calling the
     /// given transformation which each element notified by this
     /// value observation.
     public func map<T>(_ transform: @escaping (Reducer.Value) -> T)
         -> ValueObservation<ValueReducers.Map<Reducer, T>>
     {
-        return mapReducer { $1.map(transform) }
-    }
-}
-
-extension ValueReducer {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns a reducer which outputs the results of calling the given
-    /// transformation which each element emitted by this reducer.
-    public func map<T>(_ transform: @escaping (Value) -> T) -> ValueReducers.Map<Self, T> {
-        ValueReducers.Map(self, transform)
+        mapReducer { ValueReducers.Map($0, transform) }
     }
 }
 
 extension ValueReducers {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
-    /// A ValueReducer whose values consist of those in a Base ValueReducer passed
+    /// A _ValueReducer whose values consist of those in a Base _ValueReducer passed
     /// through a transform function.
     ///
-    /// See ValueReducer.map(_:)
+    /// See _ValueReducer.map(_:)
     ///
     /// :nodoc:
-    public struct Map<Base: ValueReducer, Value>: ValueReducer {
+    public struct Map<Base: _ValueReducer, Value>: _ValueReducer {
         private var base: Base
         private let transform: (Base.Value) -> Value
         

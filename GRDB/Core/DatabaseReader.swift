@@ -251,7 +251,7 @@ public protocol DatabaseReader: AnyObject {
     /// during observation
     /// - parameter onChange: a closure that is provided fresh values
     /// - returns: a TransactionObserver
-    func add<Reducer: ValueReducer>(
+    func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -367,7 +367,7 @@ public final class AnyDatabaseReader: DatabaseReader {
     // MARK: - Value Observation
     
     /// :nodoc:
-    public func add<Reducer: ValueReducer>(
+    public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)

@@ -4,7 +4,7 @@ extension ValueReducers {
     /// A reducer which pass raw fetched values through.
     ///
     /// :nodoc:
-    public struct Fetch<Value>: ValueReducer {
+    public struct Fetch<Value>: _ValueReducer {
         private let _fetch: (Database) throws -> Value
         
         public init(_ fetch: @escaping (Database) throws -> Value) {

@@ -21,18 +21,13 @@ class ValueObservationCompactMapTests: GRDBTestCase {
             notificationExpectation.assertForOverFulfill = true
             notificationExpectation.expectedFulfillmentCount = 2
             
-            // The base reducer
+            // Create an observation
             var count = 0
-            let reducer = AnyValueReducer(
-                fetch: { _ in /* don't fetch anything */ },
-                value: { _ -> Int? in
+            let observation = ValueObservation
+                .tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Int in
                     count += 1
                     return count
-            })
-            
-            // Create an observation
-            let observation = ValueObservation
-                .tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+                })
                 .compactMap { count -> String? in
                     if count % 2 == 0 { return nil }
                     return "\(count)"

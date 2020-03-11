@@ -2,8 +2,8 @@
 
 extension ValueReducers {
     public struct Combine2<
-        R1: ValueReducer,
-        R2: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched)
         public typealias Value = (R1.Value, R2.Value)
@@ -42,10 +42,10 @@ extension ValueReducers {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>)
         -> ValueObservation<ValueReducers.Combine2<R1, R2>>
@@ -56,24 +56,24 @@ extension ValueObservation where Reducer == Void {
                 o2.baseRegion($0)) },
             observesSelectedRegion: o1.observesSelectedRegion
                 || o2.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine2(
-                o1.makeReducer($0),
-                o2.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine2(
+                o1.makeReducer(),
+                o2.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess,
             scheduling: .mainQueue)
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
+        R1: _ValueReducer,
         Combined>(
         _ other: ValueObservation<R1>,
         _ transform: @escaping (Reducer.Value, R1.Value) -> Combined)
         -> ValueObservation<ValueReducers.Map<ValueReducers.Combine2<Reducer, R1>, Combined>>
     {
-        return ValueObservation<Void>.combine(self, other).map(transform)
+        return ValueObservation<Never>.combine(self, other).map(transform)
     }
 }
 
@@ -81,9 +81,9 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine3<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value)
@@ -129,11 +129,11 @@ extension ValueReducers {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>)
@@ -147,10 +147,10 @@ extension ValueObservation where Reducer == Void {
             observesSelectedRegion: o1.observesSelectedRegion
                 || o2.observesSelectedRegion
                 || o3.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine3(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine3(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess,
@@ -158,17 +158,17 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
+        R1: _ValueReducer,
+        R2: _ValueReducer,
         Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
         _ transform: @escaping (Reducer.Value, R1.Value, R2.Value) -> Combined)
         -> ValueObservation<ValueReducers.Map<ValueReducers.Combine3<Reducer, R1, R2>, Combined>>
     {
-        return ValueObservation<Void>
+        return ValueObservation<Never>
             .combine(
                 self,
                 observation1,
@@ -181,10 +181,10 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine4<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value)
@@ -237,12 +237,12 @@ extension ValueReducers {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -259,11 +259,11 @@ extension ValueObservation where Reducer == Void {
                 || o2.observesSelectedRegion
                 || o3.observesSelectedRegion
                 || o4.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine4(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine4(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -272,11 +272,11 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
         Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
@@ -284,7 +284,7 @@ extension ValueObservation where Reducer: ValueReducer {
         _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value) -> Combined)
         -> ValueObservation<ValueReducers.Map<ValueReducers.Combine4<Reducer, R1, R2, R3>, Combined>>
     {
-        return ValueObservation<Void>
+        return ValueObservation<Never>
             .combine(
                 self,
                 observation1,
@@ -298,11 +298,11 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine5<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value)
@@ -362,13 +362,13 @@ extension ValueReducers {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -388,12 +388,12 @@ extension ValueObservation where Reducer == Void {
                 || o3.observesSelectedRegion
                 || o4.observesSelectedRegion
                 || o5.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine5(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine5(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -403,12 +403,12 @@ extension ValueObservation where Reducer == Void {
     }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation where Reducer: _ValueReducer {
     public func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
         Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
@@ -417,7 +417,7 @@ extension ValueObservation where Reducer: ValueReducer {
         _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value, R4.Value) -> Combined)
         -> ValueObservation<ValueReducers.Map<ValueReducers.Combine5<Reducer, R1, R2, R3, R4>, Combined>>
     {
-        return ValueObservation<Void>
+        return ValueObservation<Never>
             .combine(
                 self,
                 observation1,
@@ -432,12 +432,12 @@ extension ValueObservation where Reducer: ValueReducer {
 
 extension ValueReducers {
     public struct Combine6<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched, R6.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value)
@@ -504,14 +504,14 @@ extension ValueReducers {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -534,13 +534,13 @@ extension ValueObservation where Reducer == Void {
                 || o4.observesSelectedRegion
                 || o5.observesSelectedRegion
                 || o6.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine6(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0),
-                o6.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine6(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer(),
+                o6.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -555,13 +555,13 @@ extension ValueObservation where Reducer == Void {
 
 extension ValueReducers {
     public struct Combine7<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer>: _ValueReducer
     {
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched, R6.Fetched, R7.Fetched)
         public typealias Value = (R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value)
@@ -635,15 +635,15 @@ extension ValueReducers {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -669,14 +669,14 @@ extension ValueObservation where Reducer == Void {
                 || o5.observesSelectedRegion
                 || o6.observesSelectedRegion
                 || o7.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine7(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0),
-                o6.makeReducer($0),
-                o7.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine7(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer(),
+                o6.makeReducer(),
+                o7.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -692,14 +692,14 @@ extension ValueObservation where Reducer == Void {
 
 extension ValueReducers {
     public struct Combine8<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer,
-        R8: ValueReducer>: ValueReducer
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer,
+        R8: _ValueReducer>: _ValueReducer
     {
         // swiftlint:disable:next line_length
         public typealias Fetched = (R1.Fetched, R2.Fetched, R3.Fetched, R4.Fetched, R5.Fetched, R6.Fetched, R7.Fetched, R8.Fetched)
@@ -781,16 +781,16 @@ extension ValueReducers {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     public static func combine<
-        R1: ValueReducer,
-        R2: ValueReducer,
-        R3: ValueReducer,
-        R4: ValueReducer,
-        R5: ValueReducer,
-        R6: ValueReducer,
-        R7: ValueReducer,
-        R8: ValueReducer>(
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer,
+        R8: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -819,15 +819,15 @@ extension ValueObservation where Reducer == Void {
                 || o6.observesSelectedRegion
                 || o7.observesSelectedRegion
                 || o8.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine8(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0),
-                o6.makeReducer($0),
-                o7.makeReducer($0),
-                o8.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine8(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer(),
+                o6.makeReducer(),
+                o7.makeReducer(),
+                o8.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess

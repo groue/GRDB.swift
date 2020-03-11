@@ -304,7 +304,7 @@ extension DatabaseWriter {
     
     /// Default implementation for the DatabaseReader requirement.
     /// :nodoc:
-    public func add<Reducer: ValueReducer>(
+    public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -361,34 +361,18 @@ extension DatabaseWriter {
             requiresWriteAccess: observation.requiresWriteAccess,
             observesSelectedRegion: observation.observesSelectedRegion,
             writer: self,
+            reducer: observation.makeReducer(),
             notificationQueue: notificationQueue,
             reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
             onError: onError,
             onChange: onChange)
-        
-        // Fetch initial value, with two side effects:
-        // - observer.selectedRegion is set if observation.observesSelectedRegion
-        // - observer.reducer moves forward
-        func fetchInitialValue(_ db: Database) throws -> Reducer.Value? {
-            let fetchedValue: Reducer.Fetched
-            let requiresWriteAccess = observation.requiresWriteAccess
-            if observation.observesSelectedRegion {
-                (fetchedValue, observer.selectedRegion) = try db.recordingSelectedRegion {
-                    try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-                }
-            } else {
-                fetchedValue = try observer.reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-            }
-            return observer.reducer.value(fetchedValue)
-        }
         
         if initialSync {
             do {
                 // TODO: make initialValue non-optional when compactMap is removed.
                 let initialValue: Reducer.Value? = try unsafeReentrantWrite { db in
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    observer.reducer = try observation.makeReducer(db)
-                    let initialValue = try fetchInitialValue(db)
+                    let initialValue = try observer.fetchInitialValue(db)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     return initialValue
                 }
@@ -402,8 +386,7 @@ extension DatabaseWriter {
             asyncWriteWithoutTransaction { db in
                 do {
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    observer.reducer = try observation.makeReducer(db)
-                    if let value = try fetchInitialValue(db) {
+                    if let value = try observer.fetchInitialValue(db) {
                         queue.async {
                             onChange(value)
                         }
@@ -419,8 +402,7 @@ extension DatabaseWriter {
             asyncWriteWithoutTransaction { db in
                 do {
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    observer.reducer = try observation.makeReducer(db)
-                    if let value = try fetchInitialValue(db) {
+                    if let value = try observer.fetchInitialValue(db) {
                         onChange(value)
                     }
                     db.add(transactionObserver: observer, extent: .observerLifetime)

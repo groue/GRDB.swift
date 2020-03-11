@@ -26,9 +26,9 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllRecords<RowDecoder>> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.AllRecords { try Row.fetchAll($0, self) }
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { ValueReducers.AllRecords { try Row.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -54,9 +54,9 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneRecord<RowDecoder>> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.OneRecord { try Row.fetchOne($0, self) }
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { ValueReducers.OneRecord { try Row.fetchOne($0, self) } })
     }
 }
 
@@ -125,7 +125,7 @@ extension ValueReducers {
     /// identical database rows.
     ///
     /// :nodoc:
-    public struct AllRecords<RowDecoder>: ValueReducer
+    public struct AllRecords<RowDecoder>: _ValueReducer
         where RowDecoder: FetchableRecord
     {
         private let _fetch: (Database) throws -> [Row]
@@ -155,7 +155,7 @@ extension ValueReducers {
     /// identical database rows.
     ///
     /// :nodoc:
-    public struct OneRecord<RowDecoder>: ValueReducer
+    public struct OneRecord<RowDecoder>: _ValueReducer
         where RowDecoder: FetchableRecord
     {
         private let _fetch: (Database) throws -> Row?

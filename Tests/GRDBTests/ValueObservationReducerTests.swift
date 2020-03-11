@@ -1,26 +1,24 @@
 import XCTest
 import Dispatch
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+    @testable import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
     #endif
-    import GRDB
+    @testable import GRDB
 #endif
 
 class ValueObservationReducerTests: GRDBTestCase {
     func testRegionsAPI() {
-        let reducer = AnyValueReducer(fetch: { _ in }, value: { })
-        
         // single region
-        _ = ValueObservation.tracking(DatabaseRegion(), reducer: { _ in reducer })
+        _ = ValueObservation.tracking(DatabaseRegion(), fetch: { _ in })
         // variadic
-        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), reducer: { _ in reducer })
+        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), fetch: { _ in })
         // array
-        _ = ValueObservation.tracking([DatabaseRegion()], reducer: { _ in reducer })
+        _ = ValueObservation.tracking([DatabaseRegion()], fetch: { _ in })
     }
     
     func testReducer() throws {
@@ -56,7 +54,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             
             // Create an observation
             let request = SQLRequest<Void>(sql: "SELECT * FROM t")
-            let observation = ValueObservation.tracking(request, reducer: { _ in reducer })
+            let observation = ValueObservation(baseRegion: request.databaseRegion, makeReducer: { reducer })
             
             // Start observation
             let observer = observation.start(
@@ -124,13 +122,9 @@ class ValueObservationReducerTests: GRDBTestCase {
     
     func testInitialErrorWithErrorHandling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
-            struct TestError: Error { }
-            let reducer = AnyValueReducer(
-                fetch: { _ in throw TestError() },
-                value: { _ in fatalError() })
-            
             // Create an observation
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            struct TestError: Error { }
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in throw TestError() })
             
             // Start observation
             var error: TestError?
@@ -157,20 +151,14 @@ class ValueObservationReducerTests: GRDBTestCase {
             notificationExpectation.assertForOverFulfill = true
             notificationExpectation.expectedFulfillmentCount = 3
             
-            // A reducer which throws an error is requested to do so
-            var nextError: Error? = nil // If not null, reducer throws an error
-            let reducer = AnyValueReducer(
-                fetch: { _ -> Void in
-                    if let error = nextError {
-                        nextError = nil
-                        throw error
-                    }
-            },
-                value: { $0 })
-            
-            // Create an observation
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            
+            var nextError: Error? = nil // If not null, observation throws an error
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Void in
+                if let error = nextError {
+                    nextError = nil
+                    throw error
+                }
+            })
+
             // Start observation
             let observer = observation.start(
                 in: dbWriter,
@@ -216,12 +204,10 @@ class ValueObservationReducerTests: GRDBTestCase {
             
             // Create an observation
             var count = 0
-            let reducer = AnyValueReducer(
-                fetch: { _ in /* don't fetch anything */ },
-                value: { _ -> Int? in
-                    defer { count += 1 }
-                    return count })
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer})
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Int in
+                defer { count += 1 }
+                return count
+            })
             
             // Start observation
             let observer = observation.start(
@@ -245,109 +231,6 @@ class ValueObservationReducerTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testMapValueReducer() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            // We need something to change
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            // Track reducer process
-            var counts: [String] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 3
-            
-            // The base reducer
-            var count = 0
-            let baseReducer = AnyValueReducer(
-                fetch: { _ in /* don't fetch anything */ },
-                value: { _ -> Int? in
-                    count += 1
-                    return count
-            })
-            
-            // The mapped reducer
-            let reducer = baseReducer.map { count -> String in
-                return "\(count)"
-            }
-            
-            // Create an observation
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            
-            // Start observation
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.writeWithoutTransaction { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, ["1", "2", "3"])
-            }
-        }
-        
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-    }
-    
-    func testCompactMapValueReducer() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            // We need something to change
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            // Track reducer process
-            var counts: [String] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 2
-            
-            // The base reducer
-            var count = 0
-            let baseReducer = AnyValueReducer(
-                fetch: { _ in /* don't fetch anything */ },
-                value: { _ -> Int? in
-                    count += 1
-                    return count
-            })
-            
-            // The mapped reducer
-            let reducer = baseReducer.compactMap { count -> String? in
-                if count % 2 == 0 { return nil }
-                return "\(count)"
-            }
-            
-            // Create an observation
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
-            
-            // Start observation
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.writeWithoutTransaction { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, ["1", "3"])
-            }
-        }
-        
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-    }
-
     func testValueObservationMap() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -398,7 +281,9 @@ class ValueObservationReducerTests: GRDBTestCase {
                 }
                 reduceExpectation.fulfill()
             })
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            let observation = ValueObservation(
+                baseRegion: { _ in DatabaseRegion.fullDatabase },
+                makeReducer: { reducer })
             let observer = observation.start(
                 in: dbWriter,
                 onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -451,15 +336,17 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var observer: TransactionObserver? = nil
                 _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
                 var shouldStopObservation = false
-                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
-                    AnyValueReducer<Void, Void>(
-                        fetch: { _ in
-                            if shouldStopObservation {
-                                observer = nil /* deallocation */
-                            }
-                            shouldStopObservation = true
-                    },
-                        value: { _ in () })
+                var observation = ValueObservation(
+                    baseRegion: { _ in DatabaseRegion.fullDatabase },
+                    makeReducer: {
+                        AnyValueReducer<Void, Void>(
+                            fetch: { _ in
+                                if shouldStopObservation {
+                                    observer = nil /* deallocation */
+                                }
+                                shouldStopObservation = true
+                        },
+                            value: { _ in () })
                 })
                 observation.scheduling = .unsafe
                 observer = observation.start(
@@ -493,16 +380,18 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var observer: TransactionObserver? = nil
                 _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
                 var shouldStopObservation = false
-                var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in
-                    AnyValueReducer<Void, Void>(
-                        fetch: { _ in },
-                        value: { _ in
-                            if shouldStopObservation {
-                                observer = nil /* deallocation right before notification */
-                            }
-                            shouldStopObservation = true
-                            return ()
-                    })
+                var observation = ValueObservation(
+                    baseRegion: { _ in DatabaseRegion.fullDatabase },
+                    makeReducer: {
+                        AnyValueReducer<Void, Void>(
+                            fetch: { _ in },
+                            value: { _ in
+                                if shouldStopObservation {
+                                    observer = nil /* deallocation right before notification */
+                                }
+                                shouldStopObservation = true
+                                return ()
+                        })
                 })
                 observation.scheduling = .unsafe
                 observer = observation.start(

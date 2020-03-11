@@ -1,4 +1,5 @@
 // Fixits for changes introduced by GRDB 5.0.0
+// swiftlint:disable all
 
 #if os(iOS)
 import UIKit
@@ -7,6 +8,25 @@ import UIKit
 extension AnyFetchRequest {
     @available(*, unavailable, message: "Define your own FetchRequest type instead.")
     public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
+    { preconditionFailure() }
+}
+
+@available(*, unavailable, message: "Custom reducers are no longer supported")
+public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
+    /// :nodoc:
+    public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
+    { preconditionFailure() }
+    
+    /// :nodoc:
+    public init<Base: _ValueReducer>(_ reducer: Base) where Base.Fetched == Fetched, Base.Value == Value
+    { preconditionFailure() }
+    
+    /// :nodoc:
+    public func fetch(_ db: Database) throws -> Fetched
+    { preconditionFailure() }
+    
+    /// :nodoc:
+    public func value(_ fetched: Fetched) -> Value?
     { preconditionFailure() }
 }
 
@@ -123,7 +143,17 @@ extension Statement {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation {
+    @available(*, unavailable, message: "Custom reducers are no longer supported")
+    public static func tracking(_ regions: DatabaseRegionConvertible..., reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
+    { preconditionFailure() }
+
+    @available(*, unavailable, message: "Custom reducers are no longer supported")
+    public static func tracking(_ regions: [DatabaseRegionConvertible], reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
+    { preconditionFailure() }
+}
+
+extension ValueObservation where Reducer == Never {
     @available(*, unavailable, message: "Use request.observationForCount() instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
@@ -173,7 +203,7 @@ extension ValueObservation where Reducer == Void {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation {
     @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
     public func start(
         in reader: DatabaseReader,
@@ -181,17 +211,14 @@ extension ValueObservation where Reducer: ValueReducer {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer: ValueReducer, Reducer.Value: Equatable {
+extension ValueObservation where Reducer.Value: Equatable {
     @available(*, unavailable, renamed: "removeDuplicates")
     public func distinctUntilChanged() -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     { preconditionFailure() }
 }
 
-extension ValueReducer where Value: Equatable {
-    @available(*, unavailable, renamed: "removeDuplicates")
-    public func distinctUntilChanged() -> ValueReducers.RemoveDuplicates<Self>
-    { preconditionFailure() }
-}
+@available(*, unavailable, message: "Custom reducers are no longer supported")
+typealias ValueReducer = _ValueReducer
 
 @available(*, unavailable, renamed: "ValueObservationScheduling")
 typealias ValueScheduling = ValueObservationScheduling

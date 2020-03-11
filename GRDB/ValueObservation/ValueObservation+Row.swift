@@ -25,9 +25,9 @@ extension FetchRequest where RowDecoder == Row {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllRows> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.AllRows(fetch: self.fetchAll)
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { ValueReducers.AllRows(fetch: self.fetchAll) })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -53,9 +53,9 @@ extension FetchRequest where RowDecoder == Row {
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneRow> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.OneRow(fetch: self.fetchOne)
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { ValueReducers.OneRow(fetch: self.fetchOne) })
     }
 }
 
@@ -66,7 +66,7 @@ extension ValueReducers {
     /// consecutive identical arrays.
     ///
     /// :nodoc:
-    public struct AllRows: ValueReducer {
+    public struct AllRows: _ValueReducer {
         private let _fetch: (Database) throws -> [Row]
         private var previousRows: [Row]?
         
@@ -94,7 +94,7 @@ extension ValueReducers {
     /// identical database rows.
     ///
     /// :nodoc:
-    public struct OneRow: ValueReducer {
+    public struct OneRow: _ValueReducer {
         private let _fetch: (Database) throws -> Row?
         private var previousRow: Row??
         

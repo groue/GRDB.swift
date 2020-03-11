@@ -1,21 +1,11 @@
-extension ValueObservation where Reducer: ValueReducer {
+extension ValueObservation {
     /// Returns a ValueObservation which notifies the non-nil results of calling
     /// the given transformation which each element notified by this
     /// value observation.
     public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?)
         -> ValueObservation<ValueReducers.CompactMap<Reducer, T>>
     {
-        return mapReducer { $1.compactMap(transform) }
-    }
-}
-
-extension ValueReducer {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns a reducer which outputs the non-nil results of calling the given
-    /// transformation which each element emitted by this reducer.
-    public func compactMap<T>(_ transform: @escaping (Value) -> T?) -> ValueReducers.CompactMap<Self, T> {
-        ValueReducers.CompactMap(self, transform)
+        mapReducer { ValueReducers.CompactMap($0, transform) }
     }
 }
 
@@ -25,7 +15,7 @@ extension ValueReducers {
     /// See ValueObservation.compactMap(_:)
     ///
     /// :nodoc:
-    public struct CompactMap<Base: ValueReducer, Value>: ValueReducer {
+    public struct CompactMap<Base: _ValueReducer, Value>: _ValueReducer {
         private var base: Base
         private let transform: (Base.Value) -> Value?
         

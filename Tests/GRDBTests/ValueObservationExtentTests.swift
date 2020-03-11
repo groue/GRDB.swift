@@ -22,13 +22,8 @@ class ValueObservationExtentTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 2
         
-        // A reducer
-        let reducer = AnyValueReducer(
-            fetch: { _ in },
-            value: { $0 })
-        
         // Create an observation
-        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in })
         
         // Start observation and deallocate observer after second change
         var observer: TransactionObserver?
