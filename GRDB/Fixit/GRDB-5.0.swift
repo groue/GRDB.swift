@@ -142,7 +142,7 @@ extension Statement {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     @available(*, unavailable, message: "Use request.observationForCount() instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
@@ -192,7 +192,7 @@ extension ValueObservation where Reducer == Void {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer: _ValueReducer {
+extension ValueObservation {
     @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
     public func start(
         in reader: DatabaseReader,
@@ -200,7 +200,7 @@ extension ValueObservation where Reducer: _ValueReducer {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer: _ValueReducer, Reducer.Value: Equatable {
+extension ValueObservation where Reducer.Value: Equatable {
     @available(*, unavailable, renamed: "removeDuplicates")
     public func distinctUntilChanged() -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     { preconditionFailure() }

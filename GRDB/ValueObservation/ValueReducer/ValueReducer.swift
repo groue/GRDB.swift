@@ -37,3 +37,12 @@ extension _ValueReducer {
 
 /// A namespace for types related to the _ValueReducer protocol.
 public enum ValueReducers { }
+
+// This allows us to use Never as a marker for ValueObservation factory methods:
+//
+// For example, ValueObservation.tracking(value:) is, practically,
+// ValueObservation<Never>.tracking(value:).
+extension Never: _ValueReducer {
+    public func fetch(_ db: Database) throws -> Never { preconditionFailure() }
+    public mutating func value(_ fetched: Never) -> Never? { }
+}

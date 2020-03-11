@@ -68,7 +68,7 @@ public enum ValueObservationScheduling {
 ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
 ///         print("Players have changed.")
 ///     }
-public struct ValueObservation<Reducer> {
+public struct ValueObservation<Reducer: _ValueReducer> {
     // TODO: all calls to this closure are followed by ignoringViews().
     // We should embed this ignoringViews() call.
     /// A closure that is evaluated when the observation starts, and returns
@@ -98,7 +98,7 @@ public struct ValueObservation<Reducer> {
     public var scheduling: ValueObservationScheduling
 }
 
-extension ValueObservation where Reducer: _ValueReducer {
+extension ValueObservation {
     
     // MARK: - Starting Observation
     
@@ -147,7 +147,7 @@ extension ValueObservation where Reducer: _ValueReducer {
     }
 }
 
-extension ValueObservation where Reducer: _ValueReducer {
+extension ValueObservation {
     
     // MARK: - Creating ValueObservation from _ValueReducer
     
@@ -239,7 +239,7 @@ extension ValueObservation where Reducer: _ValueReducer {
     }
 }
 
-extension ValueObservation where Reducer == Void {
+extension ValueObservation where Reducer == Never {
     
     // MARK: - Creating ValueObservation from Fetch Closures
     

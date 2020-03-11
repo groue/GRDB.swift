@@ -1,4 +1,4 @@
-extension ValueObservation where Reducer: _ValueReducer {
+extension ValueObservation {
     /// Returns a ValueObservation which notifies the non-nil results of calling
     /// the given transformation which each element notified by this
     /// value observation.

@@ -1,4 +1,5 @@
-extension ValueObservation where Reducer: _ValueReducer, Reducer.Value: Equatable {
+// TODO: add removeDuplicates(by:)
+extension ValueObservation where Reducer.Value: Equatable {
     /// Returns a ValueObservation which filters out consecutive equal values.
     public func removeDuplicates()
         -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
