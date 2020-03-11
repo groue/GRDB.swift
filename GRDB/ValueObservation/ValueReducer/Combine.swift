@@ -56,9 +56,9 @@ extension ValueObservation where Reducer == Never {
                 o2.baseRegion($0)) },
             observesSelectedRegion: o1.observesSelectedRegion
                 || o2.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine2(
-                o1.makeReducer($0),
-                o2.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine2(
+                o1.makeReducer(),
+                o2.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess,
             scheduling: .mainQueue)
@@ -147,10 +147,10 @@ extension ValueObservation where Reducer == Never {
             observesSelectedRegion: o1.observesSelectedRegion
                 || o2.observesSelectedRegion
                 || o3.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine3(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine3(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess,
@@ -259,11 +259,11 @@ extension ValueObservation where Reducer == Never {
                 || o2.observesSelectedRegion
                 || o3.observesSelectedRegion
                 || o4.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine4(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine4(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -388,12 +388,12 @@ extension ValueObservation where Reducer == Never {
                 || o3.observesSelectedRegion
                 || o4.observesSelectedRegion
                 || o5.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine5(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine5(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -534,13 +534,13 @@ extension ValueObservation where Reducer == Never {
                 || o4.observesSelectedRegion
                 || o5.observesSelectedRegion
                 || o6.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine6(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0),
-                o6.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine6(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer(),
+                o6.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -669,14 +669,14 @@ extension ValueObservation where Reducer == Never {
                 || o5.observesSelectedRegion
                 || o6.observesSelectedRegion
                 || o7.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine7(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0),
-                o6.makeReducer($0),
-                o7.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine7(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer(),
+                o6.makeReducer(),
+                o7.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
@@ -819,15 +819,15 @@ extension ValueObservation where Reducer == Never {
                 || o6.observesSelectedRegion
                 || o7.observesSelectedRegion
                 || o8.observesSelectedRegion,
-            makeReducer: { try ValueReducers.Combine8(
-                o1.makeReducer($0),
-                o2.makeReducer($0),
-                o3.makeReducer($0),
-                o4.makeReducer($0),
-                o5.makeReducer($0),
-                o6.makeReducer($0),
-                o7.makeReducer($0),
-                o8.makeReducer($0)) },
+            makeReducer: { ValueReducers.Combine8(
+                o1.makeReducer(),
+                o2.makeReducer(),
+                o3.makeReducer(),
+                o4.makeReducer(),
+                o5.makeReducer(),
+                o6.makeReducer(),
+                o7.makeReducer(),
+                o8.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess

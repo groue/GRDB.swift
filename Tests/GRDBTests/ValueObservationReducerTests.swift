@@ -54,7 +54,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             
             // Create an observation
             let request = SQLRequest<Void>(sql: "SELECT * FROM t")
-            let observation = ValueObservation(baseRegion: request.databaseRegion, makeReducer: { _ in reducer })
+            let observation = ValueObservation(baseRegion: request.databaseRegion, makeReducer: { reducer })
             
             // Start observation
             let observer = observation.start(
@@ -283,7 +283,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             let observation = ValueObservation(
                 baseRegion: { _ in DatabaseRegion.fullDatabase },
-                makeReducer: { _ in reducer })
+                makeReducer: { reducer })
             let observer = observation.start(
                 in: dbWriter,
                 onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -338,7 +338,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var shouldStopObservation = false
                 var observation = ValueObservation(
                     baseRegion: { _ in DatabaseRegion.fullDatabase },
-                    makeReducer: { _ in
+                    makeReducer: {
                         AnyValueReducer<Void, Void>(
                             fetch: { _ in
                                 if shouldStopObservation {
@@ -382,7 +382,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var shouldStopObservation = false
                 var observation = ValueObservation(
                     baseRegion: { _ in DatabaseRegion.fullDatabase },
-                    makeReducer: { _ in
+                    makeReducer: {
                         AnyValueReducer<Void, Void>(
                             fetch: { _ in },
                             value: { _ in

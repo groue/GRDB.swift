@@ -83,7 +83,7 @@ public struct ValueObservation<Reducer: _ValueReducer> {
 
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change in *observedRegion*.
-    var makeReducer: (Database) throws -> Reducer
+    var makeReducer: () -> Reducer
     
     /// Default is false. Set this property to true when the observation
     /// requires write access in order to fetch fresh values. Fetches are then
@@ -142,7 +142,7 @@ extension ValueObservation {
     ///         try observation.fetchFirst(db)
     ///     }
     func fetchFirst(_ db: Database) throws -> Reducer.Value? {
-        var reducer = try makeReducer(db)
+        var reducer = try makeReducer()
         return try reducer.value(reducer.fetch(db, requiringWriteAccess: requiresWriteAccess))
     }
 }
@@ -172,7 +172,7 @@ extension ValueObservation where Reducer == Never {
         return ValueObservation<ValueReducers.Fetch<Value>>(
             baseRegion: { _ in DatabaseRegion() },
             observesSelectedRegion: true,
-            makeReducer: { _ in ValueReducers.Fetch(value) })
+            makeReducer: { ValueReducers.Fetch(value) })
     }
     
     /// Creates a ValueObservation which observes *regions*, and notifies the
@@ -222,6 +222,6 @@ extension ValueObservation where Reducer == Never {
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(
             baseRegion: DatabaseRegion.union(regions),
-            makeReducer: { _ in ValueReducers.Fetch(fetch) })
+            makeReducer: { ValueReducers.Fetch(fetch) })
     }
 }

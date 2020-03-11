@@ -3,10 +3,6 @@ import Foundation
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
 class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
-    // Reducer must be set before observer is
-    // added to a database.
-    var reducer: Reducer!
-    
     var baseRegion = DatabaseRegion() {
         didSet { observedRegion = baseRegion.union(selectedRegion) }
     }
@@ -14,6 +10,7 @@ class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
         didSet { observedRegion = baseRegion.union(selectedRegion) }
     }
     var observedRegion: DatabaseRegion! // internal for testability
+    private var reducer: Reducer
     private let requiresWriteAccess: Bool
     private let observesSelectedRegion: Bool
     private unowned let writer: DatabaseWriter
@@ -28,18 +25,35 @@ class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
         requiresWriteAccess: Bool,
         observesSelectedRegion: Bool,
         writer: DatabaseWriter,
+        reducer: Reducer,
         notificationQueue: DispatchQueue?,
         reduceQueue: DispatchQueue,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
     {
         self.writer = writer
+        self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
         self.observesSelectedRegion = observesSelectedRegion
         self.notificationQueue = notificationQueue
         self.reduceQueue = reduceQueue
         self.onError = onError
         self.onChange = onChange
+    }
+    
+    // Fetch initial value, with two side effects:
+    // - selectedRegion is set if observesSelectedRegion
+    // - reducer moves forward
+    func fetchInitialValue(_ db: Database) throws -> Reducer.Value? {
+        let fetchedValue: Reducer.Fetched
+        if observesSelectedRegion {
+            (fetchedValue, selectedRegion) = try db.recordingSelectedRegion {
+                try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+            }
+        } else {
+            fetchedValue = try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+        }
+        return reducer.value(fetchedValue)
     }
     
     func cancel() {
@@ -126,7 +140,7 @@ class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
         }
     }
     
-    func reduce(future: DatabaseFuture<Reducer.Fetched>) {
+    private func reduce(future: DatabaseFuture<Reducer.Fetched>) {
         do {
             if let value = try reducer.value(future.wait()) {
                 if self.isCancelled { return }

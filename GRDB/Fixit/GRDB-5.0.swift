@@ -220,12 +220,6 @@ extension ValueObservation where Reducer.Value: Equatable {
 @available(*, unavailable, message: "Custom reducers are no longer supported")
 typealias ValueReducer = _ValueReducer
 
-extension _ValueReducer where Value: Equatable {
-    @available(*, unavailable, renamed: "removeDuplicates")
-    public func distinctUntilChanged() -> ValueReducers.RemoveDuplicates<Self>
-    { preconditionFailure() }
-}
-
 @available(*, unavailable, renamed: "ValueObservationScheduling")
 typealias ValueScheduling = ValueObservationScheduling
 

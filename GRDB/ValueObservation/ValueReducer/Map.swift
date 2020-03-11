@@ -5,17 +5,7 @@ extension ValueObservation {
     public func map<T>(_ transform: @escaping (Reducer.Value) -> T)
         -> ValueObservation<ValueReducers.Map<Reducer, T>>
     {
-        return mapReducer { $1.map(transform) }
-    }
-}
-
-extension _ValueReducer {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns a reducer which outputs the results of calling the given
-    /// transformation which each element emitted by this reducer.
-    public func map<T>(_ transform: @escaping (Value) -> T) -> ValueReducers.Map<Self, T> {
-        ValueReducers.Map(self, transform)
+        mapReducer { ValueReducers.Map($0, transform) }
     }
 }
 

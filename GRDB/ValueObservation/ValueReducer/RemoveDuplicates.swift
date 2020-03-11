@@ -4,16 +4,7 @@ extension ValueObservation where Reducer.Value: Equatable {
     public func removeDuplicates()
         -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
-        return mapReducer { $1.removeDuplicates() }
-    }
-}
-
-extension _ValueReducer where Value: Equatable {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns a _ValueReducer which filters out consecutive equal values.
-    public func removeDuplicates() -> ValueReducers.RemoveDuplicates<Self> {
-        ValueReducers.RemoveDuplicates(self)
+        mapReducer { ValueReducers.RemoveDuplicates($0) }
     }
 }
 

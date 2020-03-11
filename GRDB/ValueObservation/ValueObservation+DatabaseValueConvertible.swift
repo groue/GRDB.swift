@@ -28,7 +28,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     public func observationForAll() -> ValueObservation<ValueReducers.AllValues<RowDecoder>> {
         ValueObservation(
             baseRegion: databaseRegion,
-            makeReducer: { _ in ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) } })
+            makeReducer: { ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -57,7 +57,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder>> {
         ValueObservation(
             baseRegion: databaseRegion,
-            makeReducer: { _ in ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
+            makeReducer: { ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
     }
 }
 
@@ -91,7 +91,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     public func observationForAll() -> ValueObservation<ValueReducers.AllOptionalValues<RowDecoder._Wrapped>> {
         ValueObservation(
             baseRegion: databaseRegion,
-            makeReducer: { _ in ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) } })
+            makeReducer: { ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -120,7 +120,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder._Wrapped>> {
         ValueObservation(
             baseRegion: databaseRegion,
-            makeReducer: { _ in ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
+            makeReducer: { ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
     }
 }
 

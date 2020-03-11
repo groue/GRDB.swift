@@ -27,7 +27,7 @@ extension FetchRequest where RowDecoder == Row {
     public func observationForAll() -> ValueObservation<ValueReducers.AllRows> {
         ValueObservation(
             baseRegion: databaseRegion,
-            makeReducer: { _ in ValueReducers.AllRows(fetch: self.fetchAll) })
+            makeReducer: { ValueReducers.AllRows(fetch: self.fetchAll) })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -55,7 +55,7 @@ extension FetchRequest where RowDecoder == Row {
     public func observationForFirst() -> ValueObservation<ValueReducers.OneRow> {
         ValueObservation(
             baseRegion: databaseRegion,
-            makeReducer: { _ in ValueReducers.OneRow(fetch: self.fetchOne) })
+            makeReducer: { ValueReducers.OneRow(fetch: self.fetchOne) })
     }
 }
 
