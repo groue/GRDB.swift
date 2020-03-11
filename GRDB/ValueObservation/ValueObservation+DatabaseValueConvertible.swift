@@ -26,9 +26,9 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllValues<RowDecoder>> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) }
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { _ in ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -55,9 +55,9 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder>> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) }
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { _ in ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
     }
 }
 
@@ -89,9 +89,9 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllOptionalValues<RowDecoder._Wrapped>> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) }
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { _ in ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -118,9 +118,9 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder._Wrapped>> {
-        ValueObservation.tracking(self, reducer: { _ in
-            ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) }
-        })
+        ValueObservation(
+            baseRegion: databaseRegion,
+            makeReducer: { _ in ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
     }
 }
 

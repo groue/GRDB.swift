@@ -107,16 +107,13 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
             
-            var nextError: Error? = nil // If not null, reducer throws an error
-            let reducer = AnyValueReducer(
-                fetch: { _ -> Void in
-                    if let error = nextError {
-                        nextError = nil
-                        throw error
-                    }
-            },
-                value: { $0 })
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            var nextError: Error? = nil // If not null, observation throws an error
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Void in
+                if let error = nextError {
+                    nextError = nil
+                    throw error
+                }
+            })
             
             let observer = observation.start(
                 in: dbWriter,
@@ -201,10 +198,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             struct TestError: Error { }
-            let reducer = AnyValueReducer(
-                fetch: { _ in throw TestError() },
-                value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in throw TestError() })
             observation.scheduling = .async(onQueue: queue)
             
             let observer = observation.start(
@@ -241,15 +235,12 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             
             struct TestError: Error { }
             var shouldThrow = false
-            let reducer = AnyValueReducer(
-                fetch: { _ in
-                    if shouldThrow {
-                        throw TestError()
-                    }
-                    shouldThrow = true
-            },
-                value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in
+                if shouldThrow {
+                    throw TestError()
+                }
+                shouldThrow = true
+            })
             observation.scheduling = .async(onQueue: queue)
             
             let observer = observation.start(
@@ -374,10 +365,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 1
             
             struct TestError: Error { }
-            let reducer = AnyValueReducer(
-                fetch: { _ in throw TestError() },
-                value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in throw TestError() })
             observation.scheduling = .unsafe
             
             let observer = observation.start(
@@ -409,15 +397,12 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             
             struct TestError: Error { }
             var shouldThrow = false
-            let reducer = AnyValueReducer(
-                fetch: { _ in
-                    if shouldThrow {
-                        throw TestError()
-                    }
-                    shouldThrow = true
-            },
-                value: { $0 })
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, reducer: { _ in reducer })
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in
+                if shouldThrow {
+                    throw TestError()
+                }
+                shouldThrow = true
+            })
             observation.scheduling = .unsafe
             
             let observer = observation.start(

@@ -1,4 +1,5 @@
 // Fixits for changes introduced by GRDB 5.0.0
+// swiftlint:disable all
 
 #if os(iOS)
 import UIKit
@@ -139,6 +140,16 @@ extension Statement {
     
     @available(*, unavailable, renamed: "validateArguments(_:)")
     public func validate(arguments: StatementArguments) throws
+    { preconditionFailure() }
+}
+
+extension ValueObservation {
+    @available(*, unavailable, message: "Custom reducers are no longer supported")
+    public static func tracking(_ regions: DatabaseRegionConvertible..., reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
+    { preconditionFailure() }
+
+    @available(*, unavailable, message: "Custom reducers are no longer supported")
+    public static func tracking(_ regions: [DatabaseRegionConvertible], reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
     { preconditionFailure() }
 }
 
