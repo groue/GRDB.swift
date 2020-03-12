@@ -369,16 +369,13 @@ extension DatabaseWriter {
         
         if initialSync {
             do {
-                // TODO: make initialValue non-optional when compactMap is removed.
-                let initialValue: Reducer.Value? = try unsafeReentrantWrite { db in
+                let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
                     let initialValue = try observer.fetchInitialValue(db)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     return initialValue
                 }
-                if let initialValue = initialValue {
-                    onChange(initialValue)
-                }
+                onChange(initialValue)
             } catch {
                 onError(error)
             }
@@ -386,10 +383,9 @@ extension DatabaseWriter {
             asyncWriteWithoutTransaction { db in
                 do {
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    if let value = try observer.fetchInitialValue(db) {
-                        queue.async {
-                            onChange(value)
-                        }
+                    let value = try observer.fetchInitialValue(db)
+                    queue.async {
+                        onChange(value)
                     }
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
@@ -402,9 +398,7 @@ extension DatabaseWriter {
             asyncWriteWithoutTransaction { db in
                 do {
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    if let value = try observer.fetchInitialValue(db) {
-                        onChange(value)
-                    }
+                    try onChange(observer.fetchInitialValue(db))
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
                     onError(error)

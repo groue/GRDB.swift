@@ -123,28 +123,14 @@ extension ValueObservation {
     // TODO: make public if it helps fetching an initial value before starting
     // the observation, in order to avoid waiting for long write transactions to
     // complete.
-    // TODO: make the result non-optional when compactMap is removed.
     /// Returns the observed value.
-    ///
-    /// This method returns nil if observation would not notify any
-    /// initial value.
-    ///
-    /// For example, the observation below notifies changes to a player if and
-    /// only if it exists:
-    ///
-    ///     let observation = Player.filter(key: 42)
-    ///         .observationForFirst()
-    ///         .compactMap { $0 } // filters out missing player
-    ///
-    /// The `fetchFirst` method thus returns nil if player does not exist:
-    ///
-    ///     let player: Player? = try dbQueue.read { db in
-    ///         try observation.fetchFirst(db)
-    ///     }
-    func fetchFirst(_ db: Database) throws -> Reducer.Value? {
+    func fetchFirst(_ db: Database) throws -> Reducer.Value {
         var reducer = makeReducer()
         let fetchedValue = try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-        return reducer.value(fetchedValue)
+        guard let value = reducer.value(fetchedValue) else {
+            fatalError("Contract broken: reducer has no initial value")
+        }
+        return value
     }
 }
 

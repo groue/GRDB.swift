@@ -126,9 +126,7 @@ extension DatabaseSnapshot {
         case .mainQueue:
             if DispatchQueue.isMain {
                 do {
-                    if let value = try read(observation.fetchFirst) {
-                        onChange(value)
-                    }
+                    try onChange(read(observation.fetchFirst))
                 } catch {
                     onError(error)
                 }
@@ -137,9 +135,7 @@ extension DatabaseSnapshot {
                     let result = Result { try observation.fetchFirst(db) }
                     DispatchQueue.main.async {
                         do {
-                            if let value = try result.get() {
-                                onChange(value)
-                            }
+                            try onChange(result.get())
                         } catch {
                             onError(error)
                         }
@@ -151,9 +147,7 @@ extension DatabaseSnapshot {
                 let result = Result { try observation.fetchFirst(db) }
                 queue.async {
                     do {
-                        if let value = try result.get() {
-                            onChange(value)
-                        }
+                        try onChange(result.get())
                     } catch {
                         onError(error)
                     }
@@ -161,9 +155,7 @@ extension DatabaseSnapshot {
             }
         case .unsafe:
             do {
-                if let value = try unsafeReentrantRead(observation.fetchFirst) {
-                    onChange(value)
-                }
+                try onChange(unsafeReentrantRead(observation.fetchFirst))
             } catch {
                 onError(error)
             }
