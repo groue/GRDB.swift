@@ -151,6 +151,10 @@ extension ValueObservation {
     @available(*, unavailable, message: "Custom reducers are no longer supported")
     public static func tracking(_ regions: [DatabaseRegionConvertible], reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
     { preconditionFailure() }
+    
+    @available(*, unavailable, message: "compactMap is no longer available")
+    public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?) -> ValueObservation<ValueReducers.CompactMap<Reducer, T>>
+    { preconditionFailure() }
 }
 
 extension ValueObservation where Reducer == Never {
@@ -164,7 +168,7 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.AllValues<Request.RowDecoder>>
         where Request.RowDecoder: DatabaseValueConvertible
     { preconditionFailure() }
-
+    
     @available(*, unavailable, message: "Use request.observationForFirst() instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.AllValues<Request.RowDecoder>>
@@ -189,7 +193,7 @@ extension ValueObservation where Reducer == Never {
         ValueObservation<ValueReducers.OneRecord<Request.RowDecoder>>
         where Request.RowDecoder: FetchableRecord
     { preconditionFailure() }
-
+    
     @available(*, unavailable, message: "Use request.observationForAll() instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.AllRows>
@@ -215,6 +219,17 @@ extension ValueObservation where Reducer.Value: Equatable {
     @available(*, unavailable, renamed: "removeDuplicates")
     public func distinctUntilChanged() -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     { preconditionFailure() }
+}
+
+extension ValueReducers {
+    @available(*, unavailable, message: "ValueReducers.CompactMap is no longer available")
+    public struct CompactMap<Base: _ValueReducer, Value>: _ValueReducer {
+        public func fetch(_ db: Database) throws -> Base.Fetched
+        { preconditionFailure() }
+        
+        public mutating func value(_ fetched: Base.Fetched) -> Value?
+        { preconditionFailure() }
+    }
 }
 
 @available(*, unavailable, message: "Custom reducers are no longer supported")
