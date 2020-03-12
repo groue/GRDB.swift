@@ -55,6 +55,53 @@ class ValueObservationFetchTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    func testFetchValue() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write {
+                try $0.execute(sql: """
+                    CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                    INSERT INTO t DEFAULT VALUES;
+                    """)
+            }
+
+            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
+            })
+            
+            let value = try dbWriter.read(observation.fetchValue)
+            XCTAssertEqual(value, 1)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
+    func testFetchValueWithRequiredWriteAccess() throws {
+        func test(_ dbWriter: DatabaseWriter) throws {
+            try dbWriter.write {
+                try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+            }
+
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
+            })
+            observation.requiresWriteAccess = true
+            
+            do {
+                _ = try dbWriter.read(observation.fetchValue)
+                XCTFail("Expected error")
+            } catch let dbError as DatabaseError where dbError.resultCode == .SQLITE_READONLY {
+            }
+
+            let value = try dbWriter.write(observation.fetchValue)
+            XCTAssertEqual(value, 1)
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
     func testRemoveDuplicated() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
