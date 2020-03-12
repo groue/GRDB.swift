@@ -5538,7 +5538,7 @@ Changes are notified after they have been committed in the database. No insertio
 - [ValueObservation.tracking(value:)](#valueobservationtrackingvalue)
 - [ValueObservation.tracking(_:fetch:)](#valueobservationtracking_fetch)
 - [observationForCount, observationForAll, observationForFirst](#observationforcount-observationforall-observationforfirst)
-- [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [compactMap](#valueobservationcompactmap), ...
+- [ValueObservation Transformations](#valueobservation-transformations): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Error Handling](#valueobservation-error-handling)
 - [ValueObservation Options](#valueobservation-options)
 
@@ -5746,7 +5746,6 @@ Yet they are **optimized**:
 ### ValueObservation Transformations
 
 - [ValueObservation.map](#valueobservationmap)
-- [ValueObservation.compactMap](#valueobservationcompactmap)
 - [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
 - [ValueObservation.combine(...)](#valueobservationcombine)
 
@@ -5771,30 +5770,7 @@ let observer = observation.start(
     })
 ```
 
-The transformation closure does not run on the main queue, and is suitable for heavy computations.
-
-
-#### ValueObservation.compactMap
-
-The `compactMap` method lets you transform and filter the values notified by a ValueObservation. Only non-nil transformed values are notified.
-
-For example:
-
-```swift
-// Observe a player
-let observation = ValueObservation
-    .tracking { db in try Player.fetchOne(db, key: 42) }
-    .compactMap { $0 }
-    
-let observer = observation.start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { (player: Player) in
-        print("Player name: \(player.name)")
-    })
-```
-
-The transformation closure does not run on the main queue, and is suitable for heavy computations.
+The transformation closure does not run on the main queue, and does not block any database access.
 
 
 #### ValueObservation.removeDuplicates

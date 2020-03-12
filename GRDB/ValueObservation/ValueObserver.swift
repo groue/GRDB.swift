@@ -44,7 +44,10 @@ class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
     // Fetch initial value, with two side effects:
     // - selectedRegion is set if observesSelectedRegion
     // - reducer moves forward
-    func fetchInitialValue(_ db: Database) throws -> Reducer.Value? {
+    //
+    // This method must be called at most once, before the observer is added
+    // to the database writer.
+    func fetchInitialValue(_ db: Database) throws -> Reducer.Value {
         let fetchedValue: Reducer.Fetched
         if observesSelectedRegion {
             (fetchedValue, selectedRegion) = try db.recordingSelectedRegion {
@@ -53,7 +56,10 @@ class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
         } else {
             fetchedValue = try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
         }
-        return reducer.value(fetchedValue)
+        guard let value = reducer.value(fetchedValue) else {
+            fatalError("Contract broken: reducer has no initial value")
+        }
+        return value
     }
     
     func cancel() {

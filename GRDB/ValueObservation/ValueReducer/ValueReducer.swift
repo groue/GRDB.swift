@@ -14,7 +14,15 @@ public protocol _ValueReducer {
     /// Transforms a fetched value into an eventual observed value. Returns nil
     /// when observer should not be notified.
     ///
-    /// This method runs inside a private dispatch queue.
+    /// This method runs in some unspecified dispatch queue.
+    ///
+    /// _ValueReducer semantics require that the first invocation of this
+    /// method returns a non-nil value:
+    ///
+    ///     let reducer = MyReducer()
+    ///     reducer.value(...) // MUST NOT be nil
+    ///     reducer.value(...) // MAY be nil
+    ///     reducer.value(...) // MAY be nil
     mutating func value(_ fetched: Fetched) -> Value?
 }
 
