@@ -126,13 +126,13 @@ extension DatabaseSnapshot {
         case .mainQueue:
             if DispatchQueue.isMain {
                 do {
-                    try onChange(read(observation.fetchFirst))
+                    try onChange(serializedDatabase.reentrantSync(observation.fetchValue))
                 } catch {
                     onError(error)
                 }
             } else {
                 serializedDatabase.async { db in
-                    let result = Result { try observation.fetchFirst(db) }
+                    let result = Result { try observation.fetchValue(db) }
                     DispatchQueue.main.async {
                         do {
                             try onChange(result.get())
@@ -144,7 +144,7 @@ extension DatabaseSnapshot {
             }
         case let .async(onQueue: queue):
             serializedDatabase.async { db in
-                let result = Result { try observation.fetchFirst(db) }
+                let result = Result { try observation.fetchValue(db) }
                 queue.async {
                     do {
                         try onChange(result.get())
@@ -155,7 +155,7 @@ extension DatabaseSnapshot {
             }
         case .unsafe:
             do {
-                try onChange(unsafeReentrantRead(observation.fetchFirst))
+                try onChange(serializedDatabase.reentrantSync(observation.fetchValue))
             } catch {
                 onError(error)
             }

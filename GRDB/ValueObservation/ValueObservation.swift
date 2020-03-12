@@ -123,8 +123,8 @@ extension ValueObservation {
     // TODO: make public if it helps fetching an initial value before starting
     // the observation, in order to avoid waiting for long write transactions to
     // complete.
-    /// Returns the observed value.
-    func fetchFirst(_ db: Database) throws -> Reducer.Value {
+    /// Returns the value.
+    func fetchValue(_ db: Database) throws -> Reducer.Value {
         var reducer = makeReducer()
         let fetchedValue = try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
         guard let value = reducer.value(fetchedValue) else {
