@@ -202,9 +202,9 @@ extension DatabaseQueue {
     
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
-    ///     let players = try dbQueue.asyncRead { result in
+    ///     let players = try dbQueue.asyncRead { dbResult in
     ///         do {
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             let count = try Player.fetchCount(db)
     ///         } catch {
     ///             // Handle error

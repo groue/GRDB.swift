@@ -1100,9 +1100,9 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         var isInsideTransaction: Bool? = nil
         let expectation = self.expectation(description: "read")
         dbPool.writeWithoutTransaction { db in
-            dbPool.asyncConcurrentRead { result in
+            dbPool.asyncConcurrentRead { dbResult in
                 do {
-                    let db = try result.get()
+                    let db = try dbResult.get()
                     isInsideTransaction = db.isInsideTransaction
                     do {
                         try db.execute(sql: "BEGIN DEFERRED TRANSACTION")
@@ -1142,10 +1142,10 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         var count: Int? = nil
         let expectation = self.expectation(description: "read")
         try dbPool.writeWithoutTransaction { db in
-            dbPool.asyncConcurrentRead { result in
+            dbPool.asyncConcurrentRead { dbResult in
                 do {
                     _ = s1.wait(timeout: .distantFuture)
-                    let db = try result.get()
+                    let db = try dbResult.get()
                     count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!
                 } catch {
                     XCTFail("Unexpected error: \(error)")
@@ -1166,11 +1166,11 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         try dbPool.writeWithoutTransaction { db in
             try db.execute(sql: "PRAGMA locking_mode=EXCLUSIVE")
             try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-            dbPool.asyncConcurrentRead { result in
-                guard case let .failure(error) = result,
+            dbPool.asyncConcurrentRead { dbResult in
+                guard case let .failure(error) = dbResult,
                     let dbError = error as? DatabaseError
                     else {
-                        XCTFail("Unexpected result: \(result)")
+                        XCTFail("Unexpected result: \(dbResult)")
                         return
                 }
                 readError = dbError

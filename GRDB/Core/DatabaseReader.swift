@@ -121,9 +121,9 @@ public protocol DatabaseReader: AnyObject {
     /// Guarantee 1: the block argument is isolated. Eventual concurrent
     /// database updates are not visible inside the block:
     ///
-    ///     try reader.asyncRead { result in
+    ///     try reader.asyncRead { dbResult in
     ///         do (
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             // Those two values are guaranteed to be equal, even if the
     ///             // `player` table is modified between the two requests:
     ///             let count1 = try Player.fetchCount(db)

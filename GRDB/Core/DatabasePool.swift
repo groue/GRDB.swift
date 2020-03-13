@@ -357,9 +357,9 @@ extension DatabasePool: DatabaseReader {
     
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
-    ///     let players = try dbQueue.asyncRead { result in
+    ///     let players = try dbQueue.asyncRead { dbResult in
     ///         do {
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             let count = try Player.fetchCount(db)
     ///         } catch {
     ///             // Handle error
@@ -486,9 +486,9 @@ extension DatabasePool: DatabaseReader {
         let futureSemaphore = DispatchSemaphore(value: 0)
         var futureResult: Result<T, Error>? = nil
         
-        asyncConcurrentRead { db in
+        asyncConcurrentRead { dbResult in
             // Fetch and release the future
-            futureResult = Result { try block(db.get()) }
+            futureResult = dbResult.tryMap(block)
             futureSemaphore.signal()
         }
         
@@ -526,9 +526,9 @@ extension DatabasePool: DatabaseReader {
     ///         try Player.deleteAll()
     ///
     ///         // Count players concurrently
-    ///         writer.asyncConcurrentRead { result in
+    ///         writer.asyncConcurrentRead { dbResult in
     ///             do {
-    ///                 let db = try result.get()
+    ///                 let db = try dbResult.get()
     ///                 // Guaranteed to be zero
     ///                 let count = try Player.fetchCount(db)
     ///             } catch {
