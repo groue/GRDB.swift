@@ -97,6 +97,17 @@ extension DispatchQueue {
     }
 }
 
+extension Result {
+    func tryMap<T>(_ transform: (Success) throws -> T) -> Result<T, Error> {
+        switch self {
+        case let .success(value):
+            return Result<T, Error> { try transform(value) }
+        case let .failure(error):
+            return .failure(error)
+        }
+    }
+}
+
 extension Sequence {
     @inlinable
     func count(where predicate: (Element) throws -> Bool) rethrows -> Int {

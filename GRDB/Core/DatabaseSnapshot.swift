@@ -122,59 +122,10 @@ extension DatabaseSnapshot {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        switch observation.scheduling {
-        case .mainQueue:
-            if DispatchQueue.isMain {
-                do {
-                    try onChange(serializedDatabase.reentrantSync(observation.fetchValue))
-                } catch {
-                    onError(error)
-                }
-            } else {
-                serializedDatabase.async { db in
-                    let result = Result { try observation.fetchValue(db) }
-                    DispatchQueue.main.async {
-                        do {
-                            try onChange(result.get())
-                        } catch {
-                            onError(error)
-                        }
-                    }
-                }
-            }
-        case let .async(onQueue: queue):
-            serializedDatabase.async { db in
-                let result = Result { try observation.fetchValue(db) }
-                queue.async {
-                    do {
-                        try onChange(result.get())
-                    } catch {
-                        onError(error)
-                    }
-                }
-            }
-        case .unsafe:
-            do {
-                try onChange(serializedDatabase.reentrantSync(observation.fetchValue))
-            } catch {
-                onError(error)
-            }
-        }
-        
-        // Return a dummy observer, because snapshots never change
-        return SnapshotValueObserver()
+        return addReadOnly(observation: observation, onError: onError, onChange: onChange)
     }
     
     public func remove(transactionObserver: TransactionObserver) {
         // Can't remove an observer which could not be added :-)
     }
-}
-
-/// An observer that does nothing, support for
-/// `DatabaseSnapshot.add(observation:onError:onChange:)`.
-private class SnapshotValueObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
-    func databaseDidChange(with event: DatabaseEvent) { }
-    func databaseDidCommit(_ db: Database) { }
-    func databaseDidRollback(_ db: Database) { }
 }

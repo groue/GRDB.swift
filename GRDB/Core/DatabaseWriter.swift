@@ -310,6 +310,10 @@ extension DatabaseWriter {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
+        if configuration.readonly {
+            return addReadOnly(observation: observation, onError: onError, onChange: onChange)
+        }
+        
         // True if initial value must be sent to the onChange callback
         // before this method returns.
         let initialSync: Bool

@@ -294,6 +294,68 @@ extension DatabaseReader {
     }
 }
 
+extension DatabaseReader {
+    // MARK: - Value Observation Support
+        
+    func addReadOnly<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> TransactionObserver
+    {
+        switch observation.scheduling {
+        case .mainQueue:
+            if DispatchQueue.isMain {
+                do {
+                    try onChange(unsafeReentrantRead(observation.fetchValue))
+                } catch {
+                    onError(error)
+                }
+            } else {
+                asyncRead { dbResult in
+                    let result = dbResult.tryMap(observation.fetchValue)
+                    DispatchQueue.main.async {
+                        do {
+                            try onChange(result.get())
+                        } catch {
+                            onError(error)
+                        }
+                    }
+                }
+            }
+        case let .async(onQueue: queue):
+            asyncRead { dbResult in
+                let result = dbResult.tryMap(observation.fetchValue)
+                queue.async {
+                    do {
+                        try onChange(result.get())
+                    } catch {
+                        onError(error)
+                    }
+                }
+            }
+        case .unsafe:
+            do {
+                try onChange(unsafeReentrantRead(observation.fetchValue))
+            } catch {
+                onError(error)
+            }
+        }
+        
+        // Return a dummy observer, because read-only ValueObservation
+        // never changes.
+        return DummyObserver()
+    }
+}
+
+/// Support for DatabaseReader.addReadonly(observation:onError:onChange:)
+private class DummyObserver: TransactionObserver {
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
+    func databaseDidChange(with event: DatabaseEvent) { }
+    func databaseDidCommit(_ db: Database) { }
+    func databaseDidRollback(_ db: Database) { }
+}
+
 /// A type-erased DatabaseReader
 ///
 /// Instances of AnyDatabaseReader forward their methods to an arbitrary
