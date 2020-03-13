@@ -300,10 +300,8 @@ extension DatabaseWriter {
         try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
-    // MARK: - Value Observation
-    
-    /// Default implementation for the DatabaseReader requirement.
-    /// :nodoc:
+    // MARK: - Database Observation
+
     func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         prependingConcurrentFetch: Bool,
@@ -317,7 +315,8 @@ extension DatabaseWriter {
         
         // True if initial value must be sent to the onChange callback
         // before this method returns.
-        let initialSync: Bool
+        // This flag supersedes prependingConcurrentFetch.
+        let initialFetchSync: Bool
         
         // The queue for other values. Nil for any queue.
         let notificationQueue: DispatchQueue?
@@ -328,20 +327,20 @@ extension DatabaseWriter {
                 // Use case: observation starts on the main queue and wants
                 // a synchronous initial fetch. This helps avoiding flashes of
                 // missing content.
-                initialSync = true
+                initialFetchSync = true
                 notificationQueue = DispatchQueue.main
             } else {
                 // TODO: make this a fatal error when .mainQueue is no longer
                 // the default scheduling.
                 // Use case: observation does not start on the main queue, but
                 // has the default scheduling .mainQueue
-                initialSync = false
+                initialFetchSync = false
                 notificationQueue = DispatchQueue.main
             }
             
         case let .async(onQueue: queue):
             // Use case: observation must not block the target queue
-            initialSync = false
+            initialFetchSync = false
             notificationQueue = queue
             
         case .unsafe:
@@ -356,7 +355,7 @@ extension DatabaseWriter {
             //
             // A failure to follow this rule may mess with the ordering of
             // initial values.
-            initialSync = true
+            initialFetchSync = true
             notificationQueue = nil
         }
         
@@ -372,7 +371,7 @@ extension DatabaseWriter {
             onError: onError,
             onChange: onChange)
         
-        if initialSync {
+        if initialFetchSync {
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)

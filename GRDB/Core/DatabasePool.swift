@@ -782,7 +782,7 @@ extension DatabasePool: DatabaseReader {
         add(
             observation: observation,
             // DatabasePool supports concurrent reads
-            prependingConcurrentFetch: true,
+            prependingConcurrentFetch: !observation.requiresWriteAccess,
             onError: onError,
             onChange: onChange)
     }

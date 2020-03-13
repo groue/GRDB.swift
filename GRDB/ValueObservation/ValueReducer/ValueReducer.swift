@@ -9,6 +9,9 @@ public protocol _ValueReducer {
     associatedtype Value
     
     /// Feches database values upon changes in an observed database region.
+    ///
+    /// _ValueReducer semantics require that this method does not depend on
+    /// the state of the reducer: it must not use *self*.
     func fetch(_ db: Database) throws -> Fetched
     
     /// Transforms a fetched value into an eventual observed value. Returns nil
@@ -40,6 +43,11 @@ extension _ValueReducer {
                 try fetch(db)
             }
         }
+    }
+    
+    mutating func fetchAndReduce(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
+        let fetchedValue = try fetch(db, requiringWriteAccess: requiringWriteAccess)
+        return value(fetchedValue)
     }
 }
 

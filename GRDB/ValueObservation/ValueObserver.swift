@@ -2,7 +2,7 @@ import Foundation
 
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
-class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
+final class ValueObserver<Reducer: _ValueReducer> {
     var baseRegion = DatabaseRegion() {
         didSet { observedRegion = baseRegion.union(selectedRegion) }
     }
@@ -42,30 +42,25 @@ class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
     }
     
     // Fetch initial value, with two side effects:
-    // - selectedRegion is set if observesSelectedRegion
-    // - reducer moves forward
     //
     // This method must be called at most once, before the observer is added
     // to the database writer.
     func fetchInitialValue(_ db: Database) throws -> Reducer.Value {
-        let fetchedValue: Reducer.Fetched
-        if observesSelectedRegion {
-            (fetchedValue, selectedRegion) = try db.recordingSelectedRegion {
-                try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-            }
-        } else {
-            fetchedValue = try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+        let value = try recordingSelectedRegionIfNeeded(db) {
+            try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
         }
-        guard let value = reducer.value(fetchedValue) else {
-            fatalError("Contract broken: reducer has no initial value")
+        if let value = value {
+            return value
         }
-        return value
+        fatalError("Contract broken: reducer has no initial value")
     }
     
     func cancel() {
         isCancelled = true
     }
-    
+}
+
+extension ValueObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         if isCancelled { return false }
         return observedRegion.isModified(byEventsOfKind: eventKind)
@@ -84,97 +79,106 @@ class ValueObserver<Reducer: _ValueReducer>: TransactionObserver {
         guard isChanged else { return }
         isChanged = false
         
-        // Grab future fetched value
-        let future: DatabaseFuture<Reducer.Fetched>
-        if requiresWriteAccess {
-            // Synchronous read/write fetch
-            if observesSelectedRegion {
-                do {
-                    var fetchedValue: Reducer.Fetched!
-                    var selectedRegion: DatabaseRegion!
-                    try db.inTransaction {
-                        let (_fetchedValue, _selectedRegion) = try db.recordingSelectedRegion {
-                            try reducer.fetch(db)
-                        }
-                        fetchedValue = _fetchedValue
-                        selectedRegion = _selectedRegion
-                        return .commit
-                    }
-                    self.selectedRegion = selectedRegion
-                    future = DatabaseFuture(.success(fetchedValue))
-                } catch {
-                    future = DatabaseFuture(.failure(error))
+        let reducer = self.reducer
+        let fetchedValue: DatabaseFuture<Reducer.Fetched>
+        
+        if requiresWriteAccess || observesSelectedRegion {
+            // Synchronous fetch
+            fetchedValue = DatabaseFuture(Result {
+                try recordingSelectedRegionIfNeeded(db) {
+                    try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                 }
-            } else {
-                future = DatabaseFuture(Result {
-                    var fetchedValue: Reducer.Fetched!
-                    try db.inTransaction {
-                        fetchedValue = try reducer.fetch(db)
-                        return .commit
-                    }
-                    return fetchedValue
-                })
-            }
+            })
         } else {
-            if observesSelectedRegion {
-                // Synchronous read-only fetch
-                do {
-                    let (fetchedValue, selectedRegion) = try db.readOnly {
-                        try db.recordingSelectedRegion {
-                            try reducer.fetch(db)
-                        }
-                    }
-                    self.selectedRegion = selectedRegion
-                    future = DatabaseFuture(.success(fetchedValue))
-                } catch {
-                    future = DatabaseFuture(.failure(error))
-                }
-            } else {
-                // Concurrent fetch
-                future = writer.concurrentRead(reducer.fetch)
-            }
+            // Asynchronous fetch
+            fetchedValue = writer.concurrentRead(reducer.fetch)
         }
         
         // Wait for future fetched value in reduceQueue. This guarantees:
         // - that notifications have the same ordering as transactions.
         // - that expensive reduce operations are computed without blocking
-        // any database dispatch queue.
+        //   any database dispatch queue.
         reduceQueue.async { [weak self] in
             guard let self = self else { return }
             if self.isCancelled { return }
-            self.reduce(future: future)
-        }
-    }
-    
-    private func reduce(future: DatabaseFuture<Reducer.Fetched>) {
-        do {
-            if let value = try reducer.value(future.wait()) {
+            
+            Self.reduce(fetchedValue: fetchedValue, with: reducer) { [weak self] result in
+                guard let self = self else { return }
                 if self.isCancelled { return }
-                if let queue = notificationQueue {
-                    queue.async { [weak self] in
-                        guard let self = self else { return }
-                        if self.isCancelled { return }
-                        self.onChange(value)
-                    }
-                } else {
-                    onChange(value)
+                
+                // Check that we're still on reduce queue.
+                if #available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+                    dispatchPrecondition(condition: .onQueue(self.reduceQueue))
                 }
-            }
-        } catch {
-            if let queue = notificationQueue {
-                queue.async { [weak self] in
-                    guard let self = self else { return }
-                    if self.isCancelled { return }
-                    self.onError(error)
+                
+                do {
+                    let (reducer, value) = try result.get()
+                    self.reducer = reducer
+                    self.notify(value)
+                } catch {
+                    self.notify(error)
                 }
-            } else {
-                onError(error)
             }
         }
     }
     
     func databaseDidRollback(_ db: Database) {
         isChanged = false
+    }
+}
+
+extension ValueObserver {
+    private static func reduce(
+        fetchedValue: DatabaseFuture<Reducer.Fetched>,
+        with reducer: Reducer,
+        completion: @escaping (Result<(Reducer, Reducer.Value), Error>) -> Void)
+    {
+        do {
+            var reducer = reducer
+            if let value = try reducer.value(fetchedValue.wait()) {
+                completion(.success((reducer, value)))
+            }
+        } catch {
+            completion(.failure(error))
+        }
+    }
+    
+    private func recordingSelectedRegionIfNeeded<T>(_ db: Database, _ block: () throws -> T) rethrows -> T {
+        if observesSelectedRegion {
+            let result: T
+            (result, selectedRegion) = try db.recordingSelectedRegion(block)
+            return result
+        } else {
+            return try block()
+        }
+    }
+    
+    private func notify(_ value: Reducer.Value) {
+        assert(!isCancelled)
+        if let queue = notificationQueue {
+            let onChange = self.onChange
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                if self.isCancelled { return }
+                onChange(value)
+            }
+        } else {
+            onChange(value)
+        }
+    }
+    
+    private func notify(_ error: Error) {
+        assert(!isCancelled)
+        if let queue = notificationQueue {
+            let onError = self.onError
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                if self.isCancelled { return }
+                onError(error)
+            }
+        } else {
+            onError(error)
+        }
     }
 }
 
