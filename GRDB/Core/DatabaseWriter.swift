@@ -383,29 +383,39 @@ extension DatabaseWriter {
             } catch {
                 onError(error)
             }
-        } else if let queue = notificationQueue {
-            asyncWriteWithoutTransaction { db in
+        } else if prependingConcurrentFetch {
+            asyncRead { dbResult in
                 do {
+                    let db = try dbResult.get()
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    let value = try observer.fetchInitialValue(db)
-                    queue.async {
-                        onChange(value)
+                    let initialValue = try observer.fetchInitialValue(db)
+                    observer.send(initialValue)
+                    
+                    self.asyncWriteWithoutTransaction { [weak observer] db in
+                        guard let observer = observer else { return }
+                        if observer.isCancelled { return }
+                        do {
+                            if let value = try observer.fetchNextValue(db) {
+                                observer.send(value)
+                            }
+                            db.add(transactionObserver: observer, extent: .observerLifetime)
+                        } catch {
+                            observer.send(error)
+                        }
                     }
-                    db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
-                    queue.async {
-                        onError(error)
-                    }
+                    observer.send(error)
                 }
             }
         } else {
             asyncWriteWithoutTransaction { db in
                 do {
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    try onChange(observer.fetchInitialValue(db))
+                    let initialValue = try observer.fetchInitialValue(db)
+                    observer.send(initialValue)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
-                    onError(error)
+                    observer.send(error)
                 }
             }
         }

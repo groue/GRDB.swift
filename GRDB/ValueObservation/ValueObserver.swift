@@ -6,10 +6,11 @@ final class ValueObserver<Reducer: _ValueReducer> {
     var baseRegion = DatabaseRegion() {
         didSet { observedRegion = baseRegion.union(selectedRegion) }
     }
-    var selectedRegion = DatabaseRegion() {
+    private var selectedRegion = DatabaseRegion() {
         didSet { observedRegion = baseRegion.union(selectedRegion) }
     }
     var observedRegion: DatabaseRegion! // internal for testability
+    private(set) var isCancelled = false
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
     private let observesSelectedRegion: Bool
@@ -19,7 +20,6 @@ final class ValueObserver<Reducer: _ValueReducer> {
     private let onError: (Error) -> Void
     private let onChange: (Reducer.Value) -> Void
     private var isChanged = false
-    private var isCancelled = false
     
     init(
         requiresWriteAccess: Bool,
@@ -40,23 +40,55 @@ final class ValueObserver<Reducer: _ValueReducer> {
         self.onError = onError
         self.onChange = onChange
     }
-    
-    // Fetch initial value, with two side effects:
-    //
-    // This method must be called at most once, before the observer is added
-    // to the database writer.
+}
+
+extension ValueObserver {
+    /// This method must be called at most once, before the observer is added
+    /// to the database writer.
     func fetchInitialValue(_ db: Database) throws -> Reducer.Value {
-        let value = try recordingSelectedRegionIfNeeded(db) {
+        guard let value = try fetchNextValue(db) else {
+            fatalError("Contract broken: reducer has no initial value")
+        }
+        return value
+    }
+
+    func fetchNextValue(_ db: Database) throws -> Reducer.Value? {
+        try recordingSelectedRegionIfNeeded(db) {
             try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
         }
-        if let value = value {
-            return value
-        }
-        fatalError("Contract broken: reducer has no initial value")
+        // fatalError("Contract broken: reducer has no initial value")
     }
     
     func cancel() {
         isCancelled = true
+    }
+    
+    func send(_ value: Reducer.Value) {
+        if isCancelled { return }
+        if let queue = notificationQueue {
+            let onChange = self.onChange
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                if self.isCancelled { return }
+                onChange(value)
+            }
+        } else {
+            onChange(value)
+        }
+    }
+    
+    func send(_ error: Error) {
+        if isCancelled { return }
+        if let queue = notificationQueue {
+            let onError = self.onError
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                if self.isCancelled { return }
+                onError(error)
+            }
+        } else {
+            onError(error)
+        }
     }
 }
 
@@ -114,9 +146,9 @@ extension ValueObserver: TransactionObserver {
                 do {
                     let (reducer, value) = try result.get()
                     self.reducer = reducer
-                    self.notify(value)
+                    self.send(value)
                 } catch {
-                    self.notify(error)
+                    self.send(error)
                 }
             }
         }
@@ -150,34 +182,6 @@ extension ValueObserver {
             return result
         } else {
             return try block()
-        }
-    }
-    
-    private func notify(_ value: Reducer.Value) {
-        assert(!isCancelled)
-        if let queue = notificationQueue {
-            let onChange = self.onChange
-            queue.async { [weak self] in
-                guard let self = self else { return }
-                if self.isCancelled { return }
-                onChange(value)
-            }
-        } else {
-            onChange(value)
-        }
-    }
-    
-    private func notify(_ error: Error) {
-        assert(!isCancelled)
-        if let queue = notificationQueue {
-            let onError = self.onError
-            queue.async { [weak self] in
-                guard let self = self else { return }
-                if self.isCancelled { return }
-                onError(error)
-            }
-        } else {
-            onError(error)
         }
     }
 }
