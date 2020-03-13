@@ -771,6 +771,22 @@ extension DatabasePool: DatabaseReader {
         forEachConnection { $0.remove(collation: collation) }
     }
     
+    // MARK: - Database Observation
+    
+    public func add<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> TransactionObserver
+    {
+        add(
+            observation: observation,
+            // DatabasePool supports concurrent reads
+            prependingConcurrentFetch: true,
+            onError: onError,
+            onChange: onChange)
+    }
+    
     // MARK: - Custom FTS5 Tokenizers
     
     #if SQLITE_ENABLE_FTS5

@@ -114,7 +114,7 @@ extension DatabaseSnapshot {
         serializedDatabase.sync { $0.remove(collation: collation) }
     }
     
-    // MARK: - Value Observation
+    // MARK: - Database Observation
     
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,

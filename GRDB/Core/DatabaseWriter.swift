@@ -304,8 +304,9 @@ extension DatabaseWriter {
     
     /// Default implementation for the DatabaseReader requirement.
     /// :nodoc:
-    public func add<Reducer: _ValueReducer>(
+    func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        prependingConcurrentFetch: Bool,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
@@ -575,5 +576,17 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
+    }
+    
+    // MARK: - Database Observation
+    
+    /// :nodoc:
+    public func add<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> TransactionObserver
+    {
+        base.add(observation: observation, onError: onError, onChange: onChange)
     }
 }
