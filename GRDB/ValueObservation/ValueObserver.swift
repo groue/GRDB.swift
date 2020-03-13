@@ -197,10 +197,11 @@ class ValueObserverToken<Reducer: _ValueReducer>: TransactionObserver {
         self.observer = observer
     }
     
-    // The most ugly stuff ever
     deinit {
+        let observer = self.observer
         observer.cancel()
-        // TODO: have it not wait for the writer queue
-        writer?.remove(transactionObserver: observer)
+        writer?.asyncWriteWithoutTransaction { db in
+            db.remove(transactionObserver: observer)
+        }
     }
 }
