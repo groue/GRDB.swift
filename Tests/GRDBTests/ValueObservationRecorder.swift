@@ -1,12 +1,14 @@
 // Inspired by https://github.com/groue/CombineExpectations
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+import GRDBCustomSQLite
 #else
-    import GRDB
+import GRDB
 #endif
 
-public class ValueObservationRecorder<Element> {
+// MARK: - ValueObservationRecorder
+
+public class ValueObservationRecorder<Value> {
     private struct RecorderExpectation {
         var expectation: XCTestExpectation
         var remainingCount: Int? // nil for error expectation
@@ -14,22 +16,15 @@ public class ValueObservationRecorder<Element> {
     
     /// The recorder state
     private struct State {
-        var elements: [Element]
+        var values: [Value]
         var error: Error?
         var recorderExpectation: RecorderExpectation?
         var observer: TransactionObserver?
     }
     
     private let lock = NSLock()
-    private var state = State(elements: [], recorderExpectation: nil, observer: nil)
+    private var state = State(values: [], recorderExpectation: nil, observer: nil)
     private var consumedCount = 0
-    
-    /// The elements recorded so far.
-    var elementsAndError: ([Element], Error?) {
-        synchronized {
-            (state.elements, state.error)
-        }
-    }
     
     /// Internal for testability. Use ValueObservation.record(in:) instead.
     init() { }
@@ -40,18 +35,48 @@ public class ValueObservationRecorder<Element> {
         return try execute()
     }
     
-    // MARK: - PublisherExpectation API
+    // MARK: ValueObservation API
     
-    /// Registers the expectation so that it gets fulfilled when publisher
-    /// publishes elements or completes.
-    ///
-    /// - parameter expectation: An XCTestExpectation.
-    /// - parameter includingConsumed: This flag controls how elements that were
-    ///   already published at the time this method is called fulfill the
-    ///   expectation. If true, all published elements fulfill the expectation.
-    ///   If false, only published elements that are not consumed yet fulfill
-    ///   the expectation. For example, the Prefix expectation uses true, but
-    ///   the NextOne expectation uses false.
+    // Internal for testability.
+    func onChange(_ value: Value) {
+        return synchronized {
+            if state.error != nil {
+                // This is possible with ValueObservation, but not supported by ValueObservationRecorder
+                XCTFail("ValueObservationRecorder got unexpected value after error: \(String(reflecting: value))")
+            }
+            
+            state.values.append(value)
+            
+            if let exp = state.recorderExpectation, let remainingCount = exp.remainingCount {
+                assert(remainingCount > 0)
+                exp.expectation.fulfill()
+                if remainingCount > 1 {
+                    state.recorderExpectation = RecorderExpectation(expectation: exp.expectation, remainingCount: remainingCount - 1)
+                } else {
+                    state.recorderExpectation = nil
+                }
+            }
+        }
+    }
+    
+    // Internal for testability.
+    func onError(_ error: Error) {
+        return synchronized {
+            if state.error != nil {
+                // This is possible with ValueObservation, but not supported by ValueObservationRecorder
+                XCTFail("f got unexpected error after error: \(String(describing: error))")
+            }
+            
+            if let exp = state.recorderExpectation {
+                exp.expectation.fulfill(count: exp.remainingCount ?? 1)
+                state.recorderExpectation = nil
+            }
+            state.error = error
+        }
+    }
+    
+    // MARK: ValueObservationExpectation API
+    
     func fulfillOnValue(_ expectation: XCTestExpectation, includingConsumed: Bool) {
         synchronized {
             preconditionCanFulfillExpectation()
@@ -63,22 +88,22 @@ public class ValueObservationRecorder<Element> {
                 return
             }
             
-            let elements = state.elements
+            let values = state.values
             let maxFulfillmentCount = includingConsumed
-                ? elements.count
-                : elements.count - consumedCount
+                ? values.count
+                : values.count - consumedCount
             let fulfillmentCount = min(expectedFulfillmentCount, maxFulfillmentCount)
             expectation.fulfill(count: fulfillmentCount)
             
             let remainingCount = expectedFulfillmentCount - fulfillmentCount
             if remainingCount > 0 {
                 state.recorderExpectation = RecorderExpectation(expectation: expectation, remainingCount: remainingCount)
+            } else {
+                state.recorderExpectation = nil
             }
         }
     }
     
-    /// Registers the expectation so that it gets fulfilled when
-    /// publisher completes.
     func fulfillOnError(_ expectation: XCTestExpectation) {
         synchronized {
             preconditionCanFulfillExpectation()
@@ -92,28 +117,28 @@ public class ValueObservationRecorder<Element> {
         }
     }
     
-    /// Returns a value based on the recorded state of the publisher.
+    /// Returns a value based on the recorded state.
     ///
     /// - parameter value: A function which returns the value, given the
-    ///   recorded state of the publisher.
-    /// - parameter elements: All recorded elements.
-    /// - parameter remainingElements: The elements that were not consumed yet.
-    /// - parameter consume: A function which consumes elements.
-    /// - parameter count: The number of consumed elements.
+    ///   recorded state.
+    /// - parameter values: All recorded values.
+    /// - parameter remainingValues: The values that were not consumed yet.
+    /// - parameter consume: A function which consumes values.
+    /// - parameter count: The number of consumed values.
     /// - returns: The value
     func value<T>(_ value: (
-        _ elements: [Element],
+        _ values: [Value],
         _ error: Error?,
-        _ remainingElements: ArraySlice<Element>,
+        _ remainingValues: ArraySlice<Value>,
         _ consume: (_ count: Int) -> ()) throws -> T)
         rethrows -> T
     {
         try synchronized {
-            let elements = state.elements
-            let remainingElements = elements[consumedCount...]
-            return try value(elements, state.error, remainingElements, { count in
+            let values = state.values
+            let remainingValues = values[consumedCount...]
+            return try value(values, state.error, remainingValues, { count in
                 precondition(count >= 0)
-                precondition(count <= remainingElements.count)
+                precondition(count <= remainingValues.count)
                 consumedCount += count
             })
         }
@@ -140,65 +165,29 @@ public class ValueObservationRecorder<Element> {
     fileprivate func receive(_ observer: TransactionObserver) {
         synchronized {
             if state.observer != nil {
-                XCTFail("Publisher recorder is already subscribed")
+                XCTFail("ValueObservationRecorder is already observing")
             }
             state.observer = observer
         }
     }
-    
-    /// Internal for testability.
-    func onChange(_ element: Element) {
-        return synchronized {
-            if state.error != nil {
-                XCTFail("Publisher recorder got unexpected element after completion: \(String(reflecting: element))")
-            }
-            
-            state.elements.append(element)
-            
-            if let exp = state.recorderExpectation, let remainingCount = exp.remainingCount {
-                assert(remainingCount > 0)
-                exp.expectation.fulfill()
-                if remainingCount > 1 {
-                    state.recorderExpectation = RecorderExpectation(expectation: exp.expectation, remainingCount: remainingCount - 1)
-                } else {
-                    state.recorderExpectation = nil
-                }
-            }
-        }
-    }
-    
-    /// Internal for testability.
-    func onError(_ error: Error) {
-        return synchronized {
-            if state.error != nil {
-                XCTFail("Publisher recorder got unexpected completion after completion: \(String(describing: error))")
-            }
-                        
-            if let exp = state.recorderExpectation {
-                exp.expectation.fulfill(count: exp.remainingCount ?? 1)
-                state.recorderExpectation = nil
-            }
-            state.error = error
-        }
-    }
 }
 
-// MARK: - Publisher Expectations
+// MARK: - ValueObservationRecorder + Expectations
 
 extension ValueObservationRecorder {
-    public func failure() -> ValueObservationExpectations.Failure<Element> {
+    public func failure() -> ValueObservationExpectations.Failure<Value> {
         ValueObservationExpectations.Failure(recorder: self)
     }
     
-    public func next() -> ValueObservationExpectations.NextOne<Element> {
+    public func next() -> ValueObservationExpectations.NextOne<Value> {
         ValueObservationExpectations.NextOne(recorder: self)
     }
     
-    public func next(_ count: Int) -> ValueObservationExpectations.Next<Element> {
+    public func next(_ count: Int) -> ValueObservationExpectations.Next<Value> {
         ValueObservationExpectations.Next(recorder: self, count: count)
     }
     
-    public func prefix(_ maxLength: Int) -> ValueObservationExpectations.Prefix<Element> {
+    public func prefix(_ maxLength: Int) -> ValueObservationExpectations.Prefix<Value> {
         ValueObservationExpectations.Prefix(recorder: self, maxLength: maxLength)
     }
 }
@@ -214,6 +203,223 @@ extension ValueObservation {
             onChange: recorder.onChange)
         recorder.receive(observer)
         return recorder
+    }
+}
+
+// MARK: - ValueObservationExpectation
+
+public enum ValueRecordingError: Error {
+    case notEnoughValues
+    case notFailed
+}
+
+extension ValueRecordingError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .notEnoughValues:
+            return "ValueRecordingError.notEnoughValues"
+        case .notFailed:
+            return "ValueRecordingError.notFailed"
+        }
+    }
+}
+
+public protocol _ValueObservationExpectationBase {
+    func _setup(_ expectation: XCTestExpectation)
+}
+
+public protocol ValueObservationExpectation: _ValueObservationExpectationBase {
+    associatedtype Output
+    func get() throws -> Output
+}
+
+// MARK: - XCTestCase + ValueObservationExpectation
+
+extension XCTestCase {
+    public func wait<E: ValueObservationExpectation>(
+        for valueObservationExpectation: E,
+        timeout: TimeInterval,
+        description: String = "")
+        throws -> E.Output
+    {
+        let expectation = self.expectation(description: description)
+        valueObservationExpectation._setup(expectation)
+        wait(for: [expectation], timeout: timeout)
+        return try valueObservationExpectation.get()
+    }
+}
+
+// MARK: - ValueObservationExpectations
+
+public enum ValueObservationExpectations { }
+
+extension ValueObservationExpectations {
+    
+    // MARK: Inverted
+    
+    public struct Inverted<Base: ValueObservationExpectation>: ValueObservationExpectation {
+        let base: Base
+        
+        public func _setup(_ expectation: XCTestExpectation) {
+            base._setup(expectation)
+            expectation.isInverted.toggle()
+        }
+        
+        public func get() throws -> Base.Output {
+            try base.get()
+        }
+    }
+    
+    // MARK: NextOne
+    
+    public struct NextOne<Value>: ValueObservationExpectation {
+        let recorder: ValueObservationRecorder<Value>
+        
+        public func _setup(_ expectation: XCTestExpectation) {
+            recorder.fulfillOnValue(expectation, includingConsumed: false)
+        }
+        
+        public func get() throws -> Value {
+            try recorder.value { (_, error, remainingValues, consume) in
+                if let next = remainingValues.first {
+                    consume(1)
+                    return next
+                }
+                if let error = error {
+                    throw error
+                } else {
+                    throw ValueRecordingError.notEnoughValues
+                }
+            }
+        }
+        
+        public var inverted: NextOneInverted<Value> {
+            return NextOneInverted(recorder: recorder)
+        }
+    }
+    
+    // MARK: NextOneInverted
+    
+    public struct NextOneInverted<Value>: ValueObservationExpectation {
+        let recorder: ValueObservationRecorder<Value>
+        
+        public func _setup(_ expectation: XCTestExpectation) {
+            expectation.isInverted = true
+            recorder.fulfillOnValue(expectation, includingConsumed: false)
+        }
+        
+        public func get() throws {
+            try recorder.value { (_, error, remainingValues, consume) in
+                if remainingValues.isEmpty == false {
+                    return
+                }
+                if let error = error {
+                    throw error
+                }
+            }
+        }
+    }
+    
+    // MARK: Next
+    
+    public struct Next<Value>: ValueObservationExpectation {
+        let recorder: ValueObservationRecorder<Value>
+        let count: Int
+        
+        init(recorder: ValueObservationRecorder<Value>, count: Int) {
+            precondition(count >= 0, "Invalid negative count")
+            self.recorder = recorder
+            self.count = count
+        }
+        
+        public func _setup(_ expectation: XCTestExpectation) {
+            if count == 0 {
+                // Such an expectation is immediately fulfilled, by essence.
+                expectation.expectedFulfillmentCount = 1
+                expectation.fulfill()
+            } else {
+                expectation.expectedFulfillmentCount = count
+                recorder.fulfillOnValue(expectation, includingConsumed: false)
+            }
+        }
+        
+        public func get() throws -> [Value] {
+            try recorder.value { (_, error, remainingValues, consume) in
+                if remainingValues.count >= count {
+                    consume(count)
+                    return Array(remainingValues.prefix(count))
+                }
+                if let error = error {
+                    throw error
+                } else {
+                    throw ValueRecordingError.notEnoughValues
+                }
+            }
+        }
+    }
+    
+    // MARK: Prefix
+    
+    public struct Prefix<Value>: ValueObservationExpectation {
+        let recorder: ValueObservationRecorder<Value>
+        let maxLength: Int
+        
+        init(recorder: ValueObservationRecorder<Value>, maxLength: Int) {
+            precondition(maxLength >= 0, "Invalid negative count")
+            self.recorder = recorder
+            self.maxLength = maxLength
+        }
+        
+        public func _setup(_ expectation: XCTestExpectation) {
+            if maxLength == 0 {
+                // Such an expectation is immediately fulfilled, by essence.
+                expectation.expectedFulfillmentCount = 1
+                expectation.fulfill()
+            } else {
+                expectation.expectedFulfillmentCount = maxLength
+                recorder.fulfillOnValue(expectation, includingConsumed: true)
+            }
+        }
+        
+        public func get() throws -> [Value] {
+            try recorder.value { (values, error, remainingValues, consume) in
+                if values.count >= maxLength {
+                    let extraCount = max(maxLength + remainingValues.count - values.count, 0)
+                    consume(extraCount)
+                    return Array(values.prefix(maxLength))
+                }
+                if let error = error {
+                    throw error
+                }
+                consume(remainingValues.count)
+                return values
+            }
+        }
+        
+        public var inverted: Inverted<Self> {
+            return Inverted(base: self)
+        }
+    }
+    
+    // MARK: Failure
+    
+    public struct Failure<Value>: ValueObservationExpectation {
+        let recorder: ValueObservationRecorder<Value>
+        
+        public func _setup(_ expectation: XCTestExpectation) {
+            recorder.fulfillOnError(expectation)
+        }
+        
+        public func get() throws -> (values: [Value], error: Error) {
+            try recorder.value { (values, error, remainingValues, consume) in
+                if let error = error {
+                    consume(remainingValues.count)
+                    return (values: values, error: error)
+                } else {
+                    throw ValueRecordingError.notFailed
+                }
+            }
+        }
     }
 }
 

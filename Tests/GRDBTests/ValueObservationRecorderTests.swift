@@ -21,6 +21,13 @@ class ValueObservationRecorderTests: FailureTestCase {
         }
         do {
             let recorder = ValueObservationRecorder<String>()
+            recorder.onChange("foo")
+            recorder.onChange("bar")
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 0.5), "foo")
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 0.5), "bar")
+        }
+        do {
+            let recorder = ValueObservationRecorder<String>()
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
                 recorder.onChange("foo")
                 DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
@@ -38,6 +45,12 @@ class ValueObservationRecorderTests: FailureTestCase {
             let recorder = ValueObservationRecorder<String>()
             recorder.onError(CustomError())
             _ = try recorder.next().get()
+            XCTFail("Expected error")
+        } catch is CustomError { }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onError(CustomError())
+            _ = try wait(for: recorder.next(), timeout: 0.1)
             XCTFail("Expected error")
         } catch is CustomError { }
         do {
@@ -523,6 +536,13 @@ class ValueObservationRecorderTests: FailureTestCase {
             let recorder = ValueObservationRecorder<String>()
             recorder.onError(CustomError())
             let (elements, error) = try recorder.failure().get()
+            XCTAssertEqual(elements, [])
+            XCTAssert(error is CustomError)
+        }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onError(CustomError())
+            let (elements, error) = try wait(for: recorder.failure(), timeout: 0.1)
             XCTAssertEqual(elements, [])
             XCTAssert(error is CustomError)
         }
