@@ -247,6 +247,65 @@ extension XCTestCase {
         wait(for: [expectation], timeout: timeout)
         return try valueObservationExpectation.get()
     }
+    
+    /// See testAssertValueObservationRecordingMatch()
+    public func assertValueObservationRecordingMatch<Value>(
+        recorded recordedValues: [Value],
+        expected expectedValues: [Value],
+        _ message: @autoclosure () -> String = "",
+        file: StaticString = #file,
+        line: UInt = #line)
+        throws
+        where Value: Equatable
+    {
+        try assertValueObservationRecordingMatch(
+            recorded: recordedValues,
+            expected: expectedValues,
+            // Last value can't be missed, this is the most important of all!
+            allowMissingLastValue: false,
+            message(), file: file, line: line)
+    }
+    
+    private func assertValueObservationRecordingMatch<R, E>(
+        recorded recordedValues: R,
+        expected expectedValues: E,
+        allowMissingLastValue: Bool,
+        _ message: @autoclosure () -> String = "",
+        file: StaticString = #file,
+        line: UInt = #line)
+        throws
+    where
+        R: BidirectionalCollection,
+        E: BidirectionalCollection,
+        R.Element == E.Element,
+        R.Element: Equatable
+    {
+        guard let value = expectedValues.last else {
+            if !recordedValues.isEmpty {
+                XCTFail("unexpected recorded prefix \(Array(recordedValues)) - \(message())", file: file, line: line)
+            }
+            return
+        }
+        
+        let recordedSuffix = recordedValues.reversed().prefix(while: { $0 == value })
+        let expectedSuffix = expectedValues.reversed().prefix(while: { $0 == value })
+        if !allowMissingLastValue {
+            // Both missing and duplicated values are allowed in the recorded values.
+            // This is because of asynchronous DatabasePool observations.
+            if recordedSuffix.isEmpty {
+                XCTFail("missing expected value \(value) - \(message())", file: file, line: line)
+            }
+        }
+        
+        let remainingRecordedValues = recordedValues.prefix(recordedValues.count - recordedSuffix.count)
+        let remainingExpectedValues = expectedValues.prefix(expectedValues.count - expectedSuffix.count)
+        try assertValueObservationRecordingMatch(
+            recorded: remainingRecordedValues,
+            expected: remainingExpectedValues,
+            // Other values can be missed
+            allowMissingLastValue: true,
+            message(), file: file, line: line)
+    }
 }
 
 // MARK: - ValueObservationExpectations

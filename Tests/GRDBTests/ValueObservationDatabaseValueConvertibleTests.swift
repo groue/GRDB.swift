@@ -12,7 +12,7 @@ import XCTest
     @testable import GRDB
 #endif
 
-private struct Name: DatabaseValueConvertible {
+private struct Name: DatabaseValueConvertible, Equatable {
     var rawValue: String
     
     var databaseValue: DatabaseValue { rawValue.databaseValue }
@@ -27,24 +27,12 @@ private struct Name: DatabaseValueConvertible {
 
 class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     func testAll() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [[Name]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        let observation = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id").observationForAll()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { names in
-                results.append(names)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.AllValues<SQLRequest<Name>.RowDecoder>>) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+            
+            let recorder = observation.record(in: writer)
+            
+            try writer.writeWithoutTransaction { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
                 try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
                 try db.inTransaction {                                       // +1
@@ -56,12 +44,32 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
             }
             
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map(\.rawValue)}, [
+            let expectedValues = [
                 [],
                 ["foo"],
                 ["foo", "bar"],
-                ["bar"]])
+                ["bar"]]
+            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+                .map { $0.map(\.rawValue) }
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
+        }
+        
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id").observationForAll()
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
         }
     }
     

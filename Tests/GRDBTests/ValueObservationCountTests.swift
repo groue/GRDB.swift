@@ -30,17 +30,12 @@ class ValueObservationCountTests: GRDBTestCase {
                 try db.execute(sql: "DELETE FROM t WHERE id = 2")   // -1
             }
             
-            // We don't expect more than five values: [0, 1, 2, 3, 2]
             let expectedValues = [0, 1, 2, 3, 2]
             let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
-            let context = "\(type(of: writer)), \(observation.scheduling)"
-            XCTAssert(!values.isEmpty, context)
-            for count in 1...max(expectedValues.count, values.count) where count <= values.count {
-                XCTAssertEqual(
-                    expectedValues.suffix(count),
-                    values.suffix(count),
-                    context)
-            }
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
         }
         
         struct T: TableRecord { }

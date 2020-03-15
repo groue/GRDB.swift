@@ -589,4 +589,118 @@ class ValueObservationRecorderTests: FailureTestCase {
             XCTFail("Expected error")
         } catch ValueRecordingError.notFailed { }
     }
+    
+    // MARK: - assertValueObservationRecordingMatch
+    
+    func testAssertValueObservationRecordingMatch() throws {
+        do {
+            let expected = [3]
+            try assertValueObservationRecordingMatch(recorded: [3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
+            try assertFailure("failed - missing expected value 3") {
+                try assertValueObservationRecordingMatch(recorded: [], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [2]", "failed - missing expected value 3") {
+                try assertValueObservationRecordingMatch(recorded: [2], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [2]") {
+                try assertValueObservationRecordingMatch(recorded: [2, 3], expected: expected)
+            }
+        }
+        do {
+            let expected = [2, 3]
+            try assertValueObservationRecordingMatch(recorded: [3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [3, 3, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [2, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [2, 2, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [2, 2, 3, 3], expected: expected)
+            try assertFailure("failed - missing expected value 3") {
+                try assertValueObservationRecordingMatch(recorded: [], expected: expected)
+            }
+            try assertFailure("failed - missing expected value 3") {
+                try assertValueObservationRecordingMatch(recorded: [2], expected: expected)
+            }
+            try assertFailure("failed - missing expected value 3", "failed - unexpected recorded prefix [3]") {
+                try assertValueObservationRecordingMatch(recorded: [3, 2], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [1]") {
+                try assertValueObservationRecordingMatch(recorded: [1, 3], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [1]") {
+                try assertValueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected)
+            }
+        }
+        do {
+            let expected = [3, 3]
+            try assertValueObservationRecordingMatch(recorded: [3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [3, 3, 3], expected: expected)
+            try assertFailure("failed - missing expected value 3") {
+                try assertValueObservationRecordingMatch(recorded: [], expected: expected)
+            }
+            try assertFailure("failed - missing expected value 3", "failed - unexpected recorded prefix [2]") {
+                try assertValueObservationRecordingMatch(recorded: [2], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [2]") {
+                try assertValueObservationRecordingMatch(recorded: [2, 3], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [2, 2]") {
+                try assertValueObservationRecordingMatch(recorded: [2, 2, 3], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [1, 2]") {
+                try assertValueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected)
+            }
+        }
+        do {
+            let expected = [1, 2, 2, 3]
+            try assertValueObservationRecordingMatch(recorded: [3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [3, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 3, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 1, 3, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 2, 2, 3], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 2, 3], expected: expected)
+            try assertFailure("failed - missing expected value 3") {
+                try assertValueObservationRecordingMatch(recorded: [], expected: expected)
+            }
+            try assertFailure("failed - missing expected value 3") {
+                try assertValueObservationRecordingMatch(recorded: [2], expected: expected)
+            }
+            try assertFailure("failed - missing expected value 3", "failed - unexpected recorded prefix [3]") {
+                try assertValueObservationRecordingMatch(recorded: [3, 2], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [2]") {
+                try assertValueObservationRecordingMatch(recorded: [2, 1, 3], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [0]") {
+                try assertValueObservationRecordingMatch(recorded: [0, 3], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [0]") {
+                try assertValueObservationRecordingMatch(recorded: [0, 1, 2, 3], expected: expected)
+            }
+        }
+        do {
+            let expected = [1, 2, 1]
+            try assertValueObservationRecordingMatch(recorded: [1], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 1], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [2, 1], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 2, 1], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 1, 2, 1], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 2, 1, 1], expected: expected)
+            try assertValueObservationRecordingMatch(recorded: [1, 2, 2, 1], expected: expected)
+            try assertFailure("failed - missing expected value 1") {
+                try assertValueObservationRecordingMatch(recorded: [], expected: expected)
+            }
+            try assertFailure("failed - missing expected value 1") {
+                try assertValueObservationRecordingMatch(recorded: [2], expected: expected)
+            }
+            try assertFailure("failed - missing expected value 1") {
+                try assertValueObservationRecordingMatch(recorded: [1, 2], expected: expected)
+            }
+            try assertFailure("failed - unexpected recorded prefix [0]") {
+                try assertValueObservationRecordingMatch(recorded: [0, 1], expected: expected)
+            }
+        }
+    }
 }
