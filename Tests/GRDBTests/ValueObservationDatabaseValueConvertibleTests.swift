@@ -50,9 +50,8 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 ["foo", "bar"],
                 ["bar"]]
             let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
-                .map { $0.map(\.rawValue) }
             try assertValueObservationRecordingMatch(
-                recorded: values,
+                recorded: values.map { $0.map(\.rawValue) },
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
         }
@@ -74,24 +73,12 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     }
     
     func testOne() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [Name?] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 7
-        
-        let observation = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC").observationForFirst()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { name in
-                results.append(name)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.OneValue<SQLRequest<Name>.RowDecoder>>) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+            
+            let recorder = observation.record(in: writer)
+            
+            try writer.writeWithoutTransaction { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
                 try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
                 try db.inTransaction {
@@ -108,37 +95,44 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 try db.execute(sql: "UPDATE t SET name = 'qux'")
             }
             
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map(\.rawValue)}, [
+            let expectedValues = [
                 nil,
                 "foo",
                 "bar",
                 nil,
                 "baz",
                 nil,
-                "qux"])
+                "qux"]
+            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values.map { $0.map(\.rawValue) },
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
+        }
+        
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC").observationForFirst()
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
         }
     }
     
     func testAllOptional() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [[Name?]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        let observation = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id").observationForAll()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { names in
-                results.append(names)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.AllOptionalValues<Name>>) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+            
+            let recorder = observation.record(in: writer)
+            
+            try writer.writeWithoutTransaction { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
                 try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
                 try db.inTransaction {                                       // +1
@@ -150,12 +144,31 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
             }
             
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map { $0?.rawValue }}, [
+            let expectedValues = [
                 [],
                 ["foo"],
                 ["foo", nil],
-                [nil]])
+                [nil]]
+            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values.map { $0.map { $0?.rawValue }},
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
+        }
+        
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id").observationForAll()
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
         }
     }
     
