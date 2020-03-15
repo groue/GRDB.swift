@@ -14,7 +14,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
     private let observesSelectedRegion: Bool
-    private unowned let writer: DatabaseWriter
+    private weak var writer: DatabaseWriter?
     private let notificationQueue: DispatchQueue?
     private let reduceQueue: DispatchQueue
     private let onError: (Error) -> Void
@@ -56,19 +56,20 @@ extension ValueObserver {
         try recordingSelectedRegionIfNeeded(db) {
             try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
         }
-        // fatalError("Contract broken: reducer has no initial value")
     }
     
     func cancel() {
         isCancelled = true
+        writer?.asyncWriteWithoutTransaction { db in
+            db.remove(transactionObserver: self)
+        }
     }
     
     func send(_ value: Reducer.Value) {
         if isCancelled { return }
         if let queue = notificationQueue {
             let onChange = self.onChange
-            queue.async { [weak self] in
-                guard let self = self else { return }
+            queue.async {
                 if self.isCancelled { return }
                 onChange(value)
             }
@@ -81,8 +82,7 @@ extension ValueObserver {
         if isCancelled { return }
         if let queue = notificationQueue {
             let onError = self.onError
-            queue.async { [weak self] in
-                guard let self = self else { return }
+            queue.async {
                 if self.isCancelled { return }
                 onError(error)
             }
@@ -107,11 +107,11 @@ extension ValueObserver: TransactionObserver {
     }
     
     func databaseDidCommit(_ db: Database) {
+        guard let writer = writer else { return }
         if isCancelled { return }
         guard isChanged else { return }
         isChanged = false
         
-        let reducer = self.reducer
         let fetchedValue: DatabaseFuture<Reducer.Fetched>
         
         if requiresWriteAccess || observesSelectedRegion {
@@ -122,7 +122,7 @@ extension ValueObserver: TransactionObserver {
                 }
             })
         } else {
-            // Asynchronous fetch
+            // Concurrent fetch
             fetchedValue = writer.concurrentRead(reducer.fetch)
         }
         
@@ -130,23 +130,11 @@ extension ValueObserver: TransactionObserver {
         // - that notifications have the same ordering as transactions.
         // - that expensive reduce operations are computed without blocking
         //   any database dispatch queue.
-        reduceQueue.async { [weak self] in
-            guard let self = self else { return }
+        reduceQueue.async {
             if self.isCancelled { return }
-            
-            Self.reduce(fetchedValue: fetchedValue, with: reducer) { [weak self] result in
-                guard let self = self else { return }
-                if self.isCancelled { return }
-                
-                // Check that we're still on reduce queue.
-                if #available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
-                    dispatchPrecondition(condition: .onQueue(self.reduceQueue))
-                }
-                
+            self.reduce(fetchedValue: fetchedValue) { result in
                 do {
-                    let (reducer, value) = try result.get()
-                    self.reducer = reducer
-                    self.send(value)
+                    try self.send(result.get())
                 } catch {
                     self.send(error)
                 }
@@ -160,15 +148,13 @@ extension ValueObserver: TransactionObserver {
 }
 
 extension ValueObserver {
-    private static func reduce(
+    private func reduce(
         fetchedValue: DatabaseFuture<Reducer.Fetched>,
-        with reducer: Reducer,
-        completion: @escaping (Result<(Reducer, Reducer.Value), Error>) -> Void)
+        completion: @escaping (Result<Reducer.Value, Error>) -> Void)
     {
         do {
-            var reducer = reducer
             if let value = try reducer.value(fetchedValue.wait()) {
-                completion(.success((reducer, value)))
+                completion(.success(value))
             }
         } catch {
             completion(.failure(error))
@@ -202,10 +188,6 @@ class ValueObserverToken<Reducer: _ValueReducer>: TransactionObserver {
     }
     
     deinit {
-        let observer = self.observer
         observer.cancel()
-        writer?.asyncWriteWithoutTransaction { db in
-            db.remove(transactionObserver: observer)
-        }
     }
 }
