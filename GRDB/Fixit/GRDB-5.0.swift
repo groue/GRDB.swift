@@ -177,9 +177,9 @@ extension ValueObservation where Reducer == Never {
     
     @available(*, unavailable, message: "Use request.observationForAll() instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.AllOptionalValues<Request.RowDecoder._Wrapped>>
+        -> ValueObservation<ValueReducers.AllOptionalValues<Request.RowDecoder.Wrapped>>
         where Request.RowDecoder: _OptionalProtocol,
-        Request.RowDecoder._Wrapped: DatabaseValueConvertible
+        Request.RowDecoder.Wrapped: DatabaseValueConvertible
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use request.observationForAll() instead")

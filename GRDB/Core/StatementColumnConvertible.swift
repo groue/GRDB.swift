@@ -606,7 +606,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
 extension FetchRequest
     where
     RowDecoder: _OptionalProtocol,
-    RowDecoder._Wrapped: DatabaseValueConvertible & StatementColumnConvertible
+    RowDecoder.Wrapped: DatabaseValueConvertible & StatementColumnConvertible
 {
     
     // MARK: Fetching Optional values
@@ -627,8 +627,8 @@ extension FetchRequest
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchCursor(_ db: Database) throws -> FastNullableDatabaseValueCursor<RowDecoder._Wrapped> {
-        try Optional<RowDecoder._Wrapped>.fetchCursor(db, self)
+    public func fetchCursor(_ db: Database) throws -> FastNullableDatabaseValueCursor<RowDecoder.Wrapped> {
+        try Optional<RowDecoder.Wrapped>.fetchCursor(db, self)
     }
     
     /// An array of fetched optional values.
@@ -639,7 +639,7 @@ extension FetchRequest
     /// - parameter db: A database connection.
     /// - returns: An array of values.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public func fetchAll(_ db: Database) throws -> [RowDecoder._Wrapped?] {
-        try Optional<RowDecoder._Wrapped>.fetchAll(db, self)
+    public func fetchAll(_ db: Database) throws -> [RowDecoder.Wrapped?] {
+        try Optional<RowDecoder.Wrapped>.fetchAll(db, self)
     }
 }

@@ -29,7 +29,7 @@ public func databaseQuestionMarks(count: Int) -> String {
 public protocol _OptionalProtocol {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    associatedtype _Wrapped
+    associatedtype Wrapped
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -37,11 +37,7 @@ public protocol _OptionalProtocol {
 /// This conformance is an implementation detail of GRDB. Don't rely on it.
 ///
 /// :nodoc:
-extension Optional: _OptionalProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public typealias _Wrapped = Wrapped
-}
+extension Optional: _OptionalProtocol { }
 
 
 // MARK: - Internal
