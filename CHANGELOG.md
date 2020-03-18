@@ -72,6 +72,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     // UPDATE player SET score = NULL
     try Player.updateAll(db, scoreColumn <- nil)
     ```
+
+- DatabaseMigrator can now recreate the database if a migration has been removed, or renamed (addresses [#725](https://github.com/groue/GRDB.swift/issues/725)).
     
 - DatabaseMigrator querying methods have been enhanced:
     
