@@ -66,6 +66,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 **New**
 
+- Batch updates now accept nil assignments:
+    
+    ```swift
+    // UPDATE player SET score = NULL
+    try Player.updateAll(db, scoreColumn <- nil)
+    ```
+    
 - DatabaseMigrator querying methods have been enhanced:
     
     ```swift

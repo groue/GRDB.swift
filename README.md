@@ -4699,8 +4699,8 @@ Player.deleteOne(db, key: ["email": "arthur@example.com"])
 **Requests can batch update records**. The `updateAll()` method accepts *column assignments* defined with the `<-` operator:
 
 ```swift
-// UPDATE player SET score = 0, isHealthy = 1
-try Player.updateAll(db, scoreColumn <- 0, isHealthyColumn <- true)
+// UPDATE player SET score = 0, isHealthy = 1, bonus = NULL
+try Player.updateAll(db, scoreColumn <- 0, isHealthyColumn <- true, bonus <- nil)
 
 // UPDATE player SET score = 0 WHERE team = 'red'
 try Player
