@@ -4966,32 +4966,31 @@ if try dbQueue.read(migrator.appliedMigrations).contains("v2") {
 
 ### The `eraseDatabaseOnSchemaChange` Option
 
-A DatabaseMigrator can automatically wipe out the full database content, and recreate the whole database from scratch, if it detects that a migration has changed its definition:
+A DatabaseMigrator can automatically wipe out the full database content, and recreate the whole database from scratch, if it detects that migrations have changed their definition:
 
 ```swift
 var migrator = DatabaseMigrator()
 migrator.eraseDatabaseOnSchemaChange = true
 ```
 
-Beware! This flag can destroy your precious users' data!
+> :warning: **Warning**: This option can destroy your precious users' data!
 
-Yet it may be useful in those two situations:
+Setting `eraseDatabaseOnSchemaChange` is useful during application development, as you are still designing migrations, and the schema changes often.
 
-1. During application development, as you are still designing migrations, and the schema changes often.
-    
-    In this case, it is recommended that this flag does not ship in the distributed application:
-    
-    ```swift
-    var migrator = DatabaseMigrator()
-    #if DEBUG
-    // Speed up development by nuking the database when migrations change
-    migrator.eraseDatabaseOnSchemaChange = true
-    #endif
-    ```
+It is recommended that this option does not ship in the released application:
 
-2. When the database content can easily be recreated, such as a cache for some downloaded data.
+```swift
+var migrator = DatabaseMigrator()
+#if DEBUG
+// Speed up development by nuking the database when migrations change
+migrator.eraseDatabaseOnSchemaChange = true
+#endif
+```
 
-The `eraseDatabaseOnSchemaChange` option triggers a recreation of the database if the migrator detects a *schema change*. A schema change is any difference in the `sqlite_master` table, which contains the SQL used to create database tables, indexes, triggers, and views.
+The `eraseDatabaseOnSchemaChange` option triggers a recreation of the database if and only if:
+
+- A migration has been removed, or renamed.
+- A *schema change* is detected. A schema change is any difference in the `sqlite_master` table, which contains the SQL used to create database tables, indexes, triggers, and views.
 
 
 ### Advanced Database Schema Changes
