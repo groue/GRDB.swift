@@ -120,30 +120,44 @@ public struct DatabaseMigrator {
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
             if eraseDatabaseOnSchemaChange {
-                // Fetch information about current database state
-                var info: (lastAppliedIdentifier: String, schema: SchemaInfo)?
+                var needsErase = false
                 try db.inTransaction(.deferred) {
-                    if let lastAppliedIdentifier = try appliedMigrations(db).last {
-                        info = try (lastAppliedIdentifier: lastAppliedIdentifier, schema: db.schema())
+                    let appliedIdentifiers = try self.appliedIdentifiers(db)
+                    let knownIdentifiers = Set(migrations.map { $0.identifier })
+                    if !appliedIdentifiers.isSubset(of: knownIdentifiers) {
+                        // Database contains an unknown migration
+                        needsErase = true
+                        return .commit
                     }
+                    
+                    if let lastAppliedIdentifier = migrations.lazy
+                        .map({ $0.identifier })
+                        .last(where: { appliedIdentifiers.contains($0) })
+                    {
+                        // Database has been partially migrated.
+                        //
+                        // Create a temporary witness database (on disk, just in case
+                        // migrations would involve a lot of data).
+                        let witness = try DatabaseQueue(path: "", configuration: writer.configuration)
+                        
+                        // Grab schema of migrated witness database
+                        let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
+                            try runMigrations(db, upTo: lastAppliedIdentifier)
+                            return try db.schema()
+                        }
+                        
+                        // Erase database if we detect a schema change
+                        if try db.schema() != witnessSchema {
+                            needsErase = true
+                            return .commit
+                        }
+                    }
+                    
                     return .commit
                 }
                 
-                if let info = info {
-                    // Create a temporary witness database (on disk, just in case
-                    // migrations would involve a lot of data).
-                    let witness = try DatabaseQueue(path: "", configuration: writer.configuration)
-                    
-                    // Grab schema of migrated witness database
-                    let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
-                        try runMigrations(db, upTo: info.lastAppliedIdentifier)
-                        return try db.schema()
-                    }
-                    
-                    // Erase database if we detect a schema change
-                    if info.schema != witnessSchema {
-                        try db.erase()
-                    }
+                if needsErase {
+                    try db.erase()
                 }
             }
             
@@ -160,16 +174,8 @@ public struct DatabaseMigrator {
     /// - parameter db: A database connection.
     /// - throws: An eventual database error.
     public func appliedMigrations(_ db: Database) throws -> [String] {
-        do {
-            let appliedIdentifiers = try Set(String.fetchCursor(db, sql: "SELECT identifier FROM grdb_migrations"))
-            return migrations.map(\.identifier).filter { appliedIdentifiers.contains($0) }
-        } catch {
-            // Rethrow if we can't prove grdb_migrations does not exist yet
-            if (try? !db.tableExists("grdb_migrations")) ?? false {
-                return []
-            }
-            throw error
-        }
+        let appliedIdentifiers = try self.appliedIdentifiers(db)
+        return migrations.map { $0.identifier }.filter { appliedIdentifiers.contains($0) }
     }
     
     /// Returns the identifiers of completed migrations, of which all previous
@@ -200,6 +206,22 @@ public struct DatabaseMigrator {
             !migrations.map({ $0.identifier }).contains(migration.identifier),
             "already registered migration: \(String(reflecting: migration.identifier))")
         migrations.append(migration)
+    }
+    
+    /// Returns the applied migration identifiers, even unregistered ones
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: An eventual database error.
+    public func appliedIdentifiers(_ db: Database) throws -> Set<String> {
+        do {
+            return try Set(String.fetchCursor(db, sql: "SELECT identifier FROM grdb_migrations"))
+        } catch {
+            // Rethrow if we can't prove grdb_migrations does not exist yet
+            if (try? !db.tableExists("grdb_migrations")) ?? false {
+                return []
+            }
+            throw error
+        }
     }
     
     /// Returns unapplied migration identifier,

@@ -642,20 +642,32 @@ infix operator <- : ColumnAssignment
 ///     }
 public struct ColumnAssignment {
     var column: ColumnExpression
-    var value: SQLExpressible
+    var value: SQLExpressible?
+    
+    func sql(_ context: inout SQLGenerationContext) -> String {
+        if let value = value {
+            return column.expressionSQL(&context, wrappedInParenthesis: false) +
+                " = " +
+                value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+        } else {
+            return column.expressionSQL(&context, wrappedInParenthesis: false) +
+                " = NULL"
+        }
+    }
 }
 
 /// Creates an assignment to a value.
 ///
 ///     Column("valid") <- true
 ///     Column("score") <- 0
+///     Column("score") <- nil
 ///     Column("score") <- Column("score") + Column("bonus")
 ///
 ///     try dbQueue.write { db in
 ///         // UPDATE player SET score = 0
 ///         try Player.updateAll(db, Column("score") <- 0)
 ///     }
-public func <- (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func <- (column: ColumnExpression, value: SQLExpressible?) -> ColumnAssignment {
     ColumnAssignment(column: column, value: value)
 }
 

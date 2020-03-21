@@ -469,4 +469,31 @@ class DatabaseMigratorTests : GRDBTestCase {
         try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 1)
         try XCTAssertTrue(dbQueue.read { try $0.tableExists("t2") })
     }
+    
+    func testEraseDatabaseOnSchemaChangeWithRenamedMigration() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        // 1st migration
+        var migrator1 = DatabaseMigrator()
+        migrator1.registerMigration("1") { db in
+            try db.execute(sql: """
+                CREATE TABLE t1(id INTEGER PRIMARY KEY);
+                INSERT INTO t1(id) VALUES (1)
+                """)
+        }
+        try migrator1.migrate(dbQueue)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 1)
+        
+        // 2nd migration does not erase database
+        var migrator2 = DatabaseMigrator()
+        migrator2.eraseDatabaseOnSchemaChange = true
+        migrator2.registerMigration("2") { db in
+            try db.execute(sql: """
+                CREATE TABLE t1(id INTEGER PRIMARY KEY);
+                INSERT INTO t1(id) VALUES (2)
+                """)
+        }
+        try migrator2.migrate(dbQueue)
+        try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 2)
+    }
 }

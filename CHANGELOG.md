@@ -6,7 +6,9 @@ All notable changes to this project will be documented in this file.
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
 
+<!--
 [Next Release](#next-release)
+-->
 
 
 #### 5.x Releases
@@ -16,6 +18,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
+- `4.12.x` Releases - [4.12.0](#4120)
 - `4.11.x` Releases - [4.11.0](#4110)
 - `4.10.x` Releases - [4.10.0](#4100)
 - `4.9.x` Releases - [4.9.0](#490)
@@ -67,10 +70,39 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
+<!--
 ## Next Release
+-->
+
+## GRDB5 Branch
+
+- [#719](https://github.com/groue/GRDB.swift/pull/719): Bump required Swift version to 5.2
+- [#720](https://github.com/groue/GRDB.swift/pull/720): Turn deprecated APIs into unavailable ones
+- [#721](https://github.com/groue/GRDB.swift/pull/721): SE-0249: Key Path Expressions as Functions
+- [#722](https://github.com/groue/GRDB.swift/pull/722): SE-0253: Callable values of user-defined nominal types
+- [#723](https://github.com/groue/GRDB.swift/pull/723): SE-0255: Implicit returns from single-expression functions
+- [#724](https://github.com/groue/GRDB.swift/pull/724): SE-0242: Synthesize default values for the memberwise initializer
+- [#728](https://github.com/groue/GRDB.swift/pull/728): Make ValueObservation error handling mandatory
+- [#729](https://github.com/groue/GRDB.swift/pull/729): ValueObservation always emits an initial value
+- [#731](https://github.com/groue/GRDB.swift/pull/731): Hide ValueObservation implementation details
+- [#732](https://github.com/groue/GRDB.swift/pull/732): Remove ValueObservation.compactMap
+
+
+## 4.12.0
+
+Released March 21, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.11.0...v4.12.0)
 
 **New**
 
+- Batch updates now accept nil assignments:
+    
+    ```swift
+    // UPDATE player SET score = NULL
+    try Player.updateAll(db, scoreColumn <- nil)
+    ```
+
+- DatabaseMigrator can now recreate the database if a migration has been removed, or renamed (addresses [#725](https://github.com/groue/GRDB.swift/issues/725)).
+    
 - DatabaseMigrator querying methods have been enhanced:
     
     ```swift
@@ -86,20 +118,6 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     migrator.lastCompletedMigration(in: dbQueue) == "v2"
     migrator.appliedMigrations(in: dbQueue)
     ```
-
-
-## GRDB5 Branch
-
-- [#719](https://github.com/groue/GRDB.swift/pull/719): Bump required Swift version to 5.2
-- [#720](https://github.com/groue/GRDB.swift/pull/720): Turn deprecated APIs into unavailable ones
-- [#721](https://github.com/groue/GRDB.swift/pull/721): SE-0249: Key Path Expressions as Functions
-- [#722](https://github.com/groue/GRDB.swift/pull/722): SE-0253: Callable values of user-defined nominal types
-- [#723](https://github.com/groue/GRDB.swift/pull/723): SE-0255: Implicit returns from single-expression functions
-- [#724](https://github.com/groue/GRDB.swift/pull/724): SE-0242: Synthesize default values for the memberwise initializer
-- [#728](https://github.com/groue/GRDB.swift/pull/728): Make ValueObservation error handling mandatory
-- [#729](https://github.com/groue/GRDB.swift/pull/729): ValueObservation always emits an initial value
-- [#731](https://github.com/groue/GRDB.swift/pull/731): Hide ValueObservation implementation details
-- [#732](https://github.com/groue/GRDB.swift/pull/732): Remove ValueObservation.compactMap
 
 
 ## 4.11.0
