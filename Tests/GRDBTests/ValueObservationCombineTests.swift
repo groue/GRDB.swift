@@ -20,55 +20,45 @@ class ValueObservationCombineTests: GRDBTestCase {
                 """)
         }
         
-        var values: [[Int]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         let observation1 = T1.observationForCount()
         let observation2 = T2.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { v0, v1 in
-                values.append([v0, v1])
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(values, [
-                [0, 0],
-                [1, 0],
-                [1, 1],
-                [2, 2]])
+        let recorder = observation.record(in: dbQueue)
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        
+        let expectedValues = [
+            [0, 0],
+            [1, 0],
+            [1, 1],
+            [2, 2]]
+        let values = try wait(for: recorder.next(expectedValues.count), timeout: 0.5)
+        XCTAssertEqual(values.map { [$0, $1] }, expectedValues)
     }
     
     func testCombine3() throws {
@@ -81,11 +71,6 @@ class ValueObservationCombineTests: GRDBTestCase {
                 """)
         }
         
-        var values: [[Int]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 5
-        
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         struct T3: TableRecord { }
@@ -93,56 +78,51 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = T2.observationForCount()
         let observation3 = T3.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { v0, v1, v2 in
-                values.append([v0, v1, v2])
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(values, [
-                [0, 0, 0],
-                [1, 0, 0],
-                [1, 1, 0],
-                [1, 1, 1],
-                [2, 2, 2]])
+        let recorder = observation.record(in: dbQueue)
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        
+        let expectedValues = [
+            [0, 0, 0],
+            [1, 0, 0],
+            [1, 1, 0],
+            [1, 1, 1],
+            [2, 2, 2]]
+        let values = try wait(for: recorder.next(expectedValues.count), timeout: 0.5)
+        XCTAssertEqual(values.map { [$0, $1, $2] }, expectedValues)
     }
     
     func testCombine4() throws {
@@ -156,11 +136,6 @@ class ValueObservationCombineTests: GRDBTestCase {
                 """)
         }
         
-        var values: [[Int]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 6
-        
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         struct T3: TableRecord { }
@@ -170,67 +145,62 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = T3.observationForCount()
         let observation4 = T4.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { v0, v1, v2, v3 in
-                values.append([v0, v1, v2, v3])
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(values, [
-                [0, 0, 0, 0],
-                [1, 0, 0, 0],
-                [1, 1, 0, 0],
-                [1, 1, 1, 0],
-                [1, 1, 1, 1],
-                [2, 2, 2, 2]])
+        let recorder = observation.record(in: dbQueue)
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        
+        let expectedValues = [
+            [0, 0, 0, 0],
+            [1, 0, 0, 0],
+            [1, 1, 0, 0],
+            [1, 1, 1, 0],
+            [1, 1, 1, 1],
+            [2, 2, 2, 2]]
+        let values = try wait(for: recorder.next(expectedValues.count), timeout: 0.5)
+        XCTAssertEqual(values.map { [$0, $1, $2, $3] }, expectedValues)
     }
     
     func testCombine5() throws {
@@ -245,11 +215,6 @@ class ValueObservationCombineTests: GRDBTestCase {
                 """)
         }
         
-        var values: [[Int]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 7
-        
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         struct T3: TableRecord { }
@@ -261,78 +226,73 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation4 = T4.observationForCount()
         let observation5 = T5.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { v0, v1, v2, v3, v4 in
-                values.append([v0, v1, v2, v3, v4])
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(values, [
-                [0, 0, 0, 0, 0],
-                [1, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0],
-                [1, 1, 1, 0, 0],
-                [1, 1, 1, 1, 0],
-                [1, 1, 1, 1, 1],
-                [2, 2, 2, 2, 2]])
+        let recorder = observation.record(in: dbQueue)
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        
+        let expectedValues = [
+            [0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0],
+            [1, 1, 1, 0, 0],
+            [1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1],
+            [2, 2, 2, 2, 2]]
+        let values = try wait(for: recorder.next(expectedValues.count), timeout: 0.5)
+        XCTAssertEqual(values.map { [$0, $1, $2, $3, $4] }, expectedValues)
     }
     
     func testCombine6() throws {
@@ -348,11 +308,6 @@ class ValueObservationCombineTests: GRDBTestCase {
                 """)
         }
         
-        var values: [[Int]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 8
-        
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         struct T3: TableRecord { }
@@ -366,89 +321,84 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation5 = T5.observationForCount()
         let observation6 = T6.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { v0, v1, v2, v3, v4, v5 in
-                values.append([v0, v1, v2, v3, v4, v5])
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t6")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "DELETE FROM t6")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(values, [
-                [0, 0, 0, 0, 0, 0],
-                [1, 0, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0],
-                [1, 1, 1, 0, 0, 0],
-                [1, 1, 1, 1, 0, 0],
-                [1, 1, 1, 1, 1, 0],
-                [1, 1, 1, 1, 1, 1],
-                [2, 2, 2, 2, 2, 2]])
+        let recorder = observation.record(in: dbQueue)
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t6")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "DELETE FROM t6")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        
+        let expectedValues = [
+            [0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0],
+            [1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1],
+            [2, 2, 2, 2, 2, 2]]
+        let values = try wait(for: recorder.next(expectedValues.count), timeout: 0.5)
+        XCTAssertEqual(values.map { [$0, $1, $2, $3, $4, $5] }, expectedValues)
     }
     
     func testCombine7() throws {
@@ -465,11 +415,6 @@ class ValueObservationCombineTests: GRDBTestCase {
                 """)
         }
         
-        var values: [[Int]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 9
-        
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         struct T3: TableRecord { }
@@ -485,100 +430,95 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation6 = T6.observationForCount()
         let observation7 = T7.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { v0, v1, v2, v3, v4, v5, v6 in
-                values.append([v0, v1, v2, v3, v4, v5, v6])
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t6")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t7")
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "DELETE FROM t6")
-                try db.execute(sql: "DELETE FROM t7")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-            }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(values, [
-                [0, 0, 0, 0, 0, 0, 0],
-                [1, 0, 0, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0, 0],
-                [1, 1, 1, 0, 0, 0, 0],
-                [1, 1, 1, 1, 0, 0, 0],
-                [1, 1, 1, 1, 1, 0, 0],
-                [1, 1, 1, 1, 1, 1, 0],
-                [1, 1, 1, 1, 1, 1, 1],
-                [2, 2, 2, 2, 2, 2, 2]])
+        let recorder = observation.record(in: dbQueue)
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t6")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t7")
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "DELETE FROM t6")
+            try db.execute(sql: "DELETE FROM t7")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+        }
+        
+        let expectedValues = [
+            [0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 1, 0, 0],
+            [1, 1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1, 1],
+            [2, 2, 2, 2, 2, 2, 2]]
+        let values = try wait(for: recorder.next(expectedValues.count), timeout: 0.5)
+        XCTAssertEqual(values.map { [$0, $1, $2, $3, $4, $5, $6] }, expectedValues)
     }
     
     func testCombine8() throws {
@@ -595,11 +535,6 @@ class ValueObservationCombineTests: GRDBTestCase {
                 CREATE TABLE t8(id INTEGER PRIMARY KEY AUTOINCREMENT);
                 """)
         }
-        
-        var values: [[Int]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 10
         
         struct T1: TableRecord { }
         struct T2: TableRecord { }
@@ -618,111 +553,106 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation7 = T7.observationForCount()
         let observation8 = T8.observationForCount()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { v0, v1, v2, v3, v4, v5, v6, v7 in
-                values.append([v0, v1, v2, v3, v4, v5, v6, v7])
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t6")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t7")
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t8")
-                try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "DELETE FROM t1")
-                try db.execute(sql: "DELETE FROM t2")
-                try db.execute(sql: "DELETE FROM t3")
-                try db.execute(sql: "DELETE FROM t4")
-                try db.execute(sql: "DELETE FROM t5")
-                try db.execute(sql: "DELETE FROM t6")
-                try db.execute(sql: "DELETE FROM t7")
-                try db.execute(sql: "DELETE FROM t8")
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
-            }
-            try dbQueue.write { db in
-                try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
-                try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
-            }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(values, [
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [1, 0, 0, 0, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0, 0, 0],
-                [1, 1, 1, 0, 0, 0, 0, 0],
-                [1, 1, 1, 1, 0, 0, 0, 0],
-                [1, 1, 1, 1, 1, 0, 0, 0],
-                [1, 1, 1, 1, 1, 1, 0, 0],
-                [1, 1, 1, 1, 1, 1, 1, 0],
-                [1, 1, 1, 1, 1, 1, 1, 1],
-                [2, 2, 2, 2, 2, 2, 2, 2]])
+        let recorder = observation.record(in: dbQueue)
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
         }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t6")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t7")
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t8")
+            try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "DELETE FROM t1")
+            try db.execute(sql: "DELETE FROM t2")
+            try db.execute(sql: "DELETE FROM t3")
+            try db.execute(sql: "DELETE FROM t4")
+            try db.execute(sql: "DELETE FROM t5")
+            try db.execute(sql: "DELETE FROM t6")
+            try db.execute(sql: "DELETE FROM t7")
+            try db.execute(sql: "DELETE FROM t8")
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t2 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t3 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t4 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t5 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t6 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t7 DEFAULT VALUES")
+            try db.execute(sql: "INSERT INTO t8 DEFAULT VALUES")
+        }
+        
+        let expectedValues = [
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1, 0, 0, 0],
+            [1, 1, 1, 1, 1, 1, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1],
+            [2, 2, 2, 2, 2, 2, 2, 2]]
+        let values = try wait(for: recorder.next(expectedValues.count), timeout: 0.5)
+        XCTAssertEqual(values.map { [$0, $1, $2, $3, $4, $5, $6, $7] }, expectedValues)
     }
     
     func testHeterogeneusCombine2() throws {
