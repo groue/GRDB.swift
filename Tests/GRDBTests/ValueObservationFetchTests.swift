@@ -21,72 +21,86 @@ class ValueObservationFetchTests: GRDBTestCase {
     }
     
     func testFetch() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.Fetch<Int>>) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
-            var counts: [Int] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 4
+            let recorder = observation.record(in: writer)
             
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.writeWithoutTransaction { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(sql: "UPDATE t SET id = id")
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, [0, 1, 1, 2])
+            try writer.writeWithoutTransaction { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "UPDATE t SET id = id")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
+            
+            let expectedValues = [0, 1, 1, 2]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
         }
         
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
+            })
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
+        }
     }
     
     func testRemoveDuplicated() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
-            var counts: [Int] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 3
+            let recorder = observation.record(in: writer)
             
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            }).removeDuplicates()
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.writeWithoutTransaction { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(sql: "UPDATE t SET id = id")
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, [0, 1, 2])
+            try writer.writeWithoutTransaction { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "UPDATE t SET id = id")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
+            
+            let expectedValues = [0, 1, 2]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
         }
         
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
+            }).removeDuplicates()
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
+        }
     }
 }

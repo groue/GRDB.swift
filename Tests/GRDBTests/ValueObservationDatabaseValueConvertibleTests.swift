@@ -1,15 +1,15 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
+@testable import GRDBCustomSQLite
 #else
-    #if GRDBCIPHER
-        import SQLCipher
-    #elseif SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    @testable import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#elseif SWIFT_PACKAGE
+import CSQLite
+#else
+import SQLite3
+#endif
+@testable import GRDB
 #endif
 
 private struct Name: DatabaseValueConvertible, Equatable {
@@ -49,7 +49,11 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 ["foo"],
                 ["foo", "bar"],
                 ["bar"]]
-            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
             try assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map(\.rawValue) },
                 expected: expectedValues,
@@ -103,7 +107,11 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 "baz",
                 nil,
                 "qux"]
-            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
             try assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map(\.rawValue) },
                 expected: expectedValues,
@@ -149,7 +157,11 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 ["foo"],
                 ["foo", nil],
                 [nil]]
-            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
             try assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map { $0?.rawValue }},
                 expected: expectedValues,
@@ -203,7 +215,11 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 "baz",
                 nil,
                 "qux"]
-            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
             try assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map(\.rawValue)},
                 expected: expectedValues,

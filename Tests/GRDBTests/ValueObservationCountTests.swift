@@ -31,7 +31,11 @@ class ValueObservationCountTests: GRDBTestCase {
             }
             
             let expectedValues = [0, 1, 2, 3, 2]
-            let values = try wait(for: recorder.prefix(expectedValues.count + 1).inverted, timeout: 0.5)
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
             try assertValueObservationRecordingMatch(
                 recorded: values,
                 expected: expectedValues,
