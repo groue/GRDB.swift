@@ -16,7 +16,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.Fetch<Int>>) throws {
             try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             let recorder = observation.record(in: writer)
-            try writer.write {
+            try writer.writeWithoutTransaction {
                 try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
@@ -90,7 +90,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.Fetch<Int>>) throws {
             try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             let recorder = observation.record(in: writer)
-            try writer.write {
+            try writer.writeWithoutTransaction {
                 try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
