@@ -12,45 +12,47 @@ import XCTest
 
 class ValueObservationMapTests: GRDBTestCase {
     func testMap() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.Map<ValueReducers.Fetch<Int>, String>>) throws {
             // We need something to change
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
-            var counts: [String] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 3
+            let recorder = observation.record(in: writer)
             
-            // Create an observation
-            var count = 0
-            let observation = ValueObservation
-                .tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Int in
-                    count += 1
-                    return count
-                })
-                .map { count -> String in return "\(count)" }
-            
-            // Start observation
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.writeWithoutTransaction { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, ["1", "2", "3"])
+            try writer.writeWithoutTransaction { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
+            
+            let expectedValues = ["0", "1", "2"]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
         }
         
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = ValueObservation
+                .tracking(DatabaseRegion.fullDatabase, fetch: {
+                    try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
+                })
+                .map { "\($0)" }
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
+        }
     }
     
     func testMapPreservesConfiguration() {
