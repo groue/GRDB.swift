@@ -12,24 +12,10 @@ import XCTest
 
 class ValueObservationRowTests: GRDBTestCase {
     func testAll() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [[Row]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        let observation = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id").observationForAll()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { rows in
-                results.append(rows)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.AllRows>) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+            let recorder = observation.record(in: writer)
+            try writer.writeWithoutTransaction { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
                 try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
                 try db.inTransaction {                                       // +1
@@ -41,34 +27,43 @@ class ValueObservationRowTests: GRDBTestCase {
                 try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
             }
             
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results, [
+            let expectedValues: [[Row]] = [
                 [],
                 [["id":1, "name":"foo"]],
                 [["id":1, "name":"foo"], ["id":2, "name":"bar"]],
-                [["id":2, "name":"bar"]]])
+                [["id":2, "name":"bar"]]]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
+        }
+        
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id").observationForAll()
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
         }
     }
     
     func testOne() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [Row?] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        let observation = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id DESC").observationForFirst()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { row in
-                results.append(row)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.OneRow>) throws {
+            try writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
+            let recorder = observation.record(in: writer)
+            try writer.writeWithoutTransaction { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
                 try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
                 try db.inTransaction {                                       // +1
@@ -79,123 +74,174 @@ class ValueObservationRowTests: GRDBTestCase {
                 }
                 try db.execute(sql: "DELETE FROM t")                              // -1
             }
+            
+            let expectedValues: [Row?] = [
+                nil,
+                ["id":1, "name":"foo"],
+                ["id":2, "name":"bar"],
+                nil]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
         }
         
-        waitForExpectations(timeout: 1, handler: nil)
-        XCTAssertEqual(results, [
-            nil,
-            ["id":1, "name":"foo"],
-            ["id":2, "name":"bar"],
-            nil])
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            var observation = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id DESC").observationForFirst()
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
+        }
     }
     
     func testFTS4Observation() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { db in
-            try db.create(virtualTable: "ft_documents", using: FTS4())
-        }
-        
-        var rows: [[Row]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 2
-        
-        let request = SQLRequest<Row>(sql: "SELECT * FROM ft_documents")
-        let observation = ValueObservation.tracking(value: request.fetchAll)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in
-                XCTFail("unexpected error: \(error)")
-        },
-            onChange: {
-                rows.append($0)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.Fetch<[Row]>>) throws {
+            try writer.write { try $0.create(virtualTable: "ft_documents", using: FTS4()) }
+            let recorder = observation.record(in: writer)
+            try writer.writeWithoutTransaction { db in
                 try db.execute(sql: "INSERT INTO ft_documents VALUES (?)", arguments: ["foo"])
             }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(rows, [[], [["content":"foo"]]])
+            
+            let expectedValues: [[Row]] = [
+                [],
+                [["content":"foo"]]]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
+        }
+        
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            let request = SQLRequest<Row>(sql: "SELECT * FROM ft_documents")
+            var observation = ValueObservation.tracking(value: request.fetchAll)
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
         }
     }
     
     func testSynchronizedFTS4Observation() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { db in
-            try db.create(table: "documents") { t in
-                t.column("id", .integer).primaryKey()
-                t.column("content", .text)
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.Fetch<[Row]>>) throws {
+            try writer.write { db in
+                try db.create(table: "documents") { t in
+                    t.column("id", .integer).primaryKey()
+                    t.column("content", .text)
+                }
+                try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
+                    t.synchronize(withTable: "documents")
+                    t.column("content")
+                }
             }
-            try db.create(virtualTable: "ft_documents", using: FTS4()) { t in
-                t.synchronize(withTable: "documents")
-                t.column("content")
-            }
-        }
-        
-        var rows: [[Row]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 2
-        
-        let request = SQLRequest<Row>(sql: "SELECT * FROM ft_documents")
-        let observation = ValueObservation.tracking(value: request.fetchAll)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in
-                XCTFail("unexpected error: \(error)")
-        },
-            onChange: {
-                rows.append($0)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
+            let recorder = observation.record(in: writer)
+            try writer.writeWithoutTransaction { db in
                 try db.execute(sql: "INSERT INTO documents (content) VALUES (?)", arguments: ["foo"])
             }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(rows, [[], [["content":"foo"]]])
+            
+            let expectedValues: [[Row]] = [
+                [],
+                [["content":"foo"]]]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
+        }
+        
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            let request = SQLRequest<Row>(sql: "SELECT * FROM ft_documents")
+            var observation = ValueObservation.tracking(value: request.fetchAll)
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
         }
     }
     
     func testJoinedFTS4Observation() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { db in
-            try db.create(table: "document") { t in
-                t.autoIncrementedPrimaryKey("id")
+        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.Fetch<[Row]>>) throws {
+            try writer.write { db in
+                try db.create(table: "document") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                }
+                try db.create(virtualTable: "ft_document", using: FTS4()) { t in
+                    t.column("content")
+                }
             }
-            try db.create(virtualTable: "ft_document", using: FTS4()) { t in
-                t.column("content")
-            }
-        }
-        
-        var rows: [[Row]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 2
-        
-        let request = SQLRequest<Row>(sql: """
-            SELECT document.* FROM document
-            JOIN ft_document ON ft_document.rowid = document.id
-            WHERE ft_document MATCH 'foo'
-            """)
-        let observation = ValueObservation.tracking(value: request.fetchAll)
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in
-                XCTFail("unexpected error: \(error)")
-        },
-            onChange: {
-                rows.append($0)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write { db in
+            let recorder = observation.record(in: writer)
+            try writer.write { db in
                 try db.execute(sql: "INSERT INTO document (id) VALUES (?)", arguments: [1])
                 try db.execute(sql: "INSERT INTO ft_document (rowid, content) VALUES (?, ?)", arguments: [1, "foo"])
             }
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(rows, [[], [["id":1]]])
+            
+            let expectedValues: [[Row]] = [
+                [],
+                [["id":1]]]
+            let values = try wait(
+                for: recorder
+                    .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
+                    .inverted,
+                timeout: 0.5)
+            try assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                "\(type(of: writer)), \(observation.scheduling)")
+        }
+        
+        let schedulings: [ValueObservationScheduling] = [
+            .mainQueue,
+            .async(onQueue: .main),
+            .unsafe
+        ]
+        
+        for scheduling in schedulings {
+            let request = SQLRequest<Row>(sql: """
+                SELECT document.* FROM document
+                JOIN ft_document ON ft_document.rowid = document.id
+                WHERE ft_document MATCH 'foo'
+                """)
+            var observation = ValueObservation.tracking(value: request.fetchAll)
+            observation.scheduling = scheduling
+            
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
         }
     }
 }
