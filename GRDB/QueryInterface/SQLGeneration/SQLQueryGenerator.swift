@@ -228,11 +228,7 @@ struct SQLQueryGenerator {
             sql += try relation.source.sql(db, &context)
             
             let assignmentsSQL = assignments
-                .map({ assignment in
-                    assignment.column.expressionSQL(&context, wrappedInParenthesis: false) +
-                        " = " +
-                        assignment.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
-                })
+                .map { $0.sql(&context) }
                 .joined(separator: ", ")
             sql += " SET " + assignmentsSQL
             
@@ -297,11 +293,7 @@ struct SQLQueryGenerator {
         sql += tableName.quotedDatabaseIdentifier
         
         let assignmentsSQL = assignments
-            .map({ assignment in
-                assignment.column.expressionSQL(&context, wrappedInParenthesis: false) +
-                    " = " +
-                    assignment.value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
-            })
+            .map { $0.sql(&context) }
             .joined(separator: ", ")
         sql += " SET " + assignmentsSQL
         sql += " WHERE rowid IN (\(selectSQL))"

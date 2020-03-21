@@ -106,6 +106,17 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
         }
     }
     
+    func testNilAssignment() throws {
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            
+            try Player.updateAll(db, Columns.score <- nil)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = NULL
+                """)
+        }
+    }
+    
     func testComplexAssignment() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)

@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
+- `4.12.x` Releases - [4.12.0](#4120)
 - `4.11.x` Releases - [4.11.0](#4110)
 - `4.10.x` Releases - [4.10.0](#4100)
 - `4.9.x` Releases - [4.9.0](#490)
@@ -67,6 +68,37 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+## 4.12.0
+
+Released March 21, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.11.0...v4.12.0)
+
+**New**
+
+- Batch updates now accept nil assignments:
+    
+    ```swift
+    // UPDATE player SET score = NULL
+    try Player.updateAll(db, scoreColumn <- nil)
+    ```
+
+- DatabaseMigrator can now recreate the database if a migration has been removed, or renamed (addresses [#725](https://github.com/groue/GRDB.swift/issues/725)).
+    
+- DatabaseMigrator querying methods have been enhanced:
+    
+    ```swift
+    // New
+    dbQueue.read(migrator.hasCompletedMigrations)
+    dbQueue.read(migrator.completedMigrations).contains("v2")
+    dbQueue.read(migrator.completedMigrations).last == "v2"
+    dbQueue.read(migrator.appliedMigrations)
+    
+    // Deprecated
+    migrator.hasCompletedMigrations(in: dbQueue)
+    migrator.hasCompletedMigrations(in: dbQueue, through: "v2")
+    migrator.lastCompletedMigration(in: dbQueue) == "v2"
+    migrator.appliedMigrations(in: dbQueue)
+    ```
 
 ## 4.11.0
 

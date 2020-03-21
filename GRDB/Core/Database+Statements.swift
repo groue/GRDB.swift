@@ -201,7 +201,7 @@ extension Database {
                 // Extract statement arguments
                 let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
                 // unsafe is OK because we just extracted the correct number of arguments
-                statement.unsafeSetArguments(StatementArguments(bindings))
+                statement.setUncheckedArguments(StatementArguments(bindings))
                 
                 // Execute
                 try statement.execute()

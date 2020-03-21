@@ -128,19 +128,74 @@ public class Statement {
         set {
             // Force arguments validity: it is a programmer error to provide
             // arguments that do not match the statement.
-            try! setArgumentsWithValidation(newValue)
+            try! setArguments(newValue)
         }
     }
     
     /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
     /// statement arguments.
-    public func validate(arguments: StatementArguments) throws {
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO player (id, name) VALUES (?, ?)
+    ///         """)
+    ///
+    ///     // OK
+    ///     statement.validateArguments([1, "Arthur"])
+    ///
+    ///     // Throws
+    ///     statement.validateArguments([1])
+    ///
+    /// See also setArguments(_:)
+    public func validateArguments(_ arguments: StatementArguments) throws {
         var arguments = arguments
         _ = try arguments.extractBindings(forStatement: self, allowingRemainingValues: false)
     }
     
+    /// Throws a DatabaseError of code SQLITE_ERROR if arguments don't fill all
+    /// statement arguments.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO player (id, name) VALUES (?, ?)
+    ///         """)
+    ///
+    ///     // OK
+    ///     statement.validate([1, "Arthur"])
+    ///
+    ///     // Throws
+    ///     statement.validate([1])
+    ///
+    /// See also setArguments(_:)
+    @available(*, deprecated, renamed: "validateArguments(_:)")
+    public func validate(arguments: StatementArguments) throws {
+        try validateArguments(arguments)
+    }
+    
     /// Set arguments without any validation. Trades safety for performance.
-    public func unsafeSetArguments(_ arguments: StatementArguments) {
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO player (id, name) VALUES (?, ?)
+    ///         """)
+    ///
+    ///     // OK
+    ///     statement.setUncheckedArguments([1, "Arthur"])
+    ///
+    ///     // OK
+    ///     let arguments: StatementArguments = ... // some untrusted arguments
+    ///     try statement.validateArguments(arguments)
+    ///     statement.setUncheckedArguments(arguments)
+    ///
+    ///     // NOT OK
+    ///     statement.setUncheckedArguments([1])
+    public func setUncheckedArguments(_ arguments: StatementArguments) {
         _arguments = arguments
         argumentsNeedValidation = false
         
@@ -159,14 +214,56 @@ public class Statement {
         }
     }
     
-    func setArgumentsWithValidation(_ arguments: StatementArguments) throws {
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO player (id, name) VALUES (?, ?)
+    ///         """)
+    ///
+    ///     // OK
+    ///     statement.unsafeSetArguments([1, "Arthur"])
+    ///
+    ///     // OK
+    ///     let arguments: StatementArguments = ... // some untrusted arguments
+    ///     try statement.validateArguments(arguments)
+    ///     statement.unsafeSetArguments(arguments)
+    ///
+    ///     // NOT OK
+    ///     statement.unsafeSetArguments([1])
+    ///
+    /// See also setArguments(_:)
+    @available(*, deprecated, renamed: "setUncheckedArguments(_:)")
+    public func unsafeSetArguments(_ arguments: StatementArguments) {
+        setUncheckedArguments(arguments)
+    }
+    
+    /// Set the statement arguments, or throws a DatabaseError of code
+    /// SQLITE_ERROR if arguments don't fill all statement arguments.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO player (id, name) VALUES (?, ?)
+    ///         """)
+    ///
+    ///     // OK
+    ///     try statement.setArguments([1, "Arthur"])
+    ///
+    ///     // Throws an error
+    ///     try statement.setArguments([1])
+    public func setArguments(_ arguments: StatementArguments) throws {
         // Validate
-        _arguments = arguments
-        var arguments = arguments
-        let bindings = try arguments.extractBindings(forStatement: self, allowingRemainingValues: false)
-        argumentsNeedValidation = false
+        var consumedArguments = arguments
+        let bindings = try consumedArguments.extractBindings(forStatement: self, allowingRemainingValues: false)
         
         // Apply
+        _arguments = arguments
+        argumentsNeedValidation = false
         try reset()
         clearBindings()
         for (index, dbValue) in zip(Int32(1)..., bindings) {
@@ -220,9 +317,9 @@ public class Statement {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         if let arguments = arguments {
-            try! setArgumentsWithValidation(arguments)
+            try! setArguments(arguments)
         } else if argumentsNeedValidation {
-            try! validate(arguments: self.arguments)
+            try! validateArguments(self.arguments)
         }
     }
 }
