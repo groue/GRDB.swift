@@ -330,6 +330,117 @@ extension XCTestCase {
     }
 }
 
+// MARK: - GRDBTestCase + ValueObservationExpectation
+
+extension GRDBTestCase {
+    func assertValueObservation<Reducer: _ValueReducer>(
+        _ valueObservation: ValueObservation<Reducer>,
+        records expectedValues: [Reducer.Value],
+        setup: (Database) throws -> Void,
+        recordedUpdates: (Database) throws -> Void,
+        file: StaticString = #file,
+        line: UInt = #line)
+        throws
+        where Reducer.Value: Equatable
+    {
+        func testRecordingEqual(writer: DatabaseWriter, observation: ValueObservation<Reducer>) throws {
+            try writer.write(setup)
+            let recorder = observation.record(in: writer)
+            try writer.writeWithoutTransaction(recordedUpdates)
+            let expectation = recorder.next(expectedValues.count)
+            let values = try wait(for: expectation, timeout: 0.3)
+            XCTAssertEqual(values, expectedValues, file: file, line: line)
+        }
+        
+        func testRecordingMatch(writer: DatabaseWriter, observation: ValueObservation<Reducer>) throws {
+            try writer.write(setup)
+            let recorder = observation.record(in: writer)
+            try writer.writeWithoutTransaction(recordedUpdates)
+            let expectation = recorder
+                .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
+                .inverted
+            let values = try wait(for: expectation, timeout: 0.3)
+            assertValueObservationRecordingMatch(
+                recorded: values,
+                expected: expectedValues,
+                file: file, line: line)
+        }
+        
+        do {
+            var observation = valueObservation
+            observation.scheduling = .mainQueue
+            try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
+            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
+            try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
+        }
+        
+        do {
+            var observation = valueObservation
+            observation.scheduling = .async(onQueue: .main)
+            try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
+            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
+            if valueObservation.requiresWriteAccess {
+                try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
+            } else {
+                // DatabasePool performs an immediate async fetch and may miss initial changes
+                try testRecordingMatch(writer: makeDatabasePool(), observation: observation)
+            }
+        }
+        
+        do {
+            var observation = valueObservation
+            observation.scheduling = .unsafe
+            try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
+            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
+            try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
+        }
+    }
+    
+    func assertValueObservation<Reducer: _ValueReducer, Failure: Error>(
+        _ valueObservation: ValueObservation<Reducer>,
+        fails testFailure: (Failure, DatabaseWriter) throws -> Void,
+        setup: (Database) throws -> Void,
+        file: StaticString = #file,
+        line: UInt = #line)
+        throws
+    {
+        func test(writer: DatabaseWriter, observation: ValueObservation<Reducer>) throws {
+            try writer.write(setup)
+            let recorder = observation.record(in: writer)
+            let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
+            if let error = error as? Failure {
+                try testFailure(error, writer)
+            } else {
+                throw error
+            }
+        }
+        
+        do {
+            var observation = valueObservation
+            observation.scheduling = .mainQueue
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
+        }
+        
+        do {
+            var observation = valueObservation
+            observation.scheduling = .async(onQueue: .main)
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
+        }
+        
+        do {
+            var observation = valueObservation
+            observation.scheduling = .unsafe
+            try test(writer: DatabaseQueue(), observation: observation)
+            try test(writer: makeDatabaseQueue(), observation: observation)
+            try test(writer: makeDatabasePool(), observation: observation)
+        }
+    }
+}
+
 // MARK: - ValueObservationExpectations
 
 public enum ValueObservationExpectations { }

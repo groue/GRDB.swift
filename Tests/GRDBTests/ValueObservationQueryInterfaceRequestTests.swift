@@ -28,29 +28,28 @@ private struct ParentInfo: FetchableRecord, Decodable, Equatable {
 }
 
 class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
-        try dbWriter.write { db in
-            try db.create(table: "parent") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("name", .text)
-            }
-            try db.create(table: "child") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("parentId", .integer).references("parent", onDelete: .cascade)
-                t.column("name", .text)
-            }
-            try db.execute(sql: """
+    private func setup(_ db: Database) throws {
+        try db.create(table: "parent") { t in
+            t.autoIncrementedPrimaryKey("id")
+            t.column("name", .text)
+        }
+        try db.create(table: "child") { t in
+            t.autoIncrementedPrimaryKey("id")
+            t.column("parentId", .integer).references("parent", onDelete: .cascade)
+            t.column("name", .text)
+        }
+        try db.execute(sql: """
                 INSERT INTO parent (id, name) VALUES (1, 'foo');
                 INSERT INTO parent (id, name) VALUES (2, 'bar');
                 INSERT INTO child (id, parentId, name) VALUES (1, 1, 'fooA');
                 INSERT INTO child (id, parentId, name) VALUES (2, 1, 'fooB');
                 INSERT INTO child (id, parentId, name) VALUES (3, 2, 'barA');
                 """)
-        }
     }
     
     func testOneRowWithPrefetchedRows() throws {
         let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write(setup)
         let request = Parent
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
@@ -74,6 +73,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
     
     func testAllRowsWithPrefetchedRows() throws {
         let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write(setup)
         let request = Parent
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
@@ -103,13 +103,14 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
     }
 
     func testOneRecordWithPrefetchedRows() throws {
-        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.OneRecord<QueryInterfaceRequest<ParentInfo>.RowDecoder>>) throws {
-            let recorder = observation.record(in: writer)
-            try writer.writeWithoutTransaction { db in
-                try db.execute(sql: "DELETE FROM child")
-            }
-            
-            let expectedValues = [
+        let request = Parent
+            .including(all: Parent.children.orderByPrimaryKey())
+            .orderByPrimaryKey()
+            .asRequest(of: ParentInfo.self)
+        
+        try assertValueObservation(
+            request.observationForFirst(),
+            records: [
                 ParentInfo(
                     parent: Parent(id: 1, name: "foo"),
                     children: [
@@ -119,45 +120,22 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                 ParentInfo(
                     parent: Parent(id: 1, name: "foo"),
                     children: []),
-            ]
-            let values = try wait(
-                for: recorder
-                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
-                    .inverted,
-                timeout: 0.5)
-            assertValueObservationRecordingMatch(
-                recorded: values,
-                expected: expectedValues,
-                "\(type(of: writer)), \(observation.scheduling)")
-        }
-        
-        let schedulings: [ValueObservationScheduling] = [
-            .mainQueue,
-            .async(onQueue: .main),
-            .unsafe
-        ]
-        
-        for scheduling in schedulings {
-            let request = Parent
-                .including(all: Parent.children.orderByPrimaryKey())
-                .orderByPrimaryKey()
-                .asRequest(of: ParentInfo.self)
-            var observation = request.observationForFirst()
-            observation.scheduling = scheduling
-            
-            try test(writer: makeDatabaseQueue(), observation: observation)
-            try test(writer: makeDatabasePool(), observation: observation)
-        }
+            ],
+            setup: setup,
+            recordedUpdates: { db in
+                try db.execute(sql: "DELETE FROM child")
+            })
     }
     
     func testAllRecordsWithPrefetchedRows() throws {
-        func test(writer: DatabaseWriter, observation: ValueObservation<ValueReducers.AllRecords<QueryInterfaceRequest<ParentInfo>.RowDecoder>>) throws {
-            let recorder = observation.record(in: writer)
-            try writer.writeWithoutTransaction { db in
-                try db.execute(sql: "DELETE FROM child")
-            }
-            
-            let expectedValues = [
+        let request = Parent
+            .including(all: Parent.children.orderByPrimaryKey())
+            .orderByPrimaryKey()
+            .asRequest(of: ParentInfo.self)
+        
+        try assertValueObservation(
+            request.observationForAll(),
+            records: [
                 [
                     ParentInfo(
                         parent: Parent(id: 1, name: "foo"),
@@ -179,34 +157,10 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                         parent: Parent(id: 2, name: "bar"),
                         children: []),
                 ],
-            ]
-            let values = try wait(
-                for: recorder
-                    .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
-                    .inverted,
-                timeout: 0.5)
-            assertValueObservationRecordingMatch(
-                recorded: values,
-                expected: expectedValues,
-                "\(type(of: writer)), \(observation.scheduling)")
-        }
-        
-        let schedulings: [ValueObservationScheduling] = [
-            .mainQueue,
-            .async(onQueue: .main),
-            .unsafe
-        ]
-        
-        for scheduling in schedulings {
-            let request = Parent
-                .including(all: Parent.children.orderByPrimaryKey())
-                .orderByPrimaryKey()
-                .asRequest(of: ParentInfo.self)
-            var observation = request.observationForAll()
-            observation.scheduling = scheduling
-            
-            try test(writer: makeDatabaseQueue(), observation: observation)
-            try test(writer: makeDatabasePool(), observation: observation)
-        }
+            ],
+            setup: setup,
+            recordedUpdates: { db in
+                try db.execute(sql: "DELETE FROM child")
+            })
     }
 }
