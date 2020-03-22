@@ -37,7 +37,7 @@ class ValueObservationRowTests: GRDBTestCase {
                     .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values,
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
@@ -85,7 +85,7 @@ class ValueObservationRowTests: GRDBTestCase {
                     .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values,
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
@@ -123,7 +123,7 @@ class ValueObservationRowTests: GRDBTestCase {
                     .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values,
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
@@ -171,7 +171,7 @@ class ValueObservationRowTests: GRDBTestCase {
                     .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values,
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
@@ -218,7 +218,7 @@ class ValueObservationRowTests: GRDBTestCase {
                     .prefix(expectedValues.count + 2 /* async pool may perform double initial fetch */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values,
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")

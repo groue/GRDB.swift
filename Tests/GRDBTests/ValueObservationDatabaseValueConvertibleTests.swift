@@ -54,7 +54,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                     .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map(\.rawValue) },
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
@@ -112,7 +112,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                     .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map(\.rawValue) },
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
@@ -162,7 +162,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                     .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map { $0?.rawValue }},
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
@@ -220,7 +220,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                     .prefix(expectedValues.count + 1 /* deduplication: don't expect more than expectedValues */)
                     .inverted,
                 timeout: 0.5)
-            try assertValueObservationRecordingMatch(
+            assertValueObservationRecordingMatch(
                 recorded: values.map { $0.map(\.rawValue)},
                 expected: expectedValues,
                 "\(type(of: writer)), \(observation.scheduling)")
