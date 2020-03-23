@@ -11,7 +11,7 @@ public protocol _ValueReducer {
     /// Feches database values upon changes in an observed database region.
     ///
     /// _ValueReducer semantics require that this method does not depend on
-    /// the state of the reducer: it must not use *self*.
+    /// the state of the reducer.
     func fetch(_ db: Database) throws -> Fetched
     
     /// Transforms a fetched value into an eventual observed value. Returns nil
