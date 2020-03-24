@@ -5484,6 +5484,8 @@ try dbQueue.write { db in
 
 Tracked changes include changes performed by the [query interface](#the-query-interface) as well as [raw SQL](#sqlite-api), including indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
+**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
+
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Performance](#valueobservation-performance)
@@ -5590,8 +5592,6 @@ let disposable = observation.rx.changes(in: dbQueue).subscribe(
 - ValueObservation schedules changes notifications on the main thread by default. This can be [configured](#valueobservationscheduling).
 - ValueObservation may coalesce subsequent changes into a single notification.
 - ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
-
-**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
 
 Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
 
