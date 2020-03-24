@@ -5410,7 +5410,8 @@ Database Changes Observation
 GRDB puts this SQLite feature to some good use, and lets you observe the database in various ways:
 
 - [After Commit Hook](#after-commit-hook): Handle successful transactions one by one.
-- [ValueObservation and DatabaseRegionObservation]: Automated tracking of database requests.
+- [ValueObservation]: Track changes of database values.
+- [DatabaseRegionObservation]: Tracking transactions that impact a database region.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
 - [GRDBCombine]: Automated tracking of database changes, with [Combine](https://developer.apple.com/documentation/combine).
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
@@ -5477,61 +5478,313 @@ try dbQueue.write { db in
 ```
 
 
-## ValueObservation and DatabaseRegionObservation
-
-**ValueObservation and DatabaseRegionObservation** are two database observations tools that track changes in database [requests](#requests).
-
-```swift
-// Let's observe all players!
-let request = Player.all()
-```
-
-[ValueObservation] notifies your application with **fresh values** (this is what most applications need :+1:):
-
-```swift
-let observation = ValueObservation.tracking { db in
-    try request.fetchAll(db)
-}
-let observer = observation.start(
-    in: dbQueue,
-    onError: { error in
-        print("fresh players could not be fetched")
-    },
-    onChange: { (players: [Player]) in
-        let names = players.map { $0.name }.joined(separator: ", ")
-        print("Fresh players: \(names)")
-    })
-
-try dbQueue.write { db in
-    try Player(name: "Arthur").insert(db)
-}
-// Prints "Fresh players: Arthur, ..."
-```
-
-[DatabaseRegionObservation] notifies your application with **database connections**, right after an impactful database transaction has been committed (reserved for more advanced use cases :nerd_face:):
-
-```swift
-let observation = DatabaseRegionObservation(tracking: request)
-let observer = try observation.start(in: dbQueue) { (db: Database) in
-    print("Players have changed.")
-}
-
-try dbQueue.write { db in
-    try Player(name: "Barbara").insert(db)
-}
-// Prints "Players have changed."
-```
-
-- [ValueObservation]
-- [DatabaseRegionObservation]
-
-
 ## ValueObservation
 
-**ValueObservation tracks changes in database [requests](#requests), and notifies fresh values whenever the database changes.**
+**ValueObservation tracks changes in database values**. It automatically notifies your application with fresh values whenever changes are committed in the database.
 
-Changes are notified after they have been committed in the database. No insertion, update, or deletion in tracked tables is missed. This includes indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
+Tracked changes include changes performed by the [query interface](#the-query-interface) as well as [raw SQL](#sqlite-api), including indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
+- **[ValueObservation Usage](#valueobservation-usage)**
+- [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
+
+
+### ValueObservation Usage
+
+1. Make sure that a unique [database connection](#database-connections) is kept open during the whole duration of the observation.
+    
+    ValueObservation does not notify changes performed by external connections.
+
+2. Define a ValueObservation which tracks the values you are interested in.
+    
+    ```swift
+    // An observation of [Player] which tracks all players:
+    let observation = ValueObservation.tracking { db in
+        try Player.fetchAll(db)
+    }
+    
+    // The same observation, with short-hand notation:
+    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    ```
+    
+    The observation can perform multiple requests, from multiple database tables, and even use raw SQL:
+    
+    <details>
+        <summary>Example of a more complex ValueObservation</summary>
+        
+    ```swift
+    struct HallOfFame {
+        var totalPlayerCount: Int
+        var bestPlayers: [Player]
+    }
+    
+    // An observation of HallOfFame
+    let observation = ValueObservation.tracking { db -> HallOfFame in
+        let totalPlayerCount = try Player.fetchCount(db)
+        let bestPlayers = try Player
+            .order(Column("score").desc)
+            .limit(10)
+            .fetchAll(db)
+        return HallOfFame(
+            totalPlayerCount: totalPlayerCount,
+            bestPlayers: bestPlayers)
+    }
+    ```
+    
+    </details>
+    
+3. Start the observation in order to be notified of changes:
+    
+    ```swift
+    // Start observing the database
+    let observer = observation.start(
+        in: dbQueue, // or dbPool
+        onError: { error in print("players could not be fetched") },
+        onChange: { (players: [Player]) in print("fresh players", players) })
+    ```
+
+4. Stop the observation by deallocating the observer returned by the `start` method above.
+
+**As a convenience**, the two companion libraries [GRDBCombine] and [RxGRDB] bring Combine and RxSwift support to ValueObservation:
+
+<details>
+    <summary>GRDBCombine example</summary>
+    
+```swift
+import Combine
+import GRDB
+import GRDBCombine
+
+let observation = ValueObservation.tracking { db in
+    try Player.fetchAll(db)
+}
+
+let cancellable = observation.publisher(in: dbQueue).sink(
+    receiveCompletion: { completion in ... },
+    receiveValue: { (players: [Player]) in
+        print("fresh players", players)
+    })
+```
+
+</details>
+
+<details>
+    <summary>RxGRDB example</summary>
+    
+```swift
+import GRDB
+import RxGRDB
+import RxSwift
+
+let observation = ValueObservation.tracking { db in
+    try Player.fetchAll(db)
+}
+
+let disposable = observation.rx.changes(in: dbQueue).subscribe(
+    onNext: { (players: [Player]) in
+        print("fresh players", players)
+    },
+    onError: { error in ... })
+```
+
+</details>
+
+**Generally speaking**:
+
+- ValueObservation notifies an initial value before the eventual changes. This initial value is notified immediately by default (when the `start` method is called). It can be notified [asynchronously](#valueobservationscheduling).
+- ValueObservation schedules changes notifications on the main dispatch queue by default. This can be [configured](#valueobservationscheduling).
+- ValueObservation may coalesce subsequent changes into a single notification. This helps GRDB optimize database access.
+- ValueObservation may notify consecutive identical values. This happens as rarely as possible, and you can filter undesired duplicates out with the [removeDuplicates()](#valueobservationremoveduplicates) method when needed.
+
+**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
+
+Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
+
+
+### ValueObservation Operators
+
+**Operators** are methods that transform and configure value observations so that they better fit the needs of your application.
+
+- [ValueObservation.map](#valueobservationmap)
+- [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
+- [ValueObservation.combine](#valueobservationcombine)
+- [ValueObservation.scheduling](#valueobservationscheduling): Control the dispatching of notified values.
+- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): Allow observations to write in the database.
+
+
+#### ValueObservation.map
+
+The `map` operator transforms the values notified by a ValueObservation.
+
+For example:
+
+```swift
+// Turn an observation of Player? into an observation of UIImage?
+let observation = ValueObservation
+    .tracking { db in try Player.fetchOne(db, key: 42) }
+    .map { player in player?.image }
+```
+
+The transformation function does not block any database access. This makes the `map` operator a tool which helps reducing database contention.
+
+
+#### ValueObservation.removeDuplicates
+
+The `removeDuplicates` operator filters out consecutive equal values. The observed values must adopt the standard Equatable protocol.
+
+For example:
+
+```swift
+// An observation of distinct Player?
+let observation = ValueObservation
+    .tracking { db in try Player.fetchOne(db, key: 42) }
+    .removeDuplicates()
+```
+
+
+#### ValueObservation.combine
+
+The `ValueObservation.combine` static method builds a single observation from several (up to eight):
+
+```swift
+// An observation of Int
+let playerCountObservation = ValueObservation.tracking { db in
+    try Player.fetchCount(db)
+}
+// An observation of [Player]
+let bestPlayersObservation = ValueObservation.tracking { db in
+    try Player
+        .limit(10)
+        .order(Column("score").desc)
+        .fetchAll(db)
+}
+
+// The combined observation of (Int, [Player])
+let observation = ValueObservation.combine(
+    playerCountObservation, 
+    bestPlayersObservation)
+```
+
+Combining observations together provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
+
+`combine` also exists as an instance method:
+
+```swift
+struct HallOfFame {
+    var totalPlayerCount: Int
+    var bestPlayers: [Player]
+}
+
+// An observation of HallOfFame
+let observation = playerCountObservation.combine(bestPlayersObservation) {
+    HallOfFame(totalPlayerCount: $0, bestPlayers: $1)
+}
+```
+
+
+> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the ValueObservation `combine` method. This is partially exact, because the reactive operator is unable to guarantee data consistency. If you use a Reactive layer such as [GRDBCombine] or [RxGRDB], make sure you compose observations with `ValueObservation.combine`, and never with the CombineLatest operator.
+
+
+#### ValueObservation.scheduling
+    
+The `scheduling` property lets you control how fresh values are notified:
+
+- `.mainQueue` (the default): all values are notified on the main queue.
+    
+    If the observation starts on the main queue, the initial value is notified right upon subscription, synchronously:
+    
+    ```swift
+    // On main queue
+    let observer = observation.start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { value in
+            // On main queue
+            print("fresh value: \(value)")
+        })
+    // <- Here "fresh value" is already printed.
+    ```
+    
+    If the observation does not start on the main queue, the initial value is also notified on the main queue, but asynchronously:
+    
+    ```swift
+    // Not on the main queue
+    let observer = observation.start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { value in
+            // On main queue
+            print("fresh value: \(value)")
+        })
+    ```
+    
+    After the initial value has been notified, all subsequent values are notified asynchronously:
+    
+    ```swift
+    try dbQueue.write { db in ... }
+    // <- Eventually prints "fresh value" on the main queue
+    ```
+
+- `.async(onQueue:)`: all values, including the initial value, are asynchronously notified on the specified queue.
+    
+    For example:
+    
+    ```swift
+    // On main queue
+    var observation = ...
+    observation.scheduling = .async(onQueue: .main)
+    let observer = observation.start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { value in
+            // On main queue
+            print("fresh value: \(value)")
+        })
+    // <- Eventually prints "fresh value"
+    ```
+
+
+#### ValueObservation.requiresWriteAccess
+
+The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database, and its fetches are automatically wrapped in a [savepoint](#transactions-and-savepoints):
+
+```swift
+var observation = ValueObservation.tracking { db in
+    // write access allowed
+    ...
+}
+observation.requiresWriteAccess = true
+```
+
+When you use a [database pool](#database-pools), this flag has a performance hit.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+---
 
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [ValueObservation.tracking(value:)](#valueobservationtrackingvalue)
@@ -8138,6 +8391,11 @@ This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
 
 This chapter has been superseded by [App Group Containers].
 
+#### ValueObservation and DatabaseRegionObservation
+
+This chapter has been superseded by [ValueObservation] and [DatabaseRegionObservation].
+
+
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
 [Codable Records]: #codable-records
@@ -8161,7 +8419,6 @@ This chapter has been superseded by [App Group Containers].
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [GRDBCombine]: http://github.com/groue/GRDBCombine
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
-[ValueObservation and DatabaseRegionObservation]: #valueobservation-and-databaseregionobservation
 [DatabaseRegion]: #databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
