@@ -5756,23 +5756,15 @@ When you use a [database pool](#database-pools), this flag has a performance hit
 
 ### ValueObservation Performance
 
-This chapter describes some characteristics of ValueObservation, and provides some optimization hints for demanding applications.
+This chapter further describes runtime aspects of ValueObservation, and provides some optimization tips for demanding applications.
+
 
 **ValueObservation is triggered by database transactions that may modify the tracked value.**
 
-For example, if you track the maximum score of players, transactions that impact the score column of the players database table (any update, insertion, or deletion) trigger the observation, even if the maximum score itself is not changed:
+For example, if you track the maximum score of players, all transactions that impact the `score` column of the `player` database table (any update, insertion, or deletion) trigger the observation, even if the maximum score itself is not changed.
 
-```swift
-let maxScoreRequest = Player.select(max(Column("score")), as: Int.self)
-let observation = ValueObservation.tracking(maxScoreRequest.fetchOne)
-let observer = observation.start(in: dbQueue, ...)
+You can filter out undesired duplicate notifications with the [removeDuplicates()](#valueobservationremoveduplicates) method.
 
-// triggers the observation
-try dbQueue.write(Player(name: "Arthur", score: 1000).insert)
-
-// triggers the observation as well
-try dbQueue.write(Player(name: "Barbara", score: 100).insert)
-```
 
 **ValueObservation can create database contention.** In other words, active observations take a toll on the constrained database resources. When triggered by impactful transactions, observations fetch fresh values, and can delay read and write database accesses of other application components.
 
