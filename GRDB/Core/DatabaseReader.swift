@@ -1,3 +1,4 @@
+import Dispatch
 #if SWIFT_PACKAGE
 import CSQLite
 #elseif GRDBCIPHER
