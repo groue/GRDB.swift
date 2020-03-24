@@ -5506,7 +5506,7 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     let observation = ValueObservation.tracking(value: Player.fetchAll)
     ```
     
-    The observation can perform multiple requests, from multiple database tables, and even use raw SQL:
+    The observation can perform multiple requests, from multiple database tables, and even use raw SQL.
     
     <details>
         <summary>Example of a more complex ValueObservation</summary>
@@ -5554,9 +5554,7 @@ import Combine
 import GRDB
 import GRDBCombine
 
-let observation = ValueObservation.tracking { db in
-    try Player.fetchAll(db)
-}
+let observation = ValueObservation.tracking(value: Player.fetchAll)
 
 let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
@@ -5575,9 +5573,7 @@ import GRDB
 import RxGRDB
 import RxSwift
 
-let observation = ValueObservation.tracking { db in
-    try Player.fetchAll(db)
-}
+let observation = ValueObservation.tracking(value: Player.fetchAll)
 
 let disposable = observation.rx.changes(in: dbQueue).subscribe(
     onNext: { (players: [Player]) in
