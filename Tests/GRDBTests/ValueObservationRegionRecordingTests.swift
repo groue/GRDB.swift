@@ -123,7 +123,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             onChange: { (int: Int, string: String) in }) // <- destructure
     }
     
-    func testVolatileTrackingMainQueueScheduling() throws {
+    func testVaryingRegionTrackingMainQueueScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
             try $0.execute(sql: """
@@ -139,7 +139,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        let observation = ValueObservation.trackingVolatile { db -> Int in
+        let observation = ValueObservation.trackingVaryingRegion { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
@@ -173,7 +173,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
     }
     
-    func testVolatileTrackingAsyncScheduling() throws {
+    func testVaryingRegionTrackingAsyncScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
             try $0.execute(sql: """
@@ -189,7 +189,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingVolatile { db -> Int in
+        var observation = ValueObservation.trackingVaryingRegion { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
@@ -223,7 +223,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         }
     }
     
-    func testVolatileTrackingUnsafeScheduling() throws {
+    func testVaryingRegionTrackingUnsafeScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
             try $0.execute(sql: """
@@ -239,7 +239,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingVolatile { db -> Int in
+        var observation = ValueObservation.trackingVaryingRegion { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }

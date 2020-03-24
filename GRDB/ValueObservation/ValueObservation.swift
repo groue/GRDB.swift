@@ -144,7 +144,7 @@ extension ValueObservation where Reducer == Never {
     /// The stability of the observed database region allows optimizations.
     ///
     /// When you want to observe a varying database region, use the
-    /// `ValueObservation.trackingVolatile(value:)` method instead.
+    /// `ValueObservation.trackingVaryingRegion(value:)` method instead.
     ///
     /// For example:
     ///
@@ -175,7 +175,7 @@ extension ValueObservation where Reducer == Never {
     ///
     /// - parameter value: A function that fetches the observed value from
     ///   the database.
-    public static func trackingVolatile<Value>(
+    public static func trackingVaryingRegion<Value>(
         value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
