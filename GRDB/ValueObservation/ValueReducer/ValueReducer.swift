@@ -8,7 +8,7 @@ public protocol _ValueReducer {
     /// The type of observed values
     associatedtype Value
     
-    /// Feches database values upon changes in an observed database region.
+    /// Fetches database values upon changes in an observed database region.
     ///
     /// _ValueReducer semantics require that this method does not depend on
     /// the state of the reducer.
