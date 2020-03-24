@@ -5918,23 +5918,6 @@ let observer = try observation.start(in: dbQueue) { (db: Database) in
 ```
 
 
-### DatabaseRegionObservation Use Cases
-
-**There are very few use cases for DatabaseRegionObservation**.
-
-For example:
-
-- One needs to write in the database after an impactful transaction.
-
-- One needs to synchronize the content of the database file with some external resources, like other files, or system sensors like CLRegion monitoring.
-
-- On iOS, one needs to process a database transaction before the operating system had any opportunity to put the application in the suspended state.
-
-- One wants to build a [database snapshot](#database-snapshots) with a guaranteed snapshot content.
-
-Outside of those use cases, it is much likely *wrong* to use a DatabaseRegionObservation. Please check other [Database Observation](#database-changes-observation) options.
-
-
 ### DatabaseRegionObservation.extent
 
 The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
