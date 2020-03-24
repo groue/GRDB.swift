@@ -6233,8 +6233,6 @@ protocol DatabaseRegionConvertible {
 
 All [requests](#requests) adopt this protocol, and this allows them to be observed with [DatabaseRegionObservation] and [ValueObservation].
 
-Use this protocol when you want to encapsulate your complex requests in a dedicated type, and still profit from optimized observation APIs. See [`ValueObservation.tracking(_:fetch:)`](#valueobservationtracking_fetch) for more information.
-
 
 ### Support for SQLite Pre-Update Hooks
 
