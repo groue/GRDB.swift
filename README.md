@@ -5778,7 +5778,7 @@ try dbQueue.write(Player(name: "Barbara", score: 100).insert)
 
 When needed, you can help GRDB optimize observations and reduce database contention:
 
-1. Stop observations when possible.
+1. :bulb: **Tip**: Stop observations when possible.
     
     For example, if a UIViewController needs to display database values, it can start the observation in `viewWillAppear`, and stop it in `viewWillDisappear`, as in the sample code below:
     
@@ -5817,7 +5817,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
     </details>
     
-2. Share observations when possible.
+2. :bulb: **Tip**: Share observations when possible.
     
     Each call to the `start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider sharing a single observer.
     
@@ -5834,9 +5834,9 @@ When needed, you can help GRDB optimize observations and reduce database content
         .share(replay: 1, scope: .whileConnected)
     ```
 
-3. Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
+3. :bulb: **Tip**: Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
 
-4. Declare upfront the tracked database region, when possible:
+4. :bulb: **Tip**: Declare upfront the tracked database region, when possible:
     
     ```swift
     // Plain observation
@@ -5852,7 +5852,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
     It helps reducing database contention because it can refresh the observed value without blocking concurrent database writes.
 
-5. When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
+5. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
 
     ```swift
     // Plain observation
