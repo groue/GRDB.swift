@@ -61,7 +61,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     }
 }
 
-extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped: DatabaseValueConvertible {
+extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible {
     
     // MARK: - Observation
     
@@ -88,7 +88,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public func observationForAll() -> ValueObservation<ValueReducers.AllOptionalValues<RowDecoder._Wrapped>> {
+    public func observationForAll() -> ValueObservation<ValueReducers.AllOptionalValues<RowDecoder.Wrapped>> {
         ValueObservation(
             baseRegion: databaseRegion,
             makeReducer: { ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) } })
@@ -117,7 +117,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder._Wrapped:
     /// `start` is deallocated.
     ///
     /// - returns: a ValueObservation.
-    public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder._Wrapped>> {
+    public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder.Wrapped>> {
         ValueObservation(
             baseRegion: databaseRegion,
             makeReducer: { ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })

@@ -86,6 +86,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#729](https://github.com/groue/GRDB.swift/pull/729): ValueObservation always emits an initial value
 - [#731](https://github.com/groue/GRDB.swift/pull/731): Hide ValueObservation implementation details
 - [#732](https://github.com/groue/GRDB.swift/pull/732): Remove ValueObservation.compactMap
+- [#736](https://github.com/groue/GRDB.swift/pull/736): Relax ValueObservation Guarantees
 
 
 ## 4.12.0

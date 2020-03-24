@@ -12,45 +12,22 @@ import XCTest
 
 class ValueObservationMapTests: GRDBTestCase {
     func testMap() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            // We need something to change
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            var counts: [String] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 3
-            
-            // Create an observation
-            var count = 0
-            let observation = ValueObservation
-                .tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Int in
-                    count += 1
-                    return count
-                })
-                .map { count -> String in return "\(count)" }
-            
-            // Start observation
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
+        let valueObservation = ValueObservation
+            .tracking(DatabaseRegion.fullDatabase, fetch: {
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             })
-            try withExtendedLifetime(observer) {
-                try dbWriter.writeWithoutTransaction { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, ["1", "2", "3"])
-            }
-        }
+            .map { "\($0)" }
         
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
+        try assertValueObservation(
+            valueObservation,
+            records: ["0", "1", "2"],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        })
     }
     
     func testMapPreservesConfiguration() {

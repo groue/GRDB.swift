@@ -250,7 +250,6 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    print(records)
                     XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),

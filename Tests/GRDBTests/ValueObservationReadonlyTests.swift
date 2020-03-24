@@ -1,76 +1,49 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+import GRDBCustomSQLite
 #else
-    #if SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    import GRDB
+#if SWIFT_PACKAGE
+import CSQLite
+#else
+import SQLite3
+#endif
+import GRDB
 #endif
 
 class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testReadOnlyObservation() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-        
-        var counts: [Int] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 2
-        
-        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-            try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
+        try assertValueObservation(
+            ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
+            }),
+            records: [0, 1],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         })
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write {
-                try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1])
-        }
     }
     
     func testWriteObservationFailsByDefaultWithErrorHandling() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-        
-        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
-            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            return 0
+        try assertValueObservation(
+            ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                return 0
+            }),
+            fails: { (error: DatabaseError, _: DatabaseWriter) in
+                XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
+                XCTAssertEqual(error.message, "attempt to write a readonly database")
+                XCTAssertEqual(error.sql!, "INSERT INTO t DEFAULT VALUES")
+                XCTAssertEqual(error.description, "SQLite error 8 with statement `INSERT INTO t DEFAULT VALUES`: attempt to write a readonly database")
+        },
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
         })
-        
-        var error: DatabaseError!
-        _ = observation.start(
-            in: dbQueue,
-            onError: { error = $0 as? DatabaseError },
-            onChange: { _ in fatalError() })
-        
-        XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
-        XCTAssertEqual(error.message, "attempt to write a readonly database")
-        XCTAssertEqual(error.sql!, "INSERT INTO t DEFAULT VALUES")
-        XCTAssertEqual(error.description, "SQLite error 8 with statement `INSERT INTO t DEFAULT VALUES`: attempt to write a readonly database")
     }
     
     func testWriteObservation() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-        
-        var counts: [Int] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 2
-        
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
             XCTAssert(db.isInsideTransaction, "expected a wrapping transaction")
             try db.execute(sql: "CREATE TEMPORARY TABLE temp AS SELECT * FROM t")
@@ -79,29 +52,19 @@ class ValueObservationReadonlyTests: GRDBTestCase {
             return result
         })
         observation.requiresWriteAccess = true
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                counts.append(count)
-                notificationExpectation.fulfill()
+        
+        try assertValueObservation(
+            observation,
+            records: [0, 1],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         })
-        try withExtendedLifetime(observer) {
-            try dbQueue.write {
-                try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(counts, [0, 1])
-        }
     }
     
     func testWriteObservationIsWrappedInSavepointWithErrorHandling() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write {
-            try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
-        }
-        
         struct TestError: Error { }
         var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db in
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -109,17 +72,14 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         })
         observation.requiresWriteAccess = true
         
-        var error: Error?
-        _ = observation.start(
-            in: dbQueue,
-            onError: { error = $0 },
-            onChange: { _ in fatalError() })
-        guard error is TestError else {
-            XCTFail("Expected TestError")
-            return
-        }
-        
-        let count = try dbQueue.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
-        XCTAssertEqual(count, 0)
+        try assertValueObservation(
+            observation,
+            fails: { (_: TestError, writer: DatabaseWriter) in
+                let count = try writer.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                XCTAssertEqual(count, 0)
+        },
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        })
     }
 }

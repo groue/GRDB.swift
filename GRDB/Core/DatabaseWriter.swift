@@ -166,9 +166,9 @@ public protocol DatabaseWriter: DatabaseReader {
     ///         try Player.deleteAll()
     ///
     ///         // Count players concurrently
-    ///         writer.asyncConcurrentRead { result in
+    ///         writer.asyncConcurrentRead { dbResult in
     ///             do {
-    ///                 let db = try result.get()
+    ///                 let db = try dbResult.get()
     ///                 // Guaranteed to be zero
     ///                 let count = try Player.fetchCount(db)
     ///             } catch {
@@ -300,19 +300,23 @@ extension DatabaseWriter {
         try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
-    // MARK: - Value Observation
-    
-    /// Default implementation for the DatabaseReader requirement.
-    /// :nodoc:
-    public func add<Reducer: _ValueReducer>(
+    // MARK: - Database Observation
+
+    func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        prependingConcurrentFetch: Bool,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
+        if configuration.readonly {
+            return addReadOnly(observation: observation, onError: onError, onChange: onChange)
+        }
+        
         // True if initial value must be sent to the onChange callback
         // before this method returns.
-        let initialSync: Bool
+        // This flag supersedes prependingConcurrentFetch.
+        let initialFetchSync: Bool
         
         // The queue for other values. Nil for any queue.
         let notificationQueue: DispatchQueue?
@@ -323,20 +327,20 @@ extension DatabaseWriter {
                 // Use case: observation starts on the main queue and wants
                 // a synchronous initial fetch. This helps avoiding flashes of
                 // missing content.
-                initialSync = true
+                initialFetchSync = true
                 notificationQueue = DispatchQueue.main
             } else {
                 // TODO: make this a fatal error when .mainQueue is no longer
                 // the default scheduling.
                 // Use case: observation does not start on the main queue, but
                 // has the default scheduling .mainQueue
-                initialSync = false
+                initialFetchSync = false
                 notificationQueue = DispatchQueue.main
             }
             
         case let .async(onQueue: queue):
             // Use case: observation must not block the target queue
-            initialSync = false
+            initialFetchSync = false
             notificationQueue = queue
             
         case .unsafe:
@@ -351,7 +355,7 @@ extension DatabaseWriter {
             //
             // A failure to follow this rule may mess with the ordering of
             // initial values.
-            initialSync = true
+            initialFetchSync = true
             notificationQueue = nil
         }
         
@@ -367,7 +371,7 @@ extension DatabaseWriter {
             onError: onError,
             onChange: onChange)
         
-        if initialSync {
+        if initialFetchSync {
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
@@ -379,29 +383,39 @@ extension DatabaseWriter {
             } catch {
                 onError(error)
             }
-        } else if let queue = notificationQueue {
-            asyncWriteWithoutTransaction { db in
+        } else if prependingConcurrentFetch {
+            asyncRead { dbResult in
                 do {
+                    let db = try dbResult.get()
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    let value = try observer.fetchInitialValue(db)
-                    queue.async {
-                        onChange(value)
+                    let initialValue = try observer.fetchInitialValue(db)
+                    observer.send(initialValue)
+                    
+                    self.asyncWriteWithoutTransaction { [weak observer] db in
+                        guard let observer = observer else { return }
+                        if observer.isCancelled { return }
+                        do {
+                            if let value = try observer.fetchNextValue(db) {
+                                observer.send(value)
+                            }
+                            db.add(transactionObserver: observer, extent: .observerLifetime)
+                        } catch {
+                            observer.send(error)
+                        }
                     }
-                    db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
-                    queue.async {
-                        onError(error)
-                    }
+                    observer.send(error)
                 }
             }
         } else {
             asyncWriteWithoutTransaction { db in
                 do {
                     observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
-                    try onChange(observer.fetchInitialValue(db))
+                    let initialValue = try observer.fetchInitialValue(db)
+                    observer.send(initialValue)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
-                    onError(error)
+                    observer.send(error)
                 }
             }
         }
@@ -571,5 +585,17 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
+    }
+    
+    // MARK: - Database Observation
+    
+    /// :nodoc:
+    public func add<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> TransactionObserver
+    {
+        base.add(observation: observation, onError: onError, onChange: onChange)
     }
 }

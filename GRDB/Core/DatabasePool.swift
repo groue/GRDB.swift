@@ -357,9 +357,9 @@ extension DatabasePool: DatabaseReader {
     
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
-    ///     let players = try dbQueue.asyncRead { result in
+    ///     let players = try dbQueue.asyncRead { dbResult in
     ///         do {
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             let count = try Player.fetchCount(db)
     ///         } catch {
     ///             // Handle error
@@ -486,9 +486,9 @@ extension DatabasePool: DatabaseReader {
         let futureSemaphore = DispatchSemaphore(value: 0)
         var futureResult: Result<T, Error>? = nil
         
-        asyncConcurrentRead { db in
+        asyncConcurrentRead { dbResult in
             // Fetch and release the future
-            futureResult = Result { try block(db.get()) }
+            futureResult = dbResult.tryMap(block)
             futureSemaphore.signal()
         }
         
@@ -526,9 +526,9 @@ extension DatabasePool: DatabaseReader {
     ///         try Player.deleteAll()
     ///
     ///         // Count players concurrently
-    ///         writer.asyncConcurrentRead { result in
+    ///         writer.asyncConcurrentRead { dbResult in
     ///             do {
-    ///                 let db = try result.get()
+    ///                 let db = try dbResult.get()
     ///                 // Guaranteed to be zero
     ///                 let count = try Player.fetchCount(db)
     ///             } catch {
@@ -769,6 +769,22 @@ extension DatabasePool: DatabaseReader {
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
         forEachConnection { $0.remove(collation: collation) }
+    }
+    
+    // MARK: - Database Observation
+    
+    public func add<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> TransactionObserver
+    {
+        add(
+            observation: observation,
+            // DatabasePool supports concurrent reads
+            prependingConcurrentFetch: !observation.requiresWriteAccess,
+            onError: onError,
+            onChange: onChange)
     }
     
     // MARK: - Custom FTS5 Tokenizers

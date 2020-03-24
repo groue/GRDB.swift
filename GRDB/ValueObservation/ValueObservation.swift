@@ -126,8 +126,7 @@ extension ValueObservation {
     /// Returns the value.
     func fetchValue(_ db: Database) throws -> Reducer.Value {
         var reducer = makeReducer()
-        let fetchedValue = try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
-        guard let value = reducer.value(fetchedValue) else {
+        guard let value = try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess) else {
             fatalError("Contract broken: reducer has no initial value")
         }
         return value

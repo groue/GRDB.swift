@@ -60,8 +60,8 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             
             var counts: [Int] = []
             let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 2
+            notificationExpectation.expectedFulfillmentCount = 4
+            notificationExpectation.isInverted = true
             
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
@@ -85,8 +85,8 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             }
             
             withExtendedLifetime(observer) {
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, [0, 1])
+                waitForExpectations(timeout: 0.5, handler: nil)
+                assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1])
             }
         }
         
@@ -174,8 +174,8 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 }
                 
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, [0, 1])
+                waitForExpectations(timeout: 0.5, handler: nil)
+                assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1])
             }
         }
         

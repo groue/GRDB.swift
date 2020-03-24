@@ -202,9 +202,9 @@ extension DatabaseQueue {
     
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
-    ///     let players = try dbQueue.asyncRead { result in
+    ///     let players = try dbQueue.asyncRead { dbResult in
     ///         do {
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             let count = try Player.fetchCount(db)
     ///         } catch {
     ///             // Handle error
@@ -445,5 +445,21 @@ extension DatabaseQueue {
     /// Remove a collation.
     public func remove(collation: DatabaseCollation) {
         writer.sync { $0.remove(collation: collation) }
+    }
+    
+    // MARK: - Database Observation
+    
+    public func add<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> TransactionObserver
+    {
+        add(
+            observation: observation,
+            // DatabaseQueue does not support concurrent reads
+            prependingConcurrentFetch: false,
+            onError: onError,
+            onChange: onChange)
     }
 }

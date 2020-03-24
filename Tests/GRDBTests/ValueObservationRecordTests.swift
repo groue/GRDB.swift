@@ -10,134 +10,88 @@ import XCTest
     import GRDB
 #endif
 
-private struct Player: TableRecord, FetchableRecord {
-    static let databaseTableName = "t"
+private struct Player: Equatable {
     var id: Int64
     var name: String
-    
+}
+
+extension Player: TableRecord, FetchableRecord {
+    static let databaseTableName = "t"
     init(row: Row) {
-        self.id = row["id"]
-        self.name = row["name"]
+        self.init(id: row["id"], name: row["name"])
     }
-    
-    var row: Row { ["id": id, "name": name] }
 }
 
 class ValueObservationRecordTests: GRDBTestCase {
     func testAll() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [[Player]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        let observation = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id").observationForAll()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { players in
-                results.append(players)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
-                try db.inTransaction {                                       // +1
+        try assertValueObservation(
+            SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id").observationForAll(),
+            records: [
+                [],
+                [Player(id: 1, name: "foo")],
+                [Player(id: 1, name: "foo"), Player(id: 2, name: "bar")],
+                [Player(id: 2, name: "bar")]],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
                     try db.execute(sql: "DELETE FROM t WHERE id = 3")
                     return .commit
                 }
-                try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map(\.row)}, [
-                [],
-                [["id":1, "name":"foo"]],
-                [["id":1, "name":"foo"], ["id":2, "name":"bar"]],
-                [["id":2, "name":"bar"]]])
-        }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")
+        })
     }
     
     func testTableRecordStaticAll() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [[Player]] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        let observation = Player.observationForAll()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { players in
-                results.append(players)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
-                try db.inTransaction {                                       // +1
+        try assertValueObservation(
+            Player.observationForAll(),
+            records: [
+                [],
+                [Player(id: 1, name: "foo")],
+                [Player(id: 1, name: "foo"), Player(id: 2, name: "bar")],
+                [Player(id: 2, name: "bar")]],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
                     try db.execute(sql: "DELETE FROM t WHERE id = 3")
                     return .commit
                 }
-                try db.execute(sql: "DELETE FROM t WHERE id = 1")                 // -1
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map(\.row)}, [
-                [],
-                [["id":1, "name":"foo"]],
-                [["id":1, "name":"foo"], ["id":2, "name":"bar"]],
-                [["id":2, "name":"bar"]]])
-        }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")
+        })
     }
     
     func testOne() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)") }
-        
-        var results: [Player?] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        let observation = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id DESC").observationForFirst()
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { player in
-                results.append(player)
-                notificationExpectation.fulfill()
-        })
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
-                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
-                try db.inTransaction {                                       // +1
+        try assertValueObservation(
+            SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id DESC").observationForFirst(),
+            records: [
+                nil,
+                Player(id: 1, name: "foo"),
+                Player(id: 2, name: "bar"),
+                nil],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
                     try db.execute(sql: "DELETE FROM t WHERE id = 3")
                     return .commit
                 }
-                try db.execute(sql: "DELETE FROM t")                              // -1
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results.map { $0.map(\.row)}, [
-                nil,
-                ["id":1, "name":"foo"],
-                ["id":2, "name":"bar"],
-                nil])
-        }
+                try db.execute(sql: "DELETE FROM t")
+        })
     }
 }
