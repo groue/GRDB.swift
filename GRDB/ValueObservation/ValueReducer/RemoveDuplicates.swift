@@ -17,6 +17,7 @@ extension ValueReducers {
     public struct RemoveDuplicates<Base: _ValueReducer>: _ValueReducer where Base.Value: Equatable {
         private var base: Base
         private var previousValue: Base.Value?
+        public var isObservedRegionDeterministic: Bool { base.isObservedRegionDeterministic }
         
         init(_ base: Base) {
             self.base = base

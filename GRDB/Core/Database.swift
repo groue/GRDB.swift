@@ -536,21 +536,25 @@ public final class Database {
     
     // MARK: - Recording of the selected region
     
-    func recordingSelectedRegion<T>(_ block: () throws -> T) rethrows -> (T, DatabaseRegion) {
-        SchedulingWatchdog.preconditionValidQueue(self)
+    func recordingSelection<T>(_ region: inout DatabaseRegion, _ block: () throws -> T) rethrows -> T {
+        if region.isFullDatabase {
+            return try block()
+        }
+        
         let oldFlag = self._isRecordingSelectedRegion
         let oldRegion = self._selectedRegion
-        self._isRecordingSelectedRegion = true
-        self._selectedRegion = DatabaseRegion()
+        _isRecordingSelectedRegion = true
+        _selectedRegion = DatabaseRegion()
         defer {
-            self._isRecordingSelectedRegion = oldFlag
-            if self._isRecordingSelectedRegion {
-                self._selectedRegion = oldRegion.union(self._selectedRegion)
+            region.formUnion(_selectedRegion)
+            _isRecordingSelectedRegion = oldFlag
+            if _isRecordingSelectedRegion {
+                _selectedRegion = oldRegion.union(_selectedRegion)
             } else {
-                self._selectedRegion = oldRegion
+                _selectedRegion = oldRegion
             }
         }
-        return try (block(), _selectedRegion)
+        return try block()
     }
     
     // MARK: - Checkpoints

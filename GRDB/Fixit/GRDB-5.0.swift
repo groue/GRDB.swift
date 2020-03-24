@@ -13,19 +13,18 @@ extension AnyFetchRequest {
 
 @available(*, unavailable, message: "Custom reducers are no longer supported")
 public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
-    /// :nodoc:
+    public var isObservedRegionDeterministic: Bool
+    { preconditionFailure() }
+    
     public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
     { preconditionFailure() }
     
-    /// :nodoc:
     public init<Base: _ValueReducer>(_ reducer: Base) where Base.Fetched == Fetched, Base.Value == Value
     { preconditionFailure() }
     
-    /// :nodoc:
     public func fetch(_ db: Database) throws -> Fetched
     { preconditionFailure() }
     
-    /// :nodoc:
     public func value(_ fetched: Fetched) -> Value?
     { preconditionFailure() }
 }
@@ -224,6 +223,9 @@ extension ValueObservation where Reducer.Value: Equatable {
 extension ValueReducers {
     @available(*, unavailable, message: "ValueReducers.CompactMap is no longer available")
     public struct CompactMap<Base: _ValueReducer, Value>: _ValueReducer {
+        public var isObservedRegionDeterministic: Bool
+        { preconditionFailure() }
+        
         public func fetch(_ db: Database) throws -> Base.Fetched
         { preconditionFailure() }
         

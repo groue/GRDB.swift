@@ -12,6 +12,11 @@ extension ValueReducers {
         private var p1: R1.Value?
         private var p2: R2.Value?
         
+        public var isObservedRegionDeterministic: Bool {
+            r1.isObservedRegionDeterministic
+                && r2.isObservedRegionDeterministic
+        }
+        
         init(_ r1: R1, _ r2: R2) {
             self.r1 = r1
             self.r2 = r2
@@ -51,17 +56,11 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.Combine2<R1, R2>>
     {
         return ValueObservation<ValueReducers.Combine2>(
-            baseRegion: { try DatabaseRegion.union(
-                o1.baseRegion($0),
-                o2.baseRegion($0)) },
-            observesSelectedRegion: o1.observesSelectedRegion
-                || o2.observesSelectedRegion,
             makeReducer: { ValueReducers.Combine2(
                 o1.makeReducer(),
                 o2.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
-                || o2.requiresWriteAccess,
-            scheduling: .mainQueue)
+                || o2.requiresWriteAccess)
     }
 }
 
@@ -93,6 +92,12 @@ extension ValueReducers {
         private var p1: R1.Value?
         private var p2: R2.Value?
         private var p3: R3.Value?
+        
+        public var isObservedRegionDeterministic: Bool {
+            r1.isObservedRegionDeterministic
+                && r2.isObservedRegionDeterministic
+                && r3.isObservedRegionDeterministic
+        }
         
         init(_ r1: R1, _ r2: R2, _ r3: R3) {
             self.r1 = r1
@@ -140,21 +145,13 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.Combine3<R1, R2, R3>>
     {
         return ValueObservation<ValueReducers.Combine3>(
-            baseRegion: { try DatabaseRegion.union(
-                o1.baseRegion($0),
-                o2.baseRegion($0),
-                o3.baseRegion($0)) },
-            observesSelectedRegion: o1.observesSelectedRegion
-                || o2.observesSelectedRegion
-                || o3.observesSelectedRegion,
             makeReducer: { ValueReducers.Combine3(
                 o1.makeReducer(),
                 o2.makeReducer(),
                 o3.makeReducer()) },
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
-                || o3.requiresWriteAccess,
-            scheduling: .mainQueue)
+                || o3.requiresWriteAccess)
     }
 }
 
@@ -196,6 +193,13 @@ extension ValueReducers {
         private var p2: R2.Value?
         private var p3: R3.Value?
         private var p4: R4.Value?
+        
+        public var isObservedRegionDeterministic: Bool {
+            r1.isObservedRegionDeterministic
+                && r2.isObservedRegionDeterministic
+                && r3.isObservedRegionDeterministic
+                && r4.isObservedRegionDeterministic
+        }
         
         init(_ r1: R1, _ r2: R2, _ r3: R3, _ r4: R4) {
             self.r1 = r1
@@ -250,15 +254,6 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.Combine4<R1, R2, R3, R4>>
     {
         return ValueObservation<ValueReducers.Combine4>(
-            baseRegion: { try DatabaseRegion.union(
-                o1.baseRegion($0),
-                o2.baseRegion($0),
-                o3.baseRegion($0),
-                o4.baseRegion($0)) },
-            observesSelectedRegion: o1.observesSelectedRegion
-                || o2.observesSelectedRegion
-                || o3.observesSelectedRegion
-                || o4.observesSelectedRegion,
             makeReducer: { ValueReducers.Combine4(
                 o1.makeReducer(),
                 o2.makeReducer(),
@@ -267,8 +262,7 @@ extension ValueObservation where Reducer == Never {
             requiresWriteAccess: o1.requiresWriteAccess
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
-                || o4.requiresWriteAccess,
-            scheduling: .mainQueue)
+                || o4.requiresWriteAccess)
     }
 }
 
@@ -316,6 +310,14 @@ extension ValueReducers {
         private var p3: R3.Value?
         private var p4: R4.Value?
         private var p5: R5.Value?
+        
+        public var isObservedRegionDeterministic: Bool {
+            r1.isObservedRegionDeterministic
+                && r2.isObservedRegionDeterministic
+                && r3.isObservedRegionDeterministic
+                && r4.isObservedRegionDeterministic
+                && r5.isObservedRegionDeterministic
+        }
         
         init(_ r1: R1, _ r2: R2, _ r3: R3, _ r4: R4, _ r5: R5) {
             self.r1 = r1
@@ -377,17 +379,6 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.Combine5<R1, R2, R3, R4, R5>>
     {
         return ValueObservation<ValueReducers.Combine5>(
-            baseRegion: { try DatabaseRegion.union(
-                o1.baseRegion($0),
-                o2.baseRegion($0),
-                o3.baseRegion($0),
-                o4.baseRegion($0),
-                o5.baseRegion($0)) },
-            observesSelectedRegion: o1.observesSelectedRegion
-                || o2.observesSelectedRegion
-                || o3.observesSelectedRegion
-                || o4.observesSelectedRegion
-                || o5.observesSelectedRegion,
             makeReducer: { ValueReducers.Combine5(
                 o1.makeReducer(),
                 o2.makeReducer(),
@@ -398,8 +389,7 @@ extension ValueObservation where Reducer == Never {
                 || o2.requiresWriteAccess
                 || o3.requiresWriteAccess
                 || o4.requiresWriteAccess
-                || o5.requiresWriteAccess,
-            scheduling: .mainQueue)
+                || o5.requiresWriteAccess)
     }
 }
 
@@ -453,6 +443,15 @@ extension ValueReducers {
         private var p4: R4.Value?
         private var p5: R5.Value?
         private var p6: R6.Value?
+        
+        public var isObservedRegionDeterministic: Bool {
+            r1.isObservedRegionDeterministic
+                && r2.isObservedRegionDeterministic
+                && r3.isObservedRegionDeterministic
+                && r4.isObservedRegionDeterministic
+                && r5.isObservedRegionDeterministic
+                && r6.isObservedRegionDeterministic
+        }
         
         init(_ r1: R1, _ r2: R2, _ r3: R3, _ r4: R4, _ r5: R5, _ r6: R6) {
             self.r1 = r1
@@ -521,19 +520,6 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.Combine6<R1, R2, R3, R4, R5, R6>>
     {
         return ValueObservation<ValueReducers.Combine6>(
-            baseRegion: { try DatabaseRegion.union(
-                o1.baseRegion($0),
-                o2.baseRegion($0),
-                o3.baseRegion($0),
-                o4.baseRegion($0),
-                o5.baseRegion($0),
-                o6.baseRegion($0)) },
-            observesSelectedRegion: o1.observesSelectedRegion
-                || o2.observesSelectedRegion
-                || o3.observesSelectedRegion
-                || o4.observesSelectedRegion
-                || o5.observesSelectedRegion
-                || o6.observesSelectedRegion,
             makeReducer: { ValueReducers.Combine6(
                 o1.makeReducer(),
                 o2.makeReducer(),
@@ -546,8 +532,7 @@ extension ValueObservation where Reducer == Never {
                 || o3.requiresWriteAccess
                 || o4.requiresWriteAccess
                 || o5.requiresWriteAccess
-                || o6.requiresWriteAccess,
-            scheduling: .mainQueue)
+                || o6.requiresWriteAccess)
     }
 }
 
@@ -579,6 +564,16 @@ extension ValueReducers {
         private var p5: R5.Value?
         private var p6: R6.Value?
         private var p7: R7.Value?
+        
+        public var isObservedRegionDeterministic: Bool {
+            r1.isObservedRegionDeterministic
+                && r2.isObservedRegionDeterministic
+                && r3.isObservedRegionDeterministic
+                && r4.isObservedRegionDeterministic
+                && r5.isObservedRegionDeterministic
+                && r6.isObservedRegionDeterministic
+                && r7.isObservedRegionDeterministic
+        }
         
         init(_ r1: R1, _ r2: R2, _ r3: R3, _ r4: R4, _ r5: R5, _ r6: R6, _ r7: R7) {
             self.r1 = r1
@@ -654,21 +649,6 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.Combine7<R1, R2, R3, R4, R5, R6, R7>>
     {
         return ValueObservation<ValueReducers.Combine7>(
-            baseRegion: { try DatabaseRegion.union(
-                o1.baseRegion($0),
-                o2.baseRegion($0),
-                o3.baseRegion($0),
-                o4.baseRegion($0),
-                o5.baseRegion($0),
-                o6.baseRegion($0),
-                o7.baseRegion($0)) },
-            observesSelectedRegion: o1.observesSelectedRegion
-                || o2.observesSelectedRegion
-                || o3.observesSelectedRegion
-                || o4.observesSelectedRegion
-                || o5.observesSelectedRegion
-                || o6.observesSelectedRegion
-                || o7.observesSelectedRegion,
             makeReducer: { ValueReducers.Combine7(
                 o1.makeReducer(),
                 o2.makeReducer(),
@@ -683,8 +663,7 @@ extension ValueObservation where Reducer == Never {
                 || o4.requiresWriteAccess
                 || o5.requiresWriteAccess
                 || o6.requiresWriteAccess
-                || o7.requiresWriteAccess,
-            scheduling: .mainQueue)
+                || o7.requiresWriteAccess)
     }
 }
 
@@ -720,6 +699,17 @@ extension ValueReducers {
         private var p6: R6.Value?
         private var p7: R7.Value?
         private var p8: R8.Value?
+        
+        public var isObservedRegionDeterministic: Bool {
+            r1.isObservedRegionDeterministic
+                && r2.isObservedRegionDeterministic
+                && r3.isObservedRegionDeterministic
+                && r4.isObservedRegionDeterministic
+                && r5.isObservedRegionDeterministic
+                && r6.isObservedRegionDeterministic
+                && r7.isObservedRegionDeterministic
+                && r8.isObservedRegionDeterministic
+        }
         
         init(_ r1: R1, _ r2: R2, _ r3: R3, _ r4: R4, _ r5: R5, _ r6: R6, _ r7: R7, _ r8: R8) {
             self.r1 = r1
@@ -802,23 +792,6 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.Combine8<R1, R2, R3, R4, R5, R6, R7, R8>>
     {
         return ValueObservation<ValueReducers.Combine8>(
-            baseRegion: { try DatabaseRegion.union(
-                o1.baseRegion($0),
-                o2.baseRegion($0),
-                o3.baseRegion($0),
-                o4.baseRegion($0),
-                o5.baseRegion($0),
-                o6.baseRegion($0),
-                o7.baseRegion($0),
-                o8.baseRegion($0)) },
-            observesSelectedRegion: o1.observesSelectedRegion
-                || o2.observesSelectedRegion
-                || o3.observesSelectedRegion
-                || o4.observesSelectedRegion
-                || o5.observesSelectedRegion
-                || o6.observesSelectedRegion
-                || o7.observesSelectedRegion
-                || o8.observesSelectedRegion,
             makeReducer: { ValueReducers.Combine8(
                 o1.makeReducer(),
                 o2.makeReducer(),
@@ -835,7 +808,6 @@ extension ValueObservation where Reducer == Never {
                 || o5.requiresWriteAccess
                 || o6.requiresWriteAccess
                 || o7.requiresWriteAccess
-                || o8.requiresWriteAccess,
-            scheduling: .mainQueue)
+                || o8.requiresWriteAccess)
     }
 }

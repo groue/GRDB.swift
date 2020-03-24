@@ -363,7 +363,6 @@ extension DatabaseWriter {
         
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
-            observesSelectedRegion: observation.observesSelectedRegion,
             writer: self,
             reducer: observation.makeReducer(),
             notificationQueue: notificationQueue,
@@ -374,7 +373,6 @@ extension DatabaseWriter {
         if initialFetchSync {
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
-                    observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
                     let initialValue = try observer.fetchInitialValue(db)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     return initialValue
@@ -387,7 +385,6 @@ extension DatabaseWriter {
             asyncRead { dbResult in
                 do {
                     let db = try dbResult.get()
-                    observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
                     let initialValue = try observer.fetchInitialValue(db)
                     observer.send(initialValue)
                     
@@ -410,7 +407,6 @@ extension DatabaseWriter {
         } else {
             asyncWriteWithoutTransaction { db in
                 do {
-                    observer.baseRegion = try observation.baseRegion(db).ignoringViews(db)
                     let initialValue = try observer.fetchInitialValue(db)
                     observer.send(initialValue)
                     db.add(transactionObserver: observer, extent: .observerLifetime)

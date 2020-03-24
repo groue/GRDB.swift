@@ -15,19 +15,50 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 """)
             
             do {
-                let (_, region) = db.recordingSelectedRegion { }
+                var region = DatabaseRegion()
+                _ = db.recordingSelection(&region) { }
                 XCTAssertTrue(region.isEmpty)
             }
             
             do {
-                let (_, region) = try db.recordingSelectedRegion {
+                var region = DatabaseRegion.fullDatabase
+                _ = db.recordingSelection(&region) { }
+                XCTAssertTrue(region.isFullDatabase)
+            }
+            
+            do {
+                var region = DatabaseRegion(table: "player")
+                _ = db.recordingSelection(&region) { }
+                XCTAssertEqual(region.description, "player(*)")
+            }
+            
+            do {
+                var region = DatabaseRegion()
+                _ = try db.recordingSelection(&region) {
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
                 }
                 XCTAssertEqual(region.description, "team(id,name)")
             }
             
             do {
-                let (_, region) = try db.recordingSelectedRegion {
+                var region = DatabaseRegion.fullDatabase
+                _ = try db.recordingSelection(&region) {
+                    _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
+                }
+                XCTAssertTrue(region.isFullDatabase)
+            }
+            
+            do {
+                var region = DatabaseRegion(table: "player")
+                _ = try db.recordingSelection(&region) {
+                    _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
+                }
+                XCTAssertEqual(region.description, "player(*),team(id,name)")
+            }
+            
+            do {
+                var region = DatabaseRegion()
+                _ = try db.recordingSelection(&region) {
                     _ = try Row.fetchAll(db, sql: "SELECT name FROM player")
                 }
                 XCTAssertEqual(region.description, "player(name)")
@@ -36,14 +67,16 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             do {
                 // Test for rowID optimization
                 struct Player: TableRecord, FetchableRecord, Decodable { }
-                let (_, region) = try db.recordingSelectedRegion {
+                var region = DatabaseRegion()
+                _ = try db.recordingSelection(&region) {
                     _ = try Player.fetchOne(db, key: 123)
                 }
-                XCTAssertEqual(region.description, "player(id,name)[123]")
+                XCTAssert(region.description.contains("player(id,name)[123]"))
             }
 
             do {
-                let (_, region) = try db.recordingSelectedRegion {
+                var region = DatabaseRegion()
+                _ = try db.recordingSelection(&region) {
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM player")
                 }
@@ -55,20 +88,23 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 var region2 = DatabaseRegion()
                 var region3 = DatabaseRegion()
                 var region4 = DatabaseRegion()
-                (_, region1) = try db.recordingSelectedRegion {
+                var region5 = DatabaseRegion()
+                _ = try db.recordingSelection(&region1) {
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
-                    (_, region2) = try db.recordingSelectedRegion {
+                    _ = try db.recordingSelection(&region2) {
+                        _ = db.recordingSelection(&region3) { }
                         _ = try Row.fetchAll(db, sql: "SELECT name FROM player")
-                        (_, region3) = db.recordingSelectedRegion { }
+                        _ = db.recordingSelection(&region4) { }
                     }
-                    (_, region4) = try db.recordingSelectedRegion {
+                    _ = try db.recordingSelection(&region5) {
                         _ = try Row.fetchAll(db, sql: "SELECT * FROM player")
                     }
                 }
                 XCTAssertEqual(region1.description, "player(id,name),team(id,name)")
                 XCTAssertEqual(region2.description, "player(name)")
                 XCTAssertTrue(region3.isEmpty)
-                XCTAssertEqual(region4.description, "player(id,name)")
+                XCTAssertTrue(region4.isEmpty)
+                XCTAssertEqual(region5.description, "player(id,name)")
             }
         }
     }
@@ -117,7 +153,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         })
         
         let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-        XCTAssertEqual(token.observer.observedRegion.description, "a(value),source(name)")
+        XCTAssertEqual(token.observer.observedRegion!.description, "a(value),source(name)")
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
@@ -133,7 +169,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [0, 1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
+            XCTAssertEqual(token.observer.observedRegion!.description, "b(value),source(name)")
         }
     }
     
@@ -183,7 +219,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [0, 1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
+            XCTAssertEqual(token.observer.observedRegion!.description, "b(value),source(name)")
         }
     }
     
@@ -218,7 +254,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         })
         
         let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-        XCTAssertEqual(token.observer.observedRegion.description, "a(value),source(name)")
+        XCTAssertEqual(token.observer.observedRegion!.description, "a(value),source(name)")
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
@@ -234,7 +270,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             XCTAssertEqual(results, [0, 1, 2, 3])
             
             let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion.description, "b(value),source(name)")
+            XCTAssertEqual(token.observer.observedRegion!.description, "b(value),source(name)")
         }
     }
 }

@@ -23,14 +23,16 @@ class ValueObservationExtentTests: GRDBTestCase {
         notificationExpectation.expectedFulfillmentCount = 2
         
         // Create an observation
-        let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in })
+        let observation = ValueObservation.tracking {
+            try Int.fetchOne($0, sql: "SELECT * FROM t")
+        }
         
         // Start observation and deallocate observer after second change
         var observer: TransactionObserver?
         observer = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: {
+            onChange: { _ in
                 changesCount += 1
                 if changesCount == 2 {
                     observer = nil

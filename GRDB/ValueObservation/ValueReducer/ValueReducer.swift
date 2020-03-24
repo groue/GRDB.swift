@@ -8,6 +8,13 @@ public protocol _ValueReducer {
     /// The type of observed values
     associatedtype Value
     
+    /// If true, reducer wants to record the selected region.
+    ///
+    /// _ValueReducer semantics require that this property does not depend on
+    /// the state of the reducer.
+    var isObservedRegionDeterministic: Bool { get }
+    
+    // TODO: rename fetch(_ db: Database, recording selectedRegion: inout DatabaseRegion) throws -> Fetched
     /// Fetches database values upon changes in an observed database region.
     ///
     /// _ValueReducer semantics require that this method does not depend on
@@ -30,7 +37,11 @@ public protocol _ValueReducer {
 }
 
 extension _ValueReducer {
-    func fetch(_ db: Database, requiringWriteAccess: Bool) throws -> Fetched {
+    func fetch(
+        _ db: Database,
+        requiringWriteAccess: Bool)
+        throws -> Fetched
+    {
         if requiringWriteAccess {
             var fetchedValue: Fetched?
             try db.inSavepoint {
@@ -45,7 +56,11 @@ extension _ValueReducer {
         }
     }
     
-    mutating func fetchAndReduce(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
+    mutating func fetchAndReduce(
+        _ db: Database,
+        requiringWriteAccess: Bool)
+        throws -> Value?
+    {
         let fetchedValue = try fetch(db, requiringWriteAccess: requiringWriteAccess)
         return value(fetchedValue)
     }
@@ -54,11 +69,13 @@ extension _ValueReducer {
 /// A namespace for types related to the _ValueReducer protocol.
 public enum ValueReducers { }
 
+// TODO: define an empty NeverReducer enum instead of reusing Never.
 // This allows us to use Never as a marker for ValueObservation factory methods:
 //
 // For example, ValueObservation.tracking(value:) is, practically,
 // ValueObservation<Never>.tracking(value:).
 extension Never: _ValueReducer {
+    public var isObservedRegionDeterministic: Bool { preconditionFailure() }
     public func fetch(_ db: Database) throws -> Never { preconditionFailure() }
     public mutating func value(_ fetched: Never) -> Never? { }
 }

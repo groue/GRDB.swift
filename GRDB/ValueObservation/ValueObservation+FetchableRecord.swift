@@ -26,9 +26,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllRecords<RowDecoder>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.AllRecords { try Row.fetchAll($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.AllRecords { try Row.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -54,9 +52,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneRecord<RowDecoder>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.OneRecord { try Row.fetchOne($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.OneRecord { try Row.fetchOne($0, self) } })
     }
 }
 
@@ -130,6 +126,7 @@ extension ValueReducers {
     {
         private let _fetch: (Database) throws -> [Row]
         private var previousRows: [Row]?
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> [Row]) {
             self._fetch = fetch
@@ -160,6 +157,7 @@ extension ValueReducers {
     {
         private let _fetch: (Database) throws -> Row?
         private var previousRow: Row??
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> Row?) {
             self._fetch = fetch

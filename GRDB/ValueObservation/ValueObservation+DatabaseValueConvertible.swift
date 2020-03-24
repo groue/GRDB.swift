@@ -26,9 +26,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllValues<RowDecoder>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.AllValues { try DatabaseValue.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -55,9 +53,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// - parameter request: the observed request.
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
     }
 }
 
@@ -89,9 +85,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: 
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllOptionalValues<RowDecoder.Wrapped>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.AllOptionalValues { try DatabaseValue.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies
@@ -118,9 +112,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: 
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneValue<RowDecoder.Wrapped>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.OneValue { try DatabaseValue.fetchOne($0, self) } })
     }
 }
 
@@ -136,6 +128,7 @@ extension ValueReducers {
     {
         private let _fetch: (Database) throws -> [DatabaseValue]
         private var previousDbValues: [DatabaseValue]?
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
             self._fetch = fetch
@@ -169,6 +162,7 @@ extension ValueReducers {
         private let _fetch: (Database) throws -> DatabaseValue?
         private var previousDbValue: DatabaseValue??
         private var previousValueWasNil = false
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> DatabaseValue?) {
             self._fetch = fetch
@@ -210,6 +204,7 @@ extension ValueReducers {
     {
         private let _fetch: (Database) throws -> [DatabaseValue]
         private var previousDbValues: [DatabaseValue]?
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> [DatabaseValue]) {
             self._fetch = fetch

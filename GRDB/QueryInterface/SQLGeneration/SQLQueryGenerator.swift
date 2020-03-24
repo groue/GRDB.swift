@@ -100,30 +100,30 @@ struct SQLQueryGenerator {
         try (makeSelectStatement(db), rowAdapter(db))
     }
     
-    private func optimizedDatabaseRegion(_ db: Database, _ databaseRegion: DatabaseRegion) throws -> DatabaseRegion {
+    private func optimizedSelectedRegion(_ db: Database, _ selectedRegion: DatabaseRegion) throws -> DatabaseRegion {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
         guard case .table(tableName: let tableName, alias: _) = relation.source else {
             // TODO: try harder
-            return databaseRegion
+            return selectedRegion
         }
         
         // Give up unless primary key is rowId
         let primaryKeyInfo = try db.primaryKey(tableName)
         guard primaryKeyInfo.isRowID else {
-            return databaseRegion
+            return selectedRegion
         }
         
         // The filters knows better
         let filters = try relation.filtersPromise.resolve(db)
         guard let rowIds = filters.joined(operator: .and).matchedRowIds(rowIdName: primaryKeyInfo.rowIDColumn) else {
-            return databaseRegion
+            return selectedRegion
         }
         
         // Database regions are case-sensitive: use the canonical table name
         let canonicalTableName = try db.canonicalTableName(tableName)
-        return databaseRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
+        return selectedRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
@@ -318,7 +318,7 @@ struct SQLQueryGenerator {
         statement.arguments = context.arguments
         
         // Optimize databaseRegion
-        statement.databaseRegion = try optimizedDatabaseRegion(db, statement.databaseRegion)
+        statement.selectedRegion = try optimizedSelectedRegion(db, statement.selectedRegion)
         return statement
     }
     

@@ -53,8 +53,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             
             // Create an observation
-            let request = SQLRequest<Void>(sql: "SELECT * FROM t")
-            let observation = ValueObservation(baseRegion: request.databaseRegion, makeReducer: { reducer })
+            let observation = ValueObservation(makeReducer: { reducer })
             
             // Start observation
             let observer = observation.start(
@@ -152,12 +151,13 @@ class ValueObservationReducerTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 3
             
             var nextError: Error? = nil // If not null, observation throws an error
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Void in
+            let observation = ValueObservation.tracking {
+                _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
                 if let error = nextError {
                     nextError = nil
                     throw error
                 }
-            })
+            }
 
             // Start observation
             let observer = observation.start(
@@ -189,48 +189,6 @@ class ValueObservationReducerTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testReadMeReducer() throws {
-        func test(_ dbWriter: DatabaseWriter) throws {
-            // Test for the reducer documented in the main README
-            
-            // We need something to change
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            // Track reducer process
-            var counts: [Int] = []
-            let notificationExpectation = expectation(description: "notification")
-            notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 2
-            
-            // Create an observation
-            var count = 0
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Int in
-                defer { count += 1 }
-                return count
-            })
-            
-            // Start observation
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { count in
-                    counts.append(count)
-                    notificationExpectation.fulfill()
-            })
-            try withExtendedLifetime(observer) {
-                try dbWriter.write { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(counts, [0, 1])
-            }
-        }
-        
-        try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-    }
-    
     func testReducerQueueLabel() throws {
         func test(_ dbWriter: DatabaseWriter, expectedLabels: [String]) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -240,7 +198,9 @@ class ValueObservationReducerTests: GRDBTestCase {
             reduceExpectation.expectedFulfillmentCount = expectedLabels.count
             
             var labels: [String] = []
-            let reducer = AnyValueReducer(fetch: { _ in }, value: { _ in
+            let reducer = AnyValueReducer(
+                fetch: { _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t") },
+                value: { _ in
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
                 if let label = String(utf8String: __dispatch_queue_get_label(nil)) {
@@ -248,9 +208,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 }
                 reduceExpectation.fulfill()
             })
-            let observation = ValueObservation(
-                baseRegion: { _ in DatabaseRegion.fullDatabase },
-                makeReducer: { reducer })
+            let observation = ValueObservation(makeReducer: { reducer })
             let observer = observation.start(
                 in: dbWriter,
                 onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -303,17 +261,15 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var observer: TransactionObserver? = nil
                 _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
                 var shouldStopObservation = false
-                var observation = ValueObservation(
-                    baseRegion: { _ in DatabaseRegion.fullDatabase },
-                    makeReducer: {
-                        AnyValueReducer<Void, Void>(
-                            fetch: { _ in
-                                if shouldStopObservation {
-                                    observer = nil /* deallocation */
-                                }
-                                shouldStopObservation = true
-                        },
-                            value: { _ in () })
+                var observation = ValueObservation(makeReducer: {
+                    AnyValueReducer<Void, Void>(
+                        fetch: { _ in
+                            if shouldStopObservation {
+                                observer = nil /* deallocation */
+                            }
+                            shouldStopObservation = true
+                    },
+                        value: { _ in () })
                 })
                 observation.scheduling = .unsafe
                 observer = observation.start(
@@ -347,18 +303,16 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var observer: TransactionObserver? = nil
                 _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
                 var shouldStopObservation = false
-                var observation = ValueObservation(
-                    baseRegion: { _ in DatabaseRegion.fullDatabase },
-                    makeReducer: {
-                        AnyValueReducer<Void, Void>(
-                            fetch: { _ in },
-                            value: { _ in
-                                if shouldStopObservation {
-                                    observer = nil /* deallocation right before notification */
-                                }
-                                shouldStopObservation = true
-                                return ()
-                        })
+                var observation = ValueObservation(makeReducer: {
+                    AnyValueReducer<Void, Void>(
+                        fetch: { _ in },
+                        value: { _ in
+                            if shouldStopObservation {
+                                observer = nil /* deallocation right before notification */
+                            }
+                            shouldStopObservation = true
+                            return ()
+                    })
                 })
                 observation.scheduling = .unsafe
                 observer = observation.start(

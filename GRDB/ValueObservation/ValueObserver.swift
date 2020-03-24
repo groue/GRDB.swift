@@ -3,17 +3,10 @@ import Foundation
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
 final class ValueObserver<Reducer: _ValueReducer> {
-    var baseRegion = DatabaseRegion() {
-        didSet { observedRegion = baseRegion.union(selectedRegion) }
-    }
-    private var selectedRegion = DatabaseRegion() {
-        didSet { observedRegion = baseRegion.union(selectedRegion) }
-    }
-    var observedRegion: DatabaseRegion! // internal for testability
+    var observedRegion: DatabaseRegion?
     private(set) var isCancelled = false
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
-    private let observesSelectedRegion: Bool
     private weak var writer: DatabaseWriter?
     private let notificationQueue: DispatchQueue?
     private let reduceQueue: DispatchQueue
@@ -23,7 +16,6 @@ final class ValueObserver<Reducer: _ValueReducer> {
     
     init(
         requiresWriteAccess: Bool,
-        observesSelectedRegion: Bool,
         writer: DatabaseWriter,
         reducer: Reducer,
         notificationQueue: DispatchQueue?,
@@ -34,7 +26,6 @@ final class ValueObserver<Reducer: _ValueReducer> {
         self.writer = writer
         self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
-        self.observesSelectedRegion = observesSelectedRegion
         self.notificationQueue = notificationQueue
         self.reduceQueue = reduceQueue
         self.onError = onError
@@ -51,9 +42,9 @@ extension ValueObserver {
         }
         return value
     }
-
+    
     func fetchNextValue(_ db: Database) throws -> Reducer.Value? {
-        try recordingSelectedRegionIfNeeded(db) {
+        try recordingObservedRegionIfNeeded(db) {
             try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
         }
     }
@@ -95,12 +86,12 @@ extension ValueObserver {
 extension ValueObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         if isCancelled { return false }
-        return observedRegion.isModified(byEventsOfKind: eventKind)
+        return observedRegion!.isModified(byEventsOfKind: eventKind)
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
         if isCancelled { return }
-        if observedRegion.isModified(by: event) {
+        if observedRegion!.isModified(by: event) {
             isChanged = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }
@@ -114,16 +105,18 @@ extension ValueObserver: TransactionObserver {
         
         let fetchedValue: DatabaseFuture<Reducer.Fetched>
         
-        if requiresWriteAccess || observesSelectedRegion {
+        if requiresWriteAccess || needsRecordingObservedRegion {
             // Synchronous fetch
             fetchedValue = DatabaseFuture(Result {
-                try recordingSelectedRegionIfNeeded(db) {
+                try recordingObservedRegionIfNeeded(db) {
                     try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                 }
             })
         } else {
             // Concurrent fetch
-            fetchedValue = writer.concurrentRead(reducer.fetch)
+            fetchedValue = writer.concurrentRead {
+                return try self.reducer.fetch($0)
+            }
         }
         
         // Wait for future fetched value in reduceQueue. This guarantees:
@@ -148,6 +141,40 @@ extension ValueObserver: TransactionObserver {
 }
 
 extension ValueObserver {
+    private var needsRecordingObservedRegion: Bool {
+        observedRegion == nil || !reducer.isObservedRegionDeterministic
+    }
+    
+    private func recordingObservedRegionIfNeeded<T>(
+        _ db: Database,
+        fetch: () throws -> T)
+        throws -> T
+    {
+        if needsRecordingObservedRegion {
+            var region = DatabaseRegion()
+            let result = try db.recordingSelection(&region, fetch)
+            
+            // Don't record schema introspection queries, which may be
+            // run, or not, depending on the state of the schema cache.
+            //
+            // This gives us a quick way to make sure that the observation
+            // below, which runs schema introspection queries as a side effect,
+            // only tracks the "player" table:
+            //
+            //      let observation = ValueObservation.tracking { db in
+            //          try Player.fetchOne(db, key: 1)
+            //      }
+            //
+            // Strictly speaking, this prevents the recording of all schema
+            // queries. But we assume, until proven wrong, that such recording
+            // isn't needed by anyone.
+            observedRegion = try region.ignoringViews(db).ignoringInternalSQLiteTables()
+            return result
+        } else {
+            return try fetch()
+        }
+    }
+    
     private func reduce(
         fetchedValue: DatabaseFuture<Reducer.Fetched>,
         completion: @escaping (Result<Reducer.Value, Error>) -> Void)
@@ -158,16 +185,6 @@ extension ValueObserver {
             }
         } catch {
             completion(.failure(error))
-        }
-    }
-    
-    private func recordingSelectedRegionIfNeeded<T>(_ db: Database, _ block: () throws -> T) rethrows -> T {
-        if observesSelectedRegion {
-            let result: T
-            (result, selectedRegion) = try db.recordingSelectedRegion(block)
-            return result
-        } else {
-            return try block()
         }
     }
 }

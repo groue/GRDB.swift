@@ -108,12 +108,13 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             DispatchQueue.main.setSpecific(key: key, value: ())
             
             var nextError: Error? = nil // If not null, observation throws an error
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ -> Void in
+            let observation = ValueObservation.tracking { db in
+                _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
                 if let error = nextError {
                     nextError = nil
                     throw error
                 }
-            })
+            }
             
             let observer = observation.start(
                 in: dbWriter,
@@ -235,12 +236,13 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             
             struct TestError: Error { }
             var shouldThrow = false
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in
+            var observation = ValueObservation.tracking { db in
+                _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
                 if shouldThrow {
                     throw TestError()
                 }
                 shouldThrow = true
-            })
+            }
             observation.scheduling = .async(onQueue: queue)
             
             let observer = observation.start(
@@ -397,12 +399,13 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             
             struct TestError: Error { }
             var shouldThrow = false
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in
+            var observation = ValueObservation.tracking { db in
+                _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
                 if shouldThrow {
                     throw TestError()
                 }
                 shouldThrow = true
-            })
+            }
             observation.scheduling = .unsafe
             
             let observer = observation.start(

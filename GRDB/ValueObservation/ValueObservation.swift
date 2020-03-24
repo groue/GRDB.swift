@@ -69,18 +69,6 @@ public enum ValueObservationScheduling {
 ///         print("Players have changed.")
 ///     }
 public struct ValueObservation<Reducer: _ValueReducer> {
-    // TODO: all calls to this closure are followed by ignoringViews().
-    // We should embed this ignoringViews() call.
-    /// A closure that is evaluated when the observation starts, and returns
-    /// a "base" observed database region.
-    ///
-    /// See also `observesSelectedRegion`
-    var baseRegion: (Database) throws -> DatabaseRegion
-    
-    /// If true, the region selected by the reducer is observed as well
-    /// as `baseRegion`.
-    var observesSelectedRegion: Bool = false
-
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change in *observedRegion*.
     var makeReducer: () -> Reducer
@@ -155,10 +143,9 @@ extension ValueObservation where Reducer == Never {
         value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        return ValueObservation<ValueReducers.Fetch<Value>>(
-            baseRegion: { _ in DatabaseRegion() },
-            observesSelectedRegion: true,
-            makeReducer: { ValueReducers.Fetch(value) })
+        return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
+            ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: value)
+        })
     }
     
     /// Creates a ValueObservation which observes *regions*, and notifies the
@@ -206,8 +193,8 @@ extension ValueObservation where Reducer == Never {
         fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        return ValueObservation<ValueReducers.Fetch<Value>>(
-            baseRegion: DatabaseRegion.union(regions),
-            makeReducer: { ValueReducers.Fetch(fetch) })
+        return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
+            ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: fetch)
+        })
     }
 }
