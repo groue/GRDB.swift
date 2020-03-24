@@ -5486,7 +5486,7 @@ Tracked changes include changes performed by the [query interface](#the-query-in
 
 **ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
 
-- **[ValueObservation Usage](#valueobservation-usage)**
+- [ValueObservation Usage](#valueobservation-usage)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Performance](#valueobservation-performance)
 
