@@ -12,15 +12,6 @@ import Dispatch
 #endif
 
 class ValueObservationReducerTests: GRDBTestCase {
-    func testRegionsAPI() {
-        // single region
-        _ = ValueObservation.tracking(DatabaseRegion(), fetch: { _ in })
-        // variadic
-        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), fetch: { _ in })
-        // array
-        _ = ValueObservation.tracking([DatabaseRegion()], fetch: { _ in })
-    }
-    
     func testReducer() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
@@ -123,7 +114,7 @@ class ValueObservationReducerTests: GRDBTestCase {
         func test(_ dbWriter: DatabaseWriter) throws {
             // Create an observation
             struct TestError: Error { }
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in throw TestError() })
+            let observation = ValueObservation.tracking { _ in throw TestError() }
             
             // Start observation
             var error: TestError?

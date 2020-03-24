@@ -135,10 +135,16 @@ extension ValueObservation {
 
 extension ValueObservation where Reducer == Never {
     
-    // MARK: - Creating ValueObservation from Fetch Closures
+    // MARK: - Creating ValueObservation
     
     /// Creates a ValueObservation which notifies the values returned by the
-    /// *fetch* closure whenever a database transaction changes them.
+    /// *value* function whenever a database transaction changes them.
+    ///
+    /// The *value* function must always performs the same database requests.
+    /// The stability of the observed database region allows optimizations.
+    ///
+    /// When you want to observe a varying database region, use the
+    /// `ValueObservation.trackingVolatile(value:)` method instead.
     ///
     /// For example:
     ///
@@ -146,67 +152,35 @@ extension ValueObservation where Reducer == Never {
     ///         try Player.fetchAll(db)
     ///     }
     ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange:) { players: [Player] in
+    ///             print("Players have changed")
+    ///         })
     ///
-    /// - parameter value: A closure that fetches a value.
+    /// - parameter value: A function that fetches the observed value from
+    ///   the database.
     public static func tracking<Value>(
         value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: value)
+            ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: value)
         })
     }
     
-    /// Creates a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *fetch* closure whenever one of the observed
-    /// regions is modified by a database transaction.
+    /// Creates a ValueObservation which notifies the values returned by the
+    /// *value* function whenever a database transaction changes them.
     ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking(
-    ///         Player.all(),
-    ///         fetch: { db in return try Player.fetchAll(db) })
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A closure that fetches a value.
-    public static func tracking<Value>(
-        _ regions: DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
-    {
-        return ValueObservation.tracking(regions, fetch: fetch)
-    }
-    
-    /// Creates a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *fetch* closure whenever one of the observed
-    /// regions is modified by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking(
-    ///         [Player.all()],
-    ///         fetch: { db in return try Player.fetchAll(db) })
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A closure that fetches a value.
-    public static func tracking<Value>(
-        _ regions: [DatabaseRegionConvertible],
-        fetch: @escaping (Database) throws -> Value)
+    /// - parameter value: A function that fetches the observed value from
+    ///   the database.
+    public static func trackingVolatile<Value>(
+        value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: fetch)
+            ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: value)
         })
     }
 }

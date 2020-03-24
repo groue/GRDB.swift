@@ -14,9 +14,9 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testReadOnlyObservation() throws {
         try assertValueObservation(
-            ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            ValueObservation.tracking {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            }),
+            },
             records: [0, 1],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -28,10 +28,10 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testWriteObservationFailsByDefaultWithErrorHandling() throws {
         try assertValueObservation(
-            ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
+            ValueObservation.tracking { db -> Int in
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 return 0
-            }),
+            },
             fails: { (error: DatabaseError, _: DatabaseWriter) in
                 XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
                 XCTAssertEqual(error.message, "attempt to write a readonly database")
@@ -44,13 +44,13 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     }
     
     func testWriteObservation() throws {
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db -> Int in
+        var observation = ValueObservation.tracking { db -> Int in
             XCTAssert(db.isInsideTransaction, "expected a wrapping transaction")
             try db.execute(sql: "CREATE TEMPORARY TABLE temp AS SELECT * FROM t")
             let result = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM temp")!
             try db.execute(sql: "DROP TABLE temp")
             return result
-        })
+        }
         observation.requiresWriteAccess = true
         
         try assertValueObservation(
@@ -66,10 +66,10 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testWriteObservationIsWrappedInSavepointWithErrorHandling() throws {
         struct TestError: Error { }
-        var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { db in
+        var observation = ValueObservation.tracking { db in
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             throw TestError()
-        })
+        }
         observation.requiresWriteAccess = true
         
         try assertValueObservation(

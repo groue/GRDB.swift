@@ -31,7 +31,7 @@ extension FetchRequest {
         ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
     {
         return ValueObservation
-            .tracking(self, fetch: fetchCount)
+            .tracking(value: fetchCount)
             .removeDuplicates()
     }
 }

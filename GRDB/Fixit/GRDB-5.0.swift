@@ -154,6 +154,12 @@ extension ValueObservation {
     @available(*, unavailable, message: "compactMap is no longer available")
     public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?) -> ValueObservation<ValueReducers.CompactMap<Reducer, T>>
     { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
+    public func start(
+        in reader: DatabaseReader,
+        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    { preconditionFailure() }
 }
 
 extension ValueObservation where Reducer == Never {
@@ -204,13 +210,19 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.OneRow>
         where Request.RowDecoder == Row
     { preconditionFailure() }
-}
-
-extension ValueObservation {
-    @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
-    public func start(
-        in reader: DatabaseReader,
-        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(value:) instead")
+    public static func tracking<Value>(
+        _ regions: DatabaseRegionConvertible...,
+        fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Fetch<Value>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(value:) instead")
+    public static func tracking<Value>(
+        _ regions: [DatabaseRegionConvertible],
+        fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Fetch<Value>>
     { preconditionFailure() }
 }
 

@@ -24,9 +24,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
             
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            let observation = ValueObservation.tracking {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
+            }
             let observer = observation.start(
                 in: dbWriter,
                 onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -66,9 +66,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
             
-            let observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            let observation = ValueObservation.tracking {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
+            }
             var observer: TransactionObserver?
             DispatchQueue.global(qos: .default).async {
                 observer = observation.start(
@@ -157,9 +157,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             queue.setSpecific(key: key, value: ())
             
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            var observation = ValueObservation.tracking {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
+            }
             observation.scheduling = .async(onQueue: queue)
             
             let observer = observation.start(
@@ -199,7 +199,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             struct TestError: Error { }
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in throw TestError() })
+            var observation = ValueObservation.tracking { _ in throw TestError() }
             observation.scheduling = .async(onQueue: queue)
             
             let observer = observation.start(
@@ -280,9 +280,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
             
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            var observation = ValueObservation.tracking {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
+            }
             observation.scheduling = .unsafe
             
             let observer = observation.start(
@@ -324,9 +324,9 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             queue.setSpecific(key: key, value: ())
             
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            var observation = ValueObservation.tracking {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            })
+            }
             observation.scheduling = .unsafe
             var observer: TransactionObserver?
             queue.async {
@@ -367,7 +367,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             notificationExpectation.expectedFulfillmentCount = 1
             
             struct TestError: Error { }
-            var observation = ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: { _ in throw TestError() })
+            var observation = ValueObservation.tracking { _ in throw TestError() }
             observation.scheduling = .unsafe
             
             let observer = observation.start(
