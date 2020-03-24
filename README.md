@@ -5620,7 +5620,7 @@ let observation = ValueObservation
     .map { player in player?.image }
 ```
 
-The transformation function does not block any database access. This makes the `map` operator a tool which helps reducing database contention.
+The transformation function does not block any database access. This makes the `map` operator a tool which helps reducing [database contention](#valueobservation-performance).
 
 
 #### ValueObservation.removeDuplicates
