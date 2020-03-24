@@ -5486,7 +5486,7 @@ Tracked changes include changes performed by the [query interface](#the-query-in
 
 - **[ValueObservation Usage](#valueobservation-usage)**
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
-
+- [ValueObservation Performance](#valueobservation-performance)
 
 ### ValueObservation Usage
 
@@ -5754,19 +5754,64 @@ observation.requiresWriteAccess = true
 When you use a [database pool](#database-pools), this flag has a performance hit.
 
 
+### ValueObservation Performance
 
+This chapter describes some characteristics of ValueObservation, and provides some optimization hints for demanding applications.
 
+**ValueObservation is triggered by database transactions that may modify the tracked value.**
 
+For example, if you track the maximum score of players, transactions that impact the score column of the players database table (any update, insertion, or deletion) trigger the observation, even if the maximum score itself is not changed:
 
+```swift
+let maxScoreRequest = Player.select(max(Column("score")), as: Int.self)
+let observation = ValueObservation.tracking(maxScoreRequest.fetchOne)
+let observer = observation.start(in: dbQueue, ...)
 
+// triggers the observation
+try dbQueue.write(Player(name: "Arthur", score: 1000).insert)
 
+// triggers the observation as well
+try dbQueue.write(Player(name: "Barbara", score: 100).insert)
+```
 
+**ValueObservation can create database contention.** In other words, active observations take a toll on the constrained database resources. When triggered by impactful transactions, observations fetch fresh values, and can delay read and write database accesses of other application components.
 
+When needed, you can help GRDB optimize observations and reduce database contention:
 
+1. Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
 
+2. Declare upfront the tracked database region, when possible:
+    
+    ```swift
+    // Plain observation
+    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    
+    // Optimized observation
+    let observation = ValueObservation.tracking(Player.all(), fetch: Player.fetchAll)
+    ```
+    
+    The `ValueObservation.tracking(_:fetch:)` method is an alternative way to create an observation. Its first argument is one or several requests that define a [database region](#databaseregion). Its second argument is a regular function which fetches the observed value.
+    
+    Such an observation is only triggered by transactions that impact the tracked database region.
+    
+    It helps reducing database contention because it can refresh the observed value without blocking concurrent database writes.
 
+3. When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
 
-
+    ```swift
+    // Plain observation
+    let observation = ValueObservation.tracking { db -> MyValue in
+        let players = try Player.fetchAll(db)
+        return computeMyValue(players)
+    }
+    
+    // Optimized observation
+    let observation = ValueObservation
+        .tracking { db try Player.fetchAll(db) }
+        .map { players in computeMyValue(players) }
+    ```
+    
+    The `map` operator helps reducing database contention because it performs its job without blocking concurrent database reads.
 
 
 
