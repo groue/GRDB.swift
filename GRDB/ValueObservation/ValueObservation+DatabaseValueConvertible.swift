@@ -11,9 +11,12 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     ///     let request = Player.select(Column("name"), as: String.self)
     ///     let observation = request.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { names: [String] in
-    ///         print("Player names have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { names: [String] in
+    ///             print("Player names have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -37,9 +40,12 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     ///     let request = Player.select(max(Column("score")), as: Int.self)
     ///     let observation = request.observationForFirst()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { maxScore: Int? in
-    ///         print("Maximum score has changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { maxScore: Int? in
+    ///             print("Maximum score has changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -70,9 +76,12 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: 
     ///     let request = Player.select(Column("name"), as: Optional<String>.self)
     ///     let observation = request.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { names: [String?] in
-    ///         print("Player names have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { names: [String?] in
+    ///             print("Player names have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -97,9 +106,12 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: 
     ///     let request = Player.select(Column("name"), as: Optional<String>.self)
     ///     let observation = request.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { names: [String?] in
-    ///         print("Player names have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { names: [String?] in
+    ///             print("Player names have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///

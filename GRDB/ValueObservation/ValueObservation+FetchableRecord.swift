@@ -11,9 +11,12 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///     let request = Player.all()
     ///     let observation = request.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -37,9 +40,12 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///     let request = Player.filter(key: 1)
     ///     let observation = request.observationForFirst()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: Player? in
-    ///         print("Player has changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { player: Player? in
+    ///             print("Player has changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -68,9 +74,12 @@ extension TableRecord where Self: FetchableRecord {
     ///
     ///     let observation = Player.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -94,9 +103,12 @@ extension TableRecord where Self: FetchableRecord {
     ///
     ///     let observation = Player.observationForFirst()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: Player? in
-    ///         print("Player has changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { player: Player? in
+    ///             print("Player has changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///

@@ -12,9 +12,12 @@ public enum ValueObservationScheduling {
     ///
     ///     // On main queue
     ///     let observation = Player.observationForAll()
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("fresh players: \(players)")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
     ///     // <- here "fresh players" is already printed.
     ///
     /// If the observation does not start on the main queue, the initial value
@@ -23,9 +26,12 @@ public enum ValueObservationScheduling {
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
     ///     let observation = Player.observationForAll()
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("fresh players: \(players)")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
     ///
     /// When the database changes, fresh values are asynchronously notified on
     /// the main queue:
@@ -47,9 +53,12 @@ public enum ValueObservationScheduling {
     ///     // On any queue
     ///     var observation = Player.observationForAll()
     ///     observation.scheduling = .unsafe
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("fresh players: \(players)")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///           print("fresh players: \(players)")
+    ///        })
     ///     // <- here "fresh players" is already printed.
     ///
     /// When the database changes, other values are notified on
@@ -65,9 +74,12 @@ public enum ValueObservationScheduling {
 /// For example:
 ///
 ///     let observation = Player.observationForAll()
-///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-///         print("Players have changed.")
-///     }
+///     let observer = try observation.start(
+///         in: dbQueue,
+///         onError: { error in ... },
+///         onChange: { players: [Player] in
+///             print("Players have changed.")
+///         })
 public struct ValueObservation<Reducer: _ValueReducer> {
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change in *observedRegion*.

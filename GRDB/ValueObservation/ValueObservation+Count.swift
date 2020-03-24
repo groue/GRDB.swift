@@ -10,9 +10,12 @@ extension FetchRequest {
     ///     let request = Player.all()
     ///     let observation = request.observationForCount()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { count: Int in
-    ///         print("Number of players has changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { count: Int in
+    ///             print("Number of players has changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -44,9 +47,12 @@ extension TableRecord {
     ///
     ///     let observation = Player.observationForCount()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { count: Int in
-    ///         print("Number of players has changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { count: Int in
+    ///             print("Number of players has changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///

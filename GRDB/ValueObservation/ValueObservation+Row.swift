@@ -10,9 +10,12 @@ extension FetchRequest where RowDecoder == Row {
     ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player")
     ///     let observation = request.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { rows: [Row] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { rows: [Row] in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -36,9 +39,12 @@ extension FetchRequest where RowDecoder == Row {
     ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = request.observationForFirst()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { row: Row? in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { row: Row? in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
