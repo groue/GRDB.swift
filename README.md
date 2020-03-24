@@ -5586,10 +5586,10 @@ let disposable = observation.rx.changes(in: dbQueue).subscribe(
 
 **Generally speaking**:
 
-- ValueObservation notifies an initial value before the eventual changes. This initial value is notified immediately by default (when the `start` method is called). It can be notified [asynchronously](#valueobservationscheduling).
-- ValueObservation schedules changes notifications on the main dispatch queue by default. This can be [configured](#valueobservationscheduling).
-- ValueObservation may coalesce subsequent changes into a single notification. This helps GRDB optimize database access.
-- ValueObservation may notify consecutive identical values. This happens as rarely as possible, and you can filter undesired duplicates out with the [removeDuplicates()](#valueobservationremoveduplicates) method when needed.
+- ValueObservation notifies an initial value before the eventual changes. This initial value is notified immediately by default (when the `start` method is called). It can be notified [asynchronously](#valueobservationscheduling) if preferred.
+- ValueObservation schedules changes notifications on the main thread by default. This can be [configured](#valueobservationscheduling).
+- ValueObservation may coalesce subsequent changes into a single notification.
+- ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
 
 **ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
 
