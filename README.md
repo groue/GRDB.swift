@@ -5778,9 +5778,65 @@ try dbQueue.write(Player(name: "Barbara", score: 100).insert)
 
 When needed, you can help GRDB optimize observations and reduce database contention:
 
-1. Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
+1. Stop observations when possible.
+    
+    For example, if a UIViewController needs to display database values, it can start the observation in `viewWillAppear`, and stop it in `viewWillDisappear`, as in the sample code below:
+    
+    
+    <details>
+        <summary>UIViewController example</summary>
+    
+    ```swift
+    class PlayersViewController: UIViewController {
+        private var observer: TransactionObserver?
+        
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            
+            // Start observing the database
+            let observation = ValueObservation.tracking(value: Player.fetchAll)
+            observer = observation.start(
+                in: dbQueue,
+                onError: { error in ... },
+                onChange: { [weak self] (players: [Player]) in
+                    guard let self = self else { return }
+                    self.updateView(players)
+                })
+        }
+        
+        override func viewWillDisappear(_ animated: Bool) {
+            super.viewWillDisappear(animated)
+        
+            // Stop observing the database
+            observer = nil
+        }
+        
+        private func updateView(_ players: [Player]) { ... }
+    }
+    ```
+    
+    </details>
+    
+2. Share observations when possible.
+    
+    Each call to the `start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider sharing a single observer.
+    
+    For example, with RxSwift and RxGRDB, you can use the `share(replay:scope:)` operator:
+    
+    ```swift
+    import GRDB
+    import RxGRDB
+    import RxSwift
+    
+    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    let observable = observation.rx
+        .changes(in: dbQueue)
+        .share(replay: 1, scope: .whileConnected)
+    ```
 
-2. Declare upfront the tracked database region, when possible:
+3. Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
+
+4. Declare upfront the tracked database region, when possible:
     
     ```swift
     // Plain observation
@@ -5796,7 +5852,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
     It helps reducing database contention because it can refresh the observed value without blocking concurrent database writes.
 
-3. When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
+5. When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
 
     ```swift
     // Plain observation
@@ -5812,7 +5868,6 @@ When needed, you can help GRDB optimize observations and reduce database content
     ```
     
     The `map` operator helps reducing database contention because it performs its job without blocking concurrent database reads.
-
 
 
 
