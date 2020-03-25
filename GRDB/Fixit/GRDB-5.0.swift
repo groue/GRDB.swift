@@ -162,7 +162,7 @@ extension ValueObservation {
     { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer == Never {
+extension ValueObservation where Reducer == ValueReducers.Auto {
     @available(*, unavailable, message: "Use request.observationForCount() instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>

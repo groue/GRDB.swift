@@ -67,15 +67,15 @@ extension _ValueReducer {
 }
 
 /// A namespace for types related to the _ValueReducer protocol.
-public enum ValueReducers { }
-
-// TODO: define an empty NeverReducer enum instead of reusing Never.
-// This allows us to use Never as a marker for ValueObservation factory methods:
-//
-// For example, ValueObservation.tracking(_:) is, practically,
-// ValueObservation<Never>.tracking(_:).
-extension Never: _ValueReducer {
-    public var isObservedRegionDeterministic: Bool { preconditionFailure() }
-    public func fetch(_ db: Database) throws -> Never { preconditionFailure() }
-    public mutating func value(_ fetched: Never) -> Never? { }
+public enum ValueReducers {
+    // ValueReducers.Auto allows us to define ValueObservation factory methods.
+    //
+    // For example, ValueObservation.tracking(_:) is, practically,
+    // ValueObservation<ValueReducers.Auto>.tracking(_:).
+    /// :nodoc:
+    public enum Auto: _ValueReducer {
+        public var isObservedRegionDeterministic: Bool { preconditionFailure() }
+        public func fetch(_ db: Database) throws -> Never { preconditionFailure() }
+        public mutating func value(_ fetched: Never) -> Never? { }
+    }
 }

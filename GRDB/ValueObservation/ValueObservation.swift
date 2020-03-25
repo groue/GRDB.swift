@@ -133,7 +133,7 @@ extension ValueObservation {
     }
 }
 
-extension ValueObservation where Reducer == Never {
+extension ValueObservation where Reducer == ValueReducers.Auto {
     
     // MARK: - Creating ValueObservation
     
