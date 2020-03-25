@@ -5629,7 +5629,7 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 }
 ```
 
-Observing a varying region can prevent some optimizations, and increase database contention. See [ValueObservation Performance](#valueobservation-performance) for more information.
+Observing a varying region can prevent some optimizations. See [ValueObservation Performance](#valueobservation-performance) for more information.
 
 
 ### ValueObservation Operators
