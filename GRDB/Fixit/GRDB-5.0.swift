@@ -13,19 +13,18 @@ extension AnyFetchRequest {
 
 @available(*, unavailable, message: "Custom reducers are no longer supported")
 public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
-    /// :nodoc:
+    public var isObservedRegionDeterministic: Bool
+    { preconditionFailure() }
+    
     public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
     { preconditionFailure() }
     
-    /// :nodoc:
     public init<Base: _ValueReducer>(_ reducer: Base) where Base.Fetched == Fetched, Base.Value == Value
     { preconditionFailure() }
     
-    /// :nodoc:
     public func fetch(_ db: Database) throws -> Fetched
     { preconditionFailure() }
     
-    /// :nodoc:
     public func value(_ fetched: Fetched) -> Value?
     { preconditionFailure() }
 }
@@ -155,9 +154,15 @@ extension ValueObservation {
     @available(*, unavailable, message: "compactMap is no longer available")
     public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?) -> ValueObservation<ValueReducers.CompactMap<Reducer, T>>
     { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
+    public func start(
+        in reader: DatabaseReader,
+        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    { preconditionFailure() }
 }
 
-extension ValueObservation where Reducer == Never {
+extension ValueObservation where Reducer == ValueReducers.Auto {
     @available(*, unavailable, message: "Use request.observationForCount() instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
@@ -205,13 +210,25 @@ extension ValueObservation where Reducer == Never {
         -> ValueObservation<ValueReducers.OneRow>
         where Request.RowDecoder == Row
     { preconditionFailure() }
-}
-
-extension ValueObservation {
-    @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
-    public func start(
-        in reader: DatabaseReader,
-        onChange: @escaping (Reducer.Value) -> Void) throws -> TransactionObserver
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
+    public static func tracking<Value>(
+        _ regions: DatabaseRegionConvertible...,
+        fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Fetch<Value>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
+    public static func tracking<Value>(
+        _ regions: [DatabaseRegionConvertible],
+        fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Fetch<Value>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "tracking(_:)")
+    public static func tracking<Value>(
+        value: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Fetch<Value>>
     { preconditionFailure() }
 }
 
@@ -224,6 +241,9 @@ extension ValueObservation where Reducer.Value: Equatable {
 extension ValueReducers {
     @available(*, unavailable, message: "ValueReducers.CompactMap is no longer available")
     public struct CompactMap<Base: _ValueReducer, Value>: _ValueReducer {
+        public var isObservedRegionDeterministic: Bool
+        { preconditionFailure() }
+        
         public func fetch(_ db: Database) throws -> Base.Fetched
         { preconditionFailure() }
         

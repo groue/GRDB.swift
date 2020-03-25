@@ -11,20 +11,11 @@ import XCTest
 #endif
 
 class ValueObservationFetchTests: GRDBTestCase {
-    func testRegionsAPI() {
-        // single region
-        _ = ValueObservation.tracking(DatabaseRegion(), fetch: { _ in })
-        // variadic
-        _ = ValueObservation.tracking(DatabaseRegion(), DatabaseRegion(), fetch: { _ in })
-        // array
-        _ = ValueObservation.tracking([DatabaseRegion()], fetch: { _ in })
-    }
-    
     func testFetch() throws {
         try assertValueObservation(
-            ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
+            ValueObservation.tracking {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            }),
+            },
             records: [0, 1, 1, 2],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -38,9 +29,9 @@ class ValueObservationFetchTests: GRDBTestCase {
     
     func testRemoveDuplicated() throws {
         try assertValueObservation(
-            ValueObservation.tracking(DatabaseRegion.fullDatabase, fetch: {
-                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            }).removeDuplicates(),
+            ValueObservation
+                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .removeDuplicates(),
             records: [0, 1, 2],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")

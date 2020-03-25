@@ -45,6 +45,12 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         return tableRegions.isEmpty
     }
     
+    /// Returns whether the region covers the full database: all columns and all
+    /// rows from all tables.
+    public var isFullDatabase: Bool {
+        return tableRegions == nil
+    }
+    
     /// The region that covers the full database: all columns and all rows
     /// from all tables.
     public static let fullDatabase = DatabaseRegion(tableRegions: nil)

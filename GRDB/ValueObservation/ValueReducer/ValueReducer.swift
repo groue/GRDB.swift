@@ -8,7 +8,11 @@ public protocol _ValueReducer {
     /// The type of observed values
     associatedtype Value
     
-    /// Feches database values upon changes in an observed database region.
+    /// Returns whether the database region selected by the fetch(_:) method
+    /// is constant.
+    var isObservedRegionDeterministic: Bool { get }
+    
+    /// Fetches database values upon changes in an observed database region.
     ///
     /// _ValueReducer semantics require that this method does not depend on
     /// the state of the reducer.
@@ -52,13 +56,15 @@ extension _ValueReducer {
 }
 
 /// A namespace for types related to the _ValueReducer protocol.
-public enum ValueReducers { }
-
-// This allows us to use Never as a marker for ValueObservation factory methods:
-//
-// For example, ValueObservation.tracking(value:) is, practically,
-// ValueObservation<Never>.tracking(value:).
-extension Never: _ValueReducer {
-    public func fetch(_ db: Database) throws -> Never { preconditionFailure() }
-    public mutating func value(_ fetched: Never) -> Never? { }
+public enum ValueReducers {
+    // ValueReducers.Auto allows us to define ValueObservation factory methods.
+    //
+    // For example, ValueObservation.tracking(_:) is, practically,
+    // ValueObservation<ValueReducers.Auto>.tracking(_:).
+    /// :nodoc:
+    public enum Auto: _ValueReducer {
+        public var isObservedRegionDeterministic: Bool { preconditionFailure() }
+        public func fetch(_ db: Database) throws -> Never { preconditionFailure() }
+        public mutating func value(_ fetched: Never) -> Never? { }
+    }
 }

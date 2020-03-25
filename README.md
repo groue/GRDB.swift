@@ -5505,7 +5505,7 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     }
     
     // The same observation, with short-hand notation:
-    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    let observation = ValueObservation.tracking(Player.fetchAll)
     ```
     
     The observation can perform multiple requests, from multiple database tables, and even use raw SQL.
@@ -5556,7 +5556,7 @@ import Combine
 import GRDB
 import GRDBCombine
 
-let observation = ValueObservation.tracking(value: Player.fetchAll)
+let observation = ValueObservation.tracking(Player.fetchAll)
 
 let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
@@ -5575,7 +5575,7 @@ import GRDB
 import RxGRDB
 import RxSwift
 
-let observation = ValueObservation.tracking(value: Player.fetchAll)
+let observation = ValueObservation.tracking(Player.fetchAll)
 
 let disposable = observation.rx.changes(in: dbQueue).subscribe(
     onNext: { (players: [Player]) in
@@ -5594,6 +5594,42 @@ let disposable = observation.rx.changes(in: dbQueue).subscribe(
 - ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
 
 Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
+
+
+#### Observing a Varying Database Region
+
+The `ValueObservation.tracking(_:)` creates an observation that tracks a *database region* which is infered from the function argument:
+
+```swift
+// An observation which tracks the 'player' table
+let observation = ValueObservation.tracking { db -> [Player] in
+    try Player.fetchAll(db)
+}
+
+// An observation which tracks both the 'player' and 'team' tables
+let observation = ValueObservation.tracking { db -> ([Team], [Player]) in
+    let teams = try Team.fetchAll(db)
+    let players = try Player.fetchAll(db)
+    return (teams, players)
+}
+```
+
+**When an observation does not always execute the same database requests**, the tracked database region may not be **constant**. The `ValueObservation.tracking(_:)` method does not support such an observation, and will not correctly track the database changes.
+
+In this case, use `ValueObservation.trackingVaryingRegion(_:)` instead:
+
+```swift
+// An observation which tracks the 'preference', 'food' and 'beverage' 
+// tables, as needed.
+let observation = ValueObservation.trackingVaryingRegion { db -> Int in
+    switch try Preference.fetchOne(db)!.selection {
+        case .food: return try Food.fetchCount(db)
+        case .beverage: return try Beverage.fetchCount(db)
+    }
+}
+```
+
+Observing a varying region can prevent some optimizations, and increase database contention. See [ValueObservation Performance](#valueobservation-performance) for more information.
 
 
 ### ValueObservation Operators
@@ -5786,7 +5822,7 @@ When needed, you can help GRDB optimize observations and reduce database content
             super.viewWillAppear(animated)
             
             // Start observing the database
-            let observation = ValueObservation.tracking(value: Player.fetchAll)
+            let observation = ValueObservation.tracking(Player.fetchAll)
             observer = observation.start(
                 in: dbQueue,
                 onError: { error in ... },
@@ -5820,7 +5856,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     import RxGRDB
     import RxSwift
     
-    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    let observation = ValueObservation.tracking(Player.fetchAll)
     let observable = observation.rx
         .changes(in: dbQueue)
         .share(replay: 1, scope: .whileConnected)
@@ -5828,23 +5864,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 3. :bulb: **Tip**: Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
 
-4. :bulb: **Tip**: Declare upfront the tracked database region, when possible:
-    
-    ```swift
-    // Plain observation
-    let observation = ValueObservation.tracking(value: Player.fetchAll)
-    
-    // Optimized observation
-    let observation = ValueObservation.tracking(Player.all(), fetch: Player.fetchAll)
-    ```
-    
-    The `ValueObservation.tracking(_:fetch:)` method is an alternative way to create an observation. Its first argument is one or several requests that define a [database region](#databaseregion). Its second argument is a regular function which fetches the observed value.
-    
-    Such an observation is only triggered by transactions that impact the tracked database region.
-    
-    It helps reducing database contention because it can refresh the observed value without blocking concurrent database writes.
-
-5. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
+4. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
 
     ```swift
     // Plain observation
@@ -5860,6 +5880,28 @@ When needed, you can help GRDB optimize observations and reduce database content
     ```
     
     The `map` operator helps reducing database contention because it performs its job without blocking concurrent database reads.
+
+5. :bulb: **Tip**: Consider rewriting [observations of a varying region](#observing-a-varying-database-region) into observations of a constant region, so that they can profit from DatabasePool concurrency:
+    
+    ```swift
+    // An observation of a varying region
+    let observation = ValueObservation.trackingVaryingRegion { db -> Int in
+        switch try Preference.fetchOne(db)!.selection {
+            case .food: return try Food.fetchCount(db)
+            case .beverage: return try Beverage.fetchCount(db)
+        }
+    }
+    
+    // The same observation, rewritten so that it tracks a constant region
+    let observation = ValueObservation.tracking { db -> Int in
+        let foodCount = try Food.fetchCount(db)
+        let beverageCount = try Beverage.fetchCount(db)
+        switch try Preference.fetchOne(db)!.selection {
+            case .food: return foodCount
+            case .beverage: return beverageCount
+        }
+    }
+    ```
 
 
 ## DatabaseRegionObservation

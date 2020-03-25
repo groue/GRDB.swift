@@ -3,17 +3,10 @@ import Foundation
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
 final class ValueObserver<Reducer: _ValueReducer> {
-    var baseRegion = DatabaseRegion() {
-        didSet { observedRegion = baseRegion.union(selectedRegion) }
-    }
-    private var selectedRegion = DatabaseRegion() {
-        didSet { observedRegion = baseRegion.union(selectedRegion) }
-    }
-    var observedRegion: DatabaseRegion! // internal for testability
+    var observedRegion: DatabaseRegion?
     private(set) var isCancelled = false
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
-    private let observesSelectedRegion: Bool
     private weak var writer: DatabaseWriter?
     private let notificationQueue: DispatchQueue?
     private let reduceQueue: DispatchQueue
@@ -23,7 +16,6 @@ final class ValueObserver<Reducer: _ValueReducer> {
     
     init(
         requiresWriteAccess: Bool,
-        observesSelectedRegion: Bool,
         writer: DatabaseWriter,
         reducer: Reducer,
         notificationQueue: DispatchQueue?,
@@ -34,7 +26,6 @@ final class ValueObserver<Reducer: _ValueReducer> {
         self.writer = writer
         self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
-        self.observesSelectedRegion = observesSelectedRegion
         self.notificationQueue = notificationQueue
         self.reduceQueue = reduceQueue
         self.onError = onError
@@ -43,7 +34,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
 }
 
 extension ValueObserver {
-    /// This method must be called at most once, before the observer is added
+    /// This method must be called once, before the observer is added
     /// to the database writer.
     func fetchInitialValue(_ db: Database) throws -> Reducer.Value {
         guard let value = try fetchNextValue(db) else {
@@ -51,9 +42,9 @@ extension ValueObserver {
         }
         return value
     }
-
+    
     func fetchNextValue(_ db: Database) throws -> Reducer.Value? {
-        try recordingSelectedRegionIfNeeded(db) {
+        try recordingObservedRegionIfNeeded(db) {
             try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
         }
     }
@@ -95,12 +86,12 @@ extension ValueObserver {
 extension ValueObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
         if isCancelled { return false }
-        return observedRegion.isModified(byEventsOfKind: eventKind)
+        return observedRegion!.isModified(byEventsOfKind: eventKind)
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
         if isCancelled { return }
-        if observedRegion.isModified(by: event) {
+        if observedRegion!.isModified(by: event) {
             isChanged = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }
@@ -112,32 +103,34 @@ extension ValueObserver: TransactionObserver {
         guard isChanged else { return }
         isChanged = false
         
+        // Fetch
         let fetchedValue: DatabaseFuture<Reducer.Fetched>
-        
-        if requiresWriteAccess || observesSelectedRegion {
-            // Synchronous fetch
+        if requiresWriteAccess || needsRecordingObservedRegion {
+            // Synchronously
             fetchedValue = DatabaseFuture(Result {
-                try recordingSelectedRegionIfNeeded(db) {
+                try recordingObservedRegionIfNeeded(db) {
                     try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                 }
             })
         } else {
-            // Concurrent fetch
+            // Concurrently
             fetchedValue = writer.concurrentRead(reducer.fetch)
         }
         
+        // Reduce
+        //
         // Wait for future fetched value in reduceQueue. This guarantees:
         // - that notifications have the same ordering as transactions.
         // - that expensive reduce operations are computed without blocking
         //   any database dispatch queue.
         reduceQueue.async {
             if self.isCancelled { return }
-            self.reduce(fetchedValue: fetchedValue) { result in
-                do {
-                    try self.send(result.get())
-                } catch {
-                    self.send(error)
+            do {
+                if let value = try self.reducer.value(fetchedValue.wait()) {
+                    self.send(value)
                 }
+            } catch {
+                self.send(error)
             }
         }
     }
@@ -148,26 +141,29 @@ extension ValueObserver: TransactionObserver {
 }
 
 extension ValueObserver {
-    private func reduce(
-        fetchedValue: DatabaseFuture<Reducer.Fetched>,
-        completion: @escaping (Result<Reducer.Value, Error>) -> Void)
-    {
-        do {
-            if let value = try reducer.value(fetchedValue.wait()) {
-                completion(.success(value))
-            }
-        } catch {
-            completion(.failure(error))
-        }
+    private var needsRecordingObservedRegion: Bool {
+        observedRegion == nil || !reducer.isObservedRegionDeterministic
     }
     
-    private func recordingSelectedRegionIfNeeded<T>(_ db: Database, _ block: () throws -> T) rethrows -> T {
-        if observesSelectedRegion {
-            let result: T
-            (result, selectedRegion) = try db.recordingSelectedRegion(block)
+    private func recordingObservedRegionIfNeeded<T>(
+        _ db: Database,
+        fetch: () throws -> T)
+        throws -> T
+    {
+        if needsRecordingObservedRegion {
+            var region = DatabaseRegion()
+            let result = try db.recordingSelection(&region, fetch)
+            
+            // Don't record views, because they are never exposed to the
+            // TransactionObserver protocol.
+            //
+            // Don't record schema introspection queries, which may be
+            // run, or not, depending on the state of the schema cache.
+            observedRegion = try region.ignoringViews(db).ignoringInternalSQLiteTables()
+            
             return result
         } else {
-            return try block()
+            return try fetch()
         }
     }
 }

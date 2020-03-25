@@ -98,7 +98,7 @@ extension FetchRequest {
     /// - parameter db: A database connection.
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         let request = try makePreparedRequest(db, forSingleResult: false)
-        return request.statement.databaseRegion
+        return request.statement.selectedRegion
     }
 }
 

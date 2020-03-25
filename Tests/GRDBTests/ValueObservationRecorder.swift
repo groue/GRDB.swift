@@ -1,9 +1,9 @@
 // Inspired by https://github.com/groue/CombineExpectations
 import XCTest
 #if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
+@testable import GRDBCustomSQLite
 #else
-import GRDB
+@testable import GRDB
 #endif
 
 // MARK: - ValueObservationRecorder
@@ -379,7 +379,7 @@ extension GRDBTestCase {
             observation.scheduling = .async(onQueue: .main)
             try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
             try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
-            if valueObservation.requiresWriteAccess {
+            if valueObservation.requiresWriteAccess || !valueObservation.makeReducer().isObservedRegionDeterministic {
                 try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
             } else {
                 // DatabasePool performs an immediate async fetch and may miss initial changes

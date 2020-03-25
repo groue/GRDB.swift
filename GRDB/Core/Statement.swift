@@ -31,6 +31,12 @@ public class Statement {
             .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
+    // Selected region is computed during statement compilation, and maybe
+    // optimized for select statements compiled by QueryInterfaceRequest, in
+    // order to perform focused database observation. See
+    // SQLQueryGenerator.optimizedSelectedRegion(_:_:)
+    var selectedRegion = DatabaseRegion()
+    
     var isReadonly: Bool {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
@@ -88,6 +94,7 @@ public class Statement {
         
         self.database = database
         self.sqliteStatement = statement
+        self.selectedRegion = authorizer.selectedRegion
     }
     
     deinit {
@@ -322,13 +329,6 @@ extension Statement {
 ///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
 ///     }
 public final class SelectStatement: Statement {
-    // Database region is computed during statement compilation, and maybe
-    // optimized when statement is compiled for a QueryInterfaceRequest, in
-    // order to perform focused database observation. See
-    // SQLQueryGenerator.optimizedDatabaseRegion(_:_:)
-    /// The database region that the statement looks into.
-    public internal(set) var databaseRegion = DatabaseRegion()
-    
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
     ///
@@ -361,9 +361,10 @@ public final class SelectStatement: Statement {
         GRDBPrecondition(
             authorizer.transactionEffect == nil,
             "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        
-        self.databaseRegion = authorizer.databaseRegion
     }
+    
+    /// The database region that the statement looks into.
+    public var databaseRegion: DatabaseRegion { selectedRegion }
     
     /// The number of columns in the resulting rows.
     public var columnCount: Int {

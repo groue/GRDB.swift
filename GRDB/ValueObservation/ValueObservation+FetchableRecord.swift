@@ -11,9 +11,12 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///     let request = Player.all()
     ///     let observation = request.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -26,9 +29,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllRecords<RowDecoder>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.AllRecords { try Row.fetchAll($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.AllRecords { try Row.fetchAll($0, self) } })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -39,9 +40,12 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///     let request = Player.filter(key: 1)
     ///     let observation = request.observationForFirst()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: Player? in
-    ///         print("Player has changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { player: Player? in
+    ///             print("Player has changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -54,9 +58,7 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneRecord<RowDecoder>> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.OneRecord { try Row.fetchOne($0, self) } })
+        ValueObservation(makeReducer: { ValueReducers.OneRecord { try Row.fetchOne($0, self) } })
     }
 }
 
@@ -72,9 +74,12 @@ extension TableRecord where Self: FetchableRecord {
     ///
     ///     let observation = Player.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -98,9 +103,12 @@ extension TableRecord where Self: FetchableRecord {
     ///
     ///     let observation = Player.observationForFirst()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { player: Player? in
-    ///         print("Player has changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { player: Player? in
+    ///             print("Player has changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -130,6 +138,7 @@ extension ValueReducers {
     {
         private let _fetch: (Database) throws -> [Row]
         private var previousRows: [Row]?
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> [Row]) {
             self._fetch = fetch
@@ -160,6 +169,7 @@ extension ValueReducers {
     {
         private let _fetch: (Database) throws -> Row?
         private var previousRow: Row??
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> Row?) {
             self._fetch = fetch

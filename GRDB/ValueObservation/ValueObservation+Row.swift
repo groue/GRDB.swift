@@ -10,9 +10,12 @@ extension FetchRequest where RowDecoder == Row {
     ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player")
     ///     let observation = request.observationForAll()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { rows: [Row] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { rows: [Row] in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -25,9 +28,7 @@ extension FetchRequest where RowDecoder == Row {
     ///
     /// - returns: a ValueObservation.
     public func observationForAll() -> ValueObservation<ValueReducers.AllRows> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.AllRows(fetch: self.fetchAll) })
+        ValueObservation(makeReducer: { ValueReducers.AllRows(fetch: self.fetchAll) })
     }
     
     /// Creates a ValueObservation which observes *request*, and notifies a
@@ -38,9 +39,12 @@ extension FetchRequest where RowDecoder == Row {
     ///     let request = SQLRequest<Row>(sql: "SELECT * FROM player WHERE id = ?", arguments: [1])
     ///     let observation = request.observationForFirst()
     ///
-    ///     let observer = try observation.start(in: dbQueue) { row: Row? in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { row: Row? in
+    ///             print("Players have changed")
+    ///         })
     ///
     /// The returned observation has the default configuration:
     ///
@@ -53,9 +57,7 @@ extension FetchRequest where RowDecoder == Row {
     ///
     /// - returns: a ValueObservation.
     public func observationForFirst() -> ValueObservation<ValueReducers.OneRow> {
-        ValueObservation(
-            baseRegion: databaseRegion,
-            makeReducer: { ValueReducers.OneRow(fetch: self.fetchOne) })
+        ValueObservation(makeReducer: { ValueReducers.OneRow(fetch: self.fetchOne) })
     }
 }
 
@@ -69,6 +71,7 @@ extension ValueReducers {
     public struct AllRows: _ValueReducer {
         private let _fetch: (Database) throws -> [Row]
         private var previousRows: [Row]?
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> [Row]) {
             self._fetch = fetch
@@ -97,6 +100,7 @@ extension ValueReducers {
     public struct OneRow: _ValueReducer {
         private let _fetch: (Database) throws -> Row?
         private var previousRow: Row??
+        public var isObservedRegionDeterministic: Bool { true }
         
         init(fetch: @escaping (Database) throws -> Row?) {
             self._fetch = fetch

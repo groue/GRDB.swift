@@ -53,8 +53,6 @@
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
 - [ ] Configuration.crashOnError = true
 - [ ] Glossary (Database Access Methods, etc.)
-- [ ] ValueObservation.flatMap. Not sure it is still useful now that we have ValueObservation.tracking(value:)
-- [ ] rename fetchOne to fetchFirst. Not sure because it is a big breaking change. Not sure because ValueObservation.tracking(value:) has reduced the need for observationForFirst.
 - [ ] Not sure: type safety for SQL expressions
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?

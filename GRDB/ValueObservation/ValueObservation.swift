@@ -12,9 +12,12 @@ public enum ValueObservationScheduling {
     ///
     ///     // On main queue
     ///     let observation = Player.observationForAll()
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("fresh players: \(players)")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
     ///     // <- here "fresh players" is already printed.
     ///
     /// If the observation does not start on the main queue, the initial value
@@ -23,9 +26,12 @@ public enum ValueObservationScheduling {
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
     ///     let observation = Player.observationForAll()
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("fresh players: \(players)")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
     ///
     /// When the database changes, fresh values are asynchronously notified on
     /// the main queue:
@@ -47,9 +53,12 @@ public enum ValueObservationScheduling {
     ///     // On any queue
     ///     var observation = Player.observationForAll()
     ///     observation.scheduling = .unsafe
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("fresh players: \(players)")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///           print("fresh players: \(players)")
+    ///        })
     ///     // <- here "fresh players" is already printed.
     ///
     /// When the database changes, other values are notified on
@@ -65,22 +74,13 @@ public enum ValueObservationScheduling {
 /// For example:
 ///
 ///     let observation = Player.observationForAll()
-///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-///         print("Players have changed.")
-///     }
+///     let observer = try observation.start(
+///         in: dbQueue,
+///         onError: { error in ... },
+///         onChange: { players: [Player] in
+///             print("Players have changed.")
+///         })
 public struct ValueObservation<Reducer: _ValueReducer> {
-    // TODO: all calls to this closure are followed by ignoringViews().
-    // We should embed this ignoringViews() call.
-    /// A closure that is evaluated when the observation starts, and returns
-    /// a "base" observed database region.
-    ///
-    /// See also `observesSelectedRegion`
-    var baseRegion: (Database) throws -> DatabaseRegion
-    
-    /// If true, the region selected by the reducer is observed as well
-    /// as `baseRegion`.
-    var observesSelectedRegion: Bool = false
-
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change in *observedRegion*.
     var makeReducer: () -> Reducer
@@ -133,12 +133,18 @@ extension ValueObservation {
     }
 }
 
-extension ValueObservation where Reducer == Never {
+extension ValueObservation where Reducer == ValueReducers.Auto {
     
-    // MARK: - Creating ValueObservation from Fetch Closures
+    // MARK: - Creating ValueObservation
     
     /// Creates a ValueObservation which notifies the values returned by the
-    /// *fetch* closure whenever a database transaction changes them.
+    /// *fetch* function whenever a database transaction changes them.
+    ///
+    /// The *fetch* function must always performs the same database requests.
+    /// The stability of the observed database region allows optimizations.
+    ///
+    /// When you want to observe a varying database region, use the
+    /// `ValueObservation.trackingVaryingRegion(_:)` method instead.
     ///
     /// For example:
     ///
@@ -146,68 +152,35 @@ extension ValueObservation where Reducer == Never {
     ///         try Player.fetchAll(db)
     ///     }
     ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange:) { players: [Player] in
+    ///             print("Players have changed")
+    ///         })
     ///
-    /// - parameter value: A closure that fetches a value.
+    /// - parameter fetch: A function that fetches the observed value from
+    ///   the database.
     public static func tracking<Value>(
-        value: @escaping (Database) throws -> Value)
+        _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        return ValueObservation<ValueReducers.Fetch<Value>>(
-            baseRegion: { _ in DatabaseRegion() },
-            observesSelectedRegion: true,
-            makeReducer: { ValueReducers.Fetch(value) })
+        return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
+            ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: fetch)
+        })
     }
     
-    /// Creates a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *fetch* closure whenever one of the observed
-    /// regions is modified by a database transaction.
+    /// Creates a ValueObservation which notifies the values returned by the
+    /// *fetch* function whenever a database transaction changes them.
     ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking(
-    ///         Player.all(),
-    ///         fetch: { db in return try Player.fetchAll(db) })
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A closure that fetches a value.
-    public static func tracking<Value>(
-        _ regions: DatabaseRegionConvertible...,
-        fetch: @escaping (Database) throws -> Value)
+    /// - parameter fetch: A function that fetches the observed value from
+    ///   the database.
+    public static func trackingVaryingRegion<Value>(
+        _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        return ValueObservation.tracking(regions, fetch: fetch)
-    }
-    
-    /// Creates a ValueObservation which observes *regions*, and notifies the
-    /// values returned by the *fetch* closure whenever one of the observed
-    /// regions is modified by a database transaction.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking(
-    ///         [Player.all()],
-    ///         fetch: { db in return try Player.fetchAll(db) })
-    ///
-    ///     let observer = try observation.start(in: dbQueue) { players: [Player] in
-    ///         print("Players have changed")
-    ///     }
-    ///
-    /// - parameter regions: A list of observed regions.
-    /// - parameter fetch: A closure that fetches a value.
-    public static func tracking<Value>(
-        _ regions: [DatabaseRegionConvertible],
-        fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
-    {
-        return ValueObservation<ValueReducers.Fetch<Value>>(
-            baseRegion: DatabaseRegion.union(regions),
-            makeReducer: { ValueReducers.Fetch(fetch) })
+        return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
+            ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: fetch)
+        })
     }
 }
