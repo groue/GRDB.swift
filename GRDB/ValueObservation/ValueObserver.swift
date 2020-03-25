@@ -34,7 +34,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
 }
 
 extension ValueObserver {
-    /// This method must be called at most once, before the observer is added
+    /// This method must be called once, before the observer is added
     /// to the database writer.
     func fetchInitialValue(_ db: Database) throws -> Reducer.Value {
         guard let value = try fetchNextValue(db) else {
@@ -103,32 +103,34 @@ extension ValueObserver: TransactionObserver {
         guard isChanged else { return }
         isChanged = false
         
+        // Fetch
         let fetchedValue: DatabaseFuture<Reducer.Fetched>
-        
         if requiresWriteAccess || needsRecordingObservedRegion {
-            // Synchronous fetch
+            // Synchronously
             fetchedValue = DatabaseFuture(Result {
                 try recordingObservedRegionIfNeeded(db) {
                     try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                 }
             })
         } else {
-            // Concurrent fetch
+            // Concurrently
             fetchedValue = writer.concurrentRead(reducer.fetch)
         }
         
+        // Reduce
+        //
         // Wait for future fetched value in reduceQueue. This guarantees:
         // - that notifications have the same ordering as transactions.
         // - that expensive reduce operations are computed without blocking
         //   any database dispatch queue.
         reduceQueue.async {
             if self.isCancelled { return }
-            self.reduce(fetchedValue: fetchedValue) { result in
-                do {
-                    try self.send(result.get())
-                } catch {
-                    self.send(error)
+            do {
+                if let value = try self.reducer.value(fetchedValue.wait()) {
+                    self.send(value)
                 }
+            } catch {
+                self.send(error)
             }
         }
     }
@@ -162,19 +164,6 @@ extension ValueObserver {
             return result
         } else {
             return try fetch()
-        }
-    }
-    
-    private func reduce(
-        fetchedValue: DatabaseFuture<Reducer.Fetched>,
-        completion: @escaping (Result<Reducer.Value, Error>) -> Void)
-    {
-        do {
-            if let value = try reducer.value(fetchedValue.wait()) {
-                completion(.success(value))
-            }
-        } catch {
-            completion(.failure(error))
         }
     }
 }
