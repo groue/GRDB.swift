@@ -8,13 +8,10 @@ public protocol _ValueReducer {
     /// The type of observed values
     associatedtype Value
     
-    /// If true, reducer wants to record the selected region.
-    ///
-    /// _ValueReducer semantics require that this property does not depend on
-    /// the state of the reducer.
+    /// Returns whether the database region selected by the fetch(_:) method
+    /// is constant.
     var isObservedRegionDeterministic: Bool { get }
     
-    // TODO: rename fetch(_ db: Database, recording selectedRegion: inout DatabaseRegion) throws -> Fetched
     /// Fetches database values upon changes in an observed database region.
     ///
     /// _ValueReducer semantics require that this method does not depend on
