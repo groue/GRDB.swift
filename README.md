@@ -5857,23 +5857,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 3. :bulb: **Tip**: Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
 
-4. :bulb: **Tip**: Declare upfront the tracked database region, when possible:
-    
-    ```swift
-    // Plain observation
-    let observation = ValueObservation.tracking(Player.fetchAll)
-    
-    // Optimized observation
-    let observation = ValueObservation.tracking(Player.all(), fetch: Player.fetchAll)
-    ```
-    
-    The `ValueObservation.tracking(_:fetch:)` method is an alternative way to create an observation. Its first argument is one or several requests that define a [database region](#databaseregion). Its second argument is a regular function which fetches the observed value.
-    
-    Such an observation is only triggered by transactions that impact the tracked database region.
-    
-    It helps reducing database contention because it can refresh the observed value without blocking concurrent database writes.
-
-5. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
+4. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
 
     ```swift
     // Plain observation
