@@ -5598,11 +5598,13 @@ Take care that there are use cases that ValueObservation is unfit for. For examp
 
 #### Observing a Varying Database Region
 
-The `ValueObservation.tracking(_:)` creates an observation that tracks a database region which is infered from the function argument:
+The `ValueObservation.tracking(_:)` creates an observation that tracks a *database region* which is infered from the function argument:
 
 ```swift
 // An observation which tracks the 'player' table
-let observation = ValueObservation.tracking(Player.fetchAll)
+let observation = ValueObservation.tracking { db -> [Player] in
+    try Player.fetchAll(db)
+}
 
 // An observation which tracks both the 'player' and 'team' tables
 let observation = ValueObservation.tracking { db -> ([Team], [Player]) in
@@ -5612,10 +5614,13 @@ let observation = ValueObservation.tracking { db -> ([Team], [Player]) in
 }
 ```
 
-**When an observation does not always execute the same database requests**, the tracked database region may not be **constant**. In this case, use `ValueObservation.trackingVaryingRegion(_:)` instead:
+**When an observation does not always execute the same database requests**, the tracked database region may not be **constant**. The `ValueObservation.tracking(_:)` method does not support such an observation, and will not correctly track the database changes.
+
+In this case, use `ValueObservation.trackingVaryingRegion(_:)` instead:
 
 ```swift
-// An observation which tracks 'preference' and 'food', or 'preference' and 'beverage'
+// An observation which tracks the 'preference', 'food' and 'beverage' 
+// tables, as needed.
 let observation = ValueObservation.trackingVaryingRegion { db -> Int in
     switch try Preference.fetchOne(db)!.selection {
         case .food: return try Food.fetchCount(db)
@@ -5623,6 +5628,8 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
     }
 }
 ```
+
+Observing a varying region can prevent some optimizations, and increase database contention. See [ValueObservation Performance](#valueobservation-performance) for more information.
 
 
 ### ValueObservation Operators
@@ -5873,6 +5880,28 @@ When needed, you can help GRDB optimize observations and reduce database content
     ```
     
     The `map` operator helps reducing database contention because it performs its job without blocking concurrent database reads.
+
+5. :bulb: **Tip**: Consider rewriting [observations of a varying region](#observing-a-varying-database-region) into observations of a constant region, so that they can profit from DatabasePool concurrency:
+    
+    ```swift
+    // An observation of a varying region
+    let observation = ValueObservation.trackingVaryingRegion { db -> Int in
+        switch try Preference.fetchOne(db)!.selection {
+            case .food: return try Food.fetchCount(db)
+            case .beverage: return try Beverage.fetchCount(db)
+        }
+    }
+    
+    // The same observation, rewritten so that it tracks a constant region
+    let observation = ValueObservation.tracking { db -> Int in
+        let foodCount = try Food.fetchCount(db)
+        let beverageCount = try Beverage.fetchCount(db)
+        switch try Preference.fetchOne(db)!.selection {
+            case .food: return foodCount
+            case .beverage: return beverageCount
+        }
+    }
+    ```
 
 
 ## DatabaseRegionObservation
