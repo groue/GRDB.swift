@@ -54,7 +54,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
-        let observation = request.observationForFirst()
+        let observation = ValueObservation.tracking(request.fetchOne)
         
         let recorder = observation.record(in: dbQueue)
         try dbQueue.inDatabase { db in
@@ -78,7 +78,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
-        let observation = request.observationForAll()
+        let observation = ValueObservation.tracking(request.fetchAll)
         
         let recorder = observation.record(in: dbQueue)
         try dbQueue.inDatabase { db in
@@ -109,7 +109,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .asRequest(of: ParentInfo.self)
         
         try assertValueObservation(
-            request.observationForFirst(),
+            ValueObservation.tracking(request.fetchOne),
             records: [
                 ParentInfo(
                     parent: Parent(id: 1, name: "foo"),
@@ -134,7 +134,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .asRequest(of: ParentInfo.self)
         
         try assertValueObservation(
-            request.observationForAll(),
+            ValueObservation.tracking(request.fetchAll),
             records: [
                 [
                     ParentInfo(

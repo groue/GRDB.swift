@@ -22,8 +22,8 @@ class ValueObservationCombineTests: GRDBTestCase {
         
         struct T1: TableRecord { }
         struct T2: TableRecord { }
-        let observation1 = T1.observationForCount()
-        let observation2 = T2.observationForCount()
+        let observation1 = ValueObservation.tracking(T1.fetchCount).removeDuplicates()
+        let observation2 = ValueObservation.tracking(T2.fetchCount).removeDuplicates()
         let observation = ValueObservation.combine(observation1, observation2)
         let recorder = observation.record(in: dbQueue)
         
@@ -74,9 +74,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T1: TableRecord { }
         struct T2: TableRecord { }
         struct T3: TableRecord { }
-        let observation1 = T1.observationForCount()
-        let observation2 = T2.observationForCount()
-        let observation3 = T3.observationForCount()
+        let observation1 = ValueObservation.tracking(T1.fetchCount).removeDuplicates()
+        let observation2 = ValueObservation.tracking(T2.fetchCount).removeDuplicates()
+        let observation3 = ValueObservation.tracking(T3.fetchCount).removeDuplicates()
         let observation = ValueObservation.combine(observation1, observation2, observation3)
         let recorder = observation.record(in: dbQueue)
         
@@ -140,10 +140,10 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T2: TableRecord { }
         struct T3: TableRecord { }
         struct T4: TableRecord { }
-        let observation1 = T1.observationForCount()
-        let observation2 = T2.observationForCount()
-        let observation3 = T3.observationForCount()
-        let observation4 = T4.observationForCount()
+        let observation1 = ValueObservation.tracking(T1.fetchCount).removeDuplicates()
+        let observation2 = ValueObservation.tracking(T2.fetchCount).removeDuplicates()
+        let observation3 = ValueObservation.tracking(T3.fetchCount).removeDuplicates()
+        let observation4 = ValueObservation.tracking(T4.fetchCount).removeDuplicates()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
         let recorder = observation.record(in: dbQueue)
         
@@ -220,11 +220,11 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T3: TableRecord { }
         struct T4: TableRecord { }
         struct T5: TableRecord { }
-        let observation1 = T1.observationForCount()
-        let observation2 = T2.observationForCount()
-        let observation3 = T3.observationForCount()
-        let observation4 = T4.observationForCount()
-        let observation5 = T5.observationForCount()
+        let observation1 = ValueObservation.tracking(T1.fetchCount).removeDuplicates()
+        let observation2 = ValueObservation.tracking(T2.fetchCount).removeDuplicates()
+        let observation3 = ValueObservation.tracking(T3.fetchCount).removeDuplicates()
+        let observation4 = ValueObservation.tracking(T4.fetchCount).removeDuplicates()
+        let observation5 = ValueObservation.tracking(T5.fetchCount).removeDuplicates()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
         let recorder = observation.record(in: dbQueue)
         
@@ -314,12 +314,12 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T4: TableRecord { }
         struct T5: TableRecord { }
         struct T6: TableRecord { }
-        let observation1 = T1.observationForCount()
-        let observation2 = T2.observationForCount()
-        let observation3 = T3.observationForCount()
-        let observation4 = T4.observationForCount()
-        let observation5 = T5.observationForCount()
-        let observation6 = T6.observationForCount()
+        let observation1 = ValueObservation.tracking(T1.fetchCount).removeDuplicates()
+        let observation2 = ValueObservation.tracking(T2.fetchCount).removeDuplicates()
+        let observation3 = ValueObservation.tracking(T3.fetchCount).removeDuplicates()
+        let observation4 = ValueObservation.tracking(T4.fetchCount).removeDuplicates()
+        let observation5 = ValueObservation.tracking(T5.fetchCount).removeDuplicates()
+        let observation6 = ValueObservation.tracking(T6.fetchCount).removeDuplicates()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6)
         let recorder = observation.record(in: dbQueue)
         
@@ -422,13 +422,13 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T5: TableRecord { }
         struct T6: TableRecord { }
         struct T7: TableRecord { }
-        let observation1 = T1.observationForCount()
-        let observation2 = T2.observationForCount()
-        let observation3 = T3.observationForCount()
-        let observation4 = T4.observationForCount()
-        let observation5 = T5.observationForCount()
-        let observation6 = T6.observationForCount()
-        let observation7 = T7.observationForCount()
+        let observation1 = ValueObservation.tracking(T1.fetchCount).removeDuplicates()
+        let observation2 = ValueObservation.tracking(T2.fetchCount).removeDuplicates()
+        let observation3 = ValueObservation.tracking(T3.fetchCount).removeDuplicates()
+        let observation4 = ValueObservation.tracking(T4.fetchCount).removeDuplicates()
+        let observation5 = ValueObservation.tracking(T5.fetchCount).removeDuplicates()
+        let observation6 = ValueObservation.tracking(T6.fetchCount).removeDuplicates()
+        let observation7 = ValueObservation.tracking(T7.fetchCount).removeDuplicates()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
         let recorder = observation.record(in: dbQueue)
         
@@ -544,14 +544,14 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct T6: TableRecord { }
         struct T7: TableRecord { }
         struct T8: TableRecord { }
-        let observation1 = T1.observationForCount()
-        let observation2 = T2.observationForCount()
-        let observation3 = T3.observationForCount()
-        let observation4 = T4.observationForCount()
-        let observation5 = T5.observationForCount()
-        let observation6 = T6.observationForCount()
-        let observation7 = T7.observationForCount()
-        let observation8 = T8.observationForCount()
+        let observation1 = ValueObservation.tracking(T1.fetchCount).removeDuplicates()
+        let observation2 = ValueObservation.tracking(T2.fetchCount).removeDuplicates()
+        let observation3 = ValueObservation.tracking(T3.fetchCount).removeDuplicates()
+        let observation4 = ValueObservation.tracking(T4.fetchCount).removeDuplicates()
+        let observation5 = ValueObservation.tracking(T5.fetchCount).removeDuplicates()
+        let observation6 = ValueObservation.tracking(T6.fetchCount).removeDuplicates()
+        let observation7 = ValueObservation.tracking(T7.fetchCount).removeDuplicates()
+        let observation8 = ValueObservation.tracking(T8.fetchCount).removeDuplicates()
         let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
         let recorder = observation.record(in: dbQueue)
         

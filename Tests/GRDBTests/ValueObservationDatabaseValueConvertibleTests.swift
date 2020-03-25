@@ -12,7 +12,7 @@ import SQLite3
 @testable import GRDB
 #endif
 
-private struct Name: DatabaseValueConvertible, Equatable {
+private struct Name: DatabaseValueConvertible, Equatable, CustomDebugStringConvertible {
     var rawValue: String
     
     var databaseValue: DatabaseValue { rawValue.databaseValue }
@@ -23,12 +23,39 @@ private struct Name: DatabaseValueConvertible, Equatable {
         }
         return Name(rawValue: rawValue)
     }
+    
+    var debugDescription: String { rawValue }
 }
 
 class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     func testAll() throws {
+        let request = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id")
+        
         try assertValueObservation(
-            SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id").observationForAll(),
+            ValueObservation.tracking(request.fetchAll),
+            records: [
+                [],
+                [Name(rawValue: "foo")],
+                [Name(rawValue: "foo")],
+                [Name(rawValue: "foo"), Name(rawValue: "bar")],
+                [Name(rawValue: "bar")]],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")
+        })
+        
+        try assertValueObservation(
+            ValueObservation.tracking(request.fetchAll).removeDuplicates(),
             records: [
                 [],
                 [Name(rawValue: "foo")],
@@ -51,8 +78,43 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     }
     
     func testOne() throws {
+        let request = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC")
+        
         try assertValueObservation(
-            SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC").observationForFirst(),
+            ValueObservation.tracking(request.fetchOne),
+            records: [
+                nil,
+                Name(rawValue: "foo"),
+                Name(rawValue: "foo"),
+                Name(rawValue: "bar"),
+                nil,
+                Name(rawValue: "baz"),
+                nil,
+                nil,
+                nil,
+                Name(rawValue: "qux")],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'baz')")
+                try db.execute(sql: "UPDATE t SET name = NULL")
+                try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, NULL)")
+                try db.execute(sql: "UPDATE t SET name = 'qux'")
+        })
+        
+        try assertValueObservation(
+            ValueObservation.tracking(request.fetchOne).removeDuplicates(),
             records: [
                 nil,
                 Name(rawValue: "foo"),
@@ -83,8 +145,33 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
     }
     
     func testAllOptional() throws {
+        let request = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id")
+        
         try assertValueObservation(
-            SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id").observationForAll(),
+            ValueObservation.tracking(request.fetchAll),
+            records: [
+                [],
+                [Name(rawValue: "foo")],
+                [Name(rawValue: "foo")],
+                [Name(rawValue: "foo"), nil],
+                [nil]],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, NULL)")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")
+        })
+        
+        try assertValueObservation(
+            ValueObservation.tracking(request.fetchAll).removeDuplicates(),
             records: [
                 [],
                 [Name(rawValue: "foo")],
@@ -104,11 +191,46 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 }
                 try db.execute(sql: "DELETE FROM t WHERE id = 1")
         })
-    }
+}
     
     func testOneOptional() throws {
+        let request = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id DESC")
+        
         try assertValueObservation(
-            SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id DESC").observationForFirst(),
+            ValueObservation.tracking(request.fetchOne),
+            records: [
+                nil,
+                Name(rawValue: "foo"),
+                Name(rawValue: "foo"),
+                Name(rawValue: "bar"),
+                nil,
+                Name(rawValue: "baz"),
+                nil,
+                nil,
+                nil,
+                Name(rawValue: "qux")],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'baz')")
+                try db.execute(sql: "UPDATE t SET name = NULL")
+                try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, NULL)")
+                try db.execute(sql: "UPDATE t SET name = 'qux'")
+        })
+        
+        try assertValueObservation(
+            ValueObservation.tracking(request.fetchOne).removeDuplicates(),
             records: [
                 nil,
                 Name(rawValue: "foo"),
@@ -162,7 +284,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         // Test that view v is not included in the observed region.
         // This optimization helps observation of views that feed from a
         // single table.
-        let observation = request.observationForAll()
+        let observation = ValueObservation.tracking(request.fetchAll)
         let observer = observation.start(
             in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -170,13 +292,12 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 results.append(names)
                 notificationExpectation.fulfill()
         })
-        let token = observer as! ValueObserverToken<ValueReducers.AllValues<Name>> // Non-public implementation detail
+        let token = observer as! ValueObserverToken<ValueReducers.Fetch<[Name]>> // Non-public implementation detail
         XCTAssertEqual(token.observer.observedRegion!.description, "t(id,name)") // view is not tracked
         try withExtendedLifetime(observer) {
             // Test view observation
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')") // +1
-                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")     // =
                 try db.inTransaction {                                       // +1
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
                     try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")

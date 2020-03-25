@@ -24,10 +24,13 @@ extension Player: TableRecord, FetchableRecord {
 
 class ValueObservationRecordTests: GRDBTestCase {
     func testAll() throws {
+        let request = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id")
+        
         try assertValueObservation(
-            SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id").observationForAll(),
+            ValueObservation.tracking(request.fetchAll),
             records: [
                 [],
+                [Player(id: 1, name: "foo")],
                 [Player(id: 1, name: "foo")],
                 [Player(id: 1, name: "foo"), Player(id: 2, name: "bar")],
                 [Player(id: 2, name: "bar")]],
@@ -45,11 +48,12 @@ class ValueObservationRecordTests: GRDBTestCase {
                 }
                 try db.execute(sql: "DELETE FROM t WHERE id = 1")
         })
-    }
-    
-    func testTableRecordStaticAll() throws {
+        
         try assertValueObservation(
-            Player.observationForAll(),
+            ValueObservation
+                .tracking { try Row.fetchAll($0, request) }
+                .removeDuplicates()
+                .map { $0.map(Player.init(row:)) },
             records: [
                 [],
                 [Player(id: 1, name: "foo")],
@@ -72,8 +76,36 @@ class ValueObservationRecordTests: GRDBTestCase {
     }
     
     func testOne() throws {
+        let request = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id DESC")
+        
         try assertValueObservation(
-            SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id DESC").observationForFirst(),
+            ValueObservation.tracking(request.fetchOne),
+            records: [
+                nil,
+                Player(id: 1, name: "foo"),
+                Player(id: 1, name: "foo"),
+                Player(id: 2, name: "bar"),
+                nil],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t")
+        })
+        
+        try assertValueObservation(
+            ValueObservation
+                .tracking { try Row.fetchOne($0, request) }
+                .removeDuplicates()
+                .map { $0.map(Player.init(row:)) },
             records: [
                 nil,
                 Player(id: 1, name: "foo"),

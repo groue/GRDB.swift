@@ -87,6 +87,50 @@ extension FetchRequest {
     @available(*, unavailable, message: "Use makePreparedRequest(_:forSingleResult:) instead.")
     func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
     { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchCount) instead")
+    public func observationForCount() -> ValueObservation<ValueReducers.Unavailable<Int>>
+    { preconditionFailure() }
+}
+
+extension FetchRequest where RowDecoder: DatabaseValueConvertible {
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchAll) instead")
+    public func observationForAll() -> ValueObservation<ValueReducers.Unavailable<[RowDecoder]>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchOne) instead")
+    public func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<RowDecoder?>>
+    { preconditionFailure() }
+}
+
+extension FetchRequest where RowDecoder: FetchableRecord {
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchAll) instead")
+    public func observationForAll() -> ValueObservation<ValueReducers.Unavailable<[RowDecoder]>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchOne) instead")
+    public func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<RowDecoder?>>
+    { preconditionFailure() }
+}
+
+extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible {
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchAll) instead")
+    public func observationForAll() -> ValueObservation<ValueReducers.Unavailable<[RowDecoder.Wrapped?]>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchOne) instead")
+    public func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<RowDecoder.Wrapped?>>
+    { preconditionFailure() }
+}
+
+extension FetchRequest where RowDecoder == Row {
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchAll) instead")
+    public func observationForAll() -> ValueObservation<ValueReducers.Unavailable<[Row]>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchOne) instead")
+    public func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<Row?>>
+    { preconditionFailure() }
 }
 
 extension SQLExpression {
@@ -142,6 +186,22 @@ extension Statement {
     { preconditionFailure() }
 }
 
+extension TableRecord {
+    @available(*, unavailable, message: "Use ValueObservation.tracking(MyRecord.fetchCount) instead")
+    public static func observationForCount() -> ValueObservation<ValueReducers.Unavailable<Int>>
+    { preconditionFailure() }
+}
+
+extension TableRecord where Self: FetchableRecord {
+    @available(*, unavailable, message: "Use ValueObservation.tracking(MyRecord.fetchAll) instead")
+    public static func observationForAll() -> ValueObservation<ValueReducers.Unavailable<[Self]>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use ValueObservation.tracking(MyRecord.fetchOne) instead")
+    public static func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<Self?>>
+        { preconditionFailure() }
+}
+
 extension ValueObservation {
     @available(*, unavailable, message: "Custom reducers are no longer supported")
     public static func tracking(_ regions: DatabaseRegionConvertible..., reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
@@ -152,7 +212,7 @@ extension ValueObservation {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "compactMap is no longer available")
-    public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?) -> ValueObservation<ValueReducers.CompactMap<Reducer, T>>
+    public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?) -> ValueObservation<ValueReducers.Unavailable<T>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use start(in:onError:onChange:) instead.")
@@ -163,51 +223,51 @@ extension ValueObservation {
 }
 
 extension ValueObservation where Reducer == ValueReducers.Auto {
-    @available(*, unavailable, message: "Use request.observationForCount() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
+        -> ValueObservation<ValueReducers.Unavailable<Int>>
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.AllValues<Request.RowDecoder>>
+        -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder]>>
         where Request.RowDecoder: DatabaseValueConvertible
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use request.observationForFirst() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.AllValues<Request.RowDecoder>>
+        -> ValueObservation<ValueReducers.Unavailable<Request.RowDecoder?>>
         where Request.RowDecoder: DatabaseValueConvertible
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.AllOptionalValues<Request.RowDecoder.Wrapped>>
+        -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder.Wrapped?]>>
         where Request.RowDecoder: _OptionalProtocol,
         Request.RowDecoder.Wrapped: DatabaseValueConvertible
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.AllRecords<Request.RowDecoder>>
+        -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder]>>
         where Request.RowDecoder: FetchableRecord
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use request.observationForFirst() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request) ->
-        ValueObservation<ValueReducers.OneRecord<Request.RowDecoder>>
+        ValueObservation<ValueReducers.Unavailable<Request.RowDecoder?>>
         where Request.RowDecoder: FetchableRecord
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use request.observationForAll() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.AllRows>
+        -> ValueObservation<ValueReducers.Unavailable<[Row]>>
         where Request.RowDecoder == Row
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use request.observationForFirst() instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.OneRow>
+        -> ValueObservation<ValueReducers.Unavailable<Row?>>
         where Request.RowDecoder == Row
     { preconditionFailure() }
     
@@ -215,39 +275,39 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
+        -> ValueObservation<ValueReducers.Unavailable<Value>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func tracking<Value>(
         _ regions: [DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
+        -> ValueObservation<ValueReducers.Unavailable<Value>>
     { preconditionFailure() }
     
     @available(*, unavailable, renamed: "tracking(_:)")
     public static func tracking<Value>(
         value: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
+        -> ValueObservation<ValueReducers.Unavailable<Value>>
     { preconditionFailure() }
 }
 
 extension ValueObservation where Reducer.Value: Equatable {
     @available(*, unavailable, renamed: "removeDuplicates")
-    public func distinctUntilChanged() -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
+    public func distinctUntilChanged() -> ValueObservation<ValueReducers.Unavailable<Reducer.Value>>
     { preconditionFailure() }
 }
 
 extension ValueReducers {
-    @available(*, unavailable, message: "ValueReducers.CompactMap is no longer available")
-    public struct CompactMap<Base: _ValueReducer, Value>: _ValueReducer {
+    @available(*, unavailable)
+    public enum Unavailable<T>: _ValueReducer {
         public var isObservedRegionDeterministic: Bool
         { preconditionFailure() }
         
-        public func fetch(_ db: Database) throws -> Base.Fetched
+        public func fetch(_ db: Database) throws -> Never
         { preconditionFailure() }
         
-        public mutating func value(_ fetched: Base.Fetched) -> Value?
+        public mutating func value(_ fetched: Never) -> T?
         { preconditionFailure() }
     }
 }

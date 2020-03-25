@@ -11,7 +11,7 @@ public enum ValueObservationScheduling {
     /// notified right upon subscription, synchronously:
     ///
     ///     // On main queue
-    ///     let observation = Player.observationForAll()
+    ///     let observation = ValueObservation.tracking(Player.fetchAll)
     ///     let observer = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
@@ -25,7 +25,7 @@ public enum ValueObservationScheduling {
     ///
     ///     // Not on the main queue: "fresh players" is eventually printed
     ///     // on the main queue.
-    ///     let observation = Player.observationForAll()
+    ///     let observation = ValueObservation.tracking(Player.fetchAll)
     ///     let observer = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
@@ -51,7 +51,7 @@ public enum ValueObservationScheduling {
     /// the dispatch queue which starts the observation.
     ///
     ///     // On any queue
-    ///     var observation = Player.observationForAll()
+    ///     var observation = ValueObservation.tracking(Player.fetchAll)
     ///     observation.scheduling = .unsafe
     ///     let observer = try observation.start(
     ///         in: dbQueue,
@@ -73,7 +73,7 @@ public enum ValueObservationScheduling {
 ///
 /// For example:
 ///
-///     let observation = Player.observationForAll()
+///     let observation = ValueObservation.tracking(Player.fetchAll)
 ///     let observer = try observation.start(
 ///         in: dbQueue,
 ///         onError: { error in ... },
