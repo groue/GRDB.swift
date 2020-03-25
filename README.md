@@ -5596,6 +5596,35 @@ let disposable = observation.rx.changes(in: dbQueue).subscribe(
 Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
 
 
+#### Observing a Varying Database Region
+
+The `ValueObservation.tracking(_:)` creates an observation that tracks a database region which is infered from the function argument:
+
+```swift
+// An observation which tracks the 'player' table
+let observation = ValueObservation.tracking(Player.fetchAll)
+
+// An observation which tracks both the 'player' and 'team' tables
+let observation = ValueObservation.tracking { db -> ([Team], [Player]) in
+    let teams = try Team.fetchAll(db)
+    let players = try Player.fetchAll(db)
+    return (teams, players)
+}
+```
+
+**When an observation does not always execute the same database requests**, the tracked database region may not be **constant**. In this case, use `ValueObservation.trackingVaryingRegion(_:)` instead:
+
+```swift
+// An observation which tracks 'preference' and 'food', or 'preference' and 'beverage'
+let observation = ValueObservation.trackingVaryingRegion { db -> Int in
+    switch try Preference.fetchOne(db)!.selection {
+        case .food: return try Food.fetchCount(db)
+        case .beverage: return try Beverage.fetchCount(db)
+    }
+}
+```
+
+
 ### ValueObservation Operators
 
 **Operators** are methods that transform and configure value observations so that they better fit the needs of your application.

@@ -138,13 +138,13 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     // MARK: - Creating ValueObservation
     
     /// Creates a ValueObservation which notifies the values returned by the
-    /// *value* function whenever a database transaction changes them.
+    /// *fetch* function whenever a database transaction changes them.
     ///
-    /// The *value* function must always performs the same database requests.
+    /// The *fetch* function must always performs the same database requests.
     /// The stability of the observed database region allows optimizations.
     ///
     /// When you want to observe a varying database region, use the
-    /// `ValueObservation.trackingVaryingRegion(value:)` method instead.
+    /// `ValueObservation.trackingVaryingRegion(_:)` method instead.
     ///
     /// For example:
     ///
@@ -159,28 +159,28 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///             print("Players have changed")
     ///         })
     ///
-    /// - parameter value: A function that fetches the observed value from
+    /// - parameter fetch: A function that fetches the observed value from
     ///   the database.
     public static func tracking<Value>(
-        _ value: @escaping (Database) throws -> Value)
+        _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: value)
+            ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: fetch)
         })
     }
     
     /// Creates a ValueObservation which notifies the values returned by the
-    /// *value* function whenever a database transaction changes them.
+    /// *fetch* function whenever a database transaction changes them.
     ///
-    /// - parameter value: A function that fetches the observed value from
+    /// - parameter fetch: A function that fetches the observed value from
     ///   the database.
     public static func trackingVaryingRegion<Value>(
-        _ value: @escaping (Database) throws -> Value)
+        _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: value)
+            ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: fetch)
         })
     }
 }
