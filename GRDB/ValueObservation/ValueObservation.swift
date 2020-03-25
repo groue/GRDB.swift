@@ -162,7 +162,7 @@ extension ValueObservation where Reducer == Never {
     /// - parameter value: A function that fetches the observed value from
     ///   the database.
     public static func tracking<Value>(
-        value: @escaping (Database) throws -> Value)
+        _ value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
@@ -176,7 +176,7 @@ extension ValueObservation where Reducer == Never {
     /// - parameter value: A function that fetches the observed value from
     ///   the database.
     public static func trackingVaryingRegion<Value>(
-        value: @escaping (Database) throws -> Value)
+        _ value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {

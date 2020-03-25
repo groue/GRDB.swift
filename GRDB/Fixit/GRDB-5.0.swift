@@ -211,17 +211,23 @@ extension ValueObservation where Reducer == Never {
         where Request.RowDecoder == Row
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use ValueObservation.tracking(value:) instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use ValueObservation.tracking(value:) instead")
+    @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func tracking<Value>(
         _ regions: [DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
+        -> ValueObservation<ValueReducers.Fetch<Value>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, renamed: "tracking(_:)")
+    public static func tracking<Value>(
+        value: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     { preconditionFailure() }
 }

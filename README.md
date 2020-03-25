@@ -5505,7 +5505,7 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     }
     
     // The same observation, with short-hand notation:
-    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    let observation = ValueObservation.tracking(Player.fetchAll)
     ```
     
     The observation can perform multiple requests, from multiple database tables, and even use raw SQL.
@@ -5556,7 +5556,7 @@ import Combine
 import GRDB
 import GRDBCombine
 
-let observation = ValueObservation.tracking(value: Player.fetchAll)
+let observation = ValueObservation.tracking(Player.fetchAll)
 
 let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
@@ -5575,7 +5575,7 @@ import GRDB
 import RxGRDB
 import RxSwift
 
-let observation = ValueObservation.tracking(value: Player.fetchAll)
+let observation = ValueObservation.tracking(Player.fetchAll)
 
 let disposable = observation.rx.changes(in: dbQueue).subscribe(
     onNext: { (players: [Player]) in
@@ -5786,7 +5786,7 @@ When needed, you can help GRDB optimize observations and reduce database content
             super.viewWillAppear(animated)
             
             // Start observing the database
-            let observation = ValueObservation.tracking(value: Player.fetchAll)
+            let observation = ValueObservation.tracking(Player.fetchAll)
             observer = observation.start(
                 in: dbQueue,
                 onError: { error in ... },
@@ -5820,7 +5820,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     import RxGRDB
     import RxSwift
     
-    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    let observation = ValueObservation.tracking(Player.fetchAll)
     let observable = observation.rx
         .changes(in: dbQueue)
         .share(replay: 1, scope: .whileConnected)
@@ -5832,7 +5832,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
     ```swift
     // Plain observation
-    let observation = ValueObservation.tracking(value: Player.fetchAll)
+    let observation = ValueObservation.tracking(Player.fetchAll)
     
     // Optimized observation
     let observation = ValueObservation.tracking(Player.all(), fetch: Player.fetchAll)

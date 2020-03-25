@@ -30,9 +30,7 @@ extension FetchRequest {
     public func observationForCount() ->
         ValueObservation<ValueReducers.RemoveDuplicates<ValueReducers.Fetch<Int>>>
     {
-        return ValueObservation
-            .tracking(value: fetchCount)
-            .removeDuplicates()
+        ValueObservation.tracking(fetchCount).removeDuplicates()
     }
 }
 
