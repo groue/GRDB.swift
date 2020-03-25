@@ -5629,7 +5629,7 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 }
 ```
 
-Observing a varying region can prevent some optimizations, and increase database contention. See [ValueObservation Performance](#valueobservation-performance) for more information.
+Observing a varying region can prevent some optimizations. See [ValueObservation Performance](#valueobservation-performance) for more information.
 
 
 ### ValueObservation Operators
@@ -5670,6 +5670,33 @@ For example:
 let observation = ValueObservation
     .tracking { db in try Player.fetchOne(db, key: 42) }
     .removeDuplicates()
+```
+
+:bulb: **Tip**: When the observed value does not adopt Equatable, you can observe distinct raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue), before converting them to the desired type. For example, the previous observation can be rewritten as below:
+
+```swift
+// An observation of distinct Player?
+let request = Player.filter(key: 42)
+let observation = ValueObservation
+    .tracking { db in try Row.fetchOne(db, request) }
+    .removeDuplicates() // Row adopts Equatable
+    .map { row in row.map(Player.init(row:) }
+```
+
+This technique is also available for requests that involve [Associations]:
+
+```swift
+struct TeamInfo: Decodable, FetchableRecord {
+    var team: Team
+    var players: [Player]
+}
+
+// An observation of distinct [TeamInfo]
+let request = Team.including(all: Team.players)
+let observation = ValueObservation
+    .tracking { db in try Row.fetchAll(db, request) }
+    .removeDuplicates() // Row adopts Equatable
+    .map { rows in rows.map(TeamInfo.init(row:) }
 ```
 
 

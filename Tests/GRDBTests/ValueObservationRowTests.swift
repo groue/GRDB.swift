@@ -12,8 +12,33 @@ import XCTest
 
 class ValueObservationRowTests: GRDBTestCase {
     func testAll() throws {
+        let request = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id")
+        
         try assertValueObservation(
-            SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id").observationForAll(),
+            ValueObservation.tracking(request.fetchAll),
+            records: [
+                [],
+                [["id":1, "name":"foo"]],
+                [["id":1, "name":"foo"]],
+                [["id":1, "name":"foo"], ["id":2, "name":"bar"]],
+                [["id":2, "name":"bar"]]],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t WHERE id = 1")
+        })
+        
+        try assertValueObservation(
+            ValueObservation.tracking(request.fetchAll).removeDuplicates(),
             records: [
                 [],
                 [["id":1, "name":"foo"]],
@@ -36,8 +61,33 @@ class ValueObservationRowTests: GRDBTestCase {
     }
     
     func testOne() throws {
+        let request = SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id DESC")
+        
         try assertValueObservation(
-            SQLRequest<Row>(sql: "SELECT * FROM t ORDER BY id DESC").observationForFirst(),
+            ValueObservation.tracking(request.fetchOne),
+            records: [
+                nil,
+                ["id":1, "name":"foo"],
+                ["id":1, "name":"foo"],
+                ["id":2, "name":"bar"],
+                nil],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, 'foo')")
+                try db.execute(sql: "UPDATE t SET name = 'foo' WHERE id = 1")
+                try db.inTransaction {
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (2, 'bar')")
+                    try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'baz')")
+                    try db.execute(sql: "DELETE FROM t WHERE id = 3")
+                    return .commit
+                }
+                try db.execute(sql: "DELETE FROM t")
+        })
+        
+        try assertValueObservation(
+            ValueObservation.tracking(request.fetchOne).removeDuplicates(),
             records: [
                 nil,
                 ["id":1, "name":"foo"],
@@ -61,7 +111,7 @@ class ValueObservationRowTests: GRDBTestCase {
     
     func testFTS4Observation() throws {
         try assertValueObservation(
-            SQLRequest<Row>(sql: "SELECT * FROM ft_documents").observationForAll(),
+            ValueObservation.tracking(SQLRequest<Row>(sql: "SELECT * FROM ft_documents").fetchAll),
             records: [
                 [],
                 [["content":"foo"]]],
@@ -75,7 +125,7 @@ class ValueObservationRowTests: GRDBTestCase {
     
     func testSynchronizedFTS4Observation() throws {
         try assertValueObservation(
-            SQLRequest<Row>(sql: "SELECT * FROM ft_documents").observationForAll(),
+            ValueObservation.tracking(SQLRequest<Row>(sql: "SELECT * FROM ft_documents").fetchAll),
             records: [
                 [],
                 [["content":"foo"]]],
@@ -96,12 +146,11 @@ class ValueObservationRowTests: GRDBTestCase {
     
     func testJoinedFTS4Observation() throws {
         try assertValueObservation(
-            SQLRequest<Row>(sql: """
+            ValueObservation.tracking(SQLRequest<Row>(sql: """
                 SELECT document.* FROM document
                 JOIN ft_document ON ft_document.rowid = document.id
                 WHERE ft_document MATCH 'foo'
-                """)
-                .observationForAll(),
+                """).fetchAll),
             records: [
                 [],
                 [["id":1]]],

@@ -634,4 +634,19 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: 
     public func fetchAll(_ db: Database) throws -> [RowDecoder.Wrapped?] {
         try Optional<RowDecoder.Wrapped>.fetchAll(db, self)
     }
+    
+    /// The first fetched value.
+    ///
+    /// The result is nil if the request returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    ///     let request: ... // Some FetchRequest that fetches String?
+    ///     let string = try request.fetchOne(db) // String?
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: An optional value.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder.Wrapped? {
+        try RowDecoder.Wrapped.fetchOne(db, self)
+    }
 }
