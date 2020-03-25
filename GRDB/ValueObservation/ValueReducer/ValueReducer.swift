@@ -34,11 +34,7 @@ public protocol _ValueReducer {
 }
 
 extension _ValueReducer {
-    func fetch(
-        _ db: Database,
-        requiringWriteAccess: Bool)
-        throws -> Fetched
-    {
+    func fetch(_ db: Database, requiringWriteAccess: Bool) throws -> Fetched {
         if requiringWriteAccess {
             var fetchedValue: Fetched?
             try db.inSavepoint {
@@ -53,11 +49,7 @@ extension _ValueReducer {
         }
     }
     
-    mutating func fetchAndReduce(
-        _ db: Database,
-        requiringWriteAccess: Bool)
-        throws -> Value?
-    {
+    mutating func fetchAndReduce(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
         let fetchedValue = try fetch(db, requiringWriteAccess: requiringWriteAccess)
         return value(fetchedValue)
     }
