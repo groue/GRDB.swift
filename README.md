@@ -5672,7 +5672,7 @@ let observation = ValueObservation
     .removeDuplicates()
 ```
 
-:bulb: **Tip**: When the observed values do not adopt Equatable, you can observe distinct raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue) before converting them to the desired type. For example, the previous observation can be rewritten as below:
+:bulb: **Tip**: When the observed value does not adopt Equatable, you can observe distinct raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue), before converting them to the desired type. For example, the previous observation can be rewritten as below:
 
 ```swift
 // An observation of distinct Player?
