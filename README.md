@@ -5672,6 +5672,16 @@ let observation = ValueObservation
     .removeDuplicates()
 ```
 
+When the observed values do not adopt Equatable, you can observe raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue) before converting them to the desired type. For example, the previous observation can be rewritten as below:
+
+```swift
+// An observation of distinct Player?
+let request = Player.filter(key: 42)
+let observation = ValueObservation
+    .tracking { db in try Row.fetchOne(db, request) }
+    .removeDuplicates() // Row adopts Equatable
+    .map { row in row.map(Player.init(row:) }
+```
 
 #### ValueObservation.combine
 
