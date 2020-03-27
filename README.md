@@ -5660,7 +5660,7 @@ class PlayersViewController: UIViewController {
         let observation = ValueObservation.tracking(Player.fetchAll)
         observer = observation.start(
             in: dbQueue,
-            scheduler: immediate, // <- immediate scheduler
+            scheduler: .immediate, // <- immediate scheduler
             onError: { error in ... },
             onChange: { [weak self] (players: [Player]) in
                 guard let self = self else { return }
