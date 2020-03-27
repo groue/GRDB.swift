@@ -312,67 +312,22 @@ extension DatabaseWriter {
         if configuration.readonly {
             return addReadOnly(observation: observation, onError: onError, onChange: onChange)
         }
-        
-        // True if initial value must be sent to the onChange callback
-        // before this method returns.
-        // This flag supersedes prependingConcurrentFetch.
-        let initialFetchSync: Bool
-        
-        // The queue for other values. Nil for any queue.
-        let notificationQueue: DispatchQueue?
-        
-        switch observation.scheduling {
-        case .mainQueue:
-            if DispatchQueue.isMain {
-                // Use case: observation starts on the main queue and wants
-                // a synchronous initial fetch. This helps avoiding flashes of
-                // missing content.
-                initialFetchSync = true
-                notificationQueue = DispatchQueue.main
-            } else {
-                // TODO: make this a fatal error when .mainQueue is no longer
-                // the default scheduling.
-                // Use case: observation does not start on the main queue, but
-                // has the default scheduling .mainQueue
-                initialFetchSync = false
-                notificationQueue = DispatchQueue.main
-            }
-            
-        case let .async(onQueue: queue):
-            // Use case: observation must not block the target queue
-            initialFetchSync = false
-            notificationQueue = queue
-            
-        case .unsafe:
-            // Use case: third-party integration (RxSwift, Combine, ...) that
-            // need a synchronous initial fetch.
-            //
-            // This is really super extra unsafe.
-            //
-            // If the observation is started on one dispatch queue, then
-            // the onChange and onError callbacks must be asynchronously
-            // dispatched on the *same* queue.
-            //
-            // A failure to follow this rule may mess with the ordering of
-            // initial values.
-            initialFetchSync = true
-            notificationQueue = nil
-        }
-        
-        // ---
-        
+                
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: self,
             reducer: observation.makeReducer(),
-            notificationQueue: notificationQueue,
+            notificationQueue: observation._scheduling.notificationQueue,
             reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
             onError: onError,
             onChange: onChange)
         
-        if initialFetchSync {
+        switch observation._scheduling {
+        case .fetchWhenStarted:
+            GRDBPrecondition(Thread.isMainThread, "ValueObservation must be started from the main thread.")
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
+                    // Fetch an initial value and start observation
                     let initialValue = try observer.fetchInitialValue(db)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     return initialValue
@@ -381,37 +336,47 @@ extension DatabaseWriter {
             } catch {
                 onError(error)
             }
-        } else if prependingConcurrentFetch {
-            asyncRead { dbResult in
-                do {
-                    let db = try dbResult.get()
-                    let initialValue = try observer.fetchInitialValue(db)
-                    observer.send(initialValue)
-                    
-                    self.asyncWriteWithoutTransaction { [weak observer] db in
-                        guard let observer = observer else { return }
-                        if observer.isCancelled { return }
-                        do {
-                            if let value = try observer.fetchNextValue(db) {
-                                observer.send(value)
+            
+        case .async:
+            if prependingConcurrentFetch {
+                // Fetch an initial value without waiting for the writer.
+                asyncRead { dbResult in
+                    do {
+                        let db = try dbResult.get()
+                        let initialValue = try observer.fetchInitialValue(db)
+                        observer.send(initialValue)
+                        
+                        // Now wait for the writer
+                        self.asyncWriteWithoutTransaction { [weak observer] db in
+                            guard let observer = observer else { return }
+                            if observer.isCancelled { return }
+                            do {
+                                // Don't miss eventual changes between the
+                                // initial fetch and the writer access.
+                                if let value = try observer.fetchNextValue(db) {
+                                    observer.send(value)
+                                }
+                                
+                                // Now we can start observations
+                                db.add(transactionObserver: observer, extent: .observerLifetime)
+                            } catch {
+                                observer.send(error)
                             }
-                            db.add(transactionObserver: observer, extent: .observerLifetime)
-                        } catch {
-                            observer.send(error)
                         }
+                    } catch {
+                        observer.send(error)
                     }
-                } catch {
-                    observer.send(error)
                 }
-            }
-        } else {
-            asyncWriteWithoutTransaction { db in
-                do {
-                    let initialValue = try observer.fetchInitialValue(db)
-                    observer.send(initialValue)
-                    db.add(transactionObserver: observer, extent: .observerLifetime)
-                } catch {
-                    observer.send(error)
+            } else {
+                asyncWriteWithoutTransaction { db in
+                    do {
+                        // Fetch an initial value and start observation
+                        let initialValue = try observer.fetchInitialValue(db)
+                        observer.send(initialValue)
+                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    } catch {
+                        observer.send(error)
+                    }
                 }
             }
         }

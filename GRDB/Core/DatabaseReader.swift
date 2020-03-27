@@ -304,27 +304,15 @@ extension DatabaseReader {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        switch observation.scheduling {
-        case .mainQueue:
-            if DispatchQueue.isMain {
-                do {
-                    try onChange(unsafeReentrantRead(observation.fetchValue))
-                } catch {
-                    onError(error)
-                }
-            } else {
-                asyncRead { dbResult in
-                    let result = dbResult.tryMap(observation.fetchValue)
-                    DispatchQueue.main.async {
-                        do {
-                            try onChange(result.get())
-                        } catch {
-                            onError(error)
-                        }
-                    }
-                }
+        switch observation._scheduling {
+        case .fetchWhenStarted:
+            GRDBPrecondition(DispatchQueue.isMain, "ValueObservation must be started from the main Dispatch queue.")
+            do {
+                try onChange(unsafeReentrantRead(observation.fetchValue))
+            } catch {
+                onError(error)
             }
-        case let .async(onQueue: queue):
+        case let .async(onDispatchQueue: queue):
             asyncRead { dbResult in
                 let result = dbResult.tryMap(observation.fetchValue)
                 queue.async {
@@ -334,12 +322,6 @@ extension DatabaseReader {
                         onError(error)
                     }
                 }
-            }
-        case .unsafe:
-            do {
-                try onChange(unsafeReentrantRead(observation.fetchValue))
-            } catch {
-                onError(error)
             }
         }
         

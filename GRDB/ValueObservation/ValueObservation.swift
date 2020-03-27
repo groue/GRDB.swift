@@ -4,66 +4,22 @@ import Dispatch
 
 /// ValueObservationScheduling controls how ValueObservation schedules the
 /// fresh values to your application.
-public enum ValueObservationScheduling {
-    /// All values are notified on the main queue.
-    ///
-    /// If the observation starts on the main queue, the initial value is
-    /// notified right upon subscription, synchronously:
-    ///
-    ///     // On main queue
-    ///     let observation = ValueObservation.tracking(Player.fetchAll)
-    ///     let observer = try observation.start(
-    ///         in: dbQueue,
-    ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
-    ///             print("fresh players: \(players)")
-    ///         })
-    ///     // <- here "fresh players" is already printed.
-    ///
-    /// If the observation does not start on the main queue, the initial value
-    /// is also notified on the main queue, but asynchronously:
-    ///
-    ///     // Not on the main queue: "fresh players" is eventually printed
-    ///     // on the main queue.
-    ///     let observation = ValueObservation.tracking(Player.fetchAll)
-    ///     let observer = try observation.start(
-    ///         in: dbQueue,
-    ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
-    ///             print("fresh players: \(players)")
-    ///         })
-    ///
-    /// When the database changes, fresh values are asynchronously notified on
-    /// the main queue:
-    ///
-    ///     // Eventually prints "fresh players" on the main queue
-    ///     try dbQueue.write { db in
-    ///         try Player(...).insert(db)
-    ///     }
-    case mainQueue
+enum ValueObservationScheduling {
+    /// All values are asychronously notified on the main queue, but the initial
+    /// one which is notified immediately when the start() method is called.
+    case fetchWhenStarted
     
     /// All values are asychronously notified on the specified queue.
-    case async(onQueue: DispatchQueue)
+    case async(onDispatchQueue: DispatchQueue)
     
-    /// Values are not all notified on the same dispatch queue.
-    ///
-    /// The initial value is notified right upon subscription, synchronously, on
-    /// the dispatch queue which starts the observation.
-    ///
-    ///     // On any queue
-    ///     var observation = ValueObservation.tracking(Player.fetchAll)
-    ///     observation.scheduling = .unsafe
-    ///     let observer = try observation.start(
-    ///         in: dbQueue,
-    ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
-    ///           print("fresh players: \(players)")
-    ///        })
-    ///     // <- here "fresh players" is already printed.
-    ///
-    /// When the database changes, other values are notified on
-    /// unspecified queues.
-    case unsafe
+    var notificationQueue: DispatchQueue {
+        switch self {
+        case .fetchWhenStarted:
+            return DispatchQueue.main
+        case let .async(onDispatchQueue: queue):
+            return queue
+        }
+    }
 }
 
 // MARK: - ValueObservation
@@ -85,6 +41,10 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     /// each database change in *observedRegion*.
     var makeReducer: () -> Reducer
     
+    /// `scheduling` controls how fresh values are notified. Default
+    /// is `ValueObservationScheduling.async(onDispatchQueue: .main)`.
+    var _scheduling = ValueObservationScheduling.async(onDispatchQueue: .main)
+    
     /// Default is false. Set this property to true when the observation
     /// requires write access in order to fetch fresh values. Fetches are then
     /// wrapped inside a savepoint.
@@ -92,13 +52,51 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
     public var requiresWriteAccess: Bool = false
-    
-    /// `scheduling` controls how fresh values are notified. Default
-    /// is `.mainQueue`.
-    public var scheduling: ValueObservationScheduling = .mainQueue
 }
 
-extension ValueObservation {
+extension ValueObservation: KeyPathRefining {
+    
+    // MARK: - Scheduling
+    
+    /// Returns a ValueObservation which notifies fresh values on the given
+    /// dispatch queue, asynchronously.
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation
+    ///         .tracking(Player.fetchAll)
+    ///         .notify(onDispatchQueue: .main)
+    ///
+    /// Note that by default, ValueObservation notifies fresh values on the main
+    /// dispatch queue, asynchronously.
+    public func notify(onDispatchQueue queue: DispatchQueue) -> Self {
+        with(\._scheduling, .async(onDispatchQueue: queue))
+    }
+    
+    /// Returns a ValueObservation which notifies fresh values on the main
+    /// dispatch queue. The initial value is notified immediately when the
+    /// `start()` method is called. Subsequent values are
+    /// notified asynchronously.
+    ///
+    /// For example:
+    ///
+    ///     let observation = ValueObservation
+    ///         .tracking(Player.fetchAll)
+    ///         .fetchWhenStarted()
+    ///
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
+    ///     // <- here "fresh players" is already printed.
+    ///
+    /// - important: Such an observation must be started from the main thread.
+    ///   A fatal error is raised otherwise.
+    public func fetchWhenStarted() -> Self {
+        with(\._scheduling, .fetchWhenStarted)
+    }
     
     // MARK: - Starting Observation
     

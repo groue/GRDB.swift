@@ -4,7 +4,7 @@ extension ValueObservation {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
             makeReducer: { transform(makeReducer()) },
-            requiresWriteAccess: requiresWriteAccess,
-            scheduling: scheduling)
+            _scheduling: _scheduling,
+            requiresWriteAccess: requiresWriteAccess)
     }
 }
