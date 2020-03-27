@@ -783,7 +783,7 @@ extension DatabasePool: DatabaseReader {
         // DatabasePool supports concurrent reads and can accelerate the
         // notification of the initial value by not waiting for an access
         // to the writer queue, which may be busy executing a
-        // long-runnning transaction.
+        // long-running transaction.
         //
         // Obviously this only works if observation does need a write access.
         let concurrentInitialValue = !observation.requiresWriteAccess
