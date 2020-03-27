@@ -5487,6 +5487,7 @@ Tracked changes include changes performed by the [query interface](#the-query-in
 **ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
 
 - [ValueObservation Usage](#valueobservation-usage)
+- [ValueObservation Scheduling](#valueobservation-scheduling)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Performance](#valueobservation-performance)
 
@@ -5588,8 +5589,8 @@ let disposable = observation.rx.changes(in: dbQueue).subscribe(
 
 **Generally speaking**:
 
-- ValueObservation notifies an initial value before the eventual changes. This initial value is notified immediately by default (when the `start` method is called). It can be notified [asynchronously](#valueobservationscheduling) if preferred.
-- ValueObservation schedules changes notifications on the main thread by default. This can be [configured](#valueobservationscheduling).
+- ValueObservation notifies an initial value before the eventual changes.
+- By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
 - ValueObservation may coalesce subsequent changes into a single notification.
 - ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
 
@@ -5632,6 +5633,67 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 Observing a varying region can prevent some optimizations. See [ValueObservation Performance](#valueobservation-performance) for more information.
 
 
+### ValueObservation Scheduling
+
+By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously:
+
+```swift
+// The default scheduling
+let observer = observation.start(
+    in: dbQueue,
+    onError: { error in ... },                   // called asynchronously on the main thread
+    onChange: { value in print("fresh value") }) // called asynchronously on the main thread
+```
+
+You can change this behavior by adding a `scheduler` argument to the `start()` method.
+
+For example, the `.immediate` scheduler makes sure the initial value is notified immediately when the observation starts. It helps your application update the user interface without having to wait for any asynchronous notifications:
+
+```swift
+class PlayersViewController: UIViewController {
+    private var observer: TransactionObserver?
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        // Start observing the database
+        let observation = ValueObservation.tracking(Player.fetchAll)
+        observer = observation.start(
+            in: dbQueue,
+            scheduler: immediate, // <- immediate scheduler
+            onError: { error in ... },
+            onChange: { [weak self] (players: [Player]) in
+                guard let self = self else { return }
+                self.updateView(players)
+            })
+        // <- Here the view has already been updated.
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+    
+        // Stop observing the database
+        observer = nil
+    }
+    
+    private func updateView(_ players: [Player]) { ... }
+}
+```
+
+Note that the `.immediate` scheduler requires that the observation is started from the main thread. It raises a fatal error otherwise.
+
+The other built-in scheduler in `.async(onQueue:)`, which asynchronously schedules values and errors on the dispatch queue of your choice:
+
+```swift
+let queue: DispatchQueue = ...
+let observer = observation.start(
+    in: dbQueue,
+    scheduler: .async(onQueue: queue)
+    onError: { error in ... },                   // called asynchronously on queue
+    onChange: { value in print("fresh value") }) // called asynchronously on queue
+```
+
+
 ### ValueObservation Operators
 
 **Operators** are methods that transform and configure value observations so that they better fit the needs of your application.
@@ -5639,8 +5701,7 @@ Observing a varying region can prevent some optimizations. See [ValueObservation
 - [ValueObservation.map](#valueobservationmap)
 - [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
 - [ValueObservation.combine](#valueobservationcombine)
-- [ValueObservation.scheduling](#valueobservationscheduling): Control the dispatching of notified values.
-- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess): Allow observations to write in the database.
+- [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess)
 
 
 #### ValueObservation.map
@@ -5743,65 +5804,6 @@ let observation = playerCountObservation.combine(bestPlayersObservation) {
 > :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the ValueObservation `combine` method. This is partially exact, because the reactive operator is unable to guarantee data consistency. If you use a Reactive layer such as [GRDBCombine] or [RxGRDB], make sure you compose observations with `ValueObservation.combine`, and never with the CombineLatest operator.
 
 
-#### ValueObservation.scheduling
-    
-The `scheduling` property lets you control how fresh values are notified:
-
-- `.mainQueue` (the default): all values are notified on the main queue.
-    
-    If the observation starts on the main queue, the initial value is notified right upon subscription, synchronously:
-    
-    ```swift
-    // On main queue
-    let observer = observation.start(
-        in: dbQueue,
-        onError: { error in ... },
-        onChange: { value in
-            // On main queue
-            print("fresh value: \(value)")
-        })
-    // <- Here "fresh value" is already printed.
-    ```
-    
-    If the observation does not start on the main queue, the initial value is also notified on the main queue, but asynchronously:
-    
-    ```swift
-    // Not on the main queue
-    let observer = observation.start(
-        in: dbQueue,
-        onError: { error in ... },
-        onChange: { value in
-            // On main queue
-            print("fresh value: \(value)")
-        })
-    ```
-    
-    After the initial value has been notified, all subsequent values are notified asynchronously:
-    
-    ```swift
-    try dbQueue.write { db in ... }
-    // <- Eventually prints "fresh value" on the main queue
-    ```
-
-- `.async(onQueue:)`: all values, including the initial value, are asynchronously notified on the specified queue.
-    
-    For example:
-    
-    ```swift
-    // On main queue
-    var observation = ...
-    observation.scheduling = .async(onQueue: .main)
-    let observer = observation.start(
-        in: dbQueue,
-        onError: { error in ... },
-        onChange: { value in
-            // On main queue
-            print("fresh value: \(value)")
-        })
-    // <- Eventually prints "fresh value"
-    ```
-
-
 #### ValueObservation.requiresWriteAccess
 
 The `requiresWriteAccess` property is false by default. When true, a ValueObservation has a write access to the database, and its fetches are automatically wrapped in a [savepoint](#transactions-and-savepoints):
@@ -5835,42 +5837,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 1. :bulb: **Tip**: Stop observations when possible.
     
-    For example, if a UIViewController needs to display database values, it can start the observation in `viewWillAppear`, and stop it in `viewWillDisappear`, as in the sample code below:
-    
-    
-    <details>
-        <summary>UIViewController example</summary>
-    
-    ```swift
-    class PlayersViewController: UIViewController {
-        private var observer: TransactionObserver?
-        
-        override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            
-            // Start observing the database
-            let observation = ValueObservation.tracking(Player.fetchAll)
-            observer = observation.start(
-                in: dbQueue,
-                onError: { error in ... },
-                onChange: { [weak self] (players: [Player]) in
-                    guard let self = self else { return }
-                    self.updateView(players)
-                })
-        }
-        
-        override func viewWillDisappear(_ animated: Bool) {
-            super.viewWillDisappear(animated)
-        
-            // Stop observing the database
-            observer = nil
-        }
-        
-        private func updateView(_ players: [Player]) { ... }
-    }
-    ```
-    
-    </details>
+    For example, if a UIViewController needs to display database values, it can start the observation in `viewWillAppear`, and stop it in `viewWillDisappear`. Check the sample code [above](#valueobservation-scheduling).
     
 2. :bulb: **Tip**: Share observations when possible.
     
