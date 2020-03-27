@@ -12,7 +12,7 @@ import Dispatch
 #endif
 
 class ValueObservationReducerTests: GRDBTestCase {
-    func testReducer() throws {
+    func testImmediateReducer() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -44,7 +44,7 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             
             // Create an observation
-            let observation = ValueObservation(makeReducer: { reducer })
+            let observation = ValueObservation(makeReducer: { reducer }).fetchWhenStarted()
             
             // Start observation
             let observer = observation.start(
@@ -58,7 +58,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                     notificationExpectation.fulfill()
             })
             try withExtendedLifetime(observer) {
-                // Test that default config synchronously notifies initial value
+                // Test that initial value is synchronously notified
                 XCTAssertEqual(fetchCount, 1)
                 XCTAssertEqual(reduceCount, 1)
                 XCTAssertEqual(errors.count, 0)
@@ -110,11 +110,13 @@ class ValueObservationReducerTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testInitialErrorWithErrorHandling() throws {
+    func testImmediateError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // Create an observation
             struct TestError: Error { }
-            let observation = ValueObservation.tracking { _ in throw TestError() }
+            let observation = ValueObservation
+                .tracking { _ in throw TestError() }
+                .fetchWhenStarted()
             
             // Start observation
             var error: TestError?
@@ -141,12 +143,15 @@ class ValueObservationReducerTests: GRDBTestCase {
             notificationExpectation.assertForOverFulfill = true
             notificationExpectation.expectedFulfillmentCount = 3
             
+            struct TestError: Error { }
             var nextError: Error? = nil // If not null, observation throws an error
             let observation = ValueObservation.tracking {
                 _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")
                 if let error = nextError {
                     nextError = nil
                     throw error
+                } else {
+                    nextError = TestError()
                 }
             }
 
@@ -163,8 +168,6 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             
             try withExtendedLifetime(observer) {
-                struct TestError: Error { }
-                nextError = TestError()
                 try dbWriter.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                     try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
@@ -177,66 +180,6 @@ class ValueObservationReducerTests: GRDBTestCase {
         }
         
         try test(makeDatabaseQueue())
-        try test(makeDatabasePool())
-    }
-    
-    func testReducerQueueLabel() throws {
-        func test(_ dbWriter: DatabaseWriter, expectedLabels: [String]) throws {
-            try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
-            
-            let reduceExpectation = expectation(description: "notification")
-            reduceExpectation.assertForOverFulfill = true
-            reduceExpectation.expectedFulfillmentCount = expectedLabels.count
-            
-            var labels: [String] = []
-            let reducer = AnyValueReducer(
-                fetch: { _ = try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t") },
-                value: { _ in
-                // This test CAN break in future releases: the dispatch queue labels
-                // are documented to be a debug-only tool.
-                if let label = String(utf8String: __dispatch_queue_get_label(nil)) {
-                    labels.append(label)
-                }
-                reduceExpectation.fulfill()
-            })
-            let observation = ValueObservation(makeReducer: { reducer })
-            let observer = observation.start(
-                in: dbWriter,
-                onError: { error in XCTFail("Unexpected error: \(error)") },
-                onChange: { _ in })
-            try withExtendedLifetime(observer) {
-                try dbWriter.write { db in
-                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
-                }
-                
-                waitForExpectations(timeout: 1, handler: nil)
-                XCTAssertEqual(labels, expectedLabels)
-            }
-        }
-        do {
-            // dbQueue with default label
-            dbConfiguration.label = nil
-            let dbQueue = try makeDatabaseQueue()
-            try test(dbQueue, expectedLabels: ["GRDB.DatabaseQueue", "GRDB.ValueObservation.reducer"])
-        }
-        do {
-            // dbQueue with custom label
-            dbConfiguration.label = "Custom"
-            let dbQueue = try makeDatabaseQueue()
-            try test(dbQueue, expectedLabels: ["Custom", "Custom.ValueObservation.reducer"])
-        }
-        do {
-            // dbPool with default label
-            dbConfiguration.label = nil
-            let dbPool = try makeDatabasePool()
-            try test(dbPool, expectedLabels: ["GRDB.DatabasePool.writer", "GRDB.ValueObservation.reducer"])
-        }
-        do {
-            // dbPool with custom label
-            dbConfiguration.label = "Custom"
-            let dbPool = try makeDatabasePool()
-            try test(dbPool, expectedLabels: ["Custom.writer", "Custom.ValueObservation.reducer"])
-        }
     }
     
     func testObserverInvalidation1() throws {
@@ -252,7 +195,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var observer: TransactionObserver? = nil
                 _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
                 var shouldStopObservation = false
-                var observation = ValueObservation(makeReducer: {
+                let observation = ValueObservation(makeReducer: {
                     AnyValueReducer<Void, Void>(
                         fetch: { _ in
                             if shouldStopObservation {
@@ -261,8 +204,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                             shouldStopObservation = true
                     },
                         value: { _ in () })
-                })
-                observation.scheduling = .unsafe
+                    }).fetchWhenStarted()
                 observer = observation.start(
                     in: dbWriter,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
@@ -294,7 +236,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                 var observer: TransactionObserver? = nil
                 _ = observer // Avoid "Variable 'observer' was written to, but never read" warning
                 var shouldStopObservation = false
-                var observation = ValueObservation(makeReducer: {
+                let observation = ValueObservation(makeReducer: {
                     AnyValueReducer<Void, Void>(
                         fetch: { _ in },
                         value: { _ in
@@ -304,8 +246,7 @@ class ValueObservationReducerTests: GRDBTestCase {
                             shouldStopObservation = true
                             return ()
                     })
-                })
-                observation.scheduling = .unsafe
+                }).fetchWhenStarted()
                 observer = observation.start(
                     in: dbWriter,
                     onError: { error in XCTFail("Unexpected error: \(error)") },

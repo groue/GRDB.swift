@@ -367,16 +367,14 @@ extension GRDBTestCase {
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .mainQueue
+            let observation = valueObservation.fetchWhenStarted()
             try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
             try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
             try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .async(onQueue: .main)
+            let observation = valueObservation.notify(onDispatchQueue: .main)
             try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
             try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
             if valueObservation.requiresWriteAccess || !valueObservation.makeReducer().isObservedRegionDeterministic {
@@ -385,14 +383,6 @@ extension GRDBTestCase {
                 // DatabasePool performs an immediate async fetch and may miss initial changes
                 try testRecordingMatch(writer: makeDatabasePool(), observation: observation)
             }
-        }
-        
-        do {
-            var observation = valueObservation
-            observation.scheduling = .unsafe
-            try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
-            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
-            try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
         }
     }
     
@@ -416,24 +406,14 @@ extension GRDBTestCase {
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .mainQueue
+            let observation = valueObservation.fetchWhenStarted()
             try test(writer: DatabaseQueue(), observation: observation)
             try test(writer: makeDatabaseQueue(), observation: observation)
             try test(writer: makeDatabasePool(), observation: observation)
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .async(onQueue: .main)
-            try test(writer: DatabaseQueue(), observation: observation)
-            try test(writer: makeDatabaseQueue(), observation: observation)
-            try test(writer: makeDatabasePool(), observation: observation)
-        }
-        
-        do {
-            var observation = valueObservation
-            observation.scheduling = .unsafe
+            let observation = valueObservation.notify(onDispatchQueue: .main)
             try test(writer: DatabaseQueue(), observation: observation)
             try test(writer: makeDatabaseQueue(), observation: observation)
             try test(writer: makeDatabasePool(), observation: observation)

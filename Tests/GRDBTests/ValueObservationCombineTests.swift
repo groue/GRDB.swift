@@ -660,7 +660,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V2 { }
         let observation1 = ValueObservation.tracking { _ in V1() }
         let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation = ValueObservation.combine(observation1, observation2)
+        let observation = ValueObservation
+            .combine(observation1, observation2)
+            .fetchWhenStarted()
         var value: (V1, V2)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -676,7 +678,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation1 = ValueObservation.tracking { _ in V1() }
         let observation2 = ValueObservation.tracking { _ in V2() }
         let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation = ValueObservation.combine(observation1, observation2, observation3)
+        let observation = ValueObservation
+            .combine(observation1, observation2, observation3)
+            .fetchWhenStarted()
         var value: (V1, V2, V3)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -694,7 +698,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.tracking { _ in V2() }
         let observation3 = ValueObservation.tracking { _ in V3() }
         let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation = ValueObservation.combine(observation1, observation2, observation3, observation4)
+        let observation = ValueObservation
+            .combine(observation1, observation2, observation3, observation4)
+            .fetchWhenStarted()
         var value: (V1, V2, V3, V4)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -714,7 +720,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.tracking { _ in V3() }
         let observation4 = ValueObservation.tracking { _ in V4() }
         let observation5 = ValueObservation.tracking { _ in V5() }
-        let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5)
+        let observation = ValueObservation
+            .combine(observation1, observation2, observation3, observation4, observation5)
+            .fetchWhenStarted()
         var value: (V1, V2, V3, V4, V5)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -736,7 +744,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation4 = ValueObservation.tracking { _ in V4() }
         let observation5 = ValueObservation.tracking { _ in V5() }
         let observation6 = ValueObservation.tracking { _ in V6() }
-        let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6)
+        let observation = ValueObservation
+            .combine(observation1, observation2, observation3, observation4, observation5, observation6)
+            .fetchWhenStarted()
         var value: (V1, V2, V3, V4, V5, V6)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -760,7 +770,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation5 = ValueObservation.tracking { _ in V5() }
         let observation6 = ValueObservation.tracking { _ in V6() }
         let observation7 = ValueObservation.tracking { _ in V7() }
-        let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
+        let observation = ValueObservation
+            .combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
+            .fetchWhenStarted()
         var value: (V1, V2, V3, V4, V5, V6, V7)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -786,7 +798,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation6 = ValueObservation.tracking { _ in V6() }
         let observation7 = ValueObservation.tracking { _ in V7() }
         let observation8 = ValueObservation.tracking { _ in V8() }
-        let observation = ValueObservation.combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
+        let observation = ValueObservation
+            .combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
+            .fetchWhenStarted()
         var value: (V1, V2, V3, V4, V5, V6, V7, V8)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -801,7 +815,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct Combined { }
         let observation1 = ValueObservation.tracking { _ in V1() }
         let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation = observation1.combine(observation2) { (v1: V1, v2: V2) -> Combined in Combined() }
+        let observation = observation1
+            .combine(observation2) { (v1: V1, v2: V2) -> Combined in Combined() }
+            .fetchWhenStarted()
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -818,7 +834,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation1 = ValueObservation.tracking { _ in V1() }
         let observation2 = ValueObservation.tracking { _ in V2() }
         let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation = observation1.combine(observation2, observation3) { (v1: V1, v2: V2, v3: V3) -> Combined in Combined() }
+        let observation = observation1
+            .combine(observation2, observation3) { (v1: V1, v2: V2, v3: V3) -> Combined in Combined() }
+            .fetchWhenStarted()
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -837,7 +855,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.tracking { _ in V2() }
         let observation3 = ValueObservation.tracking { _ in V3() }
         let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation = observation1.combine(observation2, observation3, observation4) { (v1: V1, v2: V2, v3: V3, v4: V4) -> Combined in Combined() }
+        let observation = observation1
+            .combine(observation2, observation3, observation4) { (v1: V1, v2: V2, v3: V3, v4: V4) -> Combined in Combined() }
+            .fetchWhenStarted()
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
@@ -858,7 +878,9 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.tracking { _ in V3() }
         let observation4 = ValueObservation.tracking { _ in V4() }
         let observation5 = ValueObservation.tracking { _ in V5() }
-        let observation = observation1.combine(observation2, observation3, observation4, observation5) { (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5) -> Combined in Combined() }
+        let observation = observation1
+            .combine(observation2, observation3, observation4, observation5) { (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5) -> Combined in Combined() }
+            .fetchWhenStarted()
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),

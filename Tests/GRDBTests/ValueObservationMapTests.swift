@@ -1,13 +1,13 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
+    @testable import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
     #endif
-    import GRDB
+    @testable import GRDB
 #endif
 
 class ValueObservationMapTests: GRDBTestCase {
@@ -31,15 +31,17 @@ class ValueObservationMapTests: GRDBTestCase {
     }
     
     func testMapPreservesConfiguration() {
-        var observation = ValueObservation.tracking { _ in }
+        let queue = DispatchQueue(label: "test")
+        var observation = ValueObservation
+            .tracking { _ in }
+            .notify(onDispatchQueue: queue)
         observation.requiresWriteAccess = true
-        observation.scheduling = .unsafe
         
         let mappedObservation = observation.map { _ in }
         XCTAssertEqual(mappedObservation.requiresWriteAccess, observation.requiresWriteAccess)
-        switch mappedObservation.scheduling {
-        case .unsafe:
-            break
+        switch mappedObservation._scheduling {
+        case let .async(onDispatchQueue: q):
+            XCTAssert(q === queue)
         default:
             XCTFail()
         }
