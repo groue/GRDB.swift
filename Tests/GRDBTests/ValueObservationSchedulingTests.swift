@@ -65,13 +65,13 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             DispatchQueue.main.setSpecific(key: key, value: ())
             
             var nextError: Error? = nil // If not null, observation throws an error
-            let observation = ValueObservation.tracking({ db in
+            let observation = ValueObservation.tracking { db in
                 _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
                 if let error = nextError {
                     nextError = nil
                     throw error
                 }
-            })
+            }
             
             let observer = observation.start(
                 in: dbWriter,
@@ -192,13 +192,13 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             
             struct TestError: Error { }
             var shouldThrow = false
-            let observation = ValueObservation.tracking({ db in
+            let observation = ValueObservation.tracking { db in
                 _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
                 if shouldThrow {
                     throw TestError()
                 }
                 shouldThrow = true
-            })
+            }
             
             let observer = observation.start(
                 in: dbWriter,
