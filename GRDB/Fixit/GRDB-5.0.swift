@@ -204,7 +204,7 @@ extension TableRecord where Self: FetchableRecord {
 }
 
 extension ValueObservation {
-    @available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.notify(onDispatchQueue:) and ValueObservation.notifyImmediately()")
+    @available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")
     var scheduling: ValueScheduling {
         get { preconditionFailure() }
         set { preconditionFailure() }
@@ -322,7 +322,7 @@ extension ValueReducers {
 @available(*, unavailable, message: "Custom reducers are no longer supported")
 typealias ValueReducer = _ValueReducer
 
-@available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.notify(onDispatchQueue:) and ValueObservation.notifyImmediately()")
+@available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")
 enum ValueScheduling {
     case mainQueue
     case async(onQueue: DispatchQueue, startImmediately: Bool)
