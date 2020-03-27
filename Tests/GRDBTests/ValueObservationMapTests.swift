@@ -1,13 +1,13 @@
 import XCTest
 #if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
+    import GRDBCustomSQLite
 #else
     #if SWIFT_PACKAGE
         import CSQLite
     #else
         import SQLite3
     #endif
-    @testable import GRDB
+    import GRDB
 #endif
 
 class ValueObservationMapTests: GRDBTestCase {
