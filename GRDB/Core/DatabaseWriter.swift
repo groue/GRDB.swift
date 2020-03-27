@@ -348,25 +348,26 @@ extension DatabaseWriter {
                         let db = try dbResult.get()
                         let initialValue = try observer.fetchInitialValue(db)
                         observer.send(initialValue)
-                        
-                        // Now wait for the writer
-                        self.asyncWriteWithoutTransaction { db in
-                            if observer.isCancelled { return }
-                            do {
-                                // Don't miss eventual changes between the
-                                // initial fetch and the writer access.
-                                if let value = try observer.fetchNextValue(db) {
-                                    observer.send(value)
-                                }
-                                
-                                // Now we can start observation
-                                db.add(transactionObserver: observer, extent: .observerLifetime)
-                            } catch {
-                                observer.send(error)
-                            }
-                        }
                     } catch {
                         observer.send(error)
+                        return
+                    }
+                    
+                    // Now wait for the writer
+                    self.asyncWriteWithoutTransaction { db in
+                        if observer.isCancelled { return }
+                        do {
+                            // Don't miss eventual changes between the
+                            // initial fetch and the writer access.
+                            if let value = try observer.fetchNextValue(db) {
+                                observer.send(value)
+                            }
+                            
+                            // Now we can start observation
+                            db.add(transactionObserver: observer, extent: .observerLifetime)
+                        } catch {
+                            observer.send(error)
+                        }
                     }
                 }
             } else {
