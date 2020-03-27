@@ -1,29 +1,5 @@
 import Dispatch
 
-// MARK: - ValueScheduling
-
-/// ValueObservationScheduling controls how ValueObservation schedules the
-/// fresh values to your application.
-enum ValueObservationScheduling {
-    /// All values are asychronously notified on the main queue, but the initial
-    /// one which is notified immediately when the start() method is called.
-    case fetchWhenStarted
-    
-    /// All values are asychronously notified on the specified queue.
-    case async(onDispatchQueue: DispatchQueue)
-    
-    var notificationQueue: DispatchQueue {
-        switch self {
-        case .fetchWhenStarted:
-            return DispatchQueue.main
-        case let .async(onDispatchQueue: queue):
-            return queue
-        }
-    }
-}
-
-// MARK: - ValueObservation
-
 /// ValueObservation tracks changes in the results of database requests, and
 /// notifies fresh values whenever the database changes.
 ///
