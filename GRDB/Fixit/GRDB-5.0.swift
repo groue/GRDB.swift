@@ -314,8 +314,7 @@ extension ValueReducers {
         public func fetch(_ db: Database) throws -> Never
         { preconditionFailure() }
         
-        public mutating func value(_ fetched: Never) -> T?
-        { preconditionFailure() }
+        public mutating func value(_ fetched: Never) -> T? { }
     }
 }
 
