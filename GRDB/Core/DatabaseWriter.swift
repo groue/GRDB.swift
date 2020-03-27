@@ -343,14 +343,14 @@ extension DatabaseWriter {
             if concurrentInitialValue {
                 // Fetch an initial value without waiting for the writer.
                 asyncRead { dbResult in
+                    if observer.isCancelled { return }
                     do {
                         let db = try dbResult.get()
                         let initialValue = try observer.fetchInitialValue(db)
                         observer.send(initialValue)
                         
                         // Now wait for the writer
-                        self.asyncWriteWithoutTransaction { [weak observer] db in
-                            guard let observer = observer else { return }
+                        self.asyncWriteWithoutTransaction { db in
                             if observer.isCancelled { return }
                             do {
                                 // Don't miss eventual changes between the
@@ -371,6 +371,7 @@ extension DatabaseWriter {
                 }
             } else {
                 asyncWriteWithoutTransaction { db in
+                    if observer.isCancelled { return }
                     do {
                         // Fetch an initial value and start observation
                         let initialValue = try observer.fetchInitialValue(db)
