@@ -139,10 +139,10 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        let observation = ValueObservation.trackingVaryingRegion({ db -> Int in
+        let observation = ValueObservation.trackingVaryingRegion { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-        })
+        }
         
         let observer = observation.start(
             in: dbQueue,
@@ -190,10 +190,10 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        let observation = ValueObservation.trackingVaryingRegion({ db -> Int in
+        let observation = ValueObservation.trackingVaryingRegion { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-        })
+        }
         
         let observer = observation.start(
             in: dbQueue,
