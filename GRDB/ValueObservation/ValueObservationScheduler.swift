@@ -64,8 +64,8 @@ struct ImmediateImpl: ValueObservationSchedulerImpl {
     
     func fetchOnStart() -> Bool {
         GRDBPrecondition(
-            DispatchQueue.isMain,
-            "ValueObservation must be started from the main Dispatch queue.")
+            Thread.isMainThread,
+            "ValueObservation must be started from the main thread.")
         return true
     }
 }
