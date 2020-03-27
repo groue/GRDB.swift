@@ -34,8 +34,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
                     counts.append(count)
                     notificationExpectation.fulfill()
             })
-            // .fetchWhenStarted scheduling: initial value MUST be synchronously
-            // dispatched when observation is started from the main queue
+            // .immediate scheduler: initial value MUST be synchronously dispatched
             XCTAssertEqual(counts, [0])
             
             try withExtendedLifetime(observer) {
