@@ -5682,7 +5682,7 @@ class PlayersViewController: UIViewController {
 
 Note that the `.immediate` scheduler requires that the observation is started from the main thread. It raises a fatal error otherwise.
 
-The other built-in scheduler in `.async(onQueue:)`, which asynchronously schedules values and errors on the dispatch queue of your choice:
+The other built-in scheduler `.async(onQueue:)` asynchronously schedules values and errors on the dispatch queue of your choice:
 
 ```swift
 let queue: DispatchQueue = ...
