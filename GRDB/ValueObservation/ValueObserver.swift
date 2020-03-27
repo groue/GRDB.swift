@@ -8,7 +8,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
     private weak var writer: DatabaseWriter?
-    private let notificationQueue: DispatchQueue?
+    private let scheduler: ValueObservationScheduler
     private let reduceQueue: DispatchQueue
     private let onError: (Error) -> Void
     private let onChange: (Reducer.Value) -> Void
@@ -18,7 +18,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
         requiresWriteAccess: Bool,
         writer: DatabaseWriter,
         reducer: Reducer,
-        notificationQueue: DispatchQueue?,
+        scheduler: ValueObservationScheduler,
         reduceQueue: DispatchQueue,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -26,7 +26,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
         self.writer = writer
         self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
-        self.notificationQueue = notificationQueue
+        self.scheduler = scheduler
         self.reduceQueue = reduceQueue
         self.onError = onError
         self.onChange = onChange
@@ -58,27 +58,17 @@ extension ValueObserver {
     
     func send(_ value: Reducer.Value) {
         if isCancelled { return }
-        if let queue = notificationQueue {
-            let onChange = self.onChange
-            queue.async {
-                if self.isCancelled { return }
-                onChange(value)
-            }
-        } else {
-            onChange(value)
+        scheduler.impl.schedule {
+            if self.isCancelled { return }
+            self.onChange(value)
         }
     }
     
     func send(_ error: Error) {
         if isCancelled { return }
-        if let queue = notificationQueue {
-            let onError = self.onError
-            queue.async {
-                if self.isCancelled { return }
-                onError(error)
-            }
-        } else {
-            onError(error)
+        scheduler.impl.schedule {
+            if self.isCancelled { return }
+            self.onError(error)
         }
     }
 }

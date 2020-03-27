@@ -13,9 +13,7 @@ import XCTest
 class ValueObservationMapTests: GRDBTestCase {
     func testMap() throws {
         let valueObservation = ValueObservation
-            .tracking {
-                try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
-            }
+            .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
             .map { "\($0)" }
         
         try assertValueObservation(
@@ -31,19 +29,10 @@ class ValueObservationMapTests: GRDBTestCase {
     }
     
     func testMapPreservesConfiguration() {
-        let queue = DispatchQueue(label: "test")
-        var observation = ValueObservation
-            .tracking { _ in }
-            .notify(onDispatchQueue: queue)
+        var observation = ValueObservation.tracking { _ in }
         observation.requiresWriteAccess = true
         
         let mappedObservation = observation.map { _ in }
         XCTAssertEqual(mappedObservation.requiresWriteAccess, observation.requiresWriteAccess)
-        switch mappedObservation._scheduling {
-        case let .async(onDispatchQueue: q):
-            XCTAssert(q === queue)
-        default:
-            XCTFail()
-        }
     }
 }

@@ -304,27 +304,30 @@ extension DatabaseWriter {
 
     func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        prependingConcurrentFetch: Bool,
+        scheduler: ValueObservationScheduler,
+        concurrentInitialValue: Bool,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
         if configuration.readonly {
-            return addReadOnly(observation: observation, onError: onError, onChange: onChange)
+            return addReadOnly(
+                observation: observation,
+                scheduler: scheduler,
+                onError: onError,
+                onChange: onChange)
         }
-                
+        
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: self,
             reducer: observation.makeReducer(),
-            notificationQueue: observation._scheduling.notificationQueue,
+            scheduler: scheduler,
             reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
             onError: onError,
             onChange: onChange)
         
-        switch observation._scheduling {
-        case .fetchWhenStarted:
-            GRDBPrecondition(Thread.isMainThread, "ValueObservation must be started from the main thread.")
+        if scheduler.impl.fetchOnStart() {
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
                     // Fetch an initial value and start observation
@@ -336,9 +339,8 @@ extension DatabaseWriter {
             } catch {
                 onError(error)
             }
-            
-        case .async:
-            if prependingConcurrentFetch {
+        } else {
+            if concurrentInitialValue {
                 // Fetch an initial value without waiting for the writer.
                 asyncRead { dbResult in
                     do {
@@ -357,7 +359,7 @@ extension DatabaseWriter {
                                     observer.send(value)
                                 }
                                 
-                                // Now we can start observations
+                                // Now we can start observation
                                 db.add(transactionObserver: observer, extent: .observerLifetime)
                             } catch {
                                 observer.send(error)
@@ -553,10 +555,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        base.add(observation: observation, onError: onError, onChange: onChange)
+        base.add(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
 }

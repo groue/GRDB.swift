@@ -11,7 +11,7 @@ import XCTest
 #endif
 
 class ValueObservationSchedulingTests: GRDBTestCase {
-    func testImmediateObservationStartedFromMainQueue() throws {
+    func testImmediateScheduling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -24,11 +24,10 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             DispatchQueue.main.setSpecific(key: key, value: ())
             
-            let observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
-                .fetchWhenStarted()
+            let observation = ValueObservation.tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
             let observer = observation.start(
                 in: dbWriter,
+                scheduler: .immediate,
                 onError: { error in XCTFail("Unexpected error: \(error)") },
                 onChange: { count in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -53,7 +52,7 @@ class ValueObservationSchedulingTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testImmeediateError() throws {
+    func testImmediateError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // We need something to change
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
@@ -67,18 +66,17 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             DispatchQueue.main.setSpecific(key: key, value: ())
             
             var nextError: Error? = nil // If not null, observation throws an error
-            let observation = ValueObservation
-                .tracking({ db in
-                    _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
-                    if let error = nextError {
-                        nextError = nil
-                        throw error
-                    }
-                })
-                .fetchWhenStarted()
+            let observation = ValueObservation.tracking({ db in
+                _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
+                if let error = nextError {
+                    nextError = nil
+                    throw error
+                }
+            })
             
             let observer = observation.start(
                 in: dbWriter,
+                scheduler: .immediate,
                 onError: { error in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                     errorCount += 1
@@ -118,12 +116,11 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             let key = DispatchSpecificKey<()>()
             queue.setSpecific(key: key, value: ())
             
-            let observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
-                .notify(onDispatchQueue: queue)
+            let observation = ValueObservation.tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
             
             let observer = observation.start(
                 in: dbWriter,
+                scheduler: .async(onQueue: queue),
                 onError: { error in XCTFail("Unexpected error: \(error)") },
                 onChange: { count in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
@@ -159,12 +156,11 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             queue.setSpecific(key: key, value: ())
             
             struct TestError: Error { }
-            let observation = ValueObservation
-                .tracking { _ in throw TestError() }
-                .notify(onDispatchQueue: queue)
+            let observation = ValueObservation.tracking { _ in throw TestError() }
             
             let observer = observation.start(
                 in: dbWriter,
+                scheduler: .async(onQueue: queue),
                 onError: { error in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                     errorCount += 1
@@ -197,18 +193,17 @@ class ValueObservationSchedulingTests: GRDBTestCase {
             
             struct TestError: Error { }
             var shouldThrow = false
-            let observation = ValueObservation
-                .tracking({ db in
-                    _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
-                    if shouldThrow {
-                        throw TestError()
-                    }
-                    shouldThrow = true
-                })
-                .notify(onDispatchQueue: queue)
+            let observation = ValueObservation.tracking({ db in
+                _ = try Int.fetchOne(db, sql: "SELECT * FROM t")
+                if shouldThrow {
+                    throw TestError()
+                }
+                shouldThrow = true
+            })
             
             let observer = observation.start(
                 in: dbWriter,
+                scheduler: .async(onQueue: queue),
                 onError: { error in
                     XCTAssertNotNil(DispatchQueue.getSpecific(key: key))
                     errorCount += 1

@@ -123,7 +123,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             onChange: { (int: Int, string: String) in }) // <- destructure
     }
     
-    func testVaryingRegionTrackingMainQueueScheduling() throws {
+    func testVaryingRegionTrackingImmediateScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
             try $0.execute(sql: """
@@ -139,15 +139,14 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        let observation = ValueObservation
-            .trackingVaryingRegion({ db -> Int in
-                let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-                return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-            })
-            .fetchWhenStarted()
+        let observation = ValueObservation.trackingVaryingRegion({ db -> Int in
+            let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
+            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
+        })
         
         let observer = observation.start(
             in: dbQueue,
+            scheduler: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 results.append(count)
@@ -191,15 +190,14 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        let observation = ValueObservation
-            .trackingVaryingRegion({ db -> Int in
-                let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-                return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-            })
-            .notify(onDispatchQueue: .main)
+        let observation = ValueObservation.trackingVaryingRegion({ db -> Int in
+            let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
+            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
+        })
         
         let observer = observation.start(
             in: dbQueue,
+            scheduler: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 results.append(count)

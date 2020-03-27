@@ -44,11 +44,12 @@ class ValueObservationReducerTests: GRDBTestCase {
             })
             
             // Create an observation
-            let observation = ValueObservation(makeReducer: { reducer }).fetchWhenStarted()
+            let observation = ValueObservation(makeReducer: { reducer })
             
             // Start observation
             let observer = observation.start(
                 in: dbWriter,
+                scheduler: .immediate,
                 onError: {
                     errors.append($0)
                     notificationExpectation.fulfill()
@@ -114,14 +115,13 @@ class ValueObservationReducerTests: GRDBTestCase {
         func test(_ dbWriter: DatabaseWriter) throws {
             // Create an observation
             struct TestError: Error { }
-            let observation = ValueObservation
-                .tracking { _ in throw TestError() }
-                .fetchWhenStarted()
+            let observation = ValueObservation.tracking { _ in throw TestError() }
             
             // Start observation
             var error: TestError?
             _ = observation.start(
                 in: dbWriter,
+                scheduler: .immediate,
                 onError: { error = $0 as? TestError },
                 onChange: { _ in })
             XCTAssertNotNil(error)
@@ -204,9 +204,10 @@ class ValueObservationReducerTests: GRDBTestCase {
                             shouldStopObservation = true
                     },
                         value: { _ in () })
-                    }).fetchWhenStarted()
+                })
                 observer = observation.start(
                     in: dbWriter,
+                    scheduler: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
                     onChange: { _ in
                         notificationExpectation.fulfill()
@@ -246,9 +247,10 @@ class ValueObservationReducerTests: GRDBTestCase {
                             shouldStopObservation = true
                             return ()
                     })
-                }).fetchWhenStarted()
+                })
                 observer = observation.start(
                     in: dbWriter,
+                    scheduler: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
                     onChange: { _ in
                         notificationExpectation.fulfill()

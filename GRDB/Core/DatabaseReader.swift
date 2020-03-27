@@ -254,6 +254,7 @@ public protocol DatabaseReader: AnyObject {
     /// - returns: a TransactionObserver
     func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
@@ -300,22 +301,21 @@ extension DatabaseReader {
         
     func addReadOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        switch observation._scheduling {
-        case .fetchWhenStarted:
-            GRDBPrecondition(DispatchQueue.isMain, "ValueObservation must be started from the main Dispatch queue.")
+        if scheduler.impl.fetchOnStart() {
             do {
                 try onChange(unsafeReentrantRead(observation.fetchValue))
             } catch {
                 onError(error)
             }
-        case let .async(onDispatchQueue: queue):
+        } else {
             asyncRead { dbResult in
                 let result = dbResult.tryMap(observation.fetchValue)
-                queue.async {
+                scheduler.impl.schedule {
                     do {
                         try onChange(result.get())
                     } catch {
@@ -414,11 +414,12 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        return base.add(observation: observation, onError: onError, onChange: onChange)
+        return base.add(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
     
     /// :nodoc:

@@ -284,9 +284,10 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         // Test that view v is not included in the observed region.
         // This optimization helps observation of views that feed from a
         // single table.
-        let observation = ValueObservation.tracking(request.fetchAll).fetchWhenStarted()
+        let observation = ValueObservation.tracking(request.fetchAll)
         let observer = observation.start(
             in: dbQueue,
+            scheduler: .immediate, // So that we can test the observedRegion
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { names in
                 results.append(names)

@@ -775,14 +775,23 @@ extension DatabasePool: DatabaseReader {
     
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        add(
+        // DatabasePool supports concurrent reads and can accelerate the
+        // notification of the initial value by not waiting for an access
+        // to the writer queue, which may be busy executing a
+        // long-runnning transaction.
+        //
+        // Obviously this only works if observation does need a write access.
+        let concurrentInitialValue = !observation.requiresWriteAccess
+        
+        return add(
             observation: observation,
-            // DatabasePool supports concurrent reads
-            prependingConcurrentFetch: !observation.requiresWriteAccess,
+            scheduler: scheduler,
+            concurrentInitialValue: concurrentInitialValue,
             onError: onError,
             onChange: onChange)
     }

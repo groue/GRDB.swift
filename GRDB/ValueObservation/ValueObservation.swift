@@ -29,7 +29,10 @@ enum ValueObservationScheduling {
 ///
 /// For example:
 ///
-///     let observation = ValueObservation.tracking(Player.fetchAll)
+///     let observation = ValueObservation.tracking { db in
+///         try Player.fetchAll(db)
+///     }
+///
 ///     let observer = try observation.start(
 ///         in: dbQueue,
 ///         onError: { error in ... },
@@ -38,12 +41,8 @@ enum ValueObservationScheduling {
 ///         })
 public struct ValueObservation<Reducer: _ValueReducer> {
     /// The reducer is created when observation starts, and is triggered upon
-    /// each database change in *observedRegion*.
+    /// each database change.
     var makeReducer: () -> Reducer
-    
-    /// `scheduling` controls how fresh values are notified. Default
-    /// is `ValueObservationScheduling.async(onDispatchQueue: .main)`.
-    var _scheduling = ValueObservationScheduling.async(onDispatchQueue: .main)
     
     /// Default is false. Set this property to true when the observation
     /// requires write access in order to fetch fresh values. Fetches are then
@@ -52,37 +51,30 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
     public var requiresWriteAccess: Bool = false
+    
+    /// Returns a ValueObservation with a transformed reducer.
+    func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
+        let makeReducer = self.makeReducer
+        return ValueObservation<R>(
+            makeReducer: { transform(makeReducer()) },
+            requiresWriteAccess: requiresWriteAccess)
+    }
 }
 
-extension ValueObservation: KeyPathRefining {
+extension ValueObservation {
     
-    // MARK: - Scheduling
+    // MARK: - Starting Observation
     
-    /// Returns a ValueObservation which notifies fresh values on the given
-    /// dispatch queue, asynchronously.
+    /// Starts the value observation in the provided database reader (such as
+    /// a database queue or database pool), and returns a transaction observer.
+    ///
+    /// The observation lasts until the returned observer is deallocated.
     ///
     /// For example:
     ///
-    ///     let observation = ValueObservation
-    ///         .tracking(Player.fetchAll)
-    ///         .notify(onDispatchQueue: .main)
-    ///
-    /// Note that by default, ValueObservation notifies fresh values on the main
-    /// dispatch queue, asynchronously.
-    public func notify(onDispatchQueue queue: DispatchQueue) -> Self {
-        with(\._scheduling, .async(onDispatchQueue: queue))
-    }
-    
-    /// Returns a ValueObservation which notifies fresh values on the main
-    /// dispatch queue. The initial value is notified immediately when the
-    /// `start()` method is called. Subsequent values are
-    /// notified asynchronously.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation
-    ///         .tracking(Player.fetchAll)
-    ///         .fetchWhenStarted()
+    ///     let observation = ValueObservation.tracking { db in
+    ///         try Player.fetchAll(db)
+    ///     }
     ///
     ///     let observer = try observation.start(
     ///         in: dbQueue,
@@ -90,30 +82,36 @@ extension ValueObservation: KeyPathRefining {
     ///         onChange: { players: [Player] in
     ///             print("fresh players: \(players)")
     ///         })
+    ///
+    /// By default, fresh values are dispatched asynchronously on the
+    /// main queue. You can change this behavior by providing a scheduler.
+    /// For example, `.immediate` notifies all values on the main queue as well,
+    /// but the first one is immediately notified when the start() method
+    /// is called:
+    ///
+    ///     let observer = try observation.start(
+    ///         in: dbQueue,
+    ///         scheduler: .immediate, // <-
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
     ///     // <- here "fresh players" is already printed.
     ///
-    /// - important: Such an observation must be started from the main thread.
-    ///   A fatal error is raised otherwise.
-    public func fetchWhenStarted() -> Self {
-        with(\._scheduling, .fetchWhenStarted)
-    }
-    
-    // MARK: - Starting Observation
-    
-    /// Starts the value observation in the provided database reader (such as
-    /// a database queue or database pool), and returns a transaction observer.
-    ///
     /// - parameter reader: A DatabaseReader.
+    /// - parameter scheduler: A Scheduler. By default, fresh values are
+    ///   dispatched asynchronously on the main queue.
     /// - parameter onError: A closure that is provided eventual errors that
-    /// happen during observation
+    ///   happen during observation
     /// - parameter onChange: A closure that is provided fresh values
     /// - returns: a TransactionObserver
     public func start(
         in reader: DatabaseReader,
+        scheduler: ValueObservationScheduler = .async(onQueue: .main),
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> TransactionObserver
     {
-        return reader.add(observation: self, onError: onError, onChange: onChange)
+        return reader.add(observation: self, scheduler: scheduler, onError: onError, onChange: onChange)
     }
     
     // MARK: - Fetching Values

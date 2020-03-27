@@ -451,14 +451,16 @@ extension DatabaseQueue {
     
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
         add(
             observation: observation,
+            scheduler: scheduler,
             // DatabaseQueue does not support concurrent reads
-            prependingConcurrentFetch: false,
+            concurrentInitialValue: false,
             onError: onError,
             onChange: onChange)
     }

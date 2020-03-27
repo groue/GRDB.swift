@@ -658,14 +658,13 @@ class ValueObservationCombineTests: GRDBTestCase {
     func testHeterogeneusCombine2() throws {
         struct V1 { }
         struct V2 { }
-        let observation1 = ValueObservation.tracking { _ in V1() }
-        let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation = ValueObservation
-            .combine(observation1, observation2)
-            .fetchWhenStarted()
+        let observation = ValueObservation.combine(
+            ValueObservation.tracking { _ in V1() },
+            ValueObservation.tracking { _ in V2() })
         var value: (V1, V2)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -675,15 +674,14 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V1 { }
         struct V2 { }
         struct V3 { }
-        let observation1 = ValueObservation.tracking { _ in V1() }
-        let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation = ValueObservation
-            .combine(observation1, observation2, observation3)
-            .fetchWhenStarted()
+        let observation = ValueObservation.combine(
+            ValueObservation.tracking { _ in V1() },
+            ValueObservation.tracking { _ in V2() },
+            ValueObservation.tracking { _ in V3() })
         var value: (V1, V2, V3)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -694,16 +692,15 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V2 { }
         struct V3 { }
         struct V4 { }
-        let observation1 = ValueObservation.tracking { _ in V1() }
-        let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation = ValueObservation
-            .combine(observation1, observation2, observation3, observation4)
-            .fetchWhenStarted()
+        let observation = ValueObservation.combine(
+            ValueObservation.tracking { _ in V1() },
+            ValueObservation.tracking { _ in V2() },
+            ValueObservation.tracking { _ in V3() },
+            ValueObservation.tracking { _ in V4() })
         var value: (V1, V2, V3, V4)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -715,17 +712,16 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V3 { }
         struct V4 { }
         struct V5 { }
-        let observation1 = ValueObservation.tracking { _ in V1() }
-        let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation5 = ValueObservation.tracking { _ in V5() }
-        let observation = ValueObservation
-            .combine(observation1, observation2, observation3, observation4, observation5)
-            .fetchWhenStarted()
+        let observation = ValueObservation.combine(
+            ValueObservation.tracking { _ in V1() },
+            ValueObservation.tracking { _ in V2() },
+            ValueObservation.tracking { _ in V3() },
+            ValueObservation.tracking { _ in V4() },
+            ValueObservation.tracking { _ in V5() })
         var value: (V1, V2, V3, V4, V5)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -738,18 +734,17 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V4 { }
         struct V5 { }
         struct V6 { }
-        let observation1 = ValueObservation.tracking { _ in V1() }
-        let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation5 = ValueObservation.tracking { _ in V5() }
-        let observation6 = ValueObservation.tracking { _ in V6() }
-        let observation = ValueObservation
-            .combine(observation1, observation2, observation3, observation4, observation5, observation6)
-            .fetchWhenStarted()
+        let observation = ValueObservation.combine(
+            ValueObservation.tracking { _ in V1() },
+            ValueObservation.tracking { _ in V2() },
+            ValueObservation.tracking { _ in V3() },
+            ValueObservation.tracking { _ in V4() },
+            ValueObservation.tracking { _ in V5() },
+            ValueObservation.tracking { _ in V6() })
         var value: (V1, V2, V3, V4, V5, V6)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -763,19 +758,18 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V5 { }
         struct V6 { }
         struct V7 { }
-        let observation1 = ValueObservation.tracking { _ in V1() }
-        let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation5 = ValueObservation.tracking { _ in V5() }
-        let observation6 = ValueObservation.tracking { _ in V6() }
-        let observation7 = ValueObservation.tracking { _ in V7() }
-        let observation = ValueObservation
-            .combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7)
-            .fetchWhenStarted()
+        let observation = ValueObservation.combine(
+            ValueObservation.tracking { _ in V1() },
+            ValueObservation.tracking { _ in V2() },
+            ValueObservation.tracking { _ in V3() },
+            ValueObservation.tracking { _ in V4() },
+            ValueObservation.tracking { _ in V5() },
+            ValueObservation.tracking { _ in V6() },
+            ValueObservation.tracking { _ in V7() })
         var value: (V1, V2, V3, V4, V5, V6, V7)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -790,20 +784,19 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct V6 { }
         struct V7 { }
         struct V8 { }
-        let observation1 = ValueObservation.tracking { _ in V1() }
-        let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation5 = ValueObservation.tracking { _ in V5() }
-        let observation6 = ValueObservation.tracking { _ in V6() }
-        let observation7 = ValueObservation.tracking { _ in V7() }
-        let observation8 = ValueObservation.tracking { _ in V8() }
-        let observation = ValueObservation
-            .combine(observation1, observation2, observation3, observation4, observation5, observation6, observation7, observation8)
-            .fetchWhenStarted()
+        let observation = ValueObservation.combine(
+            ValueObservation.tracking { _ in V1() },
+            ValueObservation.tracking { _ in V2() },
+            ValueObservation.tracking { _ in V3() },
+            ValueObservation.tracking { _ in V4() },
+            ValueObservation.tracking { _ in V5() },
+            ValueObservation.tracking { _ in V6() },
+            ValueObservation.tracking { _ in V7() },
+            ValueObservation.tracking { _ in V8() })
         var value: (V1, V2, V3, V4, V5, V6, V7, V8)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -815,12 +808,11 @@ class ValueObservationCombineTests: GRDBTestCase {
         struct Combined { }
         let observation1 = ValueObservation.tracking { _ in V1() }
         let observation2 = ValueObservation.tracking { _ in V2() }
-        let observation = observation1
-            .combine(observation2) { (v1: V1, v2: V2) -> Combined in Combined() }
-            .fetchWhenStarted()
+        let observation = observation1.combine(observation2) { (v1: V1, v2: V2) -> Combined in Combined() }
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -834,12 +826,11 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation1 = ValueObservation.tracking { _ in V1() }
         let observation2 = ValueObservation.tracking { _ in V2() }
         let observation3 = ValueObservation.tracking { _ in V3() }
-        let observation = observation1
-            .combine(observation2, observation3) { (v1: V1, v2: V2, v3: V3) -> Combined in Combined() }
-            .fetchWhenStarted()
+        let observation = observation1.combine(observation2, observation3) { (v1: V1, v2: V2, v3: V3) -> Combined in Combined() }
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -855,12 +846,11 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation2 = ValueObservation.tracking { _ in V2() }
         let observation3 = ValueObservation.tracking { _ in V3() }
         let observation4 = ValueObservation.tracking { _ in V4() }
-        let observation = observation1
-            .combine(observation2, observation3, observation4) { (v1: V1, v2: V2, v3: V3, v4: V4) -> Combined in Combined() }
-            .fetchWhenStarted()
+        let observation = observation1.combine(observation2, observation3, observation4) { (v1: V1, v2: V2, v3: V3, v4: V4) -> Combined in Combined() }
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -878,12 +868,11 @@ class ValueObservationCombineTests: GRDBTestCase {
         let observation3 = ValueObservation.tracking { _ in V3() }
         let observation4 = ValueObservation.tracking { _ in V4() }
         let observation5 = ValueObservation.tracking { _ in V5() }
-        let observation = observation1
-            .combine(observation2, observation3, observation4, observation5) { (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5) -> Combined in Combined() }
-            .fetchWhenStarted()
+        let observation = observation1.combine(observation2, observation3, observation4, observation5) { (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5) -> Combined in Combined() }
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
+            scheduler: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
