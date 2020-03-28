@@ -400,7 +400,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.immediateInitialValue() {
+                if scheduler.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 
@@ -411,7 +411,7 @@ extension GRDBTestCase {
                 let values = try wait(for: expectation, timeout: 0.3)
                 XCTAssertEqual(
                     values, expectedValues,
-                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
             
             func testRecordingEqualWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
@@ -433,7 +433,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.immediateInitialValue() {
+                if scheduler.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 
@@ -441,7 +441,7 @@ extension GRDBTestCase {
                 let values = try wait(for: expectation, timeout: 0.3)
                 XCTAssertEqual(
                     values, expectedValues,
-                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
             
             func testRecordingMatchWhenWriteAfterStart(writer: DatabaseWriter) throws {
@@ -457,7 +457,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.immediateInitialValue() {
+                if scheduler.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 
@@ -468,14 +468,14 @@ extension GRDBTestCase {
                     .inverted
                 let values = try wait(for: expectation, timeout: 0.3)
                 
-                if scheduler.impl.immediateInitialValue() {
+                if scheduler.immediateInitialValue() {
                     XCTAssertEqual(values.first, expectedValues.first)
                 }
                 
                 assertValueObservationRecordingMatch(
                     recorded: values,
                     expected: expectedValues,
-                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
             
             func testRecordingMatchWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
@@ -497,7 +497,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.immediateInitialValue() {
+                if scheduler.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 
@@ -526,7 +526,7 @@ extension GRDBTestCase {
                 assertValueObservationRecordingMatch(
                     recorded: recordedValues,
                     expected: expectedValues,
-                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
             
             try testRecordingEqualWhenWriteAfterStart(writer: DatabaseQueue())
