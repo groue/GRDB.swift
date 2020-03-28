@@ -197,15 +197,23 @@ extension ValueObservationRecorder {
 extension ValueObservation {
     public func record(
         in reader: DatabaseReader,
-        scheduler: ValueObservationScheduler = .async(onQueue: .main))
+        scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        onError: ((Error) -> Void)? = nil,
+        onChange: ((Reducer.Value) -> Void)? = nil)
         -> ValueObservationRecorder<Reducer.Value>
     {
         let recorder = ValueObservationRecorder<Reducer.Value>()
         let observer = start(
             in: reader,
             scheduler: scheduler,
-            onError: recorder.onError,
-            onChange: recorder.onChange)
+            onError: {
+                onError?($0)
+                recorder.onError($0)
+        },
+            onChange: {
+                onChange?($0)
+                recorder.onChange($0)
+        })
         recorder.receive(observer)
         return recorder
     }
@@ -342,60 +350,189 @@ extension GRDBTestCase {
         _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
-        recordedUpdates: (Database) throws -> Void,
+        recordedUpdates: @escaping (Database) throws -> Void,
         file: StaticString = #file,
         line: UInt = #line)
         throws
         where Reducer.Value: Equatable
     {
-        func testRecordingEqual(
-            writer: DatabaseWriter,
+        func test(
             observation: ValueObservation<Reducer>,
-            scheduler: ValueObservationScheduler) throws
+            scheduler: ValueObservationScheduler,
+            testValueDispatching: @escaping () -> Void) throws
         {
-            try writer.write(setup)
-            let recorder = observation.record(in: writer, scheduler: scheduler)
-            try writer.writeWithoutTransaction(recordedUpdates)
-            let expectation = recorder.next(expectedValues.count)
-            let values = try wait(for: expectation, timeout: 0.3)
-            XCTAssertEqual(values, expectedValues, file: file, line: line)
-        }
-        
-        func testRecordingMatch(
-            writer: DatabaseWriter,
-            observation: ValueObservation<Reducer>,
-            scheduler: ValueObservationScheduler) throws
-        {
-            try writer.write(setup)
-            let recorder = observation.record(in: writer, scheduler: scheduler)
-            try writer.writeWithoutTransaction(recordedUpdates)
-            let expectation = recorder
-                .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
-                .inverted
-            let values = try wait(for: expectation, timeout: 0.3)
-            assertValueObservationRecordingMatch(
-                recorded: values,
-                expected: expectedValues,
-                file: file, line: line)
-        }
-        
-        do {
-            let scheduler = ValueObservationScheduler.immediate
-            try testRecordingEqual(writer: DatabaseQueue(), observation: observation, scheduler: scheduler)
-            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation, scheduler: scheduler)
-            try testRecordingEqual(writer: makeDatabasePool(), observation: observation, scheduler: scheduler)
-        }
-        
-        do {
-            let scheduler = ValueObservationScheduler.async(onQueue: .main)
-            try testRecordingEqual(writer: DatabaseQueue(), observation: observation, scheduler: scheduler)
-            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation, scheduler: scheduler)
-            if observation.requiresWriteAccess || !observation.makeReducer().isObservedRegionDeterministic {
-                try testRecordingEqual(writer: makeDatabasePool(), observation: observation, scheduler: scheduler)
-            } else {
-                // DatabasePool performs an immediate async fetch and may miss initial changes
-                try testRecordingMatch(writer: makeDatabasePool(), observation: observation, scheduler: scheduler)
+            func testRecordingEqualWhenWriteAfterStart(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: {
+                        testValueDispatching()
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.impl.fetchOnStart() {
+                    XCTAssertNotNil(value)
+                }
+                
+                // Perform writes after start
+                try writer.writeWithoutTransaction(recordedUpdates)
+                
+                let expectation = recorder.next(expectedValues.count)
+                let values = try wait(for: expectation, timeout: 0.3)
+                XCTAssertEqual(
+                    values, expectedValues,
+                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
             }
+            
+            func testRecordingEqualWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var valueCount = 0
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: {
+                        testValueDispatching()
+                        valueCount += 1
+                        if valueCount == 1 {
+                            // Perform writes after initial value
+                            try! writer.writeWithoutTransaction(recordedUpdates)
+                        }
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.impl.fetchOnStart() {
+                    XCTAssertNotNil(value)
+                }
+                
+                let expectation = recorder.next(expectedValues.count)
+                let values = try wait(for: expectation, timeout: 0.3)
+                XCTAssertEqual(
+                    values, expectedValues,
+                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
+            }
+            
+            func testRecordingMatchWhenWriteAfterStart(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: {
+                        testValueDispatching()
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.impl.fetchOnStart() {
+                    XCTAssertNotNil(value)
+                }
+                
+                try writer.writeWithoutTransaction(recordedUpdates)
+                
+                let expectation = recorder
+                    .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
+                    .inverted
+                let values = try wait(for: expectation, timeout: 0.3)
+                
+                if scheduler.impl.fetchOnStart() {
+                    XCTAssertEqual(values.first, expectedValues.first)
+                }
+                
+                assertValueObservationRecordingMatch(
+                    recorded: values,
+                    expected: expectedValues,
+                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
+            }
+            
+            func testRecordingMatchWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var valueCount = 0
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: {
+                        testValueDispatching()
+                        valueCount += 1
+                        if valueCount == 1 {
+                            // Perform writes after initial value
+                            try! writer.writeWithoutTransaction(recordedUpdates)
+                        }
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.impl.fetchOnStart() {
+                    XCTAssertNotNil(value)
+                }
+                
+                let expectation = recorder
+                    .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
+                    .inverted
+                let values = try wait(for: expectation, timeout: 0.3)
+                
+                XCTAssertEqual(values.first, expectedValues.first)
+                
+                assertValueObservationRecordingMatch(
+                    recorded: values,
+                    expected: expectedValues,
+                    "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
+            }
+            
+            try testRecordingEqualWhenWriteAfterStart(writer: DatabaseQueue())
+            try testRecordingEqualWhenWriteAfterFirstValue(writer: DatabaseQueue())
+            
+            try testRecordingEqualWhenWriteAfterStart(writer: makeDatabaseQueue())
+            try testRecordingEqualWhenWriteAfterFirstValue(writer: makeDatabaseQueue())
+
+            if observation.requiresWriteAccess {
+                try testRecordingEqualWhenWriteAfterStart(writer: makeDatabasePool())
+                try testRecordingEqualWhenWriteAfterFirstValue(writer: makeDatabasePool())
+            } else {
+                // DatabasePool may miss some changes
+                try testRecordingMatchWhenWriteAfterStart(writer: makeDatabasePool())
+                try testRecordingMatchWhenWriteAfterFirstValue(writer: makeDatabasePool())
+            }
+        }
+        
+        do {
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .immediate,
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+        }
+        
+        do {
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: .main),
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+        }
+        
+        do {
+            let queue = DispatchQueue(label: "custom")
+            let key = DispatchSpecificKey<()>()
+            queue.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: queue),
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }
     
@@ -408,32 +545,60 @@ extension GRDBTestCase {
         throws
     {
         func test(
-            writer: DatabaseWriter,
             observation: ValueObservation<Reducer>,
-            scheduler: ValueObservationScheduler) throws
+            scheduler: ValueObservationScheduler,
+            testErrorDispatching: @escaping () -> Void) throws
         {
-            try writer.write(setup)
-            let recorder = observation.record(in: writer, scheduler: scheduler)
-            let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
-            if let error = error as? Failure {
-                try testFailure(error, writer)
-            } else {
-                throw error
+            func test(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onError: { _ in testErrorDispatching() })
+
+                let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
+                if let error = error as? Failure {
+                    try testFailure(error, writer)
+                } else {
+                    throw error
+                }
             }
+            
+            try test(writer: DatabaseQueue())
+            try test(writer: makeDatabaseQueue())
+            try test(writer: makeDatabasePool())
         }
         
         do {
-            let scheduler = ValueObservationScheduler.immediate
-            try test(writer: DatabaseQueue(), observation: observation, scheduler: scheduler)
-            try test(writer: makeDatabaseQueue(), observation: observation, scheduler: scheduler)
-            try test(writer: makeDatabasePool(), observation: observation, scheduler: scheduler)
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .immediate,
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
         do {
-            let scheduler = ValueObservationScheduler.async(onQueue: .main)
-            try test(writer: DatabaseQueue(), observation: observation, scheduler: scheduler)
-            try test(writer: makeDatabaseQueue(), observation: observation, scheduler: scheduler)
-            try test(writer: makeDatabasePool(), observation: observation, scheduler: scheduler)
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: .main),
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+        }
+        
+        do {
+            let queue = DispatchQueue(label: "custom")
+            let key = DispatchSpecificKey<()>()
+            queue.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: queue),
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }
 }
