@@ -49,6 +49,7 @@ class ValueObservationRecordTests: GRDBTestCase {
                 try db.execute(sql: "DELETE FROM t WHERE id = 1")
         })
         
+        // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
             ValueObservation
                 .tracking { try Row.fetchAll($0, request) }
@@ -101,6 +102,7 @@ class ValueObservationRecordTests: GRDBTestCase {
                 try db.execute(sql: "DELETE FROM t")
         })
         
+        // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
             ValueObservation
                 .tracking { try Row.fetchOne($0, request) }

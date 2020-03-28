@@ -125,6 +125,28 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             recordedUpdates: { db in
                 try db.execute(sql: "DELETE FROM child")
             })
+        
+        // The fundamental technique for removing duplicates of non-Equatable types
+        try assertValueObservation(
+            ValueObservation
+                .tracking { db in try Row.fetchOne(db, request) }
+                .removeDuplicates()
+                .map { row in row.map(ParentInfo.init(row:)) },
+            records: [
+                ParentInfo(
+                    parent: Parent(id: 1, name: "foo"),
+                    children: [
+                        Child(id: 1, parentId: 1, name: "fooA"),
+                        Child(id: 2, parentId: 1, name: "fooB"),
+                ]),
+                ParentInfo(
+                    parent: Parent(id: 1, name: "foo"),
+                    children: []),
+            ],
+            setup: setup,
+            recordedUpdates: { db in
+                try db.execute(sql: "DELETE FROM child")
+            })
     }
     
     func testAllRecordsWithPrefetchedRows() throws {
@@ -162,5 +184,39 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             recordedUpdates: { db in
                 try db.execute(sql: "DELETE FROM child")
             })
+        
+        // The fundamental technique for removing duplicates of non-Equatable types
+        try assertValueObservation(
+            ValueObservation
+                .tracking { db in try Row.fetchAll(db, request) }
+                .removeDuplicates()
+                .map { rows in rows.map(ParentInfo.init(row:)) },
+            records: [
+                [
+                    ParentInfo(
+                        parent: Parent(id: 1, name: "foo"),
+                        children: [
+                            Child(id: 1, parentId: 1, name: "fooA"),
+                            Child(id: 2, parentId: 1, name: "fooB"),
+                    ]),
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: [
+                            Child(id: 3, parentId: 2, name: "barA"),
+                    ]),
+                ],
+                [
+                    ParentInfo(
+                        parent: Parent(id: 1, name: "foo"),
+                        children: []),
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: []),
+                ],
+            ],
+            setup: setup,
+            recordedUpdates: { db in
+                try db.execute(sql: "DELETE FROM child")
+        })
     }
 }

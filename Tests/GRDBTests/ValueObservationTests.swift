@@ -108,7 +108,55 @@ class ValueObservationTests: GRDBTestCase {
         let token = observer as! ValueObserverToken<ValueReducers.Fetch<[Row]>> // Non-public implementation detail
         XCTAssertEqual(token.observer.observedRegion!.description, "t(id,name)") // view is NOT tracked
     }
-
+    
+    // MARK: - Cancellation
+    
+    func testExtentObserverLifetime() throws {
+        // We need something to change
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        // Track reducer process
+        var changesCount = 0
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        // Create an observation
+        let observation = ValueObservation.tracking {
+            try Int.fetchOne($0, sql: "SELECT * FROM t")
+        }
+        
+        // Start observation and deallocate observer after second change
+        var observer: TransactionObserver?
+        observer = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { _ in
+                changesCount += 1
+                if changesCount == 2 {
+                    observer = nil
+                }
+                notificationExpectation.fulfill()
+        })
+        
+        // notified
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        
+        // not notified
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        }
+        
+        // Avoid "Variable 'observer' was written to, but never read" warning
+        _ = observer
+        
+        waitForExpectations(timeout: 1, handler: nil)
+        XCTAssertEqual(changesCount, 2)
+    }
+    
     func testObserverInvalidation1() throws {
         // Test that observation stops when observer is deallocated
         func test(_ dbWriter: DatabaseWriter) throws {
