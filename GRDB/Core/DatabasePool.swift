@@ -846,7 +846,7 @@ extension DatabasePool: DatabaseReader {
             onError: onError,
             onChange: onChange)
         
-        if scheduler.impl.immediateInitialValue() {
+        if scheduler.immediateInitialValue() {
             do {
                 // Fetch an initial value without waiting for the writer.
                 let initialValue = try unsafeReentrantRead(observer.fetchInitialValue)

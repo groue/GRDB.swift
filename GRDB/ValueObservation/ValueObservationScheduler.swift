@@ -4,12 +4,20 @@ import Foundation
 /// ValueObservationScheduler determines how ValueObservation notifies its
 /// fresh values.
 public class ValueObservationScheduler {
-    let impl: ValueObservationSchedulerImpl
+    private let impl: ValueObservationSchedulerImpl
     
-    init(impl: ValueObservationSchedulerImpl) {
+    private init(impl: ValueObservationSchedulerImpl) {
         self.impl = impl
     }
     
+    func schedule(_ action: @escaping () -> Void) {
+        impl.schedule(action)
+    }
+    
+    func immediateInitialValue() -> Bool {
+        impl.immediateInitialValue()
+    }
+
     /// A scheduler which asynchronously notifies fresh value of the
     /// given DispatchQueue.
     ///
@@ -53,12 +61,12 @@ public class ValueObservationScheduler {
     public static let immediate = ValueObservationScheduler(impl: ImmediateImpl())
 }
 
-protocol ValueObservationSchedulerImpl {
+private protocol ValueObservationSchedulerImpl {
     func schedule(_ action: @escaping () -> Void)
     func immediateInitialValue() -> Bool
 }
 
-struct ImmediateImpl: ValueObservationSchedulerImpl {
+private struct ImmediateImpl: ValueObservationSchedulerImpl {
     func schedule(_ action: @escaping () -> Void) {
         DispatchQueue.main.async(execute: action)
     }

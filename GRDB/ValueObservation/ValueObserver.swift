@@ -56,7 +56,7 @@ extension ValueObserver {
     
     func send(_ value: Reducer.Value) {
         if isCancelled { return }
-        scheduler.impl.schedule {
+        scheduler.schedule {
             if self.isCancelled { return }
             self.onChange(value)
         }
@@ -64,7 +64,7 @@ extension ValueObserver {
     
     func complete(withError error: Error) {
         if isCancelled { return }
-        scheduler.impl.schedule {
+        scheduler.schedule {
             if self.isCancelled { return }
             self.onError(error)
             self.cancel()

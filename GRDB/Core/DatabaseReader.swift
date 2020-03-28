@@ -318,7 +318,7 @@ extension DatabaseReader {
         // never changes.
         let observer = DummyObserver()
         
-        if scheduler.impl.immediateInitialValue() {
+        if scheduler.immediateInitialValue() {
             do {
                 try onChange(unsafeReentrantRead(observation.fetchValue))
             } catch {
@@ -335,7 +335,7 @@ extension DatabaseReader {
                     return
                 }
                 let result = dbResult.tryMap(observation.fetchValue)
-                scheduler.impl.schedule { [weak observer] in
+                scheduler.schedule { [weak observer] in
                     guard let observer = observer else {
                         return
                     }

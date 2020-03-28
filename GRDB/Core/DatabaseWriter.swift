@@ -327,7 +327,7 @@ extension DatabaseWriter {
             onError: onError,
             onChange: onChange)
         
-        if scheduler.impl.immediateInitialValue() {
+        if scheduler.immediateInitialValue() {
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
                     let initialValue = try observer.fetchInitialValue(db)
