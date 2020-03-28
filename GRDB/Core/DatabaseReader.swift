@@ -298,7 +298,9 @@ extension DatabaseReader {
 
 extension DatabaseReader {
     // MARK: - Value Observation Support
-        
+    
+    /// Adding an observation in a read-only database emits only the
+    /// initial value.
     func addReadOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
@@ -306,6 +308,10 @@ extension DatabaseReader {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
+        // A dummy observer is enough, because read-only ValueObservation
+        // never changes.
+        let observer = DummyObserver()
+        
         if scheduler.impl.fetchOnStart() {
             do {
                 try onChange(unsafeReentrantRead(observation.fetchValue))
@@ -313,9 +319,11 @@ extension DatabaseReader {
                 onError(error)
             }
         } else {
-            asyncRead { dbResult in
+            asyncRead { [weak observer] dbResult in
+                if observer == nil { return }
                 let result = dbResult.tryMap(observation.fetchValue)
                 scheduler.impl.schedule {
+                    if observer == nil { return }
                     do {
                         try onChange(result.get())
                     } catch {
@@ -325,12 +333,11 @@ extension DatabaseReader {
             }
         }
         
-        // Return a dummy observer, because read-only ValueObservation
-        // never changes.
-        return DummyObserver()
+        return observer
     }
 }
 
+// TODO: remove when we have proper support for cancellation
 /// Support for DatabaseReader.addReadonly(observation:onError:onChange:)
 private class DummyObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
