@@ -317,6 +317,7 @@ extension DatabaseReader {
             do {
                 try onChange(unsafeReentrantRead(observation.fetchValue))
             } catch {
+                observer.cancel()
                 onError(error)
             }
         } else {
@@ -328,6 +329,7 @@ extension DatabaseReader {
                     do {
                         try onChange(result.get())
                     } catch {
+                        observer?.cancel()
                         onError(error)
                     }
                 }
@@ -345,6 +347,7 @@ private class DummyObserver: TransactionObserver {
     func databaseDidChange(with event: DatabaseEvent) { }
     func databaseDidCommit(_ db: Database) { }
     func databaseDidRollback(_ db: Database) { }
+    func cancel() { }
 }
 
 /// A type-erased DatabaseReader

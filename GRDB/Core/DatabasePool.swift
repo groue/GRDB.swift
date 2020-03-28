@@ -800,7 +800,8 @@ extension DatabasePool: DatabaseReader {
         if scheduler.impl.fetchOnStart() {
             do {
                 // Fetch an initial value without waiting for the writer.
-                try onChange(unsafeReentrantRead(observer.fetchInitialValue))
+                let initialValue = try unsafeReentrantRead(observer.fetchInitialValue)
+                onChange(initialValue)
                 
                 // Now wait for the writer
                 self.asyncWriteWithoutTransaction { db in
@@ -819,6 +820,7 @@ extension DatabasePool: DatabaseReader {
                     }
                 }
             } catch {
+                observer.cancel()
                 onError(error)
             }
         } else {
@@ -826,8 +828,7 @@ extension DatabasePool: DatabaseReader {
             asyncRead { dbResult in
                 if observer.isCancelled { return }
                 do {
-                    let db = try dbResult.get()
-                    let initialValue = try observer.fetchInitialValue(db)
+                    let initialValue = try observer.fetchInitialValue(dbResult.get())
                     observer.send(initialValue)
                     
                     // Now wait for the writer

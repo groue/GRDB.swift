@@ -330,6 +330,7 @@ extension DatabaseWriter {
                 }
                 onChange(initialValue)
             } catch {
+                observer.cancel()
                 onError(error)
             }
         } else {
