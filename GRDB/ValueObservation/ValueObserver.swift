@@ -64,11 +64,12 @@ extension ValueObserver {
         }
     }
     
-    func send(_ error: Error) {
+    func complete(withError error: Error) {
         if isCancelled { return }
         scheduler.impl.schedule {
             if self.isCancelled { return }
             self.onError(error)
+            self.cancel()
         }
     }
 }
@@ -120,7 +121,7 @@ extension ValueObserver: TransactionObserver {
                     self.send(value)
                 }
             } catch {
-                self.send(error)
+                self.complete(withError: error)
             }
         }
     }
@@ -158,6 +159,7 @@ extension ValueObserver {
     }
 }
 
+// TODO: remove when we have proper support for cancellation
 class ValueObserverToken<Reducer: _ValueReducer>: TransactionObserver {
     // Useless junk
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }

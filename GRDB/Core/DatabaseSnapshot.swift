@@ -126,6 +126,7 @@ extension DatabaseSnapshot {
         return addReadOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
     
+    // TODO: remove when we have proper support for Observation cancellation
     public func remove(transactionObserver: TransactionObserver) {
         // Can't remove an observer which could not be added :-)
     }

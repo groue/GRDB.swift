@@ -456,12 +456,10 @@ extension DatabaseQueue {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        add(
-            observation: observation,
-            scheduler: scheduler,
-            // DatabaseQueue does not support concurrent reads
-            concurrentInitialValue: false,
-            onError: onError,
-            onChange: onChange)
+        if configuration.readonly {
+            return addReadOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
+        }
+        
+        return addWriteOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
 }

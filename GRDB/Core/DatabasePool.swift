@@ -780,20 +780,79 @@ extension DatabasePool: DatabaseReader {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        // DatabasePool supports concurrent reads and can accelerate the
-        // notification of the initial value by not waiting for an access
-        // to the writer queue, which may be busy executing a
-        // long-running transaction.
-        //
-        // Obviously this only works if observation does need a write access.
-        let concurrentInitialValue = !observation.requiresWriteAccess
+        if configuration.readonly {
+            return addReadOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
+        }
         
-        return add(
-            observation: observation,
+        if observation.requiresWriteAccess {
+            return addWriteOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
+        }
+        
+        let observer = ValueObserver<Reducer>(
+            requiresWriteAccess: observation.requiresWriteAccess,
+            writer: self,
+            reducer: observation.makeReducer(),
             scheduler: scheduler,
-            concurrentInitialValue: concurrentInitialValue,
+            reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
             onError: onError,
             onChange: onChange)
+        
+        if scheduler.impl.fetchOnStart() {
+            do {
+                // Fetch an initial value without waiting for the writer.
+                try onChange(unsafeReentrantRead(observer.fetchInitialValue))
+                
+                // Now wait for the writer
+                self.asyncWriteWithoutTransaction { db in
+                    if observer.isCancelled { return }
+                    do {
+                        // Don't miss eventual changes between the
+                        // initial fetch and the writer access.
+                        if let value = try observer.fetchNextValue(db) {
+                            observer.send(value)
+                        }
+                        
+                        // Now we can start observation
+                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    } catch {
+                        observer.complete(withError: error)
+                    }
+                }
+            } catch {
+                onError(error)
+            }
+        } else {
+            // Fetch an initial value without waiting for the writer.
+            asyncRead { dbResult in
+                if observer.isCancelled { return }
+                do {
+                    let db = try dbResult.get()
+                    let initialValue = try observer.fetchInitialValue(db)
+                    observer.send(initialValue)
+                    
+                    // Now wait for the writer
+                    self.asyncWriteWithoutTransaction { db in
+                        if observer.isCancelled { return }
+                        do {
+                            // Don't miss eventual changes between the
+                            // initial fetch and the writer access.
+                            if let value = try observer.fetchNextValue(db) {
+                                observer.send(value)
+                            }
+                            
+                            // Now we can start observation
+                            db.add(transactionObserver: observer, extent: .observerLifetime)
+                        } catch {
+                            observer.complete(withError: error)
+                        }
+                    }
+                } catch {
+                    observer.complete(withError: error)
+                }
+            }
+        }
+        
+        return ValueObserverToken(writer: self, observer: observer)
     }
     
     // MARK: - Custom FTS5 Tokenizers

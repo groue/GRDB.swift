@@ -301,22 +301,16 @@ extension DatabaseWriter {
     }
     
     // MARK: - Database Observation
-
-    func add<Reducer: _ValueReducer>(
+    
+    /// A write-only observation only uses the serialized writer
+    func addWriteOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
-        concurrentInitialValue: Bool,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        if configuration.readonly {
-            return addReadOnly(
-                observation: observation,
-                scheduler: scheduler,
-                onError: onError,
-                onChange: onChange)
-        }
+        assert(!configuration.readonly, "Use addReadOnly(observation:) instead")
         
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
@@ -330,7 +324,6 @@ extension DatabaseWriter {
         if scheduler.impl.fetchOnStart() {
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
-                    // Fetch an initial value and start observation
                     let initialValue = try observer.fetchInitialValue(db)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     return initialValue
@@ -340,60 +333,18 @@ extension DatabaseWriter {
                 onError(error)
             }
         } else {
-            if concurrentInitialValue {
-                // Fetch an initial value without waiting for the writer.
-                asyncRead { dbResult in
-                    if observer.isCancelled { return }
-                    do {
-                        let db = try dbResult.get()
-                        let initialValue = try observer.fetchInitialValue(db)
-                        observer.send(initialValue)
-                    } catch {
-                        observer.send(error)
-                        return
-                    }
-                    
-                    // Now wait for the writer
-                    self.asyncWriteWithoutTransaction { db in
-                        if observer.isCancelled { return }
-                        do {
-                            // Don't miss eventual changes between the
-                            // initial fetch and the writer access.
-                            if let value = try observer.fetchNextValue(db) {
-                                observer.send(value)
-                            }
-                            
-                            // Now we can start observation
-                            db.add(transactionObserver: observer, extent: .observerLifetime)
-                        } catch {
-                            observer.send(error)
-                        }
-                    }
-                }
-            } else {
-                asyncWriteWithoutTransaction { db in
-                    if observer.isCancelled { return }
-                    do {
-                        // Fetch an initial value and start observation
-                        let initialValue = try observer.fetchInitialValue(db)
-                        observer.send(initialValue)
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
-                    } catch {
-                        observer.send(error)
-                    }
+            asyncWriteWithoutTransaction { db in
+                if observer.isCancelled { return }
+                do {
+                    let initialValue = try observer.fetchInitialValue(db)
+                    observer.send(initialValue)
+                    db.add(transactionObserver: observer, extent: .observerLifetime)
+                } catch {
+                    observer.complete(withError: error)
                 }
             }
         }
         
-        // TODO
-        //
-        // We promise that observation stops when the returned observer is
-        // deallocated. But the real observer may have not started observing
-        // the database, because some observations start asynchronously.
-        // Well... This forces us to return a "token" that cancels any
-        // observation started asynchronously.
-        //
-        // We'll eventually return a proper Cancellable. In GRDB 5?
         return ValueObserverToken(writer: self, observer: observer)
     }
 }

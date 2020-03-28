@@ -259,6 +259,7 @@ public protocol DatabaseReader: AnyObject {
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     
+    // TODO: move to DatabaseWriter when we have proper support for Observation cancellation
     /// Remove a transaction observer.
     func remove(transactionObserver: TransactionObserver)
 }
