@@ -11,7 +11,7 @@ import Dispatch
     @testable import GRDB
 #endif
 
-class ValueObservationReducerTests: GRDBTestCase {
+class ValueObservationTests: GRDBTestCase {
     func testImmediateError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             // Create an observation
@@ -80,6 +80,35 @@ class ValueObservationReducerTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    func testViewOptimization() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write {
+            try $0.execute(sql: """
+                CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT);
+                CREATE VIEW v AS SELECT * FROM t
+                """)
+        }
+        
+        // Test that view v is included in the request region
+        let request = SQLRequest<Row>(sql: "SELECT name FROM v ORDER BY id")
+        try dbQueue.inDatabase { db in
+            let region = try request.databaseRegion(db)
+            XCTAssertEqual(region.description, "t(id,name),v(id,name)")
+        }
+        
+        // Test that view v is not included in the observed region.
+        // This optimization helps observation of views that feed from a
+        // single table.
+        let observation = ValueObservation.tracking(request.fetchAll)
+        let observer = observation.start(
+            in: dbQueue,
+            scheduler: .immediate, // So that we can test the observedRegion
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { _ in })
+        let token = observer as! ValueObserverToken<ValueReducers.Fetch<[Row]>> // Non-public implementation detail
+        XCTAssertEqual(token.observer.observedRegion!.description, "t(id,name)") // view is NOT tracked
+    }
+
     func testObserverInvalidation1() throws {
         // Test that observation stops when observer is deallocated
         func test(_ dbWriter: DatabaseWriter) throws {
