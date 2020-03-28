@@ -12,6 +12,7 @@ public class ValueObservationRecorder<Value> {
     private struct RecorderExpectation {
         var expectation: XCTestExpectation
         var remainingCount: Int? // nil for error expectation
+        var isIncluded: ((Value) -> Bool)? // nil for error expectation
     }
     
     /// The recorder state
@@ -47,13 +48,21 @@ public class ValueObservationRecorder<Value> {
             
             state.values.append(value)
             
-            if let exp = state.recorderExpectation, let remainingCount = exp.remainingCount {
+            if let exp = state.recorderExpectation,
+                let remainingCount = exp.remainingCount,
+                let isIncluded = exp.isIncluded
+            {
                 assert(remainingCount > 0)
-                exp.expectation.fulfill()
-                if remainingCount > 1 {
-                    state.recorderExpectation = RecorderExpectation(expectation: exp.expectation, remainingCount: remainingCount - 1)
-                } else {
-                    state.recorderExpectation = nil
+                if isIncluded(value) {
+                    exp.expectation.fulfill()
+                    if remainingCount > 1 {
+                        state.recorderExpectation = RecorderExpectation(
+                            expectation: exp.expectation,
+                            remainingCount: remainingCount - 1,
+                            isIncluded: isIncluded)
+                    } else {
+                        state.recorderExpectation = nil
+                    }
                 }
             }
         }
@@ -77,7 +86,7 @@ public class ValueObservationRecorder<Value> {
     
     // MARK: ValueObservationExpectation API
     
-    func fulfillOnValue(_ expectation: XCTestExpectation, includingConsumed: Bool) {
+    func fulfillOnValue(_ expectation: XCTestExpectation, includingConsumed: Bool, isIncluded: @escaping (Value) -> Bool) {
         synchronized {
             preconditionCanFulfillExpectation()
             
@@ -88,16 +97,20 @@ public class ValueObservationRecorder<Value> {
                 return
             }
             
-            let values = state.values
+            let values = state.values.filter(isIncluded)
+            let consumedValues = state.values[0..<consumedCount].filter(isIncluded)
             let maxFulfillmentCount = includingConsumed
                 ? values.count
-                : values.count - consumedCount
+                : values.count - consumedValues.count
             let fulfillmentCount = min(expectedFulfillmentCount, maxFulfillmentCount)
             expectation.fulfill(count: fulfillmentCount)
             
             let remainingCount = expectedFulfillmentCount - fulfillmentCount
             if remainingCount > 0 {
-                state.recorderExpectation = RecorderExpectation(expectation: expectation, remainingCount: remainingCount)
+                state.recorderExpectation = RecorderExpectation(
+                    expectation: expectation,
+                    remainingCount: remainingCount,
+                    isIncluded: isIncluded)
             } else {
                 state.recorderExpectation = nil
             }
@@ -113,7 +126,10 @@ public class ValueObservationRecorder<Value> {
                 return
             }
             
-            state.recorderExpectation = RecorderExpectation(expectation: expectation, remainingCount: nil)
+            state.recorderExpectation = RecorderExpectation(
+                expectation: expectation,
+                remainingCount: nil,
+                isIncluded: nil)
         }
     }
     
@@ -188,7 +204,17 @@ extension ValueObservationRecorder {
     }
     
     public func prefix(_ maxLength: Int) -> ValueObservationExpectations.Prefix<Value> {
-        ValueObservationExpectations.Prefix(recorder: self, maxLength: maxLength)
+        ValueObservationExpectations.Prefix(
+            recorder: self,
+            expectedFulfillmentCount: maxLength,
+            isIncluded: { _ in true })
+    }
+    
+    public func prefix(until predicate: @escaping (Value) -> Bool) -> ValueObservationExpectations.Prefix<Value> {
+        ValueObservationExpectations.Prefix(
+            recorder: self,
+            expectedFulfillmentCount: 1,
+            isIncluded: predicate)
     }
 }
 
@@ -309,7 +335,7 @@ extension XCTestCase {
         _ message: @autoclosure () -> String = "",
         file: StaticString = #file,
         line: UInt = #line)
-    where
+        where
         R: BidirectionalCollection,
         E: BidirectionalCollection,
         R.Element == E.Element,
@@ -475,15 +501,30 @@ extension GRDBTestCase {
                     XCTAssertNotNil(value)
                 }
                 
-                let expectation = recorder
-                    .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
-                    .inverted
-                let values = try wait(for: expectation, timeout: 0.3)
+                let recordedValues: [Reducer.Value]
+                let lastExpectedValue = expectedValues.last!
+                let waitForLast = expectedValues.firstIndex(of: lastExpectedValue) == expectedValues.count - 1
+                if waitForLast {
+                    // Optimization!
+                    let expectation = recorder.prefix(until: { $0 == lastExpectedValue } )
+                    recordedValues = try wait(for: expectation, timeout: 1)
+                } else {
+                    // Slow!
+                    let expectation = recorder
+                        .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
+                        .inverted
+                    #if GRDBCIPHER_USE_ENCRYPTION
+                    // SQLCipher can be *very* slow
+                    recordedValues = try wait(for: expectation, timeout: 1)
+                    #else
+                    recordedValues = try wait(for: expectation, timeout: 0.3)
+                    #endif
+                }
                 
-                XCTAssertEqual(values.first, expectedValues.first)
+                XCTAssertEqual(recordedValues.first, expectedValues.first)
                 
                 assertValueObservationRecordingMatch(
-                    recorded: values,
+                    recorded: recordedValues,
                     expected: expectedValues,
                     "\(#function), \(writer), \(scheduler.impl)", file: file, line: line)
             }
@@ -493,7 +534,7 @@ extension GRDBTestCase {
             
             try testRecordingEqualWhenWriteAfterStart(writer: makeDatabaseQueue())
             try testRecordingEqualWhenWriteAfterFirstValue(writer: makeDatabaseQueue())
-
+            
             if observation.requiresWriteAccess {
                 try testRecordingEqualWhenWriteAfterStart(writer: makeDatabasePool())
                 try testRecordingEqualWhenWriteAfterFirstValue(writer: makeDatabasePool())
@@ -556,7 +597,7 @@ extension GRDBTestCase {
                     in: writer,
                     scheduler: scheduler,
                     onError: { _ in testErrorDispatching() })
-
+                
                 let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
                 if let error = error as? Failure {
                     try testFailure(error, writer)
@@ -630,7 +671,7 @@ extension ValueObservationExpectations {
         let recorder: ValueObservationRecorder<Value>
         
         public func _setup(_ expectation: XCTestExpectation) {
-            recorder.fulfillOnValue(expectation, includingConsumed: false)
+            recorder.fulfillOnValue(expectation, includingConsumed: false, isIncluded: { _ in true })
         }
         
         public func get() throws -> Value {
@@ -659,7 +700,7 @@ extension ValueObservationExpectations {
         
         public func _setup(_ expectation: XCTestExpectation) {
             expectation.isInverted = true
-            recorder.fulfillOnValue(expectation, includingConsumed: false)
+            recorder.fulfillOnValue(expectation, includingConsumed: false, isIncluded: { _ in true })
         }
         
         public func get() throws {
@@ -693,7 +734,7 @@ extension ValueObservationExpectations {
                 expectation.fulfill()
             } else {
                 expectation.expectedFulfillmentCount = count
-                recorder.fulfillOnValue(expectation, includingConsumed: false)
+                recorder.fulfillOnValue(expectation, includingConsumed: false, isIncluded: { _ in true })
             }
         }
         
@@ -716,31 +757,43 @@ extension ValueObservationExpectations {
     
     public struct Prefix<Value>: ValueObservationExpectation {
         let recorder: ValueObservationRecorder<Value>
-        let maxLength: Int
+        let expectedFulfillmentCount: Int
+        let isIncluded: (Value) -> Bool
         
-        init(recorder: ValueObservationRecorder<Value>, maxLength: Int) {
-            precondition(maxLength >= 0, "Invalid negative count")
+        init(recorder: ValueObservationRecorder<Value>, expectedFulfillmentCount: Int, isIncluded: @escaping (Value) -> Bool) {
+            precondition(expectedFulfillmentCount >= 0, "Invalid negative count")
             self.recorder = recorder
-            self.maxLength = maxLength
+            self.expectedFulfillmentCount = expectedFulfillmentCount
+            self.isIncluded = isIncluded
         }
         
         public func _setup(_ expectation: XCTestExpectation) {
-            if maxLength == 0 {
+            if expectedFulfillmentCount == 0 {
                 // Such an expectation is immediately fulfilled, by essence.
                 expectation.expectedFulfillmentCount = 1
                 expectation.fulfill()
             } else {
-                expectation.expectedFulfillmentCount = maxLength
-                recorder.fulfillOnValue(expectation, includingConsumed: true)
+                expectation.expectedFulfillmentCount = expectedFulfillmentCount
+                recorder.fulfillOnValue(expectation, includingConsumed: true, isIncluded: isIncluded)
             }
         }
         
         public func get() throws -> [Value] {
-            try recorder.value { (values, error, remainingValues, consume) in
-                if values.count >= maxLength {
-                    let extraCount = max(maxLength + remainingValues.count - values.count, 0)
+            if expectedFulfillmentCount == 0 {
+                return []
+            }
+            
+            return try recorder.value { (values, error, remainingValues, consume) in
+                let includedValues = values.filter(isIncluded)
+                if includedValues.count >= expectedFulfillmentCount {
+                    let matchedCount = values
+                        .indices
+                        .filter { isIncluded(values[$0]) }
+                        .prefix(expectedFulfillmentCount)
+                        .last! + 1
+                    let extraCount = max(matchedCount + remainingValues.count - values.count, 0)
                     consume(extraCount)
-                    return Array(values.prefix(maxLength))
+                    return Array(values.prefix(matchedCount))
                 }
                 if let error = error {
                     throw error
