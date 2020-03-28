@@ -396,7 +396,7 @@ extension GRDBTestCase {
                 let recorder = observation.record(
                     in: writer,
                     scheduler: scheduler,
-                    onChange: {
+                    onChange: { [unowned writer] in
                         testValueDispatching()
                         valueCount += 1
                         if valueCount == 1 {
@@ -460,7 +460,7 @@ extension GRDBTestCase {
                 let recorder = observation.record(
                     in: writer,
                     scheduler: scheduler,
-                    onChange: {
+                    onChange: { [unowned writer] in
                         testValueDispatching()
                         valueCount += 1
                         if valueCount == 1 {

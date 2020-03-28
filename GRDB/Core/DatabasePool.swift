@@ -403,6 +403,50 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
+    /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        // First async jump in order to grab a reader connection.
+        // Honor configuration dispatching (qos/targetQueue).
+        configuration
+            .makeDispatchQueue(defaultLabel: "GRDB.DatabasePool", purpose: "asyncRead")
+            .async { [weak self] in
+                guard let self = self else {
+                    block(nil)
+                    return
+                }
+                
+                do {
+                    let (reader, releaseReader) = try self.readerPool.get()
+                    
+                    // Second async jump because sync could deadlock if
+                    // configuration has a serial targetQueue.
+                    reader.weakAsync { db in
+                        guard let db = db else {
+                            block(nil)
+                            return
+                        }
+                        
+                        defer {
+                            try? db.commit() // Ignore commit error
+                            releaseReader()
+                        }
+                        do {
+                            // The block isolation comes from the DEFERRED transaction.
+                            try db.beginTransaction(.deferred)
+                            
+                            // Reset the schema cache before running user code in snapshot isolation
+                            db.clearSchemaCache()
+                            block(.success(db))
+                        } catch {
+                            block(.failure(error))
+                        }
+                    }
+                } catch {
+                    block(.failure(error))
+                }
+        }
+    }
+    
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
     ///
@@ -724,6 +768,11 @@ extension DatabasePool: DatabaseReader {
         writer.async(updates)
     }
     
+    /// :nodoc:
+    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
+        writer.weakAsync(updates)
+    }
+    
     // MARK: - Functions
     
     /// Add or redefine an SQL function.
@@ -804,7 +853,11 @@ extension DatabasePool: DatabaseReader {
                 onChange(initialValue)
                 
                 // Now wait for the writer
-                self.asyncWriteWithoutTransaction { db in
+                _weakAsyncWriteWithoutTransaction { db in
+                    guard let db = db else {
+                        observer.cancel()
+                        return
+                    }
                     if observer.isCancelled { return }
                     do {
                         // Don't miss eventual changes between the
@@ -825,14 +878,22 @@ extension DatabasePool: DatabaseReader {
             }
         } else {
             // Fetch an initial value without waiting for the writer.
-            asyncRead { dbResult in
+            _weakAsyncRead { [weak self] dbResult in
+                guard let dbResult = dbResult, let self = self else {
+                    observer.cancel()
+                    return
+                }
                 if observer.isCancelled { return }
                 do {
                     let initialValue = try observer.fetchInitialValue(dbResult.get())
                     observer.send(initialValue)
                     
                     // Now wait for the writer
-                    self.asyncWriteWithoutTransaction { db in
+                    self._weakAsyncWriteWithoutTransaction { db in
+                        guard let db = db else {
+                            observer.cancel()
+                            return
+                        }
                         if observer.isCancelled { return }
                         do {
                             // Don't miss eventual changes between the

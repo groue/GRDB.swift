@@ -140,6 +140,11 @@ public protocol DatabaseReader: AnyObject {
     /// - parameter block: A block that accesses the database.
     func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
     
+    /// Same as asyncRead, but without retaining self
+    ///
+    /// :nodoc:
+    func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void)
+    
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
     ///
@@ -321,15 +326,23 @@ extension DatabaseReader {
                 onError(error)
             }
         } else {
-            asyncRead { [weak observer] dbResult in
-                if observer == nil { return }
+            _weakAsyncRead { [weak observer] dbResult in
+                guard let observer = observer else {
+                    return
+                }
+                guard let dbResult = dbResult else {
+                    observer.cancel()
+                    return
+                }
                 let result = dbResult.tryMap(observation.fetchValue)
-                scheduler.impl.schedule {
-                    if observer == nil { return }
+                scheduler.impl.schedule { [weak observer] in
+                    guard let observer = observer else {
+                        return
+                    }
                     do {
                         try onChange(result.get())
                     } catch {
-                        observer?.cancel()
+                        observer.cancel()
                         onError(error)
                     }
                 }
@@ -384,6 +397,11 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
+    }
+    
+    /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(block)
     }
     
     /// :nodoc:

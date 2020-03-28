@@ -99,6 +99,12 @@ public protocol DatabaseWriter: DatabaseReader {
     /// in a transaction.
     func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
     
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, without retaining self.
+    ///
+    /// :nodoc:
+    func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void)
+    
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///
@@ -274,10 +280,10 @@ extension DatabaseWriter {
         writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
-    /// Default implementation for the DatabaseReader requirement.
-    /// :nodoc:
     public func remove(transactionObserver: TransactionObserver) {
-        unsafeReentrantWrite { $0.remove(transactionObserver: transactionObserver) }
+        _weakAsyncWriteWithoutTransaction {
+            $0?.remove(transactionObserver: transactionObserver)
+        }
     }
     
     // MARK: - Erasing the content of the database
@@ -334,7 +340,11 @@ extension DatabaseWriter {
                 onError(error)
             }
         } else {
-            asyncWriteWithoutTransaction { db in
+            _weakAsyncWriteWithoutTransaction { db in
+                guard let db = db else {
+                    observer.cancel()
+                    return
+                }
                 if observer.isCancelled { return }
                 do {
                     let initialValue = try observer.fetchInitialValue(db)
@@ -426,6 +436,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     }
     
     /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(block)
+    }
+    
+    /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         try base.unsafeRead(block)
     }
@@ -476,6 +491,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     }
     
     /// :nodoc:
+    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
+        base._weakAsyncWriteWithoutTransaction(updates)
+    }
+    
+    /// :nodoc:
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.unsafeReentrantWrite(updates)
     }
@@ -505,6 +525,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     }
     
     // MARK: - Database Observation
+    
+    /// :nodoc:
+    public func remove(transactionObserver: TransactionObserver) {
+        base.remove(transactionObserver: transactionObserver)
+    }
     
     /// :nodoc:
     public func add<Reducer: _ValueReducer>(

@@ -231,6 +231,28 @@ extension DatabaseQueue {
         }
     }
     
+    /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        writer.weakAsync { db in
+            guard let db = db else {
+                block(nil)
+                return
+            }
+            
+            do {
+                try db.beginReadOnly()
+            } catch {
+                block(.failure(error))
+                return
+            }
+            
+            block(.success(db))
+            
+            // Ignore error because we can not notify it.
+            try? db.endReadOnly()
+        }
+    }
+    
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
@@ -402,6 +424,11 @@ extension DatabaseQueue {
     /// outside of any transaction.
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         writer.async(updates)
+    }
+    
+    /// :nodoc:
+    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
+        writer.weakAsync(updates)
     }
     
     // MARK: - Functions

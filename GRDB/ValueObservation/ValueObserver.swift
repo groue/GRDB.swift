@@ -51,9 +51,7 @@ extension ValueObserver {
     
     func cancel() {
         isCancelled = true
-        writer?.asyncWriteWithoutTransaction { db in
-            db.remove(transactionObserver: self)
-        }
+        writer?.remove(transactionObserver: self)
     }
     
     func send(_ value: Reducer.Value) {
