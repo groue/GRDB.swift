@@ -513,8 +513,8 @@ extension GRDBTestCase {
                     let expectation = recorder
                         .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
                         .inverted
-                    #if GRDBCIPHER_USE_ENCRYPTION
-                    // SQLCipher can be *very* slow
+                    #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
+                    // debug SQLite builds can be *very* slow
                     recordedValues = try wait(for: expectation, timeout: 1)
                     #else
                     recordedValues = try wait(for: expectation, timeout: 0.3)
