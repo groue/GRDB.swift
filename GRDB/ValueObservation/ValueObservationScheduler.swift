@@ -1,4 +1,5 @@
 import Dispatch
+import Foundation
 
 /// ValueObservationScheduler determines how ValueObservation notifies its
 /// fresh values.
@@ -54,7 +55,7 @@ public class ValueObservationScheduler {
 
 protocol ValueObservationSchedulerImpl {
     func schedule(_ action: @escaping () -> Void)
-    func fetchOnStart() -> Bool
+    func immediateInitialValue() -> Bool
 }
 
 struct ImmediateImpl: ValueObservationSchedulerImpl {
@@ -62,7 +63,7 @@ struct ImmediateImpl: ValueObservationSchedulerImpl {
         DispatchQueue.main.async(execute: action)
     }
     
-    func fetchOnStart() -> Bool {
+    func immediateInitialValue() -> Bool {
         GRDBPrecondition(
             Thread.isMainThread,
             "ValueObservation must be started from the main thread.")
@@ -75,7 +76,7 @@ extension DispatchQueue: ValueObservationSchedulerImpl {
         async(execute: action)
     }
     
-    func fetchOnStart() -> Bool {
+    func immediateInitialValue() -> Bool {
         false
     }
 }

@@ -400,7 +400,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.fetchOnStart() {
+                if scheduler.impl.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 
@@ -433,7 +433,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.fetchOnStart() {
+                if scheduler.impl.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 
@@ -457,7 +457,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.fetchOnStart() {
+                if scheduler.impl.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 
@@ -468,7 +468,7 @@ extension GRDBTestCase {
                     .inverted
                 let values = try wait(for: expectation, timeout: 0.3)
                 
-                if scheduler.impl.fetchOnStart() {
+                if scheduler.impl.immediateInitialValue() {
                     XCTAssertEqual(values.first, expectedValues.first)
                 }
                 
@@ -497,7 +497,7 @@ extension GRDBTestCase {
                 })
                 
                 // Test that initial value is set when scheduler is immediate
-                if scheduler.impl.fetchOnStart() {
+                if scheduler.impl.immediateInitialValue() {
                     XCTAssertNotNil(value)
                 }
                 

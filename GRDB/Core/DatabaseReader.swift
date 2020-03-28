@@ -318,7 +318,7 @@ extension DatabaseReader {
         // never changes.
         let observer = DummyObserver()
         
-        if scheduler.impl.fetchOnStart() {
+        if scheduler.impl.immediateInitialValue() {
             do {
                 try onChange(unsafeReentrantRead(observation.fetchValue))
             } catch {
