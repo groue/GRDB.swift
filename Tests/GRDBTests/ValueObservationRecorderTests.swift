@@ -334,9 +334,9 @@ class ValueObservationRecorderTests: FailureTestCase {
         } catch ValueRecordingError.notEnoughValues { }
     }
     
-    // MARK: - Prefix
+    // MARK: - Prefix(maxLength)
     
-    func testPrefixSuccess() throws {
+    func testPrefixMaxLengthSuccess() throws {
         struct CustomError: Error { }
         do {
             let recorder = ValueObservationRecorder<String>()
@@ -374,19 +374,19 @@ class ValueObservationRecorderTests: FailureTestCase {
         }
     }
     
-    func testPrefixError() throws {
+    func testPrefixMaxLengthError() throws {
         struct CustomError: Error { }
         do {
             let recorder = ValueObservationRecorder<String>()
             recorder.onError(CustomError())
-            _ = try recorder.next(2).get()
+            _ = try recorder.prefix(2).get()
             XCTFail("Expected error")
         } catch is CustomError { }
         do {
             let recorder = ValueObservationRecorder<String>()
             recorder.onChange("foo")
             recorder.onError(CustomError())
-            _ = try recorder.next(2).get()
+            _ = try recorder.prefix(2).get()
             XCTFail("Expected error")
         } catch is CustomError { }
         do {
@@ -394,7 +394,7 @@ class ValueObservationRecorderTests: FailureTestCase {
             DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
                 recorder.onError(CustomError())
             }
-            _ = try wait(for: recorder.next(2), timeout: 0.5)
+            _ = try wait(for: recorder.prefix(2), timeout: 0.5)
             XCTFail("Expected error")
         } catch is CustomError { }
         do {
@@ -405,42 +405,36 @@ class ValueObservationRecorderTests: FailureTestCase {
                     recorder.onError(CustomError())
                 }
             }
-            _ = try wait(for: recorder.next(2), timeout: 0.5)
+            _ = try wait(for: recorder.prefix(2), timeout: 0.5)
             XCTFail("Expected error")
         } catch is CustomError { }
     }
     
-    func testPrefixTimeout() throws {
+    func testPrefixMaxLengthTimeout() throws {
         try assertFailure("Asynchronous wait failed") {
-            do {
-                let recorder = ValueObservationRecorder<String>()
-                _ = try wait(for: recorder.next(2), timeout: 0.1)
-                XCTFail("Expected error")
-            } catch ValueRecordingError.notEnoughValues { }
+            let recorder = ValueObservationRecorder<String>()
+            let values = try wait(for: recorder.prefix(2), timeout: 0.1)
+            XCTAssertEqual(values, [])
         }
         try assertFailure("Asynchronous wait failed") {
-            do {
-                let recorder = ValueObservationRecorder<String>()
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onChange("foo")
+            let values = try wait(for: recorder.prefix(2), timeout: 0.1)
+            XCTAssertEqual(values, ["foo"])
+        }
+        try assertFailure("Asynchronous wait failed") {
+            let recorder = ValueObservationRecorder<String>()
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
                 recorder.onChange("foo")
-                _ = try wait(for: recorder.next(2), timeout: 0.1)
-                XCTFail("Expected error")
-            } catch ValueRecordingError.notEnoughValues { }
-        }
-        try assertFailure("Asynchronous wait failed") {
-            do {
-                let recorder = ValueObservationRecorder<String>()
-                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
-                    recorder.onChange("foo")
-                }
-                _ = try wait(for: recorder.next(2), timeout: 0.5)
-                XCTFail("Expected error")
-            } catch ValueRecordingError.notEnoughValues { }
+            }
+            let values = try wait(for: recorder.prefix(2), timeout: 0.5)
+            XCTAssertEqual(values, ["foo"])
         }
     }
     
-    // MARK: - Prefix Inverted
+    // MARK: - Prefix(maxLength) Inverted
     
-    func testPrefixInvertedSuccess() throws {
+    func testPrefixMaxLengthInvertedSuccess() throws {
         do {
             let recorder = ValueObservationRecorder<String>()
             try XCTAssertEqual(recorder.prefix(1).inverted.get(), [])
@@ -459,7 +453,7 @@ class ValueObservationRecorderTests: FailureTestCase {
         }
     }
     
-    func testPrefixInvertedError() throws {
+    func testPrefixMaxLengthInvertedError() throws {
         struct CustomError: Error { }
         do {
             let recorder = ValueObservationRecorder<String>()
@@ -476,7 +470,7 @@ class ValueObservationRecorderTests: FailureTestCase {
         } catch is CustomError { }
     }
     
-    func testPrefixInvertedTimeout() throws {
+    func testPrefixMaxLengthInvertedTimeout() throws {
         struct CustomError: Error { }
         do {
             let recorder = ValueObservationRecorder<String>()
@@ -525,6 +519,96 @@ class ValueObservationRecorderTests: FailureTestCase {
                     XCTFail("Expected error")
                 } catch is CustomError { }
             }
+        }
+    }
+    
+    // MARK: - Prefix(maxLength)
+    
+    func testPrefixUntilSuccess() throws {
+        struct CustomError: Error { }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onChange("foo")
+            try XCTAssertEqual(recorder.prefix(until: { $0 == "foo" }).get(), ["foo"])
+            recorder.onChange("bar")
+            recorder.onChange("baz")
+            try XCTAssertEqual(recorder.prefix(until: { $0 == "foo" }).get(), ["foo"])
+            try XCTAssertEqual(recorder.prefix(until: { $0 == "bar" }).get(), ["foo", "bar"])
+            try XCTAssertEqual(recorder.prefix(until: { $0 == "baz" }).get(), ["foo", "bar", "baz"])
+        }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onChange("foo")
+            recorder.onError(CustomError())
+            try XCTAssertEqual(recorder.prefix(until: { $0 == "foo" }).get(), ["foo"])
+        }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
+                recorder.onChange("foo")
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
+                    recorder.onChange("bar")
+                }
+            }
+            try XCTAssertEqual(wait(for: recorder.prefix(until: { $0 == "bar" }), timeout: 0.5), ["foo", "bar"])
+        }
+    }
+    
+    func testPrefixUntilError() throws {
+        struct CustomError: Error { }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onError(CustomError())
+            _ = try recorder.prefix(until: { $0 == "bar" }).get()
+            XCTFail("Expected error")
+        } catch is CustomError { }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onChange("foo")
+            recorder.onError(CustomError())
+            _ = try recorder.prefix(until: { $0 == "bar" }).get()
+            XCTFail("Expected error")
+        } catch is CustomError { }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
+                recorder.onError(CustomError())
+            }
+            _ = try wait(for: recorder.prefix(until: { $0 == "bar" }), timeout: 0.5)
+            XCTFail("Expected error")
+        } catch is CustomError { }
+        do {
+            let recorder = ValueObservationRecorder<String>()
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
+                recorder.onChange("foo")
+                DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
+                    recorder.onError(CustomError())
+                }
+            }
+            _ = try wait(for: recorder.prefix(until: { $0 == "bar" }), timeout: 0.5)
+            XCTFail("Expected error")
+        } catch is CustomError { }
+    }
+    
+    func testPrefixUntilTimeout() throws {
+        try assertFailure("Asynchronous wait failed") {
+            let recorder = ValueObservationRecorder<String>()
+            let values = try wait(for: recorder.prefix(until: { $0 == "bar" }), timeout: 0.1)
+            XCTAssertEqual(values, [])
+        }
+        try assertFailure("Asynchronous wait failed") {
+            let recorder = ValueObservationRecorder<String>()
+            recorder.onChange("foo")
+            let values = try wait(for: recorder.prefix(until: { $0 == "bar" }), timeout: 0.1)
+            XCTAssertEqual(values, ["foo"])
+        }
+        try assertFailure("Asynchronous wait failed") {
+            let recorder = ValueObservationRecorder<String>()
+            DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(10)) {
+                recorder.onChange("foo")
+            }
+            let values = try wait(for: recorder.prefix(until: { $0 == "bar" }), timeout: 0.5)
+            XCTAssertEqual(values, ["foo"])
         }
     }
     

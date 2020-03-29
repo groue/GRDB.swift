@@ -85,6 +85,11 @@ extension DatabaseSnapshot {
     }
     
     /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        serializedDatabase.weakAsync { block($0.map { .success($0) }) }
+    }
+    
+    /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
         try serializedDatabase.sync(block)
     }
@@ -118,13 +123,15 @@ extension DatabaseSnapshot {
     
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        return addReadOnly(observation: observation, onError: onError, onChange: onChange)
+        return addReadOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
     
+    // TODO: remove when we have proper support for Observation cancellation
     public func remove(transactionObserver: TransactionObserver) {
         // Can't remove an observer which could not be added :-)
     }

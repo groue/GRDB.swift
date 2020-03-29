@@ -12,6 +12,7 @@ public class ValueObservationRecorder<Value> {
     private struct RecorderExpectation {
         var expectation: XCTestExpectation
         var remainingCount: Int? // nil for error expectation
+        var isIncluded: ((Value) -> Bool)? // nil for error expectation
     }
     
     /// The recorder state
@@ -47,13 +48,21 @@ public class ValueObservationRecorder<Value> {
             
             state.values.append(value)
             
-            if let exp = state.recorderExpectation, let remainingCount = exp.remainingCount {
+            if let exp = state.recorderExpectation,
+                let remainingCount = exp.remainingCount,
+                let isIncluded = exp.isIncluded
+            {
                 assert(remainingCount > 0)
-                exp.expectation.fulfill()
-                if remainingCount > 1 {
-                    state.recorderExpectation = RecorderExpectation(expectation: exp.expectation, remainingCount: remainingCount - 1)
-                } else {
-                    state.recorderExpectation = nil
+                if isIncluded(value) {
+                    exp.expectation.fulfill()
+                    if remainingCount > 1 {
+                        state.recorderExpectation = RecorderExpectation(
+                            expectation: exp.expectation,
+                            remainingCount: remainingCount - 1,
+                            isIncluded: isIncluded)
+                    } else {
+                        state.recorderExpectation = nil
+                    }
                 }
             }
         }
@@ -77,7 +86,7 @@ public class ValueObservationRecorder<Value> {
     
     // MARK: ValueObservationExpectation API
     
-    func fulfillOnValue(_ expectation: XCTestExpectation, includingConsumed: Bool) {
+    func fulfillOnValue(_ expectation: XCTestExpectation, includingConsumed: Bool, isIncluded: @escaping (Value) -> Bool) {
         synchronized {
             preconditionCanFulfillExpectation()
             
@@ -88,16 +97,20 @@ public class ValueObservationRecorder<Value> {
                 return
             }
             
-            let values = state.values
+            let values = state.values.filter(isIncluded)
+            let consumedValues = state.values[0..<consumedCount].filter(isIncluded)
             let maxFulfillmentCount = includingConsumed
                 ? values.count
-                : values.count - consumedCount
+                : values.count - consumedValues.count
             let fulfillmentCount = min(expectedFulfillmentCount, maxFulfillmentCount)
             expectation.fulfill(count: fulfillmentCount)
             
             let remainingCount = expectedFulfillmentCount - fulfillmentCount
             if remainingCount > 0 {
-                state.recorderExpectation = RecorderExpectation(expectation: expectation, remainingCount: remainingCount)
+                state.recorderExpectation = RecorderExpectation(
+                    expectation: expectation,
+                    remainingCount: remainingCount,
+                    isIncluded: isIncluded)
             } else {
                 state.recorderExpectation = nil
             }
@@ -113,7 +126,10 @@ public class ValueObservationRecorder<Value> {
                 return
             }
             
-            state.recorderExpectation = RecorderExpectation(expectation: expectation, remainingCount: nil)
+            state.recorderExpectation = RecorderExpectation(
+                expectation: expectation,
+                remainingCount: nil,
+                isIncluded: nil)
         }
     }
     
@@ -188,19 +204,42 @@ extension ValueObservationRecorder {
     }
     
     public func prefix(_ maxLength: Int) -> ValueObservationExpectations.Prefix<Value> {
-        ValueObservationExpectations.Prefix(recorder: self, maxLength: maxLength)
+        ValueObservationExpectations.Prefix(
+            recorder: self,
+            expectedFulfillmentCount: maxLength,
+            isIncluded: { _ in true })
+    }
+    
+    public func prefix(until predicate: @escaping (Value) -> Bool) -> ValueObservationExpectations.Prefix<Value> {
+        ValueObservationExpectations.Prefix(
+            recorder: self,
+            expectedFulfillmentCount: 1,
+            isIncluded: predicate)
     }
 }
 
 // MARK: - ValueObservation + ValueObservationRecorder
 
 extension ValueObservation {
-    public func record(in reader: DatabaseReader) -> ValueObservationRecorder<Reducer.Value> {
+    public func record(
+        in reader: DatabaseReader,
+        scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        onError: ((Error) -> Void)? = nil,
+        onChange: ((Reducer.Value) -> Void)? = nil)
+        -> ValueObservationRecorder<Reducer.Value>
+    {
         let recorder = ValueObservationRecorder<Reducer.Value>()
         let observer = start(
             in: reader,
-            onError: recorder.onError,
-            onChange: recorder.onChange)
+            scheduler: scheduler,
+            onError: {
+                onError?($0)
+                recorder.onError($0)
+        },
+            onChange: {
+                onChange?($0)
+                recorder.onChange($0)
+        })
         recorder.receive(observer)
         return recorder
     }
@@ -296,7 +335,7 @@ extension XCTestCase {
         _ message: @autoclosure () -> String = "",
         file: StaticString = #file,
         line: UInt = #line)
-    where
+        where
         R: BidirectionalCollection,
         E: BidirectionalCollection,
         R.Element == E.Element,
@@ -334,109 +373,273 @@ extension XCTestCase {
 
 extension GRDBTestCase {
     func assertValueObservation<Reducer: _ValueReducer>(
-        _ valueObservation: ValueObservation<Reducer>,
+        _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
-        recordedUpdates: (Database) throws -> Void,
+        recordedUpdates: @escaping (Database) throws -> Void,
         file: StaticString = #file,
         line: UInt = #line)
         throws
         where Reducer.Value: Equatable
     {
-        func testRecordingEqual(writer: DatabaseWriter, observation: ValueObservation<Reducer>) throws {
-            try writer.write(setup)
-            let recorder = observation.record(in: writer)
-            try writer.writeWithoutTransaction(recordedUpdates)
-            let expectation = recorder.next(expectedValues.count)
-            let values = try wait(for: expectation, timeout: 0.3)
-            XCTAssertEqual(values, expectedValues, file: file, line: line)
-        }
-        
-        func testRecordingMatch(writer: DatabaseWriter, observation: ValueObservation<Reducer>) throws {
-            try writer.write(setup)
-            let recorder = observation.record(in: writer)
-            try writer.writeWithoutTransaction(recordedUpdates)
-            let expectation = recorder
-                .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
-                .inverted
-            let values = try wait(for: expectation, timeout: 0.3)
-            assertValueObservationRecordingMatch(
-                recorded: values,
-                expected: expectedValues,
-                file: file, line: line)
-        }
-        
-        do {
-            var observation = valueObservation
-            observation.scheduling = .mainQueue
-            try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
-            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
-            try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
-        }
-        
-        do {
-            var observation = valueObservation
-            observation.scheduling = .async(onQueue: .main)
-            try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
-            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
-            if valueObservation.requiresWriteAccess || !valueObservation.makeReducer().isObservedRegionDeterministic {
-                try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
+        func test(
+            observation: ValueObservation<Reducer>,
+            scheduler: ValueObservationScheduler,
+            testValueDispatching: @escaping () -> Void) throws
+        {
+            func testRecordingEqualWhenWriteAfterStart(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: {
+                        testValueDispatching()
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.immediateInitialValue() {
+                    XCTAssertNotNil(value)
+                }
+                
+                // Perform writes after start
+                try writer.writeWithoutTransaction(recordedUpdates)
+                
+                let expectation = recorder.next(expectedValues.count)
+                let values = try wait(for: expectation, timeout: 0.3)
+                XCTAssertEqual(
+                    values, expectedValues,
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
+            }
+            
+            func testRecordingEqualWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var valueCount = 0
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: { [unowned writer] in
+                        testValueDispatching()
+                        valueCount += 1
+                        if valueCount == 1 {
+                            // Perform writes after initial value
+                            try! writer.writeWithoutTransaction(recordedUpdates)
+                        }
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.immediateInitialValue() {
+                    XCTAssertNotNil(value)
+                }
+                
+                let expectation = recorder.next(expectedValues.count)
+                let values = try wait(for: expectation, timeout: 0.3)
+                XCTAssertEqual(
+                    values, expectedValues,
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
+            }
+            
+            func testRecordingMatchWhenWriteAfterStart(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: {
+                        testValueDispatching()
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.immediateInitialValue() {
+                    XCTAssertNotNil(value)
+                }
+                
+                try writer.writeWithoutTransaction(recordedUpdates)
+                
+                let expectation = recorder
+                    .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
+                    .inverted
+                let values = try wait(for: expectation, timeout: 0.3)
+                
+                if scheduler.immediateInitialValue() {
+                    XCTAssertEqual(values.first, expectedValues.first)
+                }
+                
+                assertValueObservationRecordingMatch(
+                    recorded: values,
+                    expected: expectedValues,
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
+            }
+            
+            func testRecordingMatchWhenWriteAfterFirstValue(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                var valueCount = 0
+                var value: Reducer.Value?
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onChange: { [unowned writer] in
+                        testValueDispatching()
+                        valueCount += 1
+                        if valueCount == 1 {
+                            // Perform writes after initial value
+                            try! writer.writeWithoutTransaction(recordedUpdates)
+                        }
+                        value = $0
+                })
+                
+                // Test that initial value is set when scheduler is immediate
+                if scheduler.immediateInitialValue() {
+                    XCTAssertNotNil(value)
+                }
+                
+                let recordedValues: [Reducer.Value]
+                let lastExpectedValue = expectedValues.last!
+                let waitForLast = expectedValues.firstIndex(of: lastExpectedValue) == expectedValues.count - 1
+                if waitForLast {
+                    // Optimization!
+                    let expectation = recorder.prefix(until: { $0 == lastExpectedValue } )
+                    recordedValues = try wait(for: expectation, timeout: 1)
+                } else {
+                    // Slow!
+                    let expectation = recorder
+                        .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
+                        .inverted
+                    #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
+                    // debug SQLite builds can be *very* slow
+                    recordedValues = try wait(for: expectation, timeout: 1)
+                    #else
+                    recordedValues = try wait(for: expectation, timeout: 0.3)
+                    #endif
+                }
+                
+                XCTAssertEqual(recordedValues.first, expectedValues.first)
+                
+                assertValueObservationRecordingMatch(
+                    recorded: recordedValues,
+                    expected: expectedValues,
+                    "\(#function), \(writer), \(scheduler)", file: file, line: line)
+            }
+            
+            try testRecordingEqualWhenWriteAfterStart(writer: DatabaseQueue())
+            try testRecordingEqualWhenWriteAfterFirstValue(writer: DatabaseQueue())
+            
+            try testRecordingEqualWhenWriteAfterStart(writer: makeDatabaseQueue())
+            try testRecordingEqualWhenWriteAfterFirstValue(writer: makeDatabaseQueue())
+            
+            if observation.requiresWriteAccess {
+                try testRecordingEqualWhenWriteAfterStart(writer: makeDatabasePool())
+                try testRecordingEqualWhenWriteAfterFirstValue(writer: makeDatabasePool())
             } else {
-                // DatabasePool performs an immediate async fetch and may miss initial changes
-                try testRecordingMatch(writer: makeDatabasePool(), observation: observation)
+                // DatabasePool may miss some changes
+                try testRecordingMatchWhenWriteAfterStart(writer: makeDatabasePool())
+                try testRecordingMatchWhenWriteAfterFirstValue(writer: makeDatabasePool())
             }
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .unsafe
-            try testRecordingEqual(writer: DatabaseQueue(), observation: observation)
-            try testRecordingEqual(writer: makeDatabaseQueue(), observation: observation)
-            try testRecordingEqual(writer: makeDatabasePool(), observation: observation)
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .immediate,
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+        }
+        
+        do {
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: .main),
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
+        }
+        
+        do {
+            let queue = DispatchQueue(label: "custom")
+            let key = DispatchSpecificKey<()>()
+            queue.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: queue),
+                testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }
     
     func assertValueObservation<Reducer: _ValueReducer, Failure: Error>(
-        _ valueObservation: ValueObservation<Reducer>,
+        _ observation: ValueObservation<Reducer>,
         fails testFailure: (Failure, DatabaseWriter) throws -> Void,
         setup: (Database) throws -> Void,
         file: StaticString = #file,
         line: UInt = #line)
         throws
     {
-        func test(writer: DatabaseWriter, observation: ValueObservation<Reducer>) throws {
-            try writer.write(setup)
-            let recorder = observation.record(in: writer)
-            let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
-            if let error = error as? Failure {
-                try testFailure(error, writer)
-            } else {
-                throw error
+        func test(
+            observation: ValueObservation<Reducer>,
+            scheduler: ValueObservationScheduler,
+            testErrorDispatching: @escaping () -> Void) throws
+        {
+            func test(writer: DatabaseWriter) throws {
+                try writer.write(setup)
+                
+                let recorder = observation.record(
+                    in: writer,
+                    scheduler: scheduler,
+                    onError: { _ in testErrorDispatching() })
+                
+                let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
+                if let error = error as? Failure {
+                    try testFailure(error, writer)
+                } else {
+                    throw error
+                }
             }
+            
+            try test(writer: DatabaseQueue())
+            try test(writer: makeDatabaseQueue())
+            try test(writer: makeDatabasePool())
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .mainQueue
-            try test(writer: DatabaseQueue(), observation: observation)
-            try test(writer: makeDatabaseQueue(), observation: observation)
-            try test(writer: makeDatabasePool(), observation: observation)
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .immediate,
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .async(onQueue: .main)
-            try test(writer: DatabaseQueue(), observation: observation)
-            try test(writer: makeDatabaseQueue(), observation: observation)
-            try test(writer: makeDatabasePool(), observation: observation)
+            let key = DispatchSpecificKey<()>()
+            DispatchQueue.main.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: .main),
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
         do {
-            var observation = valueObservation
-            observation.scheduling = .unsafe
-            try test(writer: DatabaseQueue(), observation: observation)
-            try test(writer: makeDatabaseQueue(), observation: observation)
-            try test(writer: makeDatabasePool(), observation: observation)
+            let queue = DispatchQueue(label: "custom")
+            let key = DispatchSpecificKey<()>()
+            queue.setSpecific(key: key, value: ())
+            
+            try test(
+                observation: observation,
+                scheduler: .async(onQueue: queue),
+                testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }
 }
@@ -468,7 +671,7 @@ extension ValueObservationExpectations {
         let recorder: ValueObservationRecorder<Value>
         
         public func _setup(_ expectation: XCTestExpectation) {
-            recorder.fulfillOnValue(expectation, includingConsumed: false)
+            recorder.fulfillOnValue(expectation, includingConsumed: false, isIncluded: { _ in true })
         }
         
         public func get() throws -> Value {
@@ -497,7 +700,7 @@ extension ValueObservationExpectations {
         
         public func _setup(_ expectation: XCTestExpectation) {
             expectation.isInverted = true
-            recorder.fulfillOnValue(expectation, includingConsumed: false)
+            recorder.fulfillOnValue(expectation, includingConsumed: false, isIncluded: { _ in true })
         }
         
         public func get() throws {
@@ -531,7 +734,7 @@ extension ValueObservationExpectations {
                 expectation.fulfill()
             } else {
                 expectation.expectedFulfillmentCount = count
-                recorder.fulfillOnValue(expectation, includingConsumed: false)
+                recorder.fulfillOnValue(expectation, includingConsumed: false, isIncluded: { _ in true })
             }
         }
         
@@ -554,31 +757,43 @@ extension ValueObservationExpectations {
     
     public struct Prefix<Value>: ValueObservationExpectation {
         let recorder: ValueObservationRecorder<Value>
-        let maxLength: Int
+        let expectedFulfillmentCount: Int
+        let isIncluded: (Value) -> Bool
         
-        init(recorder: ValueObservationRecorder<Value>, maxLength: Int) {
-            precondition(maxLength >= 0, "Invalid negative count")
+        init(recorder: ValueObservationRecorder<Value>, expectedFulfillmentCount: Int, isIncluded: @escaping (Value) -> Bool) {
+            precondition(expectedFulfillmentCount >= 0, "Invalid negative count")
             self.recorder = recorder
-            self.maxLength = maxLength
+            self.expectedFulfillmentCount = expectedFulfillmentCount
+            self.isIncluded = isIncluded
         }
         
         public func _setup(_ expectation: XCTestExpectation) {
-            if maxLength == 0 {
+            if expectedFulfillmentCount == 0 {
                 // Such an expectation is immediately fulfilled, by essence.
                 expectation.expectedFulfillmentCount = 1
                 expectation.fulfill()
             } else {
-                expectation.expectedFulfillmentCount = maxLength
-                recorder.fulfillOnValue(expectation, includingConsumed: true)
+                expectation.expectedFulfillmentCount = expectedFulfillmentCount
+                recorder.fulfillOnValue(expectation, includingConsumed: true, isIncluded: isIncluded)
             }
         }
         
         public func get() throws -> [Value] {
-            try recorder.value { (values, error, remainingValues, consume) in
-                if values.count >= maxLength {
-                    let extraCount = max(maxLength + remainingValues.count - values.count, 0)
+            if expectedFulfillmentCount == 0 {
+                return []
+            }
+            
+            return try recorder.value { (values, error, remainingValues, consume) in
+                let includedValues = values.filter(isIncluded)
+                if includedValues.count >= expectedFulfillmentCount {
+                    let matchedCount = values
+                        .indices
+                        .filter { isIncluded(values[$0]) }
+                        .prefix(expectedFulfillmentCount)
+                        .last! + 1
+                    let extraCount = max(matchedCount + remainingValues.count - values.count, 0)
                     consume(extraCount)
-                    return Array(values.prefix(maxLength))
+                    return Array(values.prefix(matchedCount))
                 }
                 if let error = error {
                     throw error

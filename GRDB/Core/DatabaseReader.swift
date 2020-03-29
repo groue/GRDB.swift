@@ -140,6 +140,11 @@ public protocol DatabaseReader: AnyObject {
     /// - parameter block: A block that accesses the database.
     func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
     
+    /// Same as asyncRead, but without retaining self
+    ///
+    /// :nodoc:
+    func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void)
+    
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
     ///
@@ -254,10 +259,12 @@ public protocol DatabaseReader: AnyObject {
     /// - returns: a TransactionObserver
     func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     
+    // TODO: move to DatabaseWriter when we have proper support for Observation cancellation
     /// Remove a transaction observer.
     func remove(transactionObserver: TransactionObserver)
 }
@@ -297,64 +304,63 @@ extension DatabaseReader {
 
 extension DatabaseReader {
     // MARK: - Value Observation Support
-        
+    
+    /// Adding an observation in a read-only database emits only the
+    /// initial value.
     func addReadOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        switch observation.scheduling {
-        case .mainQueue:
-            if DispatchQueue.isMain {
-                do {
-                    try onChange(unsafeReentrantRead(observation.fetchValue))
-                } catch {
-                    onError(error)
-                }
-            } else {
-                asyncRead { dbResult in
-                    let result = dbResult.tryMap(observation.fetchValue)
-                    DispatchQueue.main.async {
-                        do {
-                            try onChange(result.get())
-                        } catch {
-                            onError(error)
-                        }
-                    }
-                }
+        // A dummy observer is enough, because read-only ValueObservation
+        // never changes.
+        let observer = DummyObserver()
+        
+        if scheduler.immediateInitialValue() {
+            do {
+                try onChange(unsafeReentrantRead(observation.fetchValue))
+            } catch {
+                observer.cancel()
+                onError(error)
             }
-        case let .async(onQueue: queue):
-            asyncRead { dbResult in
+        } else {
+            _weakAsyncRead { [weak observer] dbResult in
+                guard let observer = observer else {
+                    return
+                }
+                guard let dbResult = dbResult else {
+                    observer.cancel()
+                    return
+                }
                 let result = dbResult.tryMap(observation.fetchValue)
-                queue.async {
+                scheduler.schedule { [weak observer] in
+                    guard let observer = observer else {
+                        return
+                    }
                     do {
                         try onChange(result.get())
                     } catch {
+                        observer.cancel()
                         onError(error)
                     }
                 }
             }
-        case .unsafe:
-            do {
-                try onChange(unsafeReentrantRead(observation.fetchValue))
-            } catch {
-                onError(error)
-            }
         }
         
-        // Return a dummy observer, because read-only ValueObservation
-        // never changes.
-        return DummyObserver()
+        return observer
     }
 }
 
+// TODO: remove when we have proper support for cancellation
 /// Support for DatabaseReader.addReadonly(observation:onError:onChange:)
 private class DummyObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
     func databaseDidChange(with event: DatabaseEvent) { }
     func databaseDidCommit(_ db: Database) { }
     func databaseDidRollback(_ db: Database) { }
+    func cancel() { }
 }
 
 /// A type-erased DatabaseReader
@@ -391,6 +397,11 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
+    }
+    
+    /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(block)
     }
     
     /// :nodoc:
@@ -432,11 +443,12 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        return base.add(observation: observation, onError: onError, onChange: onChange)
+        return base.add(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
     
     /// :nodoc:

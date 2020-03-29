@@ -4,21 +4,23 @@ import Foundation
 /// See DatabaseWriter.add(observation:onError:onChange:)
 final class ValueObserver<Reducer: _ValueReducer> {
     var observedRegion: DatabaseRegion?
-    private(set) var isCancelled = false
+    var isCompleted: Bool { synchronized { _isCompleted } }
+    private var _isCompleted = false
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
     private weak var writer: DatabaseWriter?
-    private let notificationQueue: DispatchQueue?
+    private let scheduler: ValueObservationScheduler
     private let reduceQueue: DispatchQueue
     private let onError: (Error) -> Void
     private let onChange: (Reducer.Value) -> Void
     private var isChanged = false
+    private var lock = NSRecursiveLock()
     
     init(
         requiresWriteAccess: Bool,
         writer: DatabaseWriter,
         reducer: Reducer,
-        notificationQueue: DispatchQueue?,
+        scheduler: ValueObservationScheduler,
         reduceQueue: DispatchQueue,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -26,10 +28,16 @@ final class ValueObserver<Reducer: _ValueReducer> {
         self.writer = writer
         self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
-        self.notificationQueue = notificationQueue
+        self.scheduler = scheduler
         self.reduceQueue = reduceQueue
         self.onError = onError
         self.onChange = onChange
+    }
+    
+    private func synchronized<T>(_ execute: () throws -> T) rethrows -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return try execute()
     }
 }
 
@@ -50,47 +58,45 @@ extension ValueObserver {
     }
     
     func cancel() {
-        isCancelled = true
-        writer?.asyncWriteWithoutTransaction { db in
-            db.remove(transactionObserver: self)
-        }
+        complete()
     }
     
     func send(_ value: Reducer.Value) {
-        if isCancelled { return }
-        if let queue = notificationQueue {
-            let onChange = self.onChange
-            queue.async {
-                if self.isCancelled { return }
-                onChange(value)
-            }
-        } else {
-            onChange(value)
+        if isCompleted { return }
+        scheduler.schedule {
+            if self.isCompleted { return }
+            self.onChange(value)
         }
     }
     
-    func send(_ error: Error) {
-        if isCancelled { return }
-        if let queue = notificationQueue {
-            let onError = self.onError
-            queue.async {
-                if self.isCancelled { return }
-                onError(error)
+    func complete(withError error: Error) {
+        if isCompleted { return }
+        scheduler.schedule {
+            let shouldNotify: Bool = self.synchronized {
+                if self._isCompleted { return false }
+                self._isCompleted = true
+                return true
             }
-        } else {
-            onError(error)
+            if shouldNotify {
+                self.onError(error)
+            }
+        }
+    }
+    
+    func complete() {
+        synchronized {
+            _isCompleted = true
+            writer?.remove(transactionObserver: self)
         }
     }
 }
 
 extension ValueObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        if isCancelled { return false }
-        return observedRegion!.isModified(byEventsOfKind: eventKind)
+        observedRegion!.isModified(byEventsOfKind: eventKind)
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
-        if isCancelled { return }
         if observedRegion!.isModified(by: event) {
             isChanged = true
             stopObservingDatabaseChangesUntilNextTransaction()
@@ -99,7 +105,7 @@ extension ValueObserver: TransactionObserver {
     
     func databaseDidCommit(_ db: Database) {
         guard let writer = writer else { return }
-        if isCancelled { return }
+        if isCompleted { return }
         guard isChanged else { return }
         isChanged = false
         
@@ -124,13 +130,13 @@ extension ValueObserver: TransactionObserver {
         // - that expensive reduce operations are computed without blocking
         //   any database dispatch queue.
         reduceQueue.async {
-            if self.isCancelled { return }
+            if self.isCompleted { return }
             do {
                 if let value = try self.reducer.value(fetchedValue.wait()) {
                     self.send(value)
                 }
             } catch {
-                self.send(error)
+                self.complete(withError: error)
             }
         }
     }
@@ -168,6 +174,7 @@ extension ValueObserver {
     }
 }
 
+// TODO: remove when we have proper support for cancellation
 class ValueObserverToken<Reducer: _ValueReducer>: TransactionObserver {
     // Useless junk
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }

@@ -99,6 +99,12 @@ public protocol DatabaseWriter: DatabaseReader {
     /// in a transaction.
     func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
     
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, without retaining self.
+    ///
+    /// :nodoc:
+    func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void)
+    
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///
@@ -274,10 +280,10 @@ extension DatabaseWriter {
         writeWithoutTransaction { $0.add(transactionObserver: transactionObserver, extent: extent) }
     }
     
-    /// Default implementation for the DatabaseReader requirement.
-    /// :nodoc:
     public func remove(transactionObserver: TransactionObserver) {
-        unsafeReentrantWrite { $0.remove(transactionObserver: transactionObserver) }
+        _weakAsyncWriteWithoutTransaction {
+            $0?.remove(transactionObserver: transactionObserver)
+        }
     }
     
     // MARK: - Erasing the content of the database
@@ -301,76 +307,27 @@ extension DatabaseWriter {
     }
     
     // MARK: - Database Observation
-
-    func add<Reducer: _ValueReducer>(
+    
+    /// A write-only observation only uses the serialized writer
+    func addWriteOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        prependingConcurrentFetch: Bool,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        if configuration.readonly {
-            return addReadOnly(observation: observation, onError: onError, onChange: onChange)
-        }
-        
-        // True if initial value must be sent to the onChange callback
-        // before this method returns.
-        // This flag supersedes prependingConcurrentFetch.
-        let initialFetchSync: Bool
-        
-        // The queue for other values. Nil for any queue.
-        let notificationQueue: DispatchQueue?
-        
-        switch observation.scheduling {
-        case .mainQueue:
-            if DispatchQueue.isMain {
-                // Use case: observation starts on the main queue and wants
-                // a synchronous initial fetch. This helps avoiding flashes of
-                // missing content.
-                initialFetchSync = true
-                notificationQueue = DispatchQueue.main
-            } else {
-                // TODO: make this a fatal error when .mainQueue is no longer
-                // the default scheduling.
-                // Use case: observation does not start on the main queue, but
-                // has the default scheduling .mainQueue
-                initialFetchSync = false
-                notificationQueue = DispatchQueue.main
-            }
-            
-        case let .async(onQueue: queue):
-            // Use case: observation must not block the target queue
-            initialFetchSync = false
-            notificationQueue = queue
-            
-        case .unsafe:
-            // Use case: third-party integration (RxSwift, Combine, ...) that
-            // need a synchronous initial fetch.
-            //
-            // This is really super extra unsafe.
-            //
-            // If the observation is started on one dispatch queue, then
-            // the onChange and onError callbacks must be asynchronously
-            // dispatched on the *same* queue.
-            //
-            // A failure to follow this rule may mess with the ordering of
-            // initial values.
-            initialFetchSync = true
-            notificationQueue = nil
-        }
-        
-        // ---
+        assert(!configuration.readonly, "Use addReadOnly(observation:) instead")
         
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: self,
             reducer: observation.makeReducer(),
-            notificationQueue: notificationQueue,
+            scheduler: scheduler,
             reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
             onError: onError,
             onChange: onChange)
         
-        if initialFetchSync {
+        if scheduler.immediateInitialValue() {
             do {
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
                     let initialValue = try observer.fetchInitialValue(db)
@@ -379,52 +336,26 @@ extension DatabaseWriter {
                 }
                 onChange(initialValue)
             } catch {
+                observer.cancel()
                 onError(error)
             }
-        } else if prependingConcurrentFetch {
-            asyncRead { dbResult in
-                do {
-                    let db = try dbResult.get()
-                    let initialValue = try observer.fetchInitialValue(db)
-                    observer.send(initialValue)
-                    
-                    self.asyncWriteWithoutTransaction { [weak observer] db in
-                        guard let observer = observer else { return }
-                        if observer.isCancelled { return }
-                        do {
-                            if let value = try observer.fetchNextValue(db) {
-                                observer.send(value)
-                            }
-                            db.add(transactionObserver: observer, extent: .observerLifetime)
-                        } catch {
-                            observer.send(error)
-                        }
-                    }
-                } catch {
-                    observer.send(error)
-                }
-            }
         } else {
-            asyncWriteWithoutTransaction { db in
+            _weakAsyncWriteWithoutTransaction { db in
+                guard let db = db else {
+                    observer.cancel()
+                    return
+                }
+                if observer.isCompleted { return }
                 do {
                     let initialValue = try observer.fetchInitialValue(db)
                     observer.send(initialValue)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
-                    observer.send(error)
+                    observer.complete(withError: error)
                 }
             }
         }
         
-        // TODO
-        //
-        // We promise that observation stops when the returned observer is
-        // deallocated. But the real observer may have not started observing
-        // the database, because some observations start asynchronously.
-        // Well... This forces us to return a "token" that cancels any
-        // observation started asynchronously.
-        //
-        // We'll eventually return a proper Cancellable. In GRDB 5?
         return ValueObserverToken(writer: self, observer: observer)
     }
 }
@@ -505,6 +436,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     }
     
     /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(block)
+    }
+    
+    /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         try base.unsafeRead(block)
     }
@@ -555,6 +491,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     }
     
     /// :nodoc:
+    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
+        base._weakAsyncWriteWithoutTransaction(updates)
+    }
+    
+    /// :nodoc:
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.unsafeReentrantWrite(updates)
     }
@@ -586,12 +527,18 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     // MARK: - Database Observation
     
     /// :nodoc:
+    public func remove(transactionObserver: TransactionObserver) {
+        base.remove(transactionObserver: transactionObserver)
+    }
+    
+    /// :nodoc:
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        base.add(observation: observation, onError: onError, onChange: onChange)
+        base.add(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
 }

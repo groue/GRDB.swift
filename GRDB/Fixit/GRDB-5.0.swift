@@ -1,6 +1,7 @@
 // Fixits for changes introduced by GRDB 5.0.0
 // swiftlint:disable all
 
+import Dispatch
 #if os(iOS)
 import UIKit
 #endif
@@ -199,10 +200,16 @@ extension TableRecord where Self: FetchableRecord {
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(MyRecord.fetchOne) instead")
     public static func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<Self?>>
-        { preconditionFailure() }
+    { preconditionFailure() }
 }
 
 extension ValueObservation {
+    @available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")
+    var scheduling: ValueScheduling {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+    
     @available(*, unavailable, message: "Custom reducers are no longer supported")
     public static func tracking(_ regions: DatabaseRegionConvertible..., reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
     { preconditionFailure() }
@@ -307,16 +314,19 @@ extension ValueReducers {
         public func fetch(_ db: Database) throws -> Never
         { preconditionFailure() }
         
-        public mutating func value(_ fetched: Never) -> T?
-        { preconditionFailure() }
+        public mutating func value(_ fetched: Never) -> T? { }
     }
 }
 
 @available(*, unavailable, message: "Custom reducers are no longer supported")
 typealias ValueReducer = _ValueReducer
 
-@available(*, unavailable, renamed: "ValueObservationScheduling")
-typealias ValueScheduling = ValueObservationScheduling
+@available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")
+enum ValueScheduling {
+    case mainQueue
+    case async(onQueue: DispatchQueue, startImmediately: Bool)
+    case unsafe(startImmediately: Bool)
+}
 
 #if SQLITE_HAS_CODEC
 extension Configuration {

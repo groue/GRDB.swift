@@ -231,6 +231,28 @@ extension DatabaseQueue {
         }
     }
     
+    /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        writer.weakAsync { db in
+            guard let db = db else {
+                block(nil)
+                return
+            }
+            
+            do {
+                try db.beginReadOnly()
+            } catch {
+                block(.failure(error))
+                return
+            }
+            
+            block(.success(db))
+            
+            // Ignore error because we can not notify it.
+            try? db.endReadOnly()
+        }
+    }
+    
     /// Synchronously executes a block in a protected dispatch queue, and
     /// returns its result.
     ///
@@ -404,6 +426,11 @@ extension DatabaseQueue {
         writer.async(updates)
     }
     
+    /// :nodoc:
+    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
+        writer.weakAsync(updates)
+    }
+    
     // MARK: - Functions
     
     /// Add or redefine an SQL function.
@@ -451,15 +478,15 @@ extension DatabaseQueue {
     
     public func add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> TransactionObserver
     {
-        add(
-            observation: observation,
-            // DatabaseQueue does not support concurrent reads
-            prependingConcurrentFetch: false,
-            onError: onError,
-            onChange: onChange)
+        if configuration.readonly {
+            return addReadOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
+        }
+        
+        return addWriteOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
     }
 }

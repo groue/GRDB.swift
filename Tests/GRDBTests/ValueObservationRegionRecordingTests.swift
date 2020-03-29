@@ -123,7 +123,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             onChange: { (int: Int, string: String) in }) // <- destructure
     }
     
-    func testVaryingRegionTrackingMainQueueScheduling() throws {
+    func testVaryingRegionTrackingImmediateScheduling() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {
             try $0.execute(sql: """
@@ -146,6 +146,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         let observer = observation.start(
             in: dbQueue,
+            scheduler: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 results.append(count)
@@ -189,14 +190,14 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        var observation = ValueObservation.trackingVaryingRegion { db -> Int in
+        let observation = ValueObservation.trackingVaryingRegion { db -> Int in
             let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
-        observation.scheduling = .async(onQueue: DispatchQueue.main)
         
         let observer = observation.start(
             in: dbQueue,
+            scheduler: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 results.append(count)
@@ -204,57 +205,6 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         })
         
         // Can't test observedRegion because it is defined asynchronously
-        
-        try withExtendedLifetime(observer) {
-            try dbQueue.inDatabase { db in
-                try db.execute(sql: "INSERT INTO a VALUES (1)") // 1
-                try db.execute(sql: "INSERT INTO b VALUES (1)") // -
-                try db.execute(sql: "INSERT INTO b VALUES (1)") // -
-                try db.execute(sql: "UPDATE source SET name = 'b'") // 2
-                try db.execute(sql: "INSERT INTO a VALUES (1)") // -
-                try db.execute(sql: "INSERT INTO b VALUES (1)") // 3
-            }
-            
-            waitForExpectations(timeout: 1, handler: nil)
-            XCTAssertEqual(results, [0, 1, 2, 3])
-            
-            let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion!.description, "b(value),source(name)")
-        }
-    }
-    
-    func testVaryingRegionTrackingUnsafeScheduling() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write {
-            try $0.execute(sql: """
-                CREATE TABLE source(name TEXT);
-                INSERT INTO source VALUES ('a');
-                CREATE TABLE a(value INTEGER);
-                CREATE TABLE b(value INTEGER);
-                """)
-        }
-        
-        var results: [Int] = []
-        let notificationExpectation = expectation(description: "notification")
-        notificationExpectation.assertForOverFulfill = true
-        notificationExpectation.expectedFulfillmentCount = 4
-        
-        var observation = ValueObservation.trackingVaryingRegion { db -> Int in
-            let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-        }
-        observation.scheduling = .unsafe
-        
-        let observer = observation.start(
-            in: dbQueue,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                results.append(count)
-                notificationExpectation.fulfill()
-        })
-        
-        let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-        XCTAssertEqual(token.observer.observedRegion!.description, "a(value),source(name)")
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
