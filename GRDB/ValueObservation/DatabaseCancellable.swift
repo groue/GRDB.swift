@@ -9,15 +9,15 @@ public protocol DatabaseCancellable {
 ///
 /// An AnyDatabaseCancellable instance automatically calls cancel()
 ///  when deinitialized.
-class AnyDatabaseCancellable: DatabaseCancellable {
+public class AnyDatabaseCancellable: DatabaseCancellable {
     private var _cancel: (() -> Void)?
     
     /// Initializes the cancellable object with the given cancel-time closure.
-    init(cancel: @escaping () -> Void) {
+    public init(cancel: @escaping () -> Void) {
         _cancel = cancel
     }
     
-    convenience init(_ cancellable: DatabaseCancellable) {
+    public convenience init(_ cancellable: DatabaseCancellable) {
         self.init(cancel: cancellable.cancel)
     }
 
@@ -25,7 +25,7 @@ class AnyDatabaseCancellable: DatabaseCancellable {
         _cancel?()
     }
     
-    func cancel() {
+    public func cancel() {
         // Don't prevent multiple concurrent calls to _cancel, because it is
         // pointless. But release memory!
         _cancel?()
