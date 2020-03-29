@@ -345,7 +345,7 @@ extension DatabaseWriter {
                     observer.cancel()
                     return
                 }
-                if observer.isCancelled { return }
+                if observer.isCompleted { return }
                 do {
                     let initialValue = try observer.fetchInitialValue(db)
                     observer.send(initialValue)

@@ -858,7 +858,7 @@ extension DatabasePool: DatabaseReader {
                         observer.cancel()
                         return
                     }
-                    if observer.isCancelled { return }
+                    if observer.isCompleted { return }
                     do {
                         // Don't miss eventual changes between the
                         // initial fetch and the writer access.
@@ -883,7 +883,7 @@ extension DatabasePool: DatabaseReader {
                     observer.cancel()
                     return
                 }
-                if observer.isCancelled { return }
+                if observer.isCompleted { return }
                 do {
                     let initialValue = try observer.fetchInitialValue(dbResult.get())
                     observer.send(initialValue)
@@ -894,7 +894,7 @@ extension DatabasePool: DatabaseReader {
                             observer.cancel()
                             return
                         }
-                        if observer.isCancelled { return }
+                        if observer.isCompleted { return }
                         do {
                             // Don't miss eventual changes between the
                             // initial fetch and the writer access.
