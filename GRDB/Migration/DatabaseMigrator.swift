@@ -160,7 +160,9 @@ public struct DatabaseMigrator {
                         //
                         // Create a temporary witness database (on disk, just in case
                         // migrations would involve a lot of data).
-                        let witness = try DatabaseQueue(path: "", configuration: writer.configuration)
+                        var witnessConfiguration = writer.configuration
+                        witnessConfiguration.targetQueue = nil // Avoid deadlocks
+                        let witness = try DatabaseQueue(path: "", configuration: witnessConfiguration)
                         
                         // Grab schema of migrated witness database
                         let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
