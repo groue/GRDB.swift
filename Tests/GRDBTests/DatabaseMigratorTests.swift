@@ -553,6 +553,20 @@ class DatabaseMigratorTests : GRDBTestCase {
         try XCTAssertTrue(dbQueue.read(newMigrator.hasCompletedMigrations))
     }
     
+    // Regression test for https://github.com/groue/GRDB.swift/issues/741
+    func testEraseDatabaseOnSchemaChangeDoesNotDeadLock() throws {
+        dbConfiguration.targetQueue = DispatchQueue(label: "target")
+        let dbQueue = try makeDatabaseQueue()
+        
+        var migrator = DatabaseMigrator()
+        migrator.eraseDatabaseOnSchemaChange = true
+        migrator.registerMigration("1", migrate: { _ in })
+        try migrator.migrate(dbQueue)
+        
+        migrator.registerMigration("2", migrate: { _ in })
+        try migrator.migrate(dbQueue)
+    }
+    
     func testEraseDatabaseOnSchemaChange() throws {
         // 1st version of the migrator
         var migrator1 = DatabaseMigrator()
