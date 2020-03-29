@@ -471,7 +471,7 @@ ifdef JAZZY
 	  --module GRDB \
 	  --root-url http://groue.github.io/GRDB.swift/docs/4.12/ \
 	  --output Documentation/Reference \
-	  --podspec GRDB.swift.podspec
+	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else
 	@echo Jazzy must be installed for doc
 	@exit 1
