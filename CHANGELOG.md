@@ -90,6 +90,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#737](https://github.com/groue/GRDB.swift/pull/737): Force implicit database region for ValueObservation
 - [#738](https://github.com/groue/GRDB.swift/pull/738): Remove all observationForCount/All/First methods
 - [#742](https://github.com/groue/GRDB.swift/pull/742): ValueObservation scheduling is no longer an attribute of the observation
+- [#745](https://github.com/groue/GRDB.swift/pull/745): Explicit ValueObservation cancellation
 
 
 ## 4.12.0
