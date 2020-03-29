@@ -10,8 +10,8 @@ class PlayersViewController: UITableViewController {
     
     @IBOutlet private weak var newPlayerButtonItem: UIBarButtonItem!
     private var players: [Player] = []
-    private var playersObserver: TransactionObserver?
-    private var playerCountObserver: TransactionObserver?
+    private var playersCancellable: DatabaseCancellable?
+    private var playerCountCancellable: DatabaseCancellable?
     private var playerOrdering: PlayerOrdering = .byScore {
         didSet {
             configureOrderingBarButtonItem()
@@ -75,11 +75,10 @@ class PlayersViewController: UITableViewController {
         let observation = ValueObservation.tracking { db in
             try Player.fetchCount(db)
         }
-        playerCountObserver = observation.start(
+        playerCountCancellable = observation.start(
             in: dbQueue,
-            onError: { error in
-                fatalError("Unexpected error: \(error)")
-        },
+            scheduler: .immediate,
+            onError: { error in fatalError("Unexpected error: \(error)") },
             onChange: { [weak self] count in
                 guard let self = self else { return }
                 switch count {
@@ -96,44 +95,46 @@ class PlayersViewController: UITableViewController {
         let observation = ValueObservation.tracking { db in
             try request.fetchAll(db)
         }
-        playersObserver = observation.start(
+        playersCancellable = observation.start(
             in: dbQueue,
-            onError: { error in
-                fatalError("Unexpected error: \(error)")
-        },
+            scheduler: .immediate,
+            onError: { error in fatalError("Unexpected error: \(error)") },
             onChange: { [weak self] players in
                 guard let self = self else { return }
-                
-                // Compute difference between current and new list of players
-                let difference = players
-                    .difference(from: self.players)
-                    .inferringMoves()
-                
-                // Apply those changes to the table view
-                self.tableView.performBatchUpdates({
-                    self.players = players
-                    for change in difference {
-                        switch change {
-                        case let .remove(offset, _, associatedWith):
-                            if let associatedWith = associatedWith {
-                                self.tableView.moveRow(
-                                    at: IndexPath(row: offset, section: 0),
-                                    to: IndexPath(row: associatedWith, section: 0))
-                            } else {
-                                self.tableView.deleteRows(
-                                    at: [IndexPath(row: offset, section: 0)],
-                                    with: .fade)
-                            }
-                        case let .insert(offset, _, associatedWith):
-                            if associatedWith == nil {
-                                self.tableView.insertRows(
-                                    at: [IndexPath(row: offset, section: 0)],
-                                    with: .fade)
-                            }
-                        }
-                    }
-                }, completion: nil)
+                self.updateTableView(players)
         })
+    }
+    
+    private func updateTableView(_ players: [Player]) {
+        // Compute difference between current and new list of players
+        let difference = players
+            .difference(from: self.players)
+            .inferringMoves()
+        
+        // Apply those changes to the table view
+        tableView.performBatchUpdates({
+            self.players = players
+            for change in difference {
+                switch change {
+                case let .remove(offset, _, associatedWith):
+                    if let associatedWith = associatedWith {
+                        self.tableView.moveRow(
+                            at: IndexPath(row: offset, section: 0),
+                            to: IndexPath(row: associatedWith, section: 0))
+                    } else {
+                        self.tableView.deleteRows(
+                            at: [IndexPath(row: offset, section: 0)],
+                            with: .fade)
+                    }
+                case let .insert(offset, _, associatedWith):
+                    if associatedWith == nil {
+                        self.tableView.insertRows(
+                            at: [IndexPath(row: offset, section: 0)],
+                            with: .fade)
+                    }
+                }
+            }
+        }, completion: nil)
     }
 }
 

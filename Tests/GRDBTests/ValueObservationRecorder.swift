@@ -20,11 +20,11 @@ public class ValueObservationRecorder<Value> {
         var values: [Value]
         var error: Error?
         var recorderExpectation: RecorderExpectation?
-        var observer: TransactionObserver?
+        var cancellable: AnyDatabaseCancellable?
     }
     
     private let lock = NSLock()
-    private var state = State(values: [], recorderExpectation: nil, observer: nil)
+    private var state = State(values: [], recorderExpectation: nil, cancellable: nil)
     private var consumedCount = 0
     
     /// Internal for testability. Use ValueObservation.record(in:) instead.
@@ -178,12 +178,12 @@ public class ValueObservationRecorder<Value> {
         }
     }
     
-    fileprivate func receive(_ observer: TransactionObserver) {
+    fileprivate func receive(_ cancellable: DatabaseCancellable) {
         synchronized {
-            if state.observer != nil {
+            if state.cancellable != nil {
                 XCTFail("ValueObservationRecorder is already observing")
             }
-            state.observer = observer
+            state.cancellable = AnyDatabaseCancellable(cancellable)
         }
     }
 }
@@ -229,7 +229,7 @@ extension ValueObservation {
         -> ValueObservationRecorder<Reducer.Value>
     {
         let recorder = ValueObservationRecorder<Reducer.Value>()
-        let observer = start(
+        let cancellable = start(
             in: reader,
             scheduler: scheduler,
             onError: {
@@ -240,7 +240,7 @@ extension ValueObservation {
                 onChange?($0)
                 recorder.onChange($0)
         })
-        recorder.receive(observer)
+        recorder.receive(cancellable)
         return recorder
     }
 }

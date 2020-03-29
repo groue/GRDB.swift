@@ -420,7 +420,7 @@ let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
 let inMemoryDBQueue = DatabaseQueue()
 ```
 
-SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deallocated.
+SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deinitialized.
 
 **A database queue can be used from any thread.** The `write` and `read` methods are synchronous, and block the current thread until your database statements are executed in a protected dispatch queue:
 
@@ -490,7 +490,7 @@ import GRDB
 let dbPool = try DatabasePool(path: "/path/to/database.sqlite")
 ```
 
-SQLite creates the database file if it does not already exist. The connection is closed when the database pool gets deallocated.
+SQLite creates the database file if it does not already exist. The connection is closed when the database pool gets deinitialized.
 
 > :point_up: **Note**: unless read-only, a database pool opens your database in the SQLite "WAL mode". The WAL mode does not fit all situations. Please have a look at https://www.sqlite.org/wal.html.
 
@@ -5539,13 +5539,17 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     
     ```swift
     // Start observing the database
-    let observer = observation.start(
+    let cancellable: DatabaseCancellable = observation.start(
         in: dbQueue, // or dbPool
         onError: { error in print("players could not be fetched") },
         onChange: { (players: [Player]) in print("fresh players", players) })
     ```
 
-4. Stop the observation by deallocating the observer returned by the `start` method above.
+4. Stop the observation by calling the `cancel()` method on the object returned by the `start` method. Cancellation is automatic when the cancellable is deinitialized:
+    
+    ```swift
+    cancellable.cancel()
+    ```
 
 **As a convenience**, the two companion libraries [GRDBCombine] and [RxGRDB] bring Combine and RxSwift support to ValueObservation:
 
@@ -5593,6 +5597,10 @@ let disposable = observation.rx.changes(in: dbQueue).subscribe(
 - By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
 - ValueObservation may coalesce subsequent changes into a single notification.
 - ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
+- The database observation stops when any of those conditions is met:
+    - The cancellable returned by the `start` method is cancelled or deinitialized.
+    - An error occurs.
+    - The database connection is closed.
 
 Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
 
@@ -5639,7 +5647,7 @@ By default, ValueObservation notifies the initial value, as well as eventual cha
 
 ```swift
 // The default scheduling
-let observer = observation.start(
+let cancellable = observation.start(
     in: dbQueue,
     onError: { error in ... },                   // called asynchronously on the main thread
     onChange: { value in print("fresh value") }) // called asynchronously on the main thread
@@ -5651,14 +5659,14 @@ For example, the `.immediate` scheduler makes sure the initial value is notified
 
 ```swift
 class PlayersViewController: UIViewController {
-    private var observer: TransactionObserver?
+    private var cancellable: DatabaseCancellable?
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         // Start observing the database
         let observation = ValueObservation.tracking(Player.fetchAll)
-        observer = observation.start(
+        cancellable = observation.start(
             in: dbQueue,
             scheduler: .immediate, // <- immediate scheduler
             onError: { error in ... },
@@ -5673,7 +5681,7 @@ class PlayersViewController: UIViewController {
         super.viewWillDisappear(animated)
     
         // Stop observing the database
-        observer = nil
+        cancellable?.cancel()
     }
     
     private func updateView(_ players: [Player]) { ... }
@@ -5686,7 +5694,7 @@ The other built-in scheduler `.async(onQueue:)` asynchronously schedules values 
 
 ```swift
 let queue: DispatchQueue = ...
-let observer = observation.start(
+let cancellable = observation.start(
     in: dbQueue,
     scheduler: .async(onQueue: queue)
     onError: { error in ... },                   // called asynchronously on queue
@@ -5841,7 +5849,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
 2. :bulb: **Tip**: Share observations when possible.
     
-    Each call to the `start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider sharing a single observer.
+    Each call to the `start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider sharing a single active observation.
     
     For example, with RxSwift and RxGRDB, you can use the `share(replay:scope:)` operator:
     
@@ -5933,7 +5941,7 @@ try dbQueue.write { db in
 // Prints "Players were changed"
 ```
 
-By default, the observation lasts until the observer returned by the `start` method is deallocated. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
+By default, the observation lasts until the observer returned by the `start` method is deinitialized. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
 
 You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type which conforms to the [DatabaseRegionConvertible] protocol. For example:
 
@@ -5957,7 +5965,7 @@ observation.extent = .databaseLifetime
 _ = try observation.start(in: dbQueue) { db in ... }
 ```
 
-The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deallocated.
+The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deinitialized.
 
 Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
 
@@ -6018,7 +6026,7 @@ let observer = MyObserver()
 dbQueue.add(transactionObserver: observer)
 ```
 
-By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deallocated. See [Observation Extent](#observation-extent) for more options.
+By default, database holds weak references to its transaction observers: they are not retained, and stop getting notifications after they are deinitialized. See [Observation Extent](#observation-extent) for more options.
 
 
 ### Database Changes And Transactions
@@ -6189,7 +6197,7 @@ dbQueue.inDatabase { db in
 }
 ```
 
-- The default extent is `.observerLifetime`: the database holds a weak reference to the observer, and the observation automatically ends when the observer is deallocated. Meanwhile, observer is notified of all changes and transactions.
+- The default extent is `.observerLifetime`: the database holds a weak reference to the observer, and the observation automatically ends when the observer is deinitialized. Meanwhile, observer is notified of all changes and transactions.
 
 - `.nextTransaction` activates the observer until the current or next transaction completes. The database keeps a strong reference to the observer until its `databaseDidCommit` or `databaseDidRollback` method is eventually called. Hereafter the observer won't get any further notification.
 
@@ -7276,7 +7284,7 @@ You create snapshots from a [database pool](#database-pools):
 let snapshot = try dbPool.makeSnapshot()
 ```
 
-You can create as many snapshots as you need, regardless of the [maximum number of readers](#databasepool-configuration) in the pool. A snapshot database connection is closed when the snapshot gets deallocated.
+You can create as many snapshots as you need, regardless of the [maximum number of readers](#databasepool-configuration) in the pool. A snapshot database connection is closed when the snapshot gets deinitialized.
 
 **A snapshot can be used from any thread.** Its `read` methods is synchronous, and blocks the current thread until your database statements are executed:
 
@@ -7855,7 +7863,7 @@ let dbQueue = try DatabaseQueue(path: dbPath)
 
 ### How do I close a database connection?
     
-Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deallocated, and all usages of this connection are completed.
+Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deinitialized, and all usages of this connection are completed.
 
 Database accesses that run in background threads postpone the closing of connections.
 

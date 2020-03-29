@@ -309,14 +309,14 @@ extension DatabaseWriter {
     // MARK: - Database Observation
     
     /// A write-only observation only uses the serialized writer
-    func addWriteOnly<Reducer: _ValueReducer>(
+    func _addWriteOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> ValueObserver<Reducer> // For testability
     {
-        assert(!configuration.readonly, "Use addReadOnly(observation:) instead")
+        assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
@@ -342,7 +342,6 @@ extension DatabaseWriter {
         } else {
             _weakAsyncWriteWithoutTransaction { db in
                 guard let db = db else {
-                    observer.cancel()
                     return
                 }
                 if observer.isCompleted { return }
@@ -356,7 +355,7 @@ extension DatabaseWriter {
             }
         }
         
-        return ValueObserverToken(writer: self, observer: observer)
+        return observer
     }
 }
 
@@ -527,18 +526,17 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     // MARK: - Database Observation
     
     /// :nodoc:
-    public func remove(transactionObserver: TransactionObserver) {
-        base.remove(transactionObserver: transactionObserver)
-    }
-    
-    /// :nodoc:
-    public func add<Reducer: _ValueReducer>(
+    public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> DatabaseCancellable
     {
-        base.add(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
+        base._add(
+            observation: observation,
+            scheduler: scheduler,
+            onError: onError,
+            onChange: onChange)
     }
 }

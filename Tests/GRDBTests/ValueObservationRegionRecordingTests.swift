@@ -144,17 +144,15 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         
-        let observer = observation.start(
-            in: dbQueue,
+        let observer = dbQueue._addWriteOnly(
+            observation: observation,
             scheduler: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                results.append(count)
-                notificationExpectation.fulfill()
-        })
-        
-        let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-        XCTAssertEqual(token.observer.observedRegion!.description, "a(value),source(name)")
+                    results.append(count)
+                    notificationExpectation.fulfill()
+            })
+        XCTAssertEqual(observer.observedRegion!.description, "a(value),source(name)")
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
@@ -169,8 +167,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(results, [0, 1, 2, 3])
             
-            let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion!.description, "b(value),source(name)")
+            XCTAssertEqual(observer.observedRegion!.description, "b(value),source(name)")
         }
     }
     
@@ -195,8 +192,8 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
         }
         
-        let observer = observation.start(
-            in: dbQueue,
+        let observer = dbQueue._addWriteOnly(
+            observation: observation,
             scheduler: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
@@ -219,8 +216,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(results, [0, 1, 2, 3])
             
-            let token = observer as! ValueObserverToken<ValueReducers.Fetch<Int>> // Non-public implementation detail
-            XCTAssertEqual(token.observer.observedRegion!.description, "b(value),source(name)")
+            XCTAssertEqual(observer.observedRegion!.description, "b(value),source(name)")
         }
     }
 }
