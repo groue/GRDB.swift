@@ -156,6 +156,51 @@ class ValueObservationTests: GRDBTestCase {
         XCTAssertEqual(changesCount, 2)
     }
     
+    func testCancellableExplicitCancellation() throws {
+        // We need something to change
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+        
+        // Track reducer process
+        var changesCount = 0
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 2
+        
+        // Create an observation
+        let observation = ValueObservation.tracking {
+            try Int.fetchOne($0, sql: "SELECT * FROM t")
+        }
+        
+        // Start observation and cancel cancellable after second change
+        var cancellable: DatabaseCancellable!
+        cancellable = observation.start(
+            in: dbQueue,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { _ in
+                changesCount += 1
+                if changesCount == 2 {
+                    cancellable.cancel()
+                }
+                notificationExpectation.fulfill()
+        })
+        
+        try withExtendedLifetime(cancellable) {
+            // notified
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            
+            // not notified
+            try dbQueue.write { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(changesCount, 2)
+        }
+    }
+    
     func testCancellableInvalidation1() throws {
         // Test that observation stops when cancellable is deallocated
         func test(_ dbWriter: DatabaseWriter) throws {
