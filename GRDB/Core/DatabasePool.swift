@@ -621,7 +621,7 @@ extension DatabasePool: DatabaseReader {
                 
                 // Reset the schema cache before running user code in snapshot isolation
                 db.clearSchemaCache()
-
+                
                 block(.success(db))
             }
         } catch {
@@ -822,20 +822,50 @@ extension DatabasePool: DatabaseReader {
     
     // MARK: - Database Observation
     
-    public func add<Reducer: _ValueReducer>(
+    /// :nodoc:
+    public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> DatabaseCancellable
     {
         if configuration.readonly {
-            return addReadOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
+            return _addReadOnly(
+                observation: observation,
+                scheduler: scheduler,
+                onError: onError,
+                onChange: onChange)
         }
         
         if observation.requiresWriteAccess {
-            return addWriteOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
+            let observer = _addWriteOnly(
+                observation: observation,
+                scheduler: scheduler,
+                onError: onError,
+                onChange: onChange)
+            return AnyDatabaseCancellable(cancel: observer.cancel)
         }
+        
+        let observer = _addConcurrent(
+            observation: observation,
+            scheduler: scheduler,
+            onError: onError,
+            onChange: onChange)
+        return AnyDatabaseCancellable(cancel: observer.cancel)
+    }
+    
+    /// A concurrent observation fetches the initial value without waiting for
+    /// the writer.
+    func _addConcurrent<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduler: ValueObservationScheduler,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> ValueObserver<Reducer> // For testability
+    {
+        assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
+        assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
         
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
@@ -914,7 +944,7 @@ extension DatabasePool: DatabaseReader {
             }
         }
         
-        return ValueObserverToken(writer: self, observer: observer)
+        return observer
     }
     
     // MARK: - Custom FTS5 Tokenizers

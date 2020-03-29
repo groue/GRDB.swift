@@ -120,23 +120,24 @@ let players = try Player.fetchAll(db)
 In order to keep your views synchronized with the database content, you can use [ValueObservation]. It notifies fresh values after each database change. The [GRDBCombine] and [RxGRDB] companion libraries provide support for [Combine] and [RxSwift].
 
 ```swift
-let playersObservation = ValueObservation.tracking { db in
+/// An observation of [Player]
+let observation = ValueObservation.tracking { db in
     try Player.fetchAll(db)
 }
 
 // Vanilla GRDB
-let observer = playersObservation.start(in: dbQueue,
+let cancellable = observation.start(in: dbQueue,
     onError: { error in ... },
-    onChange: { (players: [Player]) in print("Players have changed") })
+    onChange: { (players: [Player]) in print("Fresh players") })
 
 // GRDBCombine
-let cancellable = playersObservation.publisher(in: dbQueue).sink(
+let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
-    receiveValue: { (players: [Player]) in print("Players have changed") })
+    receiveValue: { (players: [Player]) in print("Fresh players") })
     
 // RxGRDB
-let disposable = playersObservation.rx.observe(in: dbQueue).subscribe(
-    onNext: { (players: [Player]) in print("Players have changed") },
+let disposable = observation.rx.observe(in: dbQueue).subscribe(
+    onNext: { (players: [Player]) in print("Fresh playerss") },
     onError: { error in ... })
 ```
 

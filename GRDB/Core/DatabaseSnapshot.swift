@@ -121,18 +121,18 @@ extension DatabaseSnapshot {
     
     // MARK: - Database Observation
     
-    public func add<Reducer: _ValueReducer>(
+    /// :nodoc:
+    public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> DatabaseCancellable
     {
-        return addReadOnly(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
-    }
-    
-    // TODO: remove when we have proper support for Observation cancellation
-    public func remove(transactionObserver: TransactionObserver) {
-        // Can't remove an observer which could not be added :-)
+        return _addReadOnly(
+            observation: observation,
+            scheduler: scheduler,
+            onError: onError,
+            onChange: onChange)
     }
 }

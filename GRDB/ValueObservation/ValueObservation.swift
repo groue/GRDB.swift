@@ -9,7 +9,7 @@ import Dispatch
 ///         try Player.fetchAll(db)
 ///     }
 ///
-///     let observer = try observation.start(
+///     let cancellable = try observation.start(
 ///         in: dbQueue,
 ///         onError: { error in ... },
 ///         onChange: { players: [Player] in
@@ -42,9 +42,10 @@ extension ValueObservation {
     // MARK: - Starting Observation
     
     /// Starts the value observation in the provided database reader (such as
-    /// a database queue or database pool), and returns a transaction observer.
+    /// a database queue or database pool).
     ///
-    /// The observation lasts until the returned observer is deallocated.
+    /// The observation lasts until the returned cancellable is cancelled
+    /// or deallocated.
     ///
     /// For example:
     ///
@@ -52,7 +53,7 @@ extension ValueObservation {
     ///         try Player.fetchAll(db)
     ///     }
     ///
-    ///     let observer = try observation.start(
+    ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
     ///         onChange: { players: [Player] in
@@ -65,7 +66,7 @@ extension ValueObservation {
     /// but the first one is immediately notified when the start() method
     /// is called:
     ///
-    ///     let observer = try observation.start(
+    ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         scheduler: .immediate, // <-
     ///         onError: { error in ... },
@@ -80,21 +81,18 @@ extension ValueObservation {
     /// - parameter onError: A closure that is provided eventual errors that
     ///   happen during observation
     /// - parameter onChange: A closure that is provided fresh values
-    /// - returns: a TransactionObserver
+    /// - returns: a DatabaseCancellable
     public func start(
         in reader: DatabaseReader,
         scheduler: ValueObservationScheduler = .async(onQueue: .main),
         onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void) -> TransactionObserver
+        onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        return reader.add(observation: self, scheduler: scheduler, onError: onError, onChange: onChange)
+        return reader._add(observation: self, scheduler: scheduler, onError: onError, onChange: onChange)
     }
     
     // MARK: - Fetching Values
     
-    // TODO: make public if it helps fetching an initial value before starting
-    // the observation, in order to avoid waiting for long write transactions to
-    // complete.
     /// Returns the value.
     func fetchValue(_ db: Database) throws -> Reducer.Value {
         var reducer = makeReducer()
@@ -124,7 +122,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///         try Player.fetchAll(db)
     ///     }
     ///
-    ///     let observer = try observation.start(
+    ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
     ///         onChange:) { players: [Player] in

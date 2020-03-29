@@ -27,7 +27,7 @@ public class ValueObservationScheduler {
     ///         try Player.fetchAll(db)
     ///     }
     ///
-    ///     let observer = try observation.start(
+    ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         scheduler: .async(onQueue: .main),
     ///         onError: { error in ... },
@@ -47,7 +47,7 @@ public class ValueObservationScheduler {
     ///         try Player.fetchAll(db)
     ///     }
     ///
-    ///     let observer = try observation.start(
+    ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         scheduler: .immediate,
     ///         onError: { error in ... },

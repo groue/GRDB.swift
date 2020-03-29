@@ -257,16 +257,14 @@ public protocol DatabaseReader: AnyObject {
     /// during observation
     /// - parameter onChange: a closure that is provided fresh values
     /// - returns: a TransactionObserver
-    func add<Reducer: _ValueReducer>(
+    ///
+    /// :nodoc:
+    func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
-    
-    // TODO: move to DatabaseWriter when we have proper support for Observation cancellation
-    /// Remove a transaction observer.
-    func remove(transactionObserver: TransactionObserver)
+        -> DatabaseCancellable
 }
 
 extension DatabaseReader {
@@ -307,60 +305,44 @@ extension DatabaseReader {
     
     /// Adding an observation in a read-only database emits only the
     /// initial value.
-    func addReadOnly<Reducer: _ValueReducer>(
+    func _addReadOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> DatabaseCancellable
     {
-        // A dummy observer is enough, because read-only ValueObservation
-        // never changes.
-        let observer = DummyObserver()
-        
         if scheduler.immediateInitialValue() {
             do {
                 try onChange(unsafeReentrantRead(observation.fetchValue))
             } catch {
-                observer.cancel()
                 onError(error)
             }
+            return AnyDatabaseCancellable(cancel: { })
         } else {
-            _weakAsyncRead { [weak observer] dbResult in
-                guard let observer = observer else {
-                    return
-                }
-                guard let dbResult = dbResult else {
-                    observer.cancel()
-                    return
-                }
+            var isCancelled = false
+            _weakAsyncRead { dbResult in
+                guard
+                    !isCancelled,
+                    let dbResult = dbResult
+                    else { return }
+                
                 let result = dbResult.tryMap(observation.fetchValue)
-                scheduler.schedule { [weak observer] in
-                    guard let observer = observer else {
-                        return
-                    }
+                
+                scheduler.schedule {
+                    guard
+                        !isCancelled
+                        else { return }
                     do {
                         try onChange(result.get())
                     } catch {
-                        observer.cancel()
                         onError(error)
                     }
                 }
             }
+            return AnyDatabaseCancellable(cancel: { isCancelled = true })
         }
-        
-        return observer
     }
-}
-
-// TODO: remove when we have proper support for cancellation
-/// Support for DatabaseReader.addReadonly(observation:onError:onChange:)
-private class DummyObserver: TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
-    func databaseDidChange(with event: DatabaseEvent) { }
-    func databaseDidCommit(_ db: Database) { }
-    func databaseDidRollback(_ db: Database) { }
-    func cancel() { }
 }
 
 /// A type-erased DatabaseReader
@@ -441,18 +423,17 @@ public final class AnyDatabaseReader: DatabaseReader {
     // MARK: - Value Observation
     
     /// :nodoc:
-    public func add<Reducer: _ValueReducer>(
+    public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> DatabaseCancellable
     {
-        return base.add(observation: observation, scheduler: scheduler, onError: onError, onChange: onChange)
-    }
-    
-    /// :nodoc:
-    public func remove(transactionObserver: TransactionObserver) {
-        base.remove(transactionObserver: transactionObserver)
+        return base._add(
+            observation: observation,
+            scheduler: scheduler,
+            onError: onError,
+            onChange: onChange)
     }
 }

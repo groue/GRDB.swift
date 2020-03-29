@@ -173,24 +173,3 @@ extension ValueObserver {
         }
     }
 }
-
-// TODO: remove when we have proper support for cancellation
-class ValueObserverToken<Reducer: _ValueReducer>: TransactionObserver {
-    // Useless junk
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
-    func databaseDidChange(with event: DatabaseEvent) { }
-    func databaseDidCommit(_ db: Database) { }
-    func databaseDidRollback(_ db: Database) { }
-    
-    weak var writer: DatabaseWriter?
-    var observer: ValueObserver<Reducer>
-    
-    init(writer: DatabaseWriter, observer: ValueObserver<Reducer>) {
-        self.writer = writer
-        self.observer = observer
-    }
-    
-    deinit {
-        observer.cancel()
-    }
-}
