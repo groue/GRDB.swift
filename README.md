@@ -18,9 +18,9 @@
 | Swift version | GRDB version                                                |
 | ------------- | ----------------------------------------------------------- |
 | **Swift 5.2** | [GRDB5 branch](https://github.com/groue/GRDB.swift/tree/GRDB5) |
-| Swift 5.1     | [v4.12.0](https://github.com/groue/GRDB.swift/tree/v4.12.0) |
-| Swift 5       | [v4.12.0](https://github.com/groue/GRDB.swift/tree/v4.12.0) |
-| Swift 4.2     | [v4.12.0](https://github.com/groue/GRDB.swift/tree/v4.12.0) |
+| Swift 5.1     | [v4.12.1](https://github.com/groue/GRDB.swift/tree/v4.12.0) |
+| Swift 5       | [v4.12.1](https://github.com/groue/GRDB.swift/tree/v4.12.0) |
+| Swift 4.2     | [v4.12.1](https://github.com/groue/GRDB.swift/tree/v4.12.0) |
 | Swift 4.1     | [v3.7.0](https://github.com/groue/GRDB.swift/tree/v3.7.0)   |
 | Swift 4       | [v2.10.0](https://github.com/groue/GRDB.swift/tree/v2.10.0) |
 | Swift 3.2     | [v1.3.0](https://github.com/groue/GRDB.swift/tree/v1.3.0)   |

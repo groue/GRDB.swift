@@ -18,7 +18,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
-- `4.12.x` Releases - [4.12.0](#4120)
+- `4.12.x` Releases - [4.12.0](#4120) | [4.12.1](#4121)
 - `4.11.x` Releases - [4.11.0](#4110)
 - `4.10.x` Releases - [4.10.0](#4100)
 - `4.9.x` Releases - [4.9.0](#490)
@@ -91,6 +91,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#738](https://github.com/groue/GRDB.swift/pull/738): Remove all observationForCount/All/First methods
 - [#742](https://github.com/groue/GRDB.swift/pull/742): ValueObservation scheduling is no longer an attribute of the observation
 - [#745](https://github.com/groue/GRDB.swift/pull/745): Explicit ValueObservation cancellation
+
+
+## 4.12.1
+
+Released March 29, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.12.0...v4.12.1)
+
+**Fixed**
+
+- [#744](https://github.com/groue/GRDB.swift/pull/744): Fix DatabaseMigrator deadlock with serial target queues
 
 
 ## 4.12.0
