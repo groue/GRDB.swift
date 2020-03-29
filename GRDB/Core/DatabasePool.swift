@@ -885,7 +885,6 @@ extension DatabasePool: DatabaseReader {
                 // Now wait for the writer
                 _weakAsyncWriteWithoutTransaction { db in
                     guard let db = db else {
-                        observer.cancel()
                         return
                     }
                     if observer.isCompleted { return }
@@ -910,7 +909,6 @@ extension DatabasePool: DatabaseReader {
             // Fetch an initial value without waiting for the writer.
             _weakAsyncRead { [weak self] dbResult in
                 guard let dbResult = dbResult, let self = self else {
-                    observer.cancel()
                     return
                 }
                 if observer.isCompleted { return }
@@ -921,7 +919,6 @@ extension DatabasePool: DatabaseReader {
                     // Now wait for the writer
                     self._weakAsyncWriteWithoutTransaction { db in
                         guard let db = db else {
-                            observer.cancel()
                             return
                         }
                         if observer.isCompleted { return }

@@ -342,7 +342,6 @@ extension DatabaseWriter {
         } else {
             _weakAsyncWriteWithoutTransaction { db in
                 guard let db = db else {
-                    observer.cancel()
                     return
                 }
                 if observer.isCompleted { return }
