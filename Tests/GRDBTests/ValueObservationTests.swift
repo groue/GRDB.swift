@@ -22,7 +22,7 @@ class ValueObservationTests: GRDBTestCase {
             var error: TestError?
             _ = observation.start(
                 in: dbWriter,
-                scheduler: .immediate,
+                scheduling: .immediate,
                 onError: { error = $0 as? TestError },
                 onChange: { _ in })
             XCTAssertNotNil(error)
@@ -102,7 +102,7 @@ class ValueObservationTests: GRDBTestCase {
         let observation = ValueObservation.tracking(request.fetchAll)
         let observer = dbQueue._addWriteOnly(
             observation: observation,
-            scheduler: .immediate, // So that we can test the observedRegion
+            scheduling: .immediate, // So that we can test the observedRegion
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { _ in })
         XCTAssertEqual(observer.observedRegion!.description, "t(id,name)") // view is NOT tracked
@@ -226,7 +226,7 @@ class ValueObservationTests: GRDBTestCase {
                 })
                 cancellable = observation.start(
                     in: dbWriter,
-                    scheduler: .immediate,
+                    scheduling: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
                     onChange: { _ in
                         notificationExpectation.fulfill()
@@ -269,7 +269,7 @@ class ValueObservationTests: GRDBTestCase {
                 })
                 cancellable = observation.start(
                     in: dbWriter,
-                    scheduler: .immediate,
+                    scheduling: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
                     onChange: { _ in
                         notificationExpectation.fulfill()

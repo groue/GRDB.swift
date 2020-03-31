@@ -20,7 +20,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
         requiresWriteAccess: Bool,
         writer: DatabaseWriter,
         reducer: Reducer,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         reduceQueue: DispatchQueue,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)

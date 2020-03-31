@@ -664,7 +664,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: (V1, V2)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -681,7 +681,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: (V1, V2, V3)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -700,7 +700,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: (V1, V2, V3, V4)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -721,7 +721,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: (V1, V2, V3, V4, V5)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -744,7 +744,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: (V1, V2, V3, V4, V5, V6)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -769,7 +769,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: (V1, V2, V3, V4, V5, V6, V7)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -796,7 +796,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: (V1, V2, V3, V4, V5, V6, V7, V8)?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -812,7 +812,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -830,7 +830,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -850,7 +850,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)
@@ -872,7 +872,7 @@ class ValueObservationCombineTests: GRDBTestCase {
         var value: Combined?
         _ = try observation.start(
             in: makeDatabaseQueue(),
-            scheduler: .immediate, // So that we can test the fresh value synchronously
+            scheduling: .immediate, // So that we can test the fresh value synchronously
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { value = $0 })
         XCTAssertNotNil(value)

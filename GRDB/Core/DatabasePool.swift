@@ -825,7 +825,7 @@ extension DatabasePool: DatabaseReader {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
@@ -833,7 +833,7 @@ extension DatabasePool: DatabaseReader {
         if configuration.readonly {
             return _addReadOnly(
                 observation: observation,
-                scheduler: scheduler,
+                scheduling: scheduler,
                 onError: onError,
                 onChange: onChange)
         }
@@ -841,7 +841,7 @@ extension DatabasePool: DatabaseReader {
         if observation.requiresWriteAccess {
             let observer = _addWriteOnly(
                 observation: observation,
-                scheduler: scheduler,
+                scheduling: scheduler,
                 onError: onError,
                 onChange: onChange)
             return AnyDatabaseCancellable(cancel: observer.cancel)
@@ -849,7 +849,7 @@ extension DatabasePool: DatabaseReader {
         
         let observer = _addConcurrent(
             observation: observation,
-            scheduler: scheduler,
+            scheduling: scheduler,
             onError: onError,
             onChange: onChange)
         return AnyDatabaseCancellable(cancel: observer.cancel)
@@ -859,7 +859,7 @@ extension DatabasePool: DatabaseReader {
     /// the writer.
     func _addConcurrent<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> ValueObserver<Reducer> // For testability
@@ -871,7 +871,7 @@ extension DatabasePool: DatabaseReader {
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: self,
             reducer: observation.makeReducer(),
-            scheduler: scheduler,
+            scheduling: scheduler,
             reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
             onError: onError,
             onChange: onChange)

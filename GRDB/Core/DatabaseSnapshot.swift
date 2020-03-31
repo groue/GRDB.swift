@@ -124,14 +124,14 @@ extension DatabaseSnapshot {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         return _addReadOnly(
             observation: observation,
-            scheduler: scheduler,
+            scheduling: scheduler,
             onError: onError,
             onChange: onChange)
     }

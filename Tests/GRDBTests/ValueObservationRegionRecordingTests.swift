@@ -146,7 +146,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         let observer = dbQueue._addWriteOnly(
             observation: observation,
-            scheduler: .immediate,
+            scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                     results.append(count)
@@ -194,7 +194,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         let observer = dbQueue._addWriteOnly(
             observation: observation,
-            scheduler: .async(onQueue: .main),
+            scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 results.append(count)

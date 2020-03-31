@@ -311,7 +311,7 @@ extension DatabaseWriter {
     /// A write-only observation only uses the serialized writer
     func _addWriteOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> ValueObserver<Reducer> // For testability
@@ -322,7 +322,7 @@ extension DatabaseWriter {
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: self,
             reducer: observation.makeReducer(),
-            scheduler: scheduler,
+            scheduling: scheduler,
             reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
             onError: onError,
             onChange: onChange)
@@ -528,14 +528,14 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         base._add(
             observation: observation,
-            scheduler: scheduler,
+            scheduling: scheduler,
             onError: onError,
             onChange: onChange)
     }

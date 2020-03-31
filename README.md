@@ -5653,9 +5653,9 @@ let cancellable = observation.start(
     onChange: { value in print("fresh value") }) // called asynchronously on the main thread
 ```
 
-You can change this behavior by adding a `scheduler` argument to the `start()` method.
+You can change this behavior by adding a `scheduling` argument to the `start()` method.
 
-For example, the `.immediate` scheduler makes sure the initial value is notified immediately when the observation starts. It helps your application update the user interface without having to wait for any asynchronous notifications:
+For example, `scheduling: .immediate` makes sure the initial value is notified immediately when the observation starts. It helps your application update the user interface without having to wait for any asynchronous notifications:
 
 ```swift
 class PlayersViewController: UIViewController {
@@ -5668,7 +5668,7 @@ class PlayersViewController: UIViewController {
         let observation = ValueObservation.tracking(Player.fetchAll)
         cancellable = observation.start(
             in: dbQueue,
-            scheduler: .immediate, // <- immediate scheduler
+            scheduling: .immediate, // <- immediate scheduler
             onError: { error in ... },
             onChange: { [weak self] (players: [Player]) in
                 guard let self = self else { return }
@@ -5688,7 +5688,7 @@ class PlayersViewController: UIViewController {
 }
 ```
 
-Note that the `.immediate` scheduler requires that the observation is started from the main thread. It raises a fatal error otherwise.
+Note that the `.immediate` scheduling requires that the observation starts from the main thread. A fatal error is raised otherwise.
 
 The other built-in scheduler `.async(onQueue:)` asynchronously schedules values and errors on the dispatch queue of your choice:
 
@@ -5696,7 +5696,7 @@ The other built-in scheduler `.async(onQueue:)` asynchronously schedules values 
 let queue: DispatchQueue = ...
 let cancellable = observation.start(
     in: dbQueue,
-    scheduler: .async(onQueue: queue)
+    scheduling: .async(onQueue: queue)
     onError: { error in ... },                   // called asynchronously on queue
     onChange: { value in print("fresh value") }) // called asynchronously on queue
 ```

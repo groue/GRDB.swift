@@ -77,7 +77,7 @@ class PlayersViewController: UITableViewController {
         }
         playerCountCancellable = observation.start(
             in: dbQueue,
-            scheduler: .immediate,
+            scheduling: .immediate,
             onError: { error in fatalError("Unexpected error: \(error)") },
             onChange: { [weak self] count in
                 guard let self = self else { return }
@@ -97,7 +97,7 @@ class PlayersViewController: UITableViewController {
         }
         playersCancellable = observation.start(
             in: dbQueue,
-            scheduler: .immediate,
+            scheduling: .immediate,
             onError: { error in fatalError("Unexpected error: \(error)") },
             onChange: { [weak self] players in
                 guard let self = self else { return }

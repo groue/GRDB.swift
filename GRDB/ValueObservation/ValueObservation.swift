@@ -63,12 +63,12 @@ extension ValueObservation {
     /// By default, fresh values are dispatched asynchronously on the
     /// main queue. You can change this behavior by providing a scheduler.
     /// For example, `.immediate` notifies all values on the main queue as well,
-    /// but the first one is immediately notified when the start() method
+    /// and the first one is immediately notified when the start() method
     /// is called:
     ///
     ///     let cancellable = try observation.start(
     ///         in: dbQueue,
-    ///         scheduler: .immediate, // <-
+    ///         scheduling: .immediate, // <-
     ///         onError: { error in ... },
     ///         onChange: { players: [Player] in
     ///             print("fresh players: \(players)")
@@ -84,11 +84,11 @@ extension ValueObservation {
     /// - returns: a DatabaseCancellable
     public func start(
         in reader: DatabaseReader,
-        scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        return reader._add(observation: self, scheduler: scheduler, onError: onError, onChange: onChange)
+        return reader._add(observation: self, scheduling: scheduler, onError: onError, onChange: onChange)
     }
     
     // MARK: - Fetching Values

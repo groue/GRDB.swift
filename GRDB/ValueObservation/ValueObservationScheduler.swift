@@ -29,7 +29,7 @@ public class ValueObservationScheduler {
     ///
     ///     let cancellable = try observation.start(
     ///         in: dbQueue,
-    ///         scheduler: .async(onQueue: .main),
+    ///         scheduling: .async(onQueue: .main),
     ///         onError: { error in ... },
     ///         onChange: { players: [Player] in
     ///             print("fresh players: \(players)")
@@ -49,7 +49,7 @@ public class ValueObservationScheduler {
     ///
     ///     let cancellable = try observation.start(
     ///         in: dbQueue,
-    ///         scheduler: .immediate,
+    ///         scheduling: .immediate,
     ///         onError: { error in ... },
     ///         onChange: { players: [Player] in
     ///             print("fresh players: \(players)")

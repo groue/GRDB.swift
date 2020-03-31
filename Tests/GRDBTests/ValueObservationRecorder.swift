@@ -223,7 +223,7 @@ extension ValueObservationRecorder {
 extension ValueObservation {
     public func record(
         in reader: DatabaseReader,
-        scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         onError: ((Error) -> Void)? = nil,
         onChange: ((Reducer.Value) -> Void)? = nil)
         -> ValueObservationRecorder<Reducer.Value>
@@ -231,7 +231,7 @@ extension ValueObservation {
         let recorder = ValueObservationRecorder<Reducer.Value>()
         let cancellable = start(
             in: reader,
-            scheduler: scheduler,
+            scheduling: scheduler,
             onError: {
                 onError?($0)
                 recorder.onError($0)
@@ -384,7 +384,7 @@ extension GRDBTestCase {
     {
         func test(
             observation: ValueObservation<Reducer>,
-            scheduler: ValueObservationScheduler,
+            scheduling scheduler: ValueObservationScheduler,
             testValueDispatching: @escaping () -> Void) throws
         {
             func testRecordingEqualWhenWriteAfterStart(writer: DatabaseWriter) throws {
@@ -393,7 +393,7 @@ extension GRDBTestCase {
                 var value: Reducer.Value?
                 let recorder = observation.record(
                     in: writer,
-                    scheduler: scheduler,
+                    scheduling: scheduler,
                     onChange: {
                         testValueDispatching()
                         value = $0
@@ -421,7 +421,7 @@ extension GRDBTestCase {
                 var value: Reducer.Value?
                 let recorder = observation.record(
                     in: writer,
-                    scheduler: scheduler,
+                    scheduling: scheduler,
                     onChange: { [unowned writer] in
                         testValueDispatching()
                         valueCount += 1
@@ -450,7 +450,7 @@ extension GRDBTestCase {
                 var value: Reducer.Value?
                 let recorder = observation.record(
                     in: writer,
-                    scheduler: scheduler,
+                    scheduling: scheduler,
                     onChange: {
                         testValueDispatching()
                         value = $0
@@ -485,7 +485,7 @@ extension GRDBTestCase {
                 var value: Reducer.Value?
                 let recorder = observation.record(
                     in: writer,
-                    scheduler: scheduler,
+                    scheduling: scheduler,
                     onChange: { [unowned writer] in
                         testValueDispatching()
                         valueCount += 1
@@ -551,7 +551,7 @@ extension GRDBTestCase {
             
             try test(
                 observation: observation,
-                scheduler: .immediate,
+                scheduling: .immediate,
                 testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
@@ -561,7 +561,7 @@ extension GRDBTestCase {
             
             try test(
                 observation: observation,
-                scheduler: .async(onQueue: .main),
+                scheduling: .async(onQueue: .main),
                 testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
@@ -572,7 +572,7 @@ extension GRDBTestCase {
             
             try test(
                 observation: observation,
-                scheduler: .async(onQueue: queue),
+                scheduling: .async(onQueue: queue),
                 testValueDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }
@@ -587,7 +587,7 @@ extension GRDBTestCase {
     {
         func test(
             observation: ValueObservation<Reducer>,
-            scheduler: ValueObservationScheduler,
+            scheduling scheduler: ValueObservationScheduler,
             testErrorDispatching: @escaping () -> Void) throws
         {
             func test(writer: DatabaseWriter) throws {
@@ -595,7 +595,7 @@ extension GRDBTestCase {
                 
                 let recorder = observation.record(
                     in: writer,
-                    scheduler: scheduler,
+                    scheduling: scheduler,
                     onError: { _ in testErrorDispatching() })
                 
                 let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
@@ -617,7 +617,7 @@ extension GRDBTestCase {
             
             try test(
                 observation: observation,
-                scheduler: .immediate,
+                scheduling: .immediate,
                 testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
@@ -627,7 +627,7 @@ extension GRDBTestCase {
             
             try test(
                 observation: observation,
-                scheduler: .async(onQueue: .main),
+                scheduling: .async(onQueue: .main),
                 testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
         
@@ -638,7 +638,7 @@ extension GRDBTestCase {
             
             try test(
                 observation: observation,
-                scheduler: .async(onQueue: queue),
+                scheduling: .async(onQueue: queue),
                 testErrorDispatching: { XCTAssertNotNil(DispatchQueue.getSpecific(key: key)) })
         }
     }

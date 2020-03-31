@@ -261,7 +261,7 @@ public protocol DatabaseReader: AnyObject {
     /// :nodoc:
     func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
@@ -307,7 +307,7 @@ extension DatabaseReader {
     /// initial value.
     func _addReadOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
@@ -425,14 +425,14 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduler: ValueObservationScheduler,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         return base._add(
             observation: observation,
-            scheduler: scheduler,
+            scheduling: scheduler,
             onError: onError,
             onChange: onChange)
     }
