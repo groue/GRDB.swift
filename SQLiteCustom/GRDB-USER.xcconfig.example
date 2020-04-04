@@ -2,7 +2,7 @@
 // To compile SQLite with additional compilation options:
 // 1.) Add them to the "SQLiteLib-USER.xcconfig" in the SQLiteLib.xcodeproj
 // 2.) Add them to the CUSTOM_OTHER_SWIFT_FLAGS line below.
-// 3.) Optionally add them to "GRDBCustomSQLite-USER.h" to expose the appropriate SQLite APIs to framework consumers.
+// 3.) Optionally add them to "GRDB-USER.h" to expose the appropriate SQLite APIs to framework consumers.
 //
 // See the README.md file for more details.
 //

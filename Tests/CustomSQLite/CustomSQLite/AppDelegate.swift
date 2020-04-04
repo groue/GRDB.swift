@@ -1,5 +1,5 @@
 import Cocoa
-import GRDBCustomSQLite
+import GRDB
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
