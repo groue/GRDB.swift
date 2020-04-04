@@ -92,6 +92,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#742](https://github.com/groue/GRDB.swift/pull/742): ValueObservation scheduling is no longer an attribute of the observation
 - [#745](https://github.com/groue/GRDB.swift/pull/745): Explicit ValueObservation cancellation
 - [#747](https://github.com/groue/GRDB.swift/pull/747): Rename GRDBCustomSQLite to GRDB
+- [#748](https://github.com/groue/GRDB.swift/pull/748): Rename QueryInterfaceRequest to Request
 
 
 ## 4.12.1

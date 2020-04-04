@@ -3,14 +3,14 @@
 /// :nodoc:
 extension SQLSpecificExpressible {
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
+    /// Returns a value that can be used as an argument to Request.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var asc: SQLOrderingTerm {
         SQLOrdering.asc(sqlExpression)
     }
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
+    /// Returns a value that can be used as an argument to Request.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var desc: SQLOrderingTerm {
@@ -18,14 +18,14 @@ extension SQLSpecificExpressible {
     }
     
     #if GRDBCUSTOMSQLITE
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
+    /// Returns a value that can be used as an argument to Request.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var ascNullsLast: SQLOrderingTerm {
         SQLOrdering.ascNullsLast(sqlExpression)
     }
     
-    /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
+    /// Returns a value that can be used as an argument to Request.order()
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var descNullsFirst: SQLOrderingTerm {

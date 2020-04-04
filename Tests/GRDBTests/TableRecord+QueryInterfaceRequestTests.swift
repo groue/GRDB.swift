@@ -135,7 +135,7 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            func test(_ request: QueryInterfaceRequest<Reader>) throws {
+            func test(_ request: Request<Reader>) throws {
                 let rows = try Row.fetchAll(db, request)
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0][0] as String, "O'Brien")

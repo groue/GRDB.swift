@@ -15,7 +15,7 @@ private struct Author: FetchableRecord, PersistableRecord, Codable {
     static let databaseTableName = "author"
     static let books = hasMany(Book.self)
     
-    var books: QueryInterfaceRequest<Book> { request(for: Author.books) }
+    var books: Request<Book> { request(for: Author.books) }
 }
 
 private struct Book: FetchableRecord, PersistableRecord, Codable {
@@ -30,7 +30,7 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
     static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
     #endif
     
-    var author: QueryInterfaceRequest<Author> { request(for: Book.author) }
+    var author: Request<Author> { request(for: Book.author) }
 }
 
 private struct BookFts4: TableRecord { }

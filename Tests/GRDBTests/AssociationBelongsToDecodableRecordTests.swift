@@ -27,12 +27,12 @@ private struct PlayerWithOptionalTeam: Decodable, FetchableRecord {
     static let team = Player.team.forKey(CodingKeys.team)
 }
 
-extension QueryInterfaceRequest where T == Player {
-    func filter(teamName: String) -> QueryInterfaceRequest<Player> {
+extension Request where T == Player {
+    func filter(teamName: String) -> Request<Player> {
         joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
     }
     
-    func orderedByTeamName() -> QueryInterfaceRequest<Player> {
+    func orderedByTeamName() -> Request<Player> {
         let teamAlias = TableAlias()
         return joining(optional: PlayerWithOptionalTeam.team.aliased(teamAlias))
             .order(teamAlias[Column("name")], Column("name"))

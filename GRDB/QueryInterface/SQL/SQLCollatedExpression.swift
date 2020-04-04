@@ -16,7 +16,7 @@ public struct SQLCollatedExpression {
     /// The name of the collation
     public let collationName: Database.CollationName
     
-    /// Returns an ordering suitable for QueryInterfaceRequest.order()
+    /// Returns an ordering suitable for Request.order()
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
     ///
@@ -28,7 +28,7 @@ public struct SQLCollatedExpression {
         SQLOrdering.asc(sqlExpression)
     }
     
-    /// Returns an ordering suitable for QueryInterfaceRequest.order()
+    /// Returns an ordering suitable for Request.order()
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
     ///
@@ -41,7 +41,7 @@ public struct SQLCollatedExpression {
     }
     
     #if GRDBCUSTOMSQLITE
-    /// Returns an ordering suitable for QueryInterfaceRequest.order()
+    /// Returns an ordering suitable for Request.order()
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
     ///
@@ -53,7 +53,7 @@ public struct SQLCollatedExpression {
         SQLOrdering.ascNullsLast(sqlExpression)
     }
     
-    /// Returns an ordering suitable for QueryInterfaceRequest.order()
+    /// Returns an ordering suitable for Request.order()
     ///
     ///     let email: SQLCollatedExpression = Column("email").collating(.nocase)
     ///

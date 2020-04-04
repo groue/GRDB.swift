@@ -34,11 +34,11 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
 // Define some useful player requests.
 // See https://github.com/groue/GRDB.swift/blob/master/README.md#requests
 extension Player {
-    static func orderedByName() -> QueryInterfaceRequest<Player> {
+    static func orderedByName() -> Request<Player> {
         Player.order(Columns.name)
     }
     
-    static func orderedByScore() -> QueryInterfaceRequest<Player> {
+    static func orderedByScore() -> Request<Player> {
         Player.order(Columns.score.desc, Columns.name)
     }
 }

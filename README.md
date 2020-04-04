@@ -4468,7 +4468,7 @@ Once you have a request, you can fetch the records at the origin of the request:
 
 ```swift
 // Some request based on `Player`
-let request = Player.filter(...)... // QueryInterfaceRequest<Player>
+let request = Player.filter(...)... // Request<Player>
 
 // Fetch players:
 try request.fetchCursor(db) // A Cursor of Player
@@ -4734,10 +4734,10 @@ try Player.updateAll(db, onConflict: .ignore, /* assignments... */)
 Until now, we have seen [requests](#requests) created from any type that adopts the [TableRecord] protocol:
 
 ```swift
-let request = Player.all()  // QueryInterfaceRequest<Player>
+let request = Player.all()  // Request<Player>
 ```
 
-Those requests of type `QueryInterfaceRequest` can fetch and count:
+Those requests of type `Request` can fetch and count:
 
 ```swift
 try request.fetchCursor(db) // A Cursor of Player

@@ -36,7 +36,7 @@ class ColumnExpressionTests: GRDBTestCase {
                 container[Columns.score] = score
             }
             
-            static var testRequest: QueryInterfaceRequest<Player> {
+            static var testRequest: Request<Player> {
                 // Test expression derivation
                 return filter(Columns.name != nil).order(Columns.score.desc)
             }
@@ -96,7 +96,7 @@ class ColumnExpressionTests: GRDBTestCase {
                 container[Columns.score] = score
             }
             
-            static var testRequest: QueryInterfaceRequest<Player> {
+            static var testRequest: Request<Player> {
                 // Test expression derivation
                 return filter(Columns.name != nil).order(Columns.score.desc)
             }
@@ -150,7 +150,7 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test databaseSelection
             static let databaseSelection: [SQLSelectable] = [Columns.id, Columns.name, Columns.score]
             
-            static var testRequest: QueryInterfaceRequest<Player> {
+            static var testRequest: Request<Player> {
                 // Test expression derivation
                 return filter(Columns.name != nil).order(Columns.score.desc)
             }
@@ -198,7 +198,7 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test databaseSelection
             static let databaseSelection: [SQLSelectable] = [CodingKeys.id, CodingKeys.name, CodingKeys.score]
             
-            static var testRequest: QueryInterfaceRequest<Player> {
+            static var testRequest: Request<Player> {
                 // Test expression derivation
                 return filter(CodingKeys.name != nil).order(CodingKeys.score.desc)
             }
