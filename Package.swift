@@ -18,11 +18,11 @@ let package = Package(
     ],
     targets: [
         .systemLibrary(
-            name: "sqlite3",
+            name: "CSQLite",
             providers: [.apt(["libsqlite3-dev"])]),
         .target(
             name: "GRDB",
-            dependencies: ["sqlite3"],
+            dependencies: ["CSQLite"],
             path: "GRDB"),
         .testTarget(
             name: "GRDBTests",
