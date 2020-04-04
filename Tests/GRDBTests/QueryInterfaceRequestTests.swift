@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
-#else
 import GRDB
-#endif
 
 private struct Col {
     static let id = Column("id")

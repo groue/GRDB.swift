@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 func insertItem(_ db: Database, name: String) throws {
     try db.execute(sql: "INSERT INTO items (name) VALUES (?)", arguments: [name])

@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class TruncateOptimizationTests: GRDBTestCase {
     // https://www.sqlite.org/c3ref/update_hook.html

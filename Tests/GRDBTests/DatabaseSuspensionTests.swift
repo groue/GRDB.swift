@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-@testable import GRDBCustomSQLite
-#else
 @testable import GRDB
-#endif
 
 class DatabaseSuspensionTests : GRDBTestCase {
     

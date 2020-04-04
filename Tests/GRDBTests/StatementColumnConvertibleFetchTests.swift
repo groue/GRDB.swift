@@ -1,16 +1,12 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    #if GRDBCIPHER
-        import SQLCipher
-    #elseif SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#elseif SWIFT_PACKAGE
+import CSQLite
+#elseif !GRDBCUSTOMSQLITE
+import SQLite3
 #endif
+import GRDB
 
 // A type that adopts DatabaseValueConvertible and StatementColumnConvertible
 private struct Fetched: DatabaseValueConvertible, StatementColumnConvertible {

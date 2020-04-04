@@ -1,10 +1,6 @@
 import XCTest
 import Foundation
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 private protocol StrategyProvider {
     static var strategy: DatabaseDateEncodingStrategy { get }

@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 // Those tests are tightly coupled to GRDB decoding code.
 // Each test comes with the (commented) crashing code snippets that trigger it.

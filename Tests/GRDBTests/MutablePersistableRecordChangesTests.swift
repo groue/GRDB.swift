@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct Player: FetchableRecord, MutablePersistableRecord, Codable {
     static let databaseTableName = "players"

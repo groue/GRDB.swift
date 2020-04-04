@@ -1,14 +1,12 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    #if SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#elseif SWIFT_PACKAGE
+import CSQLite
+#elseif !GRDBCUSTOMSQLITE
+import SQLite3
 #endif
+import GRDB
 
 class ValueObservationCombineTests: GRDBTestCase {
     func testCombine2() throws {

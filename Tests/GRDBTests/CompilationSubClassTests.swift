@@ -1,8 +1,4 @@
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // This file contains types that subclass GRBD open classes. Test pass if this
 // file compiles without any error.

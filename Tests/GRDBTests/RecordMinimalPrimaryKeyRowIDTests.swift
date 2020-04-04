@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // MinimalRowID is the most tiny class with a RowID primary key which supports
 // read and write operations of Record.

@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // I think those there is no double between those two, and this is the exact threshold:
 private let maxInt64ConvertibleDouble = Double(9223372036854775295 as Int64)

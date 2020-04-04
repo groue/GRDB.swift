@@ -1,11 +1,7 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
 import Foundation
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // A custom tokenizer that ignores some tokens
 private final class StopWordsTokenizer : FTS5CustomTokenizer {
