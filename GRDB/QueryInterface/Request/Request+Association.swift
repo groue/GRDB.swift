@@ -1,8 +1,8 @@
-extension QueryInterfaceRequest where RowDecoder: TableRecord {
+extension Request where RowDecoder: TableRecord {
     
     // MARK: - Association Aggregates
     
-    private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
+    private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> Request {
         let (request, expression) = aggregate.prepare(self)
         if let key = aggregate.key {
             return request.annotated(with: [expression.forKey(key)])
@@ -17,7 +17,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.all()
     ///     request = request.annotated(with: Player.books.count)
-    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest {
+    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> Request {
         annotated(with: aggregates)
     }
     
@@ -27,7 +27,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.all()
     ///     request = request.annotated(with: [Player.books.count])
-    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest {
+    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> Request {
         aggregates.reduce(self) { request, aggregate in
             request.annotated(with: aggregate)
         }
@@ -41,7 +41,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     // HAVING COUNT(DISTINCT book.rowid) = 0
     ///     var request = Player.all()
     ///     request = request.having(Player.books.isEmpty)
-    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
+    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> Request {
         let (request, expression) = predicate.prepare(self)
         return request.having(expression)
     }

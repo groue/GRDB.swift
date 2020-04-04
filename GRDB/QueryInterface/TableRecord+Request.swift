@@ -10,15 +10,15 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func all() -> QueryInterfaceRequest<Self> {
+    public static func all() -> Request<Self> {
         let relation = SQLRelation(
             source: .table(tableName: databaseTableName, alias: nil),
             selection: databaseSelection)
-        return QueryInterfaceRequest(relation: relation)
+        return Request(relation: relation)
     }
     
     /// Creates a request which fetches no record.
-    public static func none() -> QueryInterfaceRequest<Self> {
+    public static func none() -> Request<Self> {
         all().none() // don't laugh
     }
     
@@ -26,7 +26,7 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(Column("id"), Column("email"))
-    public static func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: SQLSelectable...) -> Request<Self> {
         all().select(selection)
     }
     
@@ -34,7 +34,7 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select([Column("id"), Column("email")])
-    public static func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: [SQLSelectable]) -> Request<Self> {
         all().select(selection)
     }
     
@@ -45,7 +45,7 @@ extension TableRecord {
     public static func select(
         sql: String,
         arguments: StatementArguments = StatementArguments())
-        -> QueryInterfaceRequest<Self>
+        -> Request<Self>
     {
         return select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
@@ -54,7 +54,7 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(literal: SQLLiteral(sql: "id, email"))
-    public static func select(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
+    public static func select(literal sqlLiteral: SQLLiteral) -> Request<Self> {
         all().select(literal: sqlLiteral)
     }
     
@@ -69,7 +69,7 @@ extension TableRecord {
     public static func select<RowDecoder>(
         _ selection: [SQLSelectable],
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+        -> Request<RowDecoder>
     {
         return all().select(selection, as: type)
     }
@@ -85,7 +85,7 @@ extension TableRecord {
     public static func select<RowDecoder>(
         _ selection: SQLSelectable...,
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+        -> Request<RowDecoder>
     {
         return all().select(selection, as: type)
     }
@@ -102,7 +102,7 @@ extension TableRecord {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+        -> Request<RowDecoder>
     {
         return all().select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
@@ -118,7 +118,7 @@ extension TableRecord {
     public static func select<RowDecoder>(
         literal sqlLiteral: SQLLiteral,
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+        -> Request<RowDecoder>
     {
         return all().select(literal: sqlLiteral, as: type)
     }
@@ -129,7 +129,7 @@ extension TableRecord {
     ///     le request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
-    public static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
+    public static func annotated(with selection: [SQLSelectable]) -> Request<Self> {
         all().annotated(with: selection)
     }
     
@@ -139,7 +139,7 @@ extension TableRecord {
     ///     le request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
-    public static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
+    public static func annotated(with selection: SQLSelectable...) -> Request<Self> {
         all().annotated(with: selection)
     }
     
@@ -151,7 +151,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
+    public static func filter(_ predicate: SQLExpressible) -> Request<Self> {
         all().filter(predicate)
     }
     
@@ -164,7 +164,7 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter<PrimaryKeyType>(key: PrimaryKeyType?)
-        -> QueryInterfaceRequest<Self>
+        -> Request<Self>
         where PrimaryKeyType: DatabaseValueConvertible
     {
         return all().filter(key: key)
@@ -179,7 +179,7 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func filter<Sequence>(keys: Sequence)
-        -> QueryInterfaceRequest<Self>
+        -> Request<Self>
         where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         return all().filter(keys: keys)
@@ -196,7 +196,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self> {
+    public static func filter(key: [String: DatabaseValueConvertible?]?) -> Request<Self> {
         all().filter(key: key)
     }
     
@@ -211,7 +211,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<Self> {
+    public static func filter(keys: [[String: DatabaseValueConvertible?]]) -> Request<Self> {
         all().filter(keys: keys)
     }
     
@@ -226,7 +226,7 @@ extension TableRecord {
     public static func filter(
         sql: String,
         arguments: StatementArguments = StatementArguments())
-        -> QueryInterfaceRequest<Self>
+        -> Request<Self>
     {
         return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
@@ -244,7 +244,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func filter(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
+    public static func filter(literal sqlLiteral: SQLLiteral) -> Request<Self> {
         // NOT TESTED
         return all().filter(literal: sqlLiteral)
     }
@@ -258,7 +258,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: SQLOrderingTerm...) -> Request<Self> {
         all().order(orderings)
     }
     
@@ -271,7 +271,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: [SQLOrderingTerm]) -> Request<Self> {
         all().order(orderings)
     }
     
@@ -286,7 +286,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func orderByPrimaryKey() -> QueryInterfaceRequest<Self> {
+    public static func orderByPrimaryKey() -> Request<Self> {
         all().orderByPrimaryKey()
     }
     
@@ -301,7 +301,7 @@ extension TableRecord {
     public static func order(
         sql: String,
         arguments: StatementArguments = StatementArguments())
-        -> QueryInterfaceRequest<Self>
+        -> Request<Self>
     {
         return all().order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
@@ -320,7 +320,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func order(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
+    public static func order(literal sqlLiteral: SQLLiteral) -> Request<Self> {
         all().order(literal: sqlLiteral)
     }
     
@@ -333,7 +333,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<Self> {
+    public static func limit(_ limit: Int, offset: Int? = nil) -> Request<Self> {
         all().limit(limit, offset: offset)
     }
     
@@ -353,7 +353,7 @@ extension TableRecord {
     ///     let request = Player
     ///         .aliased(playerAlias)
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
-    public static func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<Self> {
+    public static func aliased(_ alias: TableAlias) -> Request<Self> {
         all().aliased(alias)
     }
 }

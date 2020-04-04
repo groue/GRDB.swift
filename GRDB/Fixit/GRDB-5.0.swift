@@ -134,6 +134,9 @@ extension FetchRequest where RowDecoder == Row {
     { preconditionFailure() }
 }
 
+@available(*, unavailable, renamed: "Request")
+public typealias QueryInterfaceRequest<T> = Request<T>
+
 extension SQLExpression {
     @available(*, unavailable, message: "Use SQLLiteral initializer instead")
     public var sqlLiteral: SQLLiteral
