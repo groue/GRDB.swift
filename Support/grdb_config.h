@@ -8,7 +8,8 @@
         #include <sqlite3.h>
     #endif
 #else
-    #if !defined(GRDBCUSTOMSQLITE)
+    // Assume custom SQLite build otherwize
+    #if !defined(SQLITE_VERSION_NUMBER)
         #include <sqlite3.h>
     #endif
 #endif
