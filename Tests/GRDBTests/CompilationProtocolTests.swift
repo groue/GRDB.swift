@@ -1,8 +1,4 @@
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // GRDB 1.2 has shipped with a change in the DatabaseReader public protocol.
 //

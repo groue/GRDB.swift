@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
-#else
 import GRDB
-#endif
 
 private struct Player: Codable, PersistableRecord, FetchableRecord {
     var id: Int64

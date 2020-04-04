@@ -1,16 +1,12 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-@testable import GRDBCustomSQLite
-#else
 #if GRDBCIPHER
 import SQLCipher
 #elseif SWIFT_PACKAGE
 import CSQLite
-#else
+#elseif !GRDBCUSTOMSQLITE
 import SQLite3
 #endif
 @testable import GRDB
-#endif
 
 private struct Name: DatabaseValueConvertible, Equatable, CustomDebugStringConvertible {
     var rawValue: String

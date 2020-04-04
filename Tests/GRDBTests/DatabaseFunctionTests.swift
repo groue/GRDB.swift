@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct CustomValueType : DatabaseValueConvertible {
     var databaseValue: DatabaseValue { "CustomValueType".databaseValue }

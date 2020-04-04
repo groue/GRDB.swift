@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
-               BuildableName = "GRDBCustomSQLite.framework"
-               BlueprintName = "GRDBCustomSQLiteiOS"
+               BlueprintIdentifier = "F3BA80591CFB2BB2003DC1BA"
+               BuildableName = "GRDB.framework"
+               BlueprintName = "GRDBOSX"
                ReferencedContainer = "container:GRDBCustom.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -28,9 +28,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F3BA80401CFB2AD7003DC1BA"
-               BuildableName = "GRDBCustomSQLiteiOSTests.xctest"
-               BlueprintName = "GRDBCustomSQLiteiOSTests"
+               BlueprintIdentifier = "F3BA809A1CFB2F6F003DC1BA"
+               BuildableName = "GRDBOSXTests.xctest"
+               BlueprintName = "GRDBOSXTests"
                ReferencedContainer = "container:GRDBCustom.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -45,9 +45,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
-            BuildableName = "GRDBCustomSQLite.framework"
-            BlueprintName = "GRDBCustomSQLiteiOS"
+            BlueprintIdentifier = "F3BA80591CFB2BB2003DC1BA"
+            BuildableName = "GRDB.framework"
+            BlueprintName = "GRDBOSX"
             ReferencedContainer = "container:GRDBCustom.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -56,9 +56,9 @@
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "F3BA80401CFB2AD7003DC1BA"
-               BuildableName = "GRDBCustomSQLiteiOSTests.xctest"
-               BlueprintName = "GRDBCustomSQLiteiOSTests"
+               BlueprintIdentifier = "F3BA809A1CFB2F6F003DC1BA"
+               BuildableName = "GRDBOSXTests.xctest"
+               BlueprintName = "GRDBOSXTests"
                ReferencedContainer = "container:GRDBCustom.xcodeproj">
             </BuildableReference>
          </TestableReference>
@@ -77,9 +77,9 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
-            BuildableName = "GRDBCustomSQLite.framework"
-            BlueprintName = "GRDBCustomSQLiteiOS"
+            BlueprintIdentifier = "F3BA80591CFB2BB2003DC1BA"
+            BuildableName = "GRDB.framework"
+            BlueprintName = "GRDBOSX"
             ReferencedContainer = "container:GRDBCustom.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
@@ -90,15 +90,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "F3BA7FFD1CFB25E4003DC1BA"
-            BuildableName = "GRDBCustomSQLite.framework"
-            BlueprintName = "GRDBCustomSQLiteiOS"
-            ReferencedContainer = "container:GRDBCustom.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

@@ -1,10 +1,6 @@
 import XCTest
 import Foundation
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class FoundationUUIDTests: GRDBTestCase {
     private func assert(_ value: DatabaseValueConvertible?, isDecodedAs expectedUUID: UUID?) throws {

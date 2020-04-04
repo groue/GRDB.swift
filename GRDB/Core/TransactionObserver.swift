@@ -730,7 +730,7 @@ public protocol TransactionObserver: AnyObject {
     ///
     /// As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
     /// does not have this enabled, so you'll need to compile your own
-    /// copy using GRDBCustomSQLite.
+    /// version of SQLite:
     /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md
     ///
     /// The databaseDidChangeWithEvent callback is always available,

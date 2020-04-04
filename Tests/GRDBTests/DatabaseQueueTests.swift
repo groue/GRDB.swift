@@ -1,10 +1,6 @@
 import XCTest
 import Dispatch
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class DatabaseQueueTests: GRDBTestCase {
     

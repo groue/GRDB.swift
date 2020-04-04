@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private class ChangesRecorder<Record: FetchableRecord> {
     var changes: [(record: Record, change: FetchedRecordChange)] = []

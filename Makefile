@@ -208,7 +208,7 @@ test_framework_GRDBtvOS_minTarget:
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBCustomSQLiteOSX \
+	  -scheme GRDBOSX \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
@@ -219,7 +219,7 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget: test_framework_GRDBCustomSQLiteiOS
 test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBCustomSQLiteiOS \
+	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -229,7 +229,7 @@ test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift: SQLiteCustom
 ifdef MIN_SWIFT_VERSION
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBCustomSQLiteiOS \
+	  -scheme GRDBiOS \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -239,7 +239,7 @@ endif
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
-	  -scheme GRDBCustomSQLiteiOS \
+	  -scheme GRDBiOS \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
@@ -383,11 +383,11 @@ Tests/Performance/SQLite.swift/SQLite.xcodeproj:
 
 # Target that setups SQLite custom builds with extra compilation options.
 SQLiteCustom: SQLiteCustom/src/sqlite3.h
-	echo '/* Makefile generated */' > SQLiteCustom/GRDBCustomSQLite-USER.h
-	echo '#define SQLITE_ENABLE_PREUPDATE_HOOK' >> SQLiteCustom/GRDBCustomSQLite-USER.h
-	echo '#define SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDBCustomSQLite-USER.h
-	echo '// Makefile generated' > SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
-	echo 'CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
+	echo '/* Makefile generated */' > SQLiteCustom/GRDB-USER.h
+	echo '#define SQLITE_ENABLE_PREUPDATE_HOOK' >> SQLiteCustom/GRDB-USER.h
+	echo '#define SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDB-USER.h
+	echo '// Makefile generated' > SQLiteCustom/GRDB-USER.xcconfig
+	echo 'CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDB-USER.xcconfig
 	echo '// Makefile generated' > SQLiteCustom/src/SQLiteLib-USER.xcconfig
 	echo 'CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_PREUPDATE_HOOK -DSQLITE_ENABLE_FTS5' >> SQLiteCustom/src/SQLiteLib-USER.xcconfig
 

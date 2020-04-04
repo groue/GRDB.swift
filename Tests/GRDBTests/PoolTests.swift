@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-@testable import GRDBCustomSQLite
-#else
 @testable import GRDB
-#endif
 
 class PoolTests: XCTestCase {
     /// Returns a Pool whose elements are incremented integers: 1, 2, 3...

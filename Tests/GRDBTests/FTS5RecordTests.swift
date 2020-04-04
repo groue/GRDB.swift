@@ -1,10 +1,6 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct Book {
     var id: Int64?

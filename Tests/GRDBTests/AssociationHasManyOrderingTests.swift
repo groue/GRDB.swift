@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
-#else
 import GRDB
-#endif
 
 // Ordered hasManyThrough
 private struct Team: Codable, FetchableRecord, PersistableRecord, Equatable {

@@ -1,14 +1,12 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
-#else
-#if SWIFT_PACKAGE
+#if GRDBCIPHER
+import SQLCipher
+#elseif SWIFT_PACKAGE
 import CSQLite
-#else
+#elseif !GRDBCUSTOMSQLITE
 import SQLite3
 #endif
 import GRDB
-#endif
 
 class ValueObservationReadonlyTests: GRDBTestCase {
     

@@ -1,10 +1,6 @@
 import XCTest
 
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 class DatabaseValueConvertibleEscapingTests: GRDBTestCase {
 

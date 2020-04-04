@@ -1,10 +1,6 @@
 import XCTest
 import CoreGraphics
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class CGFloatTests: GRDBTestCase {
     

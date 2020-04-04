@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 // https://github.com/rails/rails/blob/v6.0.0.rc1/activesupport/test/inflector_test.rb
 class InflectionsTests: GRDBTestCase {

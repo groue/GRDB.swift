@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // A type that adopts DatabaseValueConvertible but does not adopt StatementColumnConvertible
 private struct IntConvertible: DatabaseValueConvertible {

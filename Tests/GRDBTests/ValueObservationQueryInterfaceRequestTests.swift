@@ -1,14 +1,12 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    #if SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    import GRDB
+#if GRDBCIPHER
+import SQLCipher
+#elseif SWIFT_PACKAGE
+import CSQLite
+#elseif !GRDBCUSTOMSQLITE
+import SQLite3
 #endif
+import GRDB
 
 private struct Parent: TableRecord, FetchableRecord, Decodable, Equatable {
     static let children = hasMany(Child.self)
