@@ -93,6 +93,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#745](https://github.com/groue/GRDB.swift/pull/745): Explicit ValueObservation cancellation
 - [#747](https://github.com/groue/GRDB.swift/pull/747): Rename GRDBCustomSQLite to GRDB
 - [#748](https://github.com/groue/GRDB.swift/pull/748): Rename QueryInterfaceRequest to Request
+- [#749](https://github.com/groue/GRDB.swift/pull/749): Drop submodules used by performance tests
 
 
 ## 4.12.1

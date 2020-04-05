@@ -1,12 +1,3 @@
-[submodule "Tests/Performance/fmdb"]
-	path = Tests/Performance/fmdb
-	url = https://github.com/ccgus/fmdb.git
-[submodule "Tests/Performance/SQLite.swift"]
-	path = Tests/Performance/SQLite.swift
-	url = https://github.com/stephencelis/SQLite.swift.git
-[submodule "Tests/Performance/Realm"]
-	path = Tests/Performance/Realm
-	url = https://github.com/realm/realm-cocoa.git
 [submodule "SQLiteCustom/src"]
 	path = SQLiteCustom/src
 	url = https://github.com/swiftlyfalling/SQLiteLib.git

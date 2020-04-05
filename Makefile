@@ -356,30 +356,11 @@ else
 	@exit 1
 endif
 
-test_performance: Realm FMDB SQLite.swift
+test_performance:
 	$(XCODEBUILD) \
 	  -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj \
 	  -scheme GRDBOSXPerformanceComparisonTests \
 	  build-for-testing test-without-building
-
-Realm: Tests/Performance/Realm/build/osx/swift-11.3/RealmSwift.framework
-
-# Makes sure the Tests/Performance/Realm submodule has been downloaded, and Realm framework has been built.
-Tests/Performance/Realm/build/osx/swift-11.3/RealmSwift.framework:
-	$(GIT) submodule update --init --recursive Tests/Performance/Realm
-	cd Tests/Performance/Realm && sh build.sh osx-swift
-
-FMDB: Tests/Performance/fmdb/src/fmdb/FMDatabase.h
-
-# Makes sure the Tests/Performance/fmdb submodule has been downloaded
-Tests/Performance/fmdb/src/fmdb/FMDatabase.h:
-	$(GIT) submodule update --init Tests/Performance/fmdb
-
-SQLite.swift: Tests/Performance/SQLite.swift/SQLite.xcodeproj
-
-# Makes sure the Tests/Performance/SQLite.swift submodule has been downloaded
-Tests/Performance/SQLite.swift/SQLite.xcodeproj:
-	$(GIT) submodule update --init Tests/Performance/SQLite.swift
 
 # Target that setups SQLite custom builds with extra compilation options.
 SQLiteCustom: SQLiteCustom/src/sqlite3.h
@@ -424,16 +405,12 @@ endif
 distclean:
 	$(GIT) reset --hard
 	$(GIT) clean -dffx .
-	rm -rf Tests/Performance/fmdb && $(GIT) checkout -- Tests/Performance/fmdb
-	rm -rf Tests/Performance/SQLite.swift && $(GIT) checkout -- Tests/Performance/SQLite.swift
-	rm -rf Tests/Performance/Realm && $(GIT) checkout -- Tests/Performance/Realm
 	rm -rf SQLiteCustom/src && $(GIT) checkout -- SQLiteCustom/src
 
 clean:
 	$(SWIFT) package reset
 	cd Tests/SPM && $(SWIFT) package reset
 	rm -rf Documentation/Reference
-	if [ -a Tests/Performance/Realm/build.sh ]; then cd Tests/Performance/Realm && sh build.sh clean; fi
 	find . -name Package.resolved | xargs rm -f
 
 .PHONY: distclean clean doc test smokeTest SQLiteCustom
