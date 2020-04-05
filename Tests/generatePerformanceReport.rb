@@ -28,6 +28,12 @@ def formatted_samples(samples, test)
   libs.map { |lib| formatted_sample(samples, test, lib) || '¹' }
 end
 
+# Parse input
+samples = JSON.parse(STDIN.read)
+
+# Now that we have samples, we are reasonably sure that we 
+# have checkouts for all dependencies.
+
 # BUILD_ROOT
 exit 1 unless `xcodebuild -showBuildSettings -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj -target GRDBOSXPerformanceComparisonTests -disableAutomaticPackageResolution` =~ /BUILD_ROOT = (.*)$/
 BUILD_ROOT = $1
@@ -53,9 +59,6 @@ STDERR.puts "GRDB #{grdb_version}"
 STDERR.puts "FMDB #{fmdb_version}"
 STDERR.puts "SQLite.swift #{sqlite_swift_version}"
 STDERR.puts "Realm #{realm_version}"
-
-# Parse input
-samples = JSON.parse(STDIN.read)
 
 # Generate
 puts <<-REPORT
