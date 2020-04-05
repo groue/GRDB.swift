@@ -483,7 +483,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.all().updateAll(db, [Column("score") <- 0])
+    ///         try Player.all().updateAll(db, [Column("score").set(to: 0)])
     ///     }
     ///
     /// - parameter db: A database connection.
@@ -517,7 +517,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.all().updateAll(db, Column("score") <- 0)
+    ///         try Player.all().updateAll(db, Column("score").set(to: 0))
     ///     }
     ///
     /// - parameter db: A database connection.
@@ -624,22 +624,14 @@ extension Row {
 
 // MARK: - ColumnAssignment
 
-precedencegroup ColumnAssignment {
-    associativity: left
-    assignment: true
-    lowerThan: AssignmentPrecedence
-}
-
-infix operator <- : ColumnAssignment
-
 /// A ColumnAssignment can update rows in the database.
 ///
-/// You create an assignment from a column and an assignment operator, such as
-/// `<-` or `+=`:
+/// You create an assignment from a column and an assignment method or operator,
+/// such as `set(to:)` or `+=`:
 ///
 ///     try dbQueue.write { db in
 ///         // UPDATE player SET score = 0
-///         let assignment = Column("score") <- 0
+///         let assignment = Column("score").set(to: 0)
 ///         try Player.updateAll(db, assignment)
 ///     }
 public struct ColumnAssignment {
@@ -658,6 +650,14 @@ public struct ColumnAssignment {
     }
 }
 
+precedencegroup ColumnAssignment {
+    associativity: left
+    assignment: true
+    lowerThan: AssignmentPrecedence
+}
+
+infix operator <- : ColumnAssignment
+
 /// Creates an assignment to a value.
 ///
 ///     Column("valid") <- true
@@ -669,8 +669,26 @@ public struct ColumnAssignment {
 ///         // UPDATE player SET score = 0
 ///         try Player.updateAll(db, Column("score") <- 0)
 ///     }
+@available(*, deprecated, message: "Use column.set(to: value) instead")
 public func <- (column: ColumnExpression, value: SQLExpressible?) -> ColumnAssignment {
-    return ColumnAssignment(column: column, value: value)
+    return column.set(to: value)
+}
+
+extension ColumnExpression {
+    /// Creates an assignment to a value.
+    ///
+    ///     Column("valid").set(to: true)
+    ///     Column("score").set(to: 0)
+    ///     Column("score").set(to: nil)
+    ///     Column("score").set(to: Column("score") + Column("bonus"))
+    ///
+    ///     try dbQueue.write { db in
+    ///         // UPDATE player SET score = 0
+    ///         try Player.updateAll(db, Column("score").set(to: 0))
+    ///     }
+    public func set(to value: SQLExpressible?) -> ColumnAssignment {
+        return ColumnAssignment(column: self, value: value)
+    }
 }
 
 /// Creates an assignment that adds a value
@@ -683,7 +701,7 @@ public func <- (column: ColumnExpression, value: SQLExpressible?) -> ColumnAssig
 ///         try Player.updateAll(db, Column("score") += 1)
 ///     }
 public func += (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
-    return column <- column + value
+    return column.set(to: column + value)
 }
 
 /// Creates an assignment that subtracts a value
@@ -696,7 +714,7 @@ public func += (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         try Player.updateAll(db, Column("score") -= 1)
 ///     }
 public func -= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
-    return column <- column - value
+    return column.set(to: column - value)
 }
 
 /// Creates an assignment that multiplies by a value
@@ -709,7 +727,7 @@ public func -= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         try Player.updateAll(db, Column("score") *= 2)
 ///     }
 public func *= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
-    return column <- column * value
+    return column.set(to: column * value)
 }
 
 /// Creates an assignment that divides by a value
@@ -722,5 +740,5 @@ public func *= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         try Player.updateAll(db, Column("score") /= 2)
 ///     }
 public func /= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
-    return column <- column / value
+    return column.set(to: column / value)
 }
