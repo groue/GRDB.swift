@@ -87,7 +87,7 @@ https://twitter.com/JadenGeller/status/1115483150564487168
 
 https://twitter.com/strawb3rryx7/status/1073620070784516096
 
-> If you looking for a SQLite wrapper in Swift, just take a look the GRDB library! 👇🏼 https://github.com/groue/GRDB.swift… Well-maintained and documented! ✊🏼
+> If you looking for a SQLite wrapper in Swift, just take a look the GRDB library! 👇🏼 https://github.com/groue/GRDB.swift Well-maintained and documented! ✊🏼
 
 ---
 
