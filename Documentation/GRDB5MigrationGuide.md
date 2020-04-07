@@ -23,9 +23,7 @@ GRDB requirements have been bumped:
 
 ## ValueObservation
 
-[ValueObservation] is the database observation tool that tracks changes in database values.
-
-It has *quite* changed in GRDB 5.
+[ValueObservation] is the database observation tool that tracks changes in database values. It has quite changed in GRDB 5.
 
 **The API surface of ValueObservation was reduced**, leaving only two core methods:
 
@@ -77,7 +75,7 @@ The result of the `start` method is now a DatabaseCancellable which allows you t
 +cancellable = observation.start(...)
 ```
 
-Some legacy ways to build observations were removed:
+Some convenience ways to build observations were removed:
 
 ```diff
 -let observation = request.observationForCount()
@@ -103,11 +101,11 @@ Some legacy ways to build observations were removed:
 ```
 
 </details>
-    
+
 **The behavior of ValueObservation has changed**.
-    
+
 Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so that you are granted with an identical behavior, regardless of the technique you use to observe the database (vanilla GRDB, Combine, or RxSwift).
-    
+
 1. ValueObservation used to notify its initial value *immediately* when the observation starts. Now, it notifies fresh values on the main thread, *asynchronously*, by default.
     
     This means that parts of your application that rely on this immediate value to, say, setup their user interface, have to be modified. Insert a `scheduling: .immediate` argument in the `start` method:
@@ -153,11 +151,15 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     ```
     
     </details>
-    
-2. Some value observations used to automatically remove duplicate values. This is no longer automatic. If your application relies on distinct consecutive values, use the [removeDuplicates] operator.
-    
-3. ValueObservation used to notify one fresh value for each and every database transaction that had an impact on the tracked value. Now, it may coalesce notifications. It your application relies on one notification per transaction, use [DatabaseRegionObservation] instead.
-    
+
+2. ValueObservation used to notify one fresh value for each and every database transaction that had an impact on the tracked value. Now, it may coalesce notifications. It your application relies on exactly one notification per transaction, use [DatabaseRegionObservation] instead.
+
+3. Some value observations used to automatically remove duplicate values. This is no longer automatic. If your application relies on distinct consecutive values, use the [removeDuplicates] operator.
+
+4. ValueObservation used to have a `compactMap` method. This method has been removed without any replacement.
+
+5. ValueObservation used to let application define custom "reducers" using the ValueReducer protocol. These apis are no longer available. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
+
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
