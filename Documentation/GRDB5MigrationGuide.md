@@ -84,7 +84,7 @@ The `onError` handler of the `start` method is now mandatory:
 +    onChange: { value in print("fresh value: \(value)") })
 ```
 
-Some convenience ways to build observations were removed:
+Convenience methods that build observations have been removed:
 
 ```diff
 -let observation = request.observationForCount()
