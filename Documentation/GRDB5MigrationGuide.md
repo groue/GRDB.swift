@@ -207,6 +207,14 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     +import GRDB
     ```
 
+5. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
+    
+    ```diff
+    -try Player.updateAll(db, Column("score") <- 0)
+    +try Player.updateAll(db, Column("score").set(to: 0))
+    ```
+
+
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
@@ -214,3 +222,4 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
 [Observing a Varying Database Region]: ../README.md#observing-a-varying-database-region
 [removeDuplicates]: ../README.md#valueobservationremoveduplicates
 [Custom SQL functions]: ../README.md#custom-sql-functions
+[Batch updates]: ../README.md#update-requests
