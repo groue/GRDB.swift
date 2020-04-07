@@ -191,9 +191,18 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
      }
     ```
 
+3. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
+    
+    ```diff
+    -Player.select(myFunction.call(Column("name")))
+    +Player.select(myFunction(Column("name")))
+    ```
+
+
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [GRDBCombine]: http://github.com/groue/GRDBCombine
 [Observing a Varying Database Region]: ../README.md#observing-a-varying-database-region
 [removeDuplicates]: ../README.md#valueobservationremoveduplicates
+[Custom SQL functions]: ../README.md#custom-sql-functions
