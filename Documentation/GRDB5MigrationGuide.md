@@ -172,7 +172,7 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
 
 ## Other Changes
 
-1. The `QueryInterfaceRequest` has been renamed to `Request`.
+1. The `QueryInterfaceRequest` type has been renamed to `Request`.
 
 2. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
     
@@ -198,6 +198,14 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     +Player.select(myFunction(Column("name")))
     ```
 
+4. The technique for using GRDB with a custom SQLite build has [changed](CustomSQLiteBuilds.md).
+    
+    You will have to rename a few files, and import GRDB instead of GRDBCustomSQLite:
+    
+    ```diff
+    -import GRDBCustomSQLite
+    +import GRDB
+    ```
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
