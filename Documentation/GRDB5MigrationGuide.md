@@ -39,7 +39,7 @@ GRDB requirements have been bumped:
 ```swift
 // Define an observation
 let observation = ValueObservation.tracking { db in
-    /* fetch observed value */
+    /* fetch and return the observed value */
 }
 
 // Start the observation
