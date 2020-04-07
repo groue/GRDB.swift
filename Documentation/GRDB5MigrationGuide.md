@@ -5,8 +5,17 @@ Migrating From GRDB 4 to GRDB 5
 
 This guide aims at helping you upgrading your applications.
 
+- [Preparing the Migration to GRDB 5](#preparing-the-migration-to-grdb-5)
 - [New requirements](#new-requirements)
 - [ValueObservation](#valueobservation)
+- [Other Changes](#other-changes)
+
+
+## Preparing the Migration to GRDB 5
+
+GRDB 5 ships with fix-its that will help your migration from 4.12.1.
+
+If you haven't made it yet, upgrade to GRDB 4.12.1 first, and fix all deprecation warnings, prior to the GRDB 5 upgrade.
 
 
 ## New requirements
@@ -160,6 +169,27 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
 
 5. ValueObservation used to let application define custom "reducers" using the ValueReducer protocol. These apis are no longer available. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
 
+
+## Other Changes
+
+1. The `QueryInterfaceRequest` has been renamed to `Request`.
+
+2. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
+    
+    ```diff
+     struct MyRequest: FetchRequest {
+    -    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+    -        let statement: SelectStatement = ...
+    -        let adapter: RowAdapter? = ...
+    -        return (statement, adapter)
+    -    }
+    +    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
+    +        let statement: SelectStatement = ...
+    +        let adapter: RowAdapter? = ...
+    +        return PreparedRequest(statement: statement, adapter: adapter)
+    +    }
+     }
+    ```
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
