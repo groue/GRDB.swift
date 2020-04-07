@@ -42,7 +42,7 @@ let observation = ValueObservation.tracking { db in
     /* fetch and return the observed value */
 }
 
-// Start the observation
+// Start observing the database
 let cancellable = observation.start(
     in: dbQueue,
     onError: { error in ... },
