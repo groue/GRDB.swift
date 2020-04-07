@@ -61,6 +61,15 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 }
 ```
 
+The result of the `start` method is now a DatabaseCancellable which allows you to explicitly stop an observation:
+
+```diff
+-let observer: TransactionObserver
+-observer = observation.start(...)
++let cancellable: DatabaseCancellable
++cancellable = observation.start(...)
+```
+
 The `onError` handler of the `start` method is now mandatory:
 
 ```diff
@@ -73,15 +82,6 @@ The `onError` handler of the `start` method is now mandatory:
 +    in: dbQueue,
 +    onError: { error in ... },
 +    onChange: { value in print("fresh value: \(value)") })
-```
-
-The result of the `start` method is now a DatabaseCancellable which allows you to explicitly stop an observation:
-
-```diff
--let observer: TransactionObserver
--observer = observation.start(...)
-+let cancellable: DatabaseCancellable
-+cancellable = observation.start(...)
 ```
 
 Some convenience ways to build observations were removed:
