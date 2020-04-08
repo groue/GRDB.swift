@@ -1,9 +1,7 @@
 Migrating From GRDB 4 to GRDB 5
 ===============================
 
-**GRDB 5 comes with less features than GRDB 4!** This is just the sign that your favorite Swift SQLite library is more fitted than ever for your GUI applications, and that is will be easier to maintain in the future.
-
-This guide aims at helping you upgrading your applications.
+**This guide aims at helping you upgrading your applications from GRDB 4 to GRDB 5.**
 
 - [Preparing the Migration to GRDB 5](#preparing-the-migration-to-grdb-5)
 - [New requirements](#new-requirements)
@@ -13,9 +11,11 @@ This guide aims at helping you upgrading your applications.
 
 ## Preparing the Migration to GRDB 5
 
-GRDB 5 ships with fix-its that will help your migration from 4.12.1.
-
 If you haven't made it yet, upgrade to GRDB 4.12.1 first, and fix all deprecation warnings, prior to the GRDB 5 upgrade.
+
+GRDB 5 ships with fix-its that will suggest simple syntactic changes, and won't require you to think much.
+
+Your attention is required, though, in two areas: database observation, and custom SQLite builds. Please see below.
 
 
 ## New requirements
@@ -186,7 +186,27 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
 
 1. The `QueryInterfaceRequest` type has been renamed to `Request`.
 
-2. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
+2. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    try Player.updateAll(db, Column("score") <- 0)
+     
+    // NEW: GRDB 5
+    try Player.updateAll(db, Column("score").set(to: 0))
+    ```
+
+3. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
+    
+    ```swift
+    // BEFORE: GRDB 4
+    Player.select(myFunction.call(Column("name")))
+     
+    // NEW: GRDB 5
+    Player.select(myFunction(Column("name")))
+    ```
+
+4. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
     
     ```swift
     // BEFORE: GRDB 4
@@ -208,17 +228,7 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     }
     ```
 
-3. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
-    
-    ```swift
-    // BEFORE: GRDB 4
-    Player.select(myFunction.call(Column("name")))
-     
-    // NEW: GRDB 5
-    Player.select(myFunction(Column("name")))
-    ```
-
-4. The technique for using GRDB with a custom SQLite build has [changed](CustomSQLiteBuilds.md).
+5. The technique for using GRDB with a custom SQLite build has [changed](CustomSQLiteBuilds.md).
     
     You will have to rename a few files, and import GRDB instead of GRDBCustomSQLite:
     
@@ -228,16 +238,6 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
      
     // NEW: GRDB 5
     import GRDB
-    ```
-
-5. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
-    
-    ```swift
-    // BEFORE: GRDB 4
-    try Player.updateAll(db, Column("score") <- 0)
-     
-    // NEW: GRDB 5
-    try Player.updateAll(db, Column("score").set(to: 0))
     ```
 
 
