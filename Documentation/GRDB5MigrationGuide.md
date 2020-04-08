@@ -63,50 +63,62 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 
 The result of the `start` method is now a DatabaseCancellable which allows you to explicitly stop an observation:
 
-```diff
--let observer: TransactionObserver
--observer = observation.start(...)
-+let cancellable: DatabaseCancellable
-+cancellable = observation.start(...)
+```swift
+// BEFORE: GRDB 4
+let observer: TransactionObserver
+observer = observation.start(...)
+
+// NEW: GRDB 5
+let cancellable: DatabaseCancellable
+cancellable = observation.start(...)
 ```
 
 The `onError` handler of the `start` method is now mandatory:
 
-```diff
--do {
--    try observation.start(in: dbQueue) { value in
--        print("fresh value: \(value)")
--    }
--} catch { ... }
-+observation.start(
-+    in: dbQueue,
-+    onError: { error in ... },
-+    onChange: { value in print("fresh value: \(value)") })
+```swift
+// BEFORE: GRDB 4
+do {
+    try observation.start(in: dbQueue) { value in
+        print("fresh value: \(value)")
+    }
+} catch { ... }
+
+// NEW: GRDB 5
+observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { value in print("fresh value: \(value)") })
 ```
 
 Convenience methods that build observations have been removed:
 
-```diff
--let observation = request.observationForCount()
--let observation = request.observationForFirst()
--let observation = request.observationForAll()
--let observation = ValueObservation.tracking(request, fetch: { db in ... })
-+let observation = ValueObservation.tracking(request.fetchCount)
-+let observation = ValueObservation.tracking(request.fetchOne)
-+let observation = ValueObservation.tracking(request.fetchAll)
-+let observation = ValueObservation.tracking { db in ... }
+```swift
+// BEFORE: GRDB 4
+let observation = request.observationForCount()
+let observation = request.observationForFirst()
+let observation = request.observationForAll()
+let observation = ValueObservation.tracking(request, fetch: { db in ... })
+
+// NEW: GRDB 5
+let observation = ValueObservation.tracking(request.fetchCount)
+let observation = ValueObservation.tracking(request.fetchOne)
+let observation = ValueObservation.tracking(request.fetchAll)
+let observation = ValueObservation.tracking { db in ... }
 ```
 
 <details>
     <summary>RxGRDB impact</summary>
 
-```diff
--request.rx.observeCount(in: dbQueue)
--request.rx.observeFirst(in: dbQueue)
--request.rx.observeAll(in: dbQueue)
-+ValueObservation.tracking(request.fetchCount).rx.observe(in: dbQueue)
-+ValueObservation.tracking(request.fetchOne).rx.observe(in: dbQueue)
-+ValueObservation.tracking(request.fetchAll).rx.observe(in: dbQueue)
+```swift
+// BEFORE: GRDB 4
+request.rx.observeCount(in: dbQueue)
+request.rx.observeFirst(in: dbQueue)
+request.rx.observeAll(in: dbQueue)
+
+// NEW: GRDB 5
+ValueObservation.tracking(request.fetchCount).rx.observe(in: dbQueue)
+ValueObservation.tracking(request.fetchOne).rx.observe(in: dbQueue)
+ValueObservation.tracking(request.fetchAll).rx.observe(in: dbQueue)
 ```
 
 </details>
@@ -119,30 +131,30 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     
     This means that parts of your application that rely on this immediate value to, say, setup their user interface, have to be modified. Insert a `scheduling: .immediate` argument in the `start` method:
     
-    ```diff
-     let observation = ValueObservation.tracking(Player.fetchAll)
-     let cancellable = observation.start(
-         in: dbQueue,
-    +    // Opt in for immediate notification of the initial value
-    +    scheduling: .immediate,
-         onError: { error in ... },
-         onChange: { [weak self] (players: [Player]) in
-             guard let self = self else { return }
-             self.updateView(players)
-         })
-     // <- Here the view has already been updated.
+    ```swift
+    let observation = ValueObservation.tracking(Player.fetchAll)
+    let cancellable = observation.start(
+        in: dbQueue,
+        // Opt in for immediate notification of the initial value
+        scheduling: .immediate,
+        onError: { error in ... },
+        onChange: { [weak self] (players: [Player]) in
+            guard let self = self else { return }
+            self.updateView(players)
+        })
+    // <- Here the view has already been updated.
     ```
     
     <details>
         <summary>GRDBCombine impact</summary>
     
-    ```diff
-     let observation = ValueObservation.tracking(Player.fetchAll)
-     let cancellable = observation
-         .publisher(in: dbQueue)
-    +    // Opt in for immediate notification of the initial value
-    +    .scheduling(.immediate)
-         .sink(...)
+    ```swift
+    let observation = ValueObservation.tracking(Player.fetchAll)
+    let cancellable = observation
+        .publisher(in: dbQueue)
+        // Opt in for immediate notification of the initial value
+        .scheduling(.immediate)
+        .sink(...)
     ```
     
     </details>
@@ -150,13 +162,13 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     <details>
         <summary>RxGRDB impact</summary>
     
-    ```diff
-     let observation = ValueObservation.tracking(Player.fetchAll)
-     let disposable = observation
-         .rx.observe(in: dbQueue)
-    +    // Opt in for immediate notification of the initial value
-    +    .scheduling(.immediate)
-         .subscribe(...)
+    ```swift
+    let observation = ValueObservation.tracking(Player.fetchAll)
+    let disposable = observation
+        .rx.observe(in: dbQueue)
+        // Opt in for immediate notification of the initial value
+        .scheduling(.immediate)
+        .subscribe(...)
     ```
     
     </details>
@@ -176,42 +188,56 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
 
 2. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
     
-    ```diff
-     struct MyRequest: FetchRequest {
-    -    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
-    -        let statement: SelectStatement = ...
-    -        let adapter: RowAdapter? = ...
-    -        return (statement, adapter)
-    -    }
-    +    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
-    +        let statement: SelectStatement = ...
-    +        let adapter: RowAdapter? = ...
-    +        return PreparedRequest(statement: statement, adapter: adapter)
-    +    }
-     }
+    ```swift
+    // BEFORE: GRDB 4
+    struct MyRequest: FetchRequest {
+        func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
+            let statement: SelectStatement = ...
+            let adapter: RowAdapter? = ...
+            return (statement, adapter)
+        }
+    }
+     
+    // NEW: GRDB 5
+    struct MyRequest: FetchRequest {
+        func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
+            let statement: SelectStatement = ...
+            let adapter: RowAdapter? = ...
+            return PreparedRequest(statement: statement, adapter: adapter)
+        }
+    }
     ```
 
 3. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
     
-    ```diff
-    -Player.select(myFunction.call(Column("name")))
-    +Player.select(myFunction(Column("name")))
+    ```swift
+    // BEFORE: GRDB 4
+    Player.select(myFunction.call(Column("name")))
+     
+    // NEW: GRDB 5
+    Player.select(myFunction(Column("name")))
     ```
 
 4. The technique for using GRDB with a custom SQLite build has [changed](CustomSQLiteBuilds.md).
     
     You will have to rename a few files, and import GRDB instead of GRDBCustomSQLite:
     
-    ```diff
-    -import GRDBCustomSQLite
-    +import GRDB
+    ```swift
+    // BEFORE: GRDB 4
+    import GRDBCustomSQLite
+     
+    // NEW: GRDB 5
+    import GRDB
     ```
 
 5. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
     
-    ```diff
-    -try Player.updateAll(db, Column("score") <- 0)
-    +try Player.updateAll(db, Column("score").set(to: 0))
+    ```swift
+    // BEFORE: GRDB 4
+    try Player.updateAll(db, Column("score") <- 0)
+     
+    // NEW: GRDB 5
+    try Player.updateAll(db, Column("score").set(to: 0))
     ```
 
 
