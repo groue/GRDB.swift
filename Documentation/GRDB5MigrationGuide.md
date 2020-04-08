@@ -177,9 +177,41 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
 
 3. Some value observations used to automatically remove duplicate values. This is no longer automatic. If your application relies on distinct consecutive values, use the [removeDuplicates] operator.
 
-4. ValueObservation used to have a `compactMap` method. This method has been removed without any replacement.
+**ValueObservation features have been removed**.
 
-5. ValueObservation used to let application define custom "reducers" using the ValueReducer protocol. These apis are no longer available. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
+1. ValueObservation used to have a `compactMap` method. This method has been removed without any replacement.
+    
+    If your application uses GRDBCombine or RxGRDB, then use the `compactMap` method from Combine or RxSwift instead.
+
+2. ValueObservation used to have a `combine` method. This method has been removed without any replacement.
+    
+    In your application, replace combined observations with a single observation:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    let playerCountObservation = ValueObservation.tracking(Player.fetchCount)
+    let bestPlayersObservation = ValueObservation.tracking(Player
+            .limit(10)
+            .order(Column("score").desc)
+            .fetchAll)
+    let observation = ValueObservation
+        .combine(playerCountObservation, bestPlayersObservation)
+        .map(HallOfFame.init)
+    
+    // NEW: GRDB 5
+    let observation = ValueObservation.tracking { db -> HallOfFame in
+        let playerCount = try Player.fetchCount(db)
+        let bestPlayers = try Player
+            .limit(10)
+            .order(Column("score").desc)
+            .fetchAll(db)
+        return HallOfFame(playerCount: playerCount, bestPlayers: bestPlayers)
+    }
+    ```
+    
+    As is previous versions of GRDB, do not use the `combineLatest` operators of Combine or RxSwift in order to combine several ValueObservation. You would lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
+
+3. ValueObservation used to let application define custom "reducers" using the ValueReducer protocol. These apis are no longer available. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
 
 
 ## Other Changes

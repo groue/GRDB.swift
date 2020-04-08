@@ -5711,7 +5711,6 @@ let cancellable = observation.start(
 
 - [ValueObservation.map](#valueobservationmap)
 - [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
-- [ValueObservation.combine](#valueobservationcombine)
 - [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess)
 
 
@@ -5770,49 +5769,6 @@ let observation = ValueObservation
     .removeDuplicates() // Row adopts Equatable
     .map { rows in rows.map(TeamInfo.init(row:) }
 ```
-
-
-#### ValueObservation.combine
-
-The `ValueObservation.combine` static method builds a single observation from several (up to eight):
-
-```swift
-// An observation of Int
-let playerCountObservation = ValueObservation.tracking { db in
-    try Player.fetchCount(db)
-}
-// An observation of [Player]
-let bestPlayersObservation = ValueObservation.tracking { db in
-    try Player
-        .limit(10)
-        .order(Column("score").desc)
-        .fetchAll(db)
-}
-
-// The combined observation of (Int, [Player])
-let observation = ValueObservation.combine(
-    playerCountObservation, 
-    bestPlayersObservation)
-```
-
-Combining observations together provides the guarantee that notified values are [**consistent**](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
-
-`combine` also exists as an instance method:
-
-```swift
-struct HallOfFame {
-    var totalPlayerCount: Int
-    var bestPlayers: [Player]
-}
-
-// An observation of HallOfFame
-let observation = playerCountObservation.combine(bestPlayersObservation) {
-    HallOfFame(totalPlayerCount: $0, bestPlayers: $1)
-}
-```
-
-
-> :point_up: **Note**: readers who are familiar with Reactive Programming will recognize the [CombineLatest](http://reactivex.io/documentation/operators/combinelatest.html) operator in the ValueObservation `combine` method. This is partially exact, because the reactive operator is unable to guarantee data consistency. If you use a Reactive layer such as [GRDBCombine] or [RxGRDB], make sure you compose observations with `ValueObservation.combine`, and never with the CombineLatest operator.
 
 
 #### ValueObservation.requiresWriteAccess
