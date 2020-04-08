@@ -12,7 +12,7 @@ extension AnyFetchRequest {
     { preconditionFailure() }
 }
 
-@available(*, unavailable, message: "Custom reducers are no longer supported")
+@available(*, unavailable, message: "Custom reducers are no longer supported. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
 public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
     public var isObservedRegionDeterministic: Bool
     { preconditionFailure() }
@@ -213,15 +213,63 @@ extension ValueObservation {
         set { preconditionFailure() }
     }
     
-    @available(*, unavailable, message: "Custom reducers are no longer supported")
+    @available(*, unavailable, message: "Custom reducers are no longer supported. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
     public static func tracking(_ regions: DatabaseRegionConvertible..., reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
     { preconditionFailure() }
 
-    @available(*, unavailable, message: "Custom reducers are no longer supported")
+    @available(*, unavailable, message: "Custom reducers are no longer supported. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
     public static func tracking(_ regions: [DatabaseRegionConvertible], reducer: @escaping (Database) throws -> Reducer) -> ValueObservation
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "compactMap is no longer available")
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public func combine<
+        R1: _ValueReducer,
+        Combined>(
+        _ other: ValueObservation<R1>,
+        _ transform: @escaping (Reducer.Value, R1.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    { preconditionFailure() }
+
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        Combined>(
+        _ observation1: ValueObservation<R1>,
+        _ observation2: ValueObservation<R2>,
+        _ transform: @escaping (Reducer.Value, R1.Value, R2.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    { preconditionFailure() }
+
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        Combined>(
+        _ observation1: ValueObservation<R1>,
+        _ observation2: ValueObservation<R2>,
+        _ observation3: ValueObservation<R3>,
+        _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    { preconditionFailure() }
+
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        Combined>(
+        _ observation1: ValueObservation<R1>,
+        _ observation2: ValueObservation<R2>,
+        _ observation3: ValueObservation<R3>,
+        _ observation4: ValueObservation<R4>,
+        _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value, R4.Value) -> Combined)
+        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "compactMap is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
     public func compactMap<T>(_ transform: @escaping (Reducer.Value) -> T?) -> ValueObservation<ValueReducers.Unavailable<T>>
     { preconditionFailure() }
     
@@ -233,6 +281,111 @@ extension ValueObservation {
 }
 
 extension ValueObservation where Reducer == ValueReducers.Auto {
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer>(
+        _ o1: ValueObservation<R1>,
+        _ o2: ValueObservation<R2>)
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value)>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer>(
+        _ o1: ValueObservation<R1>,
+        _ o2: ValueObservation<R2>,
+        _ o3: ValueObservation<R3>)
+        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value)>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer>(
+        _ o1: ValueObservation<R1>,
+        _ o2: ValueObservation<R2>,
+        _ o3: ValueObservation<R3>,
+        _ o4: ValueObservation<R4>)
+        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value)>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer>(
+        _ o1: ValueObservation<R1>,
+        _ o2: ValueObservation<R2>,
+        _ o3: ValueObservation<R3>,
+        _ o4: ValueObservation<R4>,
+        _ o5: ValueObservation<R5>)
+        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value)>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer>(
+        _ o1: ValueObservation<R1>,
+        _ o2: ValueObservation<R2>,
+        _ o3: ValueObservation<R3>,
+        _ o4: ValueObservation<R4>,
+        _ o5: ValueObservation<R5>,
+        _ o6: ValueObservation<R6>)
+        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value)>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer>(
+        _ o1: ValueObservation<R1>,
+        _ o2: ValueObservation<R2>,
+        _ o3: ValueObservation<R3>,
+        _ o4: ValueObservation<R4>,
+        _ o5: ValueObservation<R5>,
+        _ o6: ValueObservation<R6>,
+        _ o7: ValueObservation<R7>)
+        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value)>>
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func combine<
+        R1: _ValueReducer,
+        R2: _ValueReducer,
+        R3: _ValueReducer,
+        R4: _ValueReducer,
+        R5: _ValueReducer,
+        R6: _ValueReducer,
+        R7: _ValueReducer,
+        R8: _ValueReducer>(
+        _ o1: ValueObservation<R1>,
+        _ o2: ValueObservation<R2>,
+        _ o3: ValueObservation<R3>,
+        _ o4: ValueObservation<R4>,
+        _ o5: ValueObservation<R5>,
+        _ o6: ValueObservation<R6>,
+        _ o7: ValueObservation<R7>,
+        _ o8: ValueObservation<R8>)
+        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value, R8.Value)>>
+    { preconditionFailure() }
+    
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
         -> ValueObservation<ValueReducers.Unavailable<Int>>
@@ -321,7 +474,7 @@ extension ValueReducers {
     }
 }
 
-@available(*, unavailable, message: "Custom reducers are no longer supported")
+@available(*, unavailable, message: "Custom reducers are no longer supported. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
 typealias ValueReducer = _ValueReducer
 
 @available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")

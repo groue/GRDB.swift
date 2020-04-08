@@ -48,9 +48,6 @@
       location = "group:GRDBCustom.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:Tests/Performance/GRDBProfiling/GRDBProfiling.xcodeproj">
    </FileRef>
    <FileRef
