@@ -90,14 +90,14 @@ With GRDB associations, we can streamline these operations (and others), by decl
 ```swift
 extension Author {
     static let books = hasMany(Book.self)
-    var books: Request<Book> {
+    var books: QueryInterfaceRequest<Book> {
         request(for: Author.books)
     }
 }
 
 extension Book {
     static let author = belongsTo(Author.self)
-    var author: Request<Author> {
+    var author: QueryInterfaceRequest<Author> {
         request(for: Book.author)
     }
 }
@@ -164,7 +164,7 @@ Generally speaking, associations use the [TableRecord], [FetchableRecord], and [
     ```swift
     extension Book: EncodableRecord {
         // The request for the author of a book.
-        var author: Request<Author> {
+        var author: QueryInterfaceRequest<Author> {
             request(for: Book.author)
         }
     }
@@ -784,7 +784,7 @@ struct Book: TableRecord, EncodableRecord {
     static let author = belongsTo(Author.self)
     
     /// The request for the author of a book
-    var author: Request<Author> {
+    var author: QueryInterfaceRequest<Author> {
         request(for: Book.author)
     }
 }
@@ -805,7 +805,7 @@ struct Author: TableRecord, EncodableRecord {
     static let books = hasMany(Book.self)
     
     /// The request for the books of an author
-    var books: Request<Book> {
+    var books: QueryInterfaceRequest<Book> {
         request(for: Author.books)
     }
 }
@@ -1139,7 +1139,7 @@ The `Team.players` association is ordered by position, so that all team players 
 extension Team {
     static let players = hasMany(Player.self).order(Column("position"))
     
-    var players: Request<Player> {
+    var players: QueryInterfaceRequest<Player> {
         request(for: Team.players)
     }
 }
@@ -1173,7 +1173,7 @@ extension Team {
     
     static let players = hasMany(Player.self, through: playerRoles, using: PlayerRole.player)
     
-    var players: Request<Player> {
+    var players: QueryInterfaceRequest<Player> {
         request(for: Team.players)
     }
 }
@@ -1609,7 +1609,7 @@ And who is the most able to know those coding keys? BookInfo itself, thanks to i
 
 ```swift
 extension BookInfo {
-    static func all() -> Request<BookInfo> {
+    static func all() -> QueryInterfaceRequest<BookInfo> {
         Book.including(optional: Book.coverImage)
             .including(required: Book.author
                 .forKey(CodingKeys.authorInfo)        // (1)
@@ -1756,7 +1756,7 @@ When you need to compute aggregates **from a single record**, you use [regular a
 ```swift
 struct Author: TableRecord, EncodableRecord {
     static let books = hasMany(Book.self)
-    var books: Request<Book> {
+    var books: QueryInterfaceRequest<Book> {
         request(for: Author.books)
     }
 }
@@ -1898,7 +1898,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
     var author: Author
     var numberOfBooks: Int
     
-    static func all() -> Request<AuthorInfo> {
+    static func all() -> QueryInterfaceRequest<AuthorInfo> {
         let numberOfBooks = Author.books.count.forKey(CodingKey.numberOfBooks)    // <--
         return Author
             .annotated(with: numberOfBooks)

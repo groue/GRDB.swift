@@ -182,9 +182,9 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
             let abaBase = B.a.aliased(TableAlias(name: "aba"))
             
             let aTransforms = [
-                { (r: Request<A>) in return r },
-                { (r: Request<A>) in return r.order(Column("id")) },
-                { (r: Request<A>) in return r.order(Column("id")).reversed() },
+                { (r: QueryInterfaceRequest<A>) in return r },
+                { (r: QueryInterfaceRequest<A>) in return r.order(Column("id")) },
+                { (r: QueryInterfaceRequest<A>) in return r.order(Column("id")).reversed() },
             ]
             let abTransforms = [
                 { (r: HasOneAssociation<A, B>) in return r },
@@ -223,7 +223,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 return String(sql.suffix(from: prefixEndIndex))
             }
             XCTAssertEqual(orderClauses, [
-                // a: { (r: Request<A>) in return r },
+                // a: { (r: QueryInterfaceRequest<A>) in return r },
                 // ab: { (r: BelongsToAssociation<A, B>) in return r }
                 // aba: { (r: HasOneAssociation<B, A>) in return r }
                 "",
@@ -265,7 +265,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 " ORDER BY \"aba\".\"id\"",
                 
                 
-                // a: { (r: Request<A>) in return r.order(Column("id")) },
+                // a: { (r: QueryInterfaceRequest<A>) in return r.order(Column("id")) },
                 // ab: { (r: BelongsToAssociation<A, B>) in return r }
                 // aba: { (r: HasOneAssociation<B, A>) in return r }
                 " ORDER BY \"a\".\"id\"",
@@ -307,7 +307,7 @@ class AssociationHasOneSQLDerivationTests: GRDBTestCase {
                 " ORDER BY \"a\".\"id\", \"aba\".\"id\"",
                 
                 
-                // a: { (r: Request<A>) in return r.order(Column("id")).reversed() }
+                // a: { (r: QueryInterfaceRequest<A>) in return r.order(Column("id")).reversed() }
                 // ab: { (r: BelongsToAssociation<A, B>) in return r }
                 // aba: { (r: HasOneAssociation<B, A>) in return r }
                 " ORDER BY \"a\".\"id\" DESC",

@@ -33,7 +33,7 @@ extension TableRecord {
     ///
     ///     struct Book: TableRecord, EncodableRecord {
     ///         static let author = belongsTo(Author.self)
-    ///         var author: Request<Author> {
+    ///         var author: QueryInterfaceRequest<Author> {
     ///             return request(for: Book.author)
     ///         }
     ///     }
@@ -98,7 +98,7 @@ extension TableRecord {
     ///
     ///     struct Author: TableRecord, EncodableRecord {
     ///         static let books = hasMany(Book.self)
-    ///         var books: Request<Book> {
+    ///         var books: QueryInterfaceRequest<Book> {
     ///             return request(for: Author.books)
     ///         }
     ///     }
@@ -170,7 +170,7 @@ extension TableRecord {
     ///     struct Country: TableRecord, EncodableRecord {
     ///         static let passports = hasMany(Passport.self)
     ///         static let citizens = hasMany(Citizen.self, through: passports, using: Passport.citizen)
-    ///         var citizens: Request<Citizen> {
+    ///         var citizens: QueryInterfaceRequest<Citizen> {
     ///             return request(for: Country.citizens)
     ///         }
     ///     }
@@ -245,7 +245,7 @@ extension TableRecord {
     ///
     ///     struct Country: TableRecord, EncodableRecord {
     ///         static let demographics = hasOne(Demographics.self)
-    ///         var demographics: Request<Demographics> {
+    ///         var demographics: QueryInterfaceRequest<Demographics> {
     ///             return request(for: Country.demographics)
     ///         }
     ///     }
@@ -317,7 +317,7 @@ extension TableRecord {
     ///     struct Book: TableRecord, EncodableRecord {
     ///         static let library = belongsTo(Library.self)
     ///         static let returnAddress = hasOne(Address.self, through: library, using: library.address)
-    ///         var returnAddress: Request<Address> {
+    ///         var returnAddress: QueryInterfaceRequest<Address> {
     ///             return request(for: Book.returnAddress)
     ///         }
     ///     }
@@ -475,7 +475,7 @@ extension TableRecord where Self: EncodableRecord {
     ///
     ///     struct Team: TableRecord, EncodableRecord {
     ///         static let players = hasMany(Player.self)
-    ///         var players: Request<Player> {
+    ///         var players: QueryInterfaceRequest<Player> {
     ///             return request(for: Team.players)
     ///         }
     ///     }
@@ -483,13 +483,13 @@ extension TableRecord where Self: EncodableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     public func request<A: Association>(for association: A)
-        -> Request<A.RowDecoder>
+        -> QueryInterfaceRequest<A.RowDecoder>
         where A.OriginRowDecoder == Self
     {
         let destinationRelation = association.sqlAssociation.destinationRelation(fromOriginRows: { db in
             try [Row(PersistenceContainer(db, self))]
         })
-        return Request(relation: destinationRelation)
+        return QueryInterfaceRequest(relation: destinationRelation)
     }
 }
 
@@ -499,50 +499,50 @@ extension TableRecord {
     
     /// Creates a request that prefetches an association.
     public static func including<A: AssociationToMany>(all association: A)
-        -> Request<Self>
+        -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        all().including(all: association)
+        return all().including(all: association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public static func including<A: Association>(optional association: A)
-        -> Request<Self>
+        -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        all().including(optional: association)
+        return all().including(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public static func including<A: Association>(required association: A)
-        -> Request<Self>
+        -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        all().including(required: association)
+        return all().including(required: association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public static func joining<A: Association>(optional association: A)
-        -> Request<Self>
+        -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        all().joining(optional: association)
+        return all().joining(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public static func joining<A: Association>(required association: A)
-        -> Request<Self>
+        -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        all().joining(required: association)
+        return all().joining(required: association)
     }
     
     // MARK: - Association Aggregates
@@ -552,7 +552,7 @@ extension TableRecord {
     ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: Player.books.count)
-    public static func annotated(with aggregates: AssociationAggregate<Self>...) -> Request<Self> {
+    public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }
     
@@ -561,7 +561,7 @@ extension TableRecord {
     ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: [Player.books.count])
-    public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> Request<Self> {
+    public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }
     
@@ -576,7 +576,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func having(_ predicate: AssociationAggregate<Self>) -> Request<Self> {
+    public static func having(_ predicate: AssociationAggregate<Self>) -> QueryInterfaceRequest<Self> {
         all().having(predicate)
     }
 }

@@ -30,14 +30,14 @@ extension TableRecord {
     
     // MARK: Full Text Search
     
-    /// Returns a Request with a matching predicate.
+    /// Returns a QueryInterfaceRequest with a matching predicate.
     ///
     ///     // SELECT * FROM book WHERE book MATCH '...'
     ///     var request = Book.matching(pattern)
     ///
     /// If the search pattern is nil, the request does not match any
     /// database row.
-    public static func matching(_ pattern: FTS5Pattern?) -> Request<Self> {
+    public static func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<Self> {
         all().matching(pattern)
     }
 }

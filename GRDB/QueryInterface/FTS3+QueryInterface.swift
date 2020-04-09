@@ -25,7 +25,7 @@ extension TableRecord {
     
     // MARK: Full Text Search
     
-    /// Returns a Request with a matching predicate.
+    /// Returns a QueryInterfaceRequest with a matching predicate.
     ///
     ///     // SELECT * FROM book WHERE book MATCH '...'
     ///     var request = Book.matching(pattern)
@@ -36,7 +36,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    public static func matching(_ pattern: FTS3Pattern?) -> Request<Self> {
+    public static func matching(_ pattern: FTS3Pattern?) -> QueryInterfaceRequest<Self> {
         all().matching(pattern)
     }
 }

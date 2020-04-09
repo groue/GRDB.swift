@@ -242,7 +242,7 @@ extension Association {
     ///         let player: Player
     ///         let team: Team
     ///
-    ///         static func all() -> Request<PlayerInfo> {
+    ///         static func all() -> QueryInterfaceRequest<PlayerInfo> {
     ///             return Player
     ///                 .including(required: Player.team.forKey(CodingKeys.team))
     ///                 .asRequest(of: PlayerInfo.self)

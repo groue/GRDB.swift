@@ -1,8 +1,8 @@
 import Foundation
 
 typealias AssociationAggregatePreparation<RowDecoder> =
-    (Request<RowDecoder>)
-    -> (request: Request<RowDecoder>, expression: SQLExpression)
+    (QueryInterfaceRequest<RowDecoder>)
+    -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)
 
 /// An AssociationAggregate is able to compute aggregated values from a
 /// population of associated records.

@@ -32,8 +32,8 @@ public class Statement {
     }
     
     // Selected region is computed during statement compilation, and maybe
-    // optimized for select statements compiled by Request, in order to perform
-    // focused database observation. See
+    // optimized for select statements compiled by QueryInterfaceRequest, in
+    // order to perform focused database observation. See
     // SQLQueryGenerator.optimizedSelectedRegion(_:_:)
     var selectedRegion = DatabaseRegion()
     

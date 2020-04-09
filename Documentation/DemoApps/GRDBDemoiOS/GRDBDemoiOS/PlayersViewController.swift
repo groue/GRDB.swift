@@ -18,7 +18,7 @@ class PlayersViewController: UITableViewController {
             configureTableView()
         }
     }
-    private var playersRequest: Request<Player> {
+    private var playersRequest: QueryInterfaceRequest<Player> {
         switch playerOrdering {
         case .byName:
             return Player.orderedByName()

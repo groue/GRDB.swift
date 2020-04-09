@@ -242,19 +242,19 @@ try dbQueue.read { db in
 }
 ```
 
-Not *every requests* can be expressed on `DerivableRequest`. For example, [Association Aggregates] are out of scope. When this happens, define your requests in a constrained extension to `Request`:
+Not *every requests* can be expressed on `DerivableRequest`. For example, [Association Aggregates] are out of scope. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
 
 ```swift
-// More requests of Author -----------v
-extension Request where RowDecoder == Author {
+// More requests of Author -------------------------v
+extension QueryInterfaceRequest where RowDecoder == Author {
     /// Returns a request for all authors with at least one book
-    func havingBooks() -> Request<Author> {
+    func havingBooks() -> QueryInterfaceRequest<Author> {
         having(Author.books.isEmpty == false)
     }
 }
 ```
 
-Those requests defined on `Request` still compose fluently:
+Those requests defined on `QueryInterfaceRequest` still compose fluently:
 
 ```swift
 try dbQueue.read { db in
@@ -387,14 +387,14 @@ A last extension on your record types will further help navigation from records 
 ```swift
 extension Author {
     /// The request for the author's books
-    var books: Request<Book> {
+    var books: QueryInterfaceRequest<Book> {
         request(for: Author.books)
     }
 }
 
 extension Book {
     /// The request for the author of the book
-    var author: Request<Author> {
+    var author: QueryInterfaceRequest<Author> {
         request(for: Book.author)
     }
 }

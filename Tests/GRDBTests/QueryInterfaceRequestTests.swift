@@ -192,7 +192,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
             try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
             
-            func test(_ request: Request<Reader>) throws {
+            func test(_ request: QueryInterfaceRequest<Reader>) throws {
                 let rows = try Row.fetchAll(db, request)
                 XCTAssertEqual(rows.count, 2)
                 XCTAssertEqual(rows[0][0] as String, "O'Brien")
@@ -498,51 +498,51 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     
     // This test passes if this method compiles
     func testSelectAsTypeInference() {
-        _ = Reader.select(Col.name) as Request<String>
-        _ = Reader.select([Col.name]) as Request<String>
-        _ = Reader.select(sql: "name") as Request<String>
-        _ = Reader.select(literal: SQLLiteral(sql: "name")) as Request<String>
-        _ = Reader.all().select(Col.name) as Request<String>
-        _ = Reader.all().select([Col.name]) as Request<String>
-        _ = Reader.all().select(sql: "name") as Request<String>
-        _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as Request<String>
+        _ = Reader.select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(Col.name) as QueryInterfaceRequest<String>
+        _ = Reader.all().select([Col.name]) as QueryInterfaceRequest<String>
+        _ = Reader.all().select(sql: "name") as QueryInterfaceRequest<String>
+        _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
         
-        func makeRequest() -> Request<String> {
+        func makeRequest() -> QueryInterfaceRequest<String> {
             Reader.select(Col.name)
         }
         
         // Those should be, without any ambiguuity, requests of Reader.
         do {
             let request = Reader.select(Col.name)
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
         do {
             let request = Reader.select([Col.name])
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
         do {
             let request = Reader.select(sql: "name")
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
         do {
             let request = Reader.select(literal: SQLLiteral(sql: "name"))
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
         do {
             let request = Reader.all().select(Col.name)
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
         do {
             let request = Reader.all().select([Col.name])
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
         do {
             let request = Reader.all().select(sql: "name")
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
         do {
             let request = Reader.all().select(literal: SQLLiteral(sql: "name"))
-            _ = request as Request<Reader>
+            _ = request as QueryInterfaceRequest<Reader>
         }
     }
     
