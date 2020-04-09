@@ -6654,29 +6654,15 @@ do {
 }
 ```
 
-**SQLite uses codes to distinguish between various errors:**
+**SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
-```swift
-do {
-    try ...
-} catch let error as DatabaseError where error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY {
-    // foreign key constraint error
-} catch let error as DatabaseError where error.resultCode == .SQLITE_CONSTRAINT {
-    // any other constraint error
-} catch let error as DatabaseError {
-    // any other database error
-}
-```
-
-In the example above, `error.extendedResultCode` is a precise [extended result code](https://www.sqlite.org/rescode.html#extended_result_code_list), and `error.resultCode` is a less precise [primary result code](https://www.sqlite.org/rescode.html#primary_result_code_list). Extended result codes are refinements of primary result codes, as `SQLITE_CONSTRAINT_FOREIGNKEY` is to `SQLITE_CONSTRAINT`, for example. See [SQLite result codes](https://www.sqlite.org/rescode.html) for more information.
-
-As a convenience, extended result codes match their primary result code in a switch statement:
+You can catch a DatabaseError and match on result codes:
 
 ```swift
 do {
     try ...
 } catch let error as DatabaseError {
-    switch error.extendedResultCode {
+    switch error {
     case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
         // foreign key constraint error
     case ResultCode.SQLITE_CONSTRAINT:
@@ -6686,6 +6672,22 @@ do {
     }
 }
 ```
+
+You can also directly match errors on result codes:
+
+```swift
+do {
+    try ...
+} catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+    // foreign key constraint error
+} catch ResultCode.SQLITE_CONSTRAINT {
+    // any other constraint error
+} catch {
+    // any other database error
+}
+```
+
+Each DatabaseError has two codes: an `extendedResultCode` (see [extended result code](https://www.sqlite.org/rescode.html#extended_result_code_list)), and a less precise `resultCode` (see [primary result code](https://www.sqlite.org/rescode.html#primary_result_code_list)). Extended result codes are refinements of primary result codes, as `SQLITE_CONSTRAINT_FOREIGNKEY` is to `SQLITE_CONSTRAINT`, for example.
 
 > :warning: **Warning**: SQLite has progressively introduced extended result codes across its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
 

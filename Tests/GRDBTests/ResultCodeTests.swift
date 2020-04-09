@@ -44,4 +44,118 @@ class ResultCodeTests: GRDBTestCase {
         default: break
         }
     }
+    
+    func testCatchResultCode() throws {
+        do {
+            do {
+                throw DatabaseError(resultCode: .SQLITE_ERROR)
+            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+                XCTFail()
+            } catch ResultCode.SQLITE_CONSTRAINT {
+                XCTFail()
+            } catch ResultCode.SQLITE_OK {
+                XCTFail()
+            } catch {
+                // Success
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT)
+            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+                XCTFail()
+            } catch ResultCode.SQLITE_CONSTRAINT {
+                // Success
+            } catch ResultCode.SQLITE_OK {
+                XCTFail()
+            } catch {
+                XCTFail()
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY)
+            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+                // Success
+            } catch ResultCode.SQLITE_CONSTRAINT {
+                XCTFail()
+            } catch ResultCode.SQLITE_OK {
+                XCTFail()
+            } catch {
+                XCTFail()
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_CHECK)
+            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+                XCTFail()
+            } catch ResultCode.SQLITE_CONSTRAINT {
+                // Success
+            } catch ResultCode.SQLITE_OK {
+                XCTFail()
+            } catch {
+                XCTFail()
+            }
+        }
+        
+        do {
+            do {
+                throw DatabaseError(resultCode: .SQLITE_ERROR)
+            } catch let error as DatabaseError {
+                switch error {
+                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                    XCTFail()
+                case ResultCode.SQLITE_CONSTRAINT:
+                    XCTFail()
+                case ResultCode.SQLITE_OK:
+                    XCTFail()
+                default:
+                    break // Success
+                }
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT)
+            } catch let error as DatabaseError {
+                switch error {
+                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                    XCTFail()
+                case ResultCode.SQLITE_CONSTRAINT:
+                break // Success
+                case ResultCode.SQLITE_OK:
+                    XCTFail()
+                default:
+                    XCTFail()
+                }
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY)
+            } catch let error as DatabaseError {
+                switch error {
+                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                break // Success
+                case ResultCode.SQLITE_CONSTRAINT:
+                    XCTFail()
+                case ResultCode.SQLITE_OK:
+                    XCTFail()
+                default:
+                    XCTFail()
+                }
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_CHECK)
+            } catch let error as DatabaseError {
+                switch error {
+                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                    XCTFail()
+                case ResultCode.SQLITE_CONSTRAINT:
+                break // Success
+                case ResultCode.SQLITE_OK:
+                    XCTFail()
+                default:
+                    XCTFail()
+                }
+            }
+        }
+    }
 }

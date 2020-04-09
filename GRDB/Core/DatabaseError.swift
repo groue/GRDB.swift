@@ -154,6 +154,27 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     // swiftlint:enable operator_usage_whitespace line_length
 }
 
+extension ResultCode {
+    /// Returns true if the code on the left matches the error on the right.
+    ///
+    /// Primary result codes match themselves and their extended result codes,
+    /// while extended result codes match only themselves.
+    ///
+    ///     do {
+    ///         try ...
+    ///     } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+    ///         // foreign key constraint error
+    ///     } catch ResultCode.SQLITE_CONSTRAINT {
+    ///         // any other constraint error
+    ///     } catch {
+    ///         // any other database error
+    ///     }
+    public static func ~= (lhs: Self, rhs: Error) -> Bool {
+        guard let error = rhs as? DatabaseError else { return false }
+        return lhs ~= error.extendedResultCode
+    }
+}
+
 // CustomStringConvertible
 extension ResultCode {
     var errorString: String? {
