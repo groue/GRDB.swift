@@ -430,7 +430,7 @@ public final class AnyDatabaseReader: DatabaseReader {
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
-        return base._add(
+        base._add(
             observation: observation,
             scheduling: scheduler,
             onError: onError,

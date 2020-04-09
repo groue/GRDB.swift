@@ -81,7 +81,7 @@ extension FetchableRecord where Self: TableRecord {
         throws -> RecordCursor<Self>
         where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
-        return try filter(keys: keys).fetchCursor(db)
+        try filter(keys: keys).fetchCursor(db)
     }
     
     /// Returns an array of records, given their primary keys.
@@ -97,7 +97,8 @@ extension FetchableRecord where Self: TableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll<Sequence>(_ db: Database, keys: Sequence)
         throws -> [Self]
-        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible {
+        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    {
         let keys = Array(keys)
         if keys.isEmpty {
             // Avoid hitting the database
@@ -152,7 +153,7 @@ extension FetchableRecord where Self: TableRecord {
     public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]])
         throws -> RecordCursor<Self>
     {
-        return try filter(keys: keys).fetchCursor(db)
+        try filter(keys: keys).fetchCursor(db)
     }
     
     /// Returns an array of records identified by the provided unique keys

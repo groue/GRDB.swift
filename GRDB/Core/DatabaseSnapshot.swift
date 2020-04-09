@@ -129,7 +129,7 @@ extension DatabaseSnapshot {
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
-        return _addReadOnly(
+        _addReadOnly(
             observation: observation,
             scheduling: scheduler,
             onError: onError,

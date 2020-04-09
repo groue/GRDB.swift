@@ -48,7 +48,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     /// Returns whether the region covers the full database: all columns and all
     /// rows from all tables.
     public var isFullDatabase: Bool {
-        return tableRegions == nil
+        tableRegions == nil
     }
     
     /// The region that covers the full database: all columns and all rows
@@ -239,7 +239,7 @@ extension DatabaseRegion {
         }
         return tableRegions
             .sorted(by: { (l, r) in l.key < r.key })
-            .map { (table, tableRegion) in
+            .map({ (table, tableRegion) in
                 var desc = table
                 if let columns = tableRegion.columns {
                     desc += "(" + columns.sorted().joined(separator: ",") + ")"
@@ -250,7 +250,7 @@ extension DatabaseRegion {
                     desc += "[" + rowIds.sorted().map { "\($0)" }.joined(separator: ",") + "]"
                 }
                 return desc
-            }
+            })
             .joined(separator: ",")
     }
 }

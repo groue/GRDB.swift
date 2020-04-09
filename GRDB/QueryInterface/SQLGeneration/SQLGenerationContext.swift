@@ -267,13 +267,13 @@ public class TableAlias: Hashable {
     /// Returns a qualified value that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ selectable: SQLSelectable) -> SQLSelectable {
-        return selectable.qualifiedSelectable(with: self)
+        selectable.qualifiedSelectable(with: self)
     }
     
     /// Returns a qualified expression that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ expression: SQLExpression) -> SQLExpression {
-        return expression.qualifiedExpression(with: self)
+        expression.qualifiedExpression(with: self)
     }
     
     /// :nodoc:

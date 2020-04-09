@@ -166,7 +166,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> RecordCursor<Self>
     {
-        return try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
+        try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of records fetched from a prepared statement.
@@ -186,7 +186,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> [Self]
     {
-        return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
+        try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from a prepared statement.
@@ -206,7 +206,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> Self?
     {
-        return try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
+        try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
     }
 }
 
@@ -240,7 +240,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> RecordCursor<Self>
     {
-        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of records fetched from an SQL query.
@@ -261,7 +261,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> [Self]
     {
-        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single record fetched from an SQL query.
@@ -282,7 +282,7 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
         throws -> Self?
     {
-        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

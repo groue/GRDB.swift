@@ -309,7 +309,7 @@ extension Row {
         atUncheckedIndex index: Int)
         -> Value
     {
-        return impl.fastDecode(type, atUncheckedIndex: index)
+        impl.fastDecode(type, atUncheckedIndex: index)
     }
     
     @usableFromInline
@@ -318,6 +318,6 @@ extension Row {
         atUncheckedIndex index: Int)
         -> Value?
     {
-        return impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
+        impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }
 }

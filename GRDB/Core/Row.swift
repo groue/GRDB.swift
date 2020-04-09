@@ -380,7 +380,7 @@ extension Row {
     /// The result is nil if the row does not contain the column.
     @inlinable
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
-        return self[column.name]
+        self[column.name]
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -393,7 +393,7 @@ extension Row {
     /// `Value`. Should this conversion fail, a fatal error is raised.
     @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value? {
-        return self[column.name]
+        self[column.name]
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -415,7 +415,7 @@ extension Row {
         Value: DatabaseValueConvertible & StatementColumnConvertible,
         Column: ColumnExpression
     {
-        return self[column.name]
+        self[column.name]
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -429,7 +429,7 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
-        return self[column.name]
+        self[column.name]
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -452,7 +452,7 @@ extension Row {
         Value: DatabaseValueConvertible & StatementColumnConvertible,
         Column: ColumnExpression
     {
-        return self[column.name]
+        self[column.name]
     }
     
     /// Returns the optional Data at given index.
@@ -845,7 +845,7 @@ extension Row {
         adapter: RowAdapter? = nil)
         throws -> RowCursor
     {
-        return try RowCursor(statement: statement, arguments: arguments, adapter: adapter)
+        try RowCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of rows fetched from a prepared statement.
@@ -933,7 +933,7 @@ extension Row {
         adapter: RowAdapter? = nil)
         throws -> RowCursor
     {
-        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -958,7 +958,7 @@ extension Row {
         adapter: RowAdapter? = nil)
         throws -> [Row]
     {
-        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -983,7 +983,7 @@ extension Row {
         adapter: RowAdapter? = nil)
         throws -> Row?
     {
-        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -1381,7 +1381,7 @@ extension Row {
         /// Returns the row associated with the given scope, or nil if the
         /// scope is not defined.
         public subscript(_ name: String) -> Row? {
-            return scopes.index(forKey: name).map { self[$0].row }
+            scopes.index(forKey: name).map { self[$0].row }
         }
     }
 }
@@ -1770,14 +1770,14 @@ private struct StatementRowImpl: RowImpl {
         _ type: Value.Type,
         atUncheckedIndex index: Int) -> Value
     {
-        return Value.fastDecode(from: sqliteStatement, atUncheckedIndex: Int32(index))
+        Value.fastDecode(from: sqliteStatement, atUncheckedIndex: Int32(index))
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int) -> Value?
     {
-        return Value.fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: Int32(index))
+        Value.fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: Int32(index))
     }
     
     func columnName(atUncheckedIndex index: Int) -> String {

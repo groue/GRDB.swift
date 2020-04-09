@@ -47,7 +47,7 @@ extension TableRecord {
         arguments: StatementArguments = StatementArguments())
         -> QueryInterfaceRequest<Self>
     {
-        return select(literal: SQLLiteral(sql: sql, arguments: arguments))
+        select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects an SQL *literal*.
@@ -71,7 +71,7 @@ extension TableRecord {
         as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return all().select(selection, as: type)
+        all().select(selection, as: type)
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -87,7 +87,7 @@ extension TableRecord {
         as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return all().select(selection, as: type)
+        all().select(selection, as: type)
     }
     
     /// Creates a request which selects *sql*, and fetches values of
@@ -104,7 +104,7 @@ extension TableRecord {
         as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return all().select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
+        all().select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
     
     /// Creates a request which selects an SQL *literal*, and fetches values of
@@ -120,7 +120,7 @@ extension TableRecord {
         as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return all().select(literal: sqlLiteral, as: type)
+        all().select(literal: sqlLiteral, as: type)
     }
     
     /// Creates a request which appends *selection*.
@@ -167,7 +167,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where PrimaryKeyType: DatabaseValueConvertible
     {
-        return all().filter(key: key)
+        all().filter(key: key)
     }
     
     /// Creates a request with the provided primary key *predicate*.
@@ -182,7 +182,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
-        return all().filter(keys: keys)
+        all().filter(keys: keys)
     }
     
     /// Creates a request with the provided primary key *predicate*.
@@ -228,7 +228,7 @@ extension TableRecord {
         arguments: StatementArguments = StatementArguments())
         -> QueryInterfaceRequest<Self>
     {
-        return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
+        filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate*.
@@ -246,7 +246,7 @@ extension TableRecord {
     /// for individual requests with the `TableRecord.select` method.
     public static func filter(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
         // NOT TESTED
-        return all().filter(literal: sqlLiteral)
+        all().filter(literal: sqlLiteral)
     }
     
     /// Creates a request sorted according to the
@@ -303,7 +303,7 @@ extension TableRecord {
         arguments: StatementArguments = StatementArguments())
         -> QueryInterfaceRequest<Self>
     {
-        return all().order(literal: SQLLiteral(sql: sql, arguments: arguments))
+        all().order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request sorted according to an SQL *literal*.

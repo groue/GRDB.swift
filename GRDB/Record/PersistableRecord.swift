@@ -542,7 +542,7 @@ extension MutablePersistableRecord {
         _ assignments: [ColumnAssignment])
         throws -> Int
     {
-        return try all().updateAll(db, onConflict: conflictResolution, assignments)
+        try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
     
     /// Updates all records; returns the number of updated records.
@@ -569,7 +569,7 @@ extension MutablePersistableRecord {
         _ otherAssignments: ColumnAssignment...)
         throws -> Int
     {
-        return try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
 }
 
@@ -986,15 +986,15 @@ extension InsertQuery {
         switch onConflict {
         case .abort:
             sql = """
-                INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-                VALUES (\(valuesSQL))
-                """
+            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL))
+            """
         default:
             sql = """
-                INSERT OR \(onConflict.rawValue) \
-                INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-                VALUES (\(valuesSQL))
-                """
+            INSERT OR \(onConflict.rawValue) \
+            INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL))
+            """
         }
         InsertQuery.sqlCache.write { $0[self] = sql }
         return sql
@@ -1023,16 +1023,16 @@ extension UpdateQuery {
         switch onConflict {
         case .abort:
             sql = """
-                UPDATE \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+            UPDATE \(tableName.quotedDatabaseIdentifier) \
+            SET \(updateSQL) \
+            WHERE \(whereSQL)
+            """
         default:
             sql = """
-                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+            UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+            SET \(updateSQL) \
+            WHERE \(whereSQL)
+            """
         }
         UpdateQuery.sqlCache.write { $0[self] = sql }
         return sql

@@ -33,7 +33,7 @@ extension Sequence {
         _ transform: @escaping (Iterator.Element) throws -> SegmentOfResult)
         -> FlattenCursor<MapCursor<AnyCursor<Iterator.Element>, SegmentOfResult>>
     {
-        return AnyCursor(self).flatMap(transform)
+        AnyCursor(self).flatMap(transform)
     }
 }
 
@@ -147,7 +147,7 @@ extension Cursor {
     public func compactMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?)
         -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
     {
-        return map(transform).filter { $0 != nil }.map { $0! }
+        map(transform).filter { $0 != nil }.map { $0! }
     }
     
     /// Returns a cursor that skips any initial elements that satisfy
@@ -252,7 +252,7 @@ extension Cursor {
         -> FlattenCursor<MapCursor<Self, AnyCursor<SegmentOfResult.Element>>>
         where SegmentOfResult: Sequence
     {
-        return flatMap { try AnyCursor(transform($0)) }
+        flatMap { try AnyCursor(transform($0)) }
     }
     
     /// Returns a cursor over the concatenated results of mapping transform
@@ -261,7 +261,7 @@ extension Cursor {
         -> FlattenCursor<MapCursor<Self, SegmentOfResult>>
         where SegmentOfResult: Cursor
     {
-        return map(transform).joined()
+        map(transform).joined()
     }
     
     /// Calls the given closure on each element in the cursor.

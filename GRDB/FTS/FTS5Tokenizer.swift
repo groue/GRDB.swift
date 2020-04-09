@@ -170,7 +170,7 @@ extension Database {
                     _ body: (ContiguousArray<UnsafePointer<Int8>>) -> Result)
                     -> Result
                 {
-                    return car.withCString { cString in
+                    car.withCString { cString in
                         if let car = cdr.first {
                             array.append(cString)
                             return convertArguments(&array, car, Array(cdr.suffix(from: 1)), body)

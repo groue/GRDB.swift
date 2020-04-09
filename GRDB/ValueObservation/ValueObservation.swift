@@ -88,7 +88,7 @@ extension ValueObservation {
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        return reader._add(observation: self, scheduling: scheduler, onError: onError, onChange: onChange)
+        reader._add(observation: self, scheduling: scheduler, onError: onError, onChange: onChange)
     }
     
     // MARK: - Fetching Values
@@ -135,7 +135,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
+        ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
             ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: fetch)
         })
     }
@@ -149,7 +149,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        return ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
+        ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
             ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: fetch)
         })
     }

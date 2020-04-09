@@ -144,7 +144,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return map(\.query, { $0.select(selection) }).asRequest(of: RowDecoder.self)
+        map(\.query, { $0.select(selection) }).asRequest(of: RowDecoder.self)
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -158,7 +158,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return select(selection, as: type)
+        select(selection, as: type)
     }
     
     /// Creates a request which selects *sql*, and fetches values of
@@ -175,7 +175,7 @@ extension QueryInterfaceRequest: SelectionRequest {
         as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
+        select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
     
     /// Creates a request which selects an SQL *literal*, and fetches values of
@@ -210,7 +210,7 @@ extension QueryInterfaceRequest: SelectionRequest {
         as type: RowDecoder.Type = RowDecoder.self)
         -> QueryInterfaceRequest<RowDecoder>
     {
-        return select(sqlLiteral.sqlSelectable, as: type)
+        select(sqlLiteral.sqlSelectable, as: type)
     }
     
     /// Creates a request which appends *selection*.
@@ -533,7 +533,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
         _ otherAssignments: ColumnAssignment...)
         throws -> Int
     {
-        return try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
 }
 
@@ -642,8 +642,7 @@ public struct ColumnAssignment {
                 " = " +
                 value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
         } else {
-            return column.expressionSQL(&context, wrappedInParenthesis: false) +
-                " = NULL"
+            return column.expressionSQL(&context, wrappedInParenthesis: false) + " = NULL"
         }
     }
 }

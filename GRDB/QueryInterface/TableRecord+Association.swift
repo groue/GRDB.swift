@@ -61,7 +61,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> BelongsToAssociation<Self, Destination>
     {
-        return BelongsToAssociation(key: key, using: foreignKey)
+        BelongsToAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has many" association between Self and the
@@ -126,7 +126,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> HasManyAssociation<Self, Destination>
     {
-        return HasManyAssociation(key: key, using: foreignKey)
+        HasManyAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has Many Through" association between Self and the
@@ -273,7 +273,7 @@ extension TableRecord {
         using foreignKey: ForeignKey? = nil)
         -> HasOneAssociation<Self, Destination>
     {
-        return HasOneAssociation(key: key, using: foreignKey)
+        HasOneAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has One Through" association between Self and the
@@ -502,7 +502,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().including(all: association)
+        all().including(all: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -512,7 +512,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().including(optional: association)
+        all().including(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -522,7 +522,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().including(required: association)
+        all().including(required: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -532,7 +532,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().joining(optional: association)
+        all().joining(optional: association)
     }
     
     /// Creates a request that includes an association. The columns of the
@@ -542,7 +542,7 @@ extension TableRecord {
         -> QueryInterfaceRequest<Self>
         where A.OriginRowDecoder == Self
     {
-        return all().joining(required: association)
+        all().joining(required: association)
     }
     
     // MARK: - Association Aggregates

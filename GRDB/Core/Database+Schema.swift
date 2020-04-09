@@ -180,10 +180,10 @@ extension Database {
                 let unique: Bool = row[2]
                 let columns = try Row
                     .fetchAll(self, sql: "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
-                    .map { row -> (Int, String) in
+                    .map({ row -> (Int, String) in
                         // [seqno:0 cid:2 name:"column"]
                         (row[0] as Int, row[2] as String)
-                    }
+                    })
                     .sorted { $0.0 < $1.0 }
                     .map { $0.1 }
                 return IndexInfo(name: indexName, columns: columns, unique: unique)
@@ -209,7 +209,7 @@ extension Database {
         throws -> Bool
         where T.Iterator.Element == String
     {
-        return try columnsForUniqueKey(Array(columns), in: tableName) != nil
+        try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
     
     /// The foreign keys defined on table named `tableName`.

@@ -53,7 +53,7 @@ public struct FTS3TokenizerDescriptor {
         tokenCharacters: Set<Character> = [])
         -> FTS3TokenizerDescriptor
     {
-        return _unicode61(diacritics: diacritics, separators: separators, tokenCharacters: tokenCharacters)
+        _unicode61(diacritics: diacritics, separators: separators, tokenCharacters: tokenCharacters)
     }
     
     private static func _unicode61(

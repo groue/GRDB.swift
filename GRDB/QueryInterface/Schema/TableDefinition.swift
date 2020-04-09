@@ -227,7 +227,7 @@ public final class TableDefinition {
         onConflict conflictResolution: Database.ConflictResolution? = nil)
         -> ColumnDefinition
     {
-        return column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
+        column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
     }
     
     /// Appends a table column.
@@ -490,12 +490,12 @@ public final class TableDefinition {
 /// See https://www.sqlite.org/lang_altertable.html
 public final class TableAlteration {
     private let name: String
-
+    
     private enum TableAlterationKind {
         case add(ColumnDefinition)
         case rename(old: String, new: String)
     }
-
+    
     private var alterations: [TableAlterationKind] = []
     
     init(name: String) {
@@ -520,7 +520,7 @@ public final class TableAlteration {
         alterations.append(.add(column))
         return column
     }
-
+    
     #if GRDBCUSTOMSQLITE || GRDBCipher
     /// Renames a column in a table.
     ///
@@ -551,14 +551,14 @@ public final class TableAlteration {
         _rename(column: name, to: newName)
     }
     #endif
-
+    
     private func _rename(column name: String, to newName: String) {
         alterations.append(.rename(old: name, new: newName))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
-
+        
         for alteration in alterations {
             switch alteration {
             case let .add(column):
@@ -569,7 +569,7 @@ public final class TableAlteration {
                 try chunks.append(column.sql(db, tableName: name, primaryKeyColumns: nil))
                 let statement = chunks.joined(separator: " ")
                 statements.append(statement)
-
+                
                 if let indexDefinition = column.indexDefinition(in: name) {
                     statements.append(indexDefinition.sql())
                 }
@@ -585,7 +585,7 @@ public final class TableAlteration {
                 statements.append(statement)
             }
         }
-
+        
         return statements.joined(separator: "; ")
     }
 }
@@ -618,7 +618,7 @@ public final class ColumnDefinition {
         var updateAction: Database.ForeignKeyAction?
         var deferred: Bool
     }
-
+    
     fileprivate let name: String
     private let type: Database.ColumnType?
     fileprivate var primaryKey: (conflictResolution: Database.ConflictResolution?, autoincrement: Bool)?

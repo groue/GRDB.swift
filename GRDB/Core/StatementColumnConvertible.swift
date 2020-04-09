@@ -202,7 +202,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
         throws -> FastDatabaseValueCursor<Self>
     {
-        return try FastDatabaseValueCursor(statement: statement, arguments: arguments, adapter: adapter)
+        try FastDatabaseValueCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of values fetched from a prepared statement.
@@ -222,7 +222,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
         throws -> [Self]
     {
-        return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
+        try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from a prepared statement.
@@ -281,7 +281,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
         throws -> FastDatabaseValueCursor<Self>
     {
-        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -302,7 +302,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
         throws -> [Self]
     {
-        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -323,7 +323,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
         throws -> Self?
     {
-        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -479,7 +479,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
         adapter: RowAdapter? = nil)
         throws -> FastNullableDatabaseValueCursor<Wrapped>
     {
-        return try FastNullableDatabaseValueCursor(statement: statement, arguments: arguments, adapter: adapter)
+        try FastNullableDatabaseValueCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
     
     /// Returns an array of optional values fetched from a prepared statement.
@@ -499,7 +499,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
         adapter: RowAdapter? = nil)
         throws -> [Wrapped?]
     {
-        return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
+        try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -533,7 +533,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
         adapter: RowAdapter? = nil)
         throws -> FastNullableDatabaseValueCursor<Wrapped>
     {
-        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of optional values fetched from an SQL query.
@@ -554,7 +554,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
         adapter: RowAdapter? = nil)
         throws -> [Wrapped?]
     {
-        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

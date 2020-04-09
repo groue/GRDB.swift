@@ -17,7 +17,7 @@ public class ValueObservationScheduler {
     func immediateInitialValue() -> Bool {
         impl.immediateInitialValue()
     }
-
+    
     /// A scheduler which asynchronously notifies fresh value of the
     /// given DispatchQueue.
     ///
@@ -35,7 +35,7 @@ public class ValueObservationScheduler {
     ///             print("fresh players: \(players)")
     ///         })
     public static func async(onQueue queue: DispatchQueue) -> ValueObservationScheduler {
-        return ValueObservationScheduler(impl: queue)
+        ValueObservationScheduler(impl: queue)
     }
     
     /// A scheduler which notifies all values on the main queue. The first one
