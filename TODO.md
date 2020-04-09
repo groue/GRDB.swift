@@ -8,6 +8,7 @@
 - [ ] Test NOT TESTED methods
 - [ ] Cancellation of a started ValueObservation. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524733140
 - [ ] Remove submodules
+- [ ] map keypath cleanup
 
 
 ## Documentation
