@@ -15,7 +15,7 @@ If you haven't made it yet, upgrade to GRDB 4.12.1 first, and fix all deprecatio
 
 GRDB 5 ships with fix-its that will suggest simple syntactic changes, and won't require you to think much.
 
-Your attention is required, though, in two areas: database observation, and custom SQLite builds. Please see below.
+Your attention is required, though, in the area of database observation.
 
 
 ## New requirements
@@ -260,9 +260,7 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     }
     ```
 
-5. The technique for using GRDB with a custom SQLite build has [changed](CustomSQLiteBuilds.md).
-    
-    You will have to rename a few files, and import GRDB instead of GRDBCustomSQLite:
+5. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
     ```swift
     // BEFORE: GRDB 4
