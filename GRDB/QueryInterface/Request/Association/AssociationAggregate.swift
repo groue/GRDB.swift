@@ -66,7 +66,7 @@ public struct AssociationAggregate<RowDecoder> {
     var key: String? = nil
 }
 
-extension AssociationAggregate: KeyPathRefining {
+extension AssociationAggregate: Refinable {
     /// Returns an aggregate that is selected in a column with the given name.
     ///
     /// For example:
@@ -76,7 +76,7 @@ extension AssociationAggregate: KeyPathRefining {
     ///     if let row = try Row.fetchOne(db, request) {
     ///         let numberOfBooks: Int = row["numberOfBooks"]
     ///     }
-    public func forKey(_ key: String) -> AssociationAggregate<RowDecoder> {
+    public func forKey(_ key: String) -> Self {
         with(\.key, key)
     }
     
@@ -95,7 +95,7 @@ extension AssociationAggregate: KeyPathRefining {
     ///             return try AuthorInfo.fetchAll(db, request)
     ///         }
     ///     }
-    public func forKey(_ key: CodingKey) -> AssociationAggregate<RowDecoder> {
+    public func forKey(_ key: CodingKey) -> Self {
         forKey(key.stringValue)
     }
 }

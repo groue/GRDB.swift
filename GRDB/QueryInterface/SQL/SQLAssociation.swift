@@ -86,12 +86,12 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     
     /// Changes the destination key
-    func forDestinationKey(_ key: SQLAssociationKey) -> SQLAssociation {
+    func forDestinationKey(_ key: SQLAssociationKey) -> Self {
         with(\.destination.key, key)
     }
     
     /// Returns a new association
-    func through(_ other: SQLAssociation) -> SQLAssociation {
+    func through(_ other: SQLAssociation) -> Self {
         SQLAssociation(steps: other.steps + steps)
     }
     
@@ -181,7 +181,7 @@ public /* TODO: internal */ struct SQLAssociation {
                     .filteringChildren { $0.kind.cardinality == .toOne }
                 
                 // Don't interfere with user-defined keys that could be added later
-                let key = step.key.map(\.baseName, { "grdb_\($0)" })
+                let key = step.key.map(\.baseName) { "grdb_\($0)" }
                 
                 return SQLAssociationStep(
                     key: key,
@@ -195,9 +195,9 @@ public /* TODO: internal */ struct SQLAssociation {
     }
 }
 
-extension SQLAssociation: KeyPathRefining { }
+extension SQLAssociation: Refinable { }
 
-struct SQLAssociationStep: KeyPathRefining {
+struct SQLAssociationStep: Refinable {
     var key: SQLAssociationKey
     var condition: SQLAssociationCondition
     var relation: SQLRelation
@@ -256,7 +256,7 @@ enum SQLAssociationCardinality {
 ///
 /// The SQLAssociationKey type aims at providing the necessary support for
 /// those various inflections.
-enum SQLAssociationKey: KeyPathRefining {
+enum SQLAssociationKey: Refinable {
     /// A key that is inflected in singular and plural contexts.
     ///
     /// For example:

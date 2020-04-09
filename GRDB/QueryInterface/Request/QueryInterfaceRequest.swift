@@ -130,7 +130,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         .select([Column("id")])
     ///         .select([Column("email")])
     public func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest {
-        map(\.query, { $0.select(selection) })
+        map(\.query) { $0.select(selection) }
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -221,7 +221,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
     public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest {
-        map(\.query, { $0.annotated(with: selection) })
+        map(\.query) { $0.annotated(with: selection) }
     }
 }
 
@@ -235,7 +235,7 @@ extension QueryInterfaceRequest: FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
-        map(\.query, { $0.filter(predicate) })
+        map(\.query) { $0.filter(predicate) }
     }
 }
 
@@ -256,7 +256,7 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest {
-        map(\.query, { $0.order(orderings) })
+        map(\.query) { $0.order(orderings) }
     }
     
     /// Creates a request that reverses applied orderings.
@@ -271,7 +271,7 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///     var request = Player.all()
     ///     request = request.reversed()
     public func reversed() -> QueryInterfaceRequest {
-        map(\.query, { $0.reversed() })
+        map(\.query) { $0.reversed() }
     }
     
     /// Creates a request without any ordering.
@@ -280,7 +280,7 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///     var request = Player.all().order(Column("name"))
     ///     request = request.unordered()
     public func unordered() -> QueryInterfaceRequest {
-        map(\.query, { $0.unordered() })
+        map(\.query) { $0.unordered() }
     }
 }
 
@@ -289,46 +289,46 @@ extension QueryInterfaceRequest: AggregatingRequest {
     
     /// Creates a request grouped according to *expressions promise*.
     public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
-        map(\.query, { $0.group(expressions) })
+        map(\.query) { $0.group(expressions) }
     }
     
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest {
-        map(\.query, { $0.having(predicate) })
+        map(\.query) { $0.having(predicate) }
     }
 }
 
 extension QueryInterfaceRequest: _JoinableRequest {
     /// :nodoc:
     public func _including(all association: SQLAssociation) -> QueryInterfaceRequest {
-        map(\.query, { $0._including(all: association) })
+        map(\.query) { $0._including(all: association) }
     }
     
     /// :nodoc:
     public func _including(optional association: SQLAssociation) -> QueryInterfaceRequest {
-        map(\.query, { $0._including(optional: association) })
+        map(\.query) { $0._including(optional: association) }
     }
     
     /// :nodoc:
     public func _including(required association: SQLAssociation) -> QueryInterfaceRequest {
-        map(\.query, { $0._including(required: association) })
+        map(\.query) { $0._including(required: association) }
     }
     
     /// :nodoc:
     public func _joining(optional association: SQLAssociation) -> QueryInterfaceRequest {
-        map(\.query, { $0._joining(optional: association) })
+        map(\.query) { $0._joining(optional: association) }
     }
     
     /// :nodoc:
     public func _joining(required association: SQLAssociation) -> QueryInterfaceRequest {
-        map(\.query, { $0._joining(required: association) })
+        map(\.query) { $0._joining(required: association) }
     }
 }
 
 extension QueryInterfaceRequest: JoinableRequest where T: TableRecord { }
 
-extension QueryInterfaceRequest: KeyPathRefining {
+extension QueryInterfaceRequest: Refinable {
     
     // MARK: Request Derivation
     
@@ -342,7 +342,7 @@ extension QueryInterfaceRequest: KeyPathRefining {
     ///     var request = Player.select(Column("name"))
     ///     request = request.distinct()
     public func distinct() -> QueryInterfaceRequest {
-        map(\.query, { $0.distinct() })
+        map(\.query) { $0.distinct() }
     }
     
     /// Creates a request which expects a single result.
@@ -353,7 +353,7 @@ extension QueryInterfaceRequest: KeyPathRefining {
     ///
     /// :nodoc:
     public func expectingSingleResult() -> QueryInterfaceRequest {
-        map(\.query, { $0.expectingSingleResult() })
+        map(\.query) { $0.expectingSingleResult() }
     }
     
     
@@ -365,7 +365,7 @@ extension QueryInterfaceRequest: KeyPathRefining {
     ///
     /// Any previous limit is replaced.
     public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest {
-        map(\.query, { $0.limit(limit, offset: offset) })
+        map(\.query) { $0.limit(limit, offset: offset) }
     }
     
     /// Creates a request that allows you to define expressions that target
@@ -386,7 +386,7 @@ extension QueryInterfaceRequest: KeyPathRefining {
     ///         .aliased(playerAlias)
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
     public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
-        map(\.query, { $0.qualified(with: alias) })
+        map(\.query) { $0.qualified(with: alias) }
     }
     
     /// Creates a request bound to type Target.

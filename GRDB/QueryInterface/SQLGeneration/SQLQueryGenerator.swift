@@ -565,13 +565,13 @@ private struct SQLQualifiedRelation {
     }
     
     /// Removes all selections from joins
-    func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedRelation {
+    func selectOnly(_ selection: [SQLSelectable]) -> Self {
         self.with(\.sourceSelection, selection.map { $0.qualifiedSelectable(with: sourceAlias) })
             .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
     }
 }
 
-extension SQLQualifiedRelation: KeyPathRefining { }
+extension SQLQualifiedRelation: Refinable { }
 
 /// A "qualified" source, where all tables are identified with a table alias.
 private enum SQLQualifiedSource {

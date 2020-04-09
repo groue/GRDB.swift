@@ -9,7 +9,7 @@ import SQLite3
 // MARK: - Conversion Context and Errors
 
 /// A type that helps the user understanding value conversion errors
-struct ValueConversionContext: KeyPathRefining {
+struct ValueConversionContext: Refinable {
     private enum Column {
         case columnIndex(Int)
         case columnName(String)
@@ -20,11 +20,11 @@ struct ValueConversionContext: KeyPathRefining {
     var arguments: StatementArguments?
     private var column: Column?
     
-    func atColumn(_ columnIndex: Int) -> ValueConversionContext {
+    func atColumn(_ columnIndex: Int) -> Self {
         with(\.column, .columnIndex(columnIndex))
     }
     
-    func atColumn(_ columnName: String) -> ValueConversionContext {
+    func atColumn(_ columnName: String) -> Self {
         with(\.column, .columnName(columnName))
     }
     

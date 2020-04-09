@@ -100,7 +100,7 @@
 ///             .filter(Column("continent") == "EU")
 ///             .including(all: Country.citizens)
 struct SQLRelation {
-    struct Child: KeyPathRefining {
+    struct Child: Refinable {
         enum Kind {
             // Record.including(optional: association)
             case oneOptional
@@ -166,10 +166,10 @@ struct SQLRelation {
                 return child.relation.prefetchedAssociations.map { association in
                     // Remove redundant pivot child
                     let pivotKey = association.pivot.keyName
-                    let child = child.map(\.relation, { relation in
+                    let child = child.map(\.relation) { relation in
                         assert(relation.children[pivotKey] != nil)
                         return relation.removingChild(forKey: pivotKey)
-                    })
+                    }
                     return association.through(child.makeAssociationForKey(key))
                 }
             }
@@ -177,44 +177,44 @@ struct SQLRelation {
     }
 }
 
-extension SQLRelation: KeyPathRefining {
-    func select(_ selection: [SQLSelectable]) -> SQLRelation {
+extension SQLRelation: Refinable {
+    func select(_ selection: [SQLSelectable]) -> Self {
         with(\.selection, selection)
     }
     
     /// Removes all selections from chidren
-    func selectOnly(_ selection: [SQLSelectable]) -> SQLRelation {
+    func selectOnly(_ selection: [SQLSelectable]) -> Self {
         self.with(\.selection, selection)
             .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
     }
     
-    func annotated(with selection: [SQLSelectable]) -> SQLRelation {
-        mapInto(\.selection, { $0.append(contentsOf: selection) })
+    func annotated(with selection: [SQLSelectable]) -> Self {
+        mapInto(\.selection) { $0.append(contentsOf: selection) }
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
-        map(\.filtersPromise, { filtersPromise in
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        map(\.filtersPromise) { filtersPromise in
             filtersPromise.flatMap { filters in
                 DatabasePromise { try filters + [predicate($0).sqlExpression] }
             }
-        })
+        }
     }
     
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLRelation {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
         with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
     
-    func reversed() -> SQLRelation {
+    func reversed() -> Self {
         map(\.ordering, \.reversed)
     }
     
-    func unordered() -> SQLRelation {
+    func unordered() -> Self {
         self.with(\.ordering, SQLRelation.Ordering())
             .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.unordered() }) } })
     }
     
-    func qualified(with alias: TableAlias) -> SQLRelation {
-        map(\.source, { $0.qualified(with: alias) })
+    func qualified(with alias: TableAlias) -> Self {
+        map(\.source) { $0.qualified(with: alias) }
     }
 }
 
@@ -251,7 +251,7 @@ extension SQLRelation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> SQLRelation {
+    func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
         let childCardinality = (kind == .allNotPrefetched)
@@ -317,7 +317,7 @@ extension SQLRelation {
         }
     }
     
-    private func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> SQLRelation {
+    private func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> Self {
         var relation = self
         if let existingChild = relation.children.removeValue(forKey: key) {
             guard let mergedChild = existingChild.merged(with: child) else {
@@ -334,33 +334,33 @@ extension SQLRelation {
         return relation
     }
     
-    func removingChild(forKey key: String) -> SQLRelation {
-        mapInto(\.children, { $0.removeValue(forKey: key) })
+    func removingChild(forKey key: String) -> Self {
+        mapInto(\.children) { $0.removeValue(forKey: key) }
     }
     
-    func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> SQLRelation {
-        try map(\.children, { try $0.filter { try included($1) } })
+    func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> Self {
+        try map(\.children) { try $0.filter { try included($1) } }
     }
 }
 
 extension SQLRelation: _JoinableRequest {
-    func _including(all association: SQLAssociation) -> SQLRelation {
+    func _including(all association: SQLAssociation) -> Self {
         appendingChild(for: association, kind: .allPrefetched)
     }
     
-    func _including(optional association: SQLAssociation) -> SQLRelation {
+    func _including(optional association: SQLAssociation) -> Self {
         appendingChild(for: association, kind: .oneOptional)
     }
     
-    func _including(required association: SQLAssociation) -> SQLRelation {
+    func _including(required association: SQLAssociation) -> Self {
         appendingChild(for: association, kind: .oneRequired)
     }
     
-    func _joining(optional association: SQLAssociation) -> SQLRelation {
+    func _joining(optional association: SQLAssociation) -> Self {
         appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
     }
     
-    func _joining(required association: SQLAssociation) -> SQLRelation {
+    func _joining(required association: SQLAssociation) -> Self {
         appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
     }
 }
@@ -628,7 +628,7 @@ struct SQLAssociationCondition: Equatable {
 
 extension SQLRelation {
     /// Returns nil if relations can't be merged (conflict in source, joins...)
-    func merged(with other: SQLRelation) -> SQLRelation? {
+    func merged(with other: SQLRelation) -> Self? {
         guard let mergedSource = source.merged(with: other.source) else {
             // can't merge
             return nil
@@ -699,7 +699,7 @@ extension SQLSource {
 
 extension SQLRelation.Child {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
-    func merged(with other: SQLRelation.Child) -> SQLRelation.Child? {
+    func merged(with other: SQLRelation.Child) -> Self? {
         guard condition == other.condition else {
             // can't merge
             return nil
@@ -724,7 +724,7 @@ extension SQLRelation.Child {
 
 extension SQLRelation.Child.Kind {
     /// Returns nil if kinds can't be merged
-    func merged(with other: SQLRelation.Child.Kind) -> SQLRelation.Child.Kind? {
+    func merged(with other: SQLRelation.Child.Kind) -> Self? {
         switch (self, other) {
         case (.oneRequired, .oneRequired),
              (.oneRequired, .oneOptional),
