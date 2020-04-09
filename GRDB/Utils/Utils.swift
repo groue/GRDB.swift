@@ -95,7 +95,7 @@ extension DispatchQueue {
 
 extension Sequence {
     @inlinable
-    func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
+    func countElements(where predicate: (Element) throws -> Bool) rethrows -> Int {
         var count = 0
         for e in self where try predicate(e) {
             count += 1
