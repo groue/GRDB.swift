@@ -327,7 +327,9 @@ extension DatabaseReader {
                     let dbResult = dbResult
                     else { return }
                 
-                let result = dbResult.tryMap(observation.fetchValue)
+                let result = dbResult.flatMap { db in
+                    Result { try observation.fetchValue(db) }
+                }
                 
                 scheduler.schedule {
                     guard

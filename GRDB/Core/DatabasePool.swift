@@ -532,7 +532,7 @@ extension DatabasePool: DatabaseReader {
         
         asyncConcurrentRead { dbResult in
             // Fetch and release the future
-            futureResult = dbResult.tryMap(block)
+            futureResult = dbResult.flatMap { db in Result { try block(db) } }
             futureSemaphore.signal()
         }
         
