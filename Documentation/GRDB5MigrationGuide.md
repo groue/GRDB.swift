@@ -216,9 +216,7 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
 
 ## Other Changes
 
-1. The `QueryInterfaceRequest` type has been renamed to `Request`.
-
-2. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
+1. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
     
     ```swift
     // BEFORE: GRDB 4
@@ -228,7 +226,7 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     try Player.updateAll(db, Column("score").set(to: 0))
     ```
 
-3. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
+2. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
     
     ```swift
     // BEFORE: GRDB 4
@@ -238,7 +236,7 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     Player.select(myFunction(Column("name")))
     ```
 
-4. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
+3. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
     
     ```swift
     // BEFORE: GRDB 4
@@ -260,7 +258,7 @@ Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so th
     }
     ```
 
-5. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
+4. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
     ```swift
     // BEFORE: GRDB 4
