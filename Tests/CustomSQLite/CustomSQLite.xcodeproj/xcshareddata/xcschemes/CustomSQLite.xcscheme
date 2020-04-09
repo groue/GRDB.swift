@@ -10,7 +10,7 @@
             ActionType = "Xcode.IDEStandardExecutionActionsCore.ExecutionActionType.ShellScriptAction">
             <ActionContent
                title = "Run Script"
-               scriptText = "source &quot;${PROJECT_DIR}/GRDBCustomSQLite/GRDB-INSTALL.sh&quot;&#10;">
+               scriptText = "source &quot;${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-INSTALL.sh&quot;&#10;">
                <EnvironmentBuildable>
                   <BuildableReference
                      BuildableIdentifier = "primary"

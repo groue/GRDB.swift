@@ -7,48 +7,49 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		562697E32438E07700502C22 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 562697DA2438E05F00502C22 /* GRDB.framework */; };
 		56F5F6C62349F11E00C4D9F7 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F5F6C52349F11E00C4D9F7 /* AppDelegate.swift */; };
 		56F5F6C82349F11E00C4D9F7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F5F6C72349F11E00C4D9F7 /* ViewController.swift */; };
 		56F5F6CA2349F11F00C4D9F7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56F5F6C92349F11F00C4D9F7 /* Assets.xcassets */; };
 		56F5F6CD2349F11F00C4D9F7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56F5F6CB2349F11F00C4D9F7 /* Main.storyboard */; };
+		56F5F6E82349F26400C4D9F7 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */; };
+		56F5F6E92349F26500C4D9F7 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		562697D92438E05F00502C22 /* PBXContainerItemProxy */ = {
+		56F5F6DD2349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA805A1CFB2BB2003DC1BA;
-			remoteInfo = GRDBOSX;
+			remoteInfo = GRDBCustomSQLiteOSX;
 		};
-		562697DB2438E05F00502C22 /* PBXContainerItemProxy */ = {
+		56F5F6DF2349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA809B1CFB2F6F003DC1BA;
-			remoteInfo = GRDBOSXTests;
+			remoteInfo = GRDBCustomSQLiteOSXTests;
 		};
-		562697DD2438E05F00502C22 /* PBXContainerItemProxy */ = {
+		56F5F6E12349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA7FFE1CFB25E4003DC1BA;
-			remoteInfo = GRDBiOS;
+			remoteInfo = GRDBCustomSQLiteiOS;
 		};
-		562697DF2438E05F00502C22 /* PBXContainerItemProxy */ = {
+		56F5F6E32349F22A00C4D9F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = F3BA80411CFB2AD7003DC1BA;
-			remoteInfo = GRDBiOSTests;
+			remoteInfo = GRDBCustomSQLiteiOSTests;
 		};
-		562697E12438E06A00502C22 /* PBXContainerItemProxy */ = {
+		56F5F6E52349F24D00C4D9F7 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */;
+			containerPortal = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = F3BA80591CFB2BB2003DC1BA;
-			remoteInfo = GRDBOSX;
+			remoteInfo = GRDBCustomSQLiteOSX;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -59,6 +60,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				56F5F6E92349F26500C4D9F7 /* GRDB.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -66,7 +68,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDBCustom.xcodeproj; path = ../../GRDBCustom.xcodeproj; sourceTree = "<group>"; };
+		56E987D9243EF667005CFD0D /* GRDBCustomSQLite-INSTALL.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "GRDBCustomSQLite-INSTALL.sh"; sourceTree = "<group>"; };
+		56E987DA243EF667005CFD0D /* SQLiteLib-USER.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "SQLiteLib-USER.xcconfig"; sourceTree = "<group>"; };
+		56E987DB243EF667005CFD0D /* GRDBCustomSQLite-USER.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "GRDBCustomSQLite-USER.xcconfig"; sourceTree = "<group>"; };
+		56E987DC243EF667005CFD0D /* GRDBCustomSQLite-USER.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBCustomSQLite-USER.h"; sourceTree = "<group>"; };
 		56F5F6C22349F11E00C4D9F7 /* CustomSQLite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomSQLite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F5F6C52349F11E00C4D9F7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56F5F6C72349F11E00C4D9F7 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -74,6 +79,7 @@
 		56F5F6CC2349F11F00C4D9F7 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		56F5F6CE2349F11F00C4D9F7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		56F5F6CF2349F11F00C4D9F7 /* CustomSQLite.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CustomSQLite.entitlements; sourceTree = "<group>"; };
+		56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDBCustom.xcodeproj; path = ../../GRDBCustom.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,28 +87,29 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				562697E32438E07700502C22 /* GRDB.framework in Frameworks */,
+				56F5F6E82349F26400C4D9F7 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		562697D22438E05F00502C22 /* Products */ = {
+		56E987D8243EF667005CFD0D /* GRDBCustomSQLite */ = {
 			isa = PBXGroup;
 			children = (
-				562697DA2438E05F00502C22 /* GRDB.framework */,
-				562697DC2438E05F00502C22 /* GRDBOSXTests.xctest */,
-				562697DE2438E05F00502C22 /* GRDB.framework */,
-				562697E02438E05F00502C22 /* GRDBiOSTests.xctest */,
+				56E987D9243EF667005CFD0D /* GRDBCustomSQLite-INSTALL.sh */,
+				56E987DA243EF667005CFD0D /* SQLiteLib-USER.xcconfig */,
+				56E987DB243EF667005CFD0D /* GRDBCustomSQLite-USER.xcconfig */,
+				56E987DC243EF667005CFD0D /* GRDBCustomSQLite-USER.h */,
 			);
-			name = Products;
+			path = GRDBCustomSQLite;
 			sourceTree = "<group>";
 		};
 		56F5F6B92349F11E00C4D9F7 = {
 			isa = PBXGroup;
 			children = (
-				562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */,
+				56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */,
+				56E987D8243EF667005CFD0D /* GRDBCustomSQLite */,
 				56F5F6C42349F11E00C4D9F7 /* CustomSQLite */,
 				56F5F6C32349F11E00C4D9F7 /* Products */,
 				56F5F6E72349F26400C4D9F7 /* Frameworks */,
@@ -130,6 +137,17 @@
 			path = CustomSQLite;
 			sourceTree = "<group>";
 		};
+		56F5F6D62349F22A00C4D9F7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */,
+				56F5F6E02349F22A00C4D9F7 /* GRDBOSXTests.xctest */,
+				56F5F6E22349F22A00C4D9F7 /* GRDB.framework */,
+				56F5F6E42349F22A00C4D9F7 /* GRDBiOSTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		56F5F6E72349F26400C4D9F7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -152,7 +170,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				562697E22438E06A00502C22 /* PBXTargetDependency */,
+				56F5F6E62349F24D00C4D9F7 /* PBXTargetDependency */,
 			);
 			name = CustomSQLite;
 			productName = CustomSQLite;
@@ -188,8 +206,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 562697D22438E05F00502C22 /* Products */;
-					ProjectRef = 562697D12438E05F00502C22 /* GRDBCustom.xcodeproj */;
+					ProductGroup = 56F5F6D62349F22A00C4D9F7 /* Products */;
+					ProjectRef = 56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -200,32 +218,32 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		562697DA2438E05F00502C22 /* GRDB.framework */ = {
+		56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDB.framework;
-			remoteRef = 562697D92438E05F00502C22 /* PBXContainerItemProxy */;
+			remoteRef = 56F5F6DD2349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		562697DC2438E05F00502C22 /* GRDBOSXTests.xctest */ = {
+		56F5F6E02349F22A00C4D9F7 /* GRDBOSXTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBOSXTests.xctest;
-			remoteRef = 562697DB2438E05F00502C22 /* PBXContainerItemProxy */;
+			remoteRef = 56F5F6DF2349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		562697DE2438E05F00502C22 /* GRDB.framework */ = {
+		56F5F6E22349F22A00C4D9F7 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GRDB.framework;
-			remoteRef = 562697DD2438E05F00502C22 /* PBXContainerItemProxy */;
+			remoteRef = 56F5F6E12349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		562697E02438E05F00502C22 /* GRDBiOSTests.xctest */ = {
+		56F5F6E42349F22A00C4D9F7 /* GRDBiOSTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
 			path = GRDBiOSTests.xctest;
-			remoteRef = 562697DF2438E05F00502C22 /* PBXContainerItemProxy */;
+			remoteRef = 56F5F6E32349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -255,10 +273,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		562697E22438E06A00502C22 /* PBXTargetDependency */ = {
+		56F5F6E62349F24D00C4D9F7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = GRDBOSX;
-			targetProxy = 562697E12438E06A00502C22 /* PBXContainerItemProxy */;
+			name = GRDBCustomSQLiteOSX;
+			targetProxy = 56F5F6E52349F24D00C4D9F7 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

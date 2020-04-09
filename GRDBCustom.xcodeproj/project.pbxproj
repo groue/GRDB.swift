@@ -470,8 +470,8 @@
 		56FF455D1D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FF45551D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift */; };
 		6340BF831E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
 		6340BF871E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */; };
-		EED476F21CFD17270026A4EC /* GRDB-USER.h in Headers */ = {isa = PBXBuildFile; fileRef = EED476F11CFD16FF0026A4EC /* GRDB-USER.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		EED476F31CFD172C0026A4EC /* GRDB-USER.h in Headers */ = {isa = PBXBuildFile; fileRef = EED476F11CFD16FF0026A4EC /* GRDB-USER.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EED476F21CFD17270026A4EC /* GRDBCustomSQLite-USER.h in Headers */ = {isa = PBXBuildFile; fileRef = EED476F11CFD16FF0026A4EC /* GRDBCustomSQLite-USER.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		EED476F31CFD172C0026A4EC /* GRDBCustomSQLite-USER.h in Headers */ = {isa = PBXBuildFile; fileRef = EED476F11CFD16FF0026A4EC /* GRDBCustomSQLite-USER.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3BA800A1CFB286A003DC1BA /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238701B9C75030082EB20 /* Configuration.swift */; };
 		F3BA800B1CFB286D003DC1BA /* Database.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238711B9C75030082EB20 /* Database.swift */; };
 		F3BA800C1CFB286F003DC1BA /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238731B9C75030082EB20 /* DatabaseError.swift */; };
@@ -502,7 +502,6 @@
 		F3BA80341CFB28A4003DC1BA /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A11B9C753B0082EB20 /* Record.swift */; };
 		F3BA80361CFB28A4003DC1BA /* TableRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D92461C672C4B00F4F92B /* TableRecord.swift */; };
 		F3BA80381CFB2932003DC1BA /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = F3BA7FF11CFB23D3003DC1BA /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F3BA80391CFB2936003DC1BA /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = F3BA7FF21CFB23DA003DC1BA /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3BA803A1CFB293A003DC1BA /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = F3BA7FF01CFB23C9003DC1BA /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3BA803C1CFB2A20003DC1BA /* libsqlitecustom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F3BA7FF81CFB23E4003DC1BA /* libsqlitecustom.a */; };
 		F3BA80461CFB2AD7003DC1BA /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3BA7FFE1CFB25E4003DC1BA /* GRDB.framework */; };
@@ -543,7 +542,6 @@
 		F3BA80901CFB2E7A003DC1BA /* Record.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238A11B9C753B0082EB20 /* Record.swift */; };
 		F3BA80921CFB2E7A003DC1BA /* TableRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560D92461C672C4B00F4F92B /* TableRecord.swift */; };
 		F3BA80931CFB2F13003DC1BA /* GRDB.h in Headers */ = {isa = PBXBuildFile; fileRef = F3BA7FF11CFB23D3003DC1BA /* GRDB.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		F3BA80941CFB2F15003DC1BA /* GRDB-Bridging.h in Headers */ = {isa = PBXBuildFile; fileRef = F3BA7FF21CFB23DA003DC1BA /* GRDB-Bridging.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3BA80951CFB2F18003DC1BA /* sqlite3.h in Headers */ = {isa = PBXBuildFile; fileRef = F3BA7FF01CFB23C9003DC1BA /* sqlite3.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		F3BA80961CFB2F45003DC1BA /* libsqlitecustom.a in Frameworks */ = {isa = PBXBuildFile; fileRef = F3BA7FF81CFB23E4003DC1BA /* libsqlitecustom.a */; };
 		F3BA80A01CFB2F6F003DC1BA /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F3BA805A1CFB2BB2003DC1BA /* GRDB.framework */; };
@@ -694,14 +692,14 @@
 			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = F3BA7FFD1CFB25E4003DC1BA;
-			remoteInfo = GRDBiOS;
+			remoteInfo = GRDBCustomSQLiteiOS;
 		};
 		F3BA80A11CFB2F6F003DC1BA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DC3773EA19C8CBB3004FCF85 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = F3BA80591CFB2BB2003DC1BA;
-			remoteInfo = GRDBOSX;
+			remoteInfo = GRDBCustomSQLiteOSX;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -1037,19 +1035,18 @@
 		DC3773F719C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DC3773F819C8CBB3004FCF85 /* GRDB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GRDB.h; sourceTree = "<group>"; };
 		DC37740419C8CBB3004FCF85 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EED476F11CFD16FF0026A4EC /* GRDB-USER.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDB-USER.h"; path = "SQLiteCustom/GRDB-USER.h"; sourceTree = "<group>"; };
+		EED476F11CFD16FF0026A4EC /* GRDBCustomSQLite-USER.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDBCustomSQLite-USER.h"; path = "SQLiteCustom/GRDBCustomSQLite-USER.h"; sourceTree = "<group>"; };
 		F3BA7FEE1CFB23B7003DC1BA /* GRDB.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = GRDB.xcconfig; path = SQLiteCustom/GRDB.xcconfig; sourceTree = "<group>"; };
 		F3BA7FEF1CFB23BF003DC1BA /* module.modulemap */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.module-map"; name = module.modulemap; path = SQLiteCustom/module.modulemap; sourceTree = "<group>"; };
 		F3BA7FF01CFB23C9003DC1BA /* sqlite3.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = sqlite3.h; path = SQLiteCustom/src/sqlite3.h; sourceTree = "<group>"; };
 		F3BA7FF11CFB23D3003DC1BA /* GRDB.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GRDB.h; path = SQLiteCustom/GRDB.h; sourceTree = "<group>"; };
-		F3BA7FF21CFB23DA003DC1BA /* GRDB-Bridging.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDB-Bridging.h"; path = "SQLiteCustom/GRDB-Bridging.h"; sourceTree = "<group>"; };
 		F3BA7FF31CFB23E4003DC1BA /* SQLiteLib.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = SQLiteLib.xcodeproj; path = SQLiteCustom/src/SQLiteLib.xcodeproj; sourceTree = "<group>"; };
 		F3BA7FFE1CFB25E4003DC1BA /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3BA80411CFB2AD7003DC1BA /* GRDBiOSTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBiOSTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3BA805A1CFB2BB2003DC1BA /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		F3BA809B1CFB2F6F003DC1BA /* GRDBOSXTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		F3BA813A1CFB3402003DC1BA /* GRDB-USER.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "GRDB-USER.xcconfig"; path = "SQLiteCustom/GRDB-USER.xcconfig"; sourceTree = "<group>"; };
-		F3BA813B1CFB3770003DC1BA /* GRDB-Testing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "GRDB-Testing.xcconfig"; path = "SQLiteCustom/GRDB-Testing.xcconfig"; sourceTree = "<group>"; };
+		F3BA813A1CFB3402003DC1BA /* GRDBCustomSQLite-USER.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "GRDBCustomSQLite-USER.xcconfig"; path = "SQLiteCustom/GRDBCustomSQLite-USER.xcconfig"; sourceTree = "<group>"; };
+		F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = "GRDBCustomSQLite-Testing.xcconfig"; path = "SQLiteCustom/GRDBCustomSQLite-Testing.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1758,7 +1755,7 @@
 			isa = PBXGroup;
 			children = (
 				DC37742D19C8CC90004FCF85 /* GRDB */,
-				F3BA7FED1CFB21F8003DC1BA /* GRDBCustom */,
+				F3BA7FED1CFB21F8003DC1BA /* GRDBCustomSQLite */,
 				DC10500F19C904DD00D8CA30 /* Tests */,
 				DC3773F419C8CBB3004FCF85 /* Products */,
 			);
@@ -1820,26 +1817,25 @@
 		EED476F41CFD174D0026A4EC /* Customize */ = {
 			isa = PBXGroup;
 			children = (
-				F3BA813A1CFB3402003DC1BA /* GRDB-USER.xcconfig */,
-				EED476F11CFD16FF0026A4EC /* GRDB-USER.h */,
+				F3BA813A1CFB3402003DC1BA /* GRDBCustomSQLite-USER.xcconfig */,
+				EED476F11CFD16FF0026A4EC /* GRDBCustomSQLite-USER.h */,
 			);
 			name = Customize;
 			sourceTree = "<group>";
 		};
-		F3BA7FED1CFB21F8003DC1BA /* GRDBCustom */ = {
+		F3BA7FED1CFB21F8003DC1BA /* GRDBCustomSQLite */ = {
 			isa = PBXGroup;
 			children = (
 				EED476F41CFD174D0026A4EC /* Customize */,
 				F3BA7FEE1CFB23B7003DC1BA /* GRDB.xcconfig */,
-				F3BA813B1CFB3770003DC1BA /* GRDB-Testing.xcconfig */,
+				F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */,
 				56C494421ED726C500CC72AF /* GRDBDeploymentTarget.xcconfig */,
 				F3BA7FEF1CFB23BF003DC1BA /* module.modulemap */,
 				F3BA7FF01CFB23C9003DC1BA /* sqlite3.h */,
 				F3BA7FF11CFB23D3003DC1BA /* GRDB.h */,
-				F3BA7FF21CFB23DA003DC1BA /* GRDB-Bridging.h */,
 				F3BA7FF31CFB23E4003DC1BA /* SQLiteLib.xcodeproj */,
 			);
-			name = GRDBCustom;
+			name = GRDBCustomSQLite;
 			sourceTree = "<group>";
 		};
 		F3BA7FF41CFB23E4003DC1BA /* Products */ = {
@@ -1858,10 +1854,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3BA80381CFB2932003DC1BA /* GRDB.h in Headers */,
-				F3BA80391CFB2936003DC1BA /* GRDB-Bridging.h in Headers */,
 				F3BA803A1CFB293A003DC1BA /* sqlite3.h in Headers */,
 				567DAF211EAB61ED00FC0928 /* grdb_config.h in Headers */,
-				EED476F31CFD172C0026A4EC /* GRDB-USER.h in Headers */,
+				EED476F31CFD172C0026A4EC /* GRDBCustomSQLite-USER.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1870,10 +1865,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				F3BA80931CFB2F13003DC1BA /* GRDB.h in Headers */,
-				F3BA80941CFB2F15003DC1BA /* GRDB-Bridging.h in Headers */,
 				F3BA80951CFB2F18003DC1BA /* sqlite3.h in Headers */,
 				567DAF1E1EAB61ED00FC0928 /* grdb_config.h in Headers */,
-				EED476F21CFD17270026A4EC /* GRDB-USER.h in Headers */,
+				EED476F21CFD17270026A4EC /* GRDBCustomSQLite-USER.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1897,7 +1891,7 @@
 				EED9F6461CFE39D1004BA2B8 /* PBXTargetDependency */,
 			);
 			name = GRDBiOS;
-			productName = GRDB;
+			productName = GRDBCustomSQLite;
 			productReference = F3BA7FFE1CFB25E4003DC1BA /* GRDB.framework */;
 			productType = "com.apple.product-type.framework";
 		};
@@ -1915,7 +1909,7 @@
 				F3BA80481CFB2AD7003DC1BA /* PBXTargetDependency */,
 			);
 			name = GRDBiOSTests;
-			productName = GRDBiOSTests;
+			productName = GRDBCustomSQLiteiOSTests;
 			productReference = F3BA80411CFB2AD7003DC1BA /* GRDBiOSTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -1936,7 +1930,7 @@
 				EED9F6481CFE39D7004BA2B8 /* PBXTargetDependency */,
 			);
 			name = GRDBOSX;
-			productName = GRDB;
+			productName = GRDBCustomSQLite;
 			productReference = F3BA805A1CFB2BB2003DC1BA /* GRDB.framework */;
 			productType = "com.apple.product-type.framework";
 		};
@@ -1954,7 +1948,7 @@
 				F3BA80A21CFB2F6F003DC1BA /* PBXTargetDependency */,
 			);
 			name = GRDBOSXTests;
-			productName = GRDBOSXTests;
+			productName = GRDBCustomSQLiteOSXTests;
 			productReference = F3BA809B1CFB2F6F003DC1BA /* GRDBOSXTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -2101,15 +2095,15 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/SQLiteCustom/GRDB-USER.xcconfig.example",
-				"$(SRCROOT)/SQLiteCustom/GRDB-USER.h.example",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.xcconfig.example",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.h.example",
 			);
 			name = "Copy .example configuration files (if no USER customizations exist)";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "copiedfiles=false\nfor ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n            touch $OUTPUTFILE\n            copiedfiles=true\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n\nif [ \"$copiedfiles\" = true ] ; then\ntouch \"${SRCROOT}/SQLiteCustom/GRDB.xcconfig\"\ntouch \"${SRCROOT}/SQLiteCustom/GRDB-Testing.xcconfig\"\nsleep 1\nfi\n";
+			shellScript = "copiedfiles=false\nfor ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n            touch $OUTPUTFILE\n            copiedfiles=true\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n\nif [ \"$copiedfiles\" = true ] ; then\ntouch \"${SRCROOT}/SQLiteCustom/GRDB.xcconfig\"\ntouch \"${SRCROOT}/SQLiteCustom/GRDBCustomSQLite-Testing.xcconfig\"\nsleep 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 		EED476F51CFD1A610026A4EC /* Copy .example configuration files (if no USER customizations exist) */ = {
@@ -2118,15 +2112,15 @@
 			files = (
 			);
 			inputPaths = (
-				"$(SRCROOT)/SQLiteCustom/GRDB-USER.xcconfig.example",
-				"$(SRCROOT)/SQLiteCustom/GRDB-USER.h.example",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.xcconfig.example",
+				"$(SRCROOT)/SQLiteCustom/GRDBCustomSQLite-USER.h.example",
 			);
 			name = "Copy .example configuration files (if no USER customizations exist)";
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "copiedfiles=false\nfor ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n            touch $OUTPUTFILE\n            copiedfiles=true\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n\nif [ \"$copiedfiles\" = true ] ; then\ntouch \"${SRCROOT}/SQLiteCustom/GRDB.xcconfig\"\ntouch \"${SRCROOT}/SQLiteCustom/GRDB-Testing.xcconfig\"\nsleep 1\nfi\n";
+			shellScript = "copiedfiles=false\nfor ((i=0; i < SCRIPT_INPUT_FILE_COUNT ; i++))\ndo\n    INFILE=SCRIPT_INPUT_FILE_$i\n    FILE=${!INFILE};\n    OUTPUTFILE=${FILE%.example}\n    echo \"${INFILE}=${FILE}\"\n    if [ -f \"$FILE\" ]\n    then\n        if [ ! -f \"$OUTPUTFILE\" ];\n        then\n            echo \"Expected USER configuration file doesn't exist\"\n            echo \"Copying .example file\"\n            cp $FILE $OUTPUTFILE\n            touch $OUTPUTFILE\n            copiedfiles=true\n        else\n            echo \"USER Configuration file already exists: ${OUTPUTFILE}\"\n            echo \"Skipping .example copy.\"\n        fi\n    else\n        echo \"Missing input .example file: ${FILE}\"\n        exit 1\n    fi\ndone\n\nif [ \"$copiedfiles\" = true ] ; then\ntouch \"${SRCROOT}/SQLiteCustom/GRDB.xcconfig\"\ntouch \"${SRCROOT}/SQLiteCustom/GRDBCustomSQLite-Testing.xcconfig\"\nsleep 1\nfi\n";
 			showEnvVarsInLog = 0;
 		};
 /* End PBXShellScriptBuildPhase section */
@@ -2986,7 +2980,7 @@
 		};
 		F3BA804A1CFB2AD7003DC1BA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDB-Testing.xcconfig */;
+			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -2995,7 +2989,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLite.GRDBCustomSQLiteiOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 			};
@@ -3003,7 +2997,7 @@
 		};
 		F3BA804B1CFB2AD7003DC1BA /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDB-Testing.xcconfig */;
+			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -3013,7 +3007,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBiOSTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLite.GRDBCustomSQLiteiOSTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
@@ -3070,7 +3064,7 @@
 		};
 		F3BA80A41CFB2F6F003DC1BA /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDB-Testing.xcconfig */;
+			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -3080,7 +3074,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLiteOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 			};
@@ -3088,7 +3082,7 @@
 		};
 		F3BA80A51CFB2F6F003DC1BA /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDB-Testing.xcconfig */;
+			baseConfigurationReference = F3BA813B1CFB3770003DC1BA /* GRDBCustomSQLite-Testing.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -3099,7 +3093,7 @@
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Tests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
-				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCustomSQLiteOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";

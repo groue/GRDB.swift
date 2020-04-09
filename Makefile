@@ -364,11 +364,11 @@ test_performance:
 
 # Target that setups SQLite custom builds with extra compilation options.
 SQLiteCustom: SQLiteCustom/src/sqlite3.h
-	echo '/* Makefile generated */' > SQLiteCustom/GRDB-USER.h
-	echo '#define SQLITE_ENABLE_PREUPDATE_HOOK' >> SQLiteCustom/GRDB-USER.h
-	echo '#define SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDB-USER.h
-	echo '// Makefile generated' > SQLiteCustom/GRDB-USER.xcconfig
-	echo 'CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDB-USER.xcconfig
+	echo '/* Makefile generated */' > SQLiteCustom/GRDBCustomSQLite-USER.h
+	echo '#define SQLITE_ENABLE_PREUPDATE_HOOK' >> SQLiteCustom/GRDBCustomSQLite-USER.h
+	echo '#define SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDBCustomSQLite-USER.h
+	echo '// Makefile generated' > SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
+	echo 'CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_PREUPDATE_HOOK -D SQLITE_ENABLE_FTS5' >> SQLiteCustom/GRDBCustomSQLite-USER.xcconfig
 	echo '// Makefile generated' > SQLiteCustom/src/SQLiteLib-USER.xcconfig
 	echo 'CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_PREUPDATE_HOOK -DSQLITE_ENABLE_FTS5' >> SQLiteCustom/src/SQLiteLib-USER.xcconfig
 

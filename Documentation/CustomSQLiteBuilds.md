@@ -33,7 +33,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_PREUPDATE_HOOK
         ```
     
-    - `GRDB-USER.xcconfig`: this file lets GRDB know about extra compilation flags, and enables extra GRDB APIs.
+    - `GRDBCustomSQLite-USER.xcconfig`: this file lets GRDB know about extra compilation flags, and enables extra GRDB APIs.
         
         ```xcconfig
         // As many -D options as there are custom SQLite compilation options
@@ -41,7 +41,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK
         ```
     
-    - `GRDB-USER.h`: this file lets your application know about extra compilation flags.
+    - `GRDBCustomSQLite-USER.h`: this file lets your application know about extra compilation flags.
         
         ```c
         // As many #define as there are custom SQLite compilation options
@@ -49,7 +49,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         #define SQLITE_ENABLE_PREUPDATE_HOOK
         ```
     
-    - `GRDB-INSTALL.sh`: this file installs the three other files.
+    - `GRDBCustomSQLite-INSTALL.sh`: this file installs the three other files.
         
         ```sh
         # License: MIT License
@@ -66,11 +66,11 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         # The path to your custom "SQLiteLib-USER.xcconfig":
         SQLITELIB_XCCONFIG_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/SQLiteLib-USER.xcconfig"
         
-        # The path to your custom "GRDB-USER.xcconfig":
-        CUSTOMSQLITE_XCCONFIG_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDB-USER.xcconfig"
+        # The path to your custom "GRDBCustomSQLite-USER.xcconfig":
+        CUSTOMSQLITE_XCCONFIG_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-USER.xcconfig"
         
-        # The path to your custom "GRDB-USER.h":
-        CUSTOMSQLITE_H_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDB-USER.h"
+        # The path to your custom "GRDBCustomSQLite-USER.h":
+        CUSTOMSQLITE_H_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-USER.h"
         
         #######################################################
         #
@@ -99,27 +99,27 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         }
         
         SyncFileChanges $SQLITELIB_XCCONFIG_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom/src" "SQLiteLib-USER.xcconfig"
-        SyncFileChanges $CUSTOMSQLITE_XCCONFIG_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDB-USER.xcconfig"
-        SyncFileChanges $CUSTOMSQLITE_H_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDB-USER.h"
+        SyncFileChanges $CUSTOMSQLITE_XCCONFIG_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDBCustomSQLite-USER.xcconfig"
+        SyncFileChanges $CUSTOMSQLITE_H_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDBCustomSQLite-USER.h"
         
         echo "Finished syncing"
         ```
         
-        Modify the top of `GRDB-INSTALL.sh` file so that it contains correct paths.
+        Modify the top of `GRDBCustomSQLite-INSTALL.sh` file so that it contains correct paths.
 
 5. Embed the `GRDBCustom.xcodeproj` project in your own project.
 
-6. Add the `GRDBOSX` or `GRDBiOS` target in the **Target Dependencies** section of the **Build Phases** tab of your **application target**.
+6. Add the `GRDBCustomSQLiteOSX` or `GRDBCustomSQLiteiOS` target in the **Target Dependencies** section of the **Build Phases** tab of your **application target**.
 
-7. Add the `GRDB.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your **application target**.
+7. Add the `GRDBCustomSQLite.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your **application target**.
 
 8. Add a Run Script phase for your target in the **Pre-actions** section of the **Build** tab of your **application scheme**:
     
     ```sh
-    source "${PROJECT_DIR}/GRDBCustomSQLite/GRDB-INSTALL.sh"
+    source "${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-INSTALL.sh"
     ```
     
-    The path should be the path to your `GRDB-INSTALL.sh` file.
+    The path should be the path to your `GRDBCustomSQLite-INSTALL.sh` file.
     
     Select your application target in the "Provide build settings from" menu.
 

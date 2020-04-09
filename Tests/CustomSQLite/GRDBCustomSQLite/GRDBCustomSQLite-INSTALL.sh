@@ -4,11 +4,11 @@ GRDB_SOURCE_PATH="${PROJECT_DIR}/GRDB"
 # The path to your custom "SQLiteLib-USER.xcconfig":
 SQLITELIB_XCCONFIG_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/SQLiteLib-USER.xcconfig"
 
-# The path to your custom "GRDB-USER.xcconfig":
-CUSTOMSQLITE_XCCONFIG_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDB-USER.xcconfig"
+# The path to your custom "GRDBCustomSQLite-USER.xcconfig":
+CUSTOMSQLITE_XCCONFIG_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-USER.xcconfig"
 
-# The path to your custom "GRDB-USER.h":
-CUSTOMSQLITE_H_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDB-USER.h"
+# The path to your custom "GRDBCustomSQLite-USER.h":
+CUSTOMSQLITE_H_USER_PATH="${PROJECT_DIR}/GRDBCustomSQLite/GRDBCustomSQLite-USER.h"
 
 #######################################################
 #
@@ -37,7 +37,7 @@ SyncFileChanges () {
 }
 
 SyncFileChanges $SQLITELIB_XCCONFIG_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom/src" "SQLiteLib-USER.xcconfig"
-SyncFileChanges $CUSTOMSQLITE_XCCONFIG_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDB-USER.xcconfig"
-SyncFileChanges $CUSTOMSQLITE_H_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDB-USER.h"
+SyncFileChanges $CUSTOMSQLITE_XCCONFIG_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDBCustomSQLite-USER.xcconfig"
+SyncFileChanges $CUSTOMSQLITE_H_USER_PATH "${GRDB_SOURCE_PATH}/SQLiteCustom" "GRDBCustomSQLite-USER.h"
 
 echo "Finished syncing"
