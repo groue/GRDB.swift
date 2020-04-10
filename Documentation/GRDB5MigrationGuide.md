@@ -125,11 +125,15 @@ ValueObservation.tracking(request.fetchAll).rx.observe(in: dbQueue)
 
 **The behavior of ValueObservation has changed**.
 
-Those changes have been applied identically to [GRDBCombine] and [RxGRDB], so that you are granted with an identical behavior, regardless of the technique you use to observe the database (vanilla GRDB, Combine, or RxSwift).
+Those changes have the vanilla GRDB, [GRDBCombine], and [RxGRDB], behave 100% identically. This greatly helps choosing or switching your prefered database observation technique. In previous versions of GRDB, the three companion libraries used to suffer from subtle runtime differences that were quite uneasy to spot.
+
+Your attention is quite required in this chapter.
 
 1. ValueObservation used to notify its initial value *immediately* when the observation starts. Now, it notifies fresh values on the main thread, *asynchronously*, by default.
     
-    This means that parts of your application that rely on this immediate value to, say, setup their user interface, have to be modified. Insert a `scheduling: .immediate` argument in the `start` method:
+    This means that parts of your application that rely on this immediate value to, say, setup their user interface, have to be modified. Otherwise, they may suffer from a brief flash of missing data, during the short amount of time between the beginning of the observation, and the asynchronous delivery of the initial value.
+    
+    To be granted with an immediate, synchronous, delivery of the initial value, insert a `scheduling: .immediate` argument in the `start` method:
     
     ```swift
     let observation = ValueObservation.tracking(Player.fetchAll)
