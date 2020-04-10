@@ -13,16 +13,11 @@ public struct SQLLiteral {
     /// SQLLiteral is an array of elements which can be qualified with
     /// table aliases.
     enum Element {
-        case sql(String, StatementArguments)
+        case sql(String, StatementArguments = StatementArguments())
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
         case subQuery(SQLLiteral)
-        
-        // TODO: remove and use default case argument when compiler >= 5.1
-        static func sql(_ sql: String) -> Element {
-            .sql(sql, StatementArguments())
-        }
         
         fileprivate func sql(_ context: inout SQLGenerationContext) -> String {
             switch self {

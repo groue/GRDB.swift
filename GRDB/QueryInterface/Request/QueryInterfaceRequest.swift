@@ -634,16 +634,12 @@ extension Row {
 ///     }
 public struct ColumnAssignment {
     var column: ColumnExpression
-    var value: SQLExpressible?
+    var value: SQLExpressible
     
     func sql(_ context: inout SQLGenerationContext) -> String {
-        if let value = value {
-            return column.expressionSQL(&context, wrappedInParenthesis: false) +
-                " = " +
-                value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
-        } else {
-            return column.expressionSQL(&context, wrappedInParenthesis: false) + " = NULL"
-        }
+        column.expressionSQL(&context, wrappedInParenthesis: false) +
+            " = " +
+            value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
     }
 }
 
@@ -660,7 +656,7 @@ extension ColumnExpression {
     ///         try Player.updateAll(db, Column("score").set(to: 0))
     ///     }
     public func set(to value: SQLExpressible?) -> ColumnAssignment {
-        ColumnAssignment(column: self, value: value)
+        ColumnAssignment(column: self, value: value ?? DatabaseValue.null)
     }
 }
 
