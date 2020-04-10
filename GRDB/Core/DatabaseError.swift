@@ -258,6 +258,108 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     let arguments: StatementArguments?
 }
 
+// Support for `catch DatabaseError.SQLITE_XXX`
+extension DatabaseError {
+    public static let SQLITE_OK = ResultCode.SQLITE_OK
+    public static let SQLITE_ERROR = ResultCode.SQLITE_ERROR
+    public static let SQLITE_INTERNAL = ResultCode.SQLITE_INTERNAL
+    public static let SQLITE_PERM = ResultCode.SQLITE_PERM
+    public static let SQLITE_ABORT = ResultCode.SQLITE_ABORT
+    public static let SQLITE_BUSY = ResultCode.SQLITE_BUSY
+    public static let SQLITE_LOCKED = ResultCode.SQLITE_LOCKED
+    public static let SQLITE_NOMEM = ResultCode.SQLITE_NOMEM
+    public static let SQLITE_READONLY = ResultCode.SQLITE_READONLY
+    public static let SQLITE_INTERRUPT = ResultCode.SQLITE_INTERRUPT
+    public static let SQLITE_IOERR = ResultCode.SQLITE_IOERR
+    public static let SQLITE_CORRUPT = ResultCode.SQLITE_CORRUPT
+    public static let SQLITE_NOTFOUND = ResultCode.SQLITE_NOTFOUND
+    public static let SQLITE_FULL = ResultCode.SQLITE_FULL
+    public static let SQLITE_CANTOPEN = ResultCode.SQLITE_CANTOPEN
+    public static let SQLITE_PROTOCOL = ResultCode.SQLITE_PROTOCOL
+    public static let SQLITE_EMPTY = ResultCode.SQLITE_EMPTY
+    public static let SQLITE_SCHEMA = ResultCode.SQLITE_SCHEMA
+    public static let SQLITE_TOOBIG = ResultCode.SQLITE_TOOBIG
+    public static let SQLITE_CONSTRAINT = ResultCode.SQLITE_CONSTRAINT
+    public static let SQLITE_MISMATCH = ResultCode.SQLITE_MISMATCH
+    public static let SQLITE_MISUSE = ResultCode.SQLITE_MISUSE
+    public static let SQLITE_NOLFS = ResultCode.SQLITE_NOLFS
+    public static let SQLITE_AUTH = ResultCode.SQLITE_AUTH
+    public static let SQLITE_FORMAT = ResultCode.SQLITE_FORMAT
+    public static let SQLITE_RANGE = ResultCode.SQLITE_RANGE
+    public static let SQLITE_NOTADB = ResultCode.SQLITE_NOTADB
+    public static let SQLITE_NOTICE = ResultCode.SQLITE_NOTICE
+    public static let SQLITE_WARNING = ResultCode.SQLITE_WARNING
+    public static let SQLITE_ROW = ResultCode.SQLITE_ROW
+    public static let SQLITE_DONE = ResultCode.SQLITE_DONE
+    public static let SQLITE_ERROR_MISSING_COLLSEQ = ResultCode.SQLITE_ERROR_MISSING_COLLSEQ
+    public static let SQLITE_ERROR_RETRY = ResultCode.SQLITE_ERROR_RETRY
+    public static let SQLITE_ERROR_SNAPSHOT = ResultCode.SQLITE_ERROR_SNAPSHOT
+    public static let SQLITE_IOERR_READ = ResultCode.SQLITE_IOERR_READ
+    public static let SQLITE_IOERR_SHORT_READ = ResultCode.SQLITE_IOERR_SHORT_READ
+    public static let SQLITE_IOERR_WRITE = ResultCode.SQLITE_IOERR_WRITE
+    public static let SQLITE_IOERR_FSYNC = ResultCode.SQLITE_IOERR_FSYNC
+    public static let SQLITE_IOERR_DIR_FSYNC = ResultCode.SQLITE_IOERR_DIR_FSYNC
+    public static let SQLITE_IOERR_TRUNCATE = ResultCode.SQLITE_IOERR_TRUNCATE
+    public static let SQLITE_IOERR_FSTAT = ResultCode.SQLITE_IOERR_FSTAT
+    public static let SQLITE_IOERR_UNLOCK = ResultCode.SQLITE_IOERR_UNLOCK
+    public static let SQLITE_IOERR_RDLOCK = ResultCode.SQLITE_IOERR_RDLOCK
+    public static let SQLITE_IOERR_DELETE = ResultCode.SQLITE_IOERR_DELETE
+    public static let SQLITE_IOERR_BLOCKED = ResultCode.SQLITE_IOERR_BLOCKED
+    public static let SQLITE_IOERR_NOMEM = ResultCode.SQLITE_IOERR_NOMEM
+    public static let SQLITE_IOERR_ACCESS = ResultCode.SQLITE_IOERR_ACCESS
+    public static let SQLITE_IOERR_CHECKRESERVEDLOCK = ResultCode.SQLITE_IOERR_CHECKRESERVEDLOCK
+    public static let SQLITE_IOERR_LOCK = ResultCode.SQLITE_IOERR_LOCK
+    public static let SQLITE_IOERR_CLOSE = ResultCode.SQLITE_IOERR_CLOSE
+    public static let SQLITE_IOERR_DIR_CLOSE = ResultCode.SQLITE_IOERR_DIR_CLOSE
+    public static let SQLITE_IOERR_SHMOPEN = ResultCode.SQLITE_IOERR_SHMOPEN
+    public static let SQLITE_IOERR_SHMSIZE = ResultCode.SQLITE_IOERR_SHMSIZE
+    public static let SQLITE_IOERR_SHMLOCK = ResultCode.SQLITE_IOERR_SHMLOCK
+    public static let SQLITE_IOERR_SHMMAP = ResultCode.SQLITE_IOERR_SHMMAP
+    public static let SQLITE_IOERR_SEEK = ResultCode.SQLITE_IOERR_SEEK
+    public static let SQLITE_IOERR_DELETE_NOENT = ResultCode.SQLITE_IOERR_DELETE_NOENT
+    public static let SQLITE_IOERR_MMAP = ResultCode.SQLITE_IOERR_MMAP
+    public static let SQLITE_IOERR_GETTEMPPATH = ResultCode.SQLITE_IOERR_GETTEMPPATH
+    public static let SQLITE_IOERR_CONVPATH = ResultCode.SQLITE_IOERR_CONVPATH
+    public static let SQLITE_IOERR_VNODE = ResultCode.SQLITE_IOERR_VNODE
+    public static let SQLITE_IOERR_AUTH = ResultCode.SQLITE_IOERR_AUTH
+    public static let SQLITE_IOERR_BEGIN_ATOMIC = ResultCode.SQLITE_IOERR_BEGIN_ATOMIC
+    public static let SQLITE_IOERR_COMMIT_ATOMIC = ResultCode.SQLITE_IOERR_COMMIT_ATOMIC
+    public static let SQLITE_IOERR_ROLLBACK_ATOMIC = ResultCode.SQLITE_IOERR_ROLLBACK_ATOMIC
+    public static let SQLITE_LOCKED_SHAREDCACHE = ResultCode.SQLITE_LOCKED_SHAREDCACHE
+    public static let SQLITE_LOCKED_VTAB = ResultCode.SQLITE_LOCKED_VTAB
+    public static let SQLITE_BUSY_RECOVERY = ResultCode.SQLITE_BUSY_RECOVERY
+    public static let SQLITE_BUSY_SNAPSHOT = ResultCode.SQLITE_BUSY_SNAPSHOT
+    public static let SQLITE_CANTOPEN_NOTEMPDIR = ResultCode.SQLITE_CANTOPEN_NOTEMPDIR
+    public static let SQLITE_CANTOPEN_ISDIR = ResultCode.SQLITE_CANTOPEN_ISDIR
+    public static let SQLITE_CANTOPEN_FULLPATH = ResultCode.SQLITE_CANTOPEN_FULLPATH
+    public static let SQLITE_CANTOPEN_CONVPATH = ResultCode.SQLITE_CANTOPEN_CONVPATH
+    public static let SQLITE_CANTOPEN_DIRTYWAL = ResultCode.SQLITE_CANTOPEN_DIRTYWAL
+    public static let SQLITE_CORRUPT_VTAB = ResultCode.SQLITE_CORRUPT_VTAB
+    public static let SQLITE_CORRUPT_SEQUENCE = ResultCode.SQLITE_CORRUPT_SEQUENCE
+    public static let SQLITE_READONLY_RECOVERY = ResultCode.SQLITE_READONLY_RECOVERY
+    public static let SQLITE_READONLY_CANTLOCK = ResultCode.SQLITE_READONLY_CANTLOCK
+    public static let SQLITE_READONLY_ROLLBACK = ResultCode.SQLITE_READONLY_ROLLBACK
+    public static let SQLITE_READONLY_DBMOVED = ResultCode.SQLITE_READONLY_DBMOVED
+    public static let SQLITE_READONLY_CANTINIT = ResultCode.SQLITE_READONLY_CANTINIT
+    public static let SQLITE_READONLY_DIRECTORY = ResultCode.SQLITE_READONLY_DIRECTORY
+    public static let SQLITE_ABORT_ROLLBACK = ResultCode.SQLITE_ABORT_ROLLBACK
+    public static let SQLITE_CONSTRAINT_CHECK = ResultCode.SQLITE_CONSTRAINT_CHECK
+    public static let SQLITE_CONSTRAINT_COMMITHOOK = ResultCode.SQLITE_CONSTRAINT_COMMITHOOK
+    public static let SQLITE_CONSTRAINT_FOREIGNKEY = ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY
+    public static let SQLITE_CONSTRAINT_FUNCTION = ResultCode.SQLITE_CONSTRAINT_FUNCTION
+    public static let SQLITE_CONSTRAINT_NOTNULL = ResultCode.SQLITE_CONSTRAINT_NOTNULL
+    public static let SQLITE_CONSTRAINT_PRIMARYKEY = ResultCode.SQLITE_CONSTRAINT_PRIMARYKEY
+    public static let SQLITE_CONSTRAINT_TRIGGER = ResultCode.SQLITE_CONSTRAINT_TRIGGER
+    public static let SQLITE_CONSTRAINT_UNIQUE = ResultCode.SQLITE_CONSTRAINT_UNIQUE
+    public static let SQLITE_CONSTRAINT_VTAB = ResultCode.SQLITE_CONSTRAINT_VTAB
+    public static let SQLITE_CONSTRAINT_ROWID = ResultCode.SQLITE_CONSTRAINT_ROWID
+    public static let SQLITE_NOTICE_RECOVER_WAL = ResultCode.SQLITE_NOTICE_RECOVER_WAL
+    public static let SQLITE_NOTICE_RECOVER_ROLLBACK = ResultCode.SQLITE_NOTICE_RECOVER_ROLLBACK
+    public static let SQLITE_WARNING_AUTOINDEX = ResultCode.SQLITE_WARNING_AUTOINDEX
+    public static let SQLITE_AUTH_USER = ResultCode.SQLITE_AUTH_USER
+    public static let SQLITE_OK_LOAD_PERMANENTLY = ResultCode.SQLITE_OK_LOAD_PERMANENTLY
+}
+
 extension DatabaseError {
     // TODO: test
     /// Returns true if the error has code `SQLITE_ABORT` or `SQLITE_INTERRUPT`.

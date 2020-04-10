@@ -49,11 +49,11 @@ class ResultCodeTests: GRDBTestCase {
         do {
             do {
                 throw DatabaseError(resultCode: .SQLITE_ERROR)
-            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
                 XCTFail()
-            } catch ResultCode.SQLITE_CONSTRAINT {
+            } catch DatabaseError.SQLITE_CONSTRAINT {
                 XCTFail()
-            } catch ResultCode.SQLITE_OK {
+            } catch DatabaseError.SQLITE_OK {
                 XCTFail()
             } catch {
                 // Success
@@ -61,11 +61,11 @@ class ResultCodeTests: GRDBTestCase {
             
             do {
                 throw DatabaseError(resultCode: .SQLITE_CONSTRAINT)
-            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
                 XCTFail()
-            } catch ResultCode.SQLITE_CONSTRAINT {
+            } catch DatabaseError.SQLITE_CONSTRAINT {
                 // Success
-            } catch ResultCode.SQLITE_OK {
+            } catch DatabaseError.SQLITE_OK {
                 XCTFail()
             } catch {
                 XCTFail()
@@ -73,11 +73,11 @@ class ResultCodeTests: GRDBTestCase {
             
             do {
                 throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY)
-            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
                 // Success
-            } catch ResultCode.SQLITE_CONSTRAINT {
+            } catch DatabaseError.SQLITE_CONSTRAINT {
                 XCTFail()
-            } catch ResultCode.SQLITE_OK {
+            } catch DatabaseError.SQLITE_OK {
                 XCTFail()
             } catch {
                 XCTFail()
@@ -85,11 +85,11 @@ class ResultCodeTests: GRDBTestCase {
             
             do {
                 throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_CHECK)
-            } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
                 XCTFail()
-            } catch ResultCode.SQLITE_CONSTRAINT {
+            } catch DatabaseError.SQLITE_CONSTRAINT {
                 // Success
-            } catch ResultCode.SQLITE_OK {
+            } catch DatabaseError.SQLITE_OK {
                 XCTFail()
             } catch {
                 XCTFail()
@@ -101,11 +101,11 @@ class ResultCodeTests: GRDBTestCase {
                 throw DatabaseError(resultCode: .SQLITE_ERROR)
             } catch let error as DatabaseError {
                 switch error {
-                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
                     XCTFail()
-                case ResultCode.SQLITE_CONSTRAINT:
+                case DatabaseError.SQLITE_CONSTRAINT:
                     XCTFail()
-                case ResultCode.SQLITE_OK:
+                case DatabaseError.SQLITE_OK:
                     XCTFail()
                 default:
                     break // Success
@@ -116,11 +116,11 @@ class ResultCodeTests: GRDBTestCase {
                 throw DatabaseError(resultCode: .SQLITE_CONSTRAINT)
             } catch let error as DatabaseError {
                 switch error {
-                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
                     XCTFail()
-                case ResultCode.SQLITE_CONSTRAINT:
+                case DatabaseError.SQLITE_CONSTRAINT:
                 break // Success
-                case ResultCode.SQLITE_OK:
+                case DatabaseError.SQLITE_OK:
                     XCTFail()
                 default:
                     XCTFail()
@@ -131,11 +131,11 @@ class ResultCodeTests: GRDBTestCase {
                 throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY)
             } catch let error as DatabaseError {
                 switch error {
-                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
                 break // Success
-                case ResultCode.SQLITE_CONSTRAINT:
+                case DatabaseError.SQLITE_CONSTRAINT:
                     XCTFail()
-                case ResultCode.SQLITE_OK:
+                case DatabaseError.SQLITE_OK:
                     XCTFail()
                 default:
                     XCTFail()
@@ -146,11 +146,11 @@ class ResultCodeTests: GRDBTestCase {
                 throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_CHECK)
             } catch let error as DatabaseError {
                 switch error {
-                case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
                     XCTFail()
-                case ResultCode.SQLITE_CONSTRAINT:
+                case DatabaseError.SQLITE_CONSTRAINT:
                 break // Success
-                case ResultCode.SQLITE_OK:
+                case DatabaseError.SQLITE_OK:
                     XCTFail()
                 default:
                     XCTFail()

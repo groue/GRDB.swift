@@ -6663,9 +6663,9 @@ do {
     try ...
 } catch let error as DatabaseError {
     switch error {
-    case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY:
+    case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
         // foreign key constraint error
-    case ResultCode.SQLITE_CONSTRAINT:
+    case DatabaseError.SQLITE_CONSTRAINT:
         // any other constraint error
     default:
         // any other database error
@@ -6678,9 +6678,9 @@ You can also directly match errors on result codes:
 ```swift
 do {
     try ...
-} catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+} catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
     // foreign key constraint error
-} catch ResultCode.SQLITE_CONSTRAINT {
+} catch DatabaseError.SQLITE_CONSTRAINT {
     // any other constraint error
 } catch {
     // any other database error
