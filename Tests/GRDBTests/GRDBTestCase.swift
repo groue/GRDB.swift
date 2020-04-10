@@ -178,7 +178,7 @@ public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
     private var _fetch: (Database) throws -> Fetched
     private var _value: (Fetched) -> Value?
     
-    public var isObservedRegionDeterministic: Bool { false }
+    public var isSelectedRegionDeterministic: Bool { false }
     
     public init(
         fetch: @escaping (Database) throws -> Fetched,

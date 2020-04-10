@@ -6,10 +6,10 @@ extension ValueReducers {
     /// :nodoc:
     public struct Fetch<Value>: _ValueReducer {
         private let _fetch: (Database) throws -> Value
-        public let isObservedRegionDeterministic: Bool
+        public let isSelectedRegionDeterministic: Bool
         
-        public init(isObservedRegionDeterministic: Bool, fetch: @escaping (Database) throws -> Value) {
-            self.isObservedRegionDeterministic = isObservedRegionDeterministic
+        public init(isSelectedRegionDeterministic: Bool, fetch: @escaping (Database) throws -> Value) {
+            self.isSelectedRegionDeterministic = isSelectedRegionDeterministic
             self._fetch = fetch
         }
         

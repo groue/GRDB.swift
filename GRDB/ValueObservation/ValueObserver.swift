@@ -52,7 +52,7 @@ extension ValueObserver {
     }
     
     func fetchNextValue(_ db: Database) throws -> Reducer.Value? {
-        try recordingObservedRegionIfNeeded(db) {
+        try recordingSelectedRegionIfNeeded(db) {
             try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
         }
     }
@@ -111,10 +111,10 @@ extension ValueObserver: TransactionObserver {
         
         // Fetch
         let fetchedValue: DatabaseFuture<Reducer.Fetched>
-        if requiresWriteAccess || needsRecordingObservedRegion {
+        if requiresWriteAccess || needsRecordingSelectedRegion {
             // Synchronously
             fetchedValue = DatabaseFuture(Result {
-                try recordingObservedRegionIfNeeded(db) {
+                try recordingSelectedRegionIfNeeded(db) {
                     try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                 }
             })
@@ -147,29 +147,29 @@ extension ValueObserver: TransactionObserver {
 }
 
 extension ValueObserver {
-    private var needsRecordingObservedRegion: Bool {
-        observedRegion == nil || !reducer.isObservedRegionDeterministic
+    private var needsRecordingSelectedRegion: Bool {
+        observedRegion == nil || !reducer.isSelectedRegionDeterministic
     }
     
-    private func recordingObservedRegionIfNeeded<T>(
+    private func recordingSelectedRegionIfNeeded<T>(
         _ db: Database,
         fetch: () throws -> T)
         throws -> T
     {
-        if needsRecordingObservedRegion {
-            var region = DatabaseRegion()
-            let result = try db.recordingSelection(&region, fetch)
-            
-            // Don't record views, because they are never exposed to the
-            // TransactionObserver protocol.
-            //
-            // Don't record schema introspection queries, which may be
-            // run, or not, depending on the state of the schema cache.
-            observedRegion = try region.ignoringViews(db).ignoringInternalSQLiteTables()
-            
-            return result
-        } else {
+        guard needsRecordingSelectedRegion else {
             return try fetch()
         }
+        
+        var region = DatabaseRegion()
+        let result = try db.recordingSelection(&region, fetch)
+        
+        // Don't record views, because they are never exposed to the
+        // TransactionObserver protocol.
+        //
+        // Don't record schema introspection queries, which may be
+        // run, or not, depending on the state of the schema cache.
+        observedRegion = try region.ignoringViews(db).ignoringInternalSQLiteTables()
+        
+        return result
     }
 }

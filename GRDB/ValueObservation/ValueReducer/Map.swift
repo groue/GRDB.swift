@@ -21,7 +21,7 @@ extension ValueReducers {
     public struct Map<Base: _ValueReducer, Value>: _ValueReducer {
         private var base: Base
         private let transform: (Base.Value) -> Value
-        public var isObservedRegionDeterministic: Bool { base.isObservedRegionDeterministic }
+        public var isSelectedRegionDeterministic: Bool { base.isSelectedRegionDeterministic }
         
         init(_ base: Base, _ transform: @escaping (Base.Value) -> Value) {
             self.base = base

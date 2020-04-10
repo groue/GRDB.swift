@@ -136,7 +136,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isObservedRegionDeterministic: true, fetch: fetch)
+            ValueReducers.Fetch(isSelectedRegionDeterministic: true, fetch: fetch)
         })
     }
     
@@ -150,7 +150,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isObservedRegionDeterministic: false, fetch: fetch)
+            ValueReducers.Fetch(isSelectedRegionDeterministic: false, fetch: fetch)
         })
     }
 }
