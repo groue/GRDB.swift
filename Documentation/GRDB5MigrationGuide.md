@@ -65,13 +65,17 @@ The result of the `start` method is now a DatabaseCancellable which allows you t
 
 ```swift
 // BEFORE: GRDB 4
-let observer: TransactionObserver
+let observer: TransactionObserver?
 observer = observation.start(...)
+observer = nil       // Stop the observation
 
 // NEW: GRDB 5
 let cancellable: DatabaseCancellable
 cancellable = observation.start(...)
+cancellable.cancel() // Stop the observation
 ```
+
+The returned DatabaseCancellable cancels itself when it gets deinitialized.
 
 The `onError` handler of the `start` method is now mandatory:
 
