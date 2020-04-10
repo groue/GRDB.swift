@@ -76,12 +76,23 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## GRDB5 Branch
 
+### Documentation Diff
+
+- The [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md) Guide helps migrating your apps and turn your attention where it needs to focus during the upgrade.
+- The [ValueObservation](README.md#valueobservation) chapter has been fully rewritten and describes the new ValueObservation behaviors.
+- The [DatabaseError](README.md#databaseerror) chapter demonstrates the new way to catch and match DatabaseError on their codes, in a fashion similar to CocoaError et al.
+- The [Batch Updates](README.md#update-requests) chapter has been updated for the new `set(to:)` method.
+
+### New
+
+- [#749](https://github.com/groue/GRDB.swift/pull/749): Drop submodules used by performance tests
+- [#754](https://github.com/groue/GRDB.swift/pull/754): Match DatabaseError on ResultCode
+
+### Breaking Changes
+
 - [#719](https://github.com/groue/GRDB.swift/pull/719): Bump required Swift version to 5.2
 - [#720](https://github.com/groue/GRDB.swift/pull/720): Turn deprecated APIs into unavailable ones
-- [#721](https://github.com/groue/GRDB.swift/pull/721): SE-0249: Key Path Expressions as Functions
 - [#722](https://github.com/groue/GRDB.swift/pull/722): SE-0253: Callable values of user-defined nominal types
-- [#723](https://github.com/groue/GRDB.swift/pull/723): SE-0255: Implicit returns from single-expression functions
-- [#724](https://github.com/groue/GRDB.swift/pull/724): SE-0242: Synthesize default values for the memberwise initializer
 - [#728](https://github.com/groue/GRDB.swift/pull/728): Make ValueObservation error handling mandatory
 - [#729](https://github.com/groue/GRDB.swift/pull/729): ValueObservation always emits an initial value
 - [#731](https://github.com/groue/GRDB.swift/pull/731): Hide ValueObservation implementation details
@@ -92,10 +103,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#742](https://github.com/groue/GRDB.swift/pull/742): ValueObservation scheduling is no longer an attribute of the observation
 - [#745](https://github.com/groue/GRDB.swift/pull/745): Explicit ValueObservation cancellation
 - [#747](https://github.com/groue/GRDB.swift/pull/747): Rename GRDBCustomSQLite to GRDB
-- [#749](https://github.com/groue/GRDB.swift/pull/749): Drop submodules used by performance tests
 - [#750](https://github.com/groue/GRDB.swift/pull/750): Batch updates do not need any operator
 - [#752](https://github.com/groue/GRDB.swift/pull/752): Remove ValueObservation.combine
-- [#754](https://github.com/groue/GRDB.swift/pull/754): Match DatabaseError on ResultCode
 
 
 ## 4.12.1
