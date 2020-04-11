@@ -5500,15 +5500,19 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     
     ValueObservation does not notify changes performed by external connections.
 
-2. Define a ValueObservation which tracks the values you are interested in.
+2. Define a ValueObservation by providing a function that fetches the observed value.
     
     ```swift
-    // An observation of [Player] which tracks all players:
+    let observation = ValueObservation.tracking { db in
+        /* fetch and return the observed value */
+    }
+    
+    // For example, an observation of [Player], which tracks all players:
     let observation = ValueObservation.tracking { db in
         try Player.fetchAll(db)
     }
     
-    // The same observation, with short-hand notation:
+    // The same observation, using shorthand notation:
     let observation = ValueObservation.tracking(Player.fetchAll)
     ```
     

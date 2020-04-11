@@ -45,7 +45,7 @@ In the end, this migration step might require some work. But it's for the benefi
 
 ### Creating ValueObservation
 
-In GRDB 5, you *always* create a ValueObservation by providing a function thats fetches the observed value:
+In GRDB 5, you *always* create a ValueObservation by providing a function that fetches the observed value:
 
 ```swift
 // GRDB 5
@@ -53,12 +53,12 @@ let observation = ValueObservation.tracking { db in
     /* fetch and return the observed value */
 }
 
-// An example: observing all players
-let observation = ValueObservation.tracking { db -> [Player] in
-    return try Player.fetchAll(db)
+// For example, an observation of [Player], which tracks all players:
+let observation = ValueObservation.tracking { db in
+    try Player.fetchAll(db)
 }
 
-// The same example, using short notation
+// The same observation, using shorthand notation:
 let observation = ValueObservation.tracking(Player.fetchAll)
 ```
 
