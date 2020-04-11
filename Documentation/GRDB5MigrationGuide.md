@@ -34,19 +34,28 @@ GRDB requirements have been bumped:
 
 [ValueObservation] is the database observation tool that tracks changes in database values. It has quite changed in GRDB 5.
 
-**The API surface of ValueObservation was reduced**, leaving only two core methods:
+- [Creating ValueObservation](#creating-valueobservation)
+- [Starting ValueObservation](#starting-valueobservation)
+- [Runtime Behavior of ValueObservation](#runtime-behavior-of-valueobservation)
+- [Removed ValueObservation Methods](#removed-valueobservation-methods)
+
+### Creating ValueObservation
+
+In GRDB 5, you *always* create a ValueObservation by providing a function thats fetches the observed value:
 
 ```swift
-// Define an observation
+// GRDB 5
 let observation = ValueObservation.tracking { db in
     /* fetch and return the observed value */
 }
 
-// Start observing the database
-let cancellable = observation.start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { value in print("fresh value: \(value)") })
+// An example: observing all players
+let observation = ValueObservation.tracking { db -> [Player] in
+    return try Player.fetchAll(db)
+}
+
+// The same example, using short notation
+let observation = ValueObservation.tracking(Player.fetchAll)
 ```
 
 If the tracked value is computed from several database requests that are not always the same, make sure you use the `trackingVaryingRegion` method, as below. See [Observing a Varying Database Region] for more information.
@@ -61,54 +70,25 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 }
 ```
 
-The result of the `start` method is now a DatabaseCancellable which allows you to explicitly stop an observation:
-
-```swift
-// BEFORE: GRDB 4
-let observer: TransactionObserver?
-observer = observation.start(...)
-observer = nil       // Stop the observation
-
-// NEW: GRDB 5
-let cancellable: DatabaseCancellable
-cancellable = observation.start(...)
-cancellable.cancel() // Stop the observation
-```
-
-The returned DatabaseCancellable cancels itself when it gets deinitialized.
-
-The `onError` handler of the `start` method is now mandatory:
-
-```swift
-// BEFORE: GRDB 4
-do {
-    try observation.start(in: dbQueue) { value in
-        print("fresh value: \(value)")
-    }
-} catch { ... }
-
-// NEW: GRDB 5
-observation.start(
-    in: dbQueue,
-    onError: { error in ... },
-    onChange: { value in print("fresh value: \(value)") })
-```
-
-Convenience methods that build observations have been removed:
+Several methods that build observations were removed:
 
 ```swift
 // BEFORE: GRDB 4
 let observation = request.observationForCount()
 let observation = request.observationForFirst()
 let observation = request.observationForAll()
-let observation = ValueObservation.tracking(request, fetch: { db in ... })
+let observation = ValueObservation.tracking(value: someFetchFunction)
+let observation = ValueObservation.tracking(..., fetch: { db in ... })
 
 // NEW: GRDB 5
 let observation = ValueObservation.tracking(request.fetchCount)
 let observation = ValueObservation.tracking(request.fetchOne)
 let observation = ValueObservation.tracking(request.fetchAll)
+let observation = ValueObservation.tracking(someFetchFunction)
 let observation = ValueObservation.tracking { db in ... }
 ```
+
+Finally, ValueObservation used to let application define custom "reducers" based on a protocol name ValueReducer, which was removed in GRDB 5. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
 
 <details>
     <summary>RxGRDB impact</summary>
@@ -127,11 +107,60 @@ ValueObservation.tracking(request.fetchAll).rx.observe(in: dbQueue)
 
 </details>
 
+
+### Starting ValueObservation
+
+The `start` method which starts observing the database has changed as well.
+
+```swift
+// Start observing the database
+let cancellable = observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { value in print("fresh value: \(value)") })
+```
+
+1. The result of the `start` method is now a DatabaseCancellable which allows you to explicitly stop an observation:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    let observer: TransactionObserver?
+    observer = observation.start(...)
+    observer = nil       // Stop the observation
+    
+    // NEW: GRDB 5
+    let cancellable: DatabaseCancellable
+    cancellable = observation.start(...)
+    cancellable.cancel() // Stop the observation
+    ```
+    
+    The returned DatabaseCancellable cancels itself when it gets deinitialized.
+
+2. The `onError` handler of the `start` method is now mandatory:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    do {
+        try observation.start(in: dbQueue) { value in
+            print("fresh value: \(value)")
+        }
+    } catch { ... }
+
+    // NEW: GRDB 5
+    observation.start(
+        in: dbQueue,
+        onError: { error in ... },
+        onChange: { value in print("fresh value: \(value)") })
+    ```
+
+
+### Runtime Behavior of ValueObservation
+
 **The behavior of ValueObservation has changed**.
 
 Those changes have the vanilla GRDB, [GRDBCombine], and [RxGRDB], behave 100% identically. This greatly helps choosing or switching your prefered database observation technique. In previous versions of GRDB, the three companion libraries used to suffer from subtle runtime differences that were quite uneasy to spot.
 
-The changes can quite impact your application. We'll describe them below, as well as the strategies to restore the previous behavior.
+The changes can quite impact your application. We'll describe them below, as well as the strategies to restore the previous behavior when needed.
 
 1. ValueObservation used to notify its initial value *immediately* when the observation starts. Now, it notifies fresh values on the main thread, *asynchronously*, by default.
     
@@ -185,7 +214,8 @@ The changes can quite impact your application. We'll describe them below, as wel
 
 3. Some value observations used to automatically remove duplicate values. This is no longer automatic. If your application relies on distinct consecutive values, use the [removeDuplicates] operator.
 
-**ValueObservation features have been removed**.
+
+### Removed ValueObservation Methods
 
 1. ValueObservation used to have a `compactMap` method. This method has been removed without any replacement.
     
@@ -218,8 +248,6 @@ The changes can quite impact your application. We'll describe them below, as wel
     ```
     
     As is previous versions of GRDB, do not use the `combineLatest` operators of Combine or RxSwift in order to combine several ValueObservation. You would lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
-
-3. ValueObservation used to let application define custom "reducers" using the ValueReducer protocol. These apis are no longer available. See the [#731](https://github.com/groue/GRDB.swift/pull/731) conversation for a solution towards a replacement.
 
 
 ## Other Changes
