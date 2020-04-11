@@ -5530,13 +5530,27 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     // An observation of HallOfFame
     let observation = ValueObservation.tracking { db -> HallOfFame in
         let totalPlayerCount = try Player.fetchCount(db)
+        
         let bestPlayers = try Player
             .order(Column("score").desc)
             .limit(10)
             .fetchAll(db)
+        
         return HallOfFame(
             totalPlayerCount: totalPlayerCount,
             bestPlayers: bestPlayers)
+    }
+    ```
+    
+    </details>
+    
+    <details>
+        <summary>Example of a SQL ValueObservation</summary>
+        
+    ```swift
+    // An observation of the maximum score
+    let observation = ValueObservation.tracking { db in
+        try Int.fetchOne(db, sql: "SELECT MAX(score) FROM player")
     }
     ```
     
