@@ -135,7 +135,7 @@ Your attention is quite required in this chapter.
 
 1. ValueObservation used to notify its initial value *immediately* when the observation starts. Now, it notifies fresh values on the main thread, *asynchronously*, by default.
     
-    This means that parts of your application that rely on this immediate value to, say, setup their user interface, have to be modified. Otherwise, they may suffer from a brief flash of missing data, during the short amount of time between the beginning of the observation, and the asynchronous delivery of the initial value.
+    This means that parts of your application that rely on this immediate value to, say, set up their user interface, have to be modified. Otherwise, they may suffer from a brief flash of missing data, during the short amount of time between the beginning of the observation, and the asynchronous delivery of the initial value.
     
     To be granted with an immediate, synchronous, delivery of the initial value, insert a `scheduling: .immediate` argument in the `start` method:
     
