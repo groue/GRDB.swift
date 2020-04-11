@@ -183,6 +183,8 @@ The changes can quite impact your application. We'll describe them below, as wel
     // <- Here the view has already been updated.
     ```
     
+    Note that the `.immediate` scheduling requires that the observation starts from the main thread. A fatal error is raised otherwise.
+    
     <details>
         <summary>GRDBCombine impact</summary>
     
@@ -214,6 +216,39 @@ The changes can quite impact your application. We'll describe them below, as wel
 2. ValueObservation used to notify one fresh value for each and every database transaction that had an impact on the tracked value. Now, it may coalesce notifications. It your application relies on exactly one notification per transaction, use [DatabaseRegionObservation] instead.
 
 3. Some value observations used to automatically remove duplicate values. This is no longer automatic. If your application relies on distinct consecutive values, use the [removeDuplicates] operator.
+
+4. ValueObservation used to have a `scheduling` property, which was been removed.
+    
+    You can remove the explicit request to dispatch fresh values asynchronously on the main dispatch queue, because it is now the default behavior:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    var observation = ValueObservation.tracking(...)
+    observation.scheduling = .async(onQueue: .main, startImmediately: true)
+    observation.start(in: dbQueue, onError: ..., onChange: ...)
+
+    // NEW: GRDB 5
+    let queue: DispatchQueue = ...
+    let observation = ValueObservation.tracking(...)
+    observation.start(in: dbQueue, onError: ..., onChange: ...)
+    ```
+    
+    For other dispatch queues, use the `scheduling` parameter of the `start` method:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    let queue: DispatchQueue = ...
+    var observation = ValueObservation.tracking(...)
+    observation.scheduling = .async(onQueue: queue, startImmediately: true)
+    observation.start(in: dbQueue, onError: ..., onChange: ...)
+    
+    // NEW: GRDB 5
+    let queue: DispatchQueue = ...
+    let observation = ValueObservation.tracking(...)
+    observation.start(in: dbQueue, scheduling: .async(onQueue: queue), onError: ..., onChange: ...)
+    ```
+    
+    The GRDB 4 `startImmediately` parameter is no longer supported: ValueObservation now always emits an initial value, without waiting for eventual changes. It is up to your application to ignore this initial value if it wants to.
 
 
 ### Removed ValueObservation Methods
