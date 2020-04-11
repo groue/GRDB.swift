@@ -63,7 +63,8 @@ If the tracked value is computed from several database requests that are not alw
 ```swift
 // An observation which does not always execute the same requests:
 let observation = ValueObservation.trackingVaryingRegion { db -> Int in
-    switch try Preference.fetchOne(db)!.selection {
+    let preference = try Preference.fetchOne(db) ?? .default
+    switch preference.selection {
         case .food: return try Food.fetchCount(db)
         case .beverage: return try Beverage.fetchCount(db)
     }
