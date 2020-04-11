@@ -159,7 +159,7 @@ let cancellable = observation.start(
 
 **The behavior of ValueObservation has changed**.
 
-Those changes have the vanilla GRDB, [GRDBCombine], and [RxGRDB], behave 100% identically. This greatly helps choosing or switching your prefered database observation technique. In previous versions of GRDB, the three companion libraries used to suffer from subtle runtime differences that were quite uneasy to spot.
+Those changes have the vanilla GRDB, [GRDBCombine], and [RxGRDB], behave 100% identically. This greatly helps choosing or switching your prefered database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle runtime differences that were just opportunities for bugs.
 
 The changes can quite impact your application. We'll describe them below, as well as the strategies to restore the previous behavior when needed.
 
@@ -228,7 +228,6 @@ The changes can quite impact your application. We'll describe them below, as wel
     observation.start(in: dbQueue, onError: ..., onChange: ...)
 
     // NEW: GRDB 5
-    let queue: DispatchQueue = ...
     let observation = ValueObservation.tracking(...)
     observation.start(in: dbQueue, onError: ..., onChange: ...)
     ```
@@ -236,14 +235,14 @@ The changes can quite impact your application. We'll describe them below, as wel
     For other dispatch queues, use the `scheduling` parameter of the `start` method:
     
     ```swift
-    // BEFORE: GRDB 4
     let queue: DispatchQueue = ...
+    
+    // BEFORE: GRDB 4
     var observation = ValueObservation.tracking(...)
     observation.scheduling = .async(onQueue: queue, startImmediately: true)
     observation.start(in: dbQueue, onError: ..., onChange: ...)
     
     // NEW: GRDB 5
-    let queue: DispatchQueue = ...
     let observation = ValueObservation.tracking(...)
     observation.start(in: dbQueue, scheduling: .async(onQueue: queue), onError: ..., onChange: ...)
     ```
