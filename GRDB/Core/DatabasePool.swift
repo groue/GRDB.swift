@@ -857,7 +857,7 @@ extension DatabasePool: DatabaseReader {
     
     /// A concurrent observation fetches the initial value without waiting for
     /// the writer.
-    func _addConcurrent<Reducer: _ValueReducer>(
+    private func _addConcurrent<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
