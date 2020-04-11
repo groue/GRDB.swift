@@ -135,9 +135,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isSelectedRegionDeterministic: true, fetch: fetch)
-        })
+        .init(makeReducer: { .init(isSelectedRegionDeterministic: true, fetch: fetch) })
     }
     
     /// Creates a ValueObservation which notifies the values returned by the
@@ -149,8 +147,6 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
         -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        ValueObservation<ValueReducers.Fetch<Value>>(makeReducer: {
-            ValueReducers.Fetch(isSelectedRegionDeterministic: false, fetch: fetch)
-        })
+        .init(makeReducer: { .init(isSelectedRegionDeterministic: false, fetch: fetch) })
     }
 }
