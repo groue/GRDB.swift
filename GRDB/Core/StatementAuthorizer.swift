@@ -1,13 +1,6 @@
 #if os(Linux)
 import Glibc
 #endif
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// A protocol around sqlite3_set_authorizer
 protocol StatementAuthorizer: AnyObject {

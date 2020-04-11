@@ -1,11 +1,4 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// DatabaseDateComponents reads and stores DateComponents in the database.
 public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible {

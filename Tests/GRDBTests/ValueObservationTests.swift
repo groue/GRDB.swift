@@ -1,12 +1,5 @@
 import XCTest
 import Dispatch
-#if GRDBCIPHER
-import SQLCipher
-#elseif SWIFT_PACKAGE
-import CSQLite
-#elseif !GRDBCUSTOMSQLITE
-import SQLite3
-#endif
 @testable import GRDB
 
 class ValueObservationTests: GRDBTestCase {

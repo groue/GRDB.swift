@@ -2069,17 +2069,10 @@ row.scopes["remainder"] // [c:2 d:3]
 
 **If not all SQLite APIs are exposed in GRDB, you can still use the [SQLite C Interface](https://www.sqlite.org/c3ref/intro.html) and call [SQLite C functions](https://www.sqlite.org/c3ref/funclist.html).**
 
-Those functions are embedded right into the [GRDBCustom](Documentation/CustomSQLiteBuilds.md) module. Otherwise, you'll need to import `SQLite3`, `SQLCipher`, or `CSQLite`, depending on the GRDB flavor you are using:
+Those functions are embedded right into the GRDB module, regardless of the underlying SQLite implementation (system SQLite, [SQLCipher](#encryption), or [custom SQLite build]):
 
 ```swift
-// Swift Package Manager
-import CSQLite
-
-// SQLCipher
-import SQLCipher
-
-// System SQLite
-import SQLite3
+import GRDB
 
 let sqliteVersion = String(cString: sqlite3_libversion())
 ```
@@ -6451,9 +6444,6 @@ When you want to precisely manage the passphrase bytes, talk directly to SQLCiph
 For example:
 
 ```swift
-import GRDB
-import SQLCipher
-
 var config = Configuration()
 config.prepareDatabase = { db in
     ... // Carefully load passphrase bytes
