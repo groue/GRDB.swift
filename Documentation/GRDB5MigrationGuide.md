@@ -15,7 +15,7 @@ If you haven't made it yet, upgrade to GRDB 4.12.1 first, and fix all deprecatio
 
 GRDB 5 ships with fix-its that will suggest simple syntactic changes, and won't require you to think much.
 
-Your attention is required, though, in the area of database observation.
+Your attention will be needed, though, in the area of database observation.
 
 
 ## New requirements
