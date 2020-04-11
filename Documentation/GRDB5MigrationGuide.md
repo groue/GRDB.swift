@@ -217,7 +217,7 @@ The changes can quite impact your application. We'll describe them below, as wel
 
 3. Some value observations used to automatically remove duplicate values. This is no longer automatic. If your application relies on distinct consecutive values, use the [removeDuplicates] operator.
 
-4. ValueObservation used to have a `scheduling` property, which was been removed.
+4. ValueObservation used to have a `scheduling` property, which has been removed.
     
     You can remove the explicit request to dispatch fresh values asynchronously on the main dispatch queue, because it is now the default behavior:
     
