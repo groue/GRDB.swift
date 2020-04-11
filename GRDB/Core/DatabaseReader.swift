@@ -332,9 +332,7 @@ extension DatabaseReader {
                 }
                 
                 scheduler.schedule {
-                    guard
-                        !isCancelled
-                        else { return }
+                    guard !isCancelled else { return }
                     do {
                         try onChange(result.get())
                     } catch {

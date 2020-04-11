@@ -341,16 +341,14 @@ extension DatabaseWriter {
             }
         } else {
             _weakAsyncWriteWithoutTransaction { db in
-                guard let db = db else {
-                    return
-                }
+                guard let db = db else { return }
                 if observer.isCompleted { return }
                 do {
                     let initialValue = try observer.fetchInitialValue(db)
-                    observer.send(initialValue)
+                    observer.notifyChange(initialValue)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                 } catch {
-                    observer.complete(withError: error)
+                    observer.notifyErrorAndComplete(error)
                 }
             }
         }

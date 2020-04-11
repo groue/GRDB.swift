@@ -878,27 +878,25 @@ extension DatabasePool: DatabaseReader {
         
         if scheduler.immediateInitialValue() {
             do {
-                // Fetch an initial value without waiting for the writer.
+                // Fetch the initial value without waiting for the writer.
                 let initialValue = try unsafeReentrantRead(observer.fetchInitialValue)
                 onChange(initialValue)
                 
                 // Now wait for the writer
                 _weakAsyncWriteWithoutTransaction { db in
-                    guard let db = db else {
-                        return
-                    }
+                    guard let db = db else { return }
                     if observer.isCompleted { return }
                     do {
                         // Don't miss eventual changes between the
                         // initial fetch and the writer access.
-                        if let value = try observer.fetchNextValue(db) {
-                            observer.send(value)
+                        if let value = try observer.fetchValue(db) {
+                            observer.notifyChange(value)
                         }
                         
                         // Now we can start observation
                         db.add(transactionObserver: observer, extent: .observerLifetime)
                     } catch {
-                        observer.complete(withError: error)
+                        observer.notifyErrorAndComplete(error)
                     }
                 }
             } catch {
@@ -906,37 +904,34 @@ extension DatabasePool: DatabaseReader {
                 onError(error)
             }
         } else {
-            // Fetch an initial value without waiting for the writer.
+            // Fetch the initial value without waiting for the writer.
             _weakAsyncRead { [weak self] dbResult in
-                guard let dbResult = dbResult, let self = self else {
-                    return
-                }
+                guard let dbResult = dbResult else { return }
+                guard let self = self else { return }
                 if observer.isCompleted { return }
                 do {
                     let initialValue = try observer.fetchInitialValue(dbResult.get())
-                    observer.send(initialValue)
+                    observer.notifyChange(initialValue)
                     
                     // Now wait for the writer
                     self._weakAsyncWriteWithoutTransaction { db in
-                        guard let db = db else {
-                            return
-                        }
+                        guard let db = db else { return }
                         if observer.isCompleted { return }
                         do {
                             // Don't miss eventual changes between the
                             // initial fetch and the writer access.
-                            if let value = try observer.fetchNextValue(db) {
-                                observer.send(value)
+                            if let value = try observer.fetchValue(db) {
+                                observer.notifyChange(value)
                             }
                             
                             // Now we can start observation
                             db.add(transactionObserver: observer, extent: .observerLifetime)
                         } catch {
-                            observer.complete(withError: error)
+                            observer.notifyErrorAndComplete(error)
                         }
                     }
                 } catch {
-                    observer.complete(withError: error)
+                    observer.notifyErrorAndComplete(error)
                 }
             }
         }
