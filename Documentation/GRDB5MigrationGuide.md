@@ -34,6 +34,10 @@ GRDB requirements have been bumped:
 
 [ValueObservation] is the database observation tool that tracks changes in database values. It has quite changed in GRDB 5.
 
+Those changes have the vanilla GRDB, [GRDBCombine], and [RxGRDB], offer a common API, and a common behavior. This greatly helps choosing or switching your preferred database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle differences that were just opportunities for bugs.
+
+In the end, this migration step might require some work. But it's for the benefit of all!
+
 - [Creating ValueObservation](#creating-valueobservation)
 - [Starting ValueObservation](#starting-valueobservation)
 - [Runtime Behavior of ValueObservation](#runtime-behavior-of-valueobservation)
@@ -158,8 +162,6 @@ let cancellable = observation.start(
 ### Runtime Behavior of ValueObservation
 
 **The behavior of ValueObservation has changed**.
-
-Those changes have the vanilla GRDB, [GRDBCombine], and [RxGRDB], behave 100% identically. This greatly helps choosing or switching your prefered database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle runtime differences that were just opportunities for bugs.
 
 The changes can quite impact your application. We'll describe them below, as well as the strategies to restore the previous behavior when needed.
 
