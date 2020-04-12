@@ -25,7 +25,7 @@ GRDB requirements have been bumped:
 - **Swift 5.2+** (was Swift 4.2+)
 - **Xcode 11.4+** (was Xcode 10.0+)
 - iOS 9.0+ (unchanged)
-- macOS 10.10+ (was macOS 10.9+)
+- **macOS 10.10+** (was macOS 10.9+)
 - tvOS 9.0+ (unchanged)
 - watchOS 2.0+ (unchanged)
 
