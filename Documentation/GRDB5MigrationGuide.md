@@ -341,6 +341,21 @@ The changes can quite impact your application. We'll describe them below, as wel
     import GRDB
     ```
 
+5. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    import CSQLite   // When GRDB is included with the Swift Package Manager
+    import SQLCipher // When GRDB is linked to SQLCipher
+    import SQLite3   // When GRDB is linked to System SQLite
+    let sqliteVersion = String(cString: sqlite3_libversion())
+
+    // NEW: GRDB 5
+    import GRDB
+    let sqliteVersion = String(cString: sqlite3_libversion())
+    ```
+
+
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
