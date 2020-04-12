@@ -1,4 +1,3 @@
-
 // MARK: - Conversion Context and Errors
 
 /// A type that helps the user understanding value conversion errors

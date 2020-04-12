@@ -1,4 +1,3 @@
-
 extension Database {
     
     // MARK: - Database Schema

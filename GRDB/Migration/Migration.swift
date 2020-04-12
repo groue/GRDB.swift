@@ -1,4 +1,3 @@
-
 /// An internal struct that defines a migration.
 struct Migration {
     let identifier: String

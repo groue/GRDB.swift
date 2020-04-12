@@ -1,4 +1,3 @@
-
 /// An SQL function or aggregate.
 public final class DatabaseFunction: Hashable {
     // SQLite identifies functions by (name + argument count)

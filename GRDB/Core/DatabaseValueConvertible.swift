@@ -1,6 +1,3 @@
-
-// MARK: - DatabaseValueConvertible
-
 /// Types that adopt DatabaseValueConvertible can be initialized from
 /// database values.
 ///
