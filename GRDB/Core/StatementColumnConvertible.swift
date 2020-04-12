@@ -1,11 +1,3 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 /// The StatementColumnConvertible protocol grants access to the low-level C
 /// interface that extracts values from query results:
 /// https://www.sqlite.org/c3ref/column_blob.html. It can bring performance

@@ -1,11 +1,3 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 /// An SQL function or aggregate.
 public final class DatabaseFunction: Hashable {
     // SQLite identifies functions by (name + argument count)

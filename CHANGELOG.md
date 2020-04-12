@@ -87,6 +87,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [#749](https://github.com/groue/GRDB.swift/pull/749): Drop submodules used by performance tests
 - [#754](https://github.com/groue/GRDB.swift/pull/754): Match DatabaseError on ResultCode
+- [#756](https://github.com/groue/GRDB.swift/pull/756): Export the underlying SQLite library
 
 ### Breaking Changes
 

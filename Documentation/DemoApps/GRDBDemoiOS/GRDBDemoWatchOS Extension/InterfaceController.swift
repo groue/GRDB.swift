@@ -1,7 +1,6 @@
 import WatchKit
 import Foundation
 import GRDB
-import SQLite3
 
 class InterfaceController: WKInterfaceController {
     

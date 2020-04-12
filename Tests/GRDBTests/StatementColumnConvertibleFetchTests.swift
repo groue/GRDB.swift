@@ -1,11 +1,4 @@
 import XCTest
-#if GRDBCIPHER
-import SQLCipher
-#elseif SWIFT_PACKAGE
-import CSQLite
-#elseif !GRDBCUSTOMSQLITE
-import SQLite3
-#endif
 import GRDB
 
 // A type that adopts DatabaseValueConvertible and StatementColumnConvertible

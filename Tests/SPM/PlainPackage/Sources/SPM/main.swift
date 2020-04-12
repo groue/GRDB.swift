@@ -1,5 +1,4 @@
 import GRDB
-import CSQLite
 
 let cVersion = String(cString: sqlite3_libversion())
 print("SQLite version from C API: \(cVersion)")
