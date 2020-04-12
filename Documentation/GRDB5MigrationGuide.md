@@ -11,7 +11,7 @@ Migrating From GRDB 4 to GRDB 5
 
 ## Preparing the Migration to GRDB 5
 
-If you haven't made it yet, upgrade to GRDB 4.12.1 first, and fix all deprecation warnings, prior to the GRDB 5 upgrade.
+If you haven't made it yet, upgrade to GRDB 4.12.1 first, and fix any deprecation warning prior to the GRDB 5 upgrade.
 
 GRDB 5 ships with fix-its that will suggest simple syntactic changes, and won't require you to think much.
 
