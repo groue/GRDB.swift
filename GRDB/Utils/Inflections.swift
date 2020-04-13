@@ -9,14 +9,20 @@ extension String {
         return String(first).uppercased() + dropFirst()
     }
     
+    // Never inline this property, in order to make sure Inflections.default
+    // is lazily loaded. See https://github.com/groue/GRDB.swift/issues/755#issuecomment-612418053
     /// "player" -> "players"
     /// "players" -> "players"
+    @inline(never)
     var pluralized: String {
         return Inflections.default.pluralize(self)
     }
     
+    // Never inline this property, in order to make sure Inflections.default
+    // is lazily loaded. See https://github.com/groue/GRDB.swift/issues/755#issuecomment-612418053
     /// "player" -> "player"
     /// "players" -> "player"
+    @inline(never)
     var singularized: String {
         return Inflections.default.singularize(self)
     }
