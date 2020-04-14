@@ -526,7 +526,7 @@ extension MutablePersistableRecord {
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, [Column("score") <- 0])
+    ///         try Player.updateAll(db, [Column("score").set(to: 0)])
     ///     }
     ///
     /// - parameter db: A database connection.
@@ -551,7 +551,7 @@ extension MutablePersistableRecord {
     ///
     ///     try dbQueue.write { db in
     ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, Column("score") <- 0)
+    ///         try Player.updateAll(db, Column("score").set(to: 0))
     ///     }
     ///
     /// - parameter db: A database connection.

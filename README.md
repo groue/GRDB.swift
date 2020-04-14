@@ -4696,29 +4696,32 @@ Player.deleteOne(db, key: ["email": "arthur@example.com"])
 
 ## Update Requests
 
-**Requests can batch update records**. The `updateAll()` method accepts *column assignments* defined with the `<-` operator:
+**Requests can batch update records**. The `updateAll()` method accepts *column assignments* defined with the `set(to:)` method:
 
 ```swift
 // UPDATE player SET score = 0, isHealthy = 1, bonus = NULL
-try Player.updateAll(db, scoreColumn <- 0, isHealthyColumn <- true, bonus <- nil)
+try Player.updateAll(db, 
+    scoreColumn.set(to: 0), 
+    isHealthyColumn.set(to: true), 
+    bonus.set(to: nil))
 
 // UPDATE player SET score = 0 WHERE team = 'red'
 try Player
     .filter(teamColumn == "red")
-    .updateAll(db, scoreColumn <- 0)
+    .updateAll(db, scoreColumn.set(to: 0))
 
 // UPDATE player SET top = 1 ORDER BY score DESC LIMIT 10
 try Player
     .order(scoreColumn.desc)
     .limit(10)
-    .updateAll(db, topColumn <- true)
+    .updateAll(db, topColumn.set(to: true))
 ```
 
 Column assignments accept any expression:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db, scoreColumn <- scoreColumn + bonusColumn * 2)
+try Player.updateAll(db, scoreColumn.set(to: scoreColumn + bonusColumn * 2))
 ```
 
 As a convenience, you can also use the `+=`, `-=`, `*=`, or `/=` operators:
