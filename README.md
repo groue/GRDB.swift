@@ -3441,7 +3441,7 @@ extension Place: MutablePersistableRecord {
 <details>
   <summary>Define a plain struct optimized for fetching performance</summary>
 
-This struct derives is persistence methpds from the standard Encodable protocol (see [Codable Records]), but performs optimized row decoding by accessing database columns with numeric indexes.
+This struct derives its persistence methods from the standard Encodable protocol (see [Codable Records]), but performs optimized row decoding by accessing database columns with numeric indexes.
 
 See the [Record Protocols Overview](#record-protocols-overview) for more information.
     
