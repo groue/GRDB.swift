@@ -67,8 +67,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 **Fixed**
 
-- Restored support for Xcode 10.0 and Xcode 10.1
+- Restored support for Xcode 10.0 and Xcode 10.1, broken in 4.12.2
 - [#759](https://github.com/groue/GRDB.swift/pull/759): Fix batch updates of complex requests
+
+**New**
+
+- Deprecate the batch update `<-` operator
 
 
 ## 4.12.2
