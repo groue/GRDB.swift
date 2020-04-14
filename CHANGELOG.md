@@ -72,7 +72,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 **New**
 
-- Deprecate the batch update `<-` operator
+- [#761](https://github.com/groue/GRDB.swift/pull/761): Deprecate the batch update `<-` operator
 
 
 ## 4.12.2
