@@ -445,7 +445,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             }
             do {
                 // Regression test for https://github.com/groue/GRDB.swift/issues/758
-                try Player.including(required: Player.team.filter(Column("active") == 1)).updateAll(db, Column("score") <- 0)
+                try Player.including(required: Player.team.filter(Column("active") == 1)).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE rowid IN (\
                     SELECT "player"."rowid" \
