@@ -35,7 +35,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
     func testRequestUpdateAll() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
-            let assignment = Columns.score <- 0
+            let assignment = Columns.score.set(to: 0)
             
             try Player.updateAll(db, assignment)
             XCTAssertEqual(self.lastSQLQuery, """
@@ -106,11 +106,22 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
         }
     }
     
+    func testDeprecatedOperator() throws {
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            
+            try Player.updateAll(db, Columns.score <- 0)
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE "player" SET "score" = 0
+                """)
+        }
+    }
+    
     func testNilAssignment() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db, Columns.score <- nil)
+            try Player.updateAll(db, Columns.score.set(to: nil))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = NULL
                 """)
@@ -121,7 +132,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db, Columns.score <- Columns.score * (Columns.bonus + 1))
+            try Player.updateAll(db, Columns.score.set(to: Columns.score * (Columns.bonus + 1)))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = "score" * ("bonus" + 1)
                 """)
@@ -236,22 +247,22 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db, Columns.score <- 0, Columns.bonus <- 1)
+            try Player.updateAll(db, Columns.score.set(to: 0), Columns.bonus.set(to: 1))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0, "bonus" = 1
                 """)
             
-            try Player.updateAll(db, [Columns.score <- 0, Columns.bonus <- 1])
+            try Player.updateAll(db, [Columns.score.set(to: 0), Columns.bonus.set(to: 1)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0, "bonus" = 1
                 """)
             
-            try Player.all().updateAll(db, Columns.score <- 0, Columns.bonus <- 1)
+            try Player.all().updateAll(db, Columns.score.set(to: 0), Columns.bonus.set(to: 1))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0, "bonus" = 1
                 """)
             
-            try Player.all().updateAll(db, [Columns.score <- 0, Columns.bonus <- 1])
+            try Player.all().updateAll(db, [Columns.score.set(to: 0), Columns.bonus.set(to: 1)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0, "bonus" = 1
                 """)
@@ -316,22 +327,22 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try AbortPlayer.updateAll(db, Column("score") <- 0)
+            try AbortPlayer.updateAll(db, Column("score").set(to: 0))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try AbortPlayer.updateAll(db, [Column("score") <- 0])
+            try AbortPlayer.updateAll(db, [Column("score").set(to: 0)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try AbortPlayer.all().updateAll(db, Column("score") <- 0)
+            try AbortPlayer.all().updateAll(db, Column("score").set(to: 0))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try AbortPlayer.all().updateAll(db, [Column("score") <- 0])
+            try AbortPlayer.all().updateAll(db, [Column("score").set(to: 0)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
@@ -347,22 +358,22 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try IgnorePlayer.updateAll(db, Column("score") <- 0)
+            try IgnorePlayer.updateAll(db, Column("score").set(to: 0))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try IgnorePlayer.updateAll(db, [Column("score") <- 0])
+            try IgnorePlayer.updateAll(db, [Column("score").set(to: 0)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try IgnorePlayer.all().updateAll(db, Column("score") <- 0)
+            try IgnorePlayer.all().updateAll(db, Column("score").set(to: 0))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try IgnorePlayer.all().updateAll(db, [Column("score") <- 0])
+            try IgnorePlayer.all().updateAll(db, [Column("score").set(to: 0)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
@@ -373,27 +384,27 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
             
-            try Player.updateAll(db, Column("score") <- 0)
+            try Player.updateAll(db, Column("score").set(to: 0))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0
                 """)
             
-            try Player.updateAll(db, onConflict: .ignore, Column("score") <- 0)
+            try Player.updateAll(db, onConflict: .ignore, Column("score").set(to: 0))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try Player.updateAll(db, onConflict: .ignore, [Column("score") <- 0])
+            try Player.updateAll(db, onConflict: .ignore, [Column("score").set(to: 0)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try Player.all().updateAll(db, onConflict: .ignore, Column("score") <- 0)
+            try Player.all().updateAll(db, onConflict: .ignore, Column("score").set(to: 0))
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
             
-            try Player.all().updateAll(db, onConflict: .ignore, [Column("score") <- 0])
+            try Player.all().updateAll(db, onConflict: .ignore, [Column("score").set(to: 0)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)
@@ -424,7 +435,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             }
             
             do {
-                try Player.including(required: Player.team).updateAll(db, Column("score") <- 0)
+                try Player.including(required: Player.team).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE rowid IN (\
                     SELECT "player"."rowid" \
@@ -433,8 +444,18 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
+                // Regression test for https://github.com/groue/GRDB.swift/issues/758
+                try Player.including(required: Player.team.filter(Column("active") == 1)).updateAll(db, Column("score").set(to: 0))
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0 WHERE rowid IN (\
+                    SELECT "player"."rowid" \
+                    FROM "player" \
+                    JOIN "team" ON ("team"."id" = "player"."teamId") AND ("team"."active" = 1))
+                    """)
+            }
+            do {
                 let alias = TableAlias(name: "p")
-                try Player.aliased(alias).including(required: Player.team).updateAll(db, Column("score") <- 0)
+                try Player.aliased(alias).including(required: Player.team).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE rowid IN (\
                     SELECT "p"."rowid" \
@@ -443,7 +464,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Team.having(Team.players.isEmpty).updateAll(db, Column("active") <- false)
+                try Team.having(Team.players.isEmpty).updateAll(db, Column("active").set(to: false))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "team" SET "active" = 0 WHERE rowid IN (\
                     SELECT "team"."rowid" \
@@ -454,7 +475,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Team.including(all: Team.players).updateAll(db, Column("active") <- false)
+                try Team.including(all: Team.players).updateAll(db, Column("active").set(to: false))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "team" SET "active" = 0
                     """)
@@ -481,7 +502,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                 t.primaryKey(["countryCode", "citizenId"])
             }
             do {
-                try Player.all().groupByPrimaryKey().updateAll(db, Column("score") <- 0)
+                try Player.all().groupByPrimaryKey().updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE rowid IN (\
                     SELECT "rowid" \
@@ -490,7 +511,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Player.all().group(Column.rowID).updateAll(db, Column("score") <- 0)
+                try Player.all().group(Column.rowID).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "player" SET "score" = 0 WHERE rowid IN (\
                     SELECT "rowid" \
@@ -499,7 +520,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Passport.all().groupByPrimaryKey().updateAll(db, Column("active") <- true)
+                try Passport.all().groupByPrimaryKey().updateAll(db, Column("active").set(to: true))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "passport" SET "active" = 1 WHERE rowid IN (\
                     SELECT "rowid" \
@@ -508,7 +529,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     """)
             }
             do {
-                try Passport.all().group(Column.rowID).updateAll(db, Column("active") <- true)
+                try Passport.all().group(Column.rowID).updateAll(db, Column("active").set(to: true))
                 XCTAssertEqual(self.lastSQLQuery, """
                     UPDATE "passport" SET "active" = 1 WHERE rowid IN (\
                     SELECT "rowid" \
