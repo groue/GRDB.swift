@@ -21,6 +21,12 @@
 
 ## Features
 
+- [ ] Extract one row from a hasMany association (the one with the maximum date, the one with a flag set, etc.) https://stackoverflow.com/questions/43188771/sqlite-join-query-most-recent-posts-by-each-user
+- [ ] Support for more kinds of joins: https://github.com/groue/GRDB.swift/issues/740
+- [ ] Delay SQL generation of SQLLiteral and SQLRequest: https://github.com/groue/GRDB.swift/issues/697
+- [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
+- [ ] Close the loophole when decoding root property: https://github.com/groue/GRDB.swift/issues/664
+- [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
