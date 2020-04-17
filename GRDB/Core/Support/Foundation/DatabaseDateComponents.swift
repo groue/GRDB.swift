@@ -8,10 +8,10 @@ import SQLite3
 #endif
 
 /// DatabaseDateComponents reads and stores DateComponents in the database.
-public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible {
+public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible, Codable {
     
     /// The available formats for reading and storing date components.
-    public enum Format: String {
+    public enum Format: String, Codable {
         
         /// The format "yyyy-MM-dd".
         case YMD = "yyyy-MM-dd"
@@ -158,5 +158,32 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
         
         return SQLiteDateParser().components(from: string)
+    }
+
+    // MARK: - Codable adoption
+
+    /// CodingKeys for codable conformance.
+    enum CodingKeys: String, CodingKey {
+        case dateComponents, format
+    }
+
+    /// Creates a new instance by decoding from the given decoder.
+    ///
+    /// - parameters:
+    ///     - decoder: The decoder to read data from.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        dateComponents = try container.decode(DateComponents.self, forKey: .dateComponents)
+        format = try container.decode(Format.self, forKey: .format)
+    }
+
+    /// Encodes this value into the given encoder.
+    ///
+    /// - parameters:
+    ///     - encoder: The encoder to write data to.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(dateComponents, forKey: .dateComponents)
+        try container.encode(format, forKey: .format)
     }
 }
