@@ -202,6 +202,10 @@ extension SQLRelation: Refinable {
         }
     }
     
+    func unfiltered() -> Self {
+        with(\.filtersPromise, DatabasePromise(value: []))
+    }
+    
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
         with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
@@ -217,15 +221,6 @@ extension SQLRelation: Refinable {
     
     func qualified(with alias: TableAlias) -> Self {
         map(\.source) { $0.qualified(with: alias) }
-    }
-    
-    // Remove everything but selection
-    var witnessRelation: Self {
-        var result = self
-        result.filtersPromise = DatabasePromise(value: [])
-        result.ordering = SQLRelation.Ordering()
-        result.children = [:]
-        return result
     }
 }
 

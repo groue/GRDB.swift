@@ -494,10 +494,16 @@ private struct SQLQualifiedRelation {
             }
             
             if child.firstOnly {
+                let relation = child.relation
+                    // Filters and order are handled in a subquery
+                    .unfiltered()
+                    .unordered()
+                    // Only keep children with a non-empty selection
+                    .filteringChildren { $0.relation.selection.isEmpty == false }
                 return SQLQualifiedJoin(
                     kind: kind,
                     condition: child.condition,
-                    relation: SQLQualifiedRelation(child.relation.witnessRelation),
+                    relation: SQLQualifiedRelation(relation),
                     target: .firstOnly(child.relation))
             } else {
                 return SQLQualifiedJoin(
@@ -682,7 +688,7 @@ private struct SQLQualifiedJoin: Refinable {
         
         let rightAlias = relation.sourceAlias
         switch target {
-        case let .all:
+        case .all:
             let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
                 + relation.filtersPromise.resolve(db)
             if filters.isEmpty == false {
