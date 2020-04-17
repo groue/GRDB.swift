@@ -489,7 +489,12 @@ extension TableRecord where Self: EncodableRecord {
         let destinationRelation = association.sqlAssociation.destinationRelation(fromOriginRows: { db in
             try [Row(PersistenceContainer(db, self))]
         })
-        return QueryInterfaceRequest(relation: destinationRelation)
+        let request = QueryInterfaceRequest<A.RowDecoder>(relation: destinationRelation)
+        if association.sqlAssociation.destination.firstOnly {
+            return request.limit(1)
+        } else {
+            return request
+        }
     }
 }
 

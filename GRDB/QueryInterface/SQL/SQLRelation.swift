@@ -124,6 +124,7 @@ struct SQLRelation {
         var kind: Kind
         var condition: SQLAssociationCondition
         var relation: SQLRelation
+        var firstOnly: Bool
         
         /// Returns true iff this child can change the parent count.
         ///
@@ -144,7 +145,8 @@ struct SQLRelation {
                 key: key,
                 condition: condition,
                 relation: relation,
-                cardinality: kind.cardinality)
+                cardinality: kind.cardinality,
+                firstOnly: firstOnly)
         }
     }
     
@@ -216,6 +218,15 @@ extension SQLRelation: Refinable {
     func qualified(with alias: TableAlias) -> Self {
         map(\.source) { $0.qualified(with: alias) }
     }
+    
+    // Remove everything but selection
+    var witnessRelation: Self {
+        var result = self
+        result.filtersPromise = DatabasePromise(value: [])
+        result.ordering = SQLRelation.Ordering()
+        result.children = [:]
+        return result
+    }
 }
 
 extension SQLRelation {
@@ -261,7 +272,8 @@ extension SQLRelation {
         let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
-            relation: association.destination.relation)
+            relation: association.destination.relation,
+            firstOnly: association.destination.firstOnly)
         
         let initialSteps = association.steps.dropLast()
         if initialSteps.isEmpty {
@@ -705,6 +717,11 @@ extension SQLRelation.Child {
             return nil
         }
         
+        guard firstOnly == other.firstOnly else {
+            // can't merge
+            return nil
+        }
+        
         guard let mergedRelation = relation.merged(with: other.relation) else {
             // can't merge
             return nil
@@ -718,7 +735,8 @@ extension SQLRelation.Child {
         return SQLRelation.Child(
             kind: mergedKind,
             condition: condition,
-            relation: mergedRelation)
+            relation: mergedRelation,
+            firstOnly: firstOnly)
     }
 }
 

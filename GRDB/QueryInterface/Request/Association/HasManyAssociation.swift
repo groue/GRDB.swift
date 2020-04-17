@@ -97,6 +97,19 @@ public struct HasManyAssociation<Origin: TableRecord, Destination: TableRecord>:
             key: associationKey,
             condition: condition,
             relation: Destination.all().relation,
-            cardinality: .toMany)
+            cardinality: .toMany,
+            firstOnly: false)
+    }
+    
+    /// TODO
+    public var first: HasOneAssociation<Origin, Destination> {
+        var step = sqlAssociation.steps[0]
+        step.firstOnly = true
+        return HasOneAssociation(sqlAssociation: SQLAssociation(steps: [step]))
+    }
+    
+    /// TODO
+    public var last: HasOneAssociation<Origin, Destination> {
+        reversed().first
     }
 }

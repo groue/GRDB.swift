@@ -75,13 +75,15 @@ public /* TODO: internal */ struct SQLAssociation {
         key: SQLAssociationKey,
         condition: SQLAssociationCondition,
         relation: SQLRelation,
-        cardinality: SQLAssociationCardinality)
+        cardinality: SQLAssociationCardinality,
+        firstOnly: Bool)
     {
         let step = SQLAssociationStep(
             key: key,
             condition: condition,
             relation: relation,
-            cardinality: cardinality)
+            cardinality: cardinality,
+            firstOnly: firstOnly)
         self.init(steps: [step])
     }
     
@@ -187,7 +189,8 @@ public /* TODO: internal */ struct SQLAssociation {
                     key: key,
                     condition: nextStep.condition.reversed,
                     relation: relation,
-                    cardinality: .toOne)
+                    cardinality: .toOne,
+                    firstOnly: false)
             })
             .reversed()
         let reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
@@ -202,6 +205,7 @@ struct SQLAssociationStep: Refinable {
     var condition: SQLAssociationCondition
     var relation: SQLRelation
     var cardinality: SQLAssociationCardinality
+    var firstOnly: Bool
     
     var keyName: String { key.name(for: cardinality) }
 }

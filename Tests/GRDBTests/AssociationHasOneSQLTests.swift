@@ -760,4 +760,154 @@ class AssociationHasOneSQLTests: GRDBTestCase {
             }
         }
     }
+    
+    func testHasManyFirst() throws {
+        struct Child : TableRecord { }
+        struct Parent: TableRecord, EncodableRecord {
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+                container["rowid"] = 2
+            }
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parent") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "child") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("parentId", .integer).references("parent")
+            }
+            
+            do {
+                let association = Parent
+                    .hasMany(Child.self)
+                    .orderByPrimaryKey()
+                    .first()
+                try assertEqualSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "child".* \
+                    FROM "parent" \
+                    JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent.all().including(optional: association), """
+                    SELECT "parent".*, "child".* \
+                    FROM "parent" \
+                    LEFT JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(optional: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    LEFT JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent().request(for: association), """
+                    SELECT * FROM "child" \
+                    WHERE "parentId" = 1 \
+                    ORDER BY "id" \
+                    LIMIT 1
+                    """)
+            }
+            // TODO: test that first/last can be used with filtering with further association
+        }
+    }
+    
+    func testHasManyLast() throws {
+        struct Child : TableRecord { }
+        struct Parent: TableRecord, EncodableRecord {
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+                container["rowid"] = 2
+            }
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parent") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "child") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("parentId", .integer).references("parent")
+            }
+            
+            do {
+                let association = Parent
+                    .hasMany(Child.self)
+                    .orderByPrimaryKey()
+                    .last()
+                try assertEqualSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "child".* \
+                    FROM "parent" \
+                    JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" DESC \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent.all().including(optional: association), """
+                    SELECT "parent".*, "child".* \
+                    FROM "parent" \
+                    LEFT JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" DESC \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" DESC \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent.all().joining(optional: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    LEFT JOIN "child" ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    WHERE "child"."parentId" = "parent"."id" \
+                    ORDER BY "child"."id" DESC \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent().request(for: association), """
+                    SELECT * FROM "child" \
+                    WHERE "parentId" = 1 \
+                    ORDER BY "id" DESC \
+                    LIMIT 1
+                    """)
+            }
+            // TODO: test that first/last can be used with filtering with further association
+        }
+    }
 }

@@ -493,10 +493,19 @@ private struct SQLQualifiedRelation {
                 return nil
             }
             
-            return SQLQualifiedJoin(
-                kind: kind,
-                condition: child.condition,
-                relation: SQLQualifiedRelation(child.relation))
+            if child.firstOnly {
+                return SQLQualifiedJoin(
+                    kind: kind,
+                    condition: child.condition,
+                    relation: SQLQualifiedRelation(child.relation.witnessRelation),
+                    target: .firstOnly(child.relation))
+            } else {
+                return SQLQualifiedJoin(
+                    kind: kind,
+                    condition: child.condition,
+                    relation: SQLQualifiedRelation(child.relation),
+                    target: .all)
+            }
         }
         sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: sourceAlias) }
         filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: sourceAlias) } }
@@ -620,26 +629,30 @@ private enum SQLQualifiedSource {
 }
 
 /// A "qualified" join, where all tables are identified with a table alias.
-private struct SQLQualifiedJoin {
+private struct SQLQualifiedJoin: Refinable {
     enum Kind: String {
         case leftJoin = "LEFT JOIN"
         case innerJoin = "JOIN"
     }
     
-    let kind: Kind
-    let condition: SQLAssociationCondition
-    let relation: SQLQualifiedRelation
+    enum Target {
+        case all
+        case firstOnly(SQLRelation)
+    }
+    
+    var kind: Kind
+    var condition: SQLAssociationCondition
+    var relation: SQLQualifiedRelation
+    var target: Target
+//    var firstOnly: Bool
     
     func sql(_ db: Database, _ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
     }
     
     /// Removes all selections from joins
-    func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedJoin {
-        SQLQualifiedJoin(
-            kind: kind,
-            condition: condition,
-            relation: relation.selectOnly(selection))
+    func selectOnly(_ selection: [SQLSelectable]) -> Self {
+        map(\.relation) { $0.selectOnly(selection) }
     }
     
     private func sql(
@@ -668,10 +681,28 @@ private struct SQLQualifiedJoin {
         sql += try "\(kind.rawValue) \(relation.source.sql(db, &context))"
         
         let rightAlias = relation.sourceAlias
-        let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
-            + relation.filtersPromise.resolve(db)
-        if filters.isEmpty == false {
-            sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
+        switch target {
+        case let .all:
+            let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
+                + relation.filtersPromise.resolve(db)
+            if filters.isEmpty == false {
+                sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
+            }
+        case let .firstOnly(subRelation):
+            #warning("TODO: use child.condition")
+            let subAlias = TableAlias()
+            let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: subAlias)
+            let subRelation = subRelation
+                .qualified(with: subAlias)
+                .selectOnly([Column.rowID])
+                .map(\.filtersPromise) { $0.flatMap { DatabasePromise(value: filters + $0) } }
+            let subQuery = SQLQuery(relation: subRelation, limit: SQLLimit(limit: 1, offset: nil))
+            let subQueryGenerator = SQLQueryGenerator(subQuery)
+            
+            sql += " ON "
+            sql += rightAlias[Column.rowID].expressionSQL(&context, wrappedInParenthesis: false)
+            // SELECT rowid FROM child WHERE child.parentId = parent.id ORDER BY id DESC LIMIT 1
+            sql += try " = (" + subQueryGenerator.sql(db, &context) + ")"
         }
         
         for (_, join) in relation.joins {
