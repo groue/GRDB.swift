@@ -832,7 +832,6 @@ class AssociationHasOneSQLTests: GRDBTestCase {
                     LIMIT 1
                     """)
             }
-            // TODO: test that first/last can be used with filtering with further association
         }
     }
     
@@ -948,7 +947,6 @@ class AssociationHasOneSQLTests: GRDBTestCase {
                     ORDER BY "child"."id" LIMIT 1) \
                     JOIN "toy" ON "toy"."childId" = "child"."id"
                     """)
-                // TODO: remove toy from selection, since this is a request for child
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "child".*, "toy".* \
                     FROM "child" \
@@ -1105,7 +1103,6 @@ class AssociationHasOneSQLTests: GRDBTestCase {
                     LIMIT 1
                     """)
             }
-            // TODO: test that first/last can be used with filtering with further association
         }
     }
 }

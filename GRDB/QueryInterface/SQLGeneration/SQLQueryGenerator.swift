@@ -494,17 +494,17 @@ private struct SQLQualifiedRelation {
             }
             
             if child.firstOnly {
+                // Filters and order are handled in a subquery,
+                // and only keep children with a non-empty selection
                 let relation = child.relation
-                    // Filters and order are handled in a subquery
                     .unfiltered()
                     .unordered()
-                    // Only keep children with a non-empty selection
                     .filteringChildren { $0.relation.selection.isEmpty == false }
                 return SQLQualifiedJoin(
                     kind: kind,
                     condition: child.condition,
                     relation: SQLQualifiedRelation(relation),
-                    target: .firstOnly(child.relation))
+                    target: .firstInSubRelation(child.relation))
             } else {
                 return SQLQualifiedJoin(
                     kind: kind,
@@ -643,14 +643,13 @@ private struct SQLQualifiedJoin: Refinable {
     
     enum Target {
         case all
-        case firstOnly(SQLRelation)
+        case firstInSubRelation(SQLRelation)
     }
     
     var kind: Kind
     var condition: SQLAssociationCondition
     var relation: SQLQualifiedRelation
     var target: Target
-//    var firstOnly: Bool
     
     func sql(_ db: Database, _ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
@@ -694,8 +693,7 @@ private struct SQLQualifiedJoin: Refinable {
             if filters.isEmpty == false {
                 sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
             }
-        case let .firstOnly(subRelation):
-            #warning("TODO: use child.condition")
+        case let .firstInSubRelation(subRelation):
             let subAlias = TableAlias()
             let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: subAlias)
             let subRelation = subRelation
