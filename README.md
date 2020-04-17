@@ -5320,12 +5320,11 @@ let playerInfos = try dbQueue.read { db in
     try PlayerInfo.fetchAll(db)
 }
 
-// Track player infos with RxRGDB:
-PlayerInfo.all()
-    .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { (playerInfos: [PlayerInfo]) in
-        print("Player infos have changed")
-    })
+// Track database transactions that change player infos:
+let observation = DatabaseRegionObservation(tracking: PlayerInfo.all())
+let observer = try observation.start(in: dbQueue) { (db: Database) in
+    print("PlayerInfo were changed")
+}
 ```
 
 > :bulb: In this chapter, we have learned how to define a custom request that can both fetch records from joined queries, and feed database observation tools.
