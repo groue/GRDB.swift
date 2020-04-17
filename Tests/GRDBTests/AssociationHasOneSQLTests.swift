@@ -967,6 +967,40 @@ class AssociationHasOneSQLTests: GRDBTestCase {
                     .orderByPrimaryKey()
                     .filter(Column("id") == alias[Column("id")] + 1)
                     .first
+                    .joining(required: Child.hasOne(Toy.self).filter(Column("id") == alias[Column("id")] * 2))
+                try assertEqualSQL(db, Parent.all().aliased(alias).including(required: association), """
+                    SELECT "parent".*, "child".* \
+                    FROM "parent" \
+                    JOIN "child" \
+                    ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    JOIN "toy" ON ("toy"."childId" = "child"."id") AND ("toy"."id" = ("parent"."id" * 2)) \
+                    WHERE ("child"."parentId" = "parent"."id") AND ("child"."id" = ("parent"."id" + 1)) \
+                    ORDER BY "child"."id" \
+                    LIMIT 1)
+                    """)
+                try assertEqualSQL(db, Parent.all().aliased(alias).joining(required: association), """
+                    SELECT "parent".* \
+                    FROM "parent" \
+                    JOIN "child" \
+                    ON "child"."rowid" = (\
+                    SELECT "child"."rowid" \
+                    FROM "child" \
+                    JOIN "toy" ON ("toy"."childId" = "child"."id") AND ("toy"."id" = ("parent"."id" * 2)) \
+                    WHERE ("child"."parentId" = "parent"."id") AND ("child"."id" = ("parent"."id" + 1)) \
+                    ORDER BY "child"."id" \
+                    LIMIT 1)
+                    """)
+            }
+
+            do {
+                let alias = TableAlias()
+                let association = Parent
+                    .hasMany(Child.self)
+                    .orderByPrimaryKey()
+                    .filter(Column("id") == alias[Column("id")] + 1)
+                    .first
                     .including(required: Child.hasOne(Toy.self).filter(Column("id") == alias[Column("id")] * 2))
                 try assertEqualSQL(db, Parent.all().aliased(alias).including(required: association), """
                     SELECT "parent".*, "child".*, "toy".* \
