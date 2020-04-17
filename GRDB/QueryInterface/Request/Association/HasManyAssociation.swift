@@ -103,6 +103,7 @@ public struct HasManyAssociation<Origin: TableRecord, Destination: TableRecord>:
     
     /// TODO
     public var first: HasOneAssociation<Origin, Destination> {
+        assert(sqlAssociation.steps.count == 1)
         var step = sqlAssociation.steps[0]
         step.firstOnly = true
         return HasOneAssociation(sqlAssociation: SQLAssociation(steps: [step]))
