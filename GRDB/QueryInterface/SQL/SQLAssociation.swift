@@ -97,6 +97,10 @@ public /* TODO: internal */ struct SQLAssociation {
         SQLAssociation(steps: other.steps + steps)
     }
     
+    func associationForFirst() -> Self {
+        SQLAssociation(steps: steps.map { $0.with(\.firstOnly, true) })
+    }
+    
     /// Given an origin alias and rows, returns the destination of the
     /// association as a relation.
     ///
@@ -204,6 +208,7 @@ struct SQLAssociationStep: Refinable {
     var key: SQLAssociationKey
     var condition: SQLAssociationCondition
     var relation: SQLRelation
+    // TODO: I have problems understanding what cardinality=toMany + firstOnly=true mean.
     var cardinality: SQLAssociationCardinality
     var firstOnly: Bool
     
