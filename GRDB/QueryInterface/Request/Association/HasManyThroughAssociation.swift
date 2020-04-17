@@ -55,4 +55,14 @@ public struct HasManyThroughAssociation<Origin: TableRecord, Destination: TableR
     public init(sqlAssociation: SQLAssociation) {
         self.sqlAssociation = sqlAssociation
     }
+    
+    /// TODO
+    public var first: HasOneThroughAssociation<Origin, Destination> {
+        HasOneThroughAssociation(sqlAssociation: sqlAssociation.associationForFirst())
+    }
+    
+    /// TODO
+    public var last: HasOneThroughAssociation<Origin, Destination> {
+        reversed().first
+    }
 }
