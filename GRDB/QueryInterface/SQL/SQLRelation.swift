@@ -166,7 +166,7 @@ struct SQLRelation {
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     // If true, the relation refers to the first row only, and we'll need to
     // perform explicit limit at the SQL level.
-    var firstInMany = false
+    var firstOnly = false
     var children: OrderedDictionary<String, Child> = [:]
     
     var prefetchedAssociations: [SQLAssociation] {
@@ -657,7 +657,7 @@ struct SQLAssociationCondition: Equatable {
 extension SQLRelation {
     /// Returns nil if relations can't be merged (conflict in source, joins...)
     func merged(with other: SQLRelation) -> Self? {
-        guard firstInMany == other.firstInMany else {
+        guard firstOnly == other.firstOnly else {
             // can't merge
             return nil
         }
@@ -698,7 +698,7 @@ extension SQLRelation {
             selection: mergedSelection,
             filtersPromise: mergedFiltersPromise,
             ordering: mergedOrdering,
-            firstInMany: firstInMany,
+            firstOnly: firstOnly,
             children: mergedChildren)
     }
 }

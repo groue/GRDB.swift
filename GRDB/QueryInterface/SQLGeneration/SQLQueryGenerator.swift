@@ -496,19 +496,22 @@ private struct SQLQualifiedRelation {
                 return nil
             }
             
-            if child.relation.firstInMany {
-                // Filters and order are handled in a subquery,
-                // and only keep children with a non-empty selection
-                let relation = child.relation
-                    .with(\.firstInMany, false)
+            if child.relation.firstOnly {
+                // Filters and order are handled in a subquery (see target below).
+                // We only keep children that need to be exposed in the outer
+                // query (those with a non-empty selection).
+                // TODO: we may have a problem if we remove children used for
+                // ordering or filtering with aliases.
+                let outerRelation = child.relation
+                    .with(\.firstOnly, false)
                     .unfiltered()
                     .unordered()
                     .filteringChildren { $0.relation.selection.isEmpty == false }
                 return SQLQualifiedJoin(
                     kind: kind,
                     condition: child.condition,
-                    relation: SQLQualifiedRelation(relation),
-                    target: .firstInSubRelation(child.relation))
+                    relation: SQLQualifiedRelation(outerRelation),
+                    target: .firstOnly(child.relation))
             } else {
                 return SQLQualifiedJoin(
                     kind: kind,
@@ -647,7 +650,7 @@ private struct SQLQualifiedJoin: Refinable {
     
     enum Target {
         case all
-        case firstInSubRelation(SQLRelation)
+        case firstOnly(SQLRelation)
     }
     
     var kind: Kind
@@ -697,7 +700,7 @@ private struct SQLQualifiedJoin: Refinable {
             if filters.isEmpty == false {
                 sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
             }
-        case let .firstInSubRelation(subRelation):
+        case let .firstOnly(subRelation):
             guard let primaryKey = try subRelation.primaryKeyExpression(db) else {
                 fatalError("Not implemented")
             }

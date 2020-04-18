@@ -101,7 +101,7 @@ public /* TODO: internal */ struct SQLAssociation {
             case .toOne:
                 return step
             case .toMany:
-                return step.map(\.relation) { $0.with(\.firstInMany, true) }
+                return step.map(\.relation) { $0.with(\.firstOnly, true) }
             }
         })
     }
@@ -224,7 +224,7 @@ struct SQLAssociationStep: Refinable {
         case .toOne:
             return true
         case .toMany:
-            return relation.firstInMany
+            return relation.firstOnly
         }
     }
     
