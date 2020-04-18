@@ -672,7 +672,7 @@ private struct SQLQualifiedJoin: Refinable {
             self.relation = SQLQualifiedRelation(outerRelation)
             self.target = .subRelation(subRelation)
         } else {
-            self.relation = SQLQualifiedRelation(child.relation)
+            self.relation = SQLQualifiedRelation(relation)
             self.target = .all
         }
     }
