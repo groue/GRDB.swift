@@ -4,6 +4,12 @@ Here is a list of people who were happy to meet GRDB :-)
 
 ---
 
+https://twitter.com/layoutsubviews/status/1249940744929816582
+
+> Mixing SQLite / GRDB with Combine is my whole world right now, and it is delightful.
+
+---
+
 https://twitter.com/steipete/status/1231105339954802694
 
 > It [Core Data] gets the job done, but folks made some really amazing Swift native sqlite wrappers.

@@ -279,24 +279,23 @@ struct SQLQueryGenerator {
         
         var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
         
-        // SELECT rowid FROM table ...
-        var generator = self
-        generator.relation = generator.relation.selectOnly([Column.rowID])
-        let selectSQL = try generator.sql(db, &context)
-        
+        // UPDATE table...
         var sql = "UPDATE "
-        
         if conflictResolution != .abort {
             sql += "OR \(conflictResolution.rawValue) "
         }
-        
         sql += tableName.quotedDatabaseIdentifier
         
+        // SET column = value...
         let assignmentsSQL = assignments
             .map { $0.sql(&context) }
             .joined(separator: ", ")
         sql += " SET " + assignmentsSQL
-        sql += " WHERE rowid IN (\(selectSQL))"
+        
+        // WHERE rowid IN (SELECT rowid FROM ...)
+        var generator = self
+        generator.relation = generator.relation.selectOnly([Column.rowID])
+        sql += try " WHERE rowid IN (\(generator.sql(db, &context)))"
         
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
