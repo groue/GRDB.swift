@@ -350,6 +350,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
+        // TODO: try to replace rowid with actual primary key
         makeAggregate(SQLExpressionCountDistinct(Column.rowID))
             .forKey("\(key.singularizedName)Count")
     }
@@ -370,6 +371,7 @@ extension AssociationToMany {
     ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
+        // TODO: try to replace rowid with actual primary key
         makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
             .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }

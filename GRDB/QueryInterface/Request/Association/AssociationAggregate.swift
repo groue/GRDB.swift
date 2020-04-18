@@ -27,6 +27,7 @@ typealias AssociationAggregatePreparation<RowDecoder> =
 ///     // Won't compile because Fruit is not Author.
 ///     let request = Fruit.annotated(with: bookCount)
 public struct AssociationAggregate<RowDecoder> {
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Given a request, returns a tuple made of a request extended with the
     /// associated records used to compute the aggregate, and an expression
     /// whose value is the aggregated value.

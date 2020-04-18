@@ -1,5 +1,6 @@
+
 /// SQLQueryGenerator is able to generate an SQL SELECT query.
-struct SQLQueryGenerator {
+struct SQLQueryGenerator: Refinable {
     fileprivate private(set) var relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
@@ -168,7 +169,7 @@ struct SQLQueryGenerator {
         }
     }
     
-    /// DELETE FROM table WHERE rowid IN (SELECT rowid FROM table ...)
+    /// DELETE FROM table WHERE id IN (SELECT id FROM table ...)
     private func makeTrivialDeleteStatement(_ db: Database) throws -> UpdateStatement {
         guard case let .table(tableName: tableName, alias: _) = relation.source else {
             // Programmer error
@@ -176,14 +177,13 @@ struct SQLQueryGenerator {
         }
         
         var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
+        let primaryKey = try db.primaryKeyExpression(tableName)
         
-        // SELECT rowid FROM table ...
-        var generator = self
-        generator.relation = generator.relation.selectOnly([Column.rowID])
-        let selectSQL = try generator.sql(db, &context)
-        
-        // DELETE FROM table WHERE rowid IN (SELECT rowid FROM table ...)
-        let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE rowid IN (\(selectSQL))"
+        var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
+        sql += primaryKey.expressionSQL(&context, wrappedInParenthesis: false)
+        sql += " IN ("
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, &context)
+        sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
@@ -258,7 +258,7 @@ struct SQLQueryGenerator {
         }
     }
     
-    /// UPDATE table SET ... WHERE rowid IN (SELECT rowid FROM table ...)
+    /// UPDATE table SET ... WHERE id IN (SELECT id FROM table ...)
     /// Returns nil if assignments is empty
     private func makeTrivialUpdateStatement(
         _ db: Database,
@@ -278,6 +278,7 @@ struct SQLQueryGenerator {
         }
         
         var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
+        let primaryKey = try db.primaryKeyExpression(tableName)
         
         // UPDATE table...
         var sql = "UPDATE "
@@ -292,10 +293,12 @@ struct SQLQueryGenerator {
             .joined(separator: ", ")
         sql += " SET " + assignmentsSQL
         
-        // WHERE rowid IN (SELECT rowid FROM ...)
-        var generator = self
-        generator.relation = generator.relation.selectOnly([Column.rowID])
-        sql += try " WHERE rowid IN (\(generator.sql(db, &context)))"
+        // WHERE id IN (SELECT rowid FROM ...)
+        sql += " WHERE "
+        sql += primaryKey.expressionSQL(&context, wrappedInParenthesis: false)
+        sql += " IN ("
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, &context)
+        sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
@@ -694,18 +697,20 @@ private struct SQLQualifiedJoin: Refinable {
                 sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
             }
         case let .firstInSubRelation(subRelation):
+            guard let primaryKey = try subRelation.primaryKeyExpression(db) else {
+                fatalError("Not implemented")
+            }
             let subAlias = TableAlias()
             let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: subAlias)
             let subRelation = subRelation
                 .qualified(with: subAlias)
-                .selectOnly([Column.rowID])
+                .selectOnly([primaryKey])
                 .map(\.filtersPromise) { $0.flatMap { DatabasePromise(value: filters + $0) } }
             let subQuery = SQLQuery(relation: subRelation, limit: SQLLimit(limit: 1, offset: nil))
             let subQueryGenerator = SQLQueryGenerator(subQuery)
             
             sql += " ON "
-            sql += rightAlias[Column.rowID].expressionSQL(&context, wrappedInParenthesis: false)
-            // SELECT rowid FROM child WHERE child.parentId = parent.id ORDER BY id DESC LIMIT 1
+            sql += rightAlias[primaryKey].expressionSQL(&context, wrappedInParenthesis: false)
             sql += try " = (" + subQueryGenerator.sql(db, &context) + ")"
         }
         

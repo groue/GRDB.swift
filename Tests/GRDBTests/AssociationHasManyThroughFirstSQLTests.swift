@@ -39,25 +39,25 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     JOIN "b" ON "b"."id" = "a"."bId" \
-                    JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A.all().including(optional: association), """
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     LEFT JOIN "b" ON "b"."id" = "a"."bId" \
-                    LEFT JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    LEFT JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A.all().joining(required: association), """
                     SELECT "a".* \
                     FROM "a" \
                     JOIN "b" ON "b"."id" = "a"."bId" \
-                    JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A.all().joining(optional: association), """
                     SELECT "a".* \
                     FROM "a" \
                     LEFT JOIN "b" ON "b"."id" = "a"."bId" \
-                    LEFT JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    LEFT JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A().request(for: association), """
                     SELECT "c".* \
@@ -103,25 +103,25 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     JOIN "b" ON "b"."aId" = "a"."id" \
-                    JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A.all().including(optional: association), """
                     SELECT "a".*, "c".* \
                     FROM "a" \
                     LEFT JOIN "b" ON "b"."aId" = "a"."id" \
-                    LEFT JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    LEFT JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A.all().joining(required: association), """
                     SELECT "a".* \
                     FROM "a" \
                     JOIN "b" ON "b"."aId" = "a"."id" \
-                    JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A.all().joining(optional: association), """
                     SELECT "a".* \
                     FROM "a" \
                     LEFT JOIN "b" ON "b"."aId" = "a"."id" \
-                    LEFT JOIN "c" ON "c"."rowid" = (SELECT "c"."rowid" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    LEFT JOIN "c" ON "c"."id" = (SELECT "c"."id" FROM "c" WHERE "c"."bId" = "b"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A().request(for: association), """
                     SELECT "c".* \
@@ -165,24 +165,24 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, A.all().including(required: association), """
                     SELECT "a".*, "c".* \
                     FROM "a" \
-                    JOIN "b" ON "b"."rowid" = (SELECT "b"."rowid" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1) \
+                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1) \
                     JOIN "c" ON "c"."id" = "b"."cId"
                     """)
                 try assertEqualSQL(db, A.all().including(optional: association), """
                     SELECT "a".*, "c".* \
                     FROM "a" \
-                    LEFT JOIN "b" ON "b"."rowid" = (SELECT "b"."rowid" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1) \
+                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1) \
                     LEFT JOIN "c" ON "c"."id" = "b"."cId"
                     """)
                 try assertEqualSQL(db, A.all().joining(required: association), """
                     SELECT "a".* \
                     FROM "a" \
-                    JOIN "b" ON "b"."rowid" = (SELECT "b"."rowid" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
+                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
                     """)
                 try assertEqualSQL(db, A.all().joining(optional: association), """
                     SELECT "a".* \
                     FROM "a" \
-                    LEFT JOIN "b" ON "b"."rowid" = (SELECT "b"."rowid" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
+                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
                     """)
                 // TODO: is is possible?
                 // TODO: test request(for: hasManyThrough(hasMany.first, hasMany) (all comments of the last message in a chat)
@@ -226,8 +226,8 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, A.all().including(required: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -236,8 +236,8 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, A.all().including(optional: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -246,8 +246,8 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, A.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -256,8 +256,8 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, A.all().joining(optional: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -295,6 +295,7 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                 t.autoIncrementedPrimaryKey("id")
             }
             try db.create(table: "child") { t in
+                t.autoIncrementedPrimaryKey("id")
                 t.column("parentId", .integer).references("parent")
             }
             try db.create(table: "toy") { t in
@@ -316,21 +317,21 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     SELECT "parent".*, "pet".* \
                     FROM "parent" \
                     JOIN "child" ON "child"."parentId" = "parent"."id" \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
-                    JOIN "pet" ON "pet"."childId" = "child"."rowid"
+                    JOIN "toy" ON "toy"."childId" = "child"."id" \
+                    JOIN "pet" ON "pet"."childId" = "child"."id"
                     """)
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
                     JOIN "child" ON "child"."parentId" = "parent"."id" \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
-                    JOIN "pet" ON "pet"."childId" = "child"."rowid"
+                    JOIN "toy" ON "toy"."childId" = "child"."id" \
+                    JOIN "pet" ON "pet"."childId" = "child"."id"
                     """)
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "pet".* \
                     FROM "pet" \
-                    JOIN "child" ON ("child"."rowid" = "pet"."childId") AND ("child"."parentId" = 1) \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid"
+                    JOIN "child" ON ("child"."id" = "pet"."childId") AND ("child"."parentId" = 1) \
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
                     """)
             }
             do {
@@ -343,24 +344,24 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     SELECT "parent".*, "pet".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "pet".* \
                     FROM "pet" \
-                    JOIN "child" "child1" ON ("child1"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                    JOIN "child" "child1" ON ("child1"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
                     """)
             }
             do {
@@ -374,24 +375,24 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     SELECT "parent".*, "pet".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "pet".* \
                     FROM "pet" \
-                    JOIN "child" "child1" ON ("child1"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                    JOIN "child" "child1" ON ("child1"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
                     """)
             }
         }

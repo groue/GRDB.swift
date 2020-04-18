@@ -30,8 +30,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(required: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -40,8 +40,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(optional: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -50,8 +50,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -60,8 +60,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().joining(optional: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" \
@@ -110,8 +110,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(required: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = "parent"."id" \
@@ -121,8 +121,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(optional: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = "parent"."id" \
@@ -132,8 +132,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = "parent"."id" \
@@ -143,8 +143,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().joining(optional: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = "parent"."id" \
@@ -170,8 +170,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(required: association), """
                     SELECT "parent".*, "child".*, "toy".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = "parent"."id" \
@@ -181,8 +181,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".*, "toy".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = "parent"."id" \
@@ -212,8 +212,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
                     JOIN "child" \
-                    ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON ("toy"."childId" = "child"."id") AND ("toy"."id" = ("parent"."id" * 2)) \
                     WHERE ("child"."parentId" = "parent"."id") AND ("child"."id" = ("parent"."id" + 1)) \
@@ -224,8 +224,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                     SELECT "parent".* \
                     FROM "parent" \
                     JOIN "child" \
-                    ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON ("toy"."childId" = "child"."id") AND ("toy"."id" = ("parent"."id" * 2)) \
                     WHERE ("child"."parentId" = "parent"."id") AND ("child"."id" = ("parent"."id" + 1)) \
@@ -246,8 +246,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                     SELECT "parent".*, "child".*, "toy".* \
                     FROM "parent" \
                     JOIN "child" \
-                    ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON ("toy"."childId" = "child"."id") AND ("toy"."id" = ("parent"."id" * 2)) \
                     WHERE ("child"."parentId" = "parent"."id") AND ("child"."id" = ("parent"."id" + 1)) \
@@ -260,8 +260,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                     SELECT "parent".*, "toy".* \
                     FROM "parent" \
                     JOIN "child" \
-                    ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     JOIN "toy" ON ("toy"."childId" = "child"."id") AND ("toy"."id" = ("parent"."id" * 2)) \
                     WHERE ("child"."parentId" = "parent"."id") AND ("child"."id" = ("parent"."id" + 1)) \
@@ -301,8 +301,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(required: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" DESC \
@@ -311,8 +311,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(optional: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" DESC \
@@ -321,8 +321,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" DESC \
@@ -331,8 +331,8 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().joining(optional: association), """
                     SELECT "parent".* \
                     FROM "parent" \
-                    LEFT JOIN "child" ON "child"."rowid" = (\
-                    SELECT "child"."rowid" \
+                    LEFT JOIN "child" ON "child"."id" = (\
+                    SELECT "child"."id" \
                     FROM "child" \
                     WHERE "child"."parentId" = "parent"."id" \
                     ORDER BY "child"."id" DESC \

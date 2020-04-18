@@ -205,8 +205,8 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             do {
                 try Player.including(required: Player.team).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "player" WHERE rowid IN (\
-                    SELECT "player"."rowid" \
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "player"."id" \
                     FROM "player" \
                     JOIN "team" ON "team"."id" = "player"."teamId")
                     """)
@@ -215,8 +215,8 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
                 let alias = TableAlias(name: "p")
                 try Player.aliased(alias).including(required: Player.team).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "player" WHERE rowid IN (\
-                    SELECT "p"."rowid" \
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "p"."id" \
                     FROM "player" "p" \
                     JOIN "team" ON "team"."id" = "p"."teamId")
                     """)
@@ -224,8 +224,8 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             do {
                 try Team.having(Team.players.isEmpty).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "team" WHERE rowid IN (\
-                    SELECT "team"."rowid" \
+                    DELETE FROM "team" WHERE "id" IN (\
+                    SELECT "team"."id" \
                     FROM "team" \
                     LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
                     GROUP BY "team"."id" \
@@ -261,8 +261,8 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             do {
                 try Player.all().groupByPrimaryKey().deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "player" WHERE rowid IN (\
-                    SELECT "rowid" \
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "id" \
                     FROM "player" \
                     GROUP BY "id")
                     """)
@@ -270,8 +270,8 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             do {
                 try Player.all().group(Column.rowID).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "player" WHERE rowid IN (\
-                    SELECT "rowid" \
+                    DELETE FROM "player" WHERE "id" IN (\
+                    SELECT "id" \
                     FROM "player" \
                     GROUP BY "rowid")
                     """)
@@ -279,7 +279,7 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             do {
                 try Passport.all().groupByPrimaryKey().deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "passport" WHERE rowid IN (\
+                    DELETE FROM "passport" WHERE "rowid" IN (\
                     SELECT "rowid" \
                     FROM "passport" \
                     GROUP BY "countryCode", "citizenId")
@@ -288,7 +288,7 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             do {
                 try Passport.all().group(Column.rowID).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "passport" WHERE rowid IN (\
+                    DELETE FROM "passport" WHERE "rowid" IN (\
                     SELECT "rowid" \
                     FROM "passport" \
                     GROUP BY "rowid")

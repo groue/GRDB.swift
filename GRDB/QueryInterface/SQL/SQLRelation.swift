@@ -177,6 +177,18 @@ struct SQLRelation {
             }
         }
     }
+    
+    /// Returns nil if there is no way to express the primary key of the
+    /// relation as an expression.
+    func primaryKeyExpression(_ db: Database) throws -> SQLExpression? {
+        switch source {
+        case .query:
+            // No primary key for sub query
+            return nil
+        case let .table(tableName: tableName, alias: _):
+            return try db.primaryKeyExpression(tableName)
+        }
+    }
 }
 
 extension SQLRelation: Refinable {

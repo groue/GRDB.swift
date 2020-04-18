@@ -552,6 +552,7 @@ extension TableRecord {
     
     // MARK: - Association Aggregates
     
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request with *aggregates* appended to the selection.
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
@@ -561,6 +562,7 @@ extension TableRecord {
         all().annotated(with: aggregates)
     }
     
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request with *aggregates* appended to the selection.
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
@@ -570,6 +572,7 @@ extension TableRecord {
         all().annotated(with: aggregates)
     }
     
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request with the provided aggregate *predicate*.
     ///
     ///     // SELECT player.*
