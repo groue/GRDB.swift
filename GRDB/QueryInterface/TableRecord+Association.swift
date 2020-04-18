@@ -490,11 +490,20 @@ extension TableRecord where Self: EncodableRecord {
             try [Row(PersistenceContainer(db, self))]
         })
         let request = QueryInterfaceRequest<A.RowDecoder>(relation: destinationRelation)
-//        if association.sqlAssociation.destination.firstOnly {
-//            return request.limit(1)
-//        } else {
+        
+        // Deal with "firstOnly" relations
+        guard let firstOnlyIndex = association.sqlAssociation.steps.firstIndex(where: { $0.relation.firstOnly }) else {
             return request
-//        }
+        }
+        
+        if
+            let toManyIndex = association.sqlAssociation.steps.lastIndex(where: { !$0.isSingular }),
+            toManyIndex > firstOnlyIndex
+        {
+            fatalError("Not implemented: loading multiple records associated to a `first` or `last` to-one association")
+        }
+        
+        return request.limit(1)
     }
 }
 
