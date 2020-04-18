@@ -163,28 +163,30 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
             
             do {
                 let association = A.c.first
-                try assertMatchSQL(db, A.all().including(required: association), """
-                    SELECT "a".*, "c".*
-                    FROM "a"
-                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    JOIN "c" ON "c"."id" = "b"."cId"
-                    """)
-                try assertMatchSQL(db, A.all().including(optional: association), """
-                    SELECT "a".*, "c".*
-                    FROM "a"
-                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    LEFT JOIN "c" ON "c"."id" = "b"."cId"
-                    """)
-                try assertMatchSQL(db, A.all().joining(required: association), """
-                    SELECT "a".*
-                    FROM "a"
-                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    """)
-                try assertMatchSQL(db, A.all().joining(optional: association), """
-                    SELECT "a".*
-                    FROM "a"
-                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                try assertMatchSQL(db, A.all().including(required: association), """
+//                    SELECT "a".*, "c".*
+//                    FROM "a"
+//                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    JOIN "c" ON "c"."id" = "b"."cId"
+//                    """)
+//                try assertMatchSQL(db, A.all().including(optional: association), """
+//                    SELECT "a".*, "c".*
+//                    FROM "a"
+//                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    LEFT JOIN "c" ON "c"."id" = "b"."cId"
+//                    """)
+//                try assertMatchSQL(db, A.all().joining(required: association), """
+//                    SELECT "a".*
+//                    FROM "a"
+//                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    """)
+//                try assertMatchSQL(db, A.all().joining(optional: association), """
+//                    SELECT "a".*
+//                    FROM "a"
+//                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."id" = "b"."cId" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    """)
                 try assertMatchSQL(db, A().request(for: association), """
                     SELECT "c".*
                     FROM "c"
@@ -225,28 +227,30 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
             
             do {
                 let association = A.c.first
-                try assertMatchSQL(db, A.all().including(required: association), """
-                    SELECT "a".*, "c".*
-                    FROM "a"
-                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    JOIN "c" ON "c"."bId" = "b"."id"
-                    """)
-                try assertMatchSQL(db, A.all().including(optional: association), """
-                    SELECT "a".*, "c".*
-                    FROM "a"
-                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    LEFT JOIN "c" ON "c"."bId" = "b"."id"
-                    """)
-                try assertMatchSQL(db, A.all().joining(required: association), """
-                    SELECT "a".*
-                    FROM "a"
-                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    """)
-                try assertMatchSQL(db, A.all().joining(optional: association), """
-                    SELECT "a".*
-                    FROM "a"
-                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
-                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                try assertMatchSQL(db, A.all().including(required: association), """
+//                    SELECT "a".*, "c".*
+//                    FROM "a"
+//                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    JOIN "c" ON "c"."bId" = "b"."id"
+//                    """)
+//                try assertMatchSQL(db, A.all().including(optional: association), """
+//                    SELECT "a".*, "c".*
+//                    FROM "a"
+//                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    LEFT JOIN "c" ON "c"."bId" = "b"."id"
+//                    """)
+//                try assertMatchSQL(db, A.all().joining(required: association), """
+//                    SELECT "a".*
+//                    FROM "a"
+//                    JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    """)
+//                try assertMatchSQL(db, A.all().joining(optional: association), """
+//                    SELECT "a".*
+//                    FROM "a"
+//                    LEFT JOIN "b" ON "b"."id" = (SELECT "b"."id" FROM "b" LEFT JOIN "c" ON "c"."bId" = "b"."id" WHERE "b"."aId" = "a"."id" LIMIT 1)
+//                    """)
                 try assertMatchSQL(db, A().request(for: association), """
                     SELECT "c".*
                     FROM "c"
@@ -294,58 +298,21 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
             }
             
             do {
-                let association = A.d
-                XCTFail("TODO: fix generated SQL")
-                // TODO: remove the d from the subquery
-                try assertMatchSQL(db, A.all().including(required: association), """
-                    SELECT "a".*, "d".*
-                    FROM "a"
-                    JOIN "b" ON "b"."id" = "a"."bId"
-                    JOIN "c" ON "c"."id" = (
-                        SELECT "c"."id"
-                        FROM "c"
-                        JOIN "d" ON "d"."cId" = "c"."id"
-                        WHERE "c"."bId" = "b"."id"
-                        LIMIT 1)
-                    JOIN "d" ON "d"."cId" = "c"."id"
-                    """)
-                // TODO: remove the d from the subquery
-                try assertMatchSQL(db, A.all().including(optional: association), """
-                    SELECT "a".*, "d".*
-                    FROM "a"
-                    LEFT JOIN "b" ON "b"."id" = "a"."bId"
-                    LEFT JOIN "c" ON "c"."id" = (
-                        SELECT "c"."id"
-                        FROM "c"
-                        LEFT JOIN "d" ON "d"."cId" = "c"."id"
-                        WHERE "c"."bId" = "b"."id"
-                        LIMIT 1)
-                    LEFT JOIN "d" ON "d"."cId" = "c"."id"
-                    """)
-                // TODO: remove the d from the subquery
-                // TODO: include the d in the outer query
-                try assertMatchSQL(db, A.all().joining(required: association), """
-                    SELECT "a".*
-                    FROM "a"
-                    JOIN "b" ON "b"."id" = "a"."bId"
-                    JOIN "c" ON "c"."id" = (
-                        SELECT "c"."id"
-                        FROM "c"
-                        JOIN "d" ON "d"."cId" = "c"."id"
-                        WHERE "c"."bId" = "b"."id" LIMIT 1)
-                    """)
-                // TODO: remove the d from the subquery
-                // TODO: include the d in the outer query
-                try assertMatchSQL(db, A.all().joining(optional: association), """
-                    SELECT "a".*
-                    FROM "a"
-                    LEFT JOIN "b" ON "b"."id" = "a"."bId"
-                    LEFT JOIN "c" ON "c"."id" = (
-                        SELECT "c"."id"
-                        FROM "c"
-                        LEFT JOIN "d" ON "d"."cId" = "c"."id"
-                        WHERE "c"."bId" = "b"."id" LIMIT 1)
-                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                let association = A.d
+//                try assertMatchSQL(db, A.all().including(required: association), """
+//                    SELECT ...
+//                    """)
+//                try assertMatchSQL(db, A.all().including(optional: association), """
+//                    SELECT ...
+//                    """)
+//                try assertMatchSQL(db, A.all().joining(required: association), """
+//                    SELECT ...
+//                    """)
+//                try assertMatchSQL(db, A.all().joining(optional: association), """
+//                    SELECT ...
+//                    """)
                 // TODO: implement
                 // Not implemented: loading multiple records associated to a `first` or `last` to-one association
 //                try assertMatchSQL(db, A().request(for: association), """
@@ -390,51 +357,22 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
         
         try dbQueue.inDatabase { db in
             do {
-                let association = Parent.hasMany(
-                    Pet.self,
-                    through: Parent.children.joining(required: Child.toy),
-                    using: Child.pets)
-                    .first
-                try assertMatchSQL(db, Parent.all().including(required: association), """
-                    SELECT "parent".*, "pet".*
-                    FROM "parent"
-                    JOIN "child" ON "child"."id" = (
-                        SELECT "child"."id"
-                        FROM "child"
-                        JOIN "toy" ON "toy"."childId" = "child"."id"
-                        JOIN "pet" ON "pet"."rowid" = (
-                            SELECT "pet"."rowid"
-                            FROM "pet" WHERE "pet"."childId" = "child"."id"
-                            LIMIT 1)
-                        WHERE "child"."parentId" = "parent"."id"
-                        LIMIT 1)
-                    JOIN "pet" ON "pet"."rowid" = (SELECT "pet"."rowid" FROM "pet" WHERE "pet"."childId" = "child"."id" LIMIT 1)
-                    """)
-                try assertMatchSQL(db, Parent.all().joining(required: association), """
-                    SELECT "parent".*
-                    FROM "parent"
-                    JOIN "child" ON "child"."id" = (
-                        SELECT "child"."id"
-                        FROM "child"
-                        JOIN "toy" ON "toy"."childId" = "child"."id"
-                        JOIN "pet" ON "pet"."rowid" = (
-                            SELECT "pet"."rowid"
-                            FROM "pet" WHERE "pet"."childId" = "child"."id"
-                            LIMIT 1)
-                        WHERE "child"."parentId" = "parent"."id"
-                        LIMIT 1)
-                    """)
-                try assertMatchSQL(db, Parent().request(for: association), """
-                    SELECT "pet".*
-                    FROM "pet"
-                    JOIN "child" ON "child"."id" = (
-                        SELECT "child"."id"
-                        FROM "child"
-                        JOIN "toy" ON "toy"."childId" = "child"."id"
-                        WHERE ("child"."id" = "pet"."childId") AND ("child"."parentId" = 1)
-                        LIMIT 1)
-                    LIMIT 1
-                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                let association = Parent.hasMany(
+//                    Pet.self,
+//                    through: Parent.children.joining(required: Child.toy),
+//                    using: Child.pets)
+//                    .first
+//                try assertMatchSQL(db, Parent.all().including(required: association), """
+//                    SELECT ...
+//                    """)
+//                try assertMatchSQL(db, Parent.all().joining(required: association), """
+//                    SELECT ...
+//                    """)
+//                try assertMatchSQL(db, Parent().request(for: association), """
+//                    SELECT ...
+//                    """)
             }
             do {
                 let association = Parent.hasMany(
@@ -442,45 +380,16 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     through: Parent.children.filter(sql: "1 + 1"),
                     using: Child.pets.joining(required: Pet.child.filter(sql: "1").joining(required: Child.toy)))
                     .first
-                try assertMatchSQL(db, Parent.all().including(required: association), """
-                    SELECT "parent".*, "pet".*
-                    FROM "parent"
-                    JOIN "child" ON "child"."id" = (
-                        SELECT "child"."id"
-                        FROM "child"
-                        JOIN "pet" ON "pet"."rowid" = (
-                            SELECT "pet"."rowid"
-                            FROM "pet"
-                            JOIN "child" ON ("child"."id" = "pet"."childId") AND (1)
-                            JOIN "toy" ON "toy"."childId" = "child"."id"
-                            WHERE "pet"."childId" = "child"."id"
-                            LIMIT 1)
-                        WHERE ("child"."parentId" = "parent"."id") AND (1 + 1)
-                        LIMIT 1)
-                    JOIN "pet" ON "pet"."rowid" = (
-                        SELECT "pet"."rowid"
-                        FROM "pet"
-                        JOIN "child" ON ("child"."id" = "pet"."childId") AND (1)
-                        JOIN "toy" ON "toy"."childId" = "child"."id"
-                        WHERE "pet"."childId" = "child"."id"
-                        LIMIT 1)
-                    """)
-                try assertMatchSQL(db, Parent.all().joining(required: association), """
-                    SELECT "parent".*
-                    FROM "parent"
-                    JOIN "child" ON "child"."id" = (
-                        SELECT "child"."id"
-                        FROM "child"
-                        JOIN "pet" ON "pet"."rowid" = (
-                            SELECT "pet"."rowid"
-                            FROM "pet"
-                            JOIN "child" ON ("child"."id" = "pet"."childId") AND (1)
-                            JOIN "toy" ON "toy"."childId" = "child"."id"
-                            WHERE "pet"."childId" = "child"."id"
-                            LIMIT 1)
-                        WHERE ("child"."parentId" = "parent"."id") AND (1 + 1)
-                        LIMIT 1)
-                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                try assertMatchSQL(db, Parent.all().including(required: association), """
+//                    SELECT ...
+//                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                try assertMatchSQL(db, Parent.all().joining(required: association), """
+//                    SELECT ...
+//                    """)
                 try assertMatchSQL(db, Parent().request(for: association), """
                     SELECT "pet".*
                     FROM "pet"
@@ -501,46 +410,16 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     using: Child.pets)
                     .joining(required: Pet.child.filter(sql: "1").joining(required: Child.toy))
                     .first
-                try assertMatchSQL(db, Parent.all().including(required: association), """
-                    SELECT "parent".*, "pet".*
-                    FROM "parent"
-                    JOIN "child" ON "child"."id" = (
-                        SELECT "child"."id"
-                        FROM "child"
-                        JOIN "pet" ON "pet"."rowid" = (
-                            SELECT "pet"."rowid"
-                            FROM "pet"
-                            JOIN "child" ON ("child"."id" = "pet"."childId") AND (1)
-                            JOIN "toy" ON "toy"."childId" = "child"."id"
-                            WHERE "pet"."childId" = "child"."id"
-                            LIMIT 1)
-                        WHERE ("child"."parentId" = "parent"."id") AND (1 + 1)
-                        LIMIT 1)
-                    JOIN "pet" ON "pet"."rowid" = (
-                        SELECT "pet"."rowid"
-                        FROM "pet"
-                        JOIN "child" ON ("child"."id" = "pet"."childId") AND (1)
-                        JOIN "toy" ON "toy"."childId" = "child"."id"
-                        WHERE "pet"."childId" = "child"."id"
-                        LIMIT 1)
-                    """)
-                try assertMatchSQL(db, Parent.all().joining(required: association), """
-                    SELECT "parent".*
-                    FROM "parent"
-                    JOIN "child"
-                    ON "child"."id" = (
-                        SELECT "child"."id"
-                        FROM "child"
-                        JOIN "pet" ON "pet"."rowid" = (
-                            SELECT "pet"."rowid"
-                            FROM "pet"
-                            JOIN "child" ON ("child"."id" = "pet"."childId") AND (1)
-                            JOIN "toy" ON "toy"."childId" = "child"."id"
-                            WHERE "pet"."childId" = "child"."id"
-                            LIMIT 1)
-                        WHERE ("child"."parentId" = "parent"."id") AND (1 + 1)
-                        LIMIT 1)
-                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                try assertMatchSQL(db, Parent.all().including(required: association), """
+//                    SELECT ...
+//                    """)
+                // TODO: implement
+                // Not implemented: associating records to a `first` or `last` to-one association
+//                try assertMatchSQL(db, Parent.all().joining(required: association), """
+//                    SELECT ...
+//                    """)
                 try assertMatchSQL(db, Parent().request(for: association), """
                     SELECT "pet".*
                     FROM "pet"

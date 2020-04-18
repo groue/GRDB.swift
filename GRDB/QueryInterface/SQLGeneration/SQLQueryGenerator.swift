@@ -611,6 +611,18 @@ private struct SQLQualifiedJoin: Refinable {
     enum Kind: String {
         case leftJoin = "LEFT JOIN"
         case innerJoin = "JOIN"
+        
+        init?(_ kind: SQLRelation.Child.Kind) {
+            switch kind {
+            case .oneRequired:
+                self = .innerJoin
+            case .oneOptional:
+                self = .leftJoin
+            case .allPrefetched, .allNotPrefetched:
+                // This relation child is not fetched with an SQL join.
+                return nil
+            }
+        }
     }
     
     enum Target {
@@ -624,42 +636,44 @@ private struct SQLQualifiedJoin: Refinable {
     var target: Target
     
     init?(_ child: SQLRelation.Child) {
-        switch child.kind {
-        case .oneRequired:
-            kind = .innerJoin
-        case .oneOptional:
-            kind = .leftJoin
-        case .allPrefetched, .allNotPrefetched:
-            // This relation child is not fetched with an SQL join.
+        guard let kind = Kind(child.kind) else {
             return nil
         }
+        self.kind = kind
+        self.condition = child.condition
         
-        condition = child.condition
+        // Remove non-joined grand children
+        let relation = child.relation.filteringChildren { Kind($0.kind) != nil }
         
-        if child.relation.firstOnly {
-            // Filters and order are handled in a subRelation.
-            // We only keep children that need to be exposed in the outer
-            // query (those with a non-empty selection).
-            #warning("TODO outerRelation 1")
-            // TODO: we may have a problem if we remove children used for
-            // ordering or filtering with aliases.
-            #warning("TODO outerRelation 2")
-            // TODO: keep children that have children with selection
-            #warning("TODO target")
-            // TODO: in the target remove to-many children
-            let outerRelation = child.relation
+        if relation.firstOnly {
+            // Split relation into an "outer" relation exposed to the rest of
+            // the query, and a "subRelation", private to the join, limited
+            // to a single row:
+            //
+            //      v--- outer relation
+            //      JOIN child ON id = (SELECT id FROM child ... LIMIT 1)
+            //                          ^--- subRelation
+            //
+            // Outer relation has no filter or ordering: those are handled
+            // by the subRelation.
+            
+            guard relation.children.isEmpty else {
+                // TODO: handle children
+                fatalError("Not implemented: associating records to a `first` or `last` to-one association")
+            }
+            
+            let outerRelation = relation
                 .with(\.firstOnly, false)
                 .unfiltered()
                 .unordered()
-                .filteringChildren { $0.relation.selection.isEmpty == false }
             
-            let subRelation = child.relation
+            let subRelation = relation
 
-            relation = SQLQualifiedRelation(outerRelation)
-            target = .subRelation(subRelation)
+            self.relation = SQLQualifiedRelation(outerRelation)
+            self.target = .subRelation(subRelation)
         } else {
-            relation = SQLQualifiedRelation(child.relation)
-            target = .all
+            self.relation = SQLQualifiedRelation(child.relation)
+            self.target = .all
         }
     }
     
