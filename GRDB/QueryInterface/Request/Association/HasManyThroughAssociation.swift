@@ -56,13 +56,14 @@ public struct HasManyThroughAssociation<Origin: TableRecord, Destination: TableR
         self.sqlAssociation = sqlAssociation
     }
     
-    /// TODO
+    // TODO
     public var first: HasOneThroughAssociation<Origin, Destination> {
         HasOneThroughAssociation(sqlAssociation: sqlAssociation.associationForFirst())
+            .forKey("first\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
-    /// TODO
+    // TODO
     public var last: HasOneThroughAssociation<Origin, Destination> {
-        reversed().first
+        reversed().first.forKey("last\(key.singularizedName.uppercasingFirstCharacter)")
     }
 }

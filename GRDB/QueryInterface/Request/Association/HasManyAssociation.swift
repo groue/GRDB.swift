@@ -100,13 +100,68 @@ public struct HasManyAssociation<Origin: TableRecord, Destination: TableRecord>:
             cardinality: .toMany)
     }
     
-    /// TODO
+    /// Creates a "Has one" association between the source and
+    /// destination types.
+    ///
+    ///     struct Book: TableRecord { ... }
+    ///     struct Author: TableRecord {
+    ///         static let firstBook = hasMany(Book.self).order(Column("year")).first
+    ///     }
+    ///
+    /// The association lets you define requests that load both the source
+    /// and the destination type:
+    ///
+    ///     // A request for all (author, firstBook) pairs:
+    ///     let request = Author.including(required: Author.firstBook)
+    ///
+    /// To consume those requests, define a type that adopts both the
+    /// FetchableRecord and Decodable protocols:
+    ///
+    ///     struct Authorship: FetchableRecord, Decodable {
+    ///         var author: Author
+    ///         var firstBook: Book
+    ///     }
+    ///
+    ///     let authorships = try dbQueue.read { db in
+    ///         return try Authorship.fetchAll(db, request)
+    ///     }
+    ///     for authorship in authorships {
+    ///         print("\(authorship.author.name) wrote \(authorship.firstBook.title) first")
+    ///     }
     public var first: HasOneAssociation<Origin, Destination> {
         HasOneAssociation(sqlAssociation: sqlAssociation.associationForFirst())
+            .forKey("first\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
-    /// TODO
+    /// Creates a "Has one" association between the source and
+    /// destination types.
+    ///
+    ///     struct Book: TableRecord { ... }
+    ///     struct Author: TableRecord {
+    ///         static let lastBook = hasMany(Book.self).order(Column("year")).last
+    ///     }
+    ///
+    /// The association lets you define requests that load both the source
+    /// and the destination type:
+    ///
+    ///     // A request for all (author, firstBook) pairs:
+    ///     let request = Author.including(required: Author.firstBook)
+    ///
+    /// To consume those requests, define a type that adopts both the
+    /// FetchableRecord and Decodable protocols:
+    ///
+    ///     struct Authorship: FetchableRecord, Decodable {
+    ///         var author: Author
+    ///         var lastBook: Book
+    ///     }
+    ///
+    ///     let authorships = try dbQueue.read { db in
+    ///         return try Authorship.fetchAll(db, request)
+    ///     }
+    ///     for authorship in authorships {
+    ///         print("\(authorship.author.name) wrote \(authorship.lastBook.title) last")
+    ///     }
     public var last: HasOneAssociation<Origin, Destination> {
-        reversed().first
+        reversed().first.forKey("last\(key.singularizedName.uppercasingFirstCharacter)")
     }
 }
