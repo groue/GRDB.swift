@@ -257,6 +257,104 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
         }
     }
     
+    func testHasManyThroughHasManyFirst() throws {
+        struct A: TableRecord, EncodableRecord {
+            static let b = belongsTo(B.self)
+            static let c = hasMany(C.self, through: b, using: B.c)
+            static let d = hasMany(D.self, through: c.first, using: C.d)
+            func encode(to container: inout PersistenceContainer) {
+                container["bId"] = 1
+            }
+        }
+        struct B: TableRecord {
+            static let c = hasMany(C.self)
+        }
+        struct C: TableRecord {
+            static let d = hasMany(D.self)
+        }
+        struct D: TableRecord {
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "b") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "a") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("bId").references("b")
+            }
+            try db.create(table: "c") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("bId").references("b")
+            }
+            try db.create(table: "d") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("cId").references("c")
+            }
+            
+            do {
+                let association = A.d
+                XCTFail("TODO: fix generated SQL")
+                // TODO: remove the d from the subquery
+                try assertMatchSQL(db, A.all().including(required: association), """
+                    SELECT "a".*, "d".*
+                    FROM "a"
+                    JOIN "b" ON "b"."id" = "a"."bId"
+                    JOIN "c" ON "c"."id" = (
+                        SELECT "c"."id"
+                        FROM "c"
+                        JOIN "d" ON "d"."cId" = "c"."id"
+                        WHERE "c"."bId" = "b"."id"
+                        LIMIT 1)
+                    JOIN "d" ON "d"."cId" = "c"."id"
+                    """)
+                // TODO: remove the d from the subquery
+                try assertMatchSQL(db, A.all().including(optional: association), """
+                    SELECT "a".*, "d".*
+                    FROM "a"
+                    LEFT JOIN "b" ON "b"."id" = "a"."bId"
+                    LEFT JOIN "c" ON "c"."id" = (
+                        SELECT "c"."id"
+                        FROM "c"
+                        LEFT JOIN "d" ON "d"."cId" = "c"."id"
+                        WHERE "c"."bId" = "b"."id"
+                        LIMIT 1)
+                    LEFT JOIN "d" ON "d"."cId" = "c"."id"
+                    """)
+                // TODO: remove the d from the subquery
+                // TODO: include the d in the outer query
+                try assertMatchSQL(db, A.all().joining(required: association), """
+                    SELECT "a".*
+                    FROM "a"
+                    JOIN "b" ON "b"."id" = "a"."bId"
+                    JOIN "c" ON "c"."id" = (
+                        SELECT "c"."id"
+                        FROM "c"
+                        JOIN "d" ON "d"."cId" = "c"."id"
+                        WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    """)
+                // TODO: remove the d from the subquery
+                // TODO: include the d in the outer query
+                try assertMatchSQL(db, A.all().joining(optional: association), """
+                    SELECT "a".*
+                    FROM "a"
+                    LEFT JOIN "b" ON "b"."id" = "a"."bId"
+                    LEFT JOIN "c" ON "c"."id" = (
+                        SELECT "c"."id"
+                        FROM "c"
+                        LEFT JOIN "d" ON "d"."cId" = "c"."id"
+                        WHERE "c"."bId" = "b"."id" LIMIT 1)
+                    """)
+                // TODO: implement
+                // Not implemented: loading multiple records associated to a `first` or `last` to-one association
+//                try assertMatchSQL(db, A().request(for: association), """
+//                    SELECT ...
+//                    """)
+            }
+        }
+    }
+    
     func testAssociationFilteredByOtherAssociation() throws {
         struct Pet: TableRecord {
             static let child = belongsTo(Child.self)
@@ -389,11 +487,11 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                     JOIN "child" "child1" ON ("child1"."id" = "pet"."childId") AND (1)
                     JOIN "toy" ON "toy"."childId" = "child1"."id"
                     JOIN "child" "child2" ON "child2"."id" = (
-                        SELECT "child2"."id"
-                        FROM "child" "child2"
-                        WHERE ("child2"."id" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                        SELECT "child"."id"
+                        FROM "child"
+                        WHERE ("child"."id" = "pet"."childId") AND (1 + 1) AND ("child"."parentId" = 1)
                         LIMIT 1)
-                    LIMIT 1
+                        LIMIT 1
                     """)
             }
             do {
