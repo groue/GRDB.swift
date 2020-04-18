@@ -136,24 +136,45 @@ class GRDBTestCase: XCTestCase {
         XCTAssertEqual(recordDict, rowDict, file: file, line: line)
     }
     
-    // Compare SQL strings (ignoring leading and trailing white space and semicolons.
+    /// Compares SQL strings (ignoring leading and trailing white space and semicolons).
     func assertEqualSQL(_ lhs: String, _ rhs: String, file: StaticString = #file, line: UInt = #line) {
-        // Trim white space and ";"
         let cs = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ";"))
         XCTAssertEqual(lhs.trimmingCharacters(in: cs), rhs.trimmingCharacters(in: cs), file: file, line: line)
     }
     
-    // Compare SQL strings (ignoring leading and trailing white space and semicolons.
+    /// Compares SQL strings (ignoring leading and trailing white space and semicolons).
     func assertEqualSQL<Request: FetchRequest>(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         try request.statement.makeCursor().next()
         assertEqualSQL(lastSQLQuery, sql, file: file, line: line)
     }
     
-    // Compare SQL strings (ignoring leading and trailing white space and semicolons.
+    /// Compares SQL strings (ignoring leading and trailing white space and semicolons).
     func assertEqualSQL<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
         try databaseReader.unsafeRead { db in
             try assertEqualSQL(db, request, sql, file: file, line: line)
+        }
+    }
+    
+    /// Compares SQL strings (ignoring ALL white space and semicolons).
+    func assertMatchSQL(_ lhs: String, _ rhs: String, file: StaticString = #file, line: UInt = #line) {
+        let cs = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ";"))
+        let lScalars = Array(lhs.unicodeScalars.filter { !cs.contains($0) })
+        let rScalars = Array(rhs.unicodeScalars.filter { !cs.contains($0) })
+        XCTAssert(lScalars == rScalars, "assertMatchSQL failed: \(lhs) does not match \(rhs)", file: file, line: line)
+    }
+    
+    /// Compares SQL strings (ignoring ALL white space and semicolons).
+    func assertMatchSQL<Request: FetchRequest>(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
+        try request.statement.makeCursor().next()
+        assertMatchSQL(lastSQLQuery, sql, file: file, line: line)
+    }
+    
+    /// Compares SQL strings (ignoring ALL white space and semicolons).
+    func assertMatchSQL<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
+        try databaseReader.unsafeRead { db in
+            try assertMatchSQL(db, request, sql, file: file, line: line)
         }
     }
     
