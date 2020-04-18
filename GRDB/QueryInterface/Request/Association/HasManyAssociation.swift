@@ -145,7 +145,7 @@ public struct HasManyAssociation<Origin: TableRecord, Destination: TableRecord>:
     /// and the destination type:
     ///
     ///     // A request for all (author, firstBook) pairs:
-    ///     let request = Author.including(required: Author.firstBook)
+    ///     let request = Author.including(required: Author.lastBook)
     ///
     /// To consume those requests, define a type that adopts both the
     /// FetchableRecord and Decodable protocols:
