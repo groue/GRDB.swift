@@ -484,47 +484,7 @@ private struct SQLQualifiedRelation {
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
-        joins = relation.children.compactMapValues { child -> SQLQualifiedJoin? in
-            let kind: SQLQualifiedJoin.Kind
-            switch child.kind {
-            case .oneRequired:
-                kind = .innerJoin
-            case .oneOptional:
-                kind = .leftJoin
-            case .allPrefetched, .allNotPrefetched:
-                // This relation child is not fetched with an SQL join.
-                return nil
-            }
-            
-            if child.relation.firstOnly {
-                // Filters and order are handled in a subquery (see target below).
-                // We only keep children that need to be exposed in the outer
-                // query (those with a non-empty selection).
-                #warning("TODO outerRelation 1")
-                // TODO: we may have a problem if we remove children used for
-                // ordering or filtering with aliases.
-                #warning("TODO outerRelation 2")
-                // TODO: keep children that have children with selection
-                #warning("TODO target")
-                // TODO: in the target remove to-many children
-                let outerRelation = child.relation
-                    .with(\.firstOnly, false)
-                    .unfiltered()
-                    .unordered()
-                    .filteringChildren { $0.relation.selection.isEmpty == false }
-                return SQLQualifiedJoin(
-                    kind: kind,
-                    condition: child.condition,
-                    relation: SQLQualifiedRelation(outerRelation),
-                    target: .firstOnly(child.relation))
-            } else {
-                return SQLQualifiedJoin(
-                    kind: kind,
-                    condition: child.condition,
-                    relation: SQLQualifiedRelation(child.relation),
-                    target: .all)
-            }
-        }
+        joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
         sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: sourceAlias) }
         filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: sourceAlias) } }
         sourceOrdering = relation.ordering.qualified(with: sourceAlias)
@@ -655,13 +615,53 @@ private struct SQLQualifiedJoin: Refinable {
     
     enum Target {
         case all
-        case firstOnly(SQLRelation)
+        case subRelation(SQLRelation)
     }
     
     var kind: Kind
     var condition: SQLAssociationCondition
     var relation: SQLQualifiedRelation
     var target: Target
+    
+    init?(_ child: SQLRelation.Child) {
+        switch child.kind {
+        case .oneRequired:
+            kind = .innerJoin
+        case .oneOptional:
+            kind = .leftJoin
+        case .allPrefetched, .allNotPrefetched:
+            // This relation child is not fetched with an SQL join.
+            return nil
+        }
+        
+        condition = child.condition
+        
+        if child.relation.firstOnly {
+            // Filters and order are handled in a subRelation.
+            // We only keep children that need to be exposed in the outer
+            // query (those with a non-empty selection).
+            #warning("TODO outerRelation 1")
+            // TODO: we may have a problem if we remove children used for
+            // ordering or filtering with aliases.
+            #warning("TODO outerRelation 2")
+            // TODO: keep children that have children with selection
+            #warning("TODO target")
+            // TODO: in the target remove to-many children
+            let outerRelation = child.relation
+                .with(\.firstOnly, false)
+                .unfiltered()
+                .unordered()
+                .filteringChildren { $0.relation.selection.isEmpty == false }
+            
+            let subRelation = child.relation
+
+            relation = SQLQualifiedRelation(outerRelation)
+            target = .subRelation(subRelation)
+        } else {
+            relation = SQLQualifiedRelation(child.relation)
+            target = .all
+        }
+    }
     
     func sql(_ db: Database, _ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
@@ -705,7 +705,7 @@ private struct SQLQualifiedJoin: Refinable {
             if filters.isEmpty == false {
                 sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
             }
-        case let .firstOnly(subRelation):
+        case let .subRelation(subRelation):
             guard let primaryKey = try subRelation.primaryKeyExpression(db) else {
                 fatalError("Not implemented")
             }
