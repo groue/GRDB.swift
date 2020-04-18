@@ -77,7 +77,7 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
         }
     }
     
-    func testHasManyFirstWithDeeperAssociation() throws {
+    func testHasManyFirstWithOneDeeperAssociation() throws {
         struct Toy: TableRecord { }
         struct Child: TableRecord { }
         struct Parent: TableRecord, EncodableRecord {
@@ -262,6 +262,149 @@ class AssociationHasManyFirstSQLTests: GRDBTestCase {
                         ORDER BY "child"."id"
                         LIMIT 1)
                     JOIN "toy" ON ("toy"."childId" = "child"."id") AND ("toy"."id" = ("parent"."id" * 2))
+                    """)
+            }
+        }
+    }
+    
+    func testHasManyFirstWithTwoDeeperAssociations() throws {
+        struct Vendor: TableRecord { }
+        struct Toy: TableRecord { }
+        struct Child: TableRecord { }
+        struct Parent: TableRecord, EncodableRecord {
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+                container["rowid"] = 2
+            }
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parent") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "vendor") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "child") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("parentId", .integer).references("parent")
+            }
+            try db.create(table: "toy") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("childId", .integer).references("child")
+                t.column("vendorId", .integer).references("vendor")
+            }
+
+            do {
+                let association = Parent
+                    .hasMany(Child.self)
+                    .orderByPrimaryKey()
+                    .first
+                    .joining(required: Child.hasOne(Toy.self).including(optional: Toy.belongsTo(Vendor.self)))
+                XCTFail("TODO: fix SQL")
+                // TODO: vendor is included and should be present in the selection
+                try assertMatchSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "child".*
+                    FROM "parent"
+                    JOIN "child" ON "child"."id" = (
+                        SELECT "child"."id"
+                        FROM "child"
+                        JOIN "toy" ON "toy"."childId" = "child"."id"
+                        LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId" 
+                        WHERE "child"."parentId" = "parent"."id"
+                        ORDER BY "child"."id"
+                        LIMIT 1)
+                    """)
+                try assertMatchSQL(db, Parent.all().including(optional: association), """
+                    SELECT "parent".*, "child".*
+                    FROM "parent"
+                    LEFT JOIN "child" ON "child"."id" = (
+                        SELECT "child"."id"
+                        FROM "child"
+                        JOIN "toy" ON "toy"."childId" = "child"."id"
+                        LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                        WHERE "child"."parentId" = "parent"."id"
+                        ORDER BY "child"."id" LIMIT 1)
+                    """)
+                try assertMatchSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".*
+                    FROM "parent"
+                    JOIN "child" ON "child"."id" = (
+                        SELECT "child"."id"
+                        FROM "child"
+                        JOIN "toy" ON "toy"."childId" = "child"."id"
+                        LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                        WHERE "child"."parentId" = "parent"."id"
+                        ORDER BY "child"."id"
+                        LIMIT 1)
+                    """)
+                try assertMatchSQL(db, Parent.all().joining(optional: association), """
+                    SELECT "parent".*
+                    FROM "parent"
+                    LEFT JOIN "child" ON "child"."id" = (
+                        SELECT "child"."id"
+                        FROM "child"
+                        JOIN "toy" ON "toy"."childId" = "child"."id"
+                        LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                        WHERE "child"."parentId" = "parent"."id"
+                        ORDER BY "child"."id"
+                        LIMIT 1)
+                    """)
+                try assertMatchSQL(db, Parent().request(for: association), """
+                    SELECT "child".*, "vendor".*
+                    FROM "child"
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
+                    LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                    WHERE "child"."parentId" = 1
+                    ORDER BY "child"."id"
+                    LIMIT 1
+                    """)
+            }
+            
+            do {
+                let association = Parent
+                    .hasMany(Child.self)
+                    .orderByPrimaryKey()
+                    .first
+                    .including(required: Child.hasOne(Toy.self).including(optional: Toy.belongsTo(Vendor.self)))
+                XCTFail("TODO: check SQL")
+                try assertMatchSQL(db, Parent.all().including(required: association), """
+                    SELECT "parent".*, "child".*, "toy".*, "vendor".*
+                    FROM "parent"
+                    JOIN "child" ON "child"."id" = (
+                        SELECT "child"."id"
+                        FROM "child"
+                        JOIN "toy" ON "toy"."childId" = "child"."id"
+                        LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                        WHERE "child"."parentId" = "parent"."id"
+                        ORDER BY "child"."id"
+                        LIMIT 1)
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
+                    LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                    """)
+                try assertMatchSQL(db, Parent.all().joining(required: association), """
+                    SELECT "parent".*, "toy".*, "vendor".*
+                    FROM "parent"
+                    JOIN "child" ON "child"."id" = (
+                        SELECT "child"."id"
+                        FROM "child"
+                        JOIN "toy" ON "toy"."childId" = "child"."id"
+                        LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                        WHERE "child"."parentId" = "parent"."id"
+                        ORDER BY "child"."id"
+                        LIMIT 1)
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
+                    LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                    """)
+                try assertMatchSQL(db, Parent().request(for: association), """
+                    SELECT "child".*, "toy".*, "vendor".*
+                    FROM "child"
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
+                    LEFT JOIN "vendor" ON "vendor"."id" = "toy"."vendorId"
+                    WHERE "child"."parentId" = 1
+                    ORDER BY "child"."id"
+                    LIMIT 1
                     """)
             }
         }
