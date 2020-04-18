@@ -780,6 +780,7 @@ class AssociationHasManySQLTests: GRDBTestCase {
                 t.autoIncrementedPrimaryKey("id")
             }
             try db.create(table: "child") { t in
+                t.autoIncrementedPrimaryKey("id")
                 t.column("parentId", .integer).references("parent")
             }
             try db.create(table: "toy") { t in
@@ -793,17 +794,17 @@ class AssociationHasManySQLTests: GRDBTestCase {
                 try assertEqualSQL(db, Parent.all().including(required: association), """
                     SELECT "parent".*, "child".* \
                     FROM "parent" JOIN "child" ON "child"."parentId" = "parent"."id" \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid"
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
                     """)
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* FROM "parent" \
                     JOIN "child" ON "child"."parentId" = "parent"."id" \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid"
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
                     """)
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "child".* \
                     FROM "child" \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
+                    JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = 1
                     """)
             }
