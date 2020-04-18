@@ -98,7 +98,12 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     
     func associationForFirst() -> Self {
-        SQLAssociation(steps: steps.map { $0.with(\.firstOnly, true) })
+        SQLAssociation(steps: steps.map { step in
+            switch step.cardinality {
+            case .toMany: return step.with(\.firstOnly, true)
+            case .toOne: return step
+            }
+        })
     }
     
     /// Given an origin alias and rows, returns the destination of the
