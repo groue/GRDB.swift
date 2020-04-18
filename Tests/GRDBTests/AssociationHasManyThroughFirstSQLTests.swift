@@ -443,15 +443,15 @@ class AssociationHasManyThroughFirstSQLTests: GRDBTestCase {
                         WHERE ("child"."parentId" = "parent"."id") AND (1 + 1)
                         LIMIT 1)
                     """)
-                // TODO: no need for "child2" in the subquery
                 try assertMatchSQL(db, Parent().request(for: association), """
                     SELECT "pet".*
                     FROM "pet"
                     JOIN "child" "child1" ON ("child1"."id" = "pet"."childId") AND (1)
                     JOIN "toy" ON "toy"."childId" = "child1"."id"
                     JOIN "child" "child2" ON "child2"."id" = (
-                        SELECT "child2"."id" FROM "child" "child2"
-                        WHERE ("child2"."id" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                        SELECT "child"."id"
+                        FROM "child"
+                        WHERE ("child"."id" = "pet"."childId") AND (1 + 1) AND ("child"."parentId" = 1)
                         LIMIT 1)
                     LIMIT 1
                     """)
