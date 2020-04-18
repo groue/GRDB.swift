@@ -111,12 +111,12 @@ struct SQLRelation {
             // Record.including(all: associationThroughPivot)
             case allNotPrefetched
             
-            var cardinality: SQLAssociationCardinality {
+            var isSingular: Bool {
                 switch self {
                 case .oneOptional, .oneRequired:
-                    return .toOne
+                    return true
                 case .allPrefetched, .allNotPrefetched:
-                    return .toMany
+                    return false
                 }
             }
         }
@@ -141,12 +141,24 @@ struct SQLRelation {
         
         fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
             let key = SQLAssociationKey.fixed(key)
+            
+            let cardinality: SQLAssociationCardinality
+            switch kind {
+            case .oneOptional, .oneRequired:
+                if firstOnly {
+                    cardinality = .toFirstInMany
+                } else {
+                    cardinality = .toOne
+                }
+            case .allPrefetched, .allNotPrefetched:
+                cardinality = .toMany
+            }
+            
             return SQLAssociation(
                 key: key,
                 condition: condition,
                 relation: relation,
-                cardinality: kind.cardinality,
-                firstOnly: firstOnly)
+                cardinality: cardinality)
         }
     }
     
@@ -272,15 +284,23 @@ extension SQLRelation {
     func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
-        let childCardinality = (kind == .allNotPrefetched)
-            ? association.destination.cardinality
-            : kind.cardinality
-        let childKey = association.destination.key.name(for: childCardinality)
+        let isSingular = (kind == .allNotPrefetched)
+            ? association.destination.cardinality.isSingular
+            : kind.isSingular
+        let childKey = association.destination.key.name(singular: isSingular)
+        
+        let firstOnly: Bool
+        switch association.destination.cardinality {
+        case .toOne, .toMany:
+            firstOnly = false
+        case .toFirstInMany:
+            firstOnly = true
+        }
         let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
             relation: association.destination.relation,
-            firstOnly: association.destination.firstOnly)
+            firstOnly: firstOnly)
         
         let initialSteps = association.steps.dropLast()
         if initialSteps.isEmpty {

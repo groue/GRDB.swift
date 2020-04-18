@@ -97,8 +97,7 @@ public struct HasManyAssociation<Origin: TableRecord, Destination: TableRecord>:
             key: associationKey,
             condition: condition,
             relation: Destination.all().relation,
-            cardinality: .toMany,
-            firstOnly: false)
+            cardinality: .toMany)
     }
     
     /// TODO

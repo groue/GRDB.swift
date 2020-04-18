@@ -75,15 +75,13 @@ public /* TODO: internal */ struct SQLAssociation {
         key: SQLAssociationKey,
         condition: SQLAssociationCondition,
         relation: SQLRelation,
-        cardinality: SQLAssociationCardinality,
-        firstOnly: Bool)
+        cardinality: SQLAssociationCardinality)
     {
         let step = SQLAssociationStep(
             key: key,
             condition: condition,
             relation: relation,
-            cardinality: cardinality,
-            firstOnly: firstOnly)
+            cardinality: cardinality)
         self.init(steps: [step])
     }
     
@@ -100,8 +98,10 @@ public /* TODO: internal */ struct SQLAssociation {
     func associationForFirst() -> Self {
         SQLAssociation(steps: steps.map { step in
             switch step.cardinality {
-            case .toMany: return step.with(\.firstOnly, true)
-            case .toOne: return step
+            case .toOne, .toFirstInMany:
+                return step
+            case .toMany:
+                return step.with(\.cardinality, .toFirstInMany)
             }
         })
     }
@@ -189,7 +189,12 @@ public /* TODO: internal */ struct SQLAssociation {
                 // children are useless:
                 let relation = step.relation
                     .selectOnly([])
-                    .filteringChildren { $0.kind.cardinality == .toOne }
+                    .filteringChildren({
+                        switch $0.kind {
+                        case .allPrefetched, .allNotPrefetched: return false
+                        case .oneRequired, .oneOptional: return true
+                        }
+                    })
                 
                 // Don't interfere with user-defined keys that could be added later
                 let key = step.key.map(\.baseName) { "grdb_\($0)" }
@@ -198,8 +203,7 @@ public /* TODO: internal */ struct SQLAssociation {
                     key: key,
                     condition: nextStep.condition.reversed,
                     relation: relation,
-                    cardinality: .toOne,
-                    firstOnly: false)
+                    cardinality: .toOne)
             })
             .reversed()
         let reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
@@ -213,16 +217,24 @@ struct SQLAssociationStep: Refinable {
     var key: SQLAssociationKey
     var condition: SQLAssociationCondition
     var relation: SQLRelation
-    // TODO: I have problems understanding what cardinality=toMany + firstOnly=true mean.
     var cardinality: SQLAssociationCardinality
-    var firstOnly: Bool
     
-    var keyName: String { key.name(for: cardinality) }
+    var keyName: String { key.name(singular: cardinality.isSingular) }
 }
 
 enum SQLAssociationCardinality {
     case toOne
     case toMany
+    case toFirstInMany
+    
+    var isSingular: Bool {
+        switch self {
+        case .toOne, .toFirstInMany:
+            return true
+        case .toMany:
+            return false
+        }
+    }
 }
 
 // MARK: - SQLAssociationKey
@@ -333,11 +345,10 @@ enum SQLAssociationKey: Refinable {
         }
     }
     
-    func name(for cardinality: SQLAssociationCardinality) -> String {
-        switch cardinality {
-        case .toOne:
+    func name(singular: Bool) -> String {
+        if singular {
             return singularizedName
-        case .toMany:
+        } else {
             return pluralizedName
         }
     }

@@ -490,11 +490,11 @@ extension TableRecord where Self: EncodableRecord {
             try [Row(PersistenceContainer(db, self))]
         })
         let request = QueryInterfaceRequest<A.RowDecoder>(relation: destinationRelation)
-        if association.sqlAssociation.destination.firstOnly {
-            return request.limit(1)
-        } else {
+//        if association.sqlAssociation.destination.firstOnly {
+//            return request.limit(1)
+//        } else {
             return request
-        }
+//        }
     }
 }
 

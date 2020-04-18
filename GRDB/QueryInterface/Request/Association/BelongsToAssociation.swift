@@ -97,7 +97,6 @@ public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord
             key: associationKey,
             condition: condition,
             relation: Destination.all().relation,
-            cardinality: .toOne,
-            firstOnly: false)
+            cardinality: .toOne)
     }
 }
