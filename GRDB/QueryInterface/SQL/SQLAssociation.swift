@@ -149,13 +149,10 @@ public /* TODO: internal */ struct SQLAssociation {
     func destinationRelation(fromOriginRows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
         // Filter the pivot
         let pivot = self.pivot
-        let pivotAlias = TableAlias()
-        let filteredPivotRelation = pivot.relation
-            .qualified(with: pivotAlias)
-            .filter({ db in
-                // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
-                try pivot.condition.filteringExpression(db, leftRows: originRows(db), rightAlias: pivotAlias)
-            })
+        let filteredPivotRelation = pivot.relation.filter({ db in
+            // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
+            try pivot.condition.filteringExpression(db, leftRows: originRows(db))
+        })
         
         if steps.count == 1 {
             // This is a direct join from origin to destination, without

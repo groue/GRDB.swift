@@ -592,7 +592,7 @@ struct SQLAssociationCondition: Equatable {
     ///
     /// Given `right.a = left.b`, returns `right.a = 1` or
     /// `right.a IN (1, 2, 3)`.
-    func filteringExpression(_ db: Database, leftRows: [Row], rightAlias: TableAlias) throws -> SQLExpression {
+    func filteringExpression(_ db: Database, leftRows: [Row]) throws -> SQLExpression {
         if leftRows.isEmpty {
             // Degenerate case: there is no row to attach
             return false.sqlExpression
@@ -606,7 +606,7 @@ struct SQLAssociationCondition: Equatable {
         
         if columnMappings.count == 1 {
             // Join on a single right column.
-            let rightColumn = QualifiedColumn(columnMapping.right, alias: rightAlias)
+            let rightColumn = Column(columnMapping.right)
             
             // Unique database values and filter out NULL:
             var dbValues = Set(leftRows.map { $0[columnMapping.left] as DatabaseValue })
@@ -628,7 +628,7 @@ struct SQLAssociationCondition: Equatable {
                     // (table.a = 1) AND (table.b = 2)
                     columnMappings
                         .map({ columns -> SQLExpression in
-                            let rightColumn = QualifiedColumn(columns.right, alias: rightAlias)
+                            let rightColumn = Column(columns.right)
                             let leftValue = leftRow[columns.left] as DatabaseValue
                             return rightColumn == leftValue
                         })
