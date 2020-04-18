@@ -496,10 +496,11 @@ private struct SQLQualifiedRelation {
                 return nil
             }
             
-            if child.firstOnly {
+            if child.relation.firstInMany {
                 // Filters and order are handled in a subquery,
                 // and only keep children with a non-empty selection
                 let relation = child.relation
+                    .with(\.firstInMany, false)
                     .unfiltered()
                     .unordered()
                     .filteringChildren { $0.relation.selection.isEmpty == false }

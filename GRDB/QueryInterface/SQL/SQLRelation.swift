@@ -124,7 +124,6 @@ struct SQLRelation {
         var kind: Kind
         var condition: SQLAssociationCondition
         var relation: SQLRelation
-        var firstOnly: Bool
         
         /// Returns true iff this child can change the parent count.
         ///
@@ -145,11 +144,7 @@ struct SQLRelation {
             let cardinality: SQLAssociationCardinality
             switch kind {
             case .oneOptional, .oneRequired:
-                if firstOnly {
-                    cardinality = .toFirstInMany
-                } else {
-                    cardinality = .toOne
-                }
+                cardinality = .toOne
             case .allPrefetched, .allNotPrefetched:
                 cardinality = .toMany
             }
@@ -169,6 +164,9 @@ struct SQLRelation {
     // `((a AND b) AND c)`.
     var filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
+    // If true, the relation refers to the first row only, and we'll need to
+    // perform explicit limit at the SQL level.
+    var firstInMany = false
     var children: OrderedDictionary<String, Child> = [:]
     
     var prefetchedAssociations: [SQLAssociation] {
@@ -285,22 +283,13 @@ extension SQLRelation {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
         let isSingular = (kind == .allNotPrefetched)
-            ? association.destination.cardinality.isSingular
+            ? association.destination.isSingular
             : kind.isSingular
         let childKey = association.destination.key.name(singular: isSingular)
-        
-        let firstOnly: Bool
-        switch association.destination.cardinality {
-        case .toOne, .toMany:
-            firstOnly = false
-        case .toFirstInMany:
-            firstOnly = true
-        }
         let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
-            relation: association.destination.relation,
-            firstOnly: firstOnly)
+            relation: association.destination.relation)
         
         let initialSteps = association.steps.dropLast()
         if initialSteps.isEmpty {
@@ -668,6 +657,11 @@ struct SQLAssociationCondition: Equatable {
 extension SQLRelation {
     /// Returns nil if relations can't be merged (conflict in source, joins...)
     func merged(with other: SQLRelation) -> Self? {
+        guard firstInMany == other.firstInMany else {
+            // can't merge
+            return nil
+        }
+        
         guard let mergedSource = source.merged(with: other.source) else {
             // can't merge
             return nil
@@ -704,6 +698,7 @@ extension SQLRelation {
             selection: mergedSelection,
             filtersPromise: mergedFiltersPromise,
             ordering: mergedOrdering,
+            firstInMany: firstInMany,
             children: mergedChildren)
     }
 }
@@ -744,11 +739,6 @@ extension SQLRelation.Child {
             return nil
         }
         
-        guard firstOnly == other.firstOnly else {
-            // can't merge
-            return nil
-        }
-        
         guard let mergedRelation = relation.merged(with: other.relation) else {
             // can't merge
             return nil
@@ -762,8 +752,7 @@ extension SQLRelation.Child {
         return SQLRelation.Child(
             kind: mergedKind,
             condition: condition,
-            relation: mergedRelation,
-            firstOnly: firstOnly)
+            relation: mergedRelation)
     }
 }
 

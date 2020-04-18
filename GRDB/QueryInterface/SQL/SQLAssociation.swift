@@ -98,10 +98,10 @@ public /* TODO: internal */ struct SQLAssociation {
     func associationForFirst() -> Self {
         SQLAssociation(steps: steps.map { step in
             switch step.cardinality {
-            case .toOne, .toFirstInMany:
+            case .toOne:
                 return step
             case .toMany:
-                return step.with(\.cardinality, .toFirstInMany)
+                return step.map(\.relation) { $0.with(\.firstInMany, true) }
             }
         })
     }
@@ -219,22 +219,21 @@ struct SQLAssociationStep: Refinable {
     var relation: SQLRelation
     var cardinality: SQLAssociationCardinality
     
-    var keyName: String { key.name(singular: cardinality.isSingular) }
+    var isSingular: Bool {
+        switch cardinality {
+        case .toOne:
+            return true
+        case .toMany:
+            return relation.firstInMany
+        }
+    }
+    
+    var keyName: String { key.name(singular: isSingular) }
 }
 
 enum SQLAssociationCardinality {
     case toOne
     case toMany
-    case toFirstInMany
-    
-    var isSingular: Bool {
-        switch self {
-        case .toOne, .toFirstInMany:
-            return true
-        case .toMany:
-            return false
-        }
-    }
 }
 
 // MARK: - SQLAssociationKey
