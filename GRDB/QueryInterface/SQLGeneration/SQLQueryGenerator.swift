@@ -619,7 +619,7 @@ private struct SQLQualifiedJoin: Refinable {
             case .oneOptional:
                 self = .leftJoin
             case .allPrefetched, .allNotPrefetched:
-                // This relation child is not fetched with an SQL join.
+                // Eager loading of to-many associations is not implemented with joins
                 return nil
             }
         }
