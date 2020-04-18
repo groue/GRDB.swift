@@ -500,8 +500,13 @@ private struct SQLQualifiedRelation {
                 // Filters and order are handled in a subquery (see target below).
                 // We only keep children that need to be exposed in the outer
                 // query (those with a non-empty selection).
+                #warning("TODO outerRelation 1")
                 // TODO: we may have a problem if we remove children used for
                 // ordering or filtering with aliases.
+                #warning("TODO outerRelation 2")
+                // TODO: keep children that have children with selection
+                #warning("TODO target")
+                // TODO: in the target remove to-many children
                 let outerRelation = child.relation
                     .with(\.firstOnly, false)
                     .unfiltered()
