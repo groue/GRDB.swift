@@ -656,11 +656,6 @@ private struct SQLQualifiedJoin: Refinable {
             // Outer relation has no filter or ordering: those are handled
             // by the subRelation.
             
-            guard relation.children.isEmpty else {
-                // TODO: handle children
-                fatalError("Not implemented: associating records to a `first` or `last` to-one association")
-            }
-            
             let outerRelation = relation
                 .with(\.firstOnly, false)
                 .unfiltered()
@@ -728,7 +723,7 @@ private struct SQLQualifiedJoin: Refinable {
             guard let primaryKey = try subRelation.primaryKeyExpression(db) else {
                 fatalError("Not implemented: support for WITHOUT ROWID optimization")
             }
-            subRelation = subRelation.select([primaryKey])
+            subRelation = subRelation.selectOnly([primaryKey])
             
             // Subquery: ... WHERE <condition filters> AND <other filters>
             let filters = try condition.expressions(db, leftAlias: leftAlias)
