@@ -1,4 +1,3 @@
-
 /// SQLQueryGenerator is able to generate an SQL SELECT query.
 struct SQLQueryGenerator: Refinable {
     fileprivate private(set) var relation: SQLQualifiedRelation
@@ -627,7 +626,7 @@ private struct SQLQualifiedJoin: Refinable {
     
     enum Target {
         case all
-        case subRelation(SQLRelation)
+        case first(SQLRelation)
     }
     
     var kind: Kind
@@ -667,10 +666,8 @@ private struct SQLQualifiedJoin: Refinable {
                 .unfiltered()
                 .unordered()
             
-            let subRelation = relation
-
             self.relation = SQLQualifiedRelation(outerRelation)
-            self.target = .subRelation(subRelation)
+            self.target = .first(relation)
         } else {
             self.relation = SQLQualifiedRelation(relation)
             self.target = .all
@@ -709,32 +706,43 @@ private struct SQLQualifiedJoin: Refinable {
         case .leftJoin:
             allowsInnerJoin = false
         }
+        
+        // JOIN table...
         sql += try "\(kind.rawValue) \(relation.source.sql(db, &context))"
         
         let rightAlias = relation.sourceAlias
         switch target {
         case .all:
-            let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
-                + relation.filtersPromise.resolve(db)
+            // ... ON <join conditions> AND <other filters>
+            var filters = try condition.expressions(db, leftAlias: leftAlias)
+            filters += try relation.filtersPromise.resolve(db)
             if filters.isEmpty == false {
-                sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
+                let filterSQL = filters
+                    .joined(operator: .and)
+                    .qualifiedExpression(with: rightAlias)
+                    .expressionSQL(&context, wrappedInParenthesis: false)
+                sql += " ON \(filterSQL)"
             }
-        case let .subRelation(subRelation):
+        case var .first(subRelation):
+            // Subquery: SELECT id ...
             guard let primaryKey = try subRelation.primaryKeyExpression(db) else {
-                fatalError("Not implemented")
+                fatalError("Not implemented: support for WITHOUT ROWID optimization")
             }
-            let subAlias = TableAlias()
-            let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: subAlias)
-            let subRelation = subRelation
-                .qualified(with: subAlias)
-                .selectOnly([primaryKey])
-                .map(\.filtersPromise) { $0.flatMap { DatabasePromise(value: filters + $0) } }
-            let subQuery = SQLQuery(relation: subRelation, limit: SQLLimit(limit: 1, offset: nil))
-            let subQueryGenerator = SQLQueryGenerator(subQuery)
+            subRelation = subRelation.select([primaryKey])
             
+            // Subquery: ... WHERE <condition filters> AND <other filters>
+            let filters = try condition.expressions(db, leftAlias: leftAlias)
+            subRelation = subRelation.prependingFilters(filters)
+            
+            // Subquery: ... LIMIT 1
+            let subQuery = SQLQuery(relation: subRelation, limit: SQLLimit(limit: 1, offset: nil))
+            
+            // ... ON id = (SELECT id FROM table WHERE <condition filters> AND <other filters> LIMIT 1)
             sql += " ON "
             sql += rightAlias[primaryKey].expressionSQL(&context, wrappedInParenthesis: false)
-            sql += try " = (" + subQueryGenerator.sql(db, &context) + ")"
+            sql += " = ("
+            sql += try SQLQueryGenerator(subQuery).sql(db, &context)
+            sql += ")"
         }
         
         for (_, join) in relation.joins {

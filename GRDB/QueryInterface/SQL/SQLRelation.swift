@@ -224,6 +224,15 @@ extension SQLRelation: Refinable {
         }
     }
     
+    // Prepending filters for aesthetic reasons
+    func prependingFilters(_ filters: [SQLExpression]) -> Self {
+        map(\.filtersPromise) { filtersPromise in
+            filtersPromise.flatMap { existingFilters in
+                DatabasePromise { _ in filters + existingFilters }
+            }
+        }
+    }
+
     func unfiltered() -> Self {
         with(\.filtersPromise, DatabasePromise(value: []))
     }
@@ -577,13 +586,11 @@ struct SQLAssociationCondition: Equatable {
     /// - parameter db: A database connection.
     /// - parameter leftAlias: A TableAlias for the table on the left of the
     ///   JOIN operator.
-    /// - parameter rightAlias: A TableAlias for the table on the right of the
-    ///   JOIN operator.
     /// - Returns: An array of SQL expression that should be joined with
     ///   the AND operator.
-    func expressions(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> [SQLExpression] {
+    func expressions(_ db: Database, leftAlias: TableAlias) throws -> [SQLExpression] {
         try columnMappings(db).map {
-            QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias)
+            Column($0.right) == QualifiedColumn($0.left, alias: leftAlias)
         }
     }
     
