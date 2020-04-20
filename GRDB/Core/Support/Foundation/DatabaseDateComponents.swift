@@ -11,7 +11,7 @@ import SQLite3
 public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible, Codable {
     
     /// The available formats for reading and storing date components.
-    public enum Format: String, Codable {
+    public enum Format: String {
         
         /// The format "yyyy-MM-dd".
         case YMD = "yyyy-MM-dd"
@@ -162,19 +162,19 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
 
     // MARK: - Codable adoption
 
-    /// CodingKeys for codable conformance.
-    enum CodingKeys: String, CodingKey {
-        case date
-    }
 
     /// Creates a new instance by decoding from the given decoder.
     ///
     /// - parameters:
     ///     - decoder: The decoder to read data from.
     public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let stringValue = try container.decode(String.self, forKey: .date)
-        self = DatabaseDateComponents.fromDatabaseValue(stringValue.databaseValue)!
+        let container = try decoder.singleValueContainer()
+        let stringValue = try container.decode(String.self)
+        guard let decodedValue = DatabaseDateComponents.fromDatabaseValue(stringValue.databaseValue) else {
+            throw DecodingError.dataCorruptedError(in: container,
+                                                   debugDescription: "Unable to initialise databaseDateComponent")
+        }
+        self = decodedValue
     }
 
     /// Encodes this value into the given encoder.
@@ -182,7 +182,7 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
     /// - parameters:
     ///     - encoder: The encoder to write data to.
     public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(String.fromDatabaseValue(databaseValue)!, forKey: .date)
+        var container = encoder.singleValueContainer()
+        try container.encode(String.fromDatabaseValue(databaseValue)!)
     }
 }

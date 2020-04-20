@@ -515,7 +515,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
         DateComponents(year: year, month: month, day: day, hour: nil, minute: nil, second: nil, nanosecond: nil),
         format: .YMD)
         let encoded = try! JSONEncoder().encode(dbDateComponents)
-        XCTAssertEqual(String(data: encoded, encoding: .utf8)!, "{\"date\":\"\(year)-\(month)-\(day)\"}")
+        XCTAssertEqual(String(data: encoded, encoding: .utf8)!, "\"\(year)-\(month)-\(day)\"")
     }
 
     func testJSONDecodingOfDatabaseDateComponents() {
@@ -525,7 +525,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
         let dbDateComponents = DatabaseDateComponents(
         DateComponents(year: year, month: month, day: day, hour: nil, minute: nil, second: nil, nanosecond: nil),
         format: .YMD)
-        let json = "{\"date\":\"\(year)-\(month)-\(day)\"}".data(using: .utf8)!
+        let json = "\"\(year)-\(month)-\(day)\"".data(using: .utf8)!
         let decodedDatabaseDateComponents = try! JSONDecoder().decode(DatabaseDateComponents.self, from: json)
         XCTAssertEqual(decodedDatabaseDateComponents.dateComponents, dbDateComponents.dateComponents)
     }
