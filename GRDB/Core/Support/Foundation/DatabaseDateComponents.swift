@@ -164,7 +164,7 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
 
     /// CodingKeys for codable conformance.
     enum CodingKeys: String, CodingKey {
-        case dateComponents, format
+        case date
     }
 
     /// Creates a new instance by decoding from the given decoder.
@@ -173,8 +173,8 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
     ///     - decoder: The decoder to read data from.
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        dateComponents = try container.decode(DateComponents.self, forKey: .dateComponents)
-        format = try container.decode(Format.self, forKey: .format)
+        let stringValue = try container.decode(String.self, forKey: .date)
+        self = DatabaseDateComponents.fromDatabaseValue(stringValue.databaseValue)!
     }
 
     /// Encodes this value into the given encoder.
@@ -183,7 +183,6 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
     ///     - encoder: The encoder to write data to.
     public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(dateComponents, forKey: .dateComponents)
-        try container.encode(format, forKey: .format)
+        try container.encode(String.fromDatabaseValue(databaseValue)!, forKey: .date)
     }
 }
