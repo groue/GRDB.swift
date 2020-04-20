@@ -8,7 +8,7 @@ import SQLite3
 #endif
 
 /// DatabaseDateComponents reads and stores DateComponents in the database.
-public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible {
+public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnConvertible, Codable {
     
     /// The available formats for reading and storing date components.
     public enum Format: String {
@@ -158,5 +158,31 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         }
         
         return SQLiteDateParser().components(from: string)
+    }
+
+    // MARK: - Codable adoption
+
+
+    /// Creates a new instance by decoding from the given decoder.
+    ///
+    /// - parameters:
+    ///     - decoder: The decoder to read data from.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let stringValue = try container.decode(String.self)
+        guard let decodedValue = DatabaseDateComponents.fromDatabaseValue(stringValue.databaseValue) else {
+            throw DecodingError.dataCorruptedError(in: container,
+                                                   debugDescription: "Unable to initialise databaseDateComponent")
+        }
+        self = decodedValue
+    }
+
+    /// Encodes this value into the given encoder.
+    ///
+    /// - parameters:
+    ///     - encoder: The encoder to write data to.
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(String.fromDatabaseValue(databaseValue)!)
     }
 }
