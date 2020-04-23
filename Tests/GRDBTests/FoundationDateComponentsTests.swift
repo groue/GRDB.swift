@@ -506,4 +506,30 @@ class FoundationDateComponentsTests : GRDBTestCase {
         let databaseDateComponents = DatabaseDateComponents.fromDatabaseValue("foo".databaseValue)
         XCTAssertTrue(databaseDateComponents == nil)
     }
+
+    func testJSONEncodingOfDatabaseDateComponents() throws {
+        // Encoding root string is not suppported by all system version: use an object
+        struct Record: Encodable {
+            var date: DatabaseDateComponents
+        }
+        let record = Record(date: DatabaseDateComponents(DateComponents(year: 2018, month: 12, day: 31), format: .YMD))
+        let jsonData = try JSONEncoder().encode(record)
+        let json = String(data: jsonData, encoding: .utf8)!
+        XCTAssertEqual(json, """
+            {"date":"2018-12-31"}
+            """)
+    }
+
+    func testJSONDecodingOfDatabaseDateComponents() throws {
+        // Decoding root string is not suppported by all system version: use an object
+        struct Record: Decodable {
+            var date: DatabaseDateComponents
+        }
+        let json = """
+            {"date":"2018-12-31"}
+            """
+        let record = try JSONDecoder().decode(Record.self, from: json.data(using: .utf8)!)
+        XCTAssertEqual(record.date.format, .YMD)
+        XCTAssertEqual(record.date.dateComponents, DateComponents(year: 2018, month: 12, day: 31))
+    }
 }

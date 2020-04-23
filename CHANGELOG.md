@@ -13,6 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 4.x Releases
 
+- `4.14.x` Releases - [4.13.0](#4140)
 - `4.13.x` Releases - [4.13.0](#4130)
 - `4.12.x` Releases - [4.12.0](#4120) | [4.12.1](#4121) | [4.12.2](#4122)
 - `4.11.x` Releases - [4.11.0](#4110)
@@ -69,6 +70,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+## 4.14.0
+
+Released April 23, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.13.0...v4.14.0)
+
+**New**
+
+- [#766](https://github.com/groue/GRDB.swift/pull/766) by [@mtancock](https://github.com/mtancock): Add Codable support to DatabaseDateComponents
+
 
 ## 4.13.0
 
