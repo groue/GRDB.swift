@@ -293,7 +293,7 @@ struct SQLQueryGenerator: Refinable {
             .joined(separator: ", ")
         sql += " SET " + assignmentsSQL
         
-        // WHERE id IN (SELECT rowid FROM ...)
+        // WHERE id IN (SELECT id FROM ...)
         sql += " WHERE "
         sql += primaryKey.expressionSQL(&context, wrappedInParenthesis: false)
         sql += " IN ("
