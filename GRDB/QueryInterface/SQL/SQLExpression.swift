@@ -141,3 +141,22 @@ struct SQLExpressionNot: SQLExpression {
         SQLExpressionNot(expression.qualifiedExpression(with: alias))
     }
 }
+
+// MARK: -
+
+extension Database {
+    /// Returns an expression for the primary key of this table.
+    ///
+    /// When the table as a primary key made of several columns, we return
+    /// the rowid column. Eventually we'll support
+    /// [row values](https://www.sqlite.org/rowvalue.html) and be able to deal
+    /// with WITHOUT ROWID tables.
+    func primaryKeyExpression(_ tableName: String) throws -> SQLExpression {
+        let columns = try primaryKey(tableName).columns
+        if columns.count == 1 {
+            return Column(columns[0])
+        } else {
+            return Column.rowID
+        }
+    }
+}

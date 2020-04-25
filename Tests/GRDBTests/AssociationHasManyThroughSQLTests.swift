@@ -332,6 +332,7 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
                 t.autoIncrementedPrimaryKey("id")
             }
             try db.create(table: "child") { t in
+                t.autoIncrementedPrimaryKey("id")
                 t.column("parentId", .integer).references("parent")
             }
             try db.create(table: "toy") { t in
@@ -352,21 +353,21 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
                     SELECT "parent".*, "pet".* \
                     FROM "parent" \
                     JOIN "child" ON "child"."parentId" = "parent"."id" \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
-                    JOIN "pet" ON "pet"."childId" = "child"."rowid"
+                    JOIN "toy" ON "toy"."childId" = "child"."id" \
+                    JOIN "pet" ON "pet"."childId" = "child"."id"
                     """)
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
                     JOIN "child" ON "child"."parentId" = "parent"."id" \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid" \
-                    JOIN "pet" ON "pet"."childId" = "child"."rowid"
+                    JOIN "toy" ON "toy"."childId" = "child"."id" \
+                    JOIN "pet" ON "pet"."childId" = "child"."id"
                     """)
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "pet".* \
                     FROM "pet" \
-                    JOIN "child" ON ("child"."rowid" = "pet"."childId") AND ("child"."parentId" = 1) \
-                    JOIN "toy" ON "toy"."childId" = "child"."rowid"
+                    JOIN "child" ON ("child"."id" = "pet"."childId") AND ("child"."parentId" = 1) \
+                    JOIN "toy" ON "toy"."childId" = "child"."id"
                     """)
             }
             do {
@@ -378,24 +379,24 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
                     SELECT "parent".*, "pet".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "pet".* \
                     FROM "pet" \
-                    JOIN "child" "child1" ON ("child1"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                    JOIN "child" "child1" ON ("child1"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
                     """)
             }
             do {
@@ -408,24 +409,24 @@ class AssociationHasManyThroughSQLTests: GRDBTestCase {
                     SELECT "parent".*, "pet".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent.all().joining(required: association), """
                     SELECT "parent".* \
                     FROM "parent" \
                     JOIN "child" "child1" ON ("child1"."parentId" = "parent"."id") AND (1 + 1) \
-                    JOIN "pet" ON "pet"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child2"."rowid"
+                    JOIN "pet" ON "pet"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child2"."id"
                     """)
                 try assertEqualSQL(db, Parent().request(for: association), """
                     SELECT "pet".* \
                     FROM "pet" \
-                    JOIN "child" "child1" ON ("child1"."rowid" = "pet"."childId") AND (1) \
-                    JOIN "toy" ON "toy"."childId" = "child1"."rowid" \
-                    JOIN "child" "child2" ON ("child2"."rowid" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
+                    JOIN "child" "child1" ON ("child1"."id" = "pet"."childId") AND (1) \
+                    JOIN "toy" ON "toy"."childId" = "child1"."id" \
+                    JOIN "child" "child2" ON ("child2"."id" = "pet"."childId") AND (1 + 1) AND ("child2"."parentId" = 1)
                     """)
             }
         }

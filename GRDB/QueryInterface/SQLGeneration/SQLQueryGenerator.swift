@@ -1,5 +1,5 @@
 /// SQLQueryGenerator is able to generate an SQL SELECT query.
-struct SQLQueryGenerator {
+struct SQLQueryGenerator: Refinable {
     fileprivate private(set) var relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
@@ -168,7 +168,7 @@ struct SQLQueryGenerator {
         }
     }
     
-    /// DELETE FROM table WHERE rowid IN (SELECT rowid FROM table ...)
+    /// DELETE FROM table WHERE id IN (SELECT id FROM table ...)
     private func makeTrivialDeleteStatement(_ db: Database) throws -> UpdateStatement {
         guard case let .table(tableName: tableName, alias: _) = relation.source else {
             // Programmer error
@@ -176,14 +176,13 @@ struct SQLQueryGenerator {
         }
         
         var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
+        let primaryKey = try db.primaryKeyExpression(tableName)
         
-        // SELECT rowid FROM table ...
-        var generator = self
-        generator.relation = generator.relation.selectOnly([Column.rowID])
-        let selectSQL = try generator.sql(db, &context)
-        
-        // DELETE FROM table WHERE rowid IN (SELECT rowid FROM table ...)
-        let sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE rowid IN (\(selectSQL))"
+        var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
+        sql += primaryKey.expressionSQL(&context, wrappedInParenthesis: false)
+        sql += " IN ("
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, &context)
+        sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
@@ -258,7 +257,7 @@ struct SQLQueryGenerator {
         }
     }
     
-    /// UPDATE table SET ... WHERE rowid IN (SELECT rowid FROM table ...)
+    /// UPDATE table SET ... WHERE id IN (SELECT id FROM table ...)
     /// Returns nil if assignments is empty
     private func makeTrivialUpdateStatement(
         _ db: Database,
@@ -278,6 +277,7 @@ struct SQLQueryGenerator {
         }
         
         var context = SQLGenerationContext.queryContext(aliases: relation.allAliases)
+        let primaryKey = try db.primaryKeyExpression(tableName)
         
         // UPDATE table...
         var sql = "UPDATE "
@@ -292,10 +292,12 @@ struct SQLQueryGenerator {
             .joined(separator: ", ")
         sql += " SET " + assignmentsSQL
         
-        // WHERE rowid IN (SELECT rowid FROM ...)
-        var generator = self
-        generator.relation = generator.relation.selectOnly([Column.rowID])
-        sql += try " WHERE rowid IN (\(generator.sql(db, &context)))"
+        // WHERE id IN (SELECT rowid FROM ...)
+        sql += " WHERE "
+        sql += primaryKey.expressionSQL(&context, wrappedInParenthesis: false)
+        sql += " IN ("
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, &context)
+        sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
@@ -481,23 +483,7 @@ private struct SQLQualifiedRelation {
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
-        joins = relation.children.compactMapValues { child -> SQLQualifiedJoin? in
-            let kind: SQLQualifiedJoin.Kind
-            switch child.kind {
-            case .oneRequired:
-                kind = .innerJoin
-            case .oneOptional:
-                kind = .leftJoin
-            case .allPrefetched, .allNotPrefetched:
-                // This relation child is not fetched with an SQL join.
-                return nil
-            }
-            
-            return SQLQualifiedJoin(
-                kind: kind,
-                condition: child.condition,
-                relation: SQLQualifiedRelation(child.relation))
-        }
+        joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
         sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: sourceAlias) }
         filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: sourceAlias) } }
         sourceOrdering = relation.ordering.qualified(with: sourceAlias)
@@ -620,15 +606,36 @@ private enum SQLQualifiedSource {
 }
 
 /// A "qualified" join, where all tables are identified with a table alias.
-private struct SQLQualifiedJoin {
+private struct SQLQualifiedJoin: Refinable {
     enum Kind: String {
         case leftJoin = "LEFT JOIN"
         case innerJoin = "JOIN"
+        
+        init?(_ kind: SQLRelation.Child.Kind) {
+            switch kind {
+            case .oneRequired:
+                self = .innerJoin
+            case .oneOptional:
+                self = .leftJoin
+            case .allPrefetched, .allNotPrefetched:
+                // Eager loading of to-many associations is not implemented with joins
+                return nil
+            }
+        }
     }
     
-    let kind: Kind
-    let condition: SQLAssociationCondition
-    let relation: SQLQualifiedRelation
+    var kind: Kind
+    var condition: SQLAssociationCondition
+    var relation: SQLQualifiedRelation
+    
+    init?(_ child: SQLRelation.Child) {
+        guard let kind = Kind(child.kind) else {
+            return nil
+        }
+        self.kind = kind
+        self.condition = child.condition
+        self.relation = SQLQualifiedRelation(child.relation)
+    }
     
     func sql(_ db: Database, _ context: inout SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         try sql(db, &context, leftAlias: leftAlias, allowingInnerJoin: true)
@@ -636,10 +643,7 @@ private struct SQLQualifiedJoin {
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> SQLQualifiedJoin {
-        SQLQualifiedJoin(
-            kind: kind,
-            condition: condition,
-            relation: relation.selectOnly(selection))
+        map(\.relation) { $0.selectOnly(selection) }
     }
     
     private func sql(
@@ -650,7 +654,6 @@ private struct SQLQualifiedJoin {
         throws -> String
     {
         var allowsInnerJoin = allowsInnerJoin
-        var sql = ""
         
         switch self.kind {
         case .innerJoin:
@@ -665,16 +668,24 @@ private struct SQLQualifiedJoin {
         case .leftJoin:
             allowsInnerJoin = false
         }
-        sql += try "\(kind.rawValue) \(relation.source.sql(db, &context))"
         
+        // JOIN table...
+        var sql = try "\(kind.rawValue) \(relation.source.sql(db, &context))"
         let rightAlias = relation.sourceAlias
-        let filters = try condition.expressions(db, leftAlias: leftAlias, rightAlias: rightAlias)
-            + relation.filtersPromise.resolve(db)
+        
+        // ... ON <join conditions> AND <other filters>
+        var filters = try condition.expressions(db, leftAlias: leftAlias)
+        filters += try relation.filtersPromise.resolve(db)
         if filters.isEmpty == false {
-            sql += " ON \(filters.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false))"
+            let filterSQL = filters
+                .joined(operator: .and)
+                .qualifiedExpression(with: rightAlias)
+                .expressionSQL(&context, wrappedInParenthesis: false)
+            sql += " ON \(filterSQL)"
         }
         
         for (_, join) in relation.joins {
+            // Right becomes left as we dig further
             sql += try " \(join.sql(db, &context, leftAlias: rightAlias, allowingInnerJoin: allowsInnerJoin))"
         }
         

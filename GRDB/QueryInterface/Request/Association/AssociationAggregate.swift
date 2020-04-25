@@ -4,6 +4,169 @@ typealias AssociationAggregatePreparation<RowDecoder> =
     (QueryInterfaceRequest<RowDecoder>)
     -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)
 
+extension AssociationToMany {
+    private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
+        AssociationAggregate { request in
+            let tableAlias = TableAlias()
+            let request = request
+                .joining(optional: self.aliased(tableAlias))
+                .groupByPrimaryKey()
+            let expression = tableAlias[expression]
+            return (request: request, expression: expression)
+        }
+    }
+    
+    /// The number of associated records.
+    ///
+    /// It has a default name, which is "[key]Count", where key is the key of
+    /// the association. For example:
+    ///
+    /// For example:
+    ///
+    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///         var team: Team
+    ///         var playerCount: Int
+    ///     }
+    ///     let request = Team.annotated(with: Team.players.count())
+    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
+    ///
+    ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
+    public var count: AssociationAggregate<OriginRowDecoder> {
+        // TODO: try to replace rowid with actual primary key
+        makeAggregate(SQLExpressionCountDistinct(Column.rowID))
+            .forKey("\(key.singularizedName)Count")
+    }
+    
+    /// Creates an aggregate that is true if there exists no associated records.
+    ///
+    /// It has a default name, which is "hasNo[Key]", where key is the key of
+    /// the association. For example:
+    ///
+    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///         var team: Team
+    ///         var hasNoPlayer: Bool
+    ///     }
+    ///     let request = Team.annotated(with: Team.players.isEmpty())
+    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
+    ///
+    ///     let teams: [Team] = try Team.having(Team.players.isEmpty()).fetchAll(db)
+    ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
+    ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
+    public var isEmpty: AssociationAggregate<OriginRowDecoder> {
+        // TODO: try to replace rowid with actual primary key
+        makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
+            .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
+    }
+    
+    /// Creates an aggregate which evaluate to the average value of the given
+    /// expression in associated records.
+    ///
+    /// When the averaged expression is a column, the aggregate has a default
+    /// name which is "average[Key][Column]", where key is the key of the
+    /// association. For example:
+    ///
+    /// For example:
+    ///
+    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///         var team: Team
+    ///         var averagePlayerScore: Double
+    ///     }
+    ///     let request = Team.annotated(with: Team.players.average(Column("score")))
+    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
+    ///
+    ///     let teams: [Team] = try Team.having(Team.players.average(Column("score")) > 100).fetchAll(db)
+    public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.avg, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            let name = key.singularizedName
+            return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
+    }
+    
+    /// Creates an aggregate which evaluate to the maximum value of the given
+    /// expression in associated records.
+    ///
+    /// When the maximized expression is a column, the aggregate has a default
+    /// name which is "maximum[Key][Column]", where key is the key of the
+    /// association. For example:
+    ///
+    /// For example:
+    ///
+    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///         var team: Team
+    ///         var maxPlayerScore: Double
+    ///     }
+    ///     let request = Team.annotated(with: Team.players.max(Column("score")))
+    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
+    ///
+    ///     let teams: [Team] = try Team.having(Team.players.max(Column("score")) < 100).fetchAll(db)
+    public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.max, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            let name = key.singularizedName
+            return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
+    }
+    
+    /// Creates an aggregate which evaluate to the minimum value of the given
+    /// expression in associated records.
+    ///
+    /// When the minimized expression is a column, the aggregate has a default
+    /// name which is "minimum[Key][Column]", where key is the key of the
+    /// association. For example:
+    ///
+    /// For example:
+    ///
+    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///         var team: Team
+    ///         var minPlayerScore: Double
+    ///     }
+    ///     let request = Team.annotated(with: Team.players.min(Column("score")))
+    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
+    ///
+    ///     let teams: [Team] = try Team.having(Team.players.min(Column("score")) > 100).fetchAll(db)
+    public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.min, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            let name = key.singularizedName
+            return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
+        } else {
+            return aggregate
+        }
+    }
+    
+    /// Creates an aggregate which evaluate to the sum of the given expression
+    /// in associated records.
+    ///
+    /// When the summed expression is a column, the aggregate has a default
+    /// name which is "[key][Column]Sum", where key is the key of the
+    /// association. For example:
+    ///
+    /// For example:
+    ///
+    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///         var team: Team
+    ///         var playerScoreSum: Double
+    ///     }
+    ///     let request = Team.annotated(with: Team.players.sum(Column("score")))
+    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
+    ///
+    ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
+    public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(SQLExpressionFunction(.sum, arguments: expression))
+        if let column = expression as? ColumnExpression {
+            let name = key.singularizedName
+            return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
+        } else {
+            return aggregate
+        }
+    }
+}
+
 /// An AssociationAggregate is able to compute aggregated values from a
 /// population of associated records.
 ///
@@ -27,6 +190,7 @@ typealias AssociationAggregatePreparation<RowDecoder> =
 ///     // Won't compile because Fruit is not Author.
 ///     let request = Fruit.annotated(with: bookCount)
 public struct AssociationAggregate<RowDecoder> {
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Given a request, returns a tuple made of a request extended with the
     /// associated records used to compute the aggregate, and an expression
     /// whose value is the aggregated value.

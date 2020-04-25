@@ -111,12 +111,12 @@ struct SQLRelation {
             // Record.including(all: associationThroughPivot)
             case allNotPrefetched
             
-            var cardinality: SQLAssociationCardinality {
+            var isSingular: Bool {
                 switch self {
                 case .oneOptional, .oneRequired:
-                    return .toOne
+                    return true
                 case .allPrefetched, .allNotPrefetched:
-                    return .toMany
+                    return false
                 }
             }
         }
@@ -140,11 +140,20 @@ struct SQLRelation {
         
         fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
             let key = SQLAssociationKey.fixed(key)
+            
+            let cardinality: SQLAssociationCardinality
+            switch kind {
+            case .oneOptional, .oneRequired:
+                cardinality = .toOne
+            case .allPrefetched, .allNotPrefetched:
+                cardinality = .toMany
+            }
+            
             return SQLAssociation(
                 key: key,
                 condition: condition,
                 relation: relation,
-                cardinality: kind.cardinality)
+                cardinality: cardinality)
         }
     }
     
@@ -173,6 +182,18 @@ struct SQLRelation {
                     return association.through(child.makeAssociationForKey(key))
                 }
             }
+        }
+    }
+    
+    /// Returns nil if there is no way to express the primary key of the
+    /// relation as an expression.
+    func primaryKeyExpression(_ db: Database) throws -> SQLExpression? {
+        switch source {
+        case .query:
+            // No primary key for sub query
+            return nil
+        case let .table(tableName: tableName, alias: _):
+            return try db.primaryKeyExpression(tableName)
         }
     }
 }
@@ -254,10 +275,10 @@ extension SQLRelation {
     func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
-        let childCardinality = (kind == .allNotPrefetched)
-            ? association.destination.cardinality
-            : kind.cardinality
-        let childKey = association.destination.key.name(for: childCardinality)
+        let isSingular = (kind == .allNotPrefetched)
+            ? association.destination.isSingular
+            : kind.isSingular
+        let childKey = association.destination.key.name(singular: isSingular)
         let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
@@ -549,13 +570,11 @@ struct SQLAssociationCondition: Equatable {
     /// - parameter db: A database connection.
     /// - parameter leftAlias: A TableAlias for the table on the left of the
     ///   JOIN operator.
-    /// - parameter rightAlias: A TableAlias for the table on the right of the
-    ///   JOIN operator.
     /// - Returns: An array of SQL expression that should be joined with
-    ///   the AND operator.
-    func expressions(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> [SQLExpression] {
+    ///   the AND operator and qualified with the right table.
+    func expressions(_ db: Database, leftAlias: TableAlias) throws -> [SQLExpression] {
         try columnMappings(db).map {
-            QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias)
+            Column($0.right) == QualifiedColumn($0.left, alias: leftAlias)
         }
     }
     
@@ -564,7 +583,7 @@ struct SQLAssociationCondition: Equatable {
     ///
     /// Given `right.a = left.b`, returns `right.a = 1` or
     /// `right.a IN (1, 2, 3)`.
-    func filteringExpression(_ db: Database, leftRows: [Row], rightAlias: TableAlias) throws -> SQLExpression {
+    func filteringExpression(_ db: Database, leftRows: [Row]) throws -> SQLExpression {
         if leftRows.isEmpty {
             // Degenerate case: there is no row to attach
             return false.sqlExpression
@@ -578,7 +597,7 @@ struct SQLAssociationCondition: Equatable {
         
         if columnMappings.count == 1 {
             // Join on a single right column.
-            let rightColumn = QualifiedColumn(columnMapping.right, alias: rightAlias)
+            let rightColumn = Column(columnMapping.right)
             
             // Unique database values and filter out NULL:
             var dbValues = Set(leftRows.map { $0[columnMapping.left] as DatabaseValue })
@@ -600,7 +619,7 @@ struct SQLAssociationCondition: Equatable {
                     // (table.a = 1) AND (table.b = 2)
                     columnMappings
                         .map({ columns -> SQLExpression in
-                            let rightColumn = QualifiedColumn(columns.right, alias: rightAlias)
+                            let rightColumn = Column(columns.right)
                             let leftValue = leftRow[columns.left] as DatabaseValue
                             return rightColumn == leftValue
                         })

@@ -11,6 +11,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         }
     }
     
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request which appends *aggregates* to the current selection.
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
@@ -21,6 +22,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         annotated(with: aggregates)
     }
     
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request which appends *aggregates* to the current selection.
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
@@ -33,6 +35,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         }
     }
     
+    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request which appends the provided aggregate *predicate* to
     /// the eventual set of already applied predicates.
     ///

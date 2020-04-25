@@ -136,15 +136,11 @@ public /* TODO: internal */ struct SQLAssociation {
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
     func destinationRelation(fromOriginRows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
-        // Filter the pivot
+        // Filter the pivot: `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
         let pivot = self.pivot
-        let pivotAlias = TableAlias()
-        let filteredPivotRelation = pivot.relation
-            .qualified(with: pivotAlias)
-            .filter({ db in
-                // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
-                try pivot.condition.filteringExpression(db, leftRows: originRows(db), rightAlias: pivotAlias)
-            })
+        let filteredPivotRelation = pivot.relation.filter { db in
+            try pivot.condition.filteringExpression(db, leftRows: originRows(db))
+        }
         
         if steps.count == 1 {
             // This is a direct join from origin to destination, without
@@ -178,7 +174,12 @@ public /* TODO: internal */ struct SQLAssociation {
                 // children are useless:
                 let relation = step.relation
                     .selectOnly([])
-                    .filteringChildren { $0.kind.cardinality == .toOne }
+                    .filteringChildren({
+                         switch $0.kind {
+                         case .allPrefetched, .allNotPrefetched: return false
+                         case .oneRequired, .oneOptional: return true
+                         }
+                     })
                 
                 // Don't interfere with user-defined keys that could be added later
                 let key = step.key.map(\.baseName) { "grdb_\($0)" }
@@ -203,7 +204,16 @@ struct SQLAssociationStep: Refinable {
     var relation: SQLRelation
     var cardinality: SQLAssociationCardinality
     
-    var keyName: String { key.name(for: cardinality) }
+    var isSingular: Bool {
+        switch cardinality {
+        case .toOne:
+            return true
+        case .toMany:
+            return false
+        }
+    }
+    
+    var keyName: String { key.name(singular: isSingular) }
 }
 
 enum SQLAssociationCardinality {
@@ -319,11 +329,10 @@ enum SQLAssociationKey: Refinable {
         }
     }
     
-    func name(for cardinality: SQLAssociationCardinality) -> String {
-        switch cardinality {
-        case .toOne:
+    func name(singular: Bool) -> String {
+        if singular {
             return singularizedName
-        case .toMany:
+        } else {
             return pluralizedName
         }
     }

@@ -422,8 +422,8 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             do {
                 try Player.including(required: Player.team).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 WHERE rowid IN (\
-                    SELECT "player"."rowid" \
+                    UPDATE "player" SET "score" = 0 WHERE "id" IN (\
+                    SELECT "player"."id" \
                     FROM "player" \
                     JOIN "team" ON "team"."id" = "player"."teamId")
                     """)
@@ -432,8 +432,8 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                 // Regression test for https://github.com/groue/GRDB.swift/issues/758
                 try Player.including(required: Player.team.filter(Column("active") == 1)).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 WHERE rowid IN (\
-                    SELECT "player"."rowid" \
+                    UPDATE "player" SET "score" = 0 WHERE "id" IN (\
+                    SELECT "player"."id" \
                     FROM "player" \
                     JOIN "team" ON ("team"."id" = "player"."teamId") AND ("team"."active" = 1))
                     """)
@@ -442,8 +442,8 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                 let alias = TableAlias(name: "p")
                 try Player.aliased(alias).including(required: Player.team).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 WHERE rowid IN (\
-                    SELECT "p"."rowid" \
+                    UPDATE "player" SET "score" = 0 WHERE "id" IN (\
+                    SELECT "p"."id" \
                     FROM "player" "p" \
                     JOIN "team" ON "team"."id" = "p"."teamId")
                     """)
@@ -451,8 +451,8 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             do {
                 try Team.having(Team.players.isEmpty).updateAll(db, Column("active").set(to: false))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "team" SET "active" = 0 WHERE rowid IN (\
-                    SELECT "team"."rowid" \
+                    UPDATE "team" SET "active" = 0 WHERE "id" IN (\
+                    SELECT "team"."id" \
                     FROM "team" \
                     LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
                     GROUP BY "team"."id" \
@@ -489,8 +489,8 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             do {
                 try Player.all().groupByPrimaryKey().updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 WHERE rowid IN (\
-                    SELECT "rowid" \
+                    UPDATE "player" SET "score" = 0 WHERE "id" IN (\
+                    SELECT "id" \
                     FROM "player" \
                     GROUP BY "id")
                     """)
@@ -498,8 +498,8 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             do {
                 try Player.all().group(Column.rowID).updateAll(db, Column("score").set(to: 0))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "player" SET "score" = 0 WHERE rowid IN (\
-                    SELECT "rowid" \
+                    UPDATE "player" SET "score" = 0 WHERE "id" IN (\
+                    SELECT "id" \
                     FROM "player" \
                     GROUP BY "rowid")
                     """)
@@ -507,7 +507,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             do {
                 try Passport.all().groupByPrimaryKey().updateAll(db, Column("active").set(to: true))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "passport" SET "active" = 1 WHERE rowid IN (\
+                    UPDATE "passport" SET "active" = 1 WHERE "rowid" IN (\
                     SELECT "rowid" \
                     FROM "passport" \
                     GROUP BY "countryCode", "citizenId")
@@ -516,7 +516,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
             do {
                 try Passport.all().group(Column.rowID).updateAll(db, Column("active").set(to: true))
                 XCTAssertEqual(self.lastSQLQuery, """
-                    UPDATE "passport" SET "active" = 1 WHERE rowid IN (\
+                    UPDATE "passport" SET "active" = 1 WHERE "rowid" IN (\
                     SELECT "rowid" \
                     FROM "passport" \
                     GROUP BY "rowid")
