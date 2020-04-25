@@ -2,6 +2,12 @@ extension TableRecord {
     
     // MARK: Request Derivation
     
+    static var relationForAll: SQLRelation {
+        SQLRelation(
+            source: .table(tableName: databaseTableName, alias: nil),
+            selectionPromise: DatabasePromise(value: databaseSelection))
+    }
+    
     /// Creates a request which fetches all records.
     ///
     ///     // SELECT * FROM player
@@ -11,10 +17,7 @@ extension TableRecord {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public static func all() -> QueryInterfaceRequest<Self> {
-        let relation = SQLRelation(
-            source: .table(tableName: databaseTableName, alias: nil),
-            selection: databaseSelection)
-        return QueryInterfaceRequest(relation: relation)
+        QueryInterfaceRequest(relation: relationForAll)
     }
     
     /// Creates a request which fetches no record.

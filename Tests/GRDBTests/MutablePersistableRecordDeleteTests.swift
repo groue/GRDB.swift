@@ -229,7 +229,7 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
                     FROM "team" \
                     LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
                     GROUP BY "team"."id" \
-                    HAVING COUNT(DISTINCT "player"."rowid") = 0)
+                    HAVING COUNT(DISTINCT "player"."id") = 0)
                     """)
             }
             do {

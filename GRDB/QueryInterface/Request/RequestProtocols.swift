@@ -6,6 +6,32 @@
 ///
 /// :nodoc:
 public protocol SelectionRequest {
+    /// Creates a request which selects *selection promise*.
+    ///
+    ///     // SELECT id, email FROM player
+    ///     var request = Player.all()
+    ///     request = request.select { db in [Column("id"), Column("email") })
+    ///
+    /// Any previous selection is replaced:
+    ///
+    ///     // SELECT email FROM player
+    ///     request
+    ///         .select { db in [Column("id")] }
+    ///         .select { db in [Column("email")] }
+    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+    
+    /// Creates a request which appends *selection promise*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: { db in [Column("name")] })
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+}
+
+/// :nodoc:
+extension SelectionRequest {
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -18,20 +44,10 @@ public protocol SelectionRequest {
     ///     request
     ///         .select([Column("id")])
     ///         .select([Column("email")])
-    func select(_ selection: [SQLSelectable]) -> Self
+    public func select(_ selection: [SQLSelectable]) -> Self {
+        select { _ in selection }
+    }
     
-    /// Creates a request which appends *selection*.
-    ///
-    ///     // SELECT id, email, name FROM player
-    ///     var request = Player.all()
-    ///     request = request
-    ///         .select([Column("id"), Column("email")])
-    ///         .annotated(with: [Column("name")])
-    func annotated(with selection: [SQLSelectable]) -> Self
-}
-
-/// :nodoc:
-extension SelectionRequest {
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -91,7 +107,18 @@ extension SelectionRequest {
     ///         .select(literal: SQLLiteral(sql: "email"))
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return select(sqlLiteral.sqlSelectable)
+        select(sqlLiteral.sqlSelectable)
+    }
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: [Column("name")])
+    public func annotated(with selection: [SQLSelectable]) -> Self {
+        annotated(with: { _ in selection })
     }
     
     /// Creates a request which appends *selection*.
@@ -174,7 +201,7 @@ extension FilteredRequest {
     ///     request = request.filter(literal: "name = \("O'Brien")")
     public func filter(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return filter(sqlLiteral.sqlExpression)
+        filter(sqlLiteral.sqlExpression)
     }
     
     /// Creates a request that matches nothing.
@@ -344,9 +371,9 @@ public protocol AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
     func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self
     
-    /// Creates a request with the provided *predicate* added to the
+    /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    func having(_ predicate: SQLExpressible) -> Self
+    func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
 }
 
 /// :nodoc:
@@ -369,7 +396,13 @@ extension AggregatingRequest {
     /// Creates a request with a new grouping.
     public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return group(sqlLiteral.sqlExpression)
+        group(sqlLiteral.sqlExpression)
+    }
+    
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    public func having(_ predicate: SQLExpressible) -> Self {
+        having { _ in predicate }
     }
     
     /// Creates a request with the provided *sql* added to the
@@ -382,7 +415,7 @@ extension AggregatingRequest {
     /// eventual set of already applied predicates.
     public func having(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return having(sqlLiteral.sqlExpression)
+        having(sqlLiteral.sqlExpression)
     }
 }
 
@@ -496,7 +529,7 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return order(sqlLiteral.sqlOrderingTerm)
+        order(sqlLiteral.sqlOrderingTerm)
     }
 }
 

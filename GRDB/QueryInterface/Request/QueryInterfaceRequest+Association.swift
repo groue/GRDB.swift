@@ -5,16 +5,15 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
         let (request, expression) = aggregate.prepare(self)
         if let key = aggregate.key {
-            return request.annotated(with: [expression.forKey(key)])
+            return request.annotated(with: { db in try [expression.resolve(db).forKey(key)] })
         } else {
-            return request.annotated(with: [expression])
+            return request.annotated(with: { db in try [expression.resolve(db)] })
         }
     }
     
-    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request which appends *aggregates* to the current selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.all()
     ///     request = request.annotated(with: Player.books.count)
@@ -22,10 +21,9 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         annotated(with: aggregates)
     }
     
-    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request which appends *aggregates* to the current selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.all()
     ///     request = request.annotated(with: [Player.books.count])
@@ -35,17 +33,16 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         }
     }
     
-    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request which appends the provided aggregate *predicate* to
     /// the eventual set of already applied predicates.
     ///
     ///     // SELECT player.*
     ///     // FROM player LEFT JOIN book ...
-    ///     // HAVING COUNT(DISTINCT book.rowid) = 0
+    ///     // HAVING COUNT(DISTINCT book.id) = 0
     ///     var request = Player.all()
     ///     request = request.having(Player.books.isEmpty)
     public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
         let (request, expression) = predicate.prepare(self)
-        return request.having(expression)
+        return request.having(expression.resolve)
     }
 }

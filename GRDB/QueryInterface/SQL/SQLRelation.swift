@@ -158,7 +158,7 @@ struct SQLRelation {
     }
     
     var source: SQLSource
-    var selection: [SQLSelectable] = []
+    var selectionPromise: DatabasePromise<[SQLSelectable]> = DatabasePromise(value: [])
     // Filter is an array of expressions that we'll join with the AND operator.
     // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
     // `((a AND b) AND c)`.
@@ -199,24 +199,37 @@ struct SQLRelation {
 }
 
 extension SQLRelation: Refinable {
+    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        with(\.selectionPromise, DatabasePromise(selection))
+    }
+    
+    // Convenience
     func select(_ selection: [SQLSelectable]) -> Self {
-        with(\.selection, selection)
+        select { _ in selection }
     }
     
     /// Removes all selections from chidren
     func selectOnly(_ selection: [SQLSelectable]) -> Self {
-        self.with(\.selection, selection)
-            .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
+        select(selection).map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
     }
     
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        map(\.selectionPromise) { selectionPromise in
+            DatabasePromise { db in
+                try selectionPromise.resolve(db) + selection(db)
+            }
+        }
+    }
+    
+    // Convenience
     func annotated(with selection: [SQLSelectable]) -> Self {
-        mapInto(\.selection) { $0.append(contentsOf: selection) }
+        annotated(with: { _ in selection })
     }
     
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
         map(\.filtersPromise) { filtersPromise in
-            filtersPromise.flatMap { filters in
-                DatabasePromise { try filters + [predicate($0).sqlExpression] }
+            DatabasePromise { db in
+                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
             }
         }
     }
@@ -653,8 +666,8 @@ extension SQLRelation {
             return nil
         }
         
-        let mergedFiltersPromise: DatabasePromise<[SQLExpression]> = filtersPromise.flatMap { filters in
-            DatabasePromise { try filters + other.filtersPromise.resolve($0) }
+        let mergedFiltersPromise = DatabasePromise<[SQLExpression]> { db in
+            try self.filtersPromise.resolve(db) + other.filtersPromise.resolve(db)
         }
         
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
@@ -674,14 +687,21 @@ extension SQLRelation {
         }
         
         // replace selection unless empty
-        let mergedSelection = other.selection.isEmpty ? selection : other.selection
+        let mergedSelectionPromise = DatabasePromise { db -> [SQLSelectable] in
+            let otherSelection = try other.selectionPromise.resolve(db)
+            if otherSelection.isEmpty {
+                return try self.selectionPromise.resolve(db)
+            } else {
+                return otherSelection
+            }
+        }
         
         // replace ordering unless empty
         let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
         
         return SQLRelation(
             source: mergedSource,
-            selection: mergedSelection,
+            selectionPromise: mergedSelectionPromise,
             filtersPromise: mergedFiltersPromise,
             ordering: mergedOrdering,
             children: mergedChildren)

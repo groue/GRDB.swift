@@ -3,7 +3,7 @@ struct SQLQueryGenerator: Refinable {
     fileprivate private(set) var relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
-    private let havingExpressions: [SQLExpression]
+    private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     
     init(_ query: SQLQuery) {
@@ -36,7 +36,7 @@ struct SQLQueryGenerator: Refinable {
         // `HAVING MAX(year) < 2000` INTO `HAVING MAX(book.year) < 2000`.
         let alias = relation.sourceAlias
         groupPromise = query.groupPromise?.map { $0.map { $0.qualifiedExpression(with: alias) } }
-        havingExpressions = query.havingExpressions.map { $0.qualifiedExpression(with: alias) }
+        havingExpressionsPromise = query.havingExpressionsPromise.map { $0.map { $0.qualifiedExpression(with: alias) } }
         
         // Preserve other flags
         isDistinct = query.isDistinct
@@ -50,7 +50,7 @@ struct SQLQueryGenerator: Refinable {
             sql += " DISTINCT"
         }
         
-        let selection = relation.selection
+        let selection = try relation.selectionPromise.resolve(db)
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
         sql += " " + selection.map { $0.resultColumnSQL(&context) }.joined(separator: ", ")
         
@@ -75,6 +75,7 @@ struct SQLQueryGenerator: Refinable {
                 .joined(separator: ", ")
         }
         
+        let havingExpressions = try havingExpressionsPromise.resolve(db)
         if havingExpressions.isEmpty == false {
             sql += " HAVING "
             sql += havingExpressions.joined(operator: .and).expressionSQL(&context, wrappedInParenthesis: false)
@@ -411,7 +412,7 @@ struct SQLQueryGenerator: Refinable {
 ///            |        |        |         • filterPromise
 ///            |        |        • joins
 ///            |        • source
-///            • selection
+///            • selectionPromise
 private struct SQLQualifiedRelation {
     /// The source alias
     var sourceAlias: TableAlias { source.alias }
@@ -431,16 +432,20 @@ private struct SQLQualifiedRelation {
     let source: SQLQualifiedSource
     
     /// The selection from source, not including selection of joined relations
-    private var sourceSelection: [SQLSelectable]
+    private var sourceSelectionPromise: DatabasePromise<[SQLSelectable]>
     
     /// The full selection, including selection of joined relations
     ///
     ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
     ///            |
-    ///            • selection
-    var selection: [SQLSelectable] {
-        joins.reduce(into: sourceSelection) {
-            $0.append(contentsOf: $1.value.relation.selection)
+    ///            • selectionPromise
+    var selectionPromise: DatabasePromise<[SQLSelectable]> {
+        DatabasePromise { db in
+            let selection = try self.sourceSelectionPromise.resolve(db)
+            return try self.joins.values.reduce(into: selection) { selection, join in
+                let joinedSelection = try join.relation.selectionPromise.resolve(db)
+                selection.append(contentsOf: joinedSelection)
+            }
         }
     }
     
@@ -484,7 +489,7 @@ private struct SQLQualifiedRelation {
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
         joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
-        sourceSelection = relation.selection.map { $0.qualifiedSelectable(with: sourceAlias) }
+        sourceSelectionPromise = relation.selectionPromise.map { $0.map { $0.qualifiedSelectable(with: sourceAlias) } }
         filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: sourceAlias) } }
         sourceOrdering = relation.ordering.qualified(with: sourceAlias)
     }
@@ -507,7 +512,7 @@ private struct SQLQualifiedRelation {
         
         // The number of columns in source selection. Columns selected by joined
         // relations are appended after.
-        let sourceSelectionWidth = try sourceSelection.reduce(0) {
+        let sourceSelectionWidth = try sourceSelectionPromise.resolve(db).reduce(0) {
             try $0 + $1.columnCount(db)
         }
         
@@ -551,7 +556,9 @@ private struct SQLQualifiedRelation {
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> Self {
-        self.with(\.sourceSelection, selection.map { $0.qualifiedSelectable(with: sourceAlias) })
+        let selectionPromise = DatabasePromise(value: selection.map { $0.qualifiedSelectable(with: sourceAlias) })
+        return self
+            .with(\.sourceSelectionPromise, selectionPromise)
             .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
     }
 }

@@ -2,18 +2,23 @@ import Foundation
 
 typealias AssociationAggregatePreparation<RowDecoder> =
     (QueryInterfaceRequest<RowDecoder>)
-    -> (request: QueryInterfaceRequest<RowDecoder>, expression: SQLExpression)
+    -> (request: QueryInterfaceRequest<RowDecoder>, expressionPromise: DatabasePromise<SQLExpression>)
 
 extension AssociationToMany {
-    private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
+    private func makeAggregate(_ expressionPromise: DatabasePromise<SQLExpression>) -> AssociationAggregate<OriginRowDecoder> {
         AssociationAggregate { request in
             let tableAlias = TableAlias()
             let request = request
                 .joining(optional: self.aliased(tableAlias))
                 .groupByPrimaryKey()
-            let expression = tableAlias[expression]
-            return (request: request, expression: expression)
+            let expressionPromise = expressionPromise.map { tableAlias[$0] }
+            return (request: request, expressionPromise: expressionPromise)
         }
+    }
+    
+    // Convenience
+    private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
+        makeAggregate(DatabasePromise(value: expression))
     }
     
     /// The number of associated records.
@@ -32,9 +37,11 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
-        // TODO: try to replace rowid with actual primary key
-        makeAggregate(SQLExpressionCountDistinct(Column.rowID))
-            .forKey("\(key.singularizedName)Count")
+        let expression = DatabasePromise<SQLExpression> { db in
+            let primaryKey = try db.primaryKeyExpression(self.databaseTableName)
+            return SQLExpressionCountDistinct(primaryKey)
+        }
+        return makeAggregate(expression).forKey("\(key.singularizedName)Count")
     }
     
     /// Creates an aggregate that is true if there exists no associated records.
@@ -53,9 +60,11 @@ extension AssociationToMany {
     ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
-        // TODO: try to replace rowid with actual primary key
-        makeAggregate(SQLExpressionIsEmpty(SQLExpressionCountDistinct(Column.rowID)))
-            .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
+        let expression = DatabasePromise<SQLExpression> { db in
+            let primaryKey = try db.primaryKeyExpression(self.databaseTableName)
+            return SQLExpressionIsEmpty(SQLExpressionCountDistinct(primaryKey))
+        }
+        return makeAggregate(expression).forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
     /// Creates an aggregate which evaluate to the average value of the given
@@ -190,7 +199,6 @@ extension AssociationToMany {
 ///     // Won't compile because Fruit is not Author.
 ///     let request = Fruit.annotated(with: bookCount)
 public struct AssociationAggregate<RowDecoder> {
-    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Given a request, returns a tuple made of a request extended with the
     /// associated records used to compute the aggregate, and an expression
     /// whose value is the aggregated value.
@@ -216,7 +224,7 @@ public struct AssociationAggregate<RowDecoder> {
     ///
     ///     // The aggregated value:
     ///     //
-    ///     //  COUNT(DISTINCT book.rowid)
+    ///     //  COUNT(DISTINCT book.id)
     ///     tuple.expression
     ///
     /// The aggregated value is not right away embedded in the extended request:
@@ -262,6 +270,29 @@ extension AssociationAggregate: Refinable {
     public func forKey(_ key: CodingKey) -> Self {
         forKey(key.stringValue)
     }
+    
+    /// Transforms the expression, and does not preserve key.
+    func mapExpression(_ transform: @escaping (SQLExpression) throws -> SQLExpression) -> Self {
+        AssociationAggregate { request in
+            let (request, expressionPromise) = self.prepare(request)
+            return (request: request, expressionPromise: expressionPromise.map(transform))
+        }
+    }
+    
+    func combined(
+        with other: Self,
+        _ combineExpressions : @escaping (_ lhs: SQLExpression, _ rhs: SQLExpression) throws -> SQLExpression)
+        -> Self
+    {
+        AssociationAggregate { request in
+            let (lRequest, lExpression) = self.prepare(request)
+            let (request, rExpression) = other.prepare(lRequest)
+            let expressionPromise = DatabasePromise<SQLExpression> { db in
+                try combineExpressions(lExpression.resolve(db), rExpression.resolve(db))
+            }
+            return (request: request, expressionPromise: expressionPromise)
+        }
+    }
 }
 
 // MARK: - Logical Operators (AND, OR, NOT)
@@ -272,10 +303,7 @@ extension AssociationAggregate: Refinable {
 ///
 ///     Author.having(!Author.books.isEmpty)
 public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    AssociationAggregate { request in
-        let (request, expression) = aggregate.prepare(request)
-        return (request: request, expression: !expression)
-    }
+    aggregate.mapExpression { !$0 }
 }
 
 /// Groups two aggregates with the `AND` SQL operator.
@@ -288,11 +316,7 @@ public func && <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression && rExpression)
-    }
+    lhs.combined(with: rhs, &&)
 }
 
 // TODO: test
@@ -302,10 +326,7 @@ public func && <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression && rhs)
-    }
+    lhs.mapExpression { $0 && rhs }
 }
 
 // TODO: test
@@ -315,10 +336,7 @@ public func && <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs && expression)
-    }
+    rhs.mapExpression { lhs && $0 }
 }
 
 
@@ -332,11 +350,7 @@ public func || <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression || rExpression)
-    }
+    lhs.combined(with: rhs, ||)
 }
 
 // TODO: test
@@ -346,10 +360,7 @@ public func || <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression || rhs)
-    }
+    lhs.mapExpression { $0 || rhs }
 }
 
 // TODO: test
@@ -359,10 +370,7 @@ public func || <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs || expression)
-    }
+    rhs.mapExpression { lhs || $0 }
 }
 
 // MARK: - Egality and Identity Operators (=, <>, IS, IS NOT)
@@ -377,11 +385,7 @@ public func == <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression == rExpression)
-    }
+    lhs.combined(with: rhs, ==)
 }
 
 /// Returns an aggregate that compares an aggregate with the `=` SQL operator.
@@ -394,10 +398,7 @@ public func == <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression == rhs)
-    }
+    lhs.mapExpression { $0 == rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `=` SQL operator.
@@ -410,10 +411,7 @@ public func == <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs == expression)
-    }
+    rhs.mapExpression { lhs == $0 }
 }
 
 /// Returns an aggregate that checks the boolean value of an aggregate.
@@ -422,10 +420,7 @@ public func == <RowDecoder>(
 ///
 ///     Author.having(Author.books.isEmpty == false)
 public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression == rhs)
-    }
+    lhs.mapExpression { $0 == rhs }
 }
 
 /// Returns an aggregate that checks the boolean value of an aggregate.
@@ -434,10 +429,7 @@ public func == <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 ///
 ///     Author.having(false == Author.books.isEmpty)
 public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs == expression)
-    }
+    rhs.mapExpression { lhs == $0 }
 }
 
 /// Returns an aggregate that compares two aggregates with the `<>` SQL operator.
@@ -450,11 +442,7 @@ public func != <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression != rExpression)
-    }
+    lhs.combined(with: rhs, !=)
 }
 
 /// Returns an aggregate that compares an aggregate with the `<>` SQL operator.
@@ -467,10 +455,7 @@ public func != <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression != rhs)
-    }
+    lhs.mapExpression { $0 != rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `<>` SQL operator.
@@ -483,10 +468,7 @@ public func != <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs != expression)
-    }
+    rhs.mapExpression { lhs != $0 }
 }
 
 /// Returns an aggregate that checks the boolean value of an aggregate.
@@ -495,10 +477,7 @@ public func != <RowDecoder>(
 ///
 ///     Author.having(Author.books.isEmpty != true)
 public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) -> AssociationAggregate<RowDecoder> {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression != rhs)
-    }
+    lhs.mapExpression { $0 != rhs }
 }
 
 /// Returns an aggregate that checks the boolean value of an aggregate.
@@ -507,10 +486,7 @@ public func != <RowDecoder>(lhs: AssociationAggregate<RowDecoder>, rhs: Bool) ->
 ///
 ///     Author.having(true != Author.books.isEmpty)
 public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs != expression)
-    }
+    rhs.mapExpression { lhs != $0 }
 }
 
 /// Returns an aggregate that compares two aggregates with the `IS` SQL operator.
@@ -523,11 +499,7 @@ public func === <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression === rExpression)
-    }
+    lhs.combined(with: rhs, ===)
 }
 
 /// Returns an aggregate that compares an aggregate with the `IS` SQL operator.
@@ -540,10 +512,7 @@ public func === <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression === rhs)
-    }
+    lhs.mapExpression { $0 === rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `IS` SQL operator.
@@ -556,10 +525,7 @@ public func === <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs === expression)
-    }
+    rhs.mapExpression { lhs === $0 }
 }
 
 /// Returns an aggregate that compares two aggregates with the `IS NOT` SQL operator.
@@ -572,11 +538,7 @@ public func !== <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression !== rExpression)
-    }
+    lhs.combined(with: rhs, !==)
 }
 
 /// Returns an aggregate that compares an aggregate with the `IS NOT` SQL operator.
@@ -589,10 +551,7 @@ public func !== <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression !== rhs)
-    }
+    lhs.mapExpression { $0 !== rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `IS NOT` SQL operator.
@@ -605,10 +564,7 @@ public func !== <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs !== expression)
-    }
+    rhs.mapExpression { lhs !== $0 }
 }
 
 // MARK: - Comparison Operators (<, >, <=, >=)
@@ -623,11 +579,7 @@ public func <= <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression <= rExpression)
-    }
+    lhs.combined(with: rhs, <=)
 }
 
 /// Returns an aggregate that compares an aggregate with the `<=` SQL operator.
@@ -640,10 +592,7 @@ public func <= <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression <= rhs)
-    }
+    lhs.mapExpression { $0 <= rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `<=` SQL operator.
@@ -656,10 +605,7 @@ public func <= <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs <= expression)
-    }
+    rhs.mapExpression { lhs <= $0 }
 }
 
 /// Returns an aggregate that compares two aggregates with the `<` SQL operator.
@@ -672,11 +618,7 @@ public func < <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression < rExpression)
-    }
+    lhs.combined(with: rhs, <)
 }
 
 /// Returns an aggregate that compares an aggregate with the `<` SQL operator.
@@ -689,10 +631,7 @@ public func < <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression < rhs)
-    }
+    lhs.mapExpression { $0 < rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `<` SQL operator.
@@ -705,10 +644,7 @@ public func < <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs < expression)
-    }
+    rhs.mapExpression { lhs < $0 }
 }
 
 /// Returns an aggregate that compares two aggregates with the `>` SQL operator.
@@ -721,11 +657,7 @@ public func > <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression > rExpression)
-    }
+    lhs.combined(with: rhs, >)
 }
 
 /// Returns an aggregate that compares an aggregate with the `>` SQL operator.
@@ -738,10 +670,7 @@ public func > <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression > rhs)
-    }
+    lhs.mapExpression { $0 > rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `>` SQL operator.
@@ -754,10 +683,7 @@ public func > <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs > expression)
-    }
+    rhs.mapExpression { lhs > $0 }
 }
 
 /// Returns an aggregate that compares two aggregates with the `>=` SQL operator.
@@ -770,11 +696,7 @@ public func >= <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression >= rExpression)
-    }
+    lhs.combined(with: rhs, >=)
 }
 
 /// Returns an aggregate that compares an aggregate with the `>=` SQL operator.
@@ -787,10 +709,7 @@ public func >= <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression >= rhs)
-    }
+    lhs.mapExpression { $0 >= rhs }
 }
 
 /// Returns an aggregate that compares an aggregate with the `>=` SQL operator.
@@ -803,10 +722,7 @@ public func >= <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs >= expression)
-    }
+    rhs.mapExpression { lhs >= $0 }
 }
 
 // MARK: - Arithmetic Operators (+, -, *, /)
@@ -817,10 +733,7 @@ public func >= <RowDecoder>(
 ///
 ///     Author.annotated(with: -Author.books.count)
 public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -> AssociationAggregate<RowDecoder> {
-    AssociationAggregate { request in
-        let (request, expression) = aggregate.prepare(request)
-        return (request: request, expression:-expression)
-    }
+    aggregate.mapExpression { -$0 }
 }
 
 /// Returns an aggregate that sums two aggregates with the `+` SQL operator.
@@ -833,11 +746,7 @@ public func + <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression + rExpression)
-    }
+    lhs.combined(with: rhs, +)
 }
 
 /// Returns an aggregate that sums an aggregate with the `+` SQL operator.
@@ -850,10 +759,7 @@ public func + <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression + rhs)
-    }
+    lhs.mapExpression { $0 + rhs }
 }
 
 /// Returns an aggregate that sums an aggregate with the `+` SQL operator.
@@ -866,10 +772,7 @@ public func + <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs + expression)
-    }
+    rhs.mapExpression { lhs + $0 }
 }
 
 /// Returns an aggregate that substracts two aggregates with the `-` SQL operator.
@@ -882,11 +785,7 @@ public func - <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression - rExpression)
-    }
+    lhs.combined(with: rhs, -)
 }
 
 /// Returns an aggregate that substracts an aggregate with the `-` SQL operator.
@@ -899,10 +798,7 @@ public func - <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression - rhs)
-    }
+    lhs.mapExpression { $0 - rhs }
 }
 
 /// Returns an aggregate that substracts an aggregate with the `-` SQL operator.
@@ -915,10 +811,7 @@ public func - <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs - expression)
-    }
+    rhs.mapExpression { lhs - $0 }
 }
 
 /// Returns an aggregate that multiplies two aggregates with the `*` SQL operator.
@@ -931,11 +824,7 @@ public func * <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression * rExpression)
-    }
+    lhs.combined(with: rhs, *)
 }
 
 /// Returns an aggregate that substracts an aggregate with the `*` SQL operator.
@@ -948,10 +837,7 @@ public func * <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression * rhs)
-    }
+    lhs.mapExpression { $0 * rhs }
 }
 
 /// Returns an aggregate that substracts an aggregate with the `*` SQL operator.
@@ -964,10 +850,7 @@ public func * <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs * expression)
-    }
+    rhs.mapExpression { lhs * $0 }
 }
 
 /// Returns an aggregate that multiplies two aggregates with the `/` SQL operator.
@@ -980,11 +863,7 @@ public func / <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (lRequest, lExpression) = lhs.prepare(request)
-        let (request, rExpression) = rhs.prepare(lRequest)
-        return (request: request, expression: lExpression / rExpression)
-    }
+    lhs.combined(with: rhs, /)
 }
 
 /// Returns an aggregate that substracts an aggregate with the `/` SQL operator.
@@ -997,10 +876,7 @@ public func / <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression / rhs)
-    }
+    lhs.mapExpression { $0 / rhs }
 }
 
 /// Returns an aggregate that substracts an aggregate with the `/` SQL operator.
@@ -1013,10 +889,7 @@ public func / <RowDecoder>(
     rhs: AssociationAggregate<RowDecoder>)
     -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let (request, expression) = rhs.prepare(request)
-        return (request: request, expression: lhs / expression)
-    }
+    rhs.mapExpression { lhs / $0 }
 }
 
 // MARK: - IFNULL(...)
@@ -1029,14 +902,8 @@ public func ?? <RowDecoder>(
     rhs: SQLExpressible)
     -> AssociationAggregate<RowDecoder>
 {
-    var aggregate = AssociationAggregate<RowDecoder> { request in
-        let (request, expression) = lhs.prepare(request)
-        return (request: request, expression: expression ?? rhs)
-    }
-    
     // Preserve key
-    aggregate.key = lhs.key
-    return aggregate
+    lhs.mapExpression { $0 ?? rhs }.with(\.key, lhs.key)
 }
 
 // TODO: add support for ABS(aggregate)

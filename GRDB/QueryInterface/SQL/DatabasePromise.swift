@@ -41,10 +41,4 @@ struct DatabasePromise<T> {
             try transform(self.resolve(db))
         }
     }
-    
-    func flatMap<U>(_ transform: @escaping (T) -> DatabasePromise<U>) -> DatabasePromise<U> {
-        DatabasePromise<U> { db in
-            try transform(self.resolve(db)).resolve(db)
-        }
-    }
 }

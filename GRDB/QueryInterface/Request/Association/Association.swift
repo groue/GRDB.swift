@@ -113,7 +113,7 @@ extension Association {
     ///     // SELECT player.*, team.color
     ///     // FROM player
     ///     // JOIN team ON team.id = player.teamId
-    ///     let association = Player.team.select([Column("color")])
+    ///     let association = Player.team.select { db in [Column("color")]
     ///     var request = Player.including(required: association)
     ///
     /// Any previous selection is replaced:
@@ -122,10 +122,10 @@ extension Association {
     ///     // FROM player
     ///     // JOIN team ON team.id = player.teamId
     ///     let association = Player.team
-    ///         .select([Column("id")])
-    ///         .select([Column("color")])
+    ///         .select { db in [Column("id")] }
+    ///         .select { db in [Column("color") }
     ///     var request = Player.including(required: association)
-    public func select(_ selection: [SQLSelectable]) -> Self {
+    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
         mapDestinationRelation { $0.select(selection) }
     }
     
@@ -140,9 +140,9 @@ extension Association {
     ///     // JOIN team ON team.id = player.teamId
     ///     let association = Player.team
     ///         .select([Column("color")])
-    ///         .annotated(with: [Column("name")])
+    ///         .annotated(with: { db in [Column("name")] })
     ///     var request = Player.including(required: association)
-    public func annotated(with selection: [SQLSelectable]) -> Self {
+    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
         mapDestinationRelation { $0.annotated(with: selection) }
     }
     

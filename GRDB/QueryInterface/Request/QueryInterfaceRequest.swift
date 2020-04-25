@@ -117,19 +117,19 @@ extension QueryInterfaceRequest: FetchRequest {
 extension QueryInterfaceRequest: SelectionRequest {
     // MARK: Request Derivation
     
-    /// Creates a request which selects *selection*.
+    /// Creates a request which selects *selection promise*.
     ///
     ///     // SELECT id, email FROM player
     ///     var request = Player.all()
-    ///     request = request.select([Column("id"), Column("email")])
+    ///     request = request.select { db in [Column("id"), Column("email")] }
     ///
     /// Any previous selection is replaced:
     ///
     ///     // SELECT email FROM player
     ///     request
-    ///         .select([Column("id")])
-    ///         .select([Column("email")])
-    public func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest {
+    ///         .select { db in [Column("id")] }
+    ///         .select { db in [Column("email")] }
+    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
         map(\.query) { $0.select(selection) }
     }
     
@@ -213,14 +213,14 @@ extension QueryInterfaceRequest: SelectionRequest {
         select(sqlLiteral.sqlSelectable, as: type)
     }
     
-    /// Creates a request which appends *selection*.
+    /// Creates a request which appends *selection promise*.
     ///
     ///     // SELECT id, email, name FROM player
     ///     var request = Player.all()
     ///     request = request
     ///         .select([Column("id"), Column("email")])
-    ///         .annotated(with: [Column("name")])
-    public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest {
+    ///         .annotated(with: { db in [Column("name")] })
+    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
         map(\.query) { $0.annotated(with: selection) }
     }
 }
@@ -292,9 +292,9 @@ extension QueryInterfaceRequest: AggregatingRequest {
         map(\.query) { $0.group(expressions) }
     }
     
-    /// Creates a request with the provided *predicate* added to the
+    /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    public func having(_ predicate: SQLExpressible) -> QueryInterfaceRequest {
+    public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
         map(\.query) { $0.having(predicate) }
     }
 }
@@ -404,28 +404,6 @@ extension QueryInterfaceRequest: Refinable {
     /// - returns: A typed request bound to type Target.
     public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
         QueryInterfaceRequest<RowDecoder>(query: query)
-    }
-}
-
-extension QueryInterfaceRequest {
-    /// Turns a request into a SQLRelation.
-    ///
-    /// This method helps initializing associations:
-    ///
-    ///     struct Book: TableRecord {
-    ///         // invokes Author.all().relation
-    ///         static let author = belongsTo(Author.self)
-    ///     }
-    var relation: SQLRelation {
-        let query = self.query
-        
-        // Prevent information loss
-        GRDBPrecondition(!query.isDistinct, "Not implemented: join distinct queries")
-        GRDBPrecondition(query.groupPromise == nil, "Can't join aggregated queries")
-        GRDBPrecondition(query.havingExpressions.isEmpty, "Can't join aggregated queries")
-        GRDBPrecondition(query.limit == nil, "Can't join limited queries")
-        
-        return query.relation
     }
 }
 

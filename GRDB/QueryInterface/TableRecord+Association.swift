@@ -547,32 +547,29 @@ extension TableRecord {
     
     // MARK: - Association Aggregates
     
-    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request with *aggregates* appended to the selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: Player.books.count)
     public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }
     
-    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request with *aggregates* appended to the selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.rowid) AS bookCount
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
     ///     var request = Player.annotated(with: [Player.books.count])
     public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }
     
-    // TODO: replace rowid with actual primary key in the doc when implemented
     /// Creates a request with the provided aggregate *predicate*.
     ///
     ///     // SELECT player.*
     ///     // FROM player LEFT JOIN book ...
-    ///     // HAVING COUNT(DISTINCT book.rowid) = 0
+    ///     // HAVING COUNT(DISTINCT book.id) = 0
     ///     var request = Player.all()
     ///     request = request.having(Player.books.isEmpty)
     ///

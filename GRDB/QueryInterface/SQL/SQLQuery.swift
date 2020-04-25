@@ -9,7 +9,7 @@ struct SQLQuery {
     // Having clause is an array of expressions that we'll join with
     // the AND operator. This gives nicer output in generated SQL:
     // `(a AND b AND c)` instead of `((a AND b) AND c)`.
-    var havingExpressions: [SQLExpression] = []
+    var havingExpressionsPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
     var limit: SQLLimit?
 }
 
@@ -34,11 +34,11 @@ extension SQLQuery: Refinable {
 }
 
 extension SQLQuery: SelectionRequest {
-    func select(_ selection: [SQLSelectable]) -> Self {
+    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
         map(\.relation) { $0.select(selection) }
     }
     
-    func annotated(with selection: [SQLSelectable]) -> Self {
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
         map(\.relation) { $0.annotated(with: selection) }
     }
 }
@@ -68,8 +68,12 @@ extension SQLQuery: AggregatingRequest {
         with(\.groupPromise, DatabasePromise { db in try expressions(db).map(\.sqlExpression) })
     }
     
-    func having(_ predicate: SQLExpressible) -> Self {
-        mapInto(\.havingExpressions) { $0.append(predicate.sqlExpression) }
+    func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        map(\.havingExpressionsPromise) { havingExpressionsPromise in
+            DatabasePromise { db in
+                try havingExpressionsPromise.resolve(db) + [predicate(db).sqlExpression]
+            }
+        }
     }
 }
 
@@ -97,11 +101,11 @@ extension SQLQuery: _JoinableRequest {
 
 extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
-        let (statement, adapter) = try SQLQueryGenerator(countQuery).prepare(db)
+        let (statement, adapter) = try SQLQueryGenerator(countQuery(db)).prepare(db)
         return try Int.fetchOne(statement, adapter: adapter)!
     }
     
-    private var countQuery: SQLQuery {
+    private func countQuery(_ db: Database) throws -> SQLQuery {
         guard groupPromise == nil && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
@@ -118,9 +122,10 @@ extension SQLQuery {
             return trivialCountQuery
         }
         
-        GRDBPrecondition(!relation.selection.isEmpty, "Can't generate SQL with empty selection")
-        if relation.selection.count == 1 {
-            guard let count = relation.selection[0].count(distinct: isDistinct) else {
+        let selection = try relation.selectionPromise.resolve(db)
+        GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
+        if selection.count == 1 {
+            guard let count = selection[0].count(distinct: isDistinct) else {
                 return trivialCountQuery
             }
             var countQuery = self.unordered()
@@ -150,7 +155,7 @@ extension SQLQuery {
     private var trivialCountQuery: SQLQuery {
         let relation = SQLRelation(
             source: .query(unordered()),
-            selection: [SQLExpressionCount(AllColumns())])
+            selectionPromise: DatabasePromise(value: [SQLExpressionCount(AllColumns())]))
         return SQLQuery(relation: relation)
     }
 }
