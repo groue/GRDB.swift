@@ -26,8 +26,8 @@
 - [ ] Support for more kinds of joins: https://github.com/groue/GRDB.swift/issues/740
 - [ ] Delay SQL generation of SQLLiteral and SQLRequest: https://github.com/groue/GRDB.swift/issues/697
 - [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
-- [ ] Close the loophole when decoding root property: https://github.com/groue/GRDB.swift/issues/664
 - [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
+- [ ] Support Subqueries: `Player.filter(someRequest.contains(Column("id")))`
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`

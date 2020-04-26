@@ -73,20 +73,24 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             self.decoder = decoder
         }
         
-        var allKeys: [Key] {
+        lazy var allKeys: [Key] = {
             let row = decoder.row
             return Set(row.columnNames)
-                .union(Set(row.scopesTree.names))
-                .union(Set(row.prefetchedRows.keys))
-                .compactMap { Key(stringValue: $0) }
-        }
+                .union(row.scopesTree.names)
+                .union(row.prefetchedRows.keys)
+                .compactMap(Key.init(stringValue:))
+        }()
         
         func contains(_ key: Key) -> Bool {
             let row = decoder.row
-            return row.hasColumn(key.stringValue) || (row.scopesTree[key.stringValue] != nil)
+            return row.hasColumn(key.stringValue)
+                || (row.scopesTree[key.stringValue] != nil)
+                || (row.prefetchedRows[key.stringValue] != nil)
         }
         
         func decodeNil(forKey key: Key) throws -> Bool {
+            // Nil is only possible for columns and scopes (optional
+            // associations), not for prefetched rows.
             let row = decoder.row
             return row[key.stringValue] == nil && (row.scopesTree[key.stringValue] == nil)
         }
@@ -196,15 +200,14 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             // Our current strategy is to assume that a missing key (such as
             // "book", which is not the name of a column, and not the name of a
             // scope) has to be decoded right from the base row.
-            //
-            // Yeah, there may be better ways to handle this.
             if let decodedRootKey = decodedRootKey {
                 throw DecodingError.keyNotFound(decodedRootKey, DecodingError.Context(
                     codingPath: codingPath,
-                    debugDescription: "No such key: \(decodedRootKey.stringValue)")) // TODO: better error message
+                    debugDescription: "No such key: \(decodedRootKey.stringValue)"))
+            } else {
+                decodedRootKey = key
+                return try decode(type, fromRow: row, codingPath: codingPath + [key])
             }
-            decodedRootKey = key
-            return try decode(type, fromRow: row, codingPath: codingPath + [key])
         }
         
         func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key)
