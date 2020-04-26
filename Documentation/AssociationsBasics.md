@@ -1830,7 +1830,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 }
 
 // SELECT author.*,
-//        COUNT(DISTINCT book.rowid) AS bookCount,
+//        COUNT(DISTINCT book.id) AS bookCount,
 //        MAX(book.year) AS maxBookYear,
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
@@ -1923,7 +1923,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) = 0
+    HAVING COUNT(DISTINCT book.id) = 0
     ```
     
     </details>
@@ -1942,7 +1942,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) > 0
+    HAVING COUNT(DISTINCT book.id) > 0
     ```
     
     </details>
@@ -1961,7 +1961,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) >= 2
+    HAVING COUNT(DISTINCT book.id) >= 2
     ```
     
     </details>
@@ -1999,7 +1999,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) > 0
+    HAVING COUNT(DISTINCT book.id) > 0
     ```
     
     </details>
@@ -2020,7 +2020,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
+    HAVING COUNT(DISTINCT book.id) > COUNT(DISTINCT painting.id)
     ```
     
     </details>
@@ -2040,7 +2040,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
     GROUP BY author.id
-    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
+    HAVING ((COUNT(DISTINCT book.id) = 0) AND (COUNT(DISTINCT painting.id) > 0))
     ```
     
     </details>
@@ -2065,7 +2065,7 @@ Aggregates can be modified and combined with Swift operators:
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
     GROUP BY author.id
-    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) = 0))
+    HAVING ((COUNT(DISTINCT book.id) = 0) AND (COUNT(DISTINCT painting.id) = 0))
     ```
     
     </details>
@@ -2101,8 +2101,8 @@ Aggregates can be modified and combined with Swift operators:
     
     ```sql
     SELECT author.*,
-           (COUNT(DISTINCT book.rowid) +
-            COUNT(DISTINCT painting.rowid)) AS workCount
+           (COUNT(DISTINCT book.id) +
+            COUNT(DISTINCT painting.id)) AS workCount
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
@@ -2183,7 +2183,7 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
     
     ```sql
     SELECT author.*,
-           (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+           (COUNT(DISTINCT book.id) + COUNT(DISTINCT painting.id)) AS workCount
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
@@ -2218,8 +2218,8 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```sql
     SELECT author.*,
-           COUNT(DISTINCT book1.rowid) AS novelCount,
-           COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+           COUNT(DISTINCT book1.id) AS novelCount,
+           COUNT(DISTINCT book2.id) AS theatrePlayCount
     FROM author
     LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
     LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
@@ -2258,8 +2258,8 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```sql
     SELECT author.*,
-           COUNT(DISTINCT book.rowid) AS novelCount,
-           COUNT(DISTINCT book.rowid) AS theatrePlayCount
+           COUNT(DISTINCT book.id) AS novelCount,
+           COUNT(DISTINCT book.id) AS theatrePlayCount
     FROM author
     LEFT JOIN book ON book.authorId = author.id
           AND (book.kind = 'novel' AND book.kind = 'theatrePlay')

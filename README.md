@@ -4010,7 +4010,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
 - `annotated(with: aggregate)` extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
-    // SELECT team.*, COUNT(DISTINCT player.rowid) AS playerCount
+    // SELECT team.*, COUNT(DISTINCT player.id) AS playerCount
     // FROM team
     // LEFT JOIN player ON player.teamId = team.id
     // GROUP BY team.id
@@ -4086,7 +4086,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // FROM team
     // LEFT JOIN player ON player.teamId = team.id
     // GROUP BY team.id
-    // HAVING COUNT(DISTINCT player.rowid) >= 5
+    // HAVING COUNT(DISTINCT player.id) >= 5
     Team.having(Team.players.count >= 5)
     ```
 
@@ -6956,7 +6956,7 @@ This method blocks the current thread until all current database accesses are co
 [Data Protection](https://developer.apple.com/library/content/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/StrategiesforImplementingYourApp/StrategiesforImplementingYourApp.html#//apple_ref/doc/uid/TP40007072-CH5-SW21) lets you protect files so that they are encrypted and unavailable until the device is unlocked.
 
 Data protection can be enabled [globally](https://developer.apple.com/library/content/documentation/IDEs/Conceptual/AppDistributionGuide/AddingCapabilities/AddingCapabilities.html#//apple_ref/doc/uid/TP40012582-CH26-SW30) for all files created by an application.
-
+g
 You can also explicitly protect a database, by configuring its enclosing *directory*. This will not only protect the database file, but also all [temporary files](https://www.sqlite.org/tempfiles.html) created by SQLite (including the persistent `.shm` and `.wal` files created by [database pools](#database-pools)).
 
 For example, to explicitly use [complete](https://developer.apple.com/reference/foundation/fileprotectiontype/1616200-complete) protection:
