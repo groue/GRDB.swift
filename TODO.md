@@ -6,17 +6,12 @@
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
-- [ ] Cancellation of a started ValueObservation. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524733140
-- [ ] Remove submodules
-- [ ] map keypath cleanup
 
 
 ## Documentation
 
-- [ ] Document that creating "too many" ValueObservation increases database contention. This also applies to database pools, because when observations create reader contention, they also create writer contention. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524615772
 - [ ] Enhance the introduction to SQLRequest, based on the feedback in https://github.com/groue/GRDB.swift/issues/617
 - [ ] Association: document how to use aggregates with inner join (testAnnotatedWithHasManyDefaultMaxJoiningRequired)
-- [ ] Association: document ordered vs. non-ordered hasMany and hasManyThrough associations
 
 
 ## Features
