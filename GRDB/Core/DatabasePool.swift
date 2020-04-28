@@ -139,6 +139,10 @@ public final class DatabasePool: DatabaseWriter {
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
         NotificationCenter.default.removeObserver(self)
+        
+        // Close reader connections before the writer connection.
+        // Context: https://github.com/groue/GRDB.swift/issues/739
+        readerPool = nil
     }
     
     private func setupDatabase(_ db: Database) {
