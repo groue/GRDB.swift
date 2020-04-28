@@ -408,6 +408,12 @@ extension QueryInterfaceRequest: Refinable {
     }
 }
 
+extension QueryInterfaceRequest: SQLCollection {
+    public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
+        try SQLQueryGenerator(query).sql(&context)
+    }
+}
+
 extension QueryInterfaceRequest: TableRequest {
     /// :nodoc:
     public var databaseTableName: String {
@@ -615,8 +621,8 @@ public struct ColumnAssignment {
     var column: ColumnExpression
     var value: SQLExpressible
     
-    func sql(_ context: inout SQLGenerationContext) -> String {
-        column.expressionSQL(&context, wrappedInParenthesis: false) +
+    func sql(_ context: inout SQLGenerationContext) throws -> String {
+        try column.expressionSQL(&context, wrappedInParenthesis: false) +
             " = " +
             value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
     }

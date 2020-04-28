@@ -195,6 +195,29 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE)")
     }
     
+    func testSubqueryContains() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            let subRequest = tableRequest.select(Col.age).filter(Col.name != nil)
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(subRequest.contains(Col.age))),
+                """
+                SELECT * FROM "readers" WHERE "age" IN \
+                (SELECT "age" FROM "readers" WHERE "name" IS NOT NULL)
+                """)
+        }
+        
+        do {
+            let subRequest = SQLRequest<Int>(sql: "SELECT ? UNION SELECT ?", arguments: [1, 2])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(subRequest.contains(Col.age + 1))),
+                """
+                SELECT * FROM "readers" WHERE ("age" + 1) IN (SELECT 1 UNION SELECT 2)
+                """)
+        }
+    }
+    
     func testGreaterThan() throws {
         let dbQueue = try makeDatabaseQueue()
         

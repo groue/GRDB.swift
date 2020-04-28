@@ -19,7 +19,7 @@ public struct SQLLiteral {
         case orderingTerm(SQLOrderingTerm)
         case subQuery(SQLLiteral)
         
-        fileprivate func sql(_ context: inout SQLGenerationContext) -> String {
+        fileprivate func sql(_ context: inout SQLGenerationContext) throws -> String {
             switch self {
             case let .sql(sql, arguments):
                 if context.append(arguments: arguments) == false {
@@ -29,13 +29,13 @@ public struct SQLLiteral {
                 }
                 return sql
             case let .expression(expression):
-                return expression.expressionSQL(&context, wrappedInParenthesis: false)
+                return try expression.expressionSQL(&context, wrappedInParenthesis: false)
             case let .selectable(selectable):
-                return selectable.resultColumnSQL(&context)
+                return try selectable.resultColumnSQL(&context)
             case let .orderingTerm(orderingTerm):
-                return orderingTerm.orderingTermSQL(&context)
+                return try orderingTerm.orderingTermSQL(&context)
             case let .subQuery(sqlLiteral):
-                return "(" + sqlLiteral.sql(&context) + ")"
+                return try "(" + sqlLiteral.sql(&context) + ")"
             }
         }
         
@@ -56,15 +56,25 @@ public struct SQLLiteral {
         }
     }
     
+    @available(*, deprecated)
     public var sql: String {
-        var context = SQLGenerationContext.sqlLiteralContext
-        return sql(&context)
+        // TODO: can we get rid of this temp database?
+        // TODO: can the user risk an error?
+        try! DatabaseQueue().inDatabase { db in
+            var context = SQLGenerationContext.sqlLiteralContext(db)
+            return try sql(&context)
+        }
     }
     
+    @available(*, deprecated)
     public var arguments: StatementArguments {
-        var context = SQLGenerationContext.sqlLiteralContext
-        _ = sql(&context)
-        return context.arguments
+        // TODO: can we get rid of this temp database?
+        // TODO: can the user risk an error?
+        try! DatabaseQueue().inDatabase { db in
+            var context = SQLGenerationContext.sqlLiteralContext(db)
+            _ = try sql(&context)
+            return context.arguments
+        }
     }
     
     private(set) var elements: [Element]
@@ -97,8 +107,8 @@ public struct SQLLiteral {
         self.init(elements: [.expression(expression)])
     }
     
-    func sql(_ context: inout SQLGenerationContext) -> String {
-        elements.map { $0.sql(&context) }.joined()
+    func sql(_ context: inout SQLGenerationContext) throws -> String {
+        try elements.map { try $0.sql(&context) }.joined()
     }
     
     fileprivate func qualified(with alias: TableAlias) -> SQLLiteral {
@@ -250,11 +260,11 @@ private struct _SQLExpressionLiteral: SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return sqlLiteral.sql(&context)
+        return try sqlLiteral.sql(&context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -274,11 +284,11 @@ private struct _SQLSelectionLiteral: SQLSelectable {
         self.sqlLiteral = sqlLiteral
     }
     
-    func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        sqlLiteral.sql(&context)
+    func resultColumnSQL(_ context: inout SQLGenerationContext) throws -> String {
+        try sqlLiteral.sql(&context)
     }
     
-    func countedSQL(_ context: inout SQLGenerationContext) -> String {
+    func countedSQL(_ context: inout SQLGenerationContext) throws -> String {
         fatalError("""
             Selection literals can't be counted. \
             To resolve this error, select one or several literal expressions instead. \
@@ -324,8 +334,8 @@ private struct _SQLOrderingLiteral: SQLOrderingTerm {
             """)
     }
     
-    func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
-        sqlLiteral.sql(&context)
+    func orderingTermSQL(_ context: inout SQLGenerationContext) throws -> String {
+        try sqlLiteral.sql(&context)
     }
     
     func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {

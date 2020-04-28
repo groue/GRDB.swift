@@ -130,10 +130,14 @@ extension TableRecord {
     public static func selectionSQL(alias: String? = nil) -> String {
         let alias = TableAlias(tableName: databaseTableName, userName: alias)
         let selection = databaseSelection.map { $0.qualifiedSelectable(with: alias) }
-        var context = SQLGenerationContext.selectionContext
-        return selection
-            .map { $0.resultColumnSQL(&context) }
-            .joined(separator: ", ")
+        // TODO: can we get rid of this temp database?
+        // TODO: can the user risk an error?
+        return try! DatabaseQueue().inDatabase { db in
+            var context = SQLGenerationContext.selectionContext(db)
+            return try selection
+                .map { try $0.resultColumnSQL(&context) }
+                .joined(separator: ", ")
+        }
     }
     
     /// Returns the number of selected columns.

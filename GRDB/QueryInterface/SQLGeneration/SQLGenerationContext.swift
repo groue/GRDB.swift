@@ -5,6 +5,7 @@
 ///
 /// :nodoc:
 public struct SQLGenerationContext {
+    let db: Database
     var arguments: StatementArguments {
         _arguments ?? StatementArguments()
     }
@@ -13,26 +14,36 @@ public struct SQLGenerationContext {
     private var qualifierNeeded: Bool
     
     /// Used for pure SQL generation. Arguments are always empty.
-    static let rawSQLContext = SQLGenerationContext(
-        _arguments: nil,
-        resolvedNames: [:],
-        qualifierNeeded: false)
+    static func rawSQLContext(_ db: Database) -> SQLGenerationContext {
+        SQLGenerationContext(
+            db: db,
+            _arguments: nil,
+            resolvedNames: [:],
+            qualifierNeeded: false)
+    }
     
     /// Used for SQLLiteral generation
-    static let sqlLiteralContext = SQLGenerationContext(
-        _arguments: [],
-        resolvedNames: [:],
-        qualifierNeeded: false)
+    static func sqlLiteralContext(_ db: Database) -> SQLGenerationContext {
+        SQLGenerationContext(
+            db: db,
+            _arguments: [],
+            resolvedNames: [:],
+            qualifierNeeded: false)
+    }
     
     /// Used for TableRecord.selectionSQL
-    static let selectionContext = SQLGenerationContext(
-        _arguments: nil,
-        resolvedNames: [:],
-        qualifierNeeded: true)
+    static func selectionContext(_ db: Database) -> SQLGenerationContext {
+        SQLGenerationContext(
+            db: db,
+            _arguments: nil,
+            resolvedNames: [:],
+            qualifierNeeded: true)
+    }
     
     /// Used for SQLQueryGenerator
-    static func queryContext(aliases: [TableAlias]) -> SQLGenerationContext {
+    static func queryContext(_ db: Database, aliases: [TableAlias]) -> SQLGenerationContext {
         SQLGenerationContext(
+            db: db,
             _arguments: [],
             resolvedNames: aliases.resolvedNames,
             qualifierNeeded: aliases.count > 1)

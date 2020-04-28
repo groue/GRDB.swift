@@ -5,8 +5,12 @@ extension SQLExpression {
     ///
     ///     "foo'bar".databaseValue.quotedSQL() // "'foo''bar'""
     func quotedSQL() -> String {
-        var context = SQLGenerationContext.rawSQLContext
-        return expressionSQL(&context, wrappedInParenthesis: false)
+        // TODO: can we get rid of this temp database?
+        // TODO: can the user risk an error?
+        try! DatabaseQueue().inDatabase { db in
+            var context = SQLGenerationContext.rawSQLContext(db)
+            return try expressionSQL(&context, wrappedInParenthesis: false)
+        }
     }
 }
 
@@ -70,11 +74,13 @@ public struct SQLExpressionUnary: SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return op.sql + (op.needsRightSpace ? " " : "") + expression.expressionSQL(&context, wrappedInParenthesis: true)
+        return try op.sql
+            + (op.needsRightSpace ? " " : "")
+            + expression.expressionSQL(&context, wrappedInParenthesis: true)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -166,11 +172,11 @@ public struct SQLExpressionBinary: SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return """
+        return try """
             \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
             \(op.sql) \
             \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
@@ -263,14 +269,14 @@ struct SQLExpressionBinaryReduce: SQLExpression {
         }
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         guard let first = expressions.first else {
-            return op.neutralValue.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+            return try op.neutralValue.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
         }
         if expressions.count == 1 {
-            return first.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
+            return try first.expressionSQL(&context, wrappedInParenthesis: wrappedInParenthesis)
         }
-        let expressionSQLs = expressions.map { $0.expressionSQL(&context, wrappedInParenthesis: true) }
+        let expressionSQLs = try expressions.map { try $0.expressionSQL(&context, wrappedInParenthesis: true) }
         let joiner = " \(op.sql) "
         if wrappedInParenthesis {
             return "(\(expressionSQLs.joined(separator: joiner)))"
@@ -376,11 +382,11 @@ struct SQLExpressionEqual: SQLExpression {
         }
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return """
+        return try """
             \(lhs.expressionSQL(&context, wrappedInParenthesis: true)) \
             \(op.rawValue) \
             \(rhs.expressionSQL(&context, wrappedInParenthesis: true))
@@ -447,11 +453,11 @@ struct SQLExpressionContains: SQLExpression {
         self.isNegated = negated
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return """
+        return try """
             \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
             \(isNegated ? "NOT IN" : "IN") \
             (\(collection.collectionSQL(&context)))
@@ -515,11 +521,11 @@ struct SQLExpressionBetween: SQLExpression {
         self.isNegated = negated
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return """
+        return try """
             \(expression.expressionSQL(&context, wrappedInParenthesis: true)) \
             \(isNegated ? "NOT BETWEEN" : "BETWEEN") \
             \(lowerBound.expressionSQL(&context, wrappedInParenthesis: true)) \
@@ -608,11 +614,11 @@ public struct SQLExpressionFunction: SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         var sql = functionName.sql
         sql += "("
-        sql += arguments
-            .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
+        sql += try arguments
+            .map { try $0.expressionSQL(&context, wrappedInParenthesis: false) }
             .joined(separator: ", ")
         sql += ")"
         return sql
@@ -639,8 +645,8 @@ struct SQLExpressionCount: SQLExpression {
         self.counted = counted
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        "COUNT(" + counted.countedSQL(&context) + ")"
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try "COUNT(" + counted.countedSQL(&context) + ")"
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
@@ -661,8 +667,8 @@ struct SQLExpressionCountDistinct: SQLExpression {
         self.counted = counted
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        "COUNT(DISTINCT " + counted.expressionSQL(&context, wrappedInParenthesis: false) + ")"
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try "COUNT(DISTINCT " + counted.expressionSQL(&context, wrappedInParenthesis: false) + ")"
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
@@ -689,11 +695,11 @@ struct SQLExpressionIsEmpty: SQLExpression {
         SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return """
+        return try """
             \(countExpression.expressionSQL(&context, wrappedInParenthesis: true)) \
             \(isEmpty ? "= 0" : "> 0")
             """
@@ -710,11 +716,11 @@ struct TableMatchExpression: SQLExpression {
     var alias: TableAlias
     var pattern: SQLExpression
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return """
+        return try """
             \(context.resolvedName(for: alias).quotedDatabaseIdentifier) \
             MATCH \
             \(pattern.expressionSQL(&context, wrappedInParenthesis: true))
@@ -743,11 +749,11 @@ struct SQLExpressionCollate: SQLExpression {
         self.collationName = collationName
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
         }
-        return """
+        return try """
             \(expression.expressionSQL(&context, wrappedInParenthesis: false)) \
             COLLATE \
             \(collationName.rawValue)

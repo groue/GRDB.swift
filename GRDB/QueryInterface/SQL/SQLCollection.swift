@@ -9,7 +9,7 @@ public protocol SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the collection.
-    func collectionSQL(_ context: inout SQLGenerationContext) -> String
+    func collectionSQL(_ context: inout SQLGenerationContext) throws -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -44,9 +44,9 @@ struct SQLExpressionsArray: SQLCollection {
         self.expressions = expressions.map(\.sqlExpression)
     }
     
-    func collectionSQL(_ context: inout SQLGenerationContext) -> String {
-        expressions
-            .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
+    func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
+        try expressions
+            .map { try $0.expressionSQL(&context, wrappedInParenthesis: false) }
             .joined(separator: ", ")
     }
     

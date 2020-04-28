@@ -19,6 +19,7 @@ public struct SQLRequest<T>: FetchRequest {
     ///     let id = 42
     ///     let request: SQLRequest<Player> = "SELECT * FROM player WHERE id = \(id)"
     ///     request.sql // "SELECT * FROM player WHERE id = ?"
+    @available(*, deprecated)
     public var sql: String { sqlLiteral.sql }
     
     /// The request argument
@@ -26,6 +27,7 @@ public struct SQLRequest<T>: FetchRequest {
     ///     let id = 42
     ///     let request: SQLRequest<Player> = "SELECT * FROM player WHERE id = \(id)"
     ///     request.arguments // [42]
+    @available(*, deprecated)
     public var arguments: StatementArguments { sqlLiteral.arguments }
     
     /// The request adapter
@@ -146,8 +148,8 @@ public struct SQLRequest<T>: FetchRequest {
     ///
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        var context = SQLGenerationContext.sqlLiteralContext
-        let sql = sqlLiteral.sql(&context)
+        var context = SQLGenerationContext.sqlLiteralContext(db)
+        let sql = try sqlLiteral.sql(&context)
         let statement: SelectStatement
         switch cache {
         case .none:
@@ -159,6 +161,17 @@ public struct SQLRequest<T>: FetchRequest {
         }
         try statement.setArguments(context.arguments)
         return PreparedRequest(statement: statement, adapter: adapter)
+    }
+}
+
+extension SQLRequest: SQLCollection {
+    public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
+        if context.append(arguments: arguments) == false {
+            // GRDB limitation: we don't know how to look for `?` in sql and
+            // replace them with literals.
+            fatalError("Not implemented")
+        }
+        return sql
     }
 }
 

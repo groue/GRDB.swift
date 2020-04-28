@@ -87,8 +87,8 @@ extension SQLCollatedExpression: SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
-        sqlExpression.orderingTermSQL(&context)
+    public func orderingTermSQL(_ context: inout SQLGenerationContext) throws -> String {
+        try sqlExpression.orderingTermSQL(&context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
