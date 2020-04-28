@@ -3,11 +3,12 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     // MARK: - Association Aggregates
     
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
-        let (request, expression) = aggregate.prepare(self)
+        var request = self
+        let expressionPromise = aggregate.prepare(&request)
         if let key = aggregate.key {
-            return request.annotated(with: { db in try [expression.resolve(db).forKey(key)] })
+            return request.annotated(with: { db in try [expressionPromise.resolve(db).forKey(key)] })
         } else {
-            return request.annotated(with: { db in try [expression.resolve(db)] })
+            return request.annotated(with: { db in try [expressionPromise.resolve(db)] })
         }
     }
     
@@ -42,7 +43,8 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     ///     var request = Player.all()
     ///     request = request.having(Player.books.isEmpty)
     public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
-        let (request, expression) = predicate.prepare(self)
-        return request.having(expression.resolve)
+        var request = self
+        let expressionPromise = predicate.prepare(&request)
+        return request.having(expressionPromise.resolve)
     }
 }
