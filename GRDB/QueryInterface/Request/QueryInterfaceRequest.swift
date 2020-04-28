@@ -98,6 +98,7 @@ extension QueryInterfaceRequest: FetchRequest {
             let pivotAlias = TableAlias()
             let prefetchedRelation = association
                 .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
+                // TODO: we may miss columns in the output region since we don't pass any row below
                 .destinationRelation(fromOriginRows: { _ in [] /* no origin row */ })
                 .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
