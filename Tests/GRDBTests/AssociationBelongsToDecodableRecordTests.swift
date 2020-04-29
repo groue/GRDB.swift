@@ -27,7 +27,7 @@ private struct PlayerWithOptionalTeam: Decodable, FetchableRecord {
     static let team = Player.team.forKey(CodingKeys.team)
 }
 
-extension QueryInterfaceRequest where T == Player {
+extension QueryInterfaceRequest where RowDecoder == Player {
     func filter(teamName: String) -> QueryInterfaceRequest<Player> {
         joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
     }
