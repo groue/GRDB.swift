@@ -133,10 +133,18 @@ extension SQLRequest: SQLCollection {
 }
 
 // Support for `request == expression`
-extension SQLRequest: SQLRequestExpressible {
+extension SQLRequest: SQLSpecificExpressible {
     /// :nodoc
     public var sqlExpression: SQLExpression {
         sqlLiteral.sqlExpression
+    }
+}
+
+// Support for `SQLLiteral("SELECT ... IN (\(request))")`
+extension SQLRequest: SQLRequestExpressible {
+    /// :nodoc
+    public func requestSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlLiteral.sql(context)
     }
 }
 

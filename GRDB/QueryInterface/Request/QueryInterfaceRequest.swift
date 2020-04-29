@@ -415,7 +415,7 @@ extension QueryInterfaceRequest: SQLCollection {
 }
 
 // Support for `request == expression`
-extension QueryInterfaceRequest: SQLRequestExpressible {
+extension QueryInterfaceRequest: SQLSpecificExpressible {
     private struct Expression: SQLExpression {
         let generator: SQLQueryGenerator
         
@@ -434,6 +434,14 @@ extension QueryInterfaceRequest: SQLRequestExpressible {
             query: query,
             forSingleResult: true,
             requiresSingleColumn: true))
+    }
+}
+
+// Support for `SQLLiteral("SELECT ... IN (\(request))")`
+extension QueryInterfaceRequest: SQLRequestExpressible {
+    /// :nodoc
+    public func requestSQL(_ context: SQLGenerationContext) throws -> String {
+        try SQLQueryGenerator(query: query).sql(context)
     }
 }
 

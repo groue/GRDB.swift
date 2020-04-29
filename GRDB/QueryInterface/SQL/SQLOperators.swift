@@ -116,22 +116,6 @@ public func == (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
     isEqual(lhs.sqlExpression, rhs.sqlExpression)
 }
 
-public func == (lhs: SQLExpressible?, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs == rhs.sqlExpression
-}
-
-public func == (lhs: SQLRequestExpressible, rhs: SQLExpressible?) -> SQLExpression {
-    lhs.sqlExpression == rhs
-}
-
-public func == (lhs: Bool, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs == rhs.sqlExpression
-}
-
-public func == (lhs: SQLRequestExpressible, rhs: Bool) -> SQLExpression {
-    lhs.sqlExpression == rhs
-}
-
 /// An SQL expression that compares two expressions with the `<>` SQL operator.
 ///
 ///     // name <> 'Arthur'
@@ -226,22 +210,6 @@ public func != (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
     isEqual(lhs.sqlExpression, rhs.sqlExpression).negated
 }
 
-public func != (lhs: SQLExpressible?, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs != rhs.sqlExpression
-}
-
-public func != (lhs: SQLRequestExpressible, rhs: SQLExpressible?) -> SQLExpression {
-    lhs.sqlExpression != rhs
-}
-
-public func != (lhs: Bool, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs != rhs.sqlExpression
-}
-
-public func != (lhs: SQLRequestExpressible, rhs: Bool) -> SQLExpression {
-    lhs.sqlExpression == rhs
-}
-
 /// An SQL expression that compares two expressions with the `IS` SQL operator.
 ///
 ///     // name IS 'Arthur'
@@ -284,14 +252,6 @@ public func === (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpress
 ///     Column("email") === Column("login")
 public func === (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     SQLExpressionEqual(.is, lhs.sqlExpression, rhs.sqlExpression)
-}
-
-public func === (lhs: SQLExpressible?, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs === rhs.sqlExpression
-}
-
-public func === (lhs: SQLRequestExpressible, rhs: SQLExpressible?) -> SQLExpression {
-    lhs.sqlExpression === rhs
 }
 
 /// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
@@ -337,15 +297,6 @@ public func !== (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpress
 public func !== (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     SQLExpressionEqual(.isNot, lhs.sqlExpression, rhs.sqlExpression)
 }
-
-public func !== (lhs: SQLExpressible, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs !== rhs.sqlExpression
-}
-
-public func !== (lhs: SQLRequestExpressible, rhs: SQLExpressible) -> SQLExpression {
-    lhs.sqlExpression !== rhs
-}
-
 
 // MARK: - Comparison Operators (<, >, <=, >=)
 
@@ -403,14 +354,6 @@ public func < (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
     SQLExpressionBinary(.lessThan, lhs.sqlExpression, rhs.sqlExpression)
 }
 
-public func < (lhs: SQLExpressible, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs < rhs.sqlExpression
-}
-
-public func < (lhs: SQLRequestExpressible, rhs: SQLExpressible) -> SQLExpression {
-    lhs.sqlExpression < rhs
-}
-
 /// An SQL expression that compares two expressions with the `<=` SQL operator.
 ///
 ///     // score <= 18
@@ -449,14 +392,6 @@ public func <= (lhs: SQLExpressible, rhs: SQLCollatedExpression) -> SQLExpressio
 ///     Column("width") <= Column("height")
 public func <= (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     SQLExpressionBinary(.lessThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
-}
-
-public func <= (lhs: SQLExpressible, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs <= rhs.sqlExpression
-}
-
-public func <= (lhs: SQLRequestExpressible, rhs: SQLExpressible) -> SQLExpression {
-    lhs.sqlExpression <= rhs
 }
 
 /// An SQL expression that compares two expressions with the `>` SQL operator.
@@ -499,14 +434,6 @@ public func > (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLE
     SQLExpressionBinary(.greaterThan, lhs.sqlExpression, rhs.sqlExpression)
 }
 
-public func > (lhs: SQLExpressible, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs > rhs.sqlExpression
-}
-
-public func > (lhs: SQLRequestExpressible, rhs: SQLExpressible) -> SQLExpression {
-    lhs.sqlExpression > rhs
-}
-
 /// An SQL expression that compares two expressions with the `>=` SQL operator.
 ///
 ///     // score >= 18
@@ -546,15 +473,6 @@ public func >= (lhs: SQLExpressible, rhs: SQLCollatedExpression) -> SQLExpressio
 public func >= (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     SQLExpressionBinary(.greaterThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
 }
-
-public func >= (lhs: SQLExpressible, rhs: SQLRequestExpressible) -> SQLExpression {
-    lhs >= rhs.sqlExpression
-}
-
-public func >= (lhs: SQLRequestExpressible, rhs: SQLExpressible) -> SQLExpression {
-    lhs.sqlExpression >= rhs
-}
-
 
 // MARK: - Inclusion Operators (BETWEEN, IN)
 

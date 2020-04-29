@@ -59,11 +59,10 @@ public protocol SQLSpecificExpressible: SQLExpressible {
 /// A protocol for request types that are used as an SQL expression.
 ///
 /// :nodoc:
-public protocol SQLRequestExpressible {
+public protocol SQLRequestExpressible: SQLSpecificExpressible {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns an SQLExpression
-    var sqlExpression: SQLExpression { get }
+    /// :nodoc:
+    func requestSQL(_ context: SQLGenerationContext) throws -> String
 }
 
 // MARK: - SQLExpressible & SQLOrderingTerm
