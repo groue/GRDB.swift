@@ -29,7 +29,7 @@
 - [ ] Support Subqueries: document breaking change: interpolated requests are no longer wrapped in parenthesis
 - [ ] Support Subqueries: document breaking change: how to extract sql from SQLLiteral
 - [ ] Support Subqueries: document breaking change: how to extract sql from SQLRequest
-- [ ] Support Subqueries: document breaking change: how to extract sql from QueryInterfaceRequest
+- [ ] Support Subqueries: document breaking change: how to extract sql from QueryInterfaceRequest (SQLRequest initializer has been removed)
 - [ ] Support Subqueries: document breaking change: TableRecord.selectionSQL removals
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 

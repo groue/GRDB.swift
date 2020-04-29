@@ -405,6 +405,7 @@ extension QueryInterfaceRequest: Refinable {
     }
 }
 
+// Support for `request.contains(expression)`
 extension QueryInterfaceRequest: SQLCollection {
     /// :nodoc
     public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
@@ -413,26 +414,26 @@ extension QueryInterfaceRequest: SQLCollection {
     }
 }
 
+// Support for `request == expression`
 extension QueryInterfaceRequest: SQLRequestExpressible {
+    private struct Expression: SQLExpression {
+        let generator: SQLQueryGenerator
+        
+        func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+            try "(" + generator.sql(context) + ")"
+        }
+        
+        func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+            self
+        }
+    }
+    
     /// :nodoc
     public var sqlExpression: SQLExpression {
-        QueryInterfaceRequestExpression(request: self)
-    }
-}
-
-private struct QueryInterfaceRequestExpression<RowDecoder>: SQLExpression {
-    var request: QueryInterfaceRequest<RowDecoder>
-    
-    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        let generator = SQLQueryGenerator(
-            query: request.query,
+        Expression(generator: SQLQueryGenerator(
+            query: query,
             forSingleResult: true,
-            requiresSingleColumn: true)
-        return try "(" + generator.sql(context) + ")"
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return self
+            requiresSingleColumn: true))
     }
 }
 

@@ -124,6 +124,7 @@ public struct SQLRequest<RowDecoder>: FetchRequest {
     }
 }
 
+// Support for `request.contains(expression)`
 extension SQLRequest: SQLCollection {
     /// :nodoc
     public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
@@ -131,22 +132,11 @@ extension SQLRequest: SQLCollection {
     }
 }
 
+// Support for `request == expression`
 extension SQLRequest: SQLRequestExpressible {
     /// :nodoc
     public var sqlExpression: SQLExpression {
-        SQLRequestExpression(request: self)
-    }
-}
-
-private struct SQLRequestExpression<RowDecoder>: SQLExpression {
-    var request: SQLRequest<RowDecoder>
-    
-    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        try "(" + request.sqlLiteral.sql(context) + ")"
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return self
+        sqlLiteral.sqlExpression
     }
 }
 

@@ -82,7 +82,7 @@ struct QualifiedColumn: ColumnExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         // Never requalify
-        return self
+        self
     }
 }
 
