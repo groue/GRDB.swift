@@ -147,14 +147,15 @@ extension SQLInterpolation {
         elements.append(.orderingTerm(ordering))
     }
     
-    /// Appends the request SQL, wrapped in parentheses
+    /// Appends the request SQL (not wrapped inside parentheses).
     ///
     ///     // SELECT name FROM player WHERE score = (SELECT MAX(score) FROM player)
     ///     let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE score = \(subQuery)
+    ///         SELECT * FROM player WHERE score = (\(subQuery))
     ///         """
-    public mutating func appendInterpolation<T>(_ request: SQLRequest<T>) {
-        elements.append(.subQuery(request.sqlLiteral))
+    public mutating func appendInterpolation<RowDecoder>(_ request: SQLRequest<RowDecoder>) {
+        elements.append(.sql(request.sqlLiteral.sql))
+    }
     }
 }

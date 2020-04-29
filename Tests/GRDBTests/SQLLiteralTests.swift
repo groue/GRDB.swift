@@ -456,7 +456,7 @@ extension SQLLiteralTests {
             let subQuery: SQLRequest<Int> = "SELECT MAX(score) - \(10) FROM player"
             let query: SQLLiteral = """
                 SELECT * FROM player
-                WHERE score = \(subQuery)
+                WHERE score = (\(subQuery))
                 """
             
             let (sql, arguments) = try query.build(db)
