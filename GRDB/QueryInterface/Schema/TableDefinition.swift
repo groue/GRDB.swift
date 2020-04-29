@@ -115,7 +115,7 @@ extension Database {
             unique: unique,
             ifNotExists: ifNotExists,
             condition: condition?.sqlExpression)
-        let sql = definition.sql()
+        let sql = try definition.sql(self)
         try execute(sql: sql)
     }
     
@@ -457,7 +457,7 @@ public final class TableDefinition {
                 
                 for checkExpression in checkConstraints {
                     var chunks: [String] = []
-                    chunks.append("CHECK (\(checkExpression.quotedSQL()))")
+                    try chunks.append("CHECK (\(checkExpression.quotedSQL(db)))")
                     items.append(chunks.joined(separator: " "))
                 }
                 
@@ -470,9 +470,9 @@ public final class TableDefinition {
             statements.append(chunks.joined(separator: " "))
         }
         
-        let indexStatements = columns
+        let indexStatements = try columns
             .compactMap { $0.indexDefinition(in: name) }
-            .map { $0.sql() }
+            .map { try $0.sql(db) }
         statements.append(contentsOf: indexStatements)
         return statements.joined(separator: "; ")
     }
@@ -571,7 +571,7 @@ public final class TableAlteration {
                 statements.append(statement)
                 
                 if let indexDefinition = column.indexDefinition(in: name) {
-                    statements.append(indexDefinition.sql())
+                    try statements.append(indexDefinition.sql(db))
                 }
             case let .rename(oldName, newName):
                 var chunks: [String] = []
@@ -884,11 +884,11 @@ public final class ColumnDefinition {
         }
         
         for checkConstraint in checkConstraints {
-            chunks.append("CHECK (\(checkConstraint.quotedSQL()))")
+            try chunks.append("CHECK (\(checkConstraint.quotedSQL(db)))")
         }
         
         if let defaultExpression = defaultExpression {
-            chunks.append("DEFAULT \(defaultExpression.quotedSQL())")
+            try chunks.append("DEFAULT \(defaultExpression.quotedSQL(db))")
         }
         
         if let collationName = collationName {
@@ -958,7 +958,7 @@ private struct IndexDefinition {
     let ifNotExists: Bool
     let condition: SQLExpression?
     
-    func sql() -> String {
+    func sql(_ db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append("CREATE")
         if unique {
@@ -976,7 +976,7 @@ private struct IndexDefinition {
             )
             """)
         if let condition = condition {
-            chunks.append("WHERE \(condition.quotedSQL())")
+            try chunks.append("WHERE \(condition.quotedSQL(db))")
         }
         return chunks.joined(separator: " ")
     }

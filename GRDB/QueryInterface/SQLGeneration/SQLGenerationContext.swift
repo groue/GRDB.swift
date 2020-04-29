@@ -13,7 +13,7 @@ public struct SQLGenerationContext {
     private var resolvedNames: [TableAlias: String]
     private var qualifierNeeded: Bool
     
-    /// Used for pure SQL generation. Arguments are always empty.
+    /// Used for pure SQL generation with quoted values. Arguments are always empty.
     static func rawSQLContext(_ db: Database) -> SQLGenerationContext {
         SQLGenerationContext(
             db: db,
@@ -287,6 +287,12 @@ public class TableAlias: Hashable {
         expression.qualifiedExpression(with: self)
     }
     
+    /// Returns a qualified ordering that is able to resolve ambiguities in
+    /// joined queries.
+    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
+        ordering.qualifiedOrdering(with: self)
+    }
+
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(root))

@@ -229,7 +229,7 @@ extension DatabaseValue {
             // fast path for NULL
             return "NULL"
         } else if context.append(arguments: [self]) {
-            // Use statement arguments if possible
+            // Use statement arguments
             return "?"
         } else {
             // Quoting needed: just use SQLite, which knows better.

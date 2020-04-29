@@ -130,7 +130,7 @@ extension TableRecord {
     public static func selectionSQL(alias: String? = nil) -> String {
         let alias = TableAlias(tableName: databaseTableName, userName: alias)
         let selection = databaseSelection.map { $0.qualifiedSelectable(with: alias) }
-        // TODO: can we get rid of this temp database?
+        // TODO: can we get rid of this temp database? (by returning a SQL literal?)
         // TODO: can the user risk an error?
         return try! DatabaseQueue().inDatabase { db in
             var context = SQLGenerationContext.selectionContext(db)

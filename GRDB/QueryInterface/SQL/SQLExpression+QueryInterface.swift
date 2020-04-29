@@ -3,14 +3,10 @@
 extension SQLExpression {
     /// The expression as a quoted SQL literal (not public in order to avoid abuses)
     ///
-    ///     "foo'bar".databaseValue.quotedSQL() // "'foo''bar'""
-    func quotedSQL() -> String {
-        // TODO: can we get rid of this temp database?
-        // TODO: can the user risk an error?
-        try! DatabaseQueue().inDatabase { db in
-            var context = SQLGenerationContext.rawSQLContext(db)
-            return try expressionSQL(&context, wrappedInParenthesis: false)
-        }
+    ///     try "foo'bar".databaseValue.quotedSQL(db) // "'foo''bar'""
+    func quotedSQL(_ db: Database) throws -> String {
+        var context = SQLGenerationContext.rawSQLContext(db)
+        return try expressionSQL(&context, wrappedInParenthesis: false)
     }
 }
 

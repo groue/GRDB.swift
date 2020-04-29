@@ -23,9 +23,9 @@ public struct SQLLiteral {
             switch self {
             case let .sql(sql, arguments):
                 if context.append(arguments: arguments) == false {
-                    // GRDB limitation: we don't know how to look for `?` in sql and
+                    // We don't know how to look for `?` in sql and
                     // replace them with literals.
-                    fatalError("Not implemented")
+                    fatalError("Not implemented: turning an SQL parameter into an SQL literal value")
                 }
                 return sql
             case let .expression(expression):
