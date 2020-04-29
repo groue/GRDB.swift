@@ -26,6 +26,10 @@
 - [ ] Support Subqueries (2): `Player.filter(Column("score") == someRequest)`
 - [ ] Support Subqueries (3): https://github.com/groue/GRDB.swift/issues/697
 - [ ] Support Subqueries (4): WHERE EXISTS (SELECT ...)
+- [ ] Support Subqueries (5): document breaking change: interpolated requests are no longer wrapped in parenthesis
+- [ ] Support Subqueries (5): document breaking change: sql generation from SQLLiteral
+- [ ] Support Subqueries (5): document breaking change: sql generation from SQLRequest
+- [ ] Support Subqueries (5): document breaking change: sql generation from QueryInterfaceRequest
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`

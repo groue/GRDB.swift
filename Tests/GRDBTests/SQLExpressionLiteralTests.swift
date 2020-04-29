@@ -20,7 +20,7 @@ class SQLExpressionLiteralTests: GRDBTestCase {
     func testWithoutArguments() throws {
         try DatabaseQueue().inDatabase { db in
             let expression = Column("foo").collating(.nocase) == "'fooéı👨👨🏿🇫🇷🇨🇮'" && Column("baz") >= 1
-            var context = SQLGenerationContext.rawSQLContext(db)
+            var context = SQLGenerationContext.sqlLiteralContext(db, argumentsSink: .forRawSQL)
             let sql = try expression.expressionSQL(&context, wrappedInParenthesis: true)
             XCTAssert(context.arguments.isEmpty)
             XCTAssertEqual(sql, "((\"foo\" = '''fooéı👨👨🏿🇫🇷🇨🇮''' COLLATE NOCASE) AND (\"baz\" >= 1))")

@@ -14,7 +14,7 @@ struct SQLQueryGenerator: Refinable {
     /// - parameter requiresSingleColumn: If true, it is a programmer error
     ///   to provide a query which selects more that one column.
     init(
-        _ query: SQLQuery,
+        query: SQLQuery,
         forSingleResult singleResult: Bool = false,
         requiresSingleColumn: Bool = false)
     {
@@ -60,7 +60,16 @@ struct SQLQueryGenerator: Refinable {
         self.requiresSingleColumn = requiresSingleColumn
     }
     
-    func sql(_ context: inout SQLGenerationContext) throws -> String {
+    func sql(
+        _ db: Database,
+        argumentsSink: StatementArgumentsSink = StatementArgumentsSink())
+        throws -> String
+    {
+        // Build an SQK generation context with all aliases found in the query,
+        // so that we can disambiguate tables that are used several times with
+        // SQL aliases.
+        var context = SQLGenerationContext.queryContext(db, argumentsSink: argumentsSink, aliases: relation.allAliases)
+        
         var sql = "SELECT"
         
         if isDistinct {
@@ -72,7 +81,7 @@ struct SQLQueryGenerator: Refinable {
         if requiresSingleColumn {
             GRDBPrecondition(selection.count == 1, "A single column must be selected.")
             let columnCount = try selection[0].columnCount(context.db)
-            try GRDBPrecondition(columnCount == 1, "A single column must be selected.")
+            GRDBPrecondition(columnCount == 1, "A single column must be selected.")
         }
         sql += try " " + selection.map { try $0.resultColumnSQL(&context) }.joined(separator: ", ")
         
@@ -117,6 +126,11 @@ struct SQLQueryGenerator: Refinable {
         }
         
         return sql
+    }
+    
+    // Convenience
+    func sql(_ context: SQLGenerationContext) throws -> String {
+        try sql(context.db, argumentsSink: context.argumentsSink)
     }
     
     func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
@@ -201,13 +215,13 @@ struct SQLQueryGenerator: Refinable {
             fatalError("Can't delete without any database table")
         }
         
-        var context = SQLGenerationContext.queryContext(db, aliases: relation.allAliases)
+        var context = SQLGenerationContext.sqlLiteralContext(db)
         let primaryKey = try db.primaryKeyExpression(tableName)
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
         sql += try primaryKey.expressionSQL(&context, wrappedInParenthesis: false)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(&context)
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, argumentsSink: context.argumentsSink)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
@@ -305,7 +319,7 @@ struct SQLQueryGenerator: Refinable {
             return nil
         }
         
-        var context = SQLGenerationContext.queryContext(db, aliases: relation.allAliases)
+        var context = SQLGenerationContext.sqlLiteralContext(db)
         let primaryKey = try db.primaryKeyExpression(tableName)
         
         // UPDATE table...
@@ -325,7 +339,7 @@ struct SQLQueryGenerator: Refinable {
         sql += " WHERE "
         sql += try primaryKey.expressionSQL(&context, wrappedInParenthesis: false)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(&context)
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, argumentsSink: context.argumentsSink)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
@@ -335,17 +349,13 @@ struct SQLQueryGenerator: Refinable {
     
     /// Returns a select statement
     func makeSelectStatement(_ db: Database) throws -> SelectStatement {
-        // Build an SQK generation context with all aliases found in the query,
-        // so that we can disambiguate tables that are used several times with
-        // SQL aliases.
-        var context = SQLGenerationContext.queryContext(db, aliases: relation.allAliases)
-        
-        // Generate SQL
-        let sql = try self.sql(&context)
+        // Build
+        let argumentsSink = StatementArgumentsSink()
+        let sql = try self.sql(db, argumentsSink: argumentsSink)
         
         // Compile & set arguments
         let statement = try db.makeSelectStatement(sql: sql)
-        statement.arguments = context.arguments
+        statement.arguments = argumentsSink.arguments
         
         // Optimize databaseRegion
         statement.selectedRegion = try optimizedSelectedRegion(db, statement.selectedRegion)
@@ -622,7 +632,7 @@ private enum SQLQualifiedSource {
             let alias = alias ?? TableAlias(tableName: tableName)
             self = .table(tableName: tableName, alias: alias)
         case let .query(query):
-            self = .query(SQLQueryGenerator(query))
+            self = .query(SQLQueryGenerator(query: query))
         }
     }
     
@@ -634,8 +644,9 @@ private enum SQLQualifiedSource {
             } else {
                 return "\(tableName.quotedDatabaseIdentifier)"
             }
-        case let .query(query):
-            return try "(\(query.sql(&context)))"
+        case let .query(generator):
+            let sql = try generator.sql(context)
+            return "(\(sql))"
         }
     }
 }

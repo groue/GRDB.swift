@@ -6,60 +6,56 @@
 /// :nodoc:
 public struct SQLGenerationContext {
     let db: Database
-    var arguments: StatementArguments {
-        _arguments ?? StatementArguments()
-    }
-    private var _arguments: StatementArguments?
+    var arguments: StatementArguments { argumentsSink.arguments }
+    let argumentsSink: StatementArgumentsSink
     private var resolvedNames: [TableAlias: String]
     private var qualifierNeeded: Bool
-    
-    /// Used for pure SQL generation with quoted values. Arguments are always empty.
-    static func rawSQLContext(_ db: Database) -> SQLGenerationContext {
+        
+    /// Used for literal generation
+    static func sqlLiteralContext(
+        _ db: Database,
+        argumentsSink: StatementArgumentsSink = StatementArgumentsSink())
+        -> SQLGenerationContext
+    {
         SQLGenerationContext(
             db: db,
-            _arguments: nil,
-            resolvedNames: [:],
-            qualifierNeeded: false)
-    }
-    
-    /// Used for SQLLiteral generation
-    static func sqlLiteralContext(_ db: Database) -> SQLGenerationContext {
-        SQLGenerationContext(
-            db: db,
-            _arguments: [],
+            argumentsSink: argumentsSink,
             resolvedNames: [:],
             qualifierNeeded: false)
     }
     
     /// Used for TableRecord.selectionSQL
-    static func selectionContext(_ db: Database) -> SQLGenerationContext {
+    static func selectionContext(
+        _ db: Database,
+        argumentsSink: StatementArgumentsSink = StatementArgumentsSink())
+        -> SQLGenerationContext
+    {
         SQLGenerationContext(
             db: db,
-            _arguments: nil,
+            argumentsSink: argumentsSink,
             resolvedNames: [:],
             qualifierNeeded: true)
     }
     
     /// Used for SQLQueryGenerator
-    static func queryContext(_ db: Database, aliases: [TableAlias]) -> SQLGenerationContext {
+    static func queryContext(
+        _ db: Database,
+        argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
+        aliases: [TableAlias])
+        -> SQLGenerationContext
+    {
         SQLGenerationContext(
             db: db,
-            _arguments: [],
+            argumentsSink: argumentsSink,
             resolvedNames: aliases.resolvedNames,
             qualifierNeeded: aliases.count > 1)
     }
     
+    // TODO: make it not mutating
     /// Returns whether arguments could be appended.
     /// May be false for SQLGenerationContext.rawSQLContext
-    mutating func append(arguments newArguments: StatementArguments) -> Bool {
-        if newArguments.isEmpty {
-            return true
-        }
-        guard let arguments = _arguments else {
-            return false
-        }
-        self._arguments = arguments + newArguments
-        return true
+    mutating func append(arguments: StatementArguments) -> Bool {
+        argumentsSink.append(arguments: arguments)
     }
     
     /// May be nil, when a qualifier is not needed:
@@ -91,6 +87,37 @@ public struct SQLGenerationContext {
             return resolvedName
         }
         return nil
+    }
+}
+
+/// A class that gathers statement arguments, and can be shared between
+/// several SQLGenerationContext.
+class StatementArgumentsSink {
+    private(set) var arguments: StatementArguments
+    private let rawSQL: Bool
+    
+    /// A sink which does not accept any arguments
+    static let forRawSQL = StatementArgumentsSink(rawSQL: true)
+    
+    private init(rawSQL: Bool) {
+        self.arguments = []
+        self.rawSQL = rawSQL
+    }
+    
+    /// A sink which accepts arguments
+    convenience init() {
+        self.init(rawSQL: false)
+    }
+    
+    func append(arguments: StatementArguments) -> Bool {
+        if arguments.isEmpty {
+            return true
+        }
+        if rawSQL {
+            return false
+        }
+        self.arguments += arguments
+        return true
     }
 }
 

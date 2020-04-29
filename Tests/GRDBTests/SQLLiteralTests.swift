@@ -468,6 +468,57 @@ extension SQLLiteralTests {
         }
     }
     
+    func testQueryInterfaceRequestInterpolation() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("score", .integer)
+            }
+            struct Player: TableRecord { }
+            let subQuery = Player.select(max(Column("score")) - 10)
+            let query: SQLLiteral = """
+                SELECT * FROM player
+                WHERE score = (\(subQuery))
+                """
+            
+            let (sql, arguments) = try query.build(db)
+            XCTAssertEqual(sql, """
+                SELECT * FROM player
+                WHERE score = (SELECT MAX("score") - ? FROM "player")
+                """)
+            XCTAssertEqual(arguments, [10])
+        }
+    }
+    
+    func testJoinedQueryInterfaceRequestInterpolation() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("teamId", .integer).references("team")
+                t.column("score", .integer)
+            }
+            struct Player: TableRecord { }
+            struct Team: TableRecord { }
+            let subQuery = Player
+                .select(max(Column("score")) - 10)
+                .joining(required: Player.belongsTo(Team.self))
+            let query: SQLLiteral = """
+                SELECT * FROM player
+                WHERE score = (\(subQuery))
+                """
+            
+            let (sql, arguments) = try query.build(db)
+            XCTAssertEqual(sql, """
+                SELECT * FROM player
+                WHERE score = (SELECT MAX("player"."score") - ? FROM "player" JOIN "team" ON "team"."id" = "player"."teamId")
+                """)
+            XCTAssertEqual(arguments, [10])
+        }
+    }
+    
     func testPlusOperatorWithInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
             var query: SQLLiteral = "SELECT \(AllColumns()) "
@@ -554,7 +605,7 @@ extension SQLLiteralTests {
             
             do {
                 let subQuery: SQLRequest<String> = "SELECT MAX(\(nameColumn)) FROM \(Player.self)"
-                let conditionLiteral = SQLLiteral("\(nameColumn) = \(subQuery)")
+                let conditionLiteral = SQLLiteral("\(nameColumn) = (\(subQuery))")
                 let request = baseRequest.filter(literal: conditionLiteral)
                 try assertEqualSQL(db, request, """
                     SELECT "p".* FROM "player" "p" WHERE "p"."name" = (SELECT MAX("name") FROM "player")

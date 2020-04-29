@@ -5,7 +5,7 @@ extension SQLExpression {
     ///
     ///     try "foo'bar".databaseValue.quotedSQL(db) // "'foo''bar'""
     func quotedSQL(_ db: Database) throws -> String {
-        var context = SQLGenerationContext.rawSQLContext(db)
+        var context = SQLGenerationContext.sqlLiteralContext(db, argumentsSink: StatementArgumentsSink.forRawSQL)
         return try expressionSQL(&context, wrappedInParenthesis: false)
     }
 }

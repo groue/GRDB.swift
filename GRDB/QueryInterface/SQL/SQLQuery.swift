@@ -101,7 +101,7 @@ extension SQLQuery: _JoinableRequest {
 
 extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
-        let (statement, adapter) = try SQLQueryGenerator(countQuery(db)).prepare(db)
+        let (statement, adapter) = try SQLQueryGenerator(query: countQuery(db)).prepare(db)
         return try Int.fetchOne(statement, adapter: adapter)!
     }
     

@@ -47,7 +47,8 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let (statement, adapter) = try SQLQueryGenerator(query, forSingleResult: singleResult).prepare(db)
+        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
+        let (statement, adapter) = try generator.prepare(db)
         let associations = query.relation.prefetchedAssociations
         if associations.isEmpty {
             return PreparedRequest(statement: statement, adapter: adapter)
@@ -75,7 +76,9 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        var region = try SQLQueryGenerator(query).makeSelectStatement(db).selectedRegion
+        var region = try SQLQueryGenerator(query: query)
+            .makeSelectStatement(db)
+            .selectedRegion
         
         // Iterate all prefetched associations
         var fifo = query.relation.prefetchedAssociations
@@ -94,8 +97,11 @@ extension QueryInterfaceRequest: FetchRequest {
                 .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
             
-            // Union region
-            try region.formUnion(SQLQueryGenerator(prefetchedQuery).makeSelectStatement(db).selectedRegion)
+            // Union prefetched region
+            let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
+                .makeSelectStatement(db)
+                .selectedRegion
+            region.formUnion(prefetchedRegion)
             
             // Append nested prefetched associations (support for
             // A.including(all: A.bs.including(all: B.cs))
@@ -402,7 +408,8 @@ extension QueryInterfaceRequest: Refinable {
 extension QueryInterfaceRequest: SQLCollection {
     /// :nodoc
     public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
-        try SQLQueryGenerator(query, requiresSingleColumn: true).sql(&context)
+        let generator = SQLQueryGenerator(query: query, requiresSingleColumn: true)
+        return try generator.sql(context)
     }
 }
 
@@ -417,14 +424,11 @@ private struct QueryInterfaceRequestExpression<RowDecoder>: SQLExpression {
     var request: QueryInterfaceRequest<RowDecoder>
     
     func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        let generator = SQLQueryGenerator(request.query, forSingleResult: true, requiresSingleColumn: true)
-        let (sql, arguments) = try generator.buildSelectSQL(context.db)
-        if context.append(arguments: arguments) == false {
-            // Crap, a raw SQL context which does not accept arguments.
-            // Can this really happen?
-            fatalError("Not implemented")
-        }
-        return "(\(sql))"
+        let generator = SQLQueryGenerator(
+            query: request.query,
+            forSingleResult: true,
+            requiresSingleColumn: true)
+        return try "(" + generator.sql(context) + ")"
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
@@ -472,7 +476,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
-        try SQLQueryGenerator(query).makeDeleteStatement(db).execute()
+        try SQLQueryGenerator(query: query).makeDeleteStatement(db).execute()
         return db.changesCount
     }
     
@@ -500,7 +504,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
         _ assignments: [ColumnAssignment]) throws -> Int
     {
         let conflictResolution = conflictResolution ?? RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
-        guard let updateStatement = try SQLQueryGenerator(query).makeUpdateStatement(
+        guard let updateStatement = try SQLQueryGenerator(query: query).makeUpdateStatement(
             db,
             conflictResolution: conflictResolution,
             assignments: assignments) else
