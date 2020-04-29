@@ -418,6 +418,8 @@ extension QueryInterfaceRequest: SQLExpression {
     public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         var query = self.query
         
+        #warning("TODO: Let SQLQueryGenerator handle forSingleResult")
+        #warning("TODO: Here we want SQLQueryGenerator to fatal error if there isn't a single column in the output")
         // Optimize query by setting a limit of 1 when appropriate
         if !query.expectsSingleResult {
             query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
