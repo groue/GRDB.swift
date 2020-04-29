@@ -199,12 +199,12 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         do {
-            let subRequest = tableRequest.select(Col.age).filter(Col.name != nil)
+            let subRequest = tableRequest.select(Col.age).filter(Col.name != nil).distinct()
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.filter(subRequest.contains(Col.age))),
                 """
                 SELECT * FROM "readers" WHERE "age" IN \
-                (SELECT "age" FROM "readers" WHERE "name" IS NOT NULL)
+                (SELECT DISTINCT "age" FROM "readers" WHERE "name" IS NOT NULL)
                 """)
         }
         
@@ -214,6 +214,19 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
                 sql(dbQueue, tableRequest.filter(subRequest.contains(Col.age + 1))),
                 """
                 SELECT * FROM "readers" WHERE ("age" + 1) IN (SELECT 1 UNION SELECT 2)
+                """)
+        }
+        
+        do {
+            let subRequest1 = tableRequest.select(max(Col.age))
+            let subRequest2 = tableRequest.filter(Col.age == subRequest1)
+            #warning("TODO: remove this LIMIT 1")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(subRequest2.select(Col.id).contains(Col.id))),
+                """
+                SELECT * FROM "readers" WHERE "id" IN (\
+                SELECT "id" FROM "readers" WHERE "age" = (\
+                SELECT MAX("age") FROM "readers" LIMIT 1))
                 """)
         }
     }
@@ -490,6 +503,29 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) == "fOo")),
             "SELECT * FROM \"readers\" WHERE \"name\" = 'fOo' COLLATE localized_case_insensitive")
+    }
+    
+    func testSubqueryEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            let subRequest = tableRequest.select(max(Col.age))
+            #warning("TODO: remove this LIMIT 1")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(Col.age == subRequest)),
+                """
+                SELECT * FROM "readers" WHERE "age" = (SELECT MAX("age") FROM "readers" LIMIT 1)
+                """)
+        }
+        
+        do {
+            let subRequest = SQLRequest<Int>(sql: "SELECT MAX(age + ?) FROM readers", arguments: [1])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter((Col.age + 2) == subRequest)),
+                """
+                SELECT * FROM "readers" WHERE ("age" + 2) = (SELECT MAX(age + 1) FROM readers)
+                """)
+        }
     }
     
     func testNotEqual() throws {

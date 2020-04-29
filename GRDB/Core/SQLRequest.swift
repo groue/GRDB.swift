@@ -131,6 +131,18 @@ extension SQLRequest: SQLCollection {
     }
 }
 
+extension SQLRequest: SQLExpression {
+    /// :nodoc
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try "(" + sqlLiteral.sql(&context) + ")"
+    }
+    
+    /// :nodoc
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return self
+    }
+}
+
 extension SQLRequest: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {

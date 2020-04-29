@@ -415,6 +415,25 @@ extension QueryInterfaceRequest: SQLCollection {
     }
 }
 
+extension QueryInterfaceRequest: SQLExpression {
+    /// :nodoc
+    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var query = self.query
+        
+        // Optimize query by setting a limit of 1 when appropriate
+        if !query.expectsSingleResult {
+            query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
+        }
+        
+        return try "(" + SQLQueryGenerator(query).sql(&context) + ")"
+    }
+    
+    /// :nodoc
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        return self
+    }
+}
+
 extension QueryInterfaceRequest: TableRequest {
     /// :nodoc:
     public var databaseTableName: String {
