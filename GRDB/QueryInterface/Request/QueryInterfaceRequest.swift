@@ -28,7 +28,7 @@
 ///     }
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T> {
+public struct QueryInterfaceRequest<RowDecoder> {
     var query: SQLQuery
 }
 
@@ -39,8 +39,6 @@ extension QueryInterfaceRequest {
 }
 
 extension QueryInterfaceRequest: FetchRequest {
-    public typealias RowDecoder = T
-    
     /// Returns a tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     ///
@@ -327,7 +325,7 @@ extension QueryInterfaceRequest: _JoinableRequest {
     }
 }
 
-extension QueryInterfaceRequest: JoinableRequest where T: TableRecord { }
+extension QueryInterfaceRequest: JoinableRequest where RowDecoder: TableRecord { }
 
 extension QueryInterfaceRequest: Refinable {
     
@@ -461,9 +459,9 @@ extension QueryInterfaceRequest: TableRequest {
     }
 }
 
-extension QueryInterfaceRequest: DerivableRequest where T: TableRecord { }
+extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
 
-extension QueryInterfaceRequest where T: MutablePersistableRecord {
+extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     
     // MARK: Batch Delete
     
