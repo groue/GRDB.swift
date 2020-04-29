@@ -114,32 +114,6 @@ extension TableRecord {
     
     // MARK: - SQL Generation
     
-    /// The selection as an SQL String.
-    ///
-    /// For example:
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let databaseTableName = "player"
-    ///     }
-    ///
-    ///     // SELECT "player".* FROM player
-    ///     let sql = "SELECT \(Player.selectionSQL()) FROM player"
-    ///
-    ///     // SELECT "p".* FROM player AS p
-    ///     let sql = "SELECT \(Player.selectionSQL(alias: "p")) FROM player p"
-    public static func selectionSQL(alias: String? = nil) -> String {
-        let alias = TableAlias(tableName: databaseTableName, userName: alias)
-        let selection = databaseSelection.map { $0.qualifiedSelectable(with: alias) }
-        // TODO: can we get rid of this temp database? (by returning a SQL literal?)
-        // TODO: can the user risk an error?
-        return try! DatabaseQueue().inDatabase { db in
-            var context = SQLGenerationContext.selectionContext(db)
-            return try selection
-                .map { try $0.resultColumnSQL(&context) }
-                .joined(separator: ", ")
-        }
-    }
-    
     /// Returns the number of selected columns.
     ///
     /// For example:

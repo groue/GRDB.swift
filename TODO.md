@@ -22,14 +22,15 @@
 - [ ] Delay SQL generation of SQLLiteral and SQLRequest: https://github.com/groue/GRDB.swift/issues/697
 - [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
 - [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
-- [ ] Support Subqueries (1): `Player.filter(someRequest.contains(Column("id")))`
-- [ ] Support Subqueries (2): `Player.filter(Column("score") == someRequest)`
-- [ ] Support Subqueries (3): https://github.com/groue/GRDB.swift/issues/697
-- [ ] Support Subqueries (4): WHERE EXISTS (SELECT ...)
-- [ ] Support Subqueries (5): document breaking change: interpolated requests are no longer wrapped in parenthesis
-- [ ] Support Subqueries (5): document breaking change: sql generation from SQLLiteral
-- [ ] Support Subqueries (5): document breaking change: sql generation from SQLRequest
-- [ ] Support Subqueries (5): document breaking change: sql generation from QueryInterfaceRequest
+- [ ] Support Subqueries: `Player.filter(someRequest.contains(Column("id")))`
+- [ ] Support Subqueries: `Player.filter(Column("score") == someRequest)`
+- [ ] Support Subqueries: https://github.com/groue/GRDB.swift/issues/697
+- [ ] Support Subqueries: WHERE EXISTS (SELECT ...)
+- [ ] Support Subqueries: document breaking change: interpolated requests are no longer wrapped in parenthesis
+- [ ] Support Subqueries: document breaking change: how to extract sql from SQLLiteral
+- [ ] Support Subqueries: document breaking change: how to extract sql from SQLRequest
+- [ ] Support Subqueries: document breaking change: how to extract sql from QueryInterfaceRequest
+- [ ] Support Subqueries: document breaking change: TableRecord.selectionSQL removals
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`

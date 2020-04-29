@@ -214,6 +214,10 @@ extension TableRecord {
     @available(*, unavailable, message: "Use ValueObservation.tracking(MyRecord.fetchCount) instead")
     public static func observationForCount() -> ValueObservation<ValueReducers.Unavailable<Int>>
     { preconditionFailure() }
+    
+    @available(*, unavailable, message: "selectionSQL(alias:) is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    public static func selectionSQL(alias: String? = nil) -> String
+    { preconditionFailure() }
 }
 
 extension TableRecord where Self: FetchableRecord {
