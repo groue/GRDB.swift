@@ -24,6 +24,7 @@
 - [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
 - [ ] Support Subqueries (1): `Player.filter(someRequest.contains(Column("id")))`
 - [ ] Support Subqueries (2): `Player.filter(Column("score") == someRequest)`
+- [ ] Support Subqueries (3): https://github.com/groue/GRDB.swift/issues/697
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
