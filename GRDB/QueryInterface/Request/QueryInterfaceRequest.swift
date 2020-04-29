@@ -406,15 +406,28 @@ extension QueryInterfaceRequest: SQLCollection {
     }
 }
 
-extension QueryInterfaceRequest: SQLExpression {
+extension QueryInterfaceRequest: SQLRequestExpressible {
     /// :nodoc
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        let generator = SQLQueryGenerator(query, forSingleResult: true, requiresSingleColumn: true)
-        return try "(" + generator.sql(&context) + ")"
+    public var sqlExpression: SQLExpression {
+        QueryInterfaceRequestExpression(request: self)
+    }
+}
+
+private struct QueryInterfaceRequestExpression<RowDecoder>: SQLExpression {
+    var request: QueryInterfaceRequest<RowDecoder>
+    
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        let generator = SQLQueryGenerator(request.query, forSingleResult: true, requiresSingleColumn: true)
+        let (sql, arguments) = try generator.buildSelectSQL(context.db)
+        if context.append(arguments: arguments) == false {
+            // Crap, a raw SQL context which does not accept arguments.
+            // Can this really happen?
+            fatalError("Not implemented")
+        }
+        return "(\(sql))"
     }
     
-    /// :nodoc
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return self
     }
 }

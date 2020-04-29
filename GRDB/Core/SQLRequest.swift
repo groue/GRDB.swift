@@ -131,14 +131,21 @@ extension SQLRequest: SQLCollection {
     }
 }
 
-extension SQLRequest: SQLExpression {
+extension SQLRequest: SQLRequestExpressible {
     /// :nodoc
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        try "(" + sqlLiteral.sql(&context) + ")"
+    public var sqlExpression: SQLExpression {
+        SQLRequestExpression(request: self)
+    }
+}
+
+private struct SQLRequestExpression<RowDecoder>: SQLExpression {
+    var request: SQLRequest<RowDecoder>
+    
+    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try "(" + request.sqlLiteral.sql(&context) + ")"
     }
     
-    /// :nodoc
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         return self
     }
 }
