@@ -21,13 +21,13 @@ public struct AllColumns {
 extension AllColumns: SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func resultColumnSQL(_ context: inout SQLGenerationContext) throws -> String {
+    public func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
         "*"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func countedSQL(_ context: inout SQLGenerationContext) throws -> String {
+    public func countedSQL(_ context: inout SQLGenerationContext) -> String {
         "*"
     }
     
@@ -70,14 +70,14 @@ struct QualifiedAllColumns {
 }
 
 extension QualifiedAllColumns: SQLSelectable {
-    func resultColumnSQL(_ context: inout SQLGenerationContext) throws -> String {
+    func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
         if let qualifier = context.qualifier(for: alias) {
             return qualifier.quotedDatabaseIdentifier + ".*"
         }
         return "*"
     }
     
-    func countedSQL(_ context: inout SQLGenerationContext) throws -> String {
+    func countedSQL(_ context: inout SQLGenerationContext) -> String {
         // TODO: restore the check below.
         //
         // It is currently disabled because of AssociationAggregateTests.testHasManyIsEmpty:

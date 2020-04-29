@@ -165,13 +165,9 @@ public struct SQLRequest<T>: FetchRequest {
 }
 
 extension SQLRequest: SQLCollection {
+    /// :nodoc
     public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
-        if context.append(arguments: arguments) == false {
-            // GRDB limitation: we don't know how to look for `?` in sql and
-            // replace them with literals.
-            fatalError("Not implemented")
-        }
-        return sql
+        try sqlLiteral.sql(&context)
     }
 }
 

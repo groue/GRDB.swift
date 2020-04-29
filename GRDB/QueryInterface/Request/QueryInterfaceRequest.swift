@@ -409,6 +409,7 @@ extension QueryInterfaceRequest: Refinable {
 }
 
 extension QueryInterfaceRequest: SQLCollection {
+    /// :nodoc
     public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
         try SQLQueryGenerator(query).sql(&context)
     }

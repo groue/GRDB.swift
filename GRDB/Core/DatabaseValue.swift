@@ -225,14 +225,14 @@ extension DatabaseValue {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        // fast path for NULL
         if isNull {
+            // fast path for NULL
             return "NULL"
-        }
-        
-        if context.append(arguments: [self]) {
+        } else if context.append(arguments: [self]) {
+            // Use statement arguments if possible
             return "?"
         } else {
+            // Quoting needed: just use SQLite, which knows better.
             return try String.fetchOne(context.db, sql: "SELECT QUOTE(?)", arguments: [self])!
         }
     }
