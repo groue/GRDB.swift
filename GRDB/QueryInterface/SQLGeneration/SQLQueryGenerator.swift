@@ -5,8 +5,19 @@ struct SQLQueryGenerator: Refinable {
     private let groupPromise: DatabasePromise<[SQLExpression]>?
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
+    private let requiresSingleColumn: Bool
     
-    init(_ query: SQLQuery) {
+    /// Creates an SQL query generator.
+    ///
+    /// - parameter singleResult: A hint as to whether the query should be
+    ///   optimized for a single result.
+    /// - parameter requiresSingleColumn: If true, it is a programmer error
+    ///   to provide a query which selects more that one column.
+    init(
+        _ query: SQLQuery,
+        forSingleResult singleResult: Bool = false,
+        requiresSingleColumn: Bool = false)
+    {
         // To generate SQL, we need a "qualified" relation, where all tables,
         // expressions, etc, are identified with table aliases.
         //
@@ -38,9 +49,15 @@ struct SQLQueryGenerator: Refinable {
         groupPromise = query.groupPromise?.map { $0.map { $0.qualifiedExpression(with: alias) } }
         havingExpressionsPromise = query.havingExpressionsPromise.map { $0.map { $0.qualifiedExpression(with: alias) } }
         
-        // Preserve other flags
+        // Optimize query by setting a limit of 1 when appropriate
+        if singleResult && !query.expectsSingleResult {
+            limit = SQLLimit(limit: 1, offset: query.limit?.offset)
+        } else {
+            limit = query.limit
+        }
+        
         isDistinct = query.isDistinct
-        limit = query.limit
+        self.requiresSingleColumn = requiresSingleColumn
     }
     
     func sql(_ context: inout SQLGenerationContext) throws -> String {
@@ -51,7 +68,12 @@ struct SQLQueryGenerator: Refinable {
         }
         
         let selection = try relation.selectionPromise.resolve(context.db)
-        GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
+        GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with an empty selection")
+        if requiresSingleColumn {
+            GRDBPrecondition(selection.count == 1, "A single column must be selected.")
+            let columnCount = try selection[0].columnCount(context.db)
+            try GRDBPrecondition(columnCount == 1, "A single column must be selected.")
+        }
         sql += try " " + selection.map { try $0.resultColumnSQL(&context) }.joined(separator: ", ")
         
         sql += " FROM "

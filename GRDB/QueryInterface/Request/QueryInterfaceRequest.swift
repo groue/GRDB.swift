@@ -47,14 +47,7 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        var query = self.query
-        
-        // Optimize query by setting a limit of 1 when appropriate
-        if singleResult && !query.expectsSingleResult {
-            query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
-        }
-        
-        let (statement, adapter) = try SQLQueryGenerator(query).prepare(db)
+        let (statement, adapter) = try SQLQueryGenerator(query, forSingleResult: singleResult).prepare(db)
         let associations = query.relation.prefetchedAssociations
         if associations.isEmpty {
             return PreparedRequest(statement: statement, adapter: adapter)
@@ -409,23 +402,15 @@ extension QueryInterfaceRequest: Refinable {
 extension QueryInterfaceRequest: SQLCollection {
     /// :nodoc
     public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
-        try SQLQueryGenerator(query).sql(&context)
+        try SQLQueryGenerator(query, requiresSingleColumn: true).sql(&context)
     }
 }
 
 extension QueryInterfaceRequest: SQLExpression {
     /// :nodoc
     public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        var query = self.query
-        
-        #warning("TODO: Let SQLQueryGenerator handle forSingleResult")
-        #warning("TODO: Here we want SQLQueryGenerator to fatal error if there isn't a single column in the output")
-        // Optimize query by setting a limit of 1 when appropriate
-        if !query.expectsSingleResult {
-            query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
-        }
-        
-        return try "(" + SQLQueryGenerator(query).sql(&context) + ")"
+        let generator = SQLQueryGenerator(query, forSingleResult: true, requiresSingleColumn: true)
+        return try "(" + generator.sql(&context) + ")"
     }
     
     /// :nodoc
