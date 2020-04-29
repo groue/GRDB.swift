@@ -95,7 +95,7 @@ class StatementArgumentsSink {
     private(set) var arguments: StatementArguments
     private let rawSQL: Bool
     
-    /// A sink which does not accept any arguments
+    /// A sink which does not accept any arguments.
     static let forRawSQL = StatementArgumentsSink(rawSQL: true)
     
     private init(rawSQL: Bool) {
@@ -108,6 +108,7 @@ class StatementArgumentsSink {
         self.init(rawSQL: false)
     }
     
+    /// Returns whether arguments could be appended.
     func append(arguments: StatementArguments) -> Bool {
         if arguments.isEmpty {
             return true
