@@ -56,27 +56,6 @@ public struct SQLLiteral {
         }
     }
     
-    @available(*, deprecated)
-    public var sql: String {
-        // TODO: can we get rid of this temp database?
-        // TODO: can the user risk an error?
-        try! DatabaseQueue().inDatabase { db in
-            var context = SQLGenerationContext.sqlLiteralContext(db)
-            return try sql(&context)
-        }
-    }
-    
-    @available(*, deprecated)
-    public var arguments: StatementArguments {
-        // TODO: can we get rid of this temp database?
-        // TODO: can the user risk an error?
-        try! DatabaseQueue().inDatabase { db in
-            var context = SQLGenerationContext.sqlLiteralContext(db)
-            _ = try sql(&context)
-            return context.arguments
-        }
-    }
-    
     private(set) var elements: [Element]
     
     init(elements: [Element]) {
@@ -105,6 +84,16 @@ public struct SQLLiteral {
     ///     let emails = try String.fetchAll(db, request)
     public init(_ expression: SQLExpression) {
         self.init(elements: [.expression(expression)])
+    }
+    
+    /// Turn a SQLLiteral into raw SQL and arguments.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A tuple made of a raw SQL string, and statement arguments.
+    public func build(_ db: Database) throws -> (sql: String, arguments: StatementArguments) {
+        var context = SQLGenerationContext.sqlLiteralContext(db)
+        let sql = try self.sql(&context)
+        return (sql: sql, arguments: context.arguments)
     }
     
     func sql(_ context: inout SQLGenerationContext) throws -> String {

@@ -162,10 +162,33 @@ extension SQLLiteral {
     @available(*, unavailable, message: "Use SQL interpolation instead.")
     public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral
     { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use the build(_:) method instead.")
+    public var sql: String { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use the build(_:) method instead.")
+    public var arguments: StatementArguments { preconditionFailure() }
 }
 
 @available(*, unavailable, renamed: "SQLAssociativeBinaryOperator")
 typealias SQLLogicalBinaryOperator = SQLAssociativeBinaryOperator
+
+extension SQLRequest {
+    @available(*, unavailable, message: "Turning a request into SQLRequest is no longer supported.")
+    public init<Request>(
+        _ db: Database,
+        request: Request,
+        cached: Bool = false)
+        throws
+        where Request: FetchRequest, Request.RowDecoder == RowDecoder
+    { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use makePreparedRequest(db).statement.sql instead")
+    public var sql: String { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use makePreparedRequest(db).statement.arguments instead")
+    public var arguments: StatementArguments { preconditionFailure() }
+}
 
 extension SQLSpecificExpressible {
     @available(*, unavailable, renamed: "forKey(_:)")

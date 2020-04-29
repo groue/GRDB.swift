@@ -425,8 +425,7 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Citizenship.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"citizenships\" ORDER BY \"personName\", \"countryName\"")
+            try assertEqualSQL(db, request, "SELECT * FROM \"citizenships\" ORDER BY \"personName\", \"countryName\"")
         }
     }
     

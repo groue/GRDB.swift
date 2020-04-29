@@ -206,8 +206,7 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                         let request = aTransform(aBase)
                             .including(required: abTransform(abBase)
                                 .including(required: abaTransform(abaBase)))
-                        let sqlRequest = try SQLRequest(db, request: request)
-                        sqls.append(sqlRequest.sql)
+                        try sqls.append(request.build(db).sql)
                     }
                 }
             }

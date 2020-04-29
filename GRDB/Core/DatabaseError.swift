@@ -223,6 +223,9 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     /// The SQL query that yielded the error (if relevant).
     public let sql: String?
     
+    /// The query arguments that yielded the error (if relevant).
+    public let arguments: StatementArguments?
+    
     /// Creates a Database Error
     public init(
         resultCode: ResultCode = .SQLITE_ERROR,
@@ -243,12 +246,6 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     init(resultCode: Int32, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
     }
-    
-    // MARK: Not public
-    
-    /// The query arguments that yielded the error (if relevant).
-    /// Not public because the StatementArguments class has no public method.
-    let arguments: StatementArguments?
 }
 
 // Support for `catch DatabaseError.SQLITE_XXX`

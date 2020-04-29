@@ -468,8 +468,7 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Person.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"persons\" ORDER BY \"id\"")
+            try assertEqualSQL(db, request, "SELECT * FROM \"persons\" ORDER BY \"id\"")
         }
     }
     
