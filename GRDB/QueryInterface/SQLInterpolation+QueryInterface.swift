@@ -155,7 +155,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = (\(subQuery))
     ///         """
     public mutating func appendInterpolation<RowDecoder>(_ request: SQLRequest<RowDecoder>) {
-        elements.append(.sql(request.sqlLiteral.sql))
+        elements.append(.custom(request.sqlLiteral.sql))
     }
     
     /// Appends the request SQL (not wrapped inside parentheses).
@@ -166,7 +166,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = (\(subQuery))
     ///         """
     public mutating func appendInterpolation<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) {
-        elements.append(.sql { context in
+        elements.append(.custom { context in
             try SQLQueryGenerator(query: request.query).sql(context)
         })
     }

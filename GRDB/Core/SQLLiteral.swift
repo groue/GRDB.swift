@@ -13,32 +13,29 @@ public struct SQLLiteral {
     /// SQLLiteral is an array of elements which can be qualified with
     /// table aliases.
     enum Element {
-        case sql((SQLGenerationContext) throws -> String)
+        case sql(String, StatementArguments = StatementArguments())
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
+        case custom((SQLGenerationContext) throws -> String)
         
-        static func sql(_ sql: String, _ arguments: StatementArguments = StatementArguments()) -> Element {
-            .sql { context in
+        fileprivate func sql(_ context: SQLGenerationContext) throws -> String {
+            switch self {
+            case let .sql(sql, arguments):
                 if context.append(arguments: arguments) == false {
                     // We don't know how to look for `?` in sql and
                     // replace them with literals.
                     fatalError("Not implemented: turning an SQL parameter into an SQL literal value")
                 }
                 return sql
-            }
-        }
-        
-        fileprivate func sql(_ context: SQLGenerationContext) throws -> String {
-            switch self {
-            case let .sql(function):
-                return try function(context)
             case let .expression(expression):
                 return try expression.expressionSQL(context, wrappedInParenthesis: false)
             case let .selectable(selectable):
                 return try selectable.resultColumnSQL(context)
             case let .orderingTerm(orderingTerm):
                 return try orderingTerm.orderingTermSQL(context)
+            case let .custom(function):
+                return try function(context)
             }
         }
         
@@ -52,6 +49,8 @@ public struct SQLLiteral {
                 return .selectable(selectable.qualifiedSelectable(with: alias))
             case let .orderingTerm(orderingTerm):
                 return .orderingTerm(orderingTerm.qualifiedOrdering(with: alias))
+            case .custom:
+                return self
             }
         }
     }
