@@ -15,7 +15,7 @@ public protocol SQLOrderingTerm {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the ordering term.
-    func orderingTermSQL(_ context: inout SQLGenerationContext) throws -> String
+    func orderingTermSQL(_ context: SQLGenerationContext) throws -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm
@@ -46,17 +46,17 @@ enum SQLOrdering: SQLOrderingTerm {
         }
     }
     
-    func orderingTermSQL(_ context: inout SQLGenerationContext) throws -> String {
+    func orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
         switch self {
         case .asc(let expression):
-            return try expression.expressionSQL(&context, wrappedInParenthesis: false) + " ASC"
+            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " ASC"
         case .desc(let expression):
-            return try expression.expressionSQL(&context, wrappedInParenthesis: false) + " DESC"
+            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " DESC"
             #if GRDBCUSTOMSQLITE
         case .ascNullsLast(let expression):
-            return try expression.expressionSQL(&context, wrappedInParenthesis: false) + " ASC NULLS LAST"
+            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " ASC NULLS LAST"
         case .descNullsFirst(let expression):
-            return try expression.expressionSQL(&context, wrappedInParenthesis: false) + " DESC NULLS FIRST"
+            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " DESC NULLS FIRST"
             #endif
         }
     }

@@ -13,7 +13,7 @@ public struct SQLLiteral {
     /// SQLLiteral is an array of elements which can be qualified with
     /// table aliases.
     enum Element {
-        case sql((inout SQLGenerationContext) throws -> String)
+        case sql((SQLGenerationContext) throws -> String)
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
@@ -29,16 +29,16 @@ public struct SQLLiteral {
             }
         }
         
-        fileprivate func sql(_ context: inout SQLGenerationContext) throws -> String {
+        fileprivate func sql(_ context: SQLGenerationContext) throws -> String {
             switch self {
             case let .sql(function):
-                return try function(&context)
+                return try function(context)
             case let .expression(expression):
-                return try expression.expressionSQL(&context, wrappedInParenthesis: false)
+                return try expression.expressionSQL(context, wrappedInParenthesis: false)
             case let .selectable(selectable):
-                return try selectable.resultColumnSQL(&context)
+                return try selectable.resultColumnSQL(context)
             case let .orderingTerm(orderingTerm):
-                return try orderingTerm.orderingTermSQL(&context)
+                return try orderingTerm.orderingTermSQL(context)
             }
         }
         
@@ -91,13 +91,13 @@ public struct SQLLiteral {
     /// - parameter db: A database connection.
     /// - returns: A tuple made of a raw SQL string, and statement arguments.
     public func build(_ db: Database) throws -> (sql: String, arguments: StatementArguments) {
-        var context = SQLGenerationContext.sqlLiteralContext(db)
-        let sql = try self.sql(&context)
+        let context = SQLGenerationContext.sqlLiteralContext(db)
+        let sql = try self.sql(context)
         return (sql: sql, arguments: context.arguments)
     }
     
-    func sql(_ context: inout SQLGenerationContext) throws -> String {
-        try elements.map { try $0.sql(&context) }.joined()
+    func sql(_ context: SQLGenerationContext) throws -> String {
+        try elements.map { try $0.sql(context) }.joined()
     }
     
     fileprivate func qualified(with alias: TableAlias) -> SQLLiteral {
@@ -249,11 +249,11 @@ private struct _SQLExpressionLiteral: SQLExpression {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return try "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(context, wrappedInParenthesis: false)))"
         }
-        return try sqlLiteral.sql(&context)
+        return try sqlLiteral.sql(context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -273,11 +273,11 @@ private struct _SQLSelectionLiteral: SQLSelectable {
         self.sqlLiteral = sqlLiteral
     }
     
-    func resultColumnSQL(_ context: inout SQLGenerationContext) throws -> String {
-        try sqlLiteral.sql(&context)
+    func resultColumnSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlLiteral.sql(context)
     }
     
-    func countedSQL(_ context: inout SQLGenerationContext) throws -> String {
+    func countedSQL(_ context: SQLGenerationContext) throws -> String {
         fatalError("""
             Selection literals can't be counted. \
             To resolve this error, select one or several literal expressions instead. \
@@ -323,8 +323,8 @@ private struct _SQLOrderingLiteral: SQLOrderingTerm {
             """)
     }
     
-    func orderingTermSQL(_ context: inout SQLGenerationContext) throws -> String {
-        try sqlLiteral.sql(&context)
+    func orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlLiteral.sql(context)
     }
     
     func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {

@@ -407,7 +407,7 @@ extension QueryInterfaceRequest: Refinable {
 
 extension QueryInterfaceRequest: SQLCollection {
     /// :nodoc
-    public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
+    public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
         let generator = SQLQueryGenerator(query: query, requiresSingleColumn: true)
         return try generator.sql(context)
     }
@@ -423,7 +423,7 @@ extension QueryInterfaceRequest: SQLRequestExpressible {
 private struct QueryInterfaceRequestExpression<RowDecoder>: SQLExpression {
     var request: QueryInterfaceRequest<RowDecoder>
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         let generator = SQLQueryGenerator(
             query: request.query,
             forSingleResult: true,
@@ -643,10 +643,10 @@ public struct ColumnAssignment {
     var column: ColumnExpression
     var value: SQLExpressible
     
-    func sql(_ context: inout SQLGenerationContext) throws -> String {
-        try column.expressionSQL(&context, wrappedInParenthesis: false) +
+    func sql(_ context: SQLGenerationContext) throws -> String {
+        try column.expressionSQL(context, wrappedInParenthesis: false) +
             " = " +
-            value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+            value.sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
     }
 }
 

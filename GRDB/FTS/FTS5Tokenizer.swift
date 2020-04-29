@@ -87,7 +87,7 @@ extension FTS5Tokenizer {
             let nText = Int32(buffer.count)
             
             var context = TokenizeContext()
-            try withUnsafeMutablePointer(to: &context) { contextPointer in
+            try withUnsafeMutablePointer(to: context) { contextPointer in
                 let code = tokenize(
                     context: UnsafeMutableRawPointer(contextPointer),
                     tokenization: tokenization,

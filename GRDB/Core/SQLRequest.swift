@@ -108,8 +108,8 @@ public struct SQLRequest<RowDecoder>: FetchRequest {
     ///
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        var context = SQLGenerationContext.sqlLiteralContext(db)
-        let sql = try sqlLiteral.sql(&context)
+        let context = SQLGenerationContext.sqlLiteralContext(db)
+        let sql = try sqlLiteral.sql(context)
         let statement: SelectStatement
         switch cache {
         case .none:
@@ -126,8 +126,8 @@ public struct SQLRequest<RowDecoder>: FetchRequest {
 
 extension SQLRequest: SQLCollection {
     /// :nodoc
-    public func collectionSQL(_ context: inout SQLGenerationContext) throws -> String {
-        try sqlLiteral.sql(&context)
+    public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlLiteral.sql(context)
     }
 }
 
@@ -141,8 +141,8 @@ extension SQLRequest: SQLRequestExpressible {
 private struct SQLRequestExpression<RowDecoder>: SQLExpression {
     var request: SQLRequest<RowDecoder>
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        try "(" + request.sqlLiteral.sql(&context) + ")"
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try "(" + request.sqlLiteral.sql(context) + ")"
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {

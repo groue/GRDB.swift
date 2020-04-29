@@ -21,13 +21,13 @@ public struct AllColumns {
 extension AllColumns: SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
+    public func resultColumnSQL(_ context: SQLGenerationContext) -> String {
         "*"
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func countedSQL(_ context: inout SQLGenerationContext) -> String {
+    public func countedSQL(_ context: SQLGenerationContext) -> String {
         "*"
     }
     
@@ -70,14 +70,14 @@ struct QualifiedAllColumns {
 }
 
 extension QualifiedAllColumns: SQLSelectable {
-    func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
+    func resultColumnSQL(_ context: SQLGenerationContext) -> String {
         if let qualifier = context.qualifier(for: alias) {
             return qualifier.quotedDatabaseIdentifier + ".*"
         }
         return "*"
     }
     
-    func countedSQL(_ context: inout SQLGenerationContext) -> String {
+    func countedSQL(_ context: SQLGenerationContext) -> String {
         // TODO: restore the check below.
         //
         // It is currently disabled because of AssociationAggregateTests.testHasManyIsEmpty:
@@ -125,12 +125,12 @@ struct SQLAliasedExpression: SQLSelectable {
         self.name = name
     }
     
-    func resultColumnSQL(_ context: inout SQLGenerationContext) throws -> String {
-        try expression.resultColumnSQL(&context) + " AS " + name.quotedDatabaseIdentifier
+    func resultColumnSQL(_ context: SQLGenerationContext) throws -> String {
+        try expression.resultColumnSQL(context) + " AS " + name.quotedDatabaseIdentifier
     }
     
-    func countedSQL(_ context: inout SQLGenerationContext) throws -> String {
-        try expression.countedSQL(&context)
+    func countedSQL(_ context: SQLGenerationContext) throws -> String {
+        try expression.countedSQL(context)
     }
     
     func count(distinct: Bool) -> SQLCount? {

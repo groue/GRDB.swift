@@ -8,10 +8,10 @@
 /// :nodoc:
 public protocol SQLSelectable {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    func resultColumnSQL(_ context: inout SQLGenerationContext) throws -> String
+    func resultColumnSQL(_ context: SQLGenerationContext) throws -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    func countedSQL(_ context: inout SQLGenerationContext) throws -> String
+    func countedSQL(_ context: SQLGenerationContext) throws -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func count(distinct: Bool) -> SQLCount?

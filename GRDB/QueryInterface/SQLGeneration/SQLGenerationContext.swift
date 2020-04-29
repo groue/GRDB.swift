@@ -51,10 +51,9 @@ public struct SQLGenerationContext {
             qualifierNeeded: aliases.count > 1)
     }
     
-    // TODO: make it not mutating
     /// Returns whether arguments could be appended.
     /// May be false for SQLGenerationContext.rawSQLContext
-    mutating func append(arguments: StatementArguments) -> Bool {
+    func append(arguments: StatementArguments) -> Bool {
         argumentsSink.append(arguments: arguments)
     }
     
