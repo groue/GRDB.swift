@@ -6,18 +6,14 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
-    private let requiresSingleColumn: Bool
     
     /// Creates an SQL query generator.
     ///
     /// - parameter singleResult: A hint as to whether the query should be
     ///   optimized for a single result.
-    /// - parameter requiresSingleColumn: If true, it is a programmer error
-    ///   to provide a query which selects more that one column.
     init(
         query: SQLQuery,
-        forSingleResult singleResult: Bool = false,
-        requiresSingleColumn: Bool = false)
+        forSingleResult singleResult: Bool = false)
     {
         // To generate SQL, we need a "qualified" relation, where all tables,
         // expressions, etc, are identified with table aliases.
@@ -53,7 +49,6 @@ struct SQLQueryGenerator: Refinable {
         limit = query.limit
         isDistinct = query.isDistinct
         self.singleResult = singleResult
-        self.requiresSingleColumn = requiresSingleColumn
     }
     
     func sql(
@@ -74,12 +69,6 @@ struct SQLQueryGenerator: Refinable {
         
         let selection = try relation.selectionPromise.resolve(context.db)
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with an empty selection")
-        if requiresSingleColumn {
-            #warning("TODO: is requiresSingleColumn necessary? See what SQLite does when several columns are provided")
-            GRDBPrecondition(selection.count == 1, "A single column must be selected.")
-            let columnCount = try selection[0].columnCount(context.db)
-            GRDBPrecondition(columnCount == 1, "A single column must be selected.")
-        }
         sql += try " " + selection.map { try $0.resultColumnSQL(context) }.joined(separator: ", ")
         
         sql += " FROM "

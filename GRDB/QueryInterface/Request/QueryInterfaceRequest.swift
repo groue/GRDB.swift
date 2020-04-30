@@ -397,8 +397,20 @@ extension QueryInterfaceRequest: Refinable {
 extension QueryInterfaceRequest: SQLCollection {
     /// :nodoc
     public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
-        let generator = SQLQueryGenerator(query: query, requiresSingleColumn: true)
-        return try generator.sql(context)
+        // If the request selects several colums, SQLite 3.28.0 may complain
+        // with an error:
+        //
+        //  -- Error: sub-select returns 2 columns - expected 1
+        //  SELECT * FROM t WHERE a IN (SELECT a, b FROM t);
+        //
+        // But other requests accept multiple columns:
+        //
+        //  -- OK
+        //  SELECT * FROM t WHERE (a, b) IN (SELECT a, b FROM t);
+        //
+        // So we do not prevent using requests that select several columns
+        // as expressions.
+        try SQLQueryGenerator(query: query).sql(context)
     }
 }
 
@@ -418,11 +430,27 @@ extension QueryInterfaceRequest: SQLSpecificExpressible {
     
     /// :nodoc
     public var sqlExpression: SQLExpression {
-        #warning("TODO: is forSingleResult: true necessary? See what SQLite does when several rows are fetched")
-        return Expression(generator: SQLQueryGenerator(
-            query: query,
-            forSingleResult: true,
-            requiresSingleColumn: true))
+        // We're generating an *expression*, so we have to deal with the fact
+        // that the request may return several rows, and select several columns.
+        //
+        // In practice, SQLite only considers the first returned row.
+        // So we don't have to set the `forSingleResult` flag of the generator
+        // in order to make sure a single row is returned.
+        //
+        // And if the request selects several colums, SQLite 3.28.0 may complain
+        // with a "row value misused" error:
+        //
+        //  -- Error: row value misused
+        //  SELECT * FROM t WHERE a = (SELECT a, b FROM t);
+        //
+        // But other requests accept multiple columns:
+        //
+        //  -- OK
+        //  SELECT * FROM t WHERE (a, b) = (SELECT a, b FROM t);
+        //
+        // So we do not prevent using requests that select several columns
+        // as expressions.
+        Expression(generator: SQLQueryGenerator(query: query))
     }
 }
 
