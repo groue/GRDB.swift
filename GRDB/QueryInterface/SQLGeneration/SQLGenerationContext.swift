@@ -1,15 +1,31 @@
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// SQLGenerationContext is responsible for preventing SQL injection and
-/// disambiguating table names when GRDB generates SQL queries.
+/// SQLGenerationContext support for SQL generation:
+///
+/// - It provides a database connection so that request elements can perform
+///   database introspection in order to build their SQL representation.
+///
+/// - It provides an "argumens sink" where request elements can dump database
+///   values, in order to prevent SQL injection.
+///
+/// - It provides unique table aliases in order to disambiguates table names
+///   and columns.
 ///
 /// :nodoc:
 public struct SQLGenerationContext {
+    /// A database connection so that request elements can perform database
+    /// introspection in order to build their SQL representation.
     let db: Database
-    var arguments: StatementArguments { argumentsSink.arguments }
+    
+    /// An argumens sink where request elements can dump database values, in
+    /// order to prevent SQL injection.
     let argumentsSink: StatementArgumentsSink
+    
+    /// All arguments gathered so far
+    var arguments: StatementArguments { argumentsSink.arguments }
+    
     private var resolvedNames: [TableAlias: String]
-    private var qualifierNeeded: Bool
+    private var qualifiesColumnsWithTable: Bool
         
     /// Used for literal generation
     static func sqlLiteralContext(
@@ -21,20 +37,7 @@ public struct SQLGenerationContext {
             db: db,
             argumentsSink: argumentsSink,
             resolvedNames: [:],
-            qualifierNeeded: false)
-    }
-    
-    /// Used for TableRecord.selectionSQL
-    static func selectionContext(
-        _ db: Database,
-        argumentsSink: StatementArgumentsSink = StatementArgumentsSink())
-        -> SQLGenerationContext
-    {
-        SQLGenerationContext(
-            db: db,
-            argumentsSink: argumentsSink,
-            resolvedNames: [:],
-            qualifierNeeded: true)
+            qualifiesColumnsWithTable: false)
     }
     
     /// Used for SQLQueryGenerator
@@ -48,7 +51,7 @@ public struct SQLGenerationContext {
             db: db,
             argumentsSink: argumentsSink,
             resolvedNames: aliases.resolvedNames,
-            qualifierNeeded: aliases.count > 1)
+            qualifiesColumnsWithTable: aliases.count > 1)
     }
     
     /// Returns whether arguments could be appended.
@@ -68,7 +71,7 @@ public struct SQLGenerationContext {
         if alias.hasUserName {
             return alias.identityName
         }
-        if qualifierNeeded == false {
+        if qualifiesColumnsWithTable == false {
             return nil
         }
         return resolvedName(for: alias)
