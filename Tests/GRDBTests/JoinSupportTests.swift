@@ -291,6 +291,14 @@ class JoinSupportTests: GRDBTestCase {
         }
     }
     
+    func testTestedSQL() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let (testedSQL, _) = try testedLiteral.build(db)
+            XCTAssertEqual(testedSQL, expectedSQL)
+        }
+    }
+    
     func testSplittingRowAdapters() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
