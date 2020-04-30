@@ -343,18 +343,6 @@ extension QueryInterfaceRequest: Refinable {
         map(\.query) { $0.distinct() }
     }
     
-    /// Creates a request which expects a single result.
-    ///
-    /// It is unlikely you need to call this method. Its net effect is that
-    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
-    /// call a `fetchOne` method.
-    ///
-    /// :nodoc:
-    public func expectingSingleResult() -> QueryInterfaceRequest {
-        map(\.query) { $0.expectingSingleResult() }
-    }
-    
-    
     /// Creates a request which fetches *limit* rows, starting at *offset*.
     ///
     ///     // SELECT * FROM player LIMIT 1

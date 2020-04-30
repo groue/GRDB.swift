@@ -41,6 +41,9 @@ public protocol SQLExpression: SQLSpecificExpressible, SQLSelectable, SQLOrderin
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    var truthComponents: [SQLExpression] { get }
 }
 
 extension SQLExpression {
@@ -83,6 +86,13 @@ extension SQLExpression {
     public func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
         qualifiedExpression(with: alias)
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The default implementation returns [self]
+    ///
+    /// :nodoc:
+    public var truthComponents: [SQLExpression] { [self] }
 }
 
 // SQLExpression: SQLExpressible

@@ -140,6 +140,12 @@ extension SQLExpression {
     { preconditionFailure() }
 }
 
+extension FilteredRequest {
+    @available(*, unavailable, message: "The expectingSingleResult() hint is no longer available.")
+    func expectingSingleResult() -> Self
+    { preconditionFailure() }
+}
+
 @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
 public struct SQLExpressionLiteral: SQLExpression {
     public var sql: String { preconditionFailure() }

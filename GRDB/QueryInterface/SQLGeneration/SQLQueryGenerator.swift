@@ -5,6 +5,7 @@ struct SQLQueryGenerator: Refinable {
     private let groupPromise: DatabasePromise<[SQLExpression]>?
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
+    private let singleResult: Bool
     private let requiresSingleColumn: Bool
     
     /// Creates an SQL query generator.
@@ -49,14 +50,9 @@ struct SQLQueryGenerator: Refinable {
         groupPromise = query.groupPromise?.map { $0.map { $0.qualifiedExpression(with: alias) } }
         havingExpressionsPromise = query.havingExpressionsPromise.map { $0.map { $0.qualifiedExpression(with: alias) } }
         
-        // Optimize query by setting a limit of 1 when appropriate
-        if singleResult && !query.expectsSingleResult {
-            limit = SQLLimit(limit: 1, offset: query.limit?.offset)
-        } else {
-            limit = query.limit
-        }
-        
+        limit = query.limit
         isDistinct = query.isDistinct
+        self.singleResult = singleResult
         self.requiresSingleColumn = requiresSingleColumn
     }
     
@@ -121,6 +117,11 @@ struct SQLQueryGenerator: Refinable {
                 .joined(separator: ", ")
         }
         
+        var limit = self.limit
+        if try singleResult && !expectsSingleResult(db, filters: filters) {
+            limit = SQLLimit(limit: 1, offset: limit?.offset)
+        }
+        
         if let limit = limit {
             sql += " LIMIT "
             sql += limit.sql
@@ -162,6 +163,44 @@ struct SQLQueryGenerator: Refinable {
         // Database regions are case-sensitive: use the canonical table name
         let canonicalTableName = try db.canonicalTableName(tableName)
         return selectedRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
+    }
+    
+    private func expectsSingleResult(_ db: Database, filters: [SQLExpression]) throws -> Bool {
+        if relation.allAliases.count > 1 {
+            // Don't expect single results as soon as several tables are involved
+            return false
+        }
+        
+        guard case let .table(tableName, sourceAlias) = relation.source else {
+            // Don't expect single results as soon as we're not querying a table
+            return false
+        }
+        
+        let filteredColumns = filters.flatMap(\.truthComponents).compactMap { expression -> String? in
+            guard let equalExpression = expression as? SQLExpressionEqual, equalExpression.op == .equal else {
+                return nil
+            }
+            if equalExpression.lhs is DatabaseValue,
+                let qualifiedColumn = equalExpression.rhs as? QualifiedColumn,
+                qualifiedColumn.alias == sourceAlias
+            {
+                return qualifiedColumn.name
+            }
+            if equalExpression.rhs is DatabaseValue,
+                let qualifiedColumn = equalExpression.lhs as? QualifiedColumn,
+                qualifiedColumn.alias == sourceAlias
+            {
+                return qualifiedColumn.name
+            }
+            return nil
+        }
+        if try db.table(tableName, hasUniqueKey: filteredColumns) {
+            return true
+        }
+
+        // TODO: deal with `select max(foo)`
+
+        return false
     }
     
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {

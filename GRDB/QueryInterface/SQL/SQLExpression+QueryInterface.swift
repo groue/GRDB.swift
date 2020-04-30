@@ -267,7 +267,7 @@ struct SQLExpressionBinaryReduce: SQLExpression {
     
     func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         guard let first = expressions.first else {
-            return try op.neutralValue.sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
+            return try op.neutralValue.expressionSQL(context, wrappedInParenthesis: false)
         }
         if expressions.count == 1 {
             return try first.expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
@@ -309,6 +309,24 @@ struct SQLExpressionBinaryReduce: SQLExpression {
             return result
         default:
             return nil
+        }
+    }
+    
+    var truthComponents: [SQLExpression] {
+        if expressions.isEmpty {
+            return [op.neutralValue]
+        }
+        switch op {
+        case .and:
+            return expressions.flatMap(\.truthComponents)
+        case .or:
+            if expressions.count == 1 {
+                return expressions[0].truthComponents
+            } else {
+                return [self]
+            }
+        default:
+            return [self]
         }
     }
 }
