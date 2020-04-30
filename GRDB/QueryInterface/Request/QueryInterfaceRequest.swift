@@ -437,14 +437,6 @@ extension QueryInterfaceRequest: SQLSpecificExpressible {
     }
 }
 
-// Support for `SQLLiteral("SELECT ... IN (\(request))")`
-extension QueryInterfaceRequest: SQLRequestExpressible {
-    /// :nodoc
-    public func requestSQL(_ context: SQLGenerationContext) throws -> String {
-        try SQLQueryGenerator(query: query).sql(context)
-    }
-}
-
 extension QueryInterfaceRequest: TableRequest {
     /// :nodoc:
     public var databaseTableName: String {

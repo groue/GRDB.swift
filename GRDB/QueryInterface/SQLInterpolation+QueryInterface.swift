@@ -154,7 +154,20 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE score = (\(subQuery))
     ///         """
-    public mutating func appendInterpolation(_ request: SQLRequestExpressible) {
-        elements.append(.custom(request.requestSQL))
+    public mutating func appendInterpolation<RowDecoder>(_ request: SQLRequest<RowDecoder>) {
+        elements.append(.subquery(request.sqlLiteral.sql))
+    }
+    
+    /// Appends the request SQL (not wrapped inside parentheses).
+    ///
+    ///     // SELECT name FROM player WHERE score = (SELECT MAX(score) FROM player)
+    ///     let subQuery = Player.select(max(Column("score")))
+    ///     let request: SQLRequest<Player> = """
+    ///         SELECT * FROM player WHERE score = (\(subQuery))
+    ///         """
+    public mutating func appendInterpolation<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) {
+        elements.append(.subquery { context in
+            try SQLQueryGenerator(query: request.query).sql(context)
+            })
     }
 }

@@ -14,10 +14,11 @@ public struct SQLLiteral {
     /// table aliases.
     enum Element {
         case sql(String, StatementArguments = StatementArguments())
+        case subquery((SQLGenerationContext) throws -> String)
+        // Cases below can be qualified with a table alias
         case expression(SQLExpression)
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
-        case custom((SQLGenerationContext) throws -> String)
         
         fileprivate func sql(_ context: SQLGenerationContext) throws -> String {
             switch self {
@@ -28,20 +29,24 @@ public struct SQLLiteral {
                     fatalError("Not implemented: turning an SQL parameter into an SQL literal value")
                 }
                 return sql
+            case let .subquery(function):
+                return try function(context)
             case let .expression(expression):
                 return try expression.expressionSQL(context, wrappedInParenthesis: false)
             case let .selectable(selectable):
                 return try selectable.resultColumnSQL(context)
             case let .orderingTerm(orderingTerm):
                 return try orderingTerm.orderingTermSQL(context)
-            case let .custom(function):
-                return try function(context)
             }
         }
         
         fileprivate func qualified(with alias: TableAlias) -> Element {
             switch self {
             case .sql:
+                // Can't qualify raw SQL string
+                return self
+            case .subquery:
+                // Subqueries don't need table alias
                 return self
             case let .expression(expression):
                 return .expression(expression.qualifiedExpression(with: alias))
@@ -49,8 +54,6 @@ public struct SQLLiteral {
                 return .selectable(selectable.qualifiedSelectable(with: alias))
             case let .orderingTerm(orderingTerm):
                 return .orderingTerm(orderingTerm.qualifiedOrdering(with: alias))
-            case .custom:
-                return self
             }
         }
     }

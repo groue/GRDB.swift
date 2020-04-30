@@ -140,14 +140,6 @@ extension SQLRequest: SQLSpecificExpressible {
     }
 }
 
-// Support for `SQLLiteral("SELECT ... IN (\(request))")`
-extension SQLRequest: SQLRequestExpressible {
-    /// :nodoc
-    public func requestSQL(_ context: SQLGenerationContext) throws -> String {
-        try sqlLiteral.sql(context)
-    }
-}
-
 extension SQLRequest: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {
