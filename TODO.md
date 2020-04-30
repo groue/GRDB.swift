@@ -22,9 +22,6 @@
 - [ ] Delay SQL generation of SQLLiteral and SQLRequest: https://github.com/groue/GRDB.swift/issues/697
 - [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
 - [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
-- [ ] Support Subqueries: `Player.filter(someRequest.contains(Column("id")))`
-- [ ] Support Subqueries: `Player.filter(Column("score") == someRequest)`
-- [ ] Support Subqueries: https://github.com/groue/GRDB.swift/issues/697
 - [ ] Support Subqueries: WHERE EXISTS (SELECT ...)
 - [ ] Support Subqueries: document breaking change: interpolated requests are no longer wrapped in parenthesis
 - [ ] Support Subqueries: document breaking change: how to extract sql from SQLLiteral
