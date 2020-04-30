@@ -96,6 +96,8 @@ extension SQLQuery: _JoinableRequest {
 
 extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
+        // FIXME: eventually have the line below generate SQL without trailing "LIMIT 1"
+        // return try QueryInterfaceRequest<Int>(query: countQuery(db)).fetchOne(db)!
         let (statement, adapter) = try SQLQueryGenerator(query: countQuery(db)).prepare(db)
         return try Int.fetchOne(statement, adapter: adapter)!
     }
