@@ -133,6 +133,16 @@ extension SQLRequest: SQLCollection {
 }
 
 // Support for `request == expression`
+//
+// Note: I wish we would give SQLExpression conformance to SQLRequest and
+// QueryInterfaceRequest.
+//
+// But this does not play well with SQLInterpolation. Interpolation won't embed
+// the request as a subquery, without wrapping parenthesis (in order to let the
+// user perform unions). Instead, it insists on embedding it as an expression,
+// wrapped in parenthesis (as support for `Column("score") = maxScoreRequest`).
+//
+// Maybe, when we master the Swift compiler a little more...
 extension SQLRequest: SQLSpecificExpressible {
     /// :nodoc
     public var sqlExpression: SQLExpression {

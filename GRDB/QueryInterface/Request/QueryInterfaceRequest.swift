@@ -415,6 +415,9 @@ extension QueryInterfaceRequest: SQLCollection {
 }
 
 // Support for `request == expression`
+//
+// Note: I wish we would give SQLExpression conformance to
+// QueryInterfaceRequest. See SQLRequest for more information.
 extension QueryInterfaceRequest: SQLSpecificExpressible {
     private struct Expression: SQLExpression {
         let generator: SQLQueryGenerator
