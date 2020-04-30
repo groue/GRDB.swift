@@ -129,6 +129,18 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     """)
             }
             do {
+                let alias = TableAlias()
+                let request = A
+                    .aliased(alias)
+                    .including(required: A.b
+                        .filter([alias[Column("id")], Column("id"), 42].contains(Column("id"))))
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" IN ("a"."id", "b"."id", 42))
+                    """)
+            }
+            do {
                 let request = A.including(required: A.b.filter(key: ["id": 1]))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".* \

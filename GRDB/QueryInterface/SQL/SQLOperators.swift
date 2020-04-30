@@ -552,6 +552,26 @@ extension Sequence where Self.Iterator.Element: SQLExpressible {
     }
 }
 
+extension Sequence where Self.Iterator.Element == SQLExpressible {
+    /// An SQL expression that checks the inclusion of an expression in
+    /// a sequence.
+    ///
+    ///     // id IN (1,2,3)
+    ///     [1, 2, 3].contains(Column("id"))
+    public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
+        SQLExpressionsArray(expressions: map(\.sqlExpression)).contains(element.sqlExpression)
+    }
+    
+    /// An SQL expression that checks the inclusion of an expression in
+    /// a sequence.
+    ///
+    ///     // name IN ('A', 'B') COLLATE NOCASE
+    ///     ["A", "B"].contains(Column("name").collating(.nocase))
+    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
+        SQLExpressionCollate(contains(element.expression), collationName: element.collationName)
+    }
+}
+
 
 // MARK: - Arithmetic Operators (+, -, *, /)
 
