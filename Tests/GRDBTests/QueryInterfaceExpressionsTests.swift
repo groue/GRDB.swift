@@ -199,9 +199,9 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         do {
-            let subRequest = tableRequest.select(Col.age).filter(Col.name != nil).distinct()
+            let subquery = tableRequest.select(Col.age).filter(Col.name != nil).distinct()
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(subRequest.contains(Col.age))),
+                sql(dbQueue, tableRequest.filter(subquery.contains(Col.age))),
                 """
                 SELECT * FROM "readers" WHERE "age" IN \
                 (SELECT DISTINCT "age" FROM "readers" WHERE "name" IS NOT NULL)
@@ -209,20 +209,20 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         }
         
         do {
-            let subRequest = SQLRequest<Int>(sql: "SELECT ? UNION SELECT ?", arguments: [1, 2])
+            let subquery = SQLRequest<Int>(sql: "SELECT ? UNION SELECT ?", arguments: [1, 2])
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(subRequest.contains(Col.age + 1))),
+                sql(dbQueue, tableRequest.filter(subquery.contains(Col.age + 1))),
                 """
                 SELECT * FROM "readers" WHERE ("age" + 1) IN (SELECT 1 UNION SELECT 2)
                 """)
         }
         
         do {
-            let subRequest1 = tableRequest.select(max(Col.age))
-            let subRequest2 = tableRequest.filter(Col.age == subRequest1)
+            let subquery1 = tableRequest.select(max(Col.age))
+            let subquery2 = tableRequest.filter(Col.age == subquery1)
             #warning("TODO: remove this LIMIT 1")
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(subRequest2.select(Col.id).contains(Col.id))),
+                sql(dbQueue, tableRequest.filter(subquery2.select(Col.id).contains(Col.id))),
                 """
                 SELECT * FROM "readers" WHERE "id" IN (\
                 SELECT "id" FROM "readers" WHERE "age" = (\
@@ -509,19 +509,19 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         do {
-            let subRequest = tableRequest.select(max(Col.age))
+            let subquery = tableRequest.select(max(Col.age))
             #warning("TODO: remove this LIMIT 1")
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter(Col.age == subRequest)),
+                sql(dbQueue, tableRequest.filter(Col.age == subquery)),
                 """
                 SELECT * FROM "readers" WHERE "age" = (SELECT MAX("age") FROM "readers" LIMIT 1)
                 """)
         }
         
         do {
-            let subRequest = SQLRequest<Int>(sql: "SELECT MAX(age + ?) FROM readers", arguments: [1])
+            let subquery = SQLRequest<Int>(sql: "SELECT MAX(age + ?) FROM readers", arguments: [1])
             XCTAssertEqual(
-                sql(dbQueue, tableRequest.filter((Col.age + 2) == subRequest)),
+                sql(dbQueue, tableRequest.filter((Col.age + 2) == subquery)),
                 """
                 SELECT * FROM "readers" WHERE ("age" + 2) = (SELECT MAX(age + 1) FROM readers)
                 """)

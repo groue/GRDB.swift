@@ -453,10 +453,10 @@ extension SQLLiteralTests {
     
     func testSQLRequestInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
-            let subQuery: SQLRequest<Int> = "SELECT MAX(score) - \(10) FROM player"
+            let subquery: SQLRequest<Int> = "SELECT MAX(score) - \(10) FROM player"
             let query: SQLLiteral = """
                 SELECT * FROM player
-                WHERE score = (\(subQuery))
+                WHERE score = (\(subquery))
                 """
             
             let (sql, arguments) = try query.build(db)
@@ -475,10 +475,10 @@ extension SQLLiteralTests {
                 t.column("score", .integer)
             }
             struct Player: TableRecord { }
-            let subQuery = Player.select(max(Column("score")) - 10)
+            let subquery = Player.select(max(Column("score")) - 10)
             let query: SQLLiteral = """
                 SELECT * FROM player
-                WHERE score = (\(subQuery))
+                WHERE score = (\(subquery))
                 """
             
             let (sql, arguments) = try query.build(db)
@@ -502,12 +502,12 @@ extension SQLLiteralTests {
             }
             struct Player: TableRecord { }
             struct Team: TableRecord { }
-            let subQuery = Player
+            let subquery = Player
                 .select(max(Column("score")) - 10)
                 .joining(required: Player.belongsTo(Team.self))
             let query: SQLLiteral = """
                 SELECT * FROM player
-                WHERE score = (\(subQuery))
+                WHERE score = (\(subquery))
                 """
             
             let (sql, arguments) = try query.build(db)
@@ -604,8 +604,8 @@ extension SQLLiteralTests {
             }
             
             do {
-                let subQuery: SQLRequest<String> = "SELECT MAX(\(nameColumn)) FROM \(Player.self)"
-                let conditionLiteral = SQLLiteral("\(nameColumn) = (\(subQuery))")
+                let subquery: SQLRequest<String> = "SELECT MAX(\(nameColumn)) FROM \(Player.self)"
+                let conditionLiteral = SQLLiteral("\(nameColumn) = (\(subquery))")
                 let request = baseRequest.filter(literal: conditionLiteral)
                 try assertEqualSQL(db, request, """
                     SELECT "p".* FROM "player" "p" WHERE "p"."name" = (SELECT MAX("name") FROM "player")
