@@ -267,6 +267,7 @@ extension TableRequest where Self: FilteredRequest {
         case 0:
             return none()
         case 1:
+            #warning("TODO: what if request has joined tables?")
             request = request.expectingSingleResult()
         default:
             break
