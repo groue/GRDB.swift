@@ -5,11 +5,11 @@
 /// - It provides a database connection so that request elements can perform
 ///   database introspection in order to build their SQL representation.
 ///
-/// - It provides an "argumens sink" where request elements can dump database
-///   values, in order to prevent SQL injection.
-///
 /// - It provides unique table aliases in order to disambiguates table names
 ///   and columns.
+///
+/// - Request elements can turn database values as SQLite statement arguments,
+///   in order to prevent SQL injection.
 ///
 /// :nodoc:
 public struct SQLGenerationContext {
@@ -17,8 +17,7 @@ public struct SQLGenerationContext {
     /// introspection in order to build their SQL representation.
     let db: Database
     
-    /// An argumens sink where request elements can dump database values, in
-    /// order to prevent SQL injection.
+    /// The arguments sink which prevents SQL injection.
     let argumentsSink: StatementArgumentsSink
     
     /// All arguments gathered so far
@@ -111,8 +110,10 @@ class StatementArgumentsSink {
         self.init(rawSQL: false)
     }
     
+    // fileprivate so that SQLGenerationContext.append(arguments:) is the only
+    // available api.
     /// Returns whether arguments could be appended.
-    func append(arguments: StatementArguments) -> Bool {
+    fileprivate func append(arguments: StatementArguments) -> Bool {
         if arguments.isEmpty {
             return true
         }
