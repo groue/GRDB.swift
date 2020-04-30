@@ -108,6 +108,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#747](https://github.com/groue/GRDB.swift/pull/747): Rename GRDBCustomSQLite to GRDB
 - [#750](https://github.com/groue/GRDB.swift/pull/750): Batch updates do not need any operator
 - [#752](https://github.com/groue/GRDB.swift/pull/752): Remove ValueObservation.combine
+- [#770](https://github.com/groue/GRDB.swift/pull/770): Subqueries
 
 
 ## 4.14.0
