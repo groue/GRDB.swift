@@ -79,6 +79,7 @@ struct SQLQueryGenerator: Refinable {
         let selection = try relation.selectionPromise.resolve(context.db)
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with an empty selection")
         if requiresSingleColumn {
+            #warning("TODO: is requiresSingleColumn necessary? See what SQLite does when several columns are provided")
             GRDBPrecondition(selection.count == 1, "A single column must be selected.")
             let columnCount = try selection[0].columnCount(context.db)
             GRDBPrecondition(columnCount == 1, "A single column must be selected.")

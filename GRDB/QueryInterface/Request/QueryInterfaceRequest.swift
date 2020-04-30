@@ -430,7 +430,8 @@ extension QueryInterfaceRequest: SQLSpecificExpressible {
     
     /// :nodoc
     public var sqlExpression: SQLExpression {
-        Expression(generator: SQLQueryGenerator(
+        #warning("TODO: is forSingleResult: true necessary? See what SQLite does when several rows are fetched")
+        return Expression(generator: SQLQueryGenerator(
             query: query,
             forSingleResult: true,
             requiresSingleColumn: true))
