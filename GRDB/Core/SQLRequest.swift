@@ -108,7 +108,7 @@ public struct SQLRequest<RowDecoder>: FetchRequest {
     ///
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let context = SQLGenerationContext.sqlLiteralContext(db)
+        let context = SQLGenerationContext(db)
         let sql = try sqlLiteral.sql(context)
         let statement: SelectStatement
         switch cache {

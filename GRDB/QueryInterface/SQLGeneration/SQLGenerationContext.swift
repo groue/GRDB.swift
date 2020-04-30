@@ -25,32 +25,21 @@ public struct SQLGenerationContext {
     
     private var resolvedNames: [TableAlias: String]
     private var qualifiesColumnsWithTable: Bool
-        
-    /// Used for literal generation
-    static func sqlLiteralContext(
-        _ db: Database,
-        argumentsSink: StatementArgumentsSink = StatementArgumentsSink())
-        -> SQLGenerationContext
-    {
-        SQLGenerationContext(
-            db: db,
-            argumentsSink: argumentsSink,
-            resolvedNames: [:],
-            qualifiesColumnsWithTable: false)
-    }
     
-    /// Used for SQLQueryGenerator
-    static func queryContext(
+    /// Creates a generation context.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter argumentsSink: An arguments sink.
+    /// - parameter aliases: An array of table aliases to disambiguate.
+    init(
         _ db: Database,
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
-        aliases: [TableAlias])
-        -> SQLGenerationContext
+        aliases: [TableAlias] = [])
     {
-        SQLGenerationContext(
-            db: db,
-            argumentsSink: argumentsSink,
-            resolvedNames: aliases.resolvedNames,
-            qualifiesColumnsWithTable: aliases.count > 1)
+        self.db = db
+        self.argumentsSink = argumentsSink
+        self.resolvedNames = aliases.resolvedNames
+        self.qualifiesColumnsWithTable = aliases.count > 1
     }
     
     /// Returns whether arguments could be appended.

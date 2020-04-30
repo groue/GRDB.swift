@@ -64,7 +64,7 @@ struct SQLQueryGenerator: Refinable {
         // Build an SQK generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
-        let context = SQLGenerationContext.queryContext(db, argumentsSink: argumentsSink, aliases: relation.allAliases)
+        let context = SQLGenerationContext(db, argumentsSink: argumentsSink, aliases: relation.allAliases)
         
         var sql = "SELECT"
         
@@ -274,7 +274,7 @@ struct SQLQueryGenerator: Refinable {
                 return try makeTrivialDeleteStatement(db)
             }
             
-            let context = SQLGenerationContext.queryContext(db, aliases: relation.allAliases)
+            let context = SQLGenerationContext(db, aliases: relation.allAliases)
             
             var sql = try "DELETE FROM " + relation.source.sql(context)
             
@@ -314,7 +314,7 @@ struct SQLQueryGenerator: Refinable {
             fatalError("Can't delete without any database table")
         }
         
-        let context = SQLGenerationContext.sqlLiteralContext(db)
+        let context = SQLGenerationContext(db)
         let primaryKey = try db.primaryKeyExpression(tableName)
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
@@ -355,7 +355,7 @@ struct SQLQueryGenerator: Refinable {
                 return nil
             }
             
-            let context = SQLGenerationContext.queryContext(db, aliases: relation.allAliases)
+            let context = SQLGenerationContext(db, aliases: relation.allAliases)
             
             var sql = "UPDATE "
             
@@ -418,7 +418,7 @@ struct SQLQueryGenerator: Refinable {
             return nil
         }
         
-        let context = SQLGenerationContext.sqlLiteralContext(db)
+        let context = SQLGenerationContext(db)
         let primaryKey = try db.primaryKeyExpression(tableName)
         
         // UPDATE table...
