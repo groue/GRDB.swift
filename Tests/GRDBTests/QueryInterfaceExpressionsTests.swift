@@ -220,13 +220,12 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         do {
             let subquery1 = tableRequest.select(max(Col.age))
             let subquery2 = tableRequest.filter(Col.age == subquery1)
-            #warning("TODO: remove this LIMIT 1")
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.filter(subquery2.select(Col.id).contains(Col.id))),
                 """
                 SELECT * FROM "readers" WHERE "id" IN (\
                 SELECT "id" FROM "readers" WHERE "age" = (\
-                SELECT MAX("age") FROM "readers" LIMIT 1))
+                SELECT MAX("age") FROM "readers"))
                 """)
         }
     }
@@ -510,11 +509,10 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         
         do {
             let subquery = tableRequest.select(max(Col.age))
-            #warning("TODO: remove this LIMIT 1")
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.filter(Col.age == subquery)),
                 """
-                SELECT * FROM "readers" WHERE "age" = (SELECT MAX("age") FROM "readers" LIMIT 1)
+                SELECT * FROM "readers" WHERE "age" = (SELECT MAX("age") FROM "readers")
                 """)
         }
         

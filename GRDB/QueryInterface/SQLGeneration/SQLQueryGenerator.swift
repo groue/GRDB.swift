@@ -96,7 +96,8 @@ struct SQLQueryGenerator: Refinable {
             sql += try filters.joined(operator: .and).expressionSQL(context, wrappedInParenthesis: false)
         }
         
-        if let groupExpressions = try groupPromise?.resolve(context.db), !groupExpressions.isEmpty {
+        let groupExpressions = try groupPromise?.resolve(context.db) ?? []
+        if !groupExpressions.isEmpty {
             sql += " GROUP BY "
             sql += try groupExpressions
                 .map { try $0.expressionSQL(context, wrappedInParenthesis: false) }
@@ -118,7 +119,12 @@ struct SQLQueryGenerator: Refinable {
         }
         
         var limit = self.limit
-        if try singleResult && !expectsSingleResult(db, filters: filters) {
+        if try singleResult && !expectsSingleResult(
+            db,
+            selection: selection,
+            filters: filters,
+            groupExpressions: groupExpressions)
+        {
             limit = SQLLimit(limit: 1, offset: limit?.offset)
         }
         
@@ -165,7 +171,15 @@ struct SQLQueryGenerator: Refinable {
         return selectedRegion.tableIntersection(canonicalTableName, rowIds: rowIds)
     }
     
-    private func expectsSingleResult(_ db: Database, filters: [SQLExpression]) throws -> Bool {
+    /// If true, executing this query yields at most one row.
+    /// If false, we don't know how many rows this query returns.
+    private func expectsSingleResult(
+        _ db: Database,
+        selection: [SQLSelectable],
+        filters: [SQLExpression],
+        groupExpressions: [SQLExpression])
+        throws -> Bool
+    {
         if relation.allAliases.count > 1 {
             // Don't expect single results as soon as several tables are involved
             return false
@@ -176,30 +190,75 @@ struct SQLQueryGenerator: Refinable {
             return false
         }
         
+        // Do we filter on an unique key?
         let filteredColumns = filters.flatMap(\.truthComponents).compactMap { expression -> String? in
-            guard let equalExpression = expression as? SQLExpressionEqual, equalExpression.op == .equal else {
+            guard let equalExpression = expression as? SQLExpressionEqual,
+                (equalExpression.op == .equal || equalExpression.op == .is) else
+            {
+                // Not Column("foo") == value
                 return nil
             }
+            
             if equalExpression.lhs is DatabaseValue,
-                let qualifiedColumn = equalExpression.rhs as? QualifiedColumn,
-                qualifiedColumn.alias == sourceAlias
+                let qualifiedColumn = equalExpression.rhs as? QualifiedColumn
             {
+                // value == Column("foo")
+                assert(qualifiedColumn.alias == sourceAlias)
                 return qualifiedColumn.name
             }
+            
             if equalExpression.rhs is DatabaseValue,
-                let qualifiedColumn = equalExpression.lhs as? QualifiedColumn,
-                qualifiedColumn.alias == sourceAlias
+                let qualifiedColumn = equalExpression.lhs as? QualifiedColumn
             {
+                // Column("foo") == value
+                assert(qualifiedColumn.alias == sourceAlias)
                 return qualifiedColumn.name
             }
+            
             return nil
         }
         if try db.table(tableName, hasUniqueKey: filteredColumns) {
+            // Filter by unique key: guaranteed single row!
             return true
         }
-
-        // TODO: deal with `select max(foo)`
-
+        
+        // Do we aggregate without grouping?
+        if groupExpressions.isEmpty {
+            // https://www.sqlite.org/lang_aggfunc.html#groupconcat
+            let aggregateFunctionNames: Set<String> = [
+                "AVG", "COUNT", "GROUP_CONCAT", "MAX", "MIN", "SUM", "TOTAL"
+            ]
+            for selectable in selection {
+                guard let expression = selectable as? SQLExpressionFunction else {
+                    // Not a function call
+                    // (We miss expressions such as `max(column) + 1`)
+                    continue
+                }
+                let functionName = expression.functionName.sql.uppercased()
+                guard aggregateFunctionNames.contains(functionName) else {
+                    // Not an aggregate function
+                    continue
+                }
+                guard expression.arguments.allSatisfy({ $0 is QualifiedColumn }) else {
+                    // Aggregate function argument is not a column
+                    // (We miss COUNT(*) here)
+                    continue
+                }
+                if functionName == "GROUP_CONCAT" {
+                    switch expression.arguments.count {
+                    case 1, 2:
+                        // Selection contains an aggregate function call: guaranteed single row!
+                        return true
+                    default:
+                        break
+                    }
+                } else if expression.arguments.count == 1 {
+                    // Selection contains an aggregate function call: guaranteed single row!
+                    return true
+                }
+            }
+        }
+        
         return false
     }
     
