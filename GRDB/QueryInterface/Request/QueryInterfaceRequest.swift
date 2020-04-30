@@ -412,6 +412,11 @@ extension QueryInterfaceRequest: SQLCollection {
         // as expressions.
         try SQLQueryGenerator(query: query).sql(context)
     }
+    
+    /// :nodoc
+    public func qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        self
+    }
 }
 
 // Support for `request == expression`

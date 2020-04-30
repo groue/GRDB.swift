@@ -539,7 +539,7 @@ extension Sequence where Self.Iterator.Element: SQLExpressible {
     ///     // id IN (1,2,3)
     ///     [1, 2, 3].contains(Column("id"))
     public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
-        SQLExpressionsArray(self).contains(element.sqlExpression)
+        SQLExpressionsArray(expressions: map(\.sqlExpression)).contains(element.sqlExpression)
     }
     
     /// An SQL expression that checks the inclusion of an expression in

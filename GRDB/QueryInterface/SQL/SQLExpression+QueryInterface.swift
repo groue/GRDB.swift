@@ -481,8 +481,10 @@ struct SQLExpressionContains: SQLExpression {
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        #warning("TODO: why isn't collection qualified as well?")
-        return SQLExpressionContains(expression.qualifiedExpression(with: alias), collection, negated: isNegated)
+        return SQLExpressionContains(
+            expression.qualifiedExpression(with: alias),
+            collection.qualifiedCollection(with: alias),
+            negated: isNegated)
     }
     
     func matchedRowIds(rowIdName: String?) -> Set<Int64>? {

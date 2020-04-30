@@ -130,6 +130,11 @@ extension SQLRequest: SQLCollection {
     public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
         try sqlLiteral.sql(context)
     }
+    
+    /// :nodoc
+    public func qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        self
+    }
 }
 
 // Support for `request == expression`
