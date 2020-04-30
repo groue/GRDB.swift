@@ -221,7 +221,7 @@ extension TableRecord {
     public static func observationForCount() -> ValueObservation<ValueReducers.Unavailable<Int>>
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "selectionSQL(alias:) is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
+    @available(*, unavailable, message: "Use SQL interpolation instead")
     public static func selectionSQL(alias: String? = nil) -> String
     { preconditionFailure() }
 }

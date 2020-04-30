@@ -17,6 +17,22 @@ extension SQLInterpolation {
         appendInterpolation(type(of: record))
     }
     
+    /// Appends the selection of the record type.
+    ///
+    ///     // SELECT * FROM player
+    ///     let player: Player = ...
+    ///     let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self) FROM player"
+    ///
+    ///     // SELECT p.* FROM player p
+    ///     let player: Player = ...
+    ///     let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self, tableAlias: "p") FROM player p"
+    public mutating func appendInterpolation<T: TableRecord>(columnsOf record: T.Type, tableAlias: String? = nil) {
+        let alias = TableAlias(name: tableAlias ?? T.databaseTableName)
+        elements.append(contentsOf: T.databaseSelection
+            .map { CollectionOfOne(.selectable($0.qualifiedSelectable(with: alias))) }
+            .joined(separator: CollectionOfOne(.sql(","))))
+    }
+    
     /// Appends the selectable SQL.
     ///
     ///     // SELECT * FROM player
