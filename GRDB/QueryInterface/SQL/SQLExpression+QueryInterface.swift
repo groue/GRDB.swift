@@ -313,21 +313,19 @@ struct SQLExpressionBinaryReduce: SQLExpression {
     }
     
     var truthComponents: [SQLExpression] {
-        if expressions.isEmpty {
-            return [op.neutralValue]
+        guard let first = expressions.first else {
+            return op.neutralValue.truthComponents
         }
-        switch op {
-        case .and:
+        
+        if expressions.count == 1 {
+            return first.truthComponents
+        }
+        
+        if op == .and {
             return expressions.flatMap(\.truthComponents)
-        case .or:
-            if expressions.count == 1 {
-                return expressions[0].truthComponents
-            } else {
-                return [self]
-            }
-        default:
-            return [self]
         }
+        
+        return [self]
     }
 }
 
