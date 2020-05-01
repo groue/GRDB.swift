@@ -52,8 +52,12 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 ifeq ($(XCODEVERSION),11.4)
   MAX_SWIFT_VERSION = 5.2
   MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.4.1"
-  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5,OS=10.3.1"
+  ifeq ($(TRAVIS),true)
+    MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.4"
+  else
+    MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.4.1"
+  endif
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=13.4"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
 else
