@@ -13,7 +13,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- `5.0.x` Development - [GRDB5 Branch](#grdb5-branch)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta)
 
 
 #### 4.x Releases
@@ -76,11 +76,62 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 -->
 
-## GRDB5 Branch
+## 5.0.0-beta
+
+Released May 1, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.14.0...v5.0.0-beta)
+
+GRDB 5 is a release focused on **Swift 5.2**, and **removing technical debt**.
+
+There are breaking changes, though as few as possible. They open the door for future library improvements. And they have GRDB, [GRDBCombine](http://github.com/groue/GRDBCombine), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) offer a common behavior.
+
+New features include support for SQL subqueries, and a simplified handling of database errors. The most demanding users will also find it easier to switch between the system SQLite, SQLCipher, and custom SQLite builds.
+
+<details>
+    <summary>A glimpse on the new features</summary>
+
+All requests can now be used as subqueries:
+
+```swift
+// Define a request with the query interface or raw SQL
+let maximumScore = Player.select(max(Column("score")))
+let maximumScore: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+
+// Use the request as a subquery in the query interface
+let request = Player.filter(Column("score") == maximumScore)
+let bestPlayers = try request.fetchAll(db)
+
+// Use the request as a subquery in SQL requests
+let request: SQLRequest<Player> = "SELECT * FROM player WHERE score = (\(maximumScore))"
+let bestPlayers = try request.fetchAll(db)
+```
+
+Catch specific SQLite error codes in a simplified fashion:
+
+```swift
+do {
+    try ...
+} catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+    // foreign key constraint error
+} catch DatabaseError.SQLITE_CONSTRAINT {
+    // any other constraint error
+} catch {
+    // any other database error
+}
+```
+
+Reuse the same code for system SQLite, SQLCipher, and custom SQLite builds:
+
+```swift
+// Supported in all GRDB flavors
+import GRDB
+let sqliteVersion = String(cString: sqlite3_libversion())
+```
+
+</details>
 
 ### Documentation Diff
 
-- **[Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)**: it's easier to upgrade an app with a little guidance! :bulb:
+- **[Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)**: how to upgrade your apps, and deal with breaking changes.
 - [ValueObservation](README.md#valueobservation): this chapter describes the new ValueObservation behaviors.
 - [DatabaseError](README.md#databaseerror): learn how to catch and match DatabaseError on their codes, in a fashion similar to `CocoaError`.
 - [Batch Updates](README.md#update-requests): this chapter is updated for the new `set(to:)` method.
