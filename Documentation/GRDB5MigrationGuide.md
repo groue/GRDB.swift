@@ -302,6 +302,8 @@ The changes can quite impact your application. We'll describe them below, as wel
     // NEW: GRDB 5
     try Player.updateAll(db, Column("score").set(to: 0))
     ```
+    
+    > :question: This change avoids conflicts with other libraries that define the same operator.
 
 2. [SQL Interpolation] does no longer wrap subqueries in parenthesis:
     
@@ -316,9 +318,58 @@ The changes can quite impact your application. We'll describe them below, as wel
     //                                            extra parenthesis required: ^               ^
     ```
     
-    This change makes it possible to concatenate subqueries with the UNION operator.
+    > :question: This change makes it possible to concatenate subqueries with the UNION operator.
 
-2. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
+3. In order to extract raw SQL string from an SQLLiteral, you now need a database connection:
+
+    ```swift
+    let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
+    
+    // BEFORE: GRDB 4
+    print(query.sql)       // prints "UPDATE player SET name = ? WHERE id = ?"
+    print(query.arguments) // prints ["O'Brien", 42]
+     
+    // NEW: GRDB 5
+    let (sql, arguments) = try dbQueue.read(query.build)
+    print(sql)             // prints "UPDATE player SET name = ? WHERE id = ?"
+    print(arguments)       // prints ["O'Brien", 42]
+    ```
+    
+    > :question: This change makes it possible to embed query interface requests as subqueries inside SQLLiteral:
+    >
+    > ```swift
+    > let maximumScore = Player.select(max(Column("score")))
+    > let query: SQLLiteral = "SELECT * FROM player WHERE score = (\(maximumScore))"
+    > ```
+
+4. In order to extract raw SQL string from a request (SQLRequest or QueryInterfaceRequest), you now need a database connection:
+
+    ```swift
+    // BEFORE: GRDB 4
+    try dbQueue.read { db in
+        let request = Player.filter(Column("name") == "O'Brien")
+        let sqlRequest = try SQLRequest(db, request: request)
+        print(sqlRequest.sql)       // "SELECT * FROM player WHERE name = ?"
+        print(sqlRequest.arguments) // ["O'Brien"]
+    }
+     
+    // NEW: GRDB 5
+    try dbQueue.read { db in
+        let request = Player.filter(Column("name") == "O'Brien")
+        let statement = try request.makePreparedRequest(db).statement
+        print(statement.sql)        // "SELECT * FROM player WHERE name = ?"
+        print(statement.arguments)  // ["O'Brien"]
+    }
+    ```
+    
+    > :question: This change makes it possible to embed query interface requests as subqueries inside SQLRequest:
+    >
+    > ```swift
+    > let maximumScore = Player.select(max(Column("score")))
+    > let request: SQLRequest<Player> = "SELECT * FROM player WHERE score = (\(maximumScore))"
+    > ```
+
+5. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
     
     ```swift
     // BEFORE: GRDB 4
@@ -328,7 +379,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     Player.select(myFunction(Column("name")))
     ```
 
-3. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
+6. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
     
     ```swift
     // BEFORE: GRDB 4
@@ -350,7 +401,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     }
     ```
 
-4. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
+7. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
     ```swift
     // BEFORE: GRDB 4
@@ -360,7 +411,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     import GRDB
     ```
 
-5. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
+8. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
     
     ```swift
     // BEFORE: GRDB 4
@@ -373,7 +424,6 @@ The changes can quite impact your application. We'll describe them below, as wel
     import GRDB
     let sqliteVersion = String(cString: sqlite3_libversion())
     ```
-
 
 
 [ValueObservation]: ../README.md#valueobservation

@@ -6,16 +6,17 @@ Your SQL skills are [welcomed] throughout GRDB. Yet writing raw SQL presents com
 The query below exemplifies this situation. It even contains a bug that is not quite easy to spot:
 
 ```swift
-try db.execute(
-    sql: """
-        UPDATE student
-        SET firstName = ?, lastName = ?, department = ?, birthDate = ?,
-            registrationDate = ?, mainTeacherId = ?
-        WHERE id = ?
-        """,
-    arguments: [firstName, lastName, department, birthDate,
-                registrationDate, mainTeacherId])
-
+try dbQueue.write { db in
+    try db.execute(
+        sql: """
+            UPDATE student
+            SET firstName = ?, lastName = ?, department = ?, birthDate = ?,
+                registrationDate = ?, mainTeacherId = ?
+            WHERE id = ?
+            """,
+        arguments: [firstName, lastName, department, birthDate,
+                    registrationDate, mainTeacherId])
+}
 ```
 
 SQL Interpolation is an answer to these troubles. It is available in Swift 5.
@@ -34,7 +35,9 @@ SQL Interpolation is an answer to these troubles. It is available in Swift 5.
 ```swift
 let name: String = ...
 let id: Int64 = ...
-try db.execute(literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
+try dbQueue.write { db in
+    try db.execute(literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
+}
 ```
 
 SQL interpolation looks and feel just like regular [String interpolation]:
@@ -47,16 +50,12 @@ print("Hello \(name)!") // prints "Hello World!"
 The difference is that it generates valid SQL which does not suffer from syntax errors or [SQL injection]. For example, you do not need to validate input or process single quotes:
 
 ```swift
-// Executes `UPDATE player SET name = 'O''Brien' WHERE id = 42`
 let name = "O'Brien"
 let id = 42
-try db.execute(literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
-```
-
-Under the hood, SQL interpolation generates a plain SQL string. It runs exactly as below:
-
-```swift
-try db.execute(sql: "UPDATE player SET name = ? WHERE id = ?", arguments: [name, id])
+try dbQueue.write { db in
+    // Executes `UPDATE player SET name = 'O''Brien' WHERE id = 42`
+    try db.execute(literal: "UPDATE player SET name = \(name) WHERE id = \(id)")
+}
 ```
 
 Plain SQL strings are indeed still available, and SQL interpolation only kicks in when you ask for it. There is a simple rule to remember:
@@ -79,17 +78,21 @@ Plain SQL strings are indeed still available, and SQL interpolation only kicks i
 **SQLLiteral** is the type that looks like a plain String, but profits from SQL interpolation:
 
 ```swift
-let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
-try db.execute(literal: query)
+try dbQueue.write { db in
+    let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
+    try db.execute(literal: query)
+}
 ```
 
 **SQLLiteral is not a Swift String.** You can not use the `execute(literal:)` method with a String argument:
 
 ```swift
-// Compiler error:
-// Cannot convert value of type 'String' to expected argument type 'SQLLiteral'
-let query = "UPDATE player SET name = \(name) WHERE id = \(id)" // a String
-try db.execute(literal: query)
+try dbQueue.write { db in
+    let query = "UPDATE player SET name = \(name) WHERE id = \(id)" // a regular String
+    // Compiler error:
+    // Cannot convert value of type 'String' to expected argument type 'SQLLiteral'
+    try db.execute(literal: query)
+}
 ```
 
 SQLLiteral can build your queries step by step, with regular operators and methods:
@@ -113,8 +116,9 @@ Extract the plain SQL string from a literal:
 
 ```swift
 let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
-print(query.sql)       // prints "UPDATE player SET name = ? WHERE id = ?"
-print(query.arguments) // prints ["O'Brien", 42]
+let (sql, arguments) = try dbQueue.read(query.build)
+print(sql)       // prints "UPDATE player SET name = ? WHERE id = ?"
+print(arguments) // prints ["O'Brien", 42]
 ```
 
 Build a literal from a plain SQL string:

@@ -7841,23 +7841,18 @@ Database accesses that run in background threads postpone the closing of connect
 
 When you want to debug a request that does not deliver the expected results, you may want to print the SQL that is actually executed.
 
-You can turn your request into a `SQLRequest` instance:
+You can compile the request into a prepared statement:
 
 ```swift
 try dbQueue.read { db in
-    let request = Wine
-        .filter(originColumn == "Burgundy")
-        .order(priceColumn)
-    
-    let sqlRequest = try SQLRequest(db, request: request)
-    print(sqlRequest.sql)
-    // Prints SELECT * FROM wine WHERE origin = ? ORDER BY price
-    print(sqlRequest.arguments)
-    // Prints ["Burgundy"]
+    let request = Player.filter(Column("name") == "O'Brien")
+    let statement = try request.makePreparedRequest(db).statement
+    print(statement.sql)        // "SELECT * FROM player WHERE name = ?"
+    print(statement.arguments)  // ["O'Brien"]
 }
 ```
 
-Another option is to setup a tracing function that will print out all SQL requests executed by your application. You provide the trace function when you connect to the database:
+Another option is to setup a tracing function that prints out all SQL requests executed by your application. You provide the trace function when you connect to the database:
 
 ```swift
 var config = Configuration()
@@ -7865,11 +7860,8 @@ config.trace = { print($0) } // Prints all SQL statements
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
-    let wines = Wine
-        .filter(originColumn == "Burgundy")
-        .order(priceColumn)
-        .fetchAll(db)
-    // Prints SELECT * FROM wine WHERE origin = 'Burgundy' ORDER BY price
+    let players = try Player.filter(Column("name") == "O'Brien").fetchAll(db)
+    // Prints SELECT * FROM player WHERE name = 'O''Brien'
 }
 ```
 
