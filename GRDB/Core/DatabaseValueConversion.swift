@@ -26,7 +26,7 @@ struct ValueConversionContext: Refinable {
         case .columnIndex(let index):
             return index
         case .columnName(let name):
-            return row?.index(ofColumn: name)
+            return row?.index(forColumn: name)
         }
     }
     

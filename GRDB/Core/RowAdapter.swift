@@ -523,7 +523,7 @@ struct AdaptedRowImpl: RowImpl {
         mapping.columnName(atMappingIndex: index)
     }
     
-    func index(ofColumn name: String) -> Int? {
+    func index(forColumn name: String) -> Int? {
         mapping.layoutIndex(ofColumn: name)
     }
     

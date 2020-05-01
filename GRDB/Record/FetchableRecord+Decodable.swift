@@ -53,7 +53,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         guard let key = codingPath.last else {
             fatalError("single value decoding from database row is not supported")
         }
-        guard let index = row.index(ofColumn: key.stringValue) else {
+        guard let index = row.index(forColumn: key.stringValue) else {
             // Don't use DecodingError.keyNotFound:
             // We need to specifically recognize missing columns in order to
             // provide correct feedback.
@@ -117,7 +117,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             let keyName = key.stringValue
             
             // Column?
-            if let index = row.index(ofColumn: keyName) {
+            if let index = row.index(forColumn: keyName) {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
                 if type == Date.self {
@@ -147,7 +147,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             let keyName = key.stringValue
             
             // Column?
-            if let index = row.index(ofColumn: keyName) {
+            if let index = row.index(forColumn: keyName) {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
                 if type == Date.self {

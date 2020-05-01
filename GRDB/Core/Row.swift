@@ -140,12 +140,12 @@ extension Row {
     ///
     /// This method is case-insensitive.
     public func hasColumn(_ columnName: String) -> Bool {
-        index(ofColumn: columnName) != nil
+        index(forColumn: columnName) != nil
     }
     
     @usableFromInline
-    func index(ofColumn name: String) -> Int? {
-        impl.index(ofColumn: name)
+    func index(forColumn name: String) -> Int? {
+        impl.index(forColumn: name)
     }
 }
 
@@ -282,7 +282,7 @@ extension Row {
         //     if row["foo"] != nil { ... }
         //
         // Without this method, the code above would not compile.
-        guard let index = index(ofColumn: columnName) else {
+        guard let index = index(forColumn: columnName) else {
             return nil
         }
         return impl.databaseValue(atUncheckedIndex: index).storage.value
@@ -298,7 +298,7 @@ extension Row {
     /// `Value`. Should this conversion fail, a fatal error is raised.
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value? {
-        guard let index = index(ofColumn: columnName) else {
+        guard let index = index(forColumn: columnName) else {
             return nil
         }
         return Value.decodeIfPresent(from: self, atUncheckedIndex: index)
@@ -318,7 +318,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value? {
-        guard let index = index(ofColumn: columnName) else {
+        guard let index = index(forColumn: columnName) else {
             return nil
         }
         return Value.fastDecodeIfPresent(from: self, atUncheckedIndex: index)
@@ -335,7 +335,7 @@ extension Row {
     /// SQLite value can not be converted to `Value`.
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
-        guard let index = index(ofColumn: columnName) else {
+        guard let index = index(forColumn: columnName) else {
             // No such column
             fatalConversionError(to: Value.self, from: nil, in: self, atColumn: columnName)
         }
@@ -357,7 +357,7 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
-        guard let index = index(ofColumn: columnName) else {
+        guard let index = index(forColumn: columnName) else {
             // No such column
             fatalConversionError(to: Value.self, from: nil, in: self, atColumn: columnName)
         }
@@ -475,7 +475,7 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     public func dataNoCopy(named columnName: String) -> Data? {
-        guard let index = index(ofColumn: columnName) else {
+        guard let index = index(forColumn: columnName) else {
             return nil
         }
         return impl.dataNoCopy(atUncheckedIndex: index)
@@ -1582,7 +1582,7 @@ protocol RowImpl {
     func dataNoCopy(atUncheckedIndex index: Int) -> Data?
     
     /// Returns the index of the leftmost column that matches *name* (case-insensitive)
-    func index(ofColumn name: String) -> Int?
+    func index(forColumn name: String) -> Int?
     
     // row.impl is guaranteed to be self.
     func unscopedRow(_ row: Row) -> Row
@@ -1665,7 +1665,7 @@ private struct ArrayRowImpl: RowImpl {
         columns[index].0
     }
     
-    func index(ofColumn name: String) -> Int? {
+    func index(forColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columns.firstIndex { (column, _) in column.lowercased() == lowercaseName }
     }
@@ -1703,7 +1703,7 @@ private struct StatementCopyRowImpl: RowImpl {
         columnNames[index]
     }
     
-    func index(ofColumn name: String) -> Int? {
+    func index(forColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
         return columnNames.firstIndex { $0.lowercased() == lowercaseName }
     }
@@ -1777,7 +1777,7 @@ private struct StatementRowImpl: RowImpl {
         statement.columnNames[index]
     }
     
-    func index(ofColumn name: String) -> Int? {
+    func index(forColumn name: String) -> Int? {
         if let index = lowercaseColumnIndexes[name] {
             return index
         }
@@ -1814,7 +1814,7 @@ private struct SQLiteStatementRowImpl: RowImpl {
         return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
     }
     
-    func index(ofColumn name: String) -> Int? {
+    func index(forColumn name: String) -> Int? {
         let name = name.lowercased()
         for index in 0..<count where columnName(atUncheckedIndex: index).lowercased() == name {
             return index
@@ -1839,7 +1839,7 @@ private struct EmptyRowImpl: RowImpl {
         fatalError("row index out of range")
     }
     
-    func index(ofColumn name: String) -> Int? { nil }
+    func index(forColumn name: String) -> Int? { nil }
     
     func copiedRow(_ row: Row) -> Row { row }
 }

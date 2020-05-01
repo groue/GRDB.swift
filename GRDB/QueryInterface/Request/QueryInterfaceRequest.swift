@@ -618,7 +618,7 @@ private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [
             // TODO: can we remove those grdb_ columns now that grouping has been done?
         }
         
-        let groupingIndexes = firstRow.indexes(ofColumns: pivotMappings.map(\.left))
+        let groupingIndexes = firstRow.indexes(forColumns: pivotMappings.map(\.left))
         for row in rows {
             let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
             let prefetchedRows = prefetchedRows[groupingKey, default: []]
@@ -634,7 +634,7 @@ extension Array where Element == Row {
         guard let firstRow = first else {
             return [:]
         }
-        let indexes = firstRow.indexes(ofColumns: columns)
+        let indexes = firstRow.indexes(forColumns: columns)
         return Dictionary(grouping: self, by: { row in
             indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
         })
@@ -643,9 +643,9 @@ extension Array where Element == Row {
 
 extension Row {
     /// - precondition: Columns all exist in the row.
-    fileprivate func indexes(ofColumns columns: [String]) -> [Int] {
+    fileprivate func indexes(forColumns columns: [String]) -> [Int] {
         columns.map { column -> Int in
-            guard let index = index(ofColumn: column) else {
+            guard let index = index(forColumn: column) else {
                 fatalError("Column \(column) is not selected")
             }
             return index
