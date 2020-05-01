@@ -369,7 +369,19 @@ The changes can quite impact your application. We'll describe them below, as wel
     > let request: SQLRequest<Player> = "SELECT * FROM player WHERE score = (\(maximumScore))"
     > ```
 
-5. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
+5. The `TableRecord.selectionSQL()` method is no longer avaible. When you need to embed the columns selected by a record type in an SQL request, you now have to use [SQL Interpolation]:
+
+    ```swift
+    // BEFORE: GRDB 4
+    let sql = "SELECT \(Player.selectionSQL()) FROM player"
+    let players = try Player.fetchAll(db, sql: sql)
+     
+    // NEW: GRDB 5
+    let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self) FROM player"
+    let players = try request.fetchAll(db)
+    ```
+
+6. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
     
     ```swift
     // BEFORE: GRDB 4
@@ -379,7 +391,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     Player.select(myFunction(Column("name")))
     ```
 
-6. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
+7. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
     
     ```swift
     // BEFORE: GRDB 4
@@ -401,7 +413,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     }
     ```
 
-7. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
+8. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
     ```swift
     // BEFORE: GRDB 4
@@ -411,7 +423,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     import GRDB
     ```
 
-8. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
+9. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
     
     ```swift
     // BEFORE: GRDB 4
