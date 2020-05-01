@@ -372,6 +372,7 @@ This chapter lists all kinds of supported interpolations.
     "SELECT \(columnsOf: Player.self, tableAlias: "p") FROM player p"
     
     struct AltPlayer: TableRecord {
+        static let databaseTableName = "player"
         static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
     }
     
