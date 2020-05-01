@@ -80,10 +80,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ### Documentation Diff
 
-- The [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md) Guide helps migrating your apps and turn your attention where it needs to focus during the upgrade.
-- The [ValueObservation](README.md#valueobservation) chapter has been fully rewritten and describes the new ValueObservation behaviors.
-- The [DatabaseError](README.md#databaseerror) chapter demonstrates the new way to catch and match DatabaseError on their codes, in a fashion similar to CocoaError et al.
-- The [Batch Updates](README.md#update-requests) chapter has been updated for the new `set(to:)` method.
+- [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md): this guide helps migrating your apps and turn your attention where it needs to focus during the upgrade.
+- [ValueObservation](README.md#valueobservation): this chapter has been fully rewritten and describes the new ValueObservation behaviors.
+- [DatabaseError](README.md#databaseerror): learn the new way to catch and match DatabaseError on their codes, in a fashion similar to CocoaError et al.
+- [Batch Updates](README.md#update-requests): this chapter was updated for the new `set(to:)` method.
+- [Raw SQLite Pointers](README.md#raw-sqlite-pointers): this chapter has been updated since importing the GRDB module now provides direct access to the [C SQLite API](https://www.sqlite.org/capi3ref.html).
+- [SQL Operators](README.md#sql-operators): introduces support for SQL and query interface subqueries.
+- [Joined Queries Support](README.md#joined-queries-support): describes the GRDB 5 way of dealing with complex and hand-crafted SQL queries.
+- [How do I print a request as SQL?](README.md#how-do-i-print-a-request-as-sql): this FAQ has been updated for GRDB 5.
+- [SQL Interpolation](Documentation/SQLInterpolation.md): this guide was updated for the embedding of subqueries, and record columns, in a SQL literal.
 
 ### New
 
@@ -116,15 +121,6 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#697](https://github.com/groue/GRDB.swift/pull/697): `SQLInterpolation` could not work with `QueryInterfaceRequest`
 - [#743](https://github.com/groue/GRDB.swift/pull/743): Rename GRDBCustomSQLite to GRDB for compatibility with dependents?
 
-### Documentation Diff
-
-- [Raw SQLite Pointers](README.md#raw-sqlite-pointers): this chapter has been updated since importing the GRDB module now provides direct access to the [C SQLite API](https://www.sqlite.org/capi3ref.html).
-- [SQL Operators](README.md#sql-operators): introduces support for SQL and query interface subqueries.
-- [Joined Queries Support](README.md#joined-queries-support): describes the GRDB 5 way of dealing with complex and hand-crafted SQL queries.
-- [ValueObservation](README.md#valueobservation): this chapter has been fully rewritten, in order to better describe the new GRDB 5 behavior of this handy database observation tool.
-- [DatabaseError](README.md#databaseerror): updated with the new, shorthand, GRDB 5 way of catching specific database errors.
-- [How do I print a request as SQL?](README.md#how-do-i-print-a-request-as-sql): this FAQ has been updated for GRDB 5.
-- [SQL Interpolation](Documentation/SQLInterpolation.md): this guide was updated for the embedding of subqueries, and record columns, in a SQL literal.
 
 ## 4.14.0
 
