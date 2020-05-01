@@ -386,8 +386,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = MinimalRowID.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"minimalRowIDs\" ORDER BY \"id\"")
+            try assertEqualSQL(db, request, "SELECT * FROM \"minimalRowIDs\" ORDER BY \"id\"")
         }
     }
     

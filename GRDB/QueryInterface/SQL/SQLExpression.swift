@@ -16,7 +16,7 @@ public protocol SQLExpression: SQLSpecificExpressible, SQLSelectable, SQLOrderin
     ///   statement arguments.
     /// - parameter wrappedInParenthesis: If true, the returned SQL should be
     ///   wrapped inside parenthesis.
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -41,6 +41,27 @@ public protocol SQLExpression: SQLSpecificExpressible, SQLSelectable, SQLOrderin
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The elements of the returned array, when joined with the AND operator,
+    /// are guaranteed to have the same truth value as the receiver.
+    ///
+    /// Those truth components allow easier introspection of the expression.
+    /// For example:
+    ///
+    ///     // No change:
+    ///     // [Column("a")]
+    ///     Column("a").truthComponents
+    ///
+    ///     // Erase a SQLExpressionBinaryReduce `and` expression:
+    ///     // [Column("a"), Column("b")]
+    ///     [Column("a"), Column("b")].joined(operator: .and).truthComponents
+    ///
+    ///     // Erase a SQLExpressionBinaryReduce `or` expression:
+    ///     // [Column("a")]
+    ///     [Column("a")].joined(operator: .or).truthComponents
+    var truthComponents: [SQLExpression] { get }
 }
 
 extension SQLExpression {
@@ -83,6 +104,13 @@ extension SQLExpression {
     public func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
         qualifiedExpression(with: alias)
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The default implementation returns [self]
+    ///
+    /// :nodoc:
+    public var truthComponents: [SQLExpression] { [self] }
 }
 
 // SQLExpression: SQLExpressible
@@ -126,11 +154,11 @@ struct SQLExpressionNot: SQLExpression {
         self.expression = expression
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(context, wrappedInParenthesis: false)))"
         }
-        return "NOT \(expression.expressionSQL(&context, wrappedInParenthesis: true))"
+        return try "NOT \(expression.expressionSQL(context, wrappedInParenthesis: true))"
     }
     
     var negated: SQLExpression {

@@ -472,8 +472,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Person.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT *, \"rowid\" FROM \"persons\" ORDER BY \"rowid\"")
+            try assertEqualSQL(db, request, "SELECT *, \"rowid\" FROM \"persons\" ORDER BY \"rowid\"")
         }
     }
     

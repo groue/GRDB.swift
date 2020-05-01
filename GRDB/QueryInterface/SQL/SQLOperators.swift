@@ -298,7 +298,6 @@ public func !== (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQ
     SQLExpressionEqual(.isNot, lhs.sqlExpression, rhs.sqlExpression)
 }
 
-
 // MARK: - Comparison Operators (<, >, <=, >=)
 
 extension SQLBinaryOperator {
@@ -475,7 +474,6 @@ public func >= (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
     SQLExpressionBinary(.greaterThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
 }
 
-
 // MARK: - Inclusion Operators (BETWEEN, IN)
 
 extension Range where Bound: SQLExpressible {
@@ -541,7 +539,27 @@ extension Sequence where Self.Iterator.Element: SQLExpressible {
     ///     // id IN (1,2,3)
     ///     [1, 2, 3].contains(Column("id"))
     public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
-        SQLExpressionsArray(self).contains(element.sqlExpression)
+        SQLExpressionsArray(expressions: map(\.sqlExpression)).contains(element.sqlExpression)
+    }
+    
+    /// An SQL expression that checks the inclusion of an expression in
+    /// a sequence.
+    ///
+    ///     // name IN ('A', 'B') COLLATE NOCASE
+    ///     ["A", "B"].contains(Column("name").collating(.nocase))
+    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
+        SQLExpressionCollate(contains(element.expression), collationName: element.collationName)
+    }
+}
+
+extension Sequence where Self.Iterator.Element == SQLExpressible {
+    /// An SQL expression that checks the inclusion of an expression in
+    /// a sequence.
+    ///
+    ///     // id IN (1,2,3)
+    ///     [1, 2, 3].contains(Column("id"))
+    public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
+        SQLExpressionsArray(expressions: map(\.sqlExpression)).contains(element.sqlExpression)
     }
     
     /// An SQL expression that checks the inclusion of an expression in

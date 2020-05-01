@@ -453,11 +453,6 @@ class DatabaseRegionTests : GRDBTestCase {
                 let derivedRequest: AdaptedFetchRequest = request.adapted { db in SuffixRowAdapter(fromIndex: 1) }
                 try XCTAssertEqual(derivedRequest.databaseRegion(db).description, "foo(a,id)[1,2,3]")
             }
-            do {
-                // SQL request loses region info
-                let derivedRequest = try SQLRequest(db, request: request)
-                try XCTAssertEqual(derivedRequest.databaseRegion(db).description, "foo(a,id)")
-            }
         }
     }
     

@@ -64,8 +64,8 @@ extension SQLExpressible where Self: SQLOrderingTerm {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
-        sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+    public func orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
     }
 }
 
@@ -75,14 +75,14 @@ extension SQLExpressible where Self: SQLSelectable {
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func resultColumnSQL(_ context: inout SQLGenerationContext) -> String {
-        sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+    public func resultColumnSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func countedSQL(_ context: inout SQLGenerationContext) -> String {
-        sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+    public func countedSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)

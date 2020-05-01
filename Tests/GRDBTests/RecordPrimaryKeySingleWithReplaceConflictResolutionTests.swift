@@ -409,8 +409,7 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Email.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"emails\" ORDER BY \"email\"")
+            try assertEqualSQL(db, request, "SELECT * FROM \"emails\" ORDER BY \"email\"")
         }
     }
     

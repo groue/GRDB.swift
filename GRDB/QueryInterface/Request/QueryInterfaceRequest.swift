@@ -28,7 +28,7 @@
 ///     }
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct QueryInterfaceRequest<T> {
+public struct QueryInterfaceRequest<RowDecoder> {
     var query: SQLQuery
 }
 
@@ -39,8 +39,6 @@ extension QueryInterfaceRequest {
 }
 
 extension QueryInterfaceRequest: FetchRequest {
-    public typealias RowDecoder = T
-    
     /// Returns a tuple that contains a prepared statement that is ready to be
     /// executed, and an eventual row adapter.
     ///
@@ -49,14 +47,8 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - returns: A prepared statement and an eventual row adapter.
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        var query = self.query
-        
-        // Optimize query by setting a limit of 1 when appropriate
-        if singleResult && !query.expectsSingleResult {
-            query.limit = SQLLimit(limit: 1, offset: query.limit?.offset)
-        }
-        
-        let (statement, adapter) = try SQLQueryGenerator(query).prepare(db)
+        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
+        let (statement, adapter) = try generator.prepare(db)
         let associations = query.relation.prefetchedAssociations
         if associations.isEmpty {
             return PreparedRequest(statement: statement, adapter: adapter)
@@ -84,7 +76,9 @@ extension QueryInterfaceRequest: FetchRequest {
     /// - parameter db: A database connection.
     /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        var region = try SQLQueryGenerator(query).makeSelectStatement(db).selectedRegion
+        var region = try SQLQueryGenerator(query: query)
+            .makeSelectStatement(db)
+            .selectedRegion
         
         // Iterate all prefetched associations
         var fifo = query.relation.prefetchedAssociations
@@ -103,8 +97,11 @@ extension QueryInterfaceRequest: FetchRequest {
                 .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
             
-            // Union region
-            try region.formUnion(SQLQueryGenerator(prefetchedQuery).makeSelectStatement(db).selectedRegion)
+            // Union prefetched region
+            let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
+                .makeSelectStatement(db)
+                .selectedRegion
+            region.formUnion(prefetchedRegion)
             
             // Append nested prefetched associations (support for
             // A.including(all: A.bs.including(all: B.cs))
@@ -327,7 +324,7 @@ extension QueryInterfaceRequest: _JoinableRequest {
     }
 }
 
-extension QueryInterfaceRequest: JoinableRequest where T: TableRecord { }
+extension QueryInterfaceRequest: JoinableRequest where RowDecoder: TableRecord { }
 
 extension QueryInterfaceRequest: Refinable {
     
@@ -345,18 +342,6 @@ extension QueryInterfaceRequest: Refinable {
     public func distinct() -> QueryInterfaceRequest {
         map(\.query) { $0.distinct() }
     }
-    
-    /// Creates a request which expects a single result.
-    ///
-    /// It is unlikely you need to call this method. Its net effect is that
-    /// QueryInterfaceRequest does not use any `LIMIT 1` sql clause when you
-    /// call a `fetchOne` method.
-    ///
-    /// :nodoc:
-    public func expectingSingleResult() -> QueryInterfaceRequest {
-        map(\.query) { $0.expectingSingleResult() }
-    }
-    
     
     /// Creates a request which fetches *limit* rows, starting at *offset*.
     ///
@@ -408,6 +393,75 @@ extension QueryInterfaceRequest: Refinable {
     }
 }
 
+// Support for `request.contains(expression)`
+extension QueryInterfaceRequest: SQLCollection {
+    /// :nodoc
+    public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
+        // If the request selects several colums, SQLite 3.28.0 may complain
+        // with an error:
+        //
+        //  -- Error: sub-select returns 2 columns - expected 1
+        //  SELECT * FROM t WHERE a IN (SELECT a, b FROM t);
+        //
+        // But other requests accept multiple columns:
+        //
+        //  -- OK
+        //  SELECT * FROM t WHERE (a, b) IN (SELECT a, b FROM t);
+        //
+        // So we do not prevent using requests that select several columns
+        // as expressions.
+        try SQLQueryGenerator(query: query).sql(context)
+    }
+    
+    /// :nodoc
+    public func qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        self
+    }
+}
+
+// Support for `request == expression`
+//
+// Note: I wish we would give SQLExpression conformance to
+// QueryInterfaceRequest. See SQLRequest for more information.
+extension QueryInterfaceRequest: SQLSpecificExpressible {
+    private struct Expression: SQLExpression {
+        let generator: SQLQueryGenerator
+        
+        func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+            try "(" + generator.sql(context) + ")"
+        }
+        
+        func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+            self
+        }
+    }
+    
+    /// :nodoc
+    public var sqlExpression: SQLExpression {
+        // We're generating an *expression*, so we have to deal with the fact
+        // that the request may return several rows, and select several columns.
+        //
+        // In practice, SQLite only considers the first returned row.
+        // So we don't have to set the `forSingleResult` flag of the generator
+        // in order to make sure a single row is returned.
+        //
+        // And if the request selects several colums, SQLite 3.28.0 may complain
+        // with a "row value misused" error:
+        //
+        //  -- Error: row value misused
+        //  SELECT * FROM t WHERE a = (SELECT a, b FROM t);
+        //
+        // But other requests accept multiple columns:
+        //
+        //  -- OK
+        //  SELECT * FROM t WHERE (a, b) = (SELECT a, b FROM t);
+        //
+        // So we do not prevent using requests that select several columns
+        // as expressions.
+        Expression(generator: SQLQueryGenerator(query: query))
+    }
+}
+
 extension QueryInterfaceRequest: TableRequest {
     /// :nodoc:
     public var databaseTableName: String {
@@ -435,9 +489,9 @@ extension QueryInterfaceRequest: TableRequest {
     }
 }
 
-extension QueryInterfaceRequest: DerivableRequest where T: TableRecord { }
+extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
 
-extension QueryInterfaceRequest where T: MutablePersistableRecord {
+extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     
     // MARK: Batch Delete
     
@@ -448,7 +502,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public func deleteAll(_ db: Database) throws -> Int {
-        try SQLQueryGenerator(query).makeDeleteStatement(db).execute()
+        try SQLQueryGenerator(query: query).makeDeleteStatement(db).execute()
         return db.changesCount
     }
     
@@ -476,7 +530,7 @@ extension QueryInterfaceRequest where T: MutablePersistableRecord {
         _ assignments: [ColumnAssignment]) throws -> Int
     {
         let conflictResolution = conflictResolution ?? RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
-        guard let updateStatement = try SQLQueryGenerator(query).makeUpdateStatement(
+        guard let updateStatement = try SQLQueryGenerator(query: query).makeUpdateStatement(
             db,
             conflictResolution: conflictResolution,
             assignments: assignments) else
@@ -615,10 +669,10 @@ public struct ColumnAssignment {
     var column: ColumnExpression
     var value: SQLExpressible
     
-    func sql(_ context: inout SQLGenerationContext) -> String {
-        column.expressionSQL(&context, wrappedInParenthesis: false) +
+    func sql(_ context: SQLGenerationContext) throws -> String {
+        try column.expressionSQL(context, wrappedInParenthesis: false) +
             " = " +
-            value.sqlExpression.expressionSQL(&context, wrappedInParenthesis: false)
+            value.sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
     }
 }
 

@@ -4,7 +4,6 @@
 struct SQLQuery {
     var relation: SQLRelation
     var isDistinct: Bool = false
-    var expectsSingleResult: Bool = false
     var groupPromise: DatabasePromise<[SQLExpression]>?
     // Having clause is an array of expressions that we'll join with
     // the AND operator. This gives nicer output in generated SQL:
@@ -16,10 +15,6 @@ struct SQLQuery {
 extension SQLQuery: Refinable {
     func distinct() -> Self {
         with(\.isDistinct, true)
-    }
-    
-    func expectingSingleResult() -> Self {
-        with(\.expectsSingleResult, true)
     }
     
     func limit(_ limit: Int, offset: Int? = nil) -> Self {
@@ -101,7 +96,9 @@ extension SQLQuery: _JoinableRequest {
 
 extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
-        let (statement, adapter) = try SQLQueryGenerator(countQuery(db)).prepare(db)
+        // FIXME: eventually have the line below generate SQL without trailing "LIMIT 1"
+        // return try QueryInterfaceRequest<Int>(query: countQuery(db)).fetchOne(db)!
+        let (statement, adapter) = try SQLQueryGenerator(query: countQuery(db)).prepare(db)
         return try Int.fetchOne(statement, adapter: adapter)!
     }
     

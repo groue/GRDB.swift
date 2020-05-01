@@ -353,14 +353,14 @@ extension Database {
         }
         
         let primaryKey = try self.primaryKey(tableName)
-        if Set(primaryKey.columns.map { $0.lowercased() }) == lowercasedColumns {
+        if Set(primaryKey.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns) {
             return primaryKey.columns
         }
         
         // Is there is an explicit unique index on the columns?
         let indexes = try self.indexes(on: tableName)
         let matchingIndex = indexes.first { index in
-            index.isUnique && Set(index.columns.map { $0.lowercased() }) == lowercasedColumns
+            index.isUnique && Set(index.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns)
         }
         if let index = matchingIndex {
             return index.columns

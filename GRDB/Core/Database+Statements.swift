@@ -158,8 +158,8 @@ extension Database {
         //
         // And before we return, we'll check that all arguments were consumed.
         
-        var context = SQLGenerationContext.sqlLiteralContext
-        let sql = sqlLiteral.sql(&context)
+        let context = SQLGenerationContext(self)
+        let sql = try sqlLiteral.sql(context)
         var arguments = context.arguments
         let initialValuesCount = arguments.values.count
         

@@ -17,6 +17,22 @@ extension SQLInterpolation {
         appendInterpolation(type(of: record))
     }
     
+    /// Appends the selection of the record type.
+    ///
+    ///     // SELECT * FROM player
+    ///     let player: Player = ...
+    ///     let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self) FROM player"
+    ///
+    ///     // SELECT p.* FROM player p
+    ///     let player: Player = ...
+    ///     let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self, tableAlias: "p") FROM player p"
+    public mutating func appendInterpolation<T: TableRecord>(columnsOf record: T.Type, tableAlias: String? = nil) {
+        let alias = TableAlias(name: tableAlias ?? T.databaseTableName)
+        elements.append(contentsOf: T.databaseSelection
+            .map { CollectionOfOne(.selectable($0.qualifiedSelectable(with: alias))) }
+            .joined(separator: CollectionOfOne(.sql(", "))))
+    }
+    
     /// Appends the selectable SQL.
     ///
     ///     // SELECT * FROM player
@@ -147,14 +163,27 @@ extension SQLInterpolation {
         elements.append(.orderingTerm(ordering))
     }
     
-    /// Appends the request SQL, wrapped in parentheses
+    /// Appends the request SQL (not wrapped inside parentheses).
     ///
     ///     // SELECT name FROM player WHERE score = (SELECT MAX(score) FROM player)
     ///     let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
     ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE score = \(subQuery)
+    ///         SELECT * FROM player WHERE score = (\(subQuery))
     ///         """
-    public mutating func appendInterpolation<T>(_ request: SQLRequest<T>) {
-        elements.append(.subQuery(request.sqlLiteral))
+    public mutating func appendInterpolation<RowDecoder>(_ request: SQLRequest<RowDecoder>) {
+        elements.append(.subquery(request.sqlLiteral.sql))
+    }
+    
+    /// Appends the request SQL (not wrapped inside parentheses).
+    ///
+    ///     // SELECT name FROM player WHERE score = (SELECT MAX(score) FROM player)
+    ///     let subQuery = Player.select(max(Column("score")))
+    ///     let request: SQLRequest<Player> = """
+    ///         SELECT * FROM player WHERE score = (\(subQuery))
+    ///         """
+    public mutating func appendInterpolation<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) {
+        elements.append(.subquery { context in
+            try SQLQueryGenerator(query: request.query).sql(context)
+            })
     }
 }

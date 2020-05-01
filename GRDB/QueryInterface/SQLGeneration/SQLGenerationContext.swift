@@ -1,54 +1,51 @@
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// SQLGenerationContext is responsible for preventing SQL injection and
-/// disambiguating table names when GRDB generates SQL queries.
+/// SQLGenerationContext support for SQL generation:
+///
+/// - It provides a database connection so that request elements can perform
+///   database introspection in order to build their SQL representation.
+///
+/// - It provides unique table aliases in order to disambiguates table names
+///   and columns.
+///
+/// - Request elements can turn database values as SQLite statement arguments,
+///   in order to prevent SQL injection.
 ///
 /// :nodoc:
 public struct SQLGenerationContext {
-    var arguments: StatementArguments {
-        _arguments ?? StatementArguments()
-    }
-    private var _arguments: StatementArguments?
+    /// A database connection so that request elements can perform database
+    /// introspection in order to build their SQL representation.
+    let db: Database
+    
+    /// The arguments sink which prevents SQL injection.
+    let argumentsSink: StatementArgumentsSink
+    
+    /// All arguments gathered so far
+    var arguments: StatementArguments { argumentsSink.arguments }
+    
     private var resolvedNames: [TableAlias: String]
-    private var qualifierNeeded: Bool
+    private var qualifiesColumnsWithTable: Bool
     
-    /// Used for pure SQL generation. Arguments are always empty.
-    static let rawSQLContext = SQLGenerationContext(
-        _arguments: nil,
-        resolvedNames: [:],
-        qualifierNeeded: false)
-    
-    /// Used for SQLLiteral generation
-    static let sqlLiteralContext = SQLGenerationContext(
-        _arguments: [],
-        resolvedNames: [:],
-        qualifierNeeded: false)
-    
-    /// Used for TableRecord.selectionSQL
-    static let selectionContext = SQLGenerationContext(
-        _arguments: nil,
-        resolvedNames: [:],
-        qualifierNeeded: true)
-    
-    /// Used for SQLQueryGenerator
-    static func queryContext(aliases: [TableAlias]) -> SQLGenerationContext {
-        SQLGenerationContext(
-            _arguments: [],
-            resolvedNames: aliases.resolvedNames,
-            qualifierNeeded: aliases.count > 1)
+    /// Creates a generation context.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter argumentsSink: An arguments sink.
+    /// - parameter aliases: An array of table aliases to disambiguate.
+    init(
+        _ db: Database,
+        argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
+        aliases: [TableAlias] = [])
+    {
+        self.db = db
+        self.argumentsSink = argumentsSink
+        self.resolvedNames = aliases.resolvedNames
+        self.qualifiesColumnsWithTable = aliases.count > 1
     }
     
     /// Returns whether arguments could be appended.
     /// May be false for SQLGenerationContext.rawSQLContext
-    mutating func append(arguments newArguments: StatementArguments) -> Bool {
-        if newArguments.isEmpty {
-            return true
-        }
-        guard let arguments = _arguments else {
-            return false
-        }
-        self._arguments = arguments + newArguments
-        return true
+    func append(arguments: StatementArguments) -> Bool {
+        argumentsSink.append(arguments: arguments)
     }
     
     /// May be nil, when a qualifier is not needed:
@@ -62,7 +59,7 @@ public struct SQLGenerationContext {
         if alias.hasUserName {
             return alias.identityName
         }
-        if qualifierNeeded == false {
+        if qualifiesColumnsWithTable == false {
             return nil
         }
         return resolvedName(for: alias)
@@ -80,6 +77,40 @@ public struct SQLGenerationContext {
             return resolvedName
         }
         return nil
+    }
+}
+
+/// A class that gathers statement arguments, and can be shared between
+/// several SQLGenerationContext.
+class StatementArgumentsSink {
+    private(set) var arguments: StatementArguments
+    private let rawSQL: Bool
+    
+    /// A sink which does not accept any arguments.
+    static let forRawSQL = StatementArgumentsSink(rawSQL: true)
+    
+    private init(rawSQL: Bool) {
+        self.arguments = []
+        self.rawSQL = rawSQL
+    }
+    
+    /// A sink which accepts arguments
+    convenience init() {
+        self.init(rawSQL: false)
+    }
+    
+    // fileprivate so that SQLGenerationContext.append(arguments:) is the only
+    // available api.
+    /// Returns whether arguments could be appended.
+    fileprivate func append(arguments: StatementArguments) -> Bool {
+        if arguments.isEmpty {
+            return true
+        }
+        if rawSQL {
+            return false
+        }
+        self.arguments += arguments
+        return true
     }
 }
 
@@ -276,6 +307,12 @@ public class TableAlias: Hashable {
         expression.qualifiedExpression(with: self)
     }
     
+    /// Returns a qualified ordering that is able to resolve ambiguities in
+    /// joined queries.
+    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
+        ordering.qualifiedOrdering(with: self)
+    }
+
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(root))

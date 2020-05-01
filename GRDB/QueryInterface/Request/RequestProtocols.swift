@@ -148,23 +148,10 @@ public protocol FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
-    
-    /// Creates a request which expects a single result.
-    ///
-    /// Requests expecting a single result may ignore the second parameter of
-    /// the `FetchRequest.prepare(_:forSingleResult:)` method, in order to
-    /// produce sharply tailored SQL.
-    ///
-    /// This method has a default implementation which returns self.
-    func expectingSingleResult() -> Self
 }
 
 /// :nodoc:
 extension FilteredRequest {
-    public func expectingSingleResult() -> Self {
-        self
-    }
-    
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
@@ -261,19 +248,13 @@ extension TableRequest where Self: FilteredRequest {
         -> Self
         where Sequence.Element: DatabaseValueConvertible
     {
-        var request = self
         let keys = Array(keys)
-        switch keys.count {
-        case 0:
+        if keys.isEmpty {
             return none()
-        case 1:
-            request = request.expectingSingleResult()
-        default:
-            break
         }
         
         let databaseTableName = self.databaseTableName
-        return request.filter { db in
+        return filter { db in
             let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
@@ -298,18 +279,12 @@ extension TableRequest where Self: FilteredRequest {
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
     public func filter(keys: [[String: DatabaseValueConvertible?]]) -> Self {
-        var request = self
-        switch keys.count {
-        case 0:
+        if keys.isEmpty {
             return none()
-        case 1:
-            request = request.expectingSingleResult()
-        default:
-            break
         }
         
         let databaseTableName = self.databaseTableName
-        return request.filter { db in
+        return filter { db in
             try keys
                 .map { key in
                     // Prevent filter(keys: [["foo": 1, "bar": 2]]) where

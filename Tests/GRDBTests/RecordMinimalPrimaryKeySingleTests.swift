@@ -402,8 +402,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = MinimalSingle.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"minimalSingles\" ORDER BY \"UUID\"")
+            try assertEqualSQL(db, request, "SELECT * FROM \"minimalSingles\" ORDER BY \"UUID\"")
         }
     }
     
