@@ -701,8 +701,8 @@ Instead, have a look at [Database Observation]:
 [Divide and Conquer]: https://en.wikipedia.org/wiki/Divide_and_rule
 [Why Adopt GRDB?]: WhyAdoptGRDB.md
 [isolation]: https://en.wikipedia.org/wiki/Isolation_(database_systems)
-[migrations]: ../README.md#migrations
-[migration]: ../README.md#migrations
+[migrations]: Migrations.md
+[migration]: Migrations.md
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Concurrency Guide]: ../README.md#concurrency
 [GRDB concurrency rules]: ../README.md#concurrency

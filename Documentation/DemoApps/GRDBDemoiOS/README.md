@@ -17,7 +17,7 @@ Demo Application
 
 - [AppDatabase.swift](GRDBDemoiOS/AppDatabase.swift)
     
-    `AppDatabase` defines the database for the whole application. It uses [DatabaseMigrator](../../README.md#migrations) in order to setup the database schema.
+    `AppDatabase` defines the database for the whole application. It uses [DatabaseMigrator](../../Documentation/Migrations.md) in order to setup the database schema.
 
 - [Player.swift](GRDBDemoiOS/Player.swift)
     
