@@ -5200,7 +5200,7 @@ Now we need to build adapters.
 
 We use the `splittingRowAdapters` global function, whose job is precisely to build row adapters of desired widths:
 
-And since counting table columns require a database connectio, we use the `adapted(_:)` request method. It allows requests to adapt themselves right before execution, when a database connection is available.
+And since counting table columns require a database connection, we use the `adapted(_:)` request method. It allows requests to adapt themselves right before execution, when a database connection is available.
 
 ```swift
         return request.adapted { db in
