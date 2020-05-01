@@ -80,7 +80,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ### Documentation Diff
 
-- **[Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)**: this guide helps migrating your apps and turn your attention where it needs to focus during the upgrade.
+- **[Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)**: it's easier to upgrade an app with a little guidance! :bulb:
 - [ValueObservation](README.md#valueobservation): this chapter describes the new ValueObservation behaviors.
 - [DatabaseError](README.md#databaseerror): learn how to catch and match DatabaseError on their codes, in a fashion similar to `CocoaError`s.
 - [Batch Updates](README.md#update-requests): this chapter is updated for the new `set(to:)` method.
