@@ -69,40 +69,40 @@ public struct FTS5: VirtualTableModule {
         }
         
         if let tokenizer = definition.tokenizer {
-            let tokenizerSQL = tokenizer
+            let tokenizerSQL = try tokenizer
                 .components
                 .joined(separator: " ")
                 .sqlExpression
-                .quotedSQL()
+                .quotedSQL(db)
             arguments.append("tokenize=\(tokenizerSQL)")
         }
         
         switch definition.contentMode {
         case let .raw(content, contentRowID):
             if let content = content {
-                let quotedContent = content.sqlExpression.quotedSQL()
+                let quotedContent = try content.sqlExpression.quotedSQL(db)
                 arguments.append("content=\(quotedContent)")
             }
             if let contentRowID = contentRowID {
-                let quotedContentRowID = contentRowID.sqlExpression.quotedSQL()
+                let quotedContentRowID = try contentRowID.sqlExpression.quotedSQL(db)
                 arguments.append("content_rowid=\(quotedContentRowID)")
             }
         case let .synchronized(contentTable):
-            arguments.append("content=\(contentTable.sqlExpression.quotedSQL())")
+            try arguments.append("content=\(contentTable.sqlExpression.quotedSQL(db))")
             if let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn {
-                let quotedRowID = rowIDColumn.sqlExpression.quotedSQL()
+                let quotedRowID = try rowIDColumn.sqlExpression.quotedSQL(db)
                 arguments.append("content_rowid=\(quotedRowID)")
             }
         }
         
         
         if let prefixes = definition.prefixes {
-            let prefix = prefixes
+            let prefix = try prefixes
                 .sorted()
                 .map { "\($0)" }
                 .joined(separator: " ")
                 .sqlExpression
-                .quotedSQL()
+                .quotedSQL(db)
             arguments.append("prefix=\(prefix)")
         }
         
