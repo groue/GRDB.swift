@@ -34,14 +34,14 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBOSX (Swift 5.1, macOS)
+        - TID=GRDBOSX (Swift 5.2, macOS)
       script: make test_framework_GRDBOSX_maxSwift
     
     # - stage: Test GRDB Xcode 11.4
     #   gemfile: .ci/gemfiles/Gemfile.travis
     #   osx_image: xcode11.4
     #   env:
-    #     - TID=GRDBOSX (Swift 4.2, macOS)
+    #     - TID=GRDBOSX (Swift 5.2, macOS)
     #   script: make test_framework_GRDBOSX_minSwift
     
     - stage: Test GRDB Xcode 11.4
@@ -55,42 +55,42 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBiOS (Swift 5.1, iOS <MAX>)
+        - TID=GRDBiOS (Swift 5.2, iOS <MAX>)
       script: make test_framework_GRDBiOS_maxTarget_maxSwift
     
     # - stage: Test GRDB Xcode 11.4
     #   gemfile: .ci/gemfiles/Gemfile.travis
     #   osx_image: xcode11.4
     #   env:
-    #     - TID=GRDBiOS (Swift 4.2, iOS <MAX>)
+    #     - TID=GRDBiOS (Swift 5.2, iOS <MAX>)
     #   script: make test_framework_GRDBiOS_maxTarget_minSwift
     
     - stage: Test GRDB Xcode 11.4
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBiOS (Swift 5.1, iOS <MIN>)
+        - TID=GRDBiOS (Swift 5.2, iOS <MIN>)
       script: make test_framework_GRDBiOS_minTarget
     
     - stage: Test GRDB Xcode 11.4
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBtvOS (Swift 5.1, tvOS <MAX>)
+        - TID=GRDBtvOS (Swift 5.2, tvOS <MAX>)
       script: make test_framework_GRDBtvOS_maxTarget_maxSwift
     
     # - stage: Test GRDB Xcode 11.4
     #   gemfile: .ci/gemfiles/Gemfile.travis
     #   osx_image: xcode11.4
     #   env:
-    #     - TID=GRDBtvOS (Swift 4.2, tvOS <MAX>)
+    #     - TID=GRDBtvOS (Swift 5.2, tvOS <MAX>)
     #   script: make test_framework_GRDBtvOS_maxTarget_minSwift
     
     - stage: Test GRDB Xcode 11.4
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBtvOS (Swift 5.1, tvOS <MIN>)
+        - TID=GRDBtvOS (Swift 5.2, tvOS <MIN>)
       script: make test_framework_GRDBtvOS_minTarget
     
     - stage: Test GRDB Xcode 11.4
@@ -107,28 +107,28 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBOSX (Swift 5.1, macOS)
+        - TID=GRDBOSX (Swift 5.2, macOS)
       script: make test_framework_GRDBCustomSQLiteOSX
     
     - stage: Test GRDBCustom Xcode 11.4
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBiOS (Swift 5.1, iOS <MAX>)
+        - TID=GRDBiOS (Swift 5.2, iOS <MAX>)
       script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift
     
     # - stage: Test GRDBCustom Xcode 11.4
     #   gemfile: .ci/gemfiles/Gemfile.travis
     #   osx_image: xcode11.4
     #   env:
-    #     - TID=GRDBiOS (Swift 4.2, iOS <MAX>)
+    #     - TID=GRDBiOS (Swift 5.2, iOS <MAX>)
     #   script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_minSwift
     
     - stage: Test GRDBCustom Xcode 11.4
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       env:
-        - TID=GRDBiOS (Swift 5.1, iOS <MIN>)
+        - TID=GRDBiOS (Swift 5.2, iOS <MIN>)
       script: make test_framework_GRDBCustomSQLiteiOS_minTarget
     
     ###########################################
