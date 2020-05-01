@@ -267,7 +267,7 @@ struct SQLExpressionBinaryReduce: SQLExpression {
     
     func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         guard let first = expressions.first else {
-            return try op.neutralValue.expressionSQL(context, wrappedInParenthesis: false)
+            return try op.neutralValue.expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
         }
         if expressions.count == 1 {
             return try first.expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
