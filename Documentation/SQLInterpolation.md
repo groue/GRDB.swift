@@ -167,7 +167,7 @@ The [record protocols] extend your application types with database abilities.
 
 **A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contain the column names. And with [FetchableRecord], you can decode raw database rows.
 
-SQL Interpolation puts this knowledge to good use, so that you can build robust queries that consistently use correct table and column names:
+SQL Interpolation puts this knowledge to good use, so that you can build robust queries that consistently use correct table and column names. Let's start from this record:
 
 ```swift
 struct Player {
@@ -176,51 +176,15 @@ struct Player {
     var score: Int?
 }
 
-extension Player: Decodable, FetchableRecord, TableRecord {
-    /// Deletes all player with no score
-    static func deleteAllWithoutScore(_ db: Database) throws {
-        try db.execute(literal: "DELETE FROM \(self) WHERE \(CodingKeys.score) IS NULL")
-    }
-    
-    /// The player with a given id
-    static func filter(id: Int64) -> SQLRequest<Player> {
-        "SELECT * FROM \(self) WHERE \(CodingKeys.id) = \(id)"
-    }
-    
-    /// All players with the given ids
-    static func filter(ids: [Int64]) -> SQLRequest<Player> {
-        "SELECT * FROM \(self) WHERE \(CodingKeys.id) IN \(ids)"
-    }
-    
-    /// The maximum score
-    static func maximumScore() -> SQLRequest<Int> {
-        "SELECT MAX(\(CodingKeys.score)) FROM \(self)"
-    }
-    
-    /// All players whose score is the maximum score
-    static func leaders() -> SQLRequest<Player> {
-        """
-        SELECT * FROM \(self)
-        WHERE \(CodingKeys.score) = \(maximumScore())
-        """
-    }
-    
-    /// A complex request
-    static func complexRequest() -> SQLRequest<Player> {
-        let query: SQLLiteral = "SELECT * FROM \(self) "
-        query += "JOIN \(Team.self) ON ..."
-        query += "GROUP BY ..."
-        return SQLRequest(literal: query)
-    }
-}
+extension Player: Decodable, TableRecord, FetchableRecord { }
 ```
 
-Let's breakdown each one of those methods.
+Let's extend Player with database methods.
 
-- `deleteAllWithoutScore(_:)`
+- `Player.deleteAllWithoutScore(_:)`
     
     ```swift
-    extension Player: Decodable, FetchableRecord, TableRecord {
+    extension Player {
         /// Deletes all player with no score
         static func deleteAllWithoutScore(_ db: Database) throws {
             try db.execute(literal: "DELETE FROM \(self) WHERE \(CodingKeys.score) IS NULL")
@@ -241,13 +205,22 @@ Let's breakdown each one of those methods.
     
     `... \(CodingKeys.score) IS NULL` embeds CodingKeys.score. This one has been synthesized by the Swift compiler because Player adopts the Decodable protocol. It embeds the column name in the SQL query.
 
-- `filter(id:)`
-
+- `Player.filter(id:)`
+    
     ```swift
-    extension Player: Decodable, FetchableRecord, TableRecord {
-        /// The player with a given id
+    extension Player {
+        /// "Simple" version
         static func filter(id: Int64) -> SQLRequest<Player> {
-            "SELECT * FROM \(self) WHERE \(CodingKeys.id) = \(id)"
+            "SELECT * FROM player WHERE id = \(id)"
+        }
+        
+        /// "Future-proof" version
+        static func filter(id: Int64) -> SQLRequest<Player> {
+            """
+            SELECT \(columnsOf: self)
+            FROM \(self)
+            WHERE \(CodingKeys.id) = \(id)
+            """
         }
     }
     ```
@@ -261,17 +234,28 @@ Let's breakdown each one of those methods.
     }
     ```
     
-    The return type of this method is `SQLRequest<Player>`. It is one of the GRDB [request types]. And it profits from SQL interpolation: this is why this method can simply return an "SQL literal"".
+    The return type of this method is `SQLRequest<Player>`. It is one of the GRDB [request types]. It profits from SQL interpolation, and this is why this method simply returns an "SQL literal"".
     
-    It embeds `\(self)` (the Player type which adopts the TableRecord protocol) and `\(CodingKeys.id)` (the coding key synthesized by the Decodable protocol), and `\(id)` (a [value]).
+    The first "simple" version only embeds the `\(id)` [value].
+    
+    The second "robust" version embeds `\(columnsOf: self)`, the [columns selected by the record](#columns-selected-by-a-request), `\(self)` (the Player type which adopts the TableRecord protocol), `\(CodingKeys.id)` (the coding key synthesized by the Decodable protocol), and the `\(id)` [value].
 
 - `filter(ids:)`
     
     ```swift
     extension Player: Decodable, FetchableRecord, TableRecord {
-        /// All players with the given ids
-        static func filter(ids: [Int64]) -> SQLRequest<Player> {
-            "SELECT * FROM \(self) WHERE \(CodingKeys.id) IN \(ids)"
+        /// "Simple" version
+        static func filter(id: Int64) -> SQLRequest<Player> {
+            "SELECT * FROM player WHERE id IN \(ids)"
+        }
+        
+        /// "Future-proof" version
+        static func filter(id: Int64) -> SQLRequest<Player> {
+            """
+            SELECT \(columnsOf: self)
+            FROM \(self)
+            WHERE \(CodingKeys.id) IN \(ids)
+            """
         }
     }
     ```
@@ -280,7 +264,7 @@ Let's breakdown each one of those methods.
     
     ```swift
     let players = try dbQueue.read { db in
-        // SELECT * player WHERE id IN (1, 2, 3)
+        // SELECT * FROM player WHERE id IN (1, 2, 3)
         try Player.filter(ids: [1, 2, 3]).fetchAll(db) // [Player]
     }
     ```
@@ -309,15 +293,21 @@ Let's breakdown each one of those methods.
     
     The result is `SQLRequest<Int>`, unlike previous requests of type `SQLRequest<Player>`. SQLRequest accepts any fetchable type (database [row], simple [value], or custom [record]).
 
-- `leaders()`
+- `bestPlayers()`
     
     ```swift
     extension Player: Decodable, FetchableRecord, TableRecord {
-        /// All players whose score is the maximum score
-        static func leaders() -> SQLRequest<Player> {
+        /// "Simple" version
+        static func bestPlayers() -> SQLRequest<Player> {
+            "SELECT * FROM player WHERE score = (\(maximumScore()))"
+        }
+        
+        /// "Future-proof" version
+        static func bestPlayers() -> SQLRequest<Player> {
             """
-            SELECT * FROM \(self)
-            WHERE \(CodingKeys.score) = \(maximumScore())
+            SELECT \(columnsOf: self)
+            FROM \(self)
+            WHERE \(CodingKeys.score) = (\(maximumScore()))
             """
         }
     }
@@ -326,10 +316,9 @@ Let's breakdown each one of those methods.
     Usage:
     
     ```swift
-    let leaders = try dbQueue.read { db in
-        // SELECT * FROM player
-        // WHERE score = (SELECT MAX(score) FROM player)
-        try Player.leaders().fetchAll(db) // [Player]
+    let bestPlayers = try dbQueue.read { db in
+        // SELECT * FROM player WHERE score = (SELECT MAX(score) FROM player)
+        try Player.bestPlayers().fetchAll(db) // [Player]
     }
     ```
     
@@ -341,7 +330,8 @@ Let's breakdown each one of those methods.
     extension Player: Decodable, FetchableRecord, TableRecord {
         /// A complex request
         static func complexRequest() -> SQLRequest<Player> {
-            let query: SQLLiteral = "SELECT * FROM \(self) "
+            let query: SQLLiteral = "SELECT \(columnsOf: self) "
+            query += "FROM \(self) "
             query += "JOIN \(Team.self) ON ..."
             query += "GROUP BY ..."
             return SQLRequest(literal: query)
@@ -349,7 +339,7 @@ Let's breakdown each one of those methods.
     }
     ```
     
-    This last request shows how to build an SQLRequest from an [SQLLiteral]. You will need SQLLiteral when the request can not be expressed in a single "SQL literal".
+    This last request shows how to build an SQLRequest from an [SQLLiteral]. You will need SQLLiteral when the request can not be written in a single stroke.
 
 
 
@@ -360,13 +350,33 @@ This chapter lists all kinds of supported interpolations.
 - Types adopting the [TableRecord] protocol:
 
     ```swift
+    struct Player: TableRecord { ... }
+    
     // SELECT * FROM player
-    extension Player: TableRecord { }
     "SELECT * FROM \(Player.self)"
     
     // INSERT INTO player ...
     let player: Player = ...
     "INSERT INTO \(tableOf: player) ..."
+    ```
+
+- Columns selected by [TableRecord]:
+
+    ```swift
+    struct Player: TableRecord { ... }
+    
+    // SELECT player.* FROM player
+    "SELECT \(columnsOf: Player.self) FROM player"
+    
+    // SELECT p.* FROM player p
+    "SELECT \(columnsOf: Player.self, tableAlias: "p") FROM player p"
+    
+    struct AltPlayer: TableRecord {
+        static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
+    }
+    
+    // SELECT player.id, player.name FROM player
+    "SELECT \(columnsOf: AltPlayer.self) FROM player"
     ```
 
 - [Expressions] and [values]:
@@ -405,12 +415,16 @@ This chapter lists all kinds of supported interpolations.
     "SELECT * FROM player WHERE id IN \(Column("name").desc)"
     ```
 
-- SQLRequest:
+- Subqueries:
     
     ```swift
     // SELECT * FROM player WHERE score = (SELECT MAX(score) FROM player)
-    let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
-    "SELECT * FROM player WHERE score = \(subQuery)"
+    let subquery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+    "SELECT * FROM player WHERE score = (\(subquery))"
+    
+    // SELECT * FROM player WHERE score = (SELECT MAX(score) FROM player)
+    let subquery = Player.select(max(Column("score")))
+    "SELECT * FROM player WHERE score = (\(subquery))"
     ```
 
 - SQLLiteral:
@@ -452,3 +466,4 @@ This chapter lists all kinds of supported interpolations.
 [welcomed]: ../README.md#sqlite-api
 [query interface requests]: ../README.md#requests
 [SE-0228 Fix ExpressibleByStringInterpolation]: https://github.com/apple/swift-evolution/blob/master/proposals/0228-fix-expressiblebystringinterpolation.md
+[columns selected by the record]: ../README.md#columns-selected-by-a-request

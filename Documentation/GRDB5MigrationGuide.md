@@ -303,6 +303,21 @@ The changes can quite impact your application. We'll describe them below, as wel
     try Player.updateAll(db, Column("score").set(to: 0))
     ```
 
+2. [SQL Interpolation] does no longer wrap subqueries in parenthesis:
+    
+    ```swift
+    // BEFORE: GRDB 4
+    let maximumScore: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+    let bestPlayers: SQLRequest<Player> = "SELECT * FROM player WHERE score = \(maximumScore)"
+     
+    // NEW: GRDB 5
+    let maximumScore: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+    let bestPlayers: SQLRequest<Player> = "SELECT * FROM player WHERE score = (\(maximumScore))"
+    //                                            extra parenthesis required: ^               ^
+    ```
+    
+    This change makes it possible to concatenate subqueries with the UNION operator.
+
 2. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
     
     ```swift
@@ -369,3 +384,4 @@ The changes can quite impact your application. We'll describe them below, as wel
 [removeDuplicates]: ../README.md#valueobservationremoveduplicates
 [Custom SQL functions]: ../README.md#custom-sql-functions
 [Batch updates]: ../README.md#update-requests
+[SQL Interpolation]: SQLInterpolation.md
