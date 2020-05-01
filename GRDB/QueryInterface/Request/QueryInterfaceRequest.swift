@@ -478,7 +478,7 @@ extension QueryInterfaceRequest: TableRequest {
             //      request.filter(keys: ...)
             //      request.orderByPrimaryKey()
             return tableName
-        case .query:
+        case .subquery:
             // The only current use case for SQLSource.query is the
             // "trivial count query" (see SQLQuery.countQuery):
             //

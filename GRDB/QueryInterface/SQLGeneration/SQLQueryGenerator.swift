@@ -42,9 +42,17 @@ struct SQLQueryGenerator: Refinable {
         //
         // This turns `GROUP BY id` INTO `GROUP BY book.id`, and
         // `HAVING MAX(year) < 2000` INTO `HAVING MAX(book.year) < 2000`.
-        let alias = relation.sourceAlias
-        groupPromise = query.groupPromise?.map { $0.map { $0.qualifiedExpression(with: alias) } }
-        havingExpressionsPromise = query.havingExpressionsPromise.map { $0.map { $0.qualifiedExpression(with: alias) } }
+        if let alias = relation.source.alias {
+            groupPromise = query.groupPromise?.map {
+                $0.map { $0.qualifiedExpression(with: alias) }
+            }
+            havingExpressionsPromise = query.havingExpressionsPromise.map {
+                $0.map { $0.qualifiedExpression(with: alias) }
+            }
+        } else {
+            groupPromise = query.groupPromise
+            havingExpressionsPromise = query.havingExpressionsPromise
+        }
         
         limit = query.limit
         isDistinct = query.isDistinct
@@ -74,9 +82,17 @@ struct SQLQueryGenerator: Refinable {
         sql += " FROM "
         sql += try relation.source.sql(context)
         
-        for (_, join) in relation.joins {
-            sql += " "
-            sql += try join.sql(context, leftAlias: relation.sourceAlias)
+        if relation.joins.isEmpty == false {
+            guard let sourceAlias = relation.source.alias else {
+                // This never happens as long as we only use subqueries as sources
+                // in the `SELECT COUNT(*) FROM (SELECT ...)` case: see
+                // SQLQuery.trivialCountQuery.
+                fatalError("Not implemented: join on a subquery")
+            }
+            for (_, join) in relation.joins {
+                sql += " "
+                sql += try join.sql(context, leftAlias: sourceAlias)
+            }
         }
         
         let filters = try relation.filtersPromise.resolve(context.db)
@@ -540,12 +556,9 @@ struct SQLQueryGenerator: Refinable {
 ///            |        • source
 ///            • selectionPromise
 private struct SQLQualifiedRelation {
-    /// The source alias
-    var sourceAlias: TableAlias { source.alias }
-    
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
-        joins.reduce(into: source.allAliases) {
+        joins.reduce(into: [source.alias].compactMap { $0 }) {
             $0.append(contentsOf: $1.value.relation.allAliases)
         }
     }
@@ -610,14 +623,23 @@ private struct SQLQualifiedRelation {
         // SQLGenerationContext, when the SQLSelectQueryGenerator which owns
         // this SQLQualifiedRelation generates SQL.
         source = SQLQualifiedSource(relation.source)
-        let sourceAlias = source.alias
         
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
         joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
-        sourceSelectionPromise = relation.selectionPromise.map { $0.map { $0.qualifiedSelectable(with: sourceAlias) } }
-        filtersPromise = relation.filtersPromise.map { $0.map { $0.qualifiedExpression(with: sourceAlias) } }
-        sourceOrdering = relation.ordering.qualified(with: sourceAlias)
+        if let sourceAlias = source.alias {
+            sourceSelectionPromise = relation.selectionPromise.map {
+                $0.map { $0.qualifiedSelectable(with: sourceAlias) }
+            }
+            filtersPromise = relation.filtersPromise.map {
+                $0.map { $0.qualifiedExpression(with: sourceAlias) }
+            }
+            sourceOrdering = relation.ordering.qualified(with: sourceAlias)
+        } else {
+            sourceSelectionPromise = relation.selectionPromise
+            filtersPromise = relation.filtersPromise
+            sourceOrdering = relation.ordering
+        }
     }
     
     /// See SQLQueryGenerator.rowAdapter(_:)
@@ -682,9 +704,14 @@ private struct SQLQualifiedRelation {
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> Self {
-        let selectionPromise = DatabasePromise(value: selection.map { $0.qualifiedSelectable(with: sourceAlias) })
+        let sourceSelectionPromise: DatabasePromise<[SQLSelectable]>
+        if let sourceAlias = source.alias {
+            sourceSelectionPromise = DatabasePromise(value: selection.map { $0.qualifiedSelectable(with: sourceAlias) })
+        } else {
+            sourceSelectionPromise = DatabasePromise(value: selection)
+        }
         return self
-            .with(\.sourceSelectionPromise, selectionPromise)
+            .with(\.sourceSelectionPromise, sourceSelectionPromise)
             .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
     }
 }
@@ -694,23 +721,24 @@ extension SQLQualifiedRelation: Refinable { }
 /// A "qualified" source, where all tables are identified with a table alias.
 private enum SQLQualifiedSource {
     case table(tableName: String, alias: TableAlias)
-    indirect case query(SQLQueryGenerator)
+    indirect case subquery(SQLQueryGenerator)
     
-    var alias: TableAlias {
+    /// Nil for subquery sources.
+    ///
+    /// Maybe one day we'll support aliased subqueries, as below:
+    ///
+    ///     SELECT alias.* FROM (SELECT ...) alias
+    ///
+    /// But today we only use subqueries for SQLQuery.trivialCountQuery,
+    /// which does not need any alias:
+    ///
+    ///     SELECT COUNT(*) FROM (SELECT ...)
+    var alias: TableAlias? {
         switch self {
-        case .table(_, let alias):
+        case let .table(_, alias):
             return alias
-        case .query(let query):
-            return query.relation.sourceAlias
-        }
-    }
-    
-    var allAliases: [TableAlias] {
-        switch self {
-        case .table(_, let alias):
-            return [alias]
-        case .query(let query):
-            return query.relation.allAliases
+        case .subquery:
+            return nil
         }
     }
     
@@ -719,8 +747,8 @@ private enum SQLQualifiedSource {
         case let .table(tableName, alias):
             let alias = alias ?? TableAlias(tableName: tableName)
             self = .table(tableName: tableName, alias: alias)
-        case let .query(query):
-            self = .query(SQLQueryGenerator(query: query))
+        case let .subquery(subquery):
+            self = .subquery(SQLQueryGenerator(query: subquery))
         }
     }
     
@@ -732,7 +760,7 @@ private enum SQLQualifiedSource {
             } else {
                 return "\(tableName.quotedDatabaseIdentifier)"
             }
-        case let .query(generator):
+        case let .subquery(generator):
             let sql = try generator.sql(context)
             return "(\(sql))"
         }
@@ -804,7 +832,12 @@ private struct SQLQualifiedJoin: Refinable {
         
         // JOIN table...
         var sql = try "\(kind.rawValue) \(relation.source.sql(context))"
-        let rightAlias = relation.sourceAlias
+        guard let rightAlias = relation.source.alias else {
+            // This never happens as long as we only use subqueries as sources
+            // in the `SELECT COUNT(*) FROM (SELECT ...)` case: see
+            // SQLQuery.trivialCountQuery.
+            fatalError("Not implemented: join on a subquery")
+        }
         
         // ... ON <join conditions> AND <other filters>
         var filters = try condition.expressions(context.db, leftAlias: leftAlias)

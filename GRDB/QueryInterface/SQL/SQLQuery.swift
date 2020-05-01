@@ -151,7 +151,7 @@ extension SQLQuery {
     // SELECT COUNT(*) FROM (self)
     private var trivialCountQuery: SQLQuery {
         let relation = SQLRelation(
-            source: .query(unordered()),
+            source: .subquery(unordered()),
             selectionPromise: DatabasePromise(value: [SQLExpressionCount(AllColumns())]))
         return SQLQuery(relation: relation)
     }

@@ -189,8 +189,8 @@ struct SQLRelation {
     /// relation as an expression.
     func primaryKeyExpression(_ db: Database) throws -> SQLExpression? {
         switch source {
-        case .query:
-            // No primary key for sub query
+        case .subquery:
+            // No primary key for subquery
             return nil
         case let .table(tableName: tableName, alias: _):
             return try db.primaryKeyExpression(tableName)
@@ -403,7 +403,7 @@ extension SQLRelation: _JoinableRequest {
 
 enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
-    indirect case query(SQLQuery)
+    indirect case subquery(SQLQuery)
     
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
@@ -415,8 +415,8 @@ enum SQLSource {
                 alias.setTableName(tableName)
                 return .table(tableName: tableName, alias: alias)
             }
-        case let .query(query):
-            return .query(query.qualified(with: alias))
+        case .subquery:
+            return self
         }
     }
 }
