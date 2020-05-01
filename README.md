@@ -4258,6 +4258,18 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Rectangle.filter(widthColumn < heightColumn)
     ```
     
+    Subqueries are supported:
+    
+    ```swift
+    // SELECT * FROM player WHERE score = (SELECT max(score) FROM player)
+    let maximumScore = Player.select(max(scoreColumn))
+    Player.filter(scoreColumn == maximumScore)
+    
+    // SELECT * FROM player WHERE score = (SELECT max(score) FROM player)
+    let maximumScore: SQLRequest<Int> = "SELECT max(score) FROM player"
+    Player.filter(scoreColumn == maximumScore)
+    ```
+    
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
 
 - `*`, `/`, `+`, `-`
@@ -4351,6 +4363,18 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     // SELECT * FROM player WHERE (initial >= 'A') AND (initial < 'N')
     Player.filter(("A"..<"N").contains(initialColumn))
+    ```
+    
+    To check inclusion inside a subquery, call the `contains` method as well:
+    
+    ```swift
+    // SELECT * FROM player WHERE id IN (SELECT playerId FROM playerSelection)
+    let selectedPlayerIds = PlayerSelection.select(playerIdColumn)
+    Player.filter(selectedPlayerIds.contains(idColumn))
+    
+    // SELECT * FROM player WHERE id IN (SELECT playerId FROM playerSelection)
+    let selectedPlayerIds: SQLRequest<Int64> = "SELECT playerId FROM playerSelection"
+    Player.filter(selectedPlayerIds.contains(idColumn))
     ```
     
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
