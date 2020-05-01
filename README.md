@@ -7789,9 +7789,29 @@ Sample Code
 
 This chapter has been renamed [Record Comparison].
 
+#### Customized Decoding of Database Rows
+
+This chapter has been renamed [Beyond FetchableRecord].
+
+#### Dealing with External Connections
+
+This chapter has been superseded by [App Group Containers].
+
+#### Enabling FTS5 Support
+
+This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
+
 #### FetchedRecordsController
 
 This chapter has [moved](Documentation/FetchedRecordsController.md).
+
+#### Full-Text Search
+
+This chapter has [moved](Documentation/FullTextSearch.md).
+
+#### Migrations
+
+This chapter has [moved](Documentation/Migrations.md).
 
 #### Persistable Protocol
 
@@ -7805,29 +7825,9 @@ This protocol has been renamed [FetchableRecord] in GRDB 3.0.
 
 This protocol has been renamed [TableRecord] in GRDB 3.0.
 
-#### Customized Decoding of Database Rows
-
-This chapter has been renamed [Beyond FetchableRecord].
-
-#### Full-Text Search
-
-This chapter has [moved](Documentation/FullTextSearch.md).
-
-#### Enabling FTS5 Support
-
-This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
-
-#### Dealing with External Connections
-
-This chapter has been superseded by [App Group Containers].
-
 #### ValueObservation and DatabaseRegionObservation
 
 This chapter has been superseded by [ValueObservation] and [DatabaseRegionObservation].
-
-#### Migrations
-
-This chapter has [moved](Documentation/Migrations.md).
 
 
 [Associations]: Documentation/AssociationsBasics.md
