@@ -1,7 +1,7 @@
 import XCTest
 import Dispatch
 import Foundation
-import GRDB
+@testable import GRDB
 
 class DatabasePoolConcurrencyTests: GRDBTestCase {
     
@@ -267,6 +267,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
     
     func testReadError() throws {
+        // Necessary for this test to run as quickly as possible
+        dbConfiguration.readonlyBusyMode = .immediateError
         let dbPool = try makeDatabasePool()
         
         // Block 1                          Block 2
@@ -1073,6 +1075,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
     
     func testConcurrentReadError() throws {
+        // Necessary for this test to run as quickly as possible
+        dbConfiguration.readonlyBusyMode = .immediateError
         let dbPool = try makeDatabasePool()
         try dbPool.writeWithoutTransaction { db in
             try db.execute(sql: "PRAGMA locking_mode=EXCLUSIVE")
@@ -1156,6 +1160,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     }
     
     func testAsyncConcurrentReadError() throws {
+        // Necessary for this test to run as quickly as possible
+        dbConfiguration.readonlyBusyMode = .immediateError
         let dbPool = try makeDatabasePool()
         var readError: DatabaseError? = nil
         let expectation = self.expectation(description: "read")

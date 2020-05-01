@@ -164,6 +164,10 @@ public struct Configuration {
     /// Default: immediateError
     public var busyMode: Database.BusyMode = .immediateError
     
+    /// The behavior in case of SQLITE_BUSY error, for read-only connections.
+    /// If nil, GRDB picks a default one.
+    var readonlyBusyMode: Database.BusyMode? = nil
+    
     /// The maximum number of concurrent readers (applies to database
     /// pools only).
     ///

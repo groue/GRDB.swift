@@ -301,7 +301,10 @@ public final class Database {
     }
     
     private func setupBusyMode() {
-        switch configuration.busyMode {
+        let busyMode = configuration.readonly
+            ? configuration.readonlyBusyMode ?? configuration.busyMode
+            : configuration.busyMode
+        switch busyMode {
         case .immediateError:
             break
             

@@ -80,7 +80,9 @@ public final class DatabasePool: DatabaseWriter {
         // setup a busy handler for pool readers, in order to workaround those
         // "obscure cases" that may happen when the database is shared between
         // multiple processes.
-        readerConfiguration.busyMode = .timeout(10)
+        if readerConfiguration.readonlyBusyMode == nil {
+            readerConfiguration.readonlyBusyMode = .timeout(10)
+        }
         
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
