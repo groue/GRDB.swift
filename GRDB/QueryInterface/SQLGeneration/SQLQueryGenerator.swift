@@ -64,7 +64,7 @@ struct SQLQueryGenerator: Refinable {
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink())
         throws -> String
     {
-        // Build an SQK generation context with all aliases found in the query,
+        // Build an SQL generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
         let context = SQLGenerationContext(db, argumentsSink: argumentsSink, aliases: relation.allAliases)
