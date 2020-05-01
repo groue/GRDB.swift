@@ -135,7 +135,11 @@ public /* TODO: internal */ struct SQLAssociation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func destinationRelation(fromOriginRows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
+    func destinationRelation<Row>(
+        fromOriginRows originRows: @escaping (Database) throws -> [Row])
+        -> SQLRelation
+        where Row: ColumnAddressable
+    {
         // Filter the pivot: `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
         let pivot = self.pivot
         let filteredPivotRelation = pivot.relation.filter { db in

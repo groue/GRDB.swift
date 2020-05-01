@@ -92,8 +92,12 @@ extension QueryInterfaceRequest: FetchRequest {
             let pivotAlias = TableAlias()
             let prefetchedRelation = association
                 .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
-                // TODO: we may miss columns in the output region since we don't pass any row below
-                .destinationRelation(fromOriginRows: { _ in [] /* no origin row */ })
+                // Use a `NullRow` in order to make sure all join condition
+                // columns are made visible to SQLite, and present in the
+                // selected region:
+                //  ... JOIN right ON right.leftId IS NULL
+                //                                    ^ content of the NullRow
+                .destinationRelation(fromOriginRows: { _ in [NullRow()] })
                 .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
             

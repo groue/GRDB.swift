@@ -596,33 +596,44 @@ struct SQLAssociationCondition: Equatable {
     ///
     /// Given `right.a = left.b`, returns `right.a = 1` or
     /// `right.a IN (1, 2, 3)`.
-    func filteringExpression(_ db: Database, leftRows: [Row]) throws -> SQLExpression {
-        if leftRows.isEmpty {
+    func filteringExpression<Row: ColumnAddressable>(_ db: Database, leftRows: [Row]) throws -> SQLExpression {
+        guard let firstLeftRow = leftRows.first else {
             // Degenerate case: there is no row to attach
             return false.sqlExpression
         }
         
+        // The (left, right) column mapping pairs
         let columnMappings = try self.columnMappings(db)
-        guard let columnMapping = columnMappings.first else {
+        
+        // We assume that all rows have the same layout, and that addressing
+        // rows by index is faster than addressing them by column name.
+        // So we use the first left row in order to convert left column names
+        // into row indexes.
+        let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = columnMappings.map { mapping in
+            guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
+                fatalError("Missing column: \(mapping.left)")
+            }
+            return (leftIndex: leftIndex, rightColumn: Column(mapping.right))
+        }
+        guard let mapping = mappings.first else {
             // Degenerate case: no joining column
             return true.sqlExpression
         }
         
-        if columnMappings.count == 1 {
+        if mappings.count == 1 {
             // Join on a single right column.
-            let rightColumn = Column(columnMapping.right)
             
             // Unique database values and filter out NULL:
-            var dbValues = Set(leftRows.map { $0[columnMapping.left] as DatabaseValue })
+            let leftIndex = mapping.leftIndex
+            var dbValues = Set(leftRows.map { $0.databaseValue(at: leftIndex) })
             dbValues.remove(.null)
             
             if dbValues.isEmpty {
-                // Can't join
-                return false.sqlExpression
+                return mapping.rightColumn == nil
             } else {
                 // table.a IN (1, 2, 3, ...)
                 // Sort database values for nicer output.
-                return dbValues.sorted(by: <).contains(rightColumn)
+                return dbValues.sorted(by: <).contains(mapping.rightColumn)
             }
         } else {
             // Join on a multiple columns.
@@ -630,16 +641,48 @@ struct SQLAssociationCondition: Equatable {
             return leftRows
                 .map({ leftRow in
                     // (table.a = 1) AND (table.b = 2)
-                    columnMappings
-                        .map({ columns -> SQLExpression in
-                            let rightColumn = Column(columns.right)
-                            let leftValue = leftRow[columns.left] as DatabaseValue
-                            return rightColumn == leftValue
+                    mappings
+                        .map({ mapping -> SQLExpression in
+                            let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
+                            return mapping.rightColumn == leftValue
                         })
                         .joined(operator: .and)
                 })
                 .joined(operator: .or)
         }
+    }
+}
+
+/// A protocol for row-like containers
+protocol ColumnAddressable {
+    associatedtype ColumnIndex
+    func index(forColumn column: String) -> ColumnIndex?
+    func databaseValue(at index: ColumnIndex) -> DatabaseValue
+}
+
+/// A "row" that contains null values for all columns
+struct NullRow: ColumnAddressable {
+    struct DummyIndex { }
+    func index(forColumn column: String) -> DummyIndex? { DummyIndex() }
+    @inline(__always)
+    func databaseValue(at index: DummyIndex) -> DatabaseValue { .null }
+}
+
+/// Row has columns
+extension Row: ColumnAddressable {
+    @inline(__always)
+    func databaseValue(at index: Int) -> DatabaseValue { self[index] }
+}
+
+/// PersistenceContainer has columns
+extension PersistenceContainer: ColumnAddressable {
+    func index(forColumn column: String) -> String? { column }
+    @inline(__always)
+    func databaseValue(at column: String) -> DatabaseValue {
+        guard let value = self[caseInsensitive: column] else {
+            fatalError("Missing column: \(column)")
+        }
+        return value.databaseValue
     }
 }
 
