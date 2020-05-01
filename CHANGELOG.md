@@ -110,6 +110,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [#752](https://github.com/groue/GRDB.swift/pull/752): Remove ValueObservation.combine
 - [#770](https://github.com/groue/GRDB.swift/pull/770): Subqueries
 
+### Fixed
+
+- [#601](https://github.com/groue/GRDB.swift/pull/601): ValueObservation won't start until concurrent write transaction has ended
+- [#697](https://github.com/groue/GRDB.swift/pull/697): `SQLInterpolation` could not work with `QueryInterfaceRequest`
+- [#743](https://github.com/groue/GRDB.swift/pull/743): Rename GRDBCustomSQLite to GRDB for compatibility with dependents?
+
 
 ## 4.14.0
 
