@@ -82,13 +82,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **[Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)**: it's easier to upgrade an app with a little guidance! :bulb:
 - [ValueObservation](README.md#valueobservation): this chapter describes the new ValueObservation behaviors.
-- [DatabaseError](README.md#databaseerror): learn how to catch and match DatabaseError on their codes, in a fashion similar to `CocoaError`s.
+- [DatabaseError](README.md#databaseerror): learn how to catch and match DatabaseError on their codes, in a fashion similar to `CocoaError`.
 - [Batch Updates](README.md#update-requests): this chapter is updated for the new `set(to:)` method.
 - [SQL Operators](README.md#sql-operators): introduces support for SQL and query interface subqueries.
 - [How do I print a request as SQL?](README.md#how-do-i-print-a-request-as-sql) This FAQ was updated for GRDB 5.
 - [SQL Interpolation](Documentation/SQLInterpolation.md): this guide now describes how to embed subqueries and record columns in your SQL literals.
 - [Joined Queries Support](README.md#joined-queries-support): describes the GRDB 5 way of dealing with complex and hand-crafted SQL queries.
-- [Raw SQLite Pointers](README.md#raw-sqlite-pointers) and [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md): `import GRDB` now provides access to the full [C SQLite API](https://www.sqlite.org/capi3ref.html), and custom SQLite builds.s
+- [Raw SQLite Pointers](README.md#raw-sqlite-pointers) and [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md): `import GRDB` now provides access to the full [C SQLite API](https://www.sqlite.org/capi3ref.html), and custom SQLite builds.
 
 ### New
 
