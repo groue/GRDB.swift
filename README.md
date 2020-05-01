@@ -5502,7 +5502,7 @@ import RxSwift
 
 let observation = ValueObservation.tracking(Player.fetchAll)
 
-let disposable = observation.rx.changes(in: dbQueue).subscribe(
+let disposable = observation.rx.observe(in: dbQueue).subscribe(
     onNext: { (players: [Player]) in
         print("fresh players", players)
     },
@@ -5737,7 +5737,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
     let observation = ValueObservation.tracking(Player.fetchAll)
     let observable = observation.rx
-        .changes(in: dbQueue)
+        .observe(in: dbQueue)
         .share(replay: 1, scope: .whileConnected)
     ```
 
