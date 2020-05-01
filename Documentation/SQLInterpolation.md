@@ -249,12 +249,12 @@ Let's extend Player with database methods.
     ```swift
     extension Player: Decodable, FetchableRecord, TableRecord {
         /// "Simple" version
-        static func filter(id: Int64) -> SQLRequest<Player> {
+        static func filter(ids: [Int64]) -> SQLRequest<Player> {
             "SELECT * FROM player WHERE id IN \(ids)"
         }
         
         /// "Future-proof" version
-        static func filter(id: Int64) -> SQLRequest<Player> {
+        static func filter(ids: [Int64]) -> SQLRequest<Player> {
             """
             SELECT \(columnsOf: self)
             FROM \(self)
