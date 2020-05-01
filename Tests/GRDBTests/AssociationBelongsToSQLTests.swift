@@ -998,4 +998,133 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             let _ = try request.fetchCount(db)
         }
     }
+    
+    func testCaseInsensitivity() throws {
+        struct Child : TableRecord, EncodableRecord {
+            static let databaseTableName = "CHILDREN"
+            func encode(to container: inout PersistenceContainer) {
+                container["PaReNtId"] = 1
+            }
+        }
+        
+        struct Parent : TableRecord {
+            static let databaseTableName = "PARENTS"
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "parents") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("name", .text)
+            }
+            try db.create(table: "children") { t in
+                t.column("parentId", .integer).references("parents")
+            }
+        }
+        
+        try dbQueue.inDatabase { db in
+            do {
+                let association = Child.belongsTo(Parent.self)
+                try assertEqualSQL(db, Child.including(required: association), """
+                    SELECT "CHILDREN".*, "PARENTS".* \
+                    FROM "CHILDREN" \
+                    JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.including(optional: association), """
+                    SELECT "CHILDREN".*, "PARENTS".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(required: association), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON ("PARENTS"."id" = "CHILDREN"."parentId") AND ("PARENTS"."name" = 'foo')
+                    """)
+                try assertEqualSQL(db, Child().request(for: association), """
+                    SELECT * FROM "PARENTS" WHERE "id" = 1
+                    """)
+                try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
+                    SELECT "custom".* FROM "PARENTS" "custom" WHERE "custom"."id" = 1
+                    """)
+            }
+            do {
+                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("PARENTID")]))
+                try assertEqualSQL(db, Child.including(required: association), """
+                    SELECT "CHILDREN".*, "PARENTS".* \
+                    FROM "CHILDREN" \
+                    JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.including(optional: association), """
+                    SELECT "CHILDREN".*, "PARENTS".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(required: association), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON "PARENTS"."id" = "CHILDREN"."parentId"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON ("PARENTS"."id" = "CHILDREN"."parentId") AND ("PARENTS"."name" = 'foo')
+                    """)
+                try assertEqualSQL(db, Child().request(for: association), """
+                    SELECT * FROM "PARENTS" WHERE "id" = 1
+                    """)
+                try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
+                    SELECT "custom".* FROM "PARENTS" "custom" WHERE "custom"."id" = 1
+                    """)
+            }
+            do {
+                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("PARENTID")], to: [Column("ID")]))
+                try assertEqualSQL(db, Child.including(required: association), """
+                    SELECT "CHILDREN".*, "PARENTS".* \
+                    FROM "CHILDREN" \
+                    JOIN "PARENTS" ON "PARENTS"."ID" = "CHILDREN"."PARENTID"
+                    """)
+                try assertEqualSQL(db, Child.including(optional: association), """
+                    SELECT "CHILDREN".*, "PARENTS".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON "PARENTS"."ID" = "CHILDREN"."PARENTID"
+                    """)
+                try assertEqualSQL(db, Child.joining(required: association), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    JOIN "PARENTS" ON "PARENTS"."ID" = "CHILDREN"."PARENTID"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON "PARENTS"."ID" = "CHILDREN"."PARENTID"
+                    """)
+                try assertEqualSQL(db, Child.joining(optional: association.filter(Column("name") == "foo")), """
+                    SELECT "CHILDREN".* \
+                    FROM "CHILDREN" \
+                    LEFT JOIN "PARENTS" ON ("PARENTS"."ID" = "CHILDREN"."PARENTID") AND ("PARENTS"."name" = 'foo')
+                    """)
+                try assertEqualSQL(db, Child().request(for: association), """
+                    SELECT * FROM "PARENTS" WHERE "ID" = 1
+                    """)
+                try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
+                    SELECT "custom".* FROM "PARENTS" "custom" WHERE "custom"."ID" = 1
+                    """)
+            }
+        }
+    }
 }
