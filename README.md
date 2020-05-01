@@ -304,7 +304,7 @@ Documentation
 #### General Guides & Good Practices
 
 - :bulb: [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md)
-- :bulb: [Migrating From GRDB 3 to GRDB 4](Documentation/GRDB3MigrationGuide.md)
+- :bulb: [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
 - :bulb: [Issues tagged "best practices"](https://github.com/groue/GRDB.swift/issues?q=is%3Aissue+label%3A%22best+practices%22)
 - :question: [Issues tagged "question"](https://github.com/groue/GRDB.swift/issues?utf8=✓&q=is%3Aissue%20label%3Aquestion)
 - :blue_book: [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md)
