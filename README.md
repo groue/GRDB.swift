@@ -5048,7 +5048,6 @@ Unlike the name-mangling technique, splitting rows keeps SQL legible, accepts yo
 
 - [Splitting Rows, an Introduction](#splitting-rows-an-introduction)
 - [Splitting Rows, the Record Way](#splitting-rows-the-record-way)
-- [Splitting Rows, the Request Way](#splitting-rows-the-request-way)
 - [Splitting Rows, the Codable Way](#splitting-rows-the-codable-way)
 
 
@@ -5171,21 +5170,22 @@ extension PlayerInfo: FetchableRecord {
 }
 ```
 
-Let's now write the method that fetches PlayerInfo records:
+Now we write a method that returns a [custom request](#custom-requests), and then build the fetching method on top of that request:
 
 ```swift
 extension PlayerInfo {
-    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
+    /// The request for all player infos
+    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
 ```
 
 To acknowledge that both Player and Team records may customize their selection of the "player" and "team" columns, we'll write our SQL in a slightly different way:
 
 ```swift
         // Let Player and Team customize their selection:
-        let sql = """
+        let request: SQLRequest<PlayerInfo> = """
             SELECT
-                \(Player.selectionSQL()), -- instead of player.*
-                \(Team.selectionSQL()),   -- instead of team.*
+                \(columnsOf: Player.self), -- instead of player.*
+                \(columnsOf: Team.self),   -- instead of team.*
                 MAX(round.score) AS maxScore
             FROM player
             LEFT JOIN team ON ...
@@ -5194,41 +5194,34 @@ To acknowledge that both Player and Team records may customize their selection o
             """
 ```
 
-`Player.selectionSQL()` will output `player.*`, unless Player defines a [customized selection](#columns-selected-by-a-request).
+Our SQL is no longer a regular String, but an `SQLRequest<PlayerInfo>` which profits from [SQL Interpolation]. Inside this request, `\(columnsOf: Player.self)` outputs `player.*`, unless Player defines a [customized selection](#columns-selected-by-a-request).
 
-> :point_up: **Note**: you may also use SQL table aliases:
->
-> ```swift
-> let sql = """
->     SELECT
->         \(Player.selectionSQL(alias: "p")),
->         \(Team.selectionSQL(alias: "t")),
->         MAX(r.score) AS maxScore
->     FROM player p
->     LEFT JOIN team t ON ...
->     LEFT JOIN round r ON ...
->     GROUP BY ...
->     """
-> ```
+Now we need to build adapters.
 
-Now is the time to build adapters (taking in account the customized selection of both player and team). We use the `splittingRowAdapters` global function, which builds row adapters of desired widths:
+We use the `splittingRowAdapters` global function, whose job is precisely to build row adapters of desired widths:
+
+And since counting table columns require a database connectio, we use the `adapted(_:)` request method. It allows requests to adapt themselves right before execution, when a database connection is available.
 
 ```swift
-        let adapters = try splittingRowAdapters(columnCounts: [
-            Player.numberOfSelectedColumns(db),
-            Team.numberOfSelectedColumns(db)])
-    
-        let adapter = ScopeAdapter([
-            Scopes.player: adapters[0],
-            Scopes.team: adapters[1]])
+        return request.adapted { db in
+            let adapters = try splittingRowAdapters(columnCounts: [
+                Player.numberOfSelectedColumns(db),
+                Team.numberOfSelectedColumns(db)])
+            return ScopeAdapter([
+                Scopes.player: adapters[0],
+                Scopes.team: adapters[1]])
+        }
+    }
 ```
 
 > :point_up: **Note**: `splittingRowAdapters` returns as many adapters as necessary to fully split a row. In the example above, it returns *three* adapters: one for player, one for team, and one for the remaining columns.
 
-And finally, we can fetch player infos:
+And finally, we can define the fetching method:
 
 ```swift
-        return try PlayerInfo.fetchAll(db, sql: sql, adapter: adapter)
+    /// Fetches all player infos
+    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
+        try all().fetchAll(db)
     }
 }
 ```
@@ -5246,95 +5239,16 @@ let playerInfos = try dbQueue.read { db in
 > :bulb: In this chapter, we have learned:
 > 
 > - how to define a `FetchableRecord` record that consumes rows fetched from a joined query.
-> - how to use `selectionSQL` and `numberOfSelectedColumns` in order to deal with nested record types that define custom selection.
+> - how to use [SQL Interpolation] and `numberOfSelectedColumns` in order to deal with nested record types that define custom selection.
 > - how to use `splittingRowAdapters` in order to streamline the definition of row slices.
 > - how to gather all relevant methods and constants in a record type, fully responsible of its relationship with the database.
-
-
-### Splitting Rows, the Request Way
-
-The `PlayerInfo.fetchAll` method [above](#splitting-rows-the-record-way) directly fetches records. It's all good, but in order to profit from [database observation](#database-changes-observation), you'll need a [custom request](#custom-requests) that defines a database query.
-
-It is recommended that you read the previous paragraphs before you dive in this sample code. We start with the same PlayerInfo record as above:
-
-```swift
-struct PlayerInfo {
-    var player: Player
-    var team: Team?
-    var maxScore: Int
-}
-
-/// PlayerInfo can decode rows:
-extension PlayerInfo: FetchableRecord {
-    private enum Scopes {
-        static let player = "player"
-        static let team = "team"
-    }
-    
-    init(row: Row) {
-        player = row[Scopes.player]
-        team = row[Scopes.team]
-        maxScore = row["maxScore"]
-    }
-}
-```
-
-Now we write a method that returns a request, and build the fetching method on top of that request:
-
-```swift
-extension PlayerInfo {
-    /// The request for all player infos
-    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
-        let sql = """
-            SELECT
-                \(Player.selectionSQL()),
-                \(Team.selectionSQL()),
-                MAX(round.score) AS maxScore
-            FROM player
-            LEFT JOIN team ON ...
-            LEFT JOIN round ON ...
-            GROUP BY ...
-            """
-        return SQLRequest<PlayerInfo>(sql: sql).adapted { db in
-            let adapters = try splittingRowAdapters(columnCounts: [
-                Player.numberOfSelectedColumns(db),
-                Team.numberOfSelectedColumns(db)])
-            return ScopeAdapter([
-                Scopes.player: adapters[0],
-                Scopes.team: adapters[1]])
-        }
-    }
-    
-    /// Fetches all player infos
-    static func fetchAll(_ db: Database) throws -> [PlayerInfo] {
-        try all().fetchAll(db)
-    }
-}
-```
-
-It is now time to use our request:
-
-```swift
-// Fetch player infos
-let playerInfos = try dbQueue.read { db in
-    try PlayerInfo.fetchAll(db)
-}
-
-// Track database transactions that change player infos:
-let observation = DatabaseRegionObservation(tracking: PlayerInfo.all())
-let observer = try observation.start(in: dbQueue) { (db: Database) in
-    print("PlayerInfo were changed")
-}
-```
-
-> :bulb: In this chapter, we have learned how to define a custom request that can both fetch records from joined queries, and feed database observation tools.
 
 
 ### Splitting Rows, the Codable Way
 
 [Codable Records] build on top of the standard Decodable protocol in order to decode database rows.
 
-You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-request-way) sample code:
+You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-record-way) sample code:
 
 ```swift
 struct Player: Decodable, FetchableRecord, TableRecord {
@@ -5355,17 +5269,17 @@ struct PlayerInfo: Decodable, FetchableRecord {
 extension PlayerInfo {
     /// The request for all player infos
     static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
-        let sql = """
+        let request: SQLRequest<PlayerInfo> = """
             SELECT
-                \(Player.selectionSQL()),
-                \(Team.selectionSQL()),
+                \(columnsOf: Player.self),
+                \(columnsOf: Team.self),
                 MAX(round.score) AS maxScore
             FROM player
             LEFT JOIN team ON ...
             LEFT JOIN round ON ...
             GROUP BY ...
             """
-        return SQLRequest<PlayerInfo>(sql: sql).adapted { db in
+        return request.adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 Player.numberOfSelectedColumns(db),
                 Team.numberOfSelectedColumns(db)])
@@ -5385,13 +5299,6 @@ extension PlayerInfo {
 let playerInfos = try dbQueue.read { db in
     try PlayerInfo.fetchAll(db)
 }
-
-// Track player infos with RxRGDB:
-PlayerInfo.all()
-    .rx.fetchAll(in: dbQueue)
-    .subscribe(onNext: { (playerInfos: [PlayerInfo]) in
-        print("Player infos have changed")
-    })
 ```
 
 > :bulb: In this chapter, we have learned how to use the `Decodable` protocol and its associated `CodingKeys` enum in order to dry up our code.
