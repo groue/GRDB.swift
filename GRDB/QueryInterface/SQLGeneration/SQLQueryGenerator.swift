@@ -190,41 +190,38 @@ struct SQLQueryGenerator: Refinable {
             return false
         }
         
-        guard case let .table(tableName, sourceAlias) = relation.source else {
-            // Don't expect single results as soon as we're not querying a table
-            return false
-        }
-        
-        // Do we filter on an unique key?
-        let filteredColumns = filters.flatMap(\.truthComponents).compactMap { expression -> String? in
-            guard let equalExpression = expression as? SQLExpressionEqual,
-                (equalExpression.op == .equal || equalExpression.op == .is) else
-            {
-                // Not Column("foo") == value
+        // Do we filter on a unique key?
+        if case let .table(tableName, sourceAlias) = relation.source {
+            let filteredColumns = filters.flatMap(\.truthComponents).compactMap { expression -> String? in
+                guard let equalExpression = expression as? SQLExpressionEqual,
+                    (equalExpression.op == .equal || equalExpression.op == .is) else
+                {
+                    // Not Column("foo") == value
+                    return nil
+                }
+                
+                if equalExpression.lhs is DatabaseValue,
+                    let qualifiedColumn = equalExpression.rhs as? QualifiedColumn
+                {
+                    // value == Column("foo")
+                    assert(qualifiedColumn.alias == sourceAlias)
+                    return qualifiedColumn.name
+                }
+                
+                if equalExpression.rhs is DatabaseValue,
+                    let qualifiedColumn = equalExpression.lhs as? QualifiedColumn
+                {
+                    // Column("foo") == value
+                    assert(qualifiedColumn.alias == sourceAlias)
+                    return qualifiedColumn.name
+                }
+                
                 return nil
             }
-            
-            if equalExpression.lhs is DatabaseValue,
-                let qualifiedColumn = equalExpression.rhs as? QualifiedColumn
-            {
-                // value == Column("foo")
-                assert(qualifiedColumn.alias == sourceAlias)
-                return qualifiedColumn.name
+            if try db.table(tableName, hasUniqueKey: filteredColumns) {
+                // Filter by unique key: guaranteed single row!
+                return true
             }
-            
-            if equalExpression.rhs is DatabaseValue,
-                let qualifiedColumn = equalExpression.lhs as? QualifiedColumn
-            {
-                // Column("foo") == value
-                assert(qualifiedColumn.alias == sourceAlias)
-                return qualifiedColumn.name
-            }
-            
-            return nil
-        }
-        if try db.table(tableName, hasUniqueKey: filteredColumns) {
-            // Filter by unique key: guaranteed single row!
-            return true
         }
         
         // Do we aggregate without grouping?
@@ -234,32 +231,40 @@ struct SQLQueryGenerator: Refinable {
                 "AVG", "COUNT", "GROUP_CONCAT", "MAX", "MIN", "SUM", "TOTAL"
             ]
             for selectable in selection {
-                guard let expression = selectable as? SQLExpressionFunction else {
-                    // Not a function call
-                    // (We miss expressions such as `max(column) + 1`)
-                    continue
-                }
-                let functionName = expression.functionName.sql.uppercased()
-                guard aggregateFunctionNames.contains(functionName) else {
-                    // Not an aggregate function
-                    continue
-                }
-                guard expression.arguments.allSatisfy({ $0 is QualifiedColumn }) else {
-                    // Aggregate function argument is not a column
-                    // (We miss COUNT(*) here)
-                    continue
-                }
-                if functionName == "GROUP_CONCAT" {
-                    switch expression.arguments.count {
-                    case 1, 2:
-                        // Selection contains an aggregate function call: guaranteed single row!
-                        return true
-                    default:
-                        break
-                    }
-                } else if expression.arguments.count == 1 {
-                    // Selection contains an aggregate function call: guaranteed single row!
+                switch selectable {
+                case is SQLExpressionCount:
+                    // Selection contains COUNT(...): guaranteed single row!
                     return true
+                case is SQLExpressionCountDistinct:
+                    // Selection contains COUNT(DISTINCT ...): guaranteed single row!
+                    return true
+                case let expression as SQLExpressionFunction:
+                    let functionName = expression.functionName.sql.uppercased()
+                    guard aggregateFunctionNames.contains(functionName) else {
+                        // Not an aggregate function.
+                        continue
+                    }
+                    guard expression.arguments.allSatisfy({ $0 is QualifiedColumn }) else {
+                        // Aggregate function argument is not a column.
+                        // (We miss expressions such as `max(column + 1)`)
+                        continue
+                    }
+                    if functionName == "GROUP_CONCAT" {
+                        switch expression.arguments.count {
+                        case 1, 2:
+                            // Selection contains an aggregate function: guaranteed single row!
+                            return true
+                        default:
+                            break
+                        }
+                    } else if expression.arguments.count == 1 {
+                        // Selection contains an aggregate function: guaranteed single row!
+                        return true
+                    }
+                default:
+                    // Not an aggregate
+                    // (We miss expressions such as `max(column) + 1`)
+                    break
                 }
             }
         }
