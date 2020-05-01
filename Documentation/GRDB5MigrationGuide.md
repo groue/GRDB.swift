@@ -320,7 +320,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     
     > :question: This change makes it possible to concatenate subqueries with the UNION operator.
 
-3. In order to extract raw SQL string from an SQLLiteral, you now need a database connection:
+3. In order to extract raw SQL string from an [SQLLiteral], you now need a database connection:
 
     ```swift
     let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
@@ -435,3 +435,4 @@ The changes can quite impact your application. We'll describe them below, as wel
 [Custom SQL functions]: ../README.md#custom-sql-functions
 [Batch updates]: ../README.md#update-requests
 [SQL Interpolation]: SQLInterpolation.md
+[SQLLiteral]: SQLInterpolation.md#sqlliteral
