@@ -264,6 +264,67 @@ extension SQLLiteralTests {
         }
     }
     
+    func testTableSelectionInterpolation() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            struct Player: TableRecord { }
+            struct AltPlayer: TableRecord {
+                static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
+            }
+            do {
+                let query: SQLLiteral = """
+                    SELECT \(columnsOf: Player.self)
+                    FROM player
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "player".*
+                    FROM player
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                let query: SQLLiteral = """
+                    SELECT \(columnsOf: Player.self, tableAlias: "p")
+                    FROM player p
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "p".*
+                    FROM player p
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                let query: SQLLiteral = """
+                    SELECT \(columnsOf: AltPlayer.self)
+                    FROM player
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "altPlayer"."id", "altPlayer"."name"
+                    FROM player
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                let query: SQLLiteral = """
+                    SELECT \(columnsOf: AltPlayer.self, tableAlias: "p")
+                    FROM player p
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT "p"."id", "p"."name"
+                    FROM player p
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+        }
+    }
+    
     func testExpressibleInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
             let a = Column("a")
