@@ -31,7 +31,7 @@ class ValueObservationTests: GRDBTestCase {
             // Track reducer process
             let notificationExpectation = expectation(description: "notification")
             notificationExpectation.assertForOverFulfill = true
-            notificationExpectation.expectedFulfillmentCount = 3
+            notificationExpectation.expectedFulfillmentCount = 4
             notificationExpectation.isInverted = true
             
             struct TestError: Error { }
