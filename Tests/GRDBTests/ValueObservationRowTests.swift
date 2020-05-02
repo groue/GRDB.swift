@@ -61,7 +61,8 @@ class ValueObservationRowTests: GRDBTestCase {
                 ["id":1, "name":"foo"],
                 ["id":1, "name":"foo"],
                 ["id":2, "name":"bar"],
-                nil],
+                nil,
+                ["id":3, "name":"toto"]],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         },
@@ -75,6 +76,7 @@ class ValueObservationRowTests: GRDBTestCase {
                     return .commit
                 }
                 try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'toto')")
         })
         
         try assertValueObservation(
@@ -83,7 +85,8 @@ class ValueObservationRowTests: GRDBTestCase {
                 nil,
                 ["id":1, "name":"foo"],
                 ["id":2, "name":"bar"],
-                nil],
+                nil,
+                ["id":3, "name":"toto"]],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         },
@@ -97,6 +100,7 @@ class ValueObservationRowTests: GRDBTestCase {
                     return .commit
                 }
                 try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'toto')")
         })
     }
     

@@ -77,7 +77,8 @@ class ValueObservationRecordTests: GRDBTestCase {
                 Player(id: 1, name: "foo"),
                 Player(id: 1, name: "foo"),
                 Player(id: 2, name: "bar"),
-                nil],
+                nil,
+                Player(id: 3, name: "toto")],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         },
@@ -91,6 +92,7 @@ class ValueObservationRecordTests: GRDBTestCase {
                     return .commit
                 }
                 try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'toto')")
         })
         
         // The fundamental technique for removing duplicates of non-Equatable types
@@ -103,7 +105,8 @@ class ValueObservationRecordTests: GRDBTestCase {
                 nil,
                 Player(id: 1, name: "foo"),
                 Player(id: 2, name: "bar"),
-                nil],
+                nil,
+                Player(id: 3, name: "toto")],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
         },
@@ -117,6 +120,7 @@ class ValueObservationRecordTests: GRDBTestCase {
                     return .commit
                 }
                 try db.execute(sql: "DELETE FROM t")
+                try db.execute(sql: "INSERT INTO t (id, name) VALUES (3, 'toto')")
         })
     }
 }

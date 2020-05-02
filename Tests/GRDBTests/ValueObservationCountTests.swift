@@ -7,7 +7,7 @@ class ValueObservationCountTests: GRDBTestCase {
         
         try assertValueObservation(
             ValueObservation.tracking(T.fetchCount),
-            records: [0, 1, 1, 2, 3, 2],
+            records: [0, 1, 1, 2, 3, 4],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
         },
@@ -21,7 +21,7 @@ class ValueObservationCountTests: GRDBTestCase {
                     try db.execute(sql: "DELETE FROM t WHERE id = 1")
                     return .commit
                 }
-                try db.execute(sql: "DELETE FROM t WHERE id = 2")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         })
     }
     
@@ -30,7 +30,7 @@ class ValueObservationCountTests: GRDBTestCase {
         
         try assertValueObservation(
             ValueObservation.tracking(T.fetchCount).removeDuplicates(),
-            records: [0, 1, 2, 3, 2],
+            records: [0, 1, 2, 3, 4],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
         },
@@ -44,7 +44,7 @@ class ValueObservationCountTests: GRDBTestCase {
                     try db.execute(sql: "DELETE FROM t WHERE id = 1")
                     return .commit
                 }
-                try db.execute(sql: "DELETE FROM t WHERE id = 2")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         })
     }
 }

@@ -62,7 +62,7 @@ class ValueObservationTests: GRDBTestCase {
             })
             
             withExtendedLifetime(cancellable) {
-                waitForExpectations(timeout: 0.3, handler: nil)
+                waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertTrue(errorCaught)
             }
         }
@@ -227,7 +227,7 @@ class ValueObservationTests: GRDBTestCase {
             try dbWriter.write { db in
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
-            waitForExpectations(timeout: 0.2, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
         }
 
         try test(makeDatabaseQueue())
@@ -270,7 +270,7 @@ class ValueObservationTests: GRDBTestCase {
             try dbWriter.write { db in
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
-            waitForExpectations(timeout: 0.2, handler: nil)
+            waitForExpectations(timeout: 1, handler: nil)
         }
         
         try test(makeDatabaseQueue())

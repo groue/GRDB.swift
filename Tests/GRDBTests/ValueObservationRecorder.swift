@@ -459,17 +459,33 @@ extension GRDBTestCase {
                 
                 try writer.writeWithoutTransaction(recordedUpdates)
                 
-                let expectation = recorder
-                    .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
-                    .inverted
-                let values = try wait(for: expectation, timeout: 0.3)
+                let recordedValues: [Reducer.Value]
+                let lastExpectedValue = expectedValues.last!
+                let waitForLast = expectedValues.firstIndex(of: lastExpectedValue) == expectedValues.count - 1
+                if waitForLast {
+                    // Optimization!
+                    let expectation = recorder.prefix(until: { $0 == lastExpectedValue } )
+                    recordedValues = try wait(for: expectation, timeout: 1)
+                } else {
+                    // Slow!
+                    assertionFailure("Please rewrite your test, because it is too slow: make sure the last expected value is unique.")
+                    let expectation = recorder
+                        .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
+                        .inverted
+                    #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
+                    // debug SQLite builds can be *very* slow
+                    recordedValues = try wait(for: expectation, timeout: 1)
+                    #else
+                    recordedValues = try wait(for: expectation, timeout: 0.3)
+                    #endif
+                }
                 
                 if scheduler.immediateInitialValue() {
-                    XCTAssertEqual(values.first, expectedValues.first)
+                    XCTAssertEqual(recordedValues.first, expectedValues.first)
                 }
                 
                 assertValueObservationRecordingMatch(
-                    recorded: values,
+                    recorded: recordedValues,
                     expected: expectedValues,
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
             }
@@ -506,6 +522,7 @@ extension GRDBTestCase {
                     recordedValues = try wait(for: expectation, timeout: 1)
                 } else {
                     // Slow!
+                    assertionFailure("Please rewrite your test, because it is too slow: make sure the last expected value is unique.")
                     let expectation = recorder
                         .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
                         .inverted
