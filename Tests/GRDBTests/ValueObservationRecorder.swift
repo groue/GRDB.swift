@@ -511,9 +511,9 @@ extension GRDBTestCase {
                         .inverted
                     #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
                     // debug SQLite builds can be *very* slow
-                    recordedValues = try wait(for: expectation, timeout: 2)
+                    recordedValues = try wait(for: expectation, timeout: 1)
                     #else
-                    recordedValues = try wait(for: expectation, timeout: 0.5)
+                    recordedValues = try wait(for: expectation, timeout: 0.3)
                     #endif
                 }
                 
