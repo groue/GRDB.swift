@@ -78,7 +78,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## 5.0.0-beta
 
-Released May 1, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.14.0...v5.0.0-beta)
+Released May 2, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.14.0...v5.0.0-beta)
 
 GRDB 5 is a release focused on **Swift 5.2**, and **removing technical debt**.
 

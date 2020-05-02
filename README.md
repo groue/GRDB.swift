@@ -11,7 +11,7 @@
 
 ---
 
-**Latest release**: May 1, 2020 • version 5.0.0-beta • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
+**Latest release**: May 2, 2020 • version 5.0.0-beta • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
 
 **Requirements**: iOS 9.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; Swift 5.2+ / Xcode 11.4+
 
