@@ -378,6 +378,13 @@ extension GRDBTestCase {
         throws
         where Reducer.Value: Equatable
     {
+        #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
+        // debug SQLite builds can be *very* slow
+        let timeout: TimeInterval = 1
+        #else
+        let timeout: TimeInterval = 0.3
+        #endif
+        
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: ValueObservationScheduler,
@@ -404,7 +411,7 @@ extension GRDBTestCase {
                 try writer.writeWithoutTransaction(recordedUpdates)
                 
                 let expectation = recorder.next(expectedValues.count)
-                let values = try wait(for: expectation, timeout: 0.3)
+                let values = try wait(for: expectation, timeout: timeout)
                 XCTAssertEqual(
                     values, expectedValues,
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
@@ -434,7 +441,7 @@ extension GRDBTestCase {
                 }
                 
                 let expectation = recorder.next(expectedValues.count)
-                let values = try wait(for: expectation, timeout: 0.3)
+                let values = try wait(for: expectation, timeout: timeout)
                 XCTAssertEqual(
                     values, expectedValues,
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
@@ -465,19 +472,14 @@ extension GRDBTestCase {
                 if waitForLast {
                     // Optimization!
                     let expectation = recorder.prefix(until: { $0 == lastExpectedValue } )
-                    recordedValues = try wait(for: expectation, timeout: 1)
+                    recordedValues = try wait(for: expectation, timeout: timeout)
                 } else {
                     // Slow!
                     assertionFailure("Please rewrite your test, because it is too slow: make sure the last expected value is unique.")
                     let expectation = recorder
                         .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
                         .inverted
-                    #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
-                    // debug SQLite builds can be *very* slow
-                    recordedValues = try wait(for: expectation, timeout: 1)
-                    #else
-                    recordedValues = try wait(for: expectation, timeout: 0.3)
-                    #endif
+                    recordedValues = try wait(for: expectation, timeout: timeout)
                 }
                 
                 if scheduler.immediateInitialValue() {
@@ -519,19 +521,14 @@ extension GRDBTestCase {
                 if waitForLast {
                     // Optimization!
                     let expectation = recorder.prefix(until: { $0 == lastExpectedValue } )
-                    recordedValues = try wait(for: expectation, timeout: 1)
+                    recordedValues = try wait(for: expectation, timeout: timeout)
                 } else {
                     // Slow!
                     assertionFailure("Please rewrite your test, because it is too slow: make sure the last expected value is unique.")
                     let expectation = recorder
                         .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
                         .inverted
-                    #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
-                    // debug SQLite builds can be *very* slow
-                    recordedValues = try wait(for: expectation, timeout: 1)
-                    #else
-                    recordedValues = try wait(for: expectation, timeout: 0.3)
-                    #endif
+                    recordedValues = try wait(for: expectation, timeout: timeout)
                 }
                 
                 XCTAssertEqual(recordedValues.first, expectedValues.first)
@@ -598,6 +595,13 @@ extension GRDBTestCase {
         line: UInt = #line)
         throws
     {
+        #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
+        // debug SQLite builds can be *very* slow
+        let timeout: TimeInterval = 1
+        #else
+        let timeout: TimeInterval = 0.3
+        #endif
+        
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: ValueObservationScheduler,
@@ -611,7 +615,7 @@ extension GRDBTestCase {
                     scheduling: scheduler,
                     onError: { _ in testErrorDispatching() })
                 
-                let (_, error) = try wait(for: recorder.failure(), timeout: 0.3)
+                let (_, error) = try wait(for: recorder.failure(), timeout: timeout)
                 if let error = error as? Failure {
                     try testFailure(error, writer)
                 } else {
