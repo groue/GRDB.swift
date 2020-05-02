@@ -4,7 +4,7 @@
 
 Migrations run in order, once and only once. When a user upgrades your application, only non-applied migrations are run.
 
-Inside each migration, you typically [define and update your database tables](#database-schema) according to your evolving application needs:
+Inside each migration, you typically [define and update your database tables](../README.md#database-schema) according to your evolving application needs:
 
 ```swift
 var migrator = DatabaseMigrator()
@@ -32,7 +32,7 @@ migrator.registerMigration("v2") { db in
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
 
 **Migrations run with deferred foreign key checks,** starting SQLite 3.7.16+ (iOS 9.0+ / 
-+ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](#encryption)). This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
++ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](../README.md#encryption)). This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
