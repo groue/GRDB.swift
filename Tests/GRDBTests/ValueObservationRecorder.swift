@@ -380,7 +380,7 @@ extension GRDBTestCase {
     {
         #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
         // debug SQLite builds can be *very* slow
-        let timeout: TimeInterval = 1
+        let timeout: TimeInterval = 2
         #else
         let timeout: TimeInterval = 0.3
         #endif
@@ -597,7 +597,7 @@ extension GRDBTestCase {
     {
         #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
         // debug SQLite builds can be *very* slow
-        let timeout: TimeInterval = 1
+        let timeout: TimeInterval = 2
         #else
         let timeout: TimeInterval = 0.3
         #endif
