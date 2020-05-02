@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct TestError : Error { }
 
@@ -44,7 +40,7 @@ class AnyCursorTests: GRDBTestCase {
         // This helper function makes sure AnyCursor initializer accepts any cursor,
         // and not only AnyCursor:
         func makeAnyCursor<C: Cursor>(_ cursor: C) -> AnyCursor<Int> where C.Element == Int {
-            return AnyCursor(cursor)
+            AnyCursor(cursor)
         }
         let cursor = AnyCursor(base)
         XCTAssertEqual(try cursor.next()!, 0)
@@ -60,7 +56,7 @@ class AnyCursorTests: GRDBTestCase {
             return i
         }
         func makeAnyCursor<C: Cursor>(_ cursor: C) -> AnyCursor<Int> where C.Element == Int {
-            return AnyCursor(cursor)
+            AnyCursor(cursor)
         }
         let cursor = makeAnyCursor(base)
         XCTAssertEqual(try cursor.next()!, 0)

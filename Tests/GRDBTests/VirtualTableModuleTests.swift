@@ -1,15 +1,11 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct FTS3TokenizeModule : VirtualTableModule {
     let moduleName = "fts3tokenize"
     
     func makeTableDefinition() -> FTS3TokenizeTableDefinition {
-        return FTS3TokenizeTableDefinition()
+        FTS3TokenizeTableDefinition()
     }
     
     func moduleArguments(for definition: FTS3TokenizeTableDefinition, in db: Database) -> [String] {
@@ -27,7 +23,7 @@ private struct ThrowingFTS3TokenizeModule : VirtualTableModule {
     let moduleName = "fts3tokenize"
     
     func makeTableDefinition() -> FTS3TokenizeTableDefinition {
-        return FTS3TokenizeTableDefinition()
+        FTS3TokenizeTableDefinition()
     }
     
     func moduleArguments(for definition: FTS3TokenizeTableDefinition, in db: Database) -> [String] {
@@ -49,14 +45,6 @@ private final class FTS3TokenizeTableDefinition {
 class VirtualTableModuleTests: GRDBTestCase {
     
     func testCustomVirtualTableModule() throws {
-        // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "test", using: FTS3TokenizeModule()) { t in
@@ -68,14 +56,6 @@ class VirtualTableModuleTests: GRDBTestCase {
     }
 
     func testThrowingCustomVirtualTableModule() throws {
-        // fts3tokenize was introduced in SQLite 3.7.17 https://www.sqlite.org/changes.html#version_3_7_17
-        // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             do {

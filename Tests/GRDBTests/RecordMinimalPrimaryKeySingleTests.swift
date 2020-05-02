@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // MinimalSingle is the most tiny class with a Single row primary key which
 // supports read and write operations of Record.
@@ -22,7 +18,7 @@ class MinimalSingle: Record {
     // Record
     
     override class var databaseTableName: String {
-        return "minimalSingles"
+        "minimalSingles"
     }
     
     required init(row: Row) {
@@ -406,8 +402,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = MinimalSingle.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"minimalSingles\" ORDER BY \"UUID\"")
+            try assertEqualSQL(db, request, "SELECT * FROM \"minimalSingles\" ORDER BY \"UUID\"")
         }
     }
     

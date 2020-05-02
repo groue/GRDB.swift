@@ -1,16 +1,12 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class RecordWithoutPersistenceConflictPolicy : Record {
 }
 
 class RecordWithPersistenceConflictPolicy : Record {
     override class var persistenceConflictPolicy: PersistenceConflictPolicy {
-        return PersistenceConflictPolicy(insert: .fail, update: .ignore)
+        PersistenceConflictPolicy(insert: .fail, update: .ignore)
     }
 }
 

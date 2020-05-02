@@ -128,20 +128,20 @@ extension Database {
     ///     try db.makeFTS5Pattern(rawPattern: "and", forTable: "document") // OK
     ///     try db.makeFTS5Pattern(rawPattern: "AND", forTable: "document") // malformed MATCH expression: [AND]
     public func makeFTS5Pattern(rawPattern: String, forTable table: String) throws -> FTS5Pattern {
-        return try FTS5Pattern(rawPattern: rawPattern, allowedColumns: columns(in: table).map { $0.name })
+        try FTS5Pattern(rawPattern: rawPattern, allowedColumns: columns(in: table).map(\.name))
     }
 }
 
 extension FTS5Pattern: DatabaseValueConvertible {
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return rawPattern.databaseValue
+        rawPattern.databaseValue
     }
     
     /// Returns an FTS5Pattern initialized from *dbValue*, if it
     /// contains a suitable value.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS5Pattern? {
-        return String
+        String
             .fromDatabaseValue(dbValue)
             .flatMap { try? FTS5Pattern(rawPattern: $0) }
     }

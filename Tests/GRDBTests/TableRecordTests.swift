@@ -1,25 +1,21 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct RecordStruct: TableRecord { }
 private struct CustomizedRecordStruct: TableRecord { static let databaseTableName = "CustomizedRecordStruct" }
 private class RecordClass: TableRecord { }
 private class RecordSubClass: RecordClass { }
-private class CustomizedRecordClass: TableRecord { class var databaseTableName: String { return "CustomizedRecordClass" } }
-private class CustomizedRecordSubClass: CustomizedRecordClass { override class var databaseTableName: String { return "CustomizedRecordSubClass" } }
-private class CustomizedPlainRecord: Record { override class var databaseTableName: String { return "CustomizedPlainRecord" } }
+private class CustomizedRecordClass: TableRecord { class var databaseTableName: String { "CustomizedRecordClass" } }
+private class CustomizedRecordSubClass: CustomizedRecordClass { override class var databaseTableName: String { "CustomizedRecordSubClass" } }
+private class CustomizedPlainRecord: Record { override class var databaseTableName: String { "CustomizedPlainRecord" } }
 private enum Namespace {
     struct RecordStruct: TableRecord { }
     struct CustomizedRecordStruct: TableRecord { static let databaseTableName = "CustomizedRecordStruct" }
     class RecordClass: TableRecord { }
     class RecordSubClass: RecordClass { }
-    class CustomizedRecordClass: TableRecord { class var databaseTableName: String { return "CustomizedRecordClass" } }
-    class CustomizedRecordSubClass: CustomizedRecordClass { override class var databaseTableName: String { return "CustomizedRecordSubClass" } }
-    class CustomizedPlainRecord: Record { override class var databaseTableName: String { return "CustomizedPlainRecord" } }
+    class CustomizedRecordClass: TableRecord { class var databaseTableName: String { "CustomizedRecordClass" } }
+    class CustomizedRecordSubClass: CustomizedRecordClass { override class var databaseTableName: String { "CustomizedRecordSubClass" } }
+    class CustomizedPlainRecord: Record { override class var databaseTableName: String { "CustomizedPlainRecord" } }
 }
 struct HTTPRequest: TableRecord { }
 struct TOEFL: TableRecord { }
@@ -31,9 +27,9 @@ class TableRecordTests: GRDBTestCase {
         struct InnerCustomizedRecordStruct: TableRecord { static let databaseTableName = "InnerCustomizedRecordStruct" }
         class InnerRecordClass: TableRecord { }
         class InnerRecordSubClass: InnerRecordClass { }
-        class InnerCustomizedRecordClass: TableRecord { class var databaseTableName: String { return "InnerCustomizedRecordClass" } }
-        class InnerCustomizedRecordSubClass: InnerCustomizedRecordClass { override class var databaseTableName: String { return "InnerCustomizedRecordSubClass" } }
-        class InnerCustomizedPlainRecord: Record { override class var databaseTableName: String { return "InnerCustomizedPlainRecord" } }
+        class InnerCustomizedRecordClass: TableRecord { class var databaseTableName: String { "InnerCustomizedRecordClass" } }
+        class InnerCustomizedRecordSubClass: InnerCustomizedRecordClass { override class var databaseTableName: String { "InnerCustomizedRecordSubClass" } }
+        class InnerCustomizedPlainRecord: Record { override class var databaseTableName: String { "InnerCustomizedPlainRecord" } }
         
         XCTAssertEqual(RecordStruct.databaseTableName, "recordStruct")
         XCTAssertEqual(CustomizedRecordStruct.databaseTableName, "CustomizedRecordStruct")
@@ -62,9 +58,7 @@ class TableRecordTests: GRDBTestCase {
         XCTAssertEqual(HTTPRequest.databaseTableName, "httpRequest")
         XCTAssertEqual(TOEFL.databaseTableName, "toefl")
         
-        func tableName<T: TableRecord>(_ type: T.Type) -> String {
-            return T.databaseTableName
-        }
+        func tableName<T: TableRecord>(_ type: T.Type) -> String { T.databaseTableName }
         
         XCTAssertEqual(tableName(RecordStruct.self), "recordStruct")
         XCTAssertEqual(tableName(CustomizedRecordStruct.self), "CustomizedRecordStruct")

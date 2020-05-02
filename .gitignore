@@ -106,7 +106,8 @@ Podfile.lock
 
 # SPM
 .build
-Package.resolved
+GRDB.xcworkspace/xcshareddata/swiftpm
+#Package.resolved
 Tests/SPM/Packages
 
 # Ruby

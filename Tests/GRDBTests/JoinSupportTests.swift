@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 let expectedSQL = """
     SELECT
@@ -22,12 +18,12 @@ let expectedSQL = """
     ORDER BY t1.id
     """
 
-let testedSQL = """
+let testedLiteral: SQLLiteral = """
     SELECT
-        \(T1.selectionSQL()),
-        \(T2.selectionSQL(alias: "t2Left")),
-        \(T2.selectionSQL(alias: "t2Right")),
-        \(T3.selectionSQL()),
+        \(columnsOf: T1.self),
+        \(columnsOf: T2.self, tableAlias: "t2Left"),
+        \(columnsOf: T2.self, tableAlias: "t2Right"),
+        \(columnsOf: T3.self),
         COUNT(DISTINCT t5.id) AS t5count
     FROM t1
     LEFT JOIN t2 t2Left ON t2Left.t1id = t1.id AND t2Left.name = 'left'
@@ -97,7 +93,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {
-        return SQLRequest<FlatModel>(sql: testedSQL).adapted { db in
+        SQLRequest<FlatModel>(literal: testedLiteral).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -113,7 +109,7 @@ private struct FlatModel: FetchableRecord {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
+        SQLRequest<CodableFlatModel>(literal: testedLiteral).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -138,7 +134,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
+        SQLRequest<CodableFlatModel>(literal: testedLiteral).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -153,7 +149,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     }
     
     static func hierarchicalAll() -> AdaptedFetchRequest<SQLRequest<CodableFlatModel>> {
-        return SQLRequest<CodableFlatModel>(sql: testedSQL).adapted { db in
+        SQLRequest<CodableFlatModel>(literal: testedLiteral).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -181,7 +177,7 @@ private struct CodableNestedModel: FetchableRecord, Codable {
     var t5count: Int
     
     static func all() -> AdaptedFetchRequest<SQLRequest<CodableNestedModel>> {
-        return SQLRequest<CodableNestedModel>(sql: testedSQL).adapted { db in
+        SQLRequest<CodableNestedModel>(literal: testedLiteral).adapted { db in
             let adapters = try splittingRowAdapters(columnCounts: [
                 T1.numberOfSelectedColumns(db),
                 T2.numberOfSelectedColumns(db),
@@ -257,7 +253,7 @@ class JoinSupportTests: GRDBTestCase {
     func testSampleData() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let rows = try Row.fetchAll(db, sql: expectedSQL)
+            let rows = try SQLRequest<Row>(literal: testedLiteral).fetchAll(db)
             XCTAssertEqual(rows.count, 3)
             XCTAssertEqual(rows[0], [
                 // t1.*
@@ -296,13 +292,17 @@ class JoinSupportTests: GRDBTestCase {
     }
     
     func testTestedSQL() throws {
-        XCTAssertEqual(testedSQL, expectedSQL)
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let (testedSQL, _) = try testedLiteral.build(db)
+            XCTAssertEqual(testedSQL, expectedSQL)
+        }
     }
     
     func testSplittingRowAdapters() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(sql: testedSQL).adapted { db in
+            let request = SQLRequest<Row>(literal: testedLiteral).adapted { db in
                 let adapters = try splittingRowAdapters(columnCounts: [
                     T1.numberOfSelectedColumns(db),
                     T2.numberOfSelectedColumns(db),

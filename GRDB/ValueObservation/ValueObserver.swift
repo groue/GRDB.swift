@@ -2,151 +2,93 @@ import Foundation
 
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
-class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
-    // Reducer and notificationQueue must be set before observer is
-    // added to a database.
-    var reducer: Reducer!
-    var notificationQueue: DispatchQueue?
-    
-    var baseRegion = DatabaseRegion() {
-        didSet { observedRegion = baseRegion.union(selectedRegion) }
-    }
-    var selectedRegion = DatabaseRegion() {
-        didSet { observedRegion = baseRegion.union(selectedRegion) }
-    }
-    var observedRegion: DatabaseRegion! // internal for testability
-    private var requiresWriteAccess: Bool
-    private var observesSelectedRegion: Bool
-    private unowned var writer: DatabaseWriter
+final class ValueObserver<Reducer: _ValueReducer> {
+    private(set) var observedRegion: DatabaseRegion? // internal for testability
+    var isCompleted: Bool { synchronized { _isCompleted } }
+    private var _isCompleted = false
+    private var reducer: Reducer
+    private let requiresWriteAccess: Bool
+    private weak var writer: DatabaseWriter?
+    private let scheduler: ValueObservationScheduler
     private let reduceQueue: DispatchQueue
     private let onError: (Error) -> Void
     private let onChange: (Reducer.Value) -> Void
     private var isChanged = false
-    private var isCancelled = false
+    private var lock = NSRecursiveLock() // protects _isCompleted
     
     init(
         requiresWriteAccess: Bool,
-        observesSelectedRegion: Bool,
         writer: DatabaseWriter,
+        reducer: Reducer,
+        scheduling scheduler: ValueObservationScheduler,
         reduceQueue: DispatchQueue,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
     {
         self.writer = writer
+        self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
-        self.observesSelectedRegion = observesSelectedRegion
+        self.scheduler = scheduler
         self.reduceQueue = reduceQueue
         self.onError = onError
         self.onChange = onChange
     }
-    
-    func cancel() {
-        isCancelled = true
-    }
-    
+}
+
+// MARK: - TransactionObserver
+
+extension ValueObserver: TransactionObserver {
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        if isCancelled { return false }
-        return observedRegion.isModified(byEventsOfKind: eventKind)
+        assert(
+            observedRegion != nil,
+            "fetchInitialValue() was not called before ValueObserver was added as a transaction observer")
+        return observedRegion!.isModified(byEventsOfKind: eventKind)
     }
     
     func databaseDidChange(with event: DatabaseEvent) {
-        if isCancelled { return }
-        if observedRegion.isModified(by: event) {
+        assert(
+            observedRegion != nil,
+            "fetchInitialValue() was not called before ValueObserver was added as a transaction observer")
+        if observedRegion!.isModified(by: event) {
             isChanged = true
             stopObservingDatabaseChangesUntilNextTransaction()
         }
     }
     
     func databaseDidCommit(_ db: Database) {
-        if isCancelled { return }
         guard isChanged else { return }
         isChanged = false
+        if isCompleted { return }
         
-        // Grab future fetched value
-        let future: DatabaseFuture<Reducer.Fetched>
-        if requiresWriteAccess {
-            // Synchronous read/write fetch
-            if observesSelectedRegion {
-                do {
-                    var fetchedValue: Reducer.Fetched!
-                    var selectedRegion: DatabaseRegion!
-                    try db.inTransaction {
-                        let (_fetchedValue, _selectedRegion) = try db.recordingSelectedRegion {
-                            try reducer.fetch(db)
-                        }
-                        fetchedValue = _fetchedValue
-                        selectedRegion = _selectedRegion
-                        return .commit
-                    }
-                    self.selectedRegion = selectedRegion
-                    future = DatabaseFuture(DatabaseResult.success(fetchedValue))
-                } catch {
-                    future = DatabaseFuture(DatabaseResult.failure(error))
+        // 1. Fetch
+        let fetchedValue: DatabaseFuture<Reducer.Fetched>
+        if requiresWriteAccess || needsRecordingSelectedRegion {
+            // Synchronously
+            fetchedValue = DatabaseFuture(Result {
+                try recordingSelectedRegionIfNeeded(db) {
+                    try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                 }
-            } else {
-                // Synchronous read/write fetch
-                future = DatabaseFuture(DatabaseResult {
-                    var fetchedValue: Reducer.Fetched!
-                    try db.inTransaction {
-                        fetchedValue = try reducer.fetch(db)
-                        return .commit
-                    }
-                    return fetchedValue
-                })
-            }
+            })
         } else {
-            if observesSelectedRegion {
-                // Synchronous read-only fetch
-                do {
-                    let (fetchedValue, selectedRegion) = try db.readOnly {
-                        try db.recordingSelectedRegion {
-                            try reducer.fetch(db)
-                        }
-                    }
-                    self.selectedRegion = selectedRegion
-                    future = DatabaseFuture(DatabaseResult.success(fetchedValue))
-                } catch {
-                    future = DatabaseFuture(DatabaseResult.failure(error))
-                }
-            } else {
-                // Concurrent fetch
-                future = writer.concurrentRead(reducer.fetch)
-            }
+            // Concurrently
+            guard let writer = writer else { return }
+            fetchedValue = writer.concurrentRead(reducer.fetch)
         }
         
-        // Wait for future fetched value in reduceQueue. This guarantees:
+        // 2. Reduce
+        //
+        // Wait for the future fetched value in reduceQueue. This guarantees:
         // - that notifications have the same ordering as transactions.
         // - that expensive reduce operations are computed without blocking
-        // any database dispatch queue.
-        reduceQueue.async { [weak self] in
-            guard let self = self else { return }
-            if self.isCancelled { return }
-            self.reduce(future: future)
-        }
-    }
-    
-    func reduce(future: DatabaseFuture<Reducer.Fetched>) {
-        do {
-            if let value = try reducer.value(future.wait()) {
-                if let queue = notificationQueue {
-                    queue.async { [weak self] in
-                        guard let self = self else { return }
-                        if self.isCancelled { return }
-                        self.onChange(value)
-                    }
-                } else {
-                    onChange(value)
+        //   any database dispatch queue.
+        reduceQueue.async {
+            if self.isCompleted { return }
+            do {
+                if let value = try self.reducer.value(fetchedValue.wait()) {
+                    self.notifyChange(value)
                 }
-            }
-        } catch {
-            if let queue = notificationQueue {
-                queue.async { [weak self] in
-                    guard let self = self else { return }
-                    if self.isCancelled { return }
-                    self.onError(error)
-                }
-            } else {
-                onError(error)
+            } catch {
+                self.notifyErrorAndComplete(error)
             }
         }
     }
@@ -156,25 +98,91 @@ class ValueObserver<Reducer: ValueReducer>: TransactionObserver {
     }
 }
 
-class ValueObserverToken<Reducer: ValueReducer>: TransactionObserver {
-    // Useless junk
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
-    func databaseDidChange(with event: DatabaseEvent) { }
-    func databaseDidCommit(_ db: Database) { }
-    func databaseDidRollback(_ db: Database) { }
-    
-    weak var writer: DatabaseWriter?
-    var observer: ValueObserver<Reducer>
-    
-    init(writer: DatabaseWriter, observer: ValueObserver<Reducer>) {
-        self.writer = writer
-        self.observer = observer
+// MARK: - Internal
+
+extension ValueObserver {
+    /// Fetch the initial observed value, and moves the reducer forward.
+    ///
+    /// This method must be called once, before the observer is added
+    /// to the database writer.
+    func fetchInitialValue(_ db: Database) throws -> Reducer.Value {
+        guard let value = try fetchValue(db) else {
+            fatalError("Contract broken: reducer has no initial value")
+        }
+        return value
     }
     
-    // The most ugly stuff ever
-    deinit {
-        observer.cancel()
-        // TODO: have it not wait for the writer queue
-        writer?.remove(transactionObserver: observer)
+    /// Fetch an observed value, and moves the reducer forward.
+    func fetchValue(_ db: Database) throws -> Reducer.Value? {
+        try recordingSelectedRegionIfNeeded(db) {
+            try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
+        }
+    }
+    
+    func cancel() {
+        synchronized {
+            // no harm if already completed
+            _isCompleted = true
+            writer?.remove(transactionObserver: self)
+        }
+    }
+    
+    func notifyChange(_ value: Reducer.Value) {
+        if isCompleted { return }
+        scheduler.schedule {
+            if self.isCompleted { return }
+            self.onChange(value)
+        }
+    }
+    
+    func notifyErrorAndComplete(_ error: Error) {
+        if isCompleted { return }
+        scheduler.schedule {
+            let shouldNotify: Bool = self.synchronized {
+                if self._isCompleted {
+                    return false
+                } else {
+                    self._isCompleted = true
+                    return true
+                }
+            }
+            if shouldNotify {
+                self.onError(error)
+            }
+        }
+    }
+}
+
+// MARK: - Private
+
+extension ValueObserver {
+    private func synchronized<T>(_ execute: () throws -> T) rethrows -> T {
+        lock.lock()
+        defer { lock.unlock() }
+        return try execute()
+    }
+    
+    private var needsRecordingSelectedRegion: Bool {
+        observedRegion == nil || !reducer.isSelectedRegionDeterministic
+    }
+    
+    private func recordingSelectedRegionIfNeeded<T>(
+        _ db: Database,
+        fetch: () throws -> T)
+        throws -> T
+    {
+        guard needsRecordingSelectedRegion else {
+            return try fetch()
+        }
+        
+        var region = DatabaseRegion()
+        let result = try db.recordingSelection(&region, fetch)
+        
+        // SQLite does not expose views and schema changes to the
+        // TransactionObserver protocol. By removing them from the observed
+        // region, we optimize our TransactionObserver conformance.
+        observedRegion = try region.ignoringViews(db).ignoringInternalSQLiteTables()
+        
+        return result
     }
 }

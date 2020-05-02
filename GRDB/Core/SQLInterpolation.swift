@@ -1,4 +1,3 @@
-#if swift(>=5.0)
 /// :nodoc:
 public struct SQLInterpolation: StringInterpolationProtocol {
     var elements: [SQLLiteral.Element]
@@ -23,4 +22,3 @@ public struct SQLInterpolation: StringInterpolationProtocol {
         elements.append(contentsOf: sqlLiteral.elements)
     }
 }
-#endif

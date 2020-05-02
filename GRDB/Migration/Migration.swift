@@ -1,20 +1,7 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 /// An internal struct that defines a migration.
 struct Migration {
     let identifier: String
     let migrate: (Database) throws -> Void
-    
-    init(identifier: String, migrate: @escaping (Database) throws -> Void) {
-        self.identifier = identifier
-        self.migrate = migrate
-    }
     
     func run(_ db: Database) throws {
         // PRAGMA foreign_key_check and SQLITE_CONSTRAINT_FOREIGNKEY were
@@ -26,7 +13,6 @@ struct Migration {
             try runWithoutDisabledForeignKeys(db)
         }
     }
-    
     
     private func runWithoutDisabledForeignKeys(_ db: Database) throws {
         try db.inTransaction(.immediate) {

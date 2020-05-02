@@ -1,11 +1,4 @@
 #if SQLITE_ENABLE_FTS5
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// The protocol for custom FTS5 tokenizers.
 public protocol FTS5CustomTokenizer: FTS5Tokenizer {
@@ -39,7 +32,7 @@ extension FTS5CustomTokenizer {
     ///         t.tokenizer = tokenizer
     ///     }
     public static func tokenizerDescriptor(arguments: [String] = []) -> FTS5TokenizerDescriptor {
-        return FTS5TokenizerDescriptor(components: [name] + arguments)
+        FTS5TokenizerDescriptor(components: [name] + arguments)
     }
 }
 

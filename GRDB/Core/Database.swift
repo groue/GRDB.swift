@@ -1,11 +1,4 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// A raw SQLite connection, suitable for the SQLite C API.
 public typealias SQLiteConnection = OpaquePointer
@@ -126,10 +119,10 @@ public final class Database {
     lazy var publicStatementCache = StatementCache(database: self)
     
     /// The last error code
-    public var lastErrorCode: ResultCode { return ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
+    public var lastErrorCode: ResultCode { ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
     
     /// The last error message
-    public var lastErrorMessage: String? { return String(cString: sqlite3_errmsg(sqliteConnection)) }
+    public var lastErrorMessage: String? { String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     /// Statement authorizer. Use withAuthorizer(_:_:).
     fileprivate var _authorizer: StatementAuthorizer?
@@ -220,9 +213,6 @@ public final class Database {
         
         #if SQLITE_HAS_CODEC
         try validateSQLCipher()
-        if let passphrase = configuration._passphrase {
-            try _usePassphrase(passphrase)
-        }
         #endif
         
         // Last step before we can start accessing the database.
@@ -311,7 +301,10 @@ public final class Database {
     }
     
     private func setupBusyMode() {
-        switch configuration.busyMode {
+        let busyMode = configuration.readonly
+            ? configuration.readonlyBusyMode ?? configuration.busyMode
+            : configuration.busyMode
+        switch busyMode {
         case .immediateError:
             break
             
@@ -426,48 +419,6 @@ public final class Database {
     }
     
     private static func closeConnection(_ sqliteConnection: SQLiteConnection) {
-        // sqlite3_close_v2 was added in SQLite 3.7.14 http://www.sqlite.org/changes.html#version_3_7_14
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        closeConnection_v2(sqliteConnection, sqlite3_close_v2)
-        #else
-        if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, *) {
-            closeConnection_v2(sqliteConnection, sqlite3_close_v2)
-        } else {
-            closeConnection_v1(sqliteConnection)
-        }
-        #endif
-    }
-    
-    private static func closeConnection_v1(_ sqliteConnection: SQLiteConnection) {
-        // https://www.sqlite.org/c3ref/close.html
-        // > If the database connection is associated with unfinalized prepared
-        // > statements or unfinished sqlite3_backup objects then
-        // > sqlite3_close() will leave the database connection open and
-        // > return SQLITE_BUSY.
-        let code = sqlite3_close(sqliteConnection)
-        if code != SQLITE_OK, let log = logError {
-            // A rare situation where GRDB doesn't fatalError on
-            // unprocessed errors.
-            let message = String(cString: sqlite3_errmsg(sqliteConnection))
-            log(ResultCode(rawValue: code), "could not close database: \(message)")
-            if code == SQLITE_BUSY {
-                // Let the user know about unfinalized statements that did
-                // prevent the connection from closing properly.
-                var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
-                while stmt != nil {
-                    log(ResultCode(rawValue: code), "unfinalized statement: \(String(cString: sqlite3_sql(stmt)))")
-                    stmt = sqlite3_next_stmt(sqliteConnection, stmt)
-                }
-            }
-        }
-    }
-    
-    private static func closeConnection_v2(
-        _ sqliteConnection: SQLiteConnection,
-        _ sqlite3_close_v2: @convention(c) (OpaquePointer?) -> Int32)
-    {
         // https://www.sqlite.org/c3ref/close.html
         // > If sqlite3_close_v2() is called with unfinalized prepared
         // > statements and/or unfinished sqlite3_backups, then the database
@@ -548,9 +499,6 @@ public final class Database {
     func beginReadOnly() throws {
         if configuration.readonly { return }
         if _readOnlyDepth == 0 {
-            // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-            // It is available from iOS 8.2 and OS X 10.10
-            // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
             try internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
         }
         _readOnlyDepth += 1
@@ -560,9 +508,6 @@ public final class Database {
         if configuration.readonly { return }
         _readOnlyDepth -= 1
         if _readOnlyDepth == 0 {
-            // PRAGMA query_only was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-            // It is available from iOS 8.2 and OS X 10.10
-            // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
             try internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute()
         }
     }
@@ -587,21 +532,25 @@ public final class Database {
     
     // MARK: - Recording of the selected region
     
-    func recordingSelectedRegion<T>(_ block: () throws -> T) rethrows -> (T, DatabaseRegion) {
-        SchedulingWatchdog.preconditionValidQueue(self)
+    func recordingSelection<T>(_ region: inout DatabaseRegion, _ block: () throws -> T) rethrows -> T {
+        if region.isFullDatabase {
+            return try block()
+        }
+        
         let oldFlag = self._isRecordingSelectedRegion
         let oldRegion = self._selectedRegion
-        self._isRecordingSelectedRegion = true
-        self._selectedRegion = DatabaseRegion()
+        _isRecordingSelectedRegion = true
+        _selectedRegion = DatabaseRegion()
         defer {
-            self._isRecordingSelectedRegion = oldFlag
-            if self._isRecordingSelectedRegion {
-                self._selectedRegion = oldRegion.union(self._selectedRegion)
+            region.formUnion(_selectedRegion)
+            _isRecordingSelectedRegion = oldFlag
+            if _isRecordingSelectedRegion {
+                _selectedRegion = oldRegion.union(_selectedRegion)
             } else {
-                self._selectedRegion = oldRegion
+                _selectedRegion = oldRegion
             }
         }
-        return try (block(), _selectedRegion)
+        return try block()
     }
     
     // MARK: - Checkpoints
@@ -1178,27 +1127,10 @@ extension Database {
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {
-        // Support for the deprecated method change(passphrase:).
-        // After it has been called, the passphrase used for opening the
-        // database must be ignored.
-        if configuration._passphrase != nil {
-            return
-        }
-        try _usePassphrase(passphrase)
-    }
-    
-    /// See usePassphrase(_:)
-    private func _usePassphrase(_ passphrase: String) throws {
         let data = passphrase.data(using: .utf8)!
-        #if swift(>=5.0)
         let code = data.withUnsafeBytes {
             sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
-        #else
-        let code = data.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0, Int32(data.count))
-        }
-        #endif
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
         }
@@ -1217,15 +1149,9 @@ extension Database {
         // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
         // swiftlint:disable:previous line_length
         let data = passphrase.data(using: .utf8)!
-        #if swift(>=5.0)
         let code = data.withUnsafeBytes {
             sqlite3_rekey(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
-        #else
-        let code = data.withUnsafeBytes {
-            sqlite3_rekey(sqliteConnection, $0, Int32(data.count))
-        }
-        #endif
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }

@@ -9,7 +9,6 @@ extension String {
         return String(first).uppercased() + dropFirst()
     }
     
-    #if compiler(>=5.0)
     // Prevent inlining of functions that use `Inflections.default`, in order to
     // make sure this global is lazily loaded, even in release builds.
     // See https://github.com/groue/GRDB.swift/issues/755#issuecomment-612418053
@@ -20,33 +19,20 @@ extension String {
     /// "players" -> "players"
     @inline(never)
     var pluralized: String {
-        return Inflections.default.pluralize(self)
+        Inflections.default.pluralize(self)
     }
     
     /// "player" -> "player"
     /// "players" -> "player"
     @inline(never)
     var singularized: String {
-        return Inflections.default.singularize(self)
+        Inflections.default.singularize(self)
     }
-    #else
-    /// "player" -> "players"
-    /// "players" -> "players"
-    var pluralized: String {
-        return Inflections.default.pluralize(self)
-    }
-    
-    /// "player" -> "player"
-    /// "players" -> "player"
-    var singularized: String {
-        return Inflections.default.singularize(self)
-    }
-    #endif
     
     /// "bar" -> "bar"
     /// "foo12" -> "foo"
     var digitlessRadical: String {
-        return String(prefix(upTo: Inflections.endIndexOfDigitlessRadical(self)))
+        String(prefix(upTo: Inflections.endIndexOfDigitlessRadical(self)))
     }
 }
 
@@ -60,7 +46,7 @@ public struct Inflections {
     
     // For testability
     var uncountables: Set<String> {
-        return Set(uncountablesRegularExpressions.keys)
+        Set(uncountablesRegularExpressions.keys)
     }
     
     // MARK: - Initialization
@@ -166,12 +152,12 @@ public struct Inflections {
     ///
     ///     Inflections.default.pluralize("player") // "players"
     public func pluralize(_ string: String) -> String {
-        return inflectString(string, with: pluralizeRules)
+        inflectString(string, with: pluralizeRules)
     }
     
     /// Returns a singularized string.
     public func singularize(_ string: String) -> String {
-        return inflectString(string, with: singularizeRules)
+        inflectString(string, with: singularizeRules)
     }
     
     // MARK: - Utils

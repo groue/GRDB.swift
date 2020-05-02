@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // Person has a RowID primary key, and a overriden insert() method.
 private class Person : Record {
@@ -32,11 +28,11 @@ private class Person : Record {
     // Record
     
     override static var databaseSelection: [SQLSelectable] {
-        return [AllColumns(), Column.rowID]
+        [AllColumns(), Column.rowID]
     }
     
     override class var databaseTableName: String {
-        return "persons"
+        "persons"
     }
     
     required init(row: Row) {
@@ -340,7 +336,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             do {
                 let cursor = try Person.fetchCursor(db, keys: [["rowid": record1.id], ["rowid": record2.id]])
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
@@ -369,7 +365,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             do {
                 let fetchedRecords = try Person.fetchAll(db, keys: [["rowid": record1.id], ["rowid": record2.id]])
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
             }
             
             do {
@@ -414,7 +410,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             do {
                 let cursor = try Person.filter(keys: [["rowid": record1.id], ["rowid": record2.id]]).fetchCursor(db)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
             
@@ -443,7 +439,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             do {
                 let fetchedRecords = try Person.filter(keys: [["rowid": record1.id], ["rowid": record2.id]]).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set([record1.id, record2.id]))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
             }
             
             do {
@@ -476,8 +472,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Person.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT *, \"rowid\" FROM \"persons\" ORDER BY \"rowid\"")
+            try assertEqualSQL(db, request, "SELECT *, \"rowid\" FROM \"persons\" ORDER BY \"rowid\"")
         }
     }
     
@@ -502,7 +497,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let cursor = try Person.fetchCursor(db, keys: ids)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -526,7 +521,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let fetchedRecords = try Person.fetchAll(db, keys: ids)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }
@@ -575,7 +570,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let cursor = try Person.filter(keys: ids).fetchCursor(db)
                 let fetchedRecords = try [cursor.next()!, cursor.next()!]
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
         }
@@ -599,7 +594,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                 let ids = [record1.id!, record2.id!]
                 let fetchedRecords = try Person.filter(keys: ids).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
-                XCTAssertEqual(Set(fetchedRecords.map { $0.id }), Set(ids))
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
         }
     }

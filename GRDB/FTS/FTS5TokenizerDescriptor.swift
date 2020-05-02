@@ -23,12 +23,10 @@ public struct FTS5TokenizerDescriptor {
     ///
     ///     // "unicode61"
     ///     FTS5TokenizerDescriptor.unicode61(removeDiacritics: false)).name
-    var name: String {
-        return components[0]
-    }
+    var name: String { components[0] }
     
     var arguments: [String] {
-        return Array(components.suffix(from: 1))
+        Array(components.suffix(from: 1))
     }
     
     /// Creates an FTS5 tokenizer descriptor.
@@ -61,14 +59,17 @@ public struct FTS5TokenizerDescriptor {
         if separators.isEmpty {
             components = ["ascii"]
         } else {
-            components = [
-                "ascii",
-                "separators",
-                separators
-                    .map { String($0) }
-                    .joined()
-                    .sqlExpression
-                    .quotedSQL()]
+            components = DatabaseQueue().inDatabase { db in
+                // Assume quoting a string never fails
+                try! [
+                    "ascii",
+                    "separators",
+                    separators
+                        .map { String($0) }
+                        .joined()
+                        .sqlExpression
+                        .quotedSQL(db)]
+            }
         }
         return FTS5TokenizerDescriptor(components: components)
     }
@@ -128,29 +129,37 @@ public struct FTS5TokenizerDescriptor {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            components.append(contentsOf: [
-                "separators",
-                separators
-                    .sorted()
-                    .map { String($0) }
-                    .joined()
-                    .sqlExpression
-                    .quotedSQL()
-                ])
+            let separatorComponents = DatabaseQueue().inDatabase { db in
+                // Assume quoting a string never fails
+                try! [
+                    "separators",
+                    separators
+                        .sorted()
+                        .map { String($0) }
+                        .joined()
+                        .sqlExpression
+                        .quotedSQL(db)
+                ]
+            }
+            components.append(contentsOf: separatorComponents)
         }
         if !tokenCharacters.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            components.append(contentsOf: [
-                "tokenchars",
-                tokenCharacters
-                    .sorted()
-                    .map { String($0) }
-                    .joined()
-                    .sqlExpression
-                    .quotedSQL()
-                ])
+            let tokenCharactersComponents = DatabaseQueue().inDatabase { db in
+                // Assume quoting a string never fails
+                try! [
+                    "tokenchars",
+                    tokenCharacters
+                        .sorted()
+                        .map { String($0) }
+                        .joined()
+                        .sqlExpression
+                        .quotedSQL(db)
+                ]
+            }
+            components.append(contentsOf: tokenCharactersComponents)
         }
         return FTS5TokenizerDescriptor(components: components)
     }

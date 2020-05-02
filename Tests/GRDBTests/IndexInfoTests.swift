@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class IndexInfoTests: GRDBTestCase {
     
@@ -61,7 +57,7 @@ class IndexInfoTests: GRDBTestCase {
             try XCTAssertTrue(db.table("persons", hasUniqueKey: ["email"]))
             try XCTAssertFalse(db.table("persons", hasUniqueKey: []))
             try XCTAssertFalse(db.table("persons", hasUniqueKey: ["name"]))
-            try XCTAssertFalse(db.table("persons", hasUniqueKey: ["id", "email"])) // TODO: is it expected?
+            try XCTAssertTrue(db.table("persons", hasUniqueKey: ["id", "email"]))
             
             try db.execute(sql: "CREATE TABLE citizenships (year INTEGER, personId INTEGER NOT NULL, countryIsoCode TEXT NOT NULL, PRIMARY KEY (personId, countryIsoCode))")
             try db.execute(sql: "CREATE INDEX citizenshipsOnYear ON citizenships(year)")

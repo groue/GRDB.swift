@@ -1,11 +1,3 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 // MARK: - Value Types
 
 /// Bool adopts DatabaseValueConvertible and StatementColumnConvertible.
@@ -23,7 +15,7 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return (self ? 1 : 0).databaseValue
+        (self ? 1 : 0).databaseValue
     }
     
     /// Returns a Bool initialized from *dbValue*, if possible.
@@ -115,12 +107,12 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an Int initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { Int(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { Int(exactly: $0) }
     }
 }
 
@@ -144,12 +136,12 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an Int8 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int8? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { Int8(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { Int8(exactly: $0) }
     }
 }
 
@@ -173,12 +165,12 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an Int16 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int16? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { Int16(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { Int16(exactly: $0) }
     }
 }
 
@@ -202,12 +194,12 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an Int32 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int32? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { Int32(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { Int32(exactly: $0) }
     }
 }
 
@@ -226,7 +218,7 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(storage: .int64(self))
+        DatabaseValue(storage: .int64(self))
     }
     
     /// Returns an Int64 initialized from *dbValue*, if possible.
@@ -264,12 +256,12 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an Int initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { UInt(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { UInt(exactly: $0) }
     }
 }
 
@@ -293,12 +285,12 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an UInt8 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt8? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { UInt8(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { UInt8(exactly: $0) }
     }
 }
 
@@ -322,12 +314,12 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an UInt16 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt16? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { UInt16(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { UInt16(exactly: $0) }
     }
 }
 
@@ -351,12 +343,12 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an UInt32 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt32? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { UInt32(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { UInt32(exactly: $0) }
     }
 }
 
@@ -380,12 +372,12 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Int64(self).databaseValue
+        Int64(self).databaseValue
     }
     
     /// Returns an UInt64 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt64? {
-        return Int64.fromDatabaseValue(dbValue).flatMap { UInt64(exactly: $0) }
+        Int64.fromDatabaseValue(dbValue).flatMap { UInt64(exactly: $0) }
     }
 }
 
@@ -404,7 +396,7 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(storage: .double(self))
+        DatabaseValue(storage: .double(self))
     }
     
     /// Returns a Double initialized from *dbValue*, if possible.
@@ -435,7 +427,7 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return Double(self).databaseValue
+        Double(self).databaseValue
     }
     
     /// Returns a Float initialized from *dbValue*, if possible.
@@ -466,7 +458,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return DatabaseValue(storage: .string(self))
+        DatabaseValue(storage: .string(self))
     }
     
     /// Returns a String initialized from *dbValue*, if possible.

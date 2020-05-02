@@ -13,6 +13,10 @@ def info_plist_version(path)
     .text
 end
 
+def git_tag_version(path)
+  `git -C #{path} tag --points-at HEAD`.chop.gsub(/^v?/, '')
+end
+
 def formatted_sample(samples, test, lib)
   sample = samples["#{test}Tests"]["test#{lib}"]
   return '¹' unless sample # n/a
@@ -24,12 +28,39 @@ def formatted_samples(samples, test)
   libs.map { |lib| formatted_sample(samples, test, lib) || '¹' }
 end
 
+# Parse input
 samples = JSON.parse(STDIN.read)
-grdb_version = info_plist_version('Support/Info.plist')
-fmdb_version = info_plist_version('Tests/Performance/fmdb/src/fmdb/Info.plist')
-sqlite_swift_version = info_plist_version('Tests/Performance/SQLite.swift/Sources/SQLite/Info.plist')
-realm_version = info_plist_version('Tests/Performance/Realm/build/osx/Realm.framework/Versions/A/Resources/Info.plist')
 
+# Now that we have samples, we are reasonably sure that we 
+# have checkouts for all dependencies.
+
+# BUILD_ROOT
+exit 1 unless `xcodebuild -showBuildSettings -project Tests/Performance/GRDBPerformance/GRDBPerformance.xcodeproj -target GRDBOSXPerformanceComparisonTests -disableAutomaticPackageResolution` =~ /BUILD_ROOT = (.*)$/
+BUILD_ROOT = $1
+
+# DERIVED_DATA
+tmp = BUILD_ROOT
+while !File.exists?(File.join(tmp, 'SourcePackages'))
+  parent = File.dirname(tmp)
+  exit 1 if tmp == parent
+  tmp = parent
+end
+DERIVED_DATA = tmp
+
+# SPM_CHECKOUTS
+SPM_CHECKOUTS = File.join(DERIVED_DATA, 'SourcePackages', 'checkouts')
+
+# Extract versions
+grdb_version = info_plist_version('Support/Info.plist')
+fmdb_version = info_plist_version("#{SPM_CHECKOUTS}/fmdb/src/fmdb/Info.plist")
+sqlite_swift_version = git_tag_version("#{SPM_CHECKOUTS}/SQLite.swift")
+realm_version = git_tag_version("#{SPM_CHECKOUTS}/realm-cocoa")
+STDERR.puts "GRDB #{grdb_version}"
+STDERR.puts "FMDB #{fmdb_version}"
+STDERR.puts "SQLite.swift #{sqlite_swift_version}"
+STDERR.puts "Realm #{realm_version}"
+
+# Generate
 puts <<-REPORT
 # Comparing the Performances of Swift SQLite libraries
 

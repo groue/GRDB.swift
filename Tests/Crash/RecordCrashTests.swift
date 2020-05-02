@@ -1,27 +1,23 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private class RecordWithoutDatabaseTableName: Record { }
 
 private class RecordWithInexistingDatabaseTable: Record {
     override class var databaseTableName: String {
-        return "foo"
+        "foo"
     }
 }
 
 private class RecordWithEmptyPersistentDictionary : Record {
     override class var databaseTableName: String {
-        return "records"
+        "records"
     }
 }
 
 private class RecordWithNilPrimaryKey : Record {
     override class var databaseTableName: String {
-        return "records"
+        "records"
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -31,7 +27,7 @@ private class RecordWithNilPrimaryKey : Record {
 
 private class RecordForTableWithoutPrimaryKey : Record {
     override class var databaseTableName: String {
-        return "records"
+        "records"
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -41,7 +37,7 @@ private class RecordForTableWithoutPrimaryKey : Record {
 
 private class RecordForTableWithMultipleColumnsPrimaryKey : Record {
     override class var databaseTableName: String {
-        return "records"
+        "records"
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -51,7 +47,7 @@ private class RecordForTableWithMultipleColumnsPrimaryKey : Record {
 
 private class RecordWithRowIDPrimaryKeyNotExposedInPersistentDictionary : Record {
     override class var databaseTableName: String {
-        return "records"
+        "records"
     }
     
     override func encode(to container: inout PersistenceContainer) {

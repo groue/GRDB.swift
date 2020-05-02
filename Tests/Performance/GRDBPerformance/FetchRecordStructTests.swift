@@ -1,5 +1,4 @@
 import XCTest
-import SQLite3
 import GRDB
 #if GRDB_COMPARE
 import SQLite
@@ -20,16 +19,16 @@ class FetchRecordStructTests: XCTestCase {
             sqlite3_prepare_v2(connection, "SELECT * FROM items", -1, &statement, nil)
             
             let columnNames = (Int32(0)..<10).map { String(cString: sqlite3_column_name(statement, $0)) }
-            let index0 = Int32(columnNames.index(of: "i0")!)
-            let index1 = Int32(columnNames.index(of: "i1")!)
-            let index2 = Int32(columnNames.index(of: "i2")!)
-            let index3 = Int32(columnNames.index(of: "i3")!)
-            let index4 = Int32(columnNames.index(of: "i4")!)
-            let index5 = Int32(columnNames.index(of: "i5")!)
-            let index6 = Int32(columnNames.index(of: "i6")!)
-            let index7 = Int32(columnNames.index(of: "i7")!)
-            let index8 = Int32(columnNames.index(of: "i8")!)
-            let index9 = Int32(columnNames.index(of: "i9")!)
+            let index0 = Int32(columnNames.firstIndex(of: "i0")!)
+            let index1 = Int32(columnNames.firstIndex(of: "i1")!)
+            let index2 = Int32(columnNames.firstIndex(of: "i2")!)
+            let index3 = Int32(columnNames.firstIndex(of: "i3")!)
+            let index4 = Int32(columnNames.firstIndex(of: "i4")!)
+            let index5 = Int32(columnNames.firstIndex(of: "i5")!)
+            let index6 = Int32(columnNames.firstIndex(of: "i6")!)
+            let index7 = Int32(columnNames.firstIndex(of: "i7")!)
+            let index8 = Int32(columnNames.firstIndex(of: "i8")!)
+            let index9 = Int32(columnNames.firstIndex(of: "i9")!)
             
             var items = [ItemStruct]()
             loop: while true {

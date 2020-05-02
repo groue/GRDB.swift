@@ -2,7 +2,6 @@ extension Database {
     
     // MARK: - Database Schema
     
-    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates a database table.
     ///
     ///     try db.create(table: "place") { t in
@@ -42,88 +41,6 @@ extension Database {
         let sql = try definition.sql(self)
         try execute(sql: sql)
     }
-    #else
-    /// Creates a database table.
-    ///
-    ///     try db.create(table: "place") { t in
-    ///         t.autoIncrementedPrimaryKey("id")
-    ///         t.column("title", .text)
-    ///         t.column("favorite", .boolean).notNull().default(false)
-    ///         t.column("longitude", .double).notNull()
-    ///         t.column("latitude", .double).notNull()
-    ///     }
-    ///
-    /// See https://www.sqlite.org/lang_createtable.html and
-    /// https://www.sqlite.org/withoutrowid.html
-    ///
-    /// - parameters:
-    ///     - name: The table name.
-    ///     - temporary: If true, creates a temporary table.
-    ///     - ifNotExists: If false (the default), an error is thrown if the
-    ///       table already exists. Otherwise, the table is created unless it
-    ///       already exists.
-    ///     - withoutRowID: If true, uses WITHOUT ROWID optimization.
-    ///     - body: A closure that defines table columns and constraints.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    @available(OSX 10.10, *)
-    public func create(
-        table name: String,
-        temporary: Bool = false,
-        ifNotExists: Bool = false,
-        withoutRowID: Bool,
-        body: (TableDefinition) -> Void)
-        throws
-    {
-        // WITHOUT ROWID was added in SQLite 3.8.2 http://www.sqlite.org/changes.html#version_3_8_2
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = TableDefinition(
-            name: name,
-            temporary: temporary,
-            ifNotExists: ifNotExists,
-            withoutRowID: withoutRowID)
-        body(definition)
-        let sql = try definition.sql(self)
-        try execute(sql: sql)
-    }
-    
-    /// Creates a database table.
-    ///
-    ///     try db.create(table: "place") { t in
-    ///         t.autoIncrementedPrimaryKey("id")
-    ///         t.column("title", .text)
-    ///         t.column("favorite", .boolean).notNull().default(false)
-    ///         t.column("longitude", .double).notNull()
-    ///         t.column("latitude", .double).notNull()
-    ///     }
-    ///
-    /// See https://www.sqlite.org/lang_createtable.html
-    ///
-    /// - parameters:
-    ///     - name: The table name.
-    ///     - temporary: If true, creates a temporary table.
-    ///     - ifNotExists: If false (the default), an error is thrown if the
-    ///       table already exists. Otherwise, the table is created unless it
-    ///       already exists.
-    ///     - body: A closure that defines table columns and constraints.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func create(
-        table name: String,
-        temporary: Bool = false,
-        ifNotExists: Bool = false,
-        body: (TableDefinition) -> Void)
-        throws
-    {
-        let definition = TableDefinition(
-            name: name,
-            temporary: temporary,
-            ifNotExists: ifNotExists,
-            withoutRowID: false)
-        body(definition)
-        let sql = try definition.sql(self)
-        try execute(sql: sql)
-    }
-    #endif
     
     /// Renames a database table.
     ///
@@ -162,7 +79,6 @@ extension Database {
         try execute(sql: "DROP TABLE \(name.quotedDatabaseIdentifier)")
     }
     
-    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates an index.
     ///
     ///     try db.create(index: "playerByEmail", on: "player", columns: ["email"])
@@ -192,9 +108,6 @@ extension Database {
         condition: SQLExpressible? = nil)
         throws
     {
-        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         let definition = IndexDefinition(
             name: name,
             table: table,
@@ -202,88 +115,9 @@ extension Database {
             unique: unique,
             ifNotExists: ifNotExists,
             condition: condition?.sqlExpression)
-        let sql = definition.sql()
+        let sql = try definition.sql(self)
         try execute(sql: sql)
     }
-    #else
-    /// Creates an index.
-    ///
-    ///     try db.create(index: "playerByEmail", on: "player", columns: ["email"])
-    ///
-    /// SQLite can also index expressions (https://www.sqlite.org/expridx.html)
-    /// and use specific collations. To create such an index, use a raw SQL
-    /// query.
-    ///
-    ///     try db.execute(sql: "CREATE INDEX ...")
-    ///
-    /// See https://www.sqlite.org/lang_createindex.html
-    ///
-    /// - parameters:
-    ///     - name: The index name.
-    ///     - table: The name of the indexed table.
-    ///     - columns: The indexed columns.
-    ///     - unique: If true, creates a unique index.
-    ///     - ifNotExists: If false, no error is thrown if index already exists.
-    public func create(
-        index name: String,
-        on table: String,
-        columns: [String],
-        unique: Bool = false,
-        ifNotExists: Bool = false)
-        throws
-    {
-        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = IndexDefinition(
-            name: name,
-            table: table,
-            columns: columns,
-            unique: unique,
-            ifNotExists: ifNotExists,
-            condition: nil)
-        let sql = definition.sql()
-        try execute(sql: sql)
-    }
-    
-    /// Creates a partial index.
-    ///
-    ///     try db.create(index: "playerByEmail", on: "player", columns: ["email"], condition: Column("email") != nil)
-    ///
-    /// See https://www.sqlite.org/lang_createindex.html, and
-    /// https://www.sqlite.org/partialindex.html
-    ///
-    /// - parameters:
-    ///     - name: The index name.
-    ///     - table: The name of the indexed table.
-    ///     - columns: The indexed columns.
-    ///     - unique: If true, creates a unique index.
-    ///     - ifNotExists: If false, no error is thrown if index already exists.
-    ///     - condition: The condition that indexed rows must verify.
-    @available(OSX 10.10, *)
-    public func create(
-        index name: String,
-        on table: String,
-        columns: [String],
-        unique: Bool = false,
-        ifNotExists: Bool = false,
-        condition: SQLExpressible)
-        throws
-    {
-        // Partial indexes were introduced in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        let definition = IndexDefinition(
-            name: name,
-            table: table,
-            columns: columns,
-            unique: unique,
-            ifNotExists: ifNotExists,
-            condition: condition.sqlExpression)
-        let sql = definition.sql()
-        try execute(sql: sql)
-    }
-    #endif
     
     /// Deletes a database index.
     ///
@@ -393,7 +227,7 @@ public final class TableDefinition {
         onConflict conflictResolution: Database.ConflictResolution? = nil)
         -> ColumnDefinition
     {
-        return column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
+        column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
     }
     
     /// Appends a table column.
@@ -563,7 +397,7 @@ public final class TableDefinition {
                 if let (columns, conflictResolution) = primaryKeyConstraint {
                     var chunks: [String] = []
                     chunks.append("PRIMARY KEY")
-                    chunks.append("(\(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
+                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
                     if let conflictResolution = conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
@@ -574,7 +408,7 @@ public final class TableDefinition {
                 for (columns, conflictResolution) in uniqueKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("UNIQUE")
-                    chunks.append("(\(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
+                    chunks.append("(\(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
                     if let conflictResolution = conflictResolution {
                         chunks.append("ON CONFLICT")
                         chunks.append(conflictResolution.rawValue)
@@ -585,25 +419,25 @@ public final class TableDefinition {
                 for constraint in foreignKeyConstraints {
                     var chunks: [String] = []
                     chunks.append("FOREIGN KEY")
-                    chunks.append("(\(constraint.columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")))")
+                    chunks.append("(\(constraint.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")))")
                     chunks.append("REFERENCES")
                     if let destinationColumns = constraint.destinationColumns {
                         chunks.append("""
                             \(constraint.table.quotedDatabaseIdentifier)(\
-                            \(destinationColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            \(destinationColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                             )
                             """)
                     } else if constraint.table == name {
                         chunks.append("""
                             \(constraint.table.quotedDatabaseIdentifier)(\
-                            \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            \(primaryKeyColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                             )
                             """)
                     } else {
                         let primaryKey = try db.primaryKey(constraint.table)
                         chunks.append("""
                             \(constraint.table.quotedDatabaseIdentifier)(\
-                            \(primaryKey.columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                            \(primaryKey.columns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                             )
                             """)
                     }
@@ -623,7 +457,7 @@ public final class TableDefinition {
                 
                 for checkExpression in checkConstraints {
                     var chunks: [String] = []
-                    chunks.append("CHECK (\(checkExpression.quotedSQL()))")
+                    try chunks.append("CHECK (\(checkExpression.quotedSQL(db)))")
                     items.append(chunks.joined(separator: " "))
                 }
                 
@@ -636,9 +470,9 @@ public final class TableDefinition {
             statements.append(chunks.joined(separator: " "))
         }
         
-        let indexStatements = columns
+        let indexStatements = try columns
             .compactMap { $0.indexDefinition(in: name) }
-            .map { $0.sql() }
+            .map { try $0.sql(db) }
         statements.append(contentsOf: indexStatements)
         return statements.joined(separator: "; ")
     }
@@ -656,12 +490,12 @@ public final class TableDefinition {
 /// See https://www.sqlite.org/lang_altertable.html
 public final class TableAlteration {
     private let name: String
-
+    
     private enum TableAlterationKind {
         case add(ColumnDefinition)
         case rename(old: String, new: String)
     }
-
+    
     private var alterations: [TableAlterationKind] = []
     
     init(name: String) {
@@ -686,7 +520,7 @@ public final class TableAlteration {
         alterations.append(.add(column))
         return column
     }
-
+    
     #if GRDBCUSTOMSQLITE || GRDBCipher
     /// Renames a column in a table.
     ///
@@ -717,14 +551,14 @@ public final class TableAlteration {
         _rename(column: name, to: newName)
     }
     #endif
-
+    
     private func _rename(column name: String, to newName: String) {
         alterations.append(.rename(old: name, new: newName))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
-
+        
         for alteration in alterations {
             switch alteration {
             case let .add(column):
@@ -735,9 +569,9 @@ public final class TableAlteration {
                 try chunks.append(column.sql(db, tableName: name, primaryKeyColumns: nil))
                 let statement = chunks.joined(separator: " ")
                 statements.append(statement)
-
+                
                 if let indexDefinition = column.indexDefinition(in: name) {
-                    statements.append(indexDefinition.sql())
+                    try statements.append(indexDefinition.sql(db))
                 }
             case let .rename(oldName, newName):
                 var chunks: [String] = []
@@ -751,7 +585,7 @@ public final class TableAlteration {
                 statements.append(statement)
             }
         }
-
+        
         return statements.joined(separator: "; ")
     }
 }
@@ -784,7 +618,7 @@ public final class ColumnDefinition {
         var updateAction: Database.ForeignKeyAction?
         var deferred: Bool
     }
-
+    
     fileprivate let name: String
     private let type: Database.ColumnType?
     fileprivate var primaryKey: (conflictResolution: Database.ConflictResolution?, autoincrement: Bool)?
@@ -1050,11 +884,11 @@ public final class ColumnDefinition {
         }
         
         for checkConstraint in checkConstraints {
-            chunks.append("CHECK (\(checkConstraint.quotedSQL()))")
+            try chunks.append("CHECK (\(checkConstraint.quotedSQL(db)))")
         }
         
         if let defaultExpression = defaultExpression {
-            chunks.append("DEFAULT \(defaultExpression.quotedSQL())")
+            try chunks.append("DEFAULT \(defaultExpression.quotedSQL(db))")
         }
         
         if let collationName = collationName {
@@ -1072,7 +906,7 @@ public final class ColumnDefinition {
                 let primaryKeyColumns = try primaryKeyColumns ?? db.primaryKey(constraint.table).columns
                 chunks.append("""
                     \(constraint.table.quotedDatabaseIdentifier)(\
-                    \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                    \(primaryKeyColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                     )
                     """)
             } else {
@@ -1080,7 +914,7 @@ public final class ColumnDefinition {
                 let primaryKeyColumns = try db.primaryKey(constraint.table).columns
                 chunks.append("""
                     \(constraint.table.quotedDatabaseIdentifier)(\
-                    \(primaryKeyColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+                    \(primaryKeyColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
                     )
                     """)
             }
@@ -1124,7 +958,7 @@ private struct IndexDefinition {
     let ifNotExists: Bool
     let condition: SQLExpression?
     
-    func sql() -> String {
+    func sql(_ db: Database) throws -> String {
         var chunks: [String] = []
         chunks.append("CREATE")
         if unique {
@@ -1138,11 +972,11 @@ private struct IndexDefinition {
         chunks.append("ON")
         chunks.append("""
             \(table.quotedDatabaseIdentifier)(\
-            \(columns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", "))\
+            \(columns.map(\.quotedDatabaseIdentifier).joined(separator: ", "))\
             )
             """)
         if let condition = condition {
-            chunks.append("WHERE \(condition.quotedSQL())")
+            try chunks.append("WHERE \(condition.quotedSQL(db))")
         }
         return chunks.joined(separator: " ")
     }

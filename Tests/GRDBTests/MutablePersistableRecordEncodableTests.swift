@@ -1,10 +1,6 @@
 import XCTest
 import Foundation
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class MutablePersistableRecordEncodableTests: GRDBTestCase { }
 
@@ -293,7 +289,7 @@ extension MutablePersistableRecordEncodableTests {
             // DatabaseValueConvertible adoption
             
             var databaseValue: DatabaseValue {
-                return (string + " (DatabaseValueConvertible)").databaseValue
+                (string + " (DatabaseValueConvertible)").databaseValue
             }
             
             static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {

@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 private struct Person : FetchableRecord, TableRecord {
     static let databaseTableName = "persons"

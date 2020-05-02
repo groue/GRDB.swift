@@ -47,13 +47,13 @@ import GRDB
 //: Everything starts from our class hierarchy:
 
 class Base {
-    var description: String { return "Base" }
+    var description: String { "Base" }
     init() { }
 }
 
 class Foo: Base {
     var name: String
-    override var description: String { return "Foo: \(name)" }
+    override var description: String { "Foo: \(name)" }
     init(name: String) {
         self.name = name
         super.init()
@@ -62,7 +62,7 @@ class Foo: Base {
 
 class Bar: Base {
     var score: Int
-    override var description: String { return "Bar: \(score)" }
+    override var description: String { "Bar: \(score)" }
     init(score: Int) {
         self.score = score
         super.init()
@@ -302,15 +302,15 @@ extension FetchRequest where RowDecoder: MyDatabaseDecoder {
     // MARK: - FetchRequest fetching methods
     
     func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, RowDecoder.DecodedType> {
-        return try RowDecoder.fetchCursor(db, self)
+        try RowDecoder.fetchCursor(db, self)
     }
     
     func fetchAll(_ db: Database) throws -> [RowDecoder.DecodedType] {
-        return try RowDecoder.fetchAll(db, self)
+        try RowDecoder.fetchAll(db, self)
     }
     
     func fetchOne(_ db: Database) throws -> RowDecoder.DecodedType? {
-        return try RowDecoder.fetchOne(db, self)
+        try RowDecoder.fetchOne(db, self)
     }
 }
 
@@ -335,15 +335,15 @@ extension MyDatabaseDecoder where Self: TableRecord {
     // MARK: - Static fetching methods
     
     static func fetchCursor(_ db: Database) throws -> MapCursor<RowCursor, DecodedType> {
-        return try all().fetchCursor(db)
+        try all().fetchCursor(db)
     }
     
     static func fetchAll(_ db: Database) throws -> [DecodedType] {
-        return try all().fetchAll(db)
+        try all().fetchAll(db)
     }
     
     static func fetchOne(_ db: Database) throws -> DecodedType? {
-        return try all().fetchOne(db)
+        try all().fetchOne(db)
     }
 }
 
@@ -366,15 +366,15 @@ extension MyDatabaseDecoder {
     // MARK: - Fetch from SQL
     
     static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        return try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        return try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DecodedType? {
-        return try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

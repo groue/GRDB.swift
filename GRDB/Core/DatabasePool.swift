@@ -1,12 +1,5 @@
 import Foundation
 import Dispatch
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 #if os(iOS)
 import UIKit
 #endif
@@ -15,9 +8,6 @@ import UIKit
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerPool: Pool<SerializedDatabase>!
-    // TODO: remove when the deprecated change(passphrase:) method turns unavailable.
-    private var readerConfiguration: Configuration
-    
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
@@ -26,13 +16,14 @@ public final class DatabasePool: DatabaseWriter {
     
     // MARK: - Database Information
     
-    /// The path to the database.
-    public var path: String {
-        return writer.path
+    /// The database configuration
+    public var configuration: Configuration {
+        writer.configuration
     }
     
-    public var configuration: Configuration {
-        return writer.configuration
+    /// The path to the database.
+    public var path: String {
+        writer.path
     }
     
     // MARK: - Initializer
@@ -59,7 +50,7 @@ public final class DatabasePool: DatabaseWriter {
             purpose: "writer")
         
         // Readers
-        readerConfiguration = configuration
+        var readerConfiguration = configuration
         readerConfiguration.readonly = true
         
         // Readers use deferred transactions by default.
@@ -89,14 +80,16 @@ public final class DatabasePool: DatabaseWriter {
         // setup a busy handler for pool readers, in order to workaround those
         // "obscure cases" that may happen when the database is shared between
         // multiple processes.
-        readerConfiguration.busyMode = .timeout(10)
+        if readerConfiguration.readonlyBusyMode == nil {
+            readerConfiguration.readonlyBusyMode = .timeout(10)
+        }
         
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
             readerCount += 1 // protected by pool (TODO: documented this protection behavior)
             let reader = try SerializedDatabase(
                 path: path,
-                configuration: self.readerConfiguration,
+                configuration: readerConfiguration,
                 schemaCache: DatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
@@ -138,16 +131,20 @@ public final class DatabasePool: DatabaseWriter {
         // Be a nice iOS citizen, and don't consume too much memory
         // See https://github.com/groue/GRDB.swift/#memory-management
         #if os(iOS)
-        setupAutomaticMemoryManagement()
+        setupMemoryManagement()
         #endif
     }
     
     deinit {
-        // Undo job done in setupAutomaticMemoryManagement()
+        // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
         // Explicit unregistration is required before iOS 9 and OS X 10.11.
         NotificationCenter.default.removeObserver(self)
+        
+        // Close reader connections before the writer connection.
+        // Context: https://github.com/groue/GRDB.swift/issues/739
+        readerPool = nil
     }
     
     private func setupDatabase(_ db: Database) {
@@ -205,14 +202,7 @@ extension DatabasePool {
         }
     }
     
-    
     #if os(iOS)
-    // swiftlint:disable:next line_length
-    @available(*, deprecated, message: "Memory management is now enabled by default. This deprecated method does nothing.")
-    public func setupMemoryManagement(in application: UIApplication) {
-        // No op.
-    }
-    
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
@@ -220,7 +210,7 @@ extension DatabasePool {
     /// - param application: The UIApplication that will start a background
     ///   task to let the database pool release its memory when the application
     ///   enters background.
-    private func setupAutomaticMemoryManagement() {
+    private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
             self,
@@ -261,23 +251,6 @@ extension DatabasePool {
     }
     #endif
 }
-
-#if SQLITE_HAS_CODEC
-extension DatabasePool {
-    
-    // MARK: - Encryption
-    
-    /// Changes the passphrase of an encrypted database
-    @available(*, deprecated, message: "Use Database.changePassphrase(_:) instead")
-    public func change(passphrase: String) throws {
-        try readerPool.barrier {
-            try writer.sync { try $0.changePassphrase(passphrase) }
-            readerPool.removeAll()
-            readerConfiguration._passphrase = passphrase
-        }
-    }
-}
-#endif
 
 extension DatabasePool: DatabaseReader {
     
@@ -381,21 +354,19 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
-    ///     let players = try dbQueue.asyncRead { result in
+    ///     let players = try dbQueue.asyncRead { dbResult in
     ///         do {
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             let count = try Player.fetchCount(db)
     ///         } catch {
     ///             // Handle error
     ///         }
     ///     }
     ///
-    /// Starting SQLite 3.8.0 (iOS 8.2+, OSX 10.10+, custom SQLite builds and
-    /// SQLCipher), attempts to write in the database from this method throw a
-    /// DatabaseError of resultCode `SQLITE_READONLY`.
+    /// Attempts to write in the database from this method throw a DatabaseError
+    /// of resultCode `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
@@ -430,7 +401,50 @@ extension DatabasePool: DatabaseReader {
                 }
         }
     }
-    #endif
+    
+    /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        // First async jump in order to grab a reader connection.
+        // Honor configuration dispatching (qos/targetQueue).
+        configuration
+            .makeDispatchQueue(defaultLabel: "GRDB.DatabasePool", purpose: "asyncRead")
+            .async { [weak self] in
+                guard let self = self else {
+                    block(nil)
+                    return
+                }
+                
+                do {
+                    let (reader, releaseReader) = try self.readerPool.get()
+                    
+                    // Second async jump because sync could deadlock if
+                    // configuration has a serial targetQueue.
+                    reader.weakAsync { db in
+                        guard let db = db else {
+                            block(nil)
+                            return
+                        }
+                        
+                        defer {
+                            try? db.commit() // Ignore commit error
+                            releaseReader()
+                        }
+                        do {
+                            // The block isolation comes from the DEFERRED transaction.
+                            try db.beginTransaction(.deferred)
+                            
+                            // Reset the schema cache before running user code in snapshot isolation
+                            db.clearSchemaCache()
+                            block(.success(db))
+                        } catch {
+                            block(.failure(error))
+                        }
+                    }
+                } catch {
+                    block(.failure(error))
+                }
+        }
+    }
     
     /// Synchronously executes a read-only block in a protected dispatch queue,
     /// and returns its result.
@@ -513,66 +527,13 @@ extension DatabasePool: DatabaseReader {
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // The semaphore that blocks until futureResult is defined:
         let futureSemaphore = DispatchSemaphore(value: 0)
-        var futureResult: DatabaseResult<T>? = nil
+        var futureResult: Result<T, Error>? = nil
         
-        #if compiler(>=5.0)
-        asyncConcurrentRead { db in
+        asyncConcurrentRead { dbResult in
             // Fetch and release the future
-            futureResult = DatabaseResult { try block(db.get()) }
+            futureResult = dbResult.flatMap { db in Result { try block(db) } }
             futureSemaphore.signal()
         }
-        #else
-        // Check that we're on the writer queue...
-        writer.execute { db in
-            // ... and that no transaction is opened.
-            GRDBPrecondition(!db.isInsideTransaction, """
-                must not be called from inside a transaction. \
-                If this error is raised from a DatabasePool.write block, use \
-                DatabasePool.writeWithoutTransaction instead (and use \
-                transactions when needed).
-                """)
-        }
-        
-        // The semaphore that blocks the writing dispatch queue until snapshot
-        // isolation has been established:
-        let isolationSemaphore = DispatchSemaphore(value: 0)
-        
-        do {
-            let (reader, releaseReader) = try readerPool.get()
-            reader.async { db in
-                defer {
-                    try? db.commit() // Ignore commit error
-                    releaseReader()
-                }
-                do {
-                    try db.beginSnapshotTransaction()
-                } catch {
-                    futureResult = .failure(error)
-                    isolationSemaphore.signal()
-                    futureSemaphore.signal()
-                    return
-                }
-                
-                // Release the writer queue
-                isolationSemaphore.signal()
-                
-                // Fetch and release the future
-                futureResult = DatabaseResult {
-                    // Reset the schema cache before running user code in snapshot isolation
-                    db.clearSchemaCache()
-                    return try block(db)
-                }
-                futureSemaphore.signal()
-            }
-        } catch {
-            futureResult = .failure(error)
-            isolationSemaphore.signal()
-            futureSemaphore.signal()
-        }
-        
-        // Block the writer queue until snapshot isolation success or error
-        _ = isolationSemaphore.wait(timeout: .distantFuture)
-        #endif
         
         return DatabaseFuture {
             // Block the future until results are fetched
@@ -581,16 +542,13 @@ extension DatabasePool: DatabaseReader {
         }
     }
     
-    #if compiler(>=5.0)
     /// Performs the same job as asyncConcurrentRead.
     ///
     /// :nodoc:
     public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         asyncConcurrentRead(block)
     }
-    #endif
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block in a protected dispatch queue.
     ///
     /// This method must be called from a writing dispatch queue, outside of any
@@ -611,9 +569,9 @@ extension DatabasePool: DatabaseReader {
     ///         try Player.deleteAll()
     ///
     ///         // Count players concurrently
-    ///         writer.asyncConcurrentRead { result in
+    ///         writer.asyncConcurrentRead { dbResult in
     ///             do {
-    ///                 let db = try result.get()
+    ///                 let db = try dbResult.get()
     ///                 // Guaranteed to be zero
     ///                 let count = try Player.fetchCount(db)
     ///             } catch {
@@ -662,7 +620,7 @@ extension DatabasePool: DatabaseReader {
                 
                 // Reset the schema cache before running user code in snapshot isolation
                 db.clearSchemaCache()
-
+                
                 block(.success(db))
             }
         } catch {
@@ -673,7 +631,6 @@ extension DatabasePool: DatabaseReader {
         // Block the writer queue until snapshot isolation success or error
         _ = isolationSemaphore.wait(timeout: .distantFuture)
     }
-    #endif
     
     /// Invalidates open read-only SQLite connections.
     ///
@@ -724,7 +681,7 @@ extension DatabasePool: DatabaseReader {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.sync(updates)
+        try writer.sync(updates)
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
@@ -741,7 +698,7 @@ extension DatabasePool: DatabaseReader {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try readerPool.barrier {
+        try readerPool.barrier {
             try writer.sync(updates)
         }
     }
@@ -798,7 +755,7 @@ extension DatabasePool: DatabaseReader {
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        return try writer.reentrantSync(updates)
+        try writer.reentrantSync(updates)
     }
     
     /// Asynchronously executes database updates in a protected dispatch queue,
@@ -808,6 +765,11 @@ extension DatabasePool: DatabaseReader {
     /// in a transaction.
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         writer.async(updates)
+    }
+    
+    /// :nodoc:
+    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
+        writer.weakAsync(updates)
     }
     
     // MARK: - Functions
@@ -855,6 +817,125 @@ extension DatabasePool: DatabaseReader {
     public func remove(collation: DatabaseCollation) {
         collations.remove(collation)
         forEachConnection { $0.remove(collation: collation) }
+    }
+    
+    // MARK: - Database Observation
+    
+    /// :nodoc:
+    public func _add<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> DatabaseCancellable
+    {
+        if configuration.readonly {
+            return _addReadOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onError: onError,
+                onChange: onChange)
+        }
+        
+        if observation.requiresWriteAccess {
+            let observer = _addWriteOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onError: onError,
+                onChange: onChange)
+            return AnyDatabaseCancellable(cancel: observer.cancel)
+        }
+        
+        let observer = _addConcurrent(
+            observation: observation,
+            scheduling: scheduler,
+            onError: onError,
+            onChange: onChange)
+        return AnyDatabaseCancellable(cancel: observer.cancel)
+    }
+    
+    /// A concurrent observation fetches the initial value without waiting for
+    /// the writer.
+    private func _addConcurrent<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> ValueObserver<Reducer> // For testability
+    {
+        assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
+        assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
+        
+        let observer = ValueObserver<Reducer>(
+            requiresWriteAccess: observation.requiresWriteAccess,
+            writer: self,
+            reducer: observation.makeReducer(),
+            scheduling: scheduler,
+            reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
+            onError: onError,
+            onChange: onChange)
+        
+        if scheduler.immediateInitialValue() {
+            do {
+                // Fetch the initial value without waiting for the writer.
+                let initialValue = try unsafeReentrantRead(observer.fetchInitialValue)
+                onChange(initialValue)
+                
+                // Now wait for the writer
+                _weakAsyncWriteWithoutTransaction { db in
+                    guard let db = db else { return }
+                    if observer.isCompleted { return }
+                    do {
+                        // Don't miss eventual changes between the
+                        // initial fetch and the writer access.
+                        if let value = try observer.fetchValue(db) {
+                            observer.notifyChange(value)
+                        }
+                        
+                        // Now we can start observation
+                        db.add(transactionObserver: observer, extent: .observerLifetime)
+                    } catch {
+                        observer.notifyErrorAndComplete(error)
+                    }
+                }
+            } catch {
+                observer.cancel()
+                onError(error)
+            }
+        } else {
+            // Fetch the initial value without waiting for the writer.
+            _weakAsyncRead { [weak self] dbResult in
+                guard let dbResult = dbResult else { return }
+                guard let self = self else { return }
+                if observer.isCompleted { return }
+                do {
+                    let initialValue = try observer.fetchInitialValue(dbResult.get())
+                    observer.notifyChange(initialValue)
+                    
+                    // Now wait for the writer
+                    self._weakAsyncWriteWithoutTransaction { db in
+                        guard let db = db else { return }
+                        if observer.isCompleted { return }
+                        do {
+                            // Don't miss eventual changes between the
+                            // initial fetch and the writer access.
+                            if let value = try observer.fetchValue(db) {
+                                observer.notifyChange(value)
+                            }
+                            
+                            // Now we can start observation
+                            db.add(transactionObserver: observer, extent: .observerLifetime)
+                        } catch {
+                            observer.notifyErrorAndComplete(error)
+                        }
+                    }
+                } catch {
+                    observer.notifyErrorAndComplete(error)
+                }
+            }
+        }
+        
+        return observer
     }
     
     // MARK: - Custom FTS5 Tokenizers

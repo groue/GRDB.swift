@@ -11,6 +11,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 -->
 
 
+#### 5.x Releases
+
+- `5.0.0` Betas - [5.0.0-beta](#500-beta)
+
+
 #### 4.x Releases
 
 - `4.14.x` Releases - [4.14.0](#4140)
@@ -70,6 +75,103 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+## 5.0.0-beta
+
+Released May 2, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v4.14.0...v5.0.0-beta)
+
+GRDB 5 is a release focused on **Swift 5.2**, and **removing technical debt**.
+
+There are breaking changes, though as few as possible. They open the door for future library improvements. And they have GRDB, [GRDBCombine](http://github.com/groue/GRDBCombine), and [RxGRDB](http://github.com/RxSwiftCommunity/RxGRDB) offer a common behavior.
+
+New features include support for SQL subqueries, and a simplified handling of database errors. The most demanding users will also find it easier to switch between the system SQLite, SQLCipher, and custom SQLite builds.
+
+<details>
+    <summary>A glimpse on the new features</summary>
+
+All requests can now be used as subqueries:
+
+```swift
+// Define a request with the query interface or raw SQL
+let maximumScore = Player.select(max(Column("score")))
+let maximumScore: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+
+// Use the request as a subquery in the query interface
+let request = Player.filter(Column("score") == maximumScore)
+let bestPlayers = try request.fetchAll(db)
+
+// Use the request as a subquery in SQL requests
+let request: SQLRequest<Player> = "SELECT * FROM player WHERE score = (\(maximumScore))"
+let bestPlayers = try request.fetchAll(db)
+```
+
+Catch specific SQLite error codes in a simplified fashion:
+
+```swift
+do {
+    try ...
+} catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+    // foreign key constraint error
+} catch DatabaseError.SQLITE_CONSTRAINT {
+    // any other constraint error
+} catch {
+    // any other database error
+}
+```
+
+Reuse the same code for system SQLite, SQLCipher, and custom SQLite builds:
+
+```swift
+// Supported in all GRDB flavors
+import GRDB
+let sqliteVersion = String(cString: sqlite3_libversion())
+```
+
+</details>
+
+### Documentation Diff
+
+- **[Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)**: how to upgrade your apps, and deal with breaking changes.
+- [ValueObservation](README.md#valueobservation): this chapter describes the new ValueObservation behaviors.
+- [DatabaseError](README.md#databaseerror): learn how to catch and match DatabaseError on their codes, in a fashion similar to `CocoaError`.
+- [Batch Updates](README.md#update-requests): this chapter is updated for the new `set(to:)` method.
+- [SQL Operators](README.md#sql-operators): introduces support for SQL and query interface subqueries.
+- [How do I print a request as SQL?](README.md#how-do-i-print-a-request-as-sql) This FAQ was updated for GRDB 5.
+- [SQL Interpolation](Documentation/SQLInterpolation.md): this guide now describes how to embed subqueries and record columns in your SQL literals.
+- [Joined Queries Support](README.md#joined-queries-support): describes the GRDB 5 way of dealing with complex and hand-crafted SQL queries.
+- [Raw SQLite Pointers](README.md#raw-sqlite-pointers) and [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md): `import GRDB` now provides access to the full [C SQLite API](https://www.sqlite.org/capi3ref.html), and custom SQLite builds.
+
+### New
+
+- [#749](https://github.com/groue/GRDB.swift/pull/749): Drop submodules used by performance tests
+- [#754](https://github.com/groue/GRDB.swift/pull/754): Match DatabaseError on ResultCode
+- [#756](https://github.com/groue/GRDB.swift/pull/756): Export the underlying SQLite library
+
+### Breaking Changes
+
+- [#719](https://github.com/groue/GRDB.swift/pull/719): Bump required Swift version to 5.2
+- [#720](https://github.com/groue/GRDB.swift/pull/720): Turn deprecated APIs into unavailable ones
+- [#722](https://github.com/groue/GRDB.swift/pull/722): SE-0253: Callable values of user-defined nominal types
+- [#728](https://github.com/groue/GRDB.swift/pull/728): Make ValueObservation error handling mandatory
+- [#729](https://github.com/groue/GRDB.swift/pull/729): ValueObservation always emits an initial value
+- [#731](https://github.com/groue/GRDB.swift/pull/731): Hide ValueObservation implementation details
+- [#732](https://github.com/groue/GRDB.swift/pull/732): Remove ValueObservation.compactMap
+- [#736](https://github.com/groue/GRDB.swift/pull/736): Relax ValueObservation Guarantees
+- [#737](https://github.com/groue/GRDB.swift/pull/737): Force implicit database region for ValueObservation
+- [#738](https://github.com/groue/GRDB.swift/pull/738): Remove all observationForCount/All/First methods
+- [#742](https://github.com/groue/GRDB.swift/pull/742): ValueObservation scheduling is no longer an attribute of the observation
+- [#745](https://github.com/groue/GRDB.swift/pull/745): Explicit ValueObservation cancellation
+- [#747](https://github.com/groue/GRDB.swift/pull/747): Rename GRDBCustomSQLite to GRDB
+- [#750](https://github.com/groue/GRDB.swift/pull/750): Batch updates do not need any operator
+- [#752](https://github.com/groue/GRDB.swift/pull/752): Remove ValueObservation.combine
+- [#770](https://github.com/groue/GRDB.swift/pull/770): Subqueries
+
+### Fixed
+
+- [#601](https://github.com/groue/GRDB.swift/pull/601): ValueObservation won't start until concurrent write transaction has ended
+- [#697](https://github.com/groue/GRDB.swift/pull/697): `SQLInterpolation` could not work with `QueryInterfaceRequest`
+- [#743](https://github.com/groue/GRDB.swift/pull/743): Rename GRDBCustomSQLite to GRDB for compatibility with dependents?
+
 
 ## 4.14.0
 
@@ -142,6 +244,7 @@ Released March 21, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compar
     migrator.lastCompletedMigration(in: dbQueue) == "v2"
     migrator.appliedMigrations(in: dbQueue)
     ```
+
 
 ## 4.11.0
 

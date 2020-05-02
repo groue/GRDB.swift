@@ -98,7 +98,7 @@ public struct HasOneAssociation<Origin: TableRecord, Destination: TableRecord>: 
         sqlAssociation = SQLAssociation(
             key: associationKey,
             condition: condition,
-            relation: Destination.all().relation,
+            relation: Destination.relationForAll,
             cardinality: .toOne)
     }
 }

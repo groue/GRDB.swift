@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class FTS3TableBuilderTests: GRDBTestCase {
     
@@ -61,12 +57,6 @@ class FTS3TableBuilderTests: GRDBTestCase {
     }
 
     func testUnicode61Tokenizer() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS3()) { t in
@@ -77,12 +67,6 @@ class FTS3TableBuilderTests: GRDBTestCase {
     }
 
     func testUnicode61TokenizerDiacriticsKeep() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS3()) { t in
@@ -105,12 +89,6 @@ class FTS3TableBuilderTests: GRDBTestCase {
     #endif
 
     func testUnicode61TokenizerSeparators() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS3()) { t in
@@ -121,12 +99,6 @@ class FTS3TableBuilderTests: GRDBTestCase {
     }
 
     func testUnicode61TokenizerTokenCharacters() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(virtualTable: "documents", using: FTS3()) { t in

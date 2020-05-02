@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct Team: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "teams"
@@ -31,9 +27,9 @@ private struct PlayerWithOptionalTeam: Decodable, FetchableRecord {
     static let team = Player.team.forKey(CodingKeys.team)
 }
 
-extension QueryInterfaceRequest where T == Player {
+extension QueryInterfaceRequest where RowDecoder == Player {
     func filter(teamName: String) -> QueryInterfaceRequest<Player> {
-        return joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
+        joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
     }
     
     func orderedByTeamName() -> QueryInterfaceRequest<Player> {

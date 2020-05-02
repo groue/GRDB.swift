@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct Team: Codable, FetchableRecord, PersistableRecord {
     static let databaseTableName = "teams"
@@ -45,7 +41,7 @@ class AssociationBelongsToRowScopeTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Player.joining(required: Player.defaultTeam)
-            let (_, adapter) = try request.prepare(db, forSingleResult: false)
+            let adapter = try request.makePreparedRequest(db, forSingleResult: false).adapter
             XCTAssertNil(adapter)
         }
     }

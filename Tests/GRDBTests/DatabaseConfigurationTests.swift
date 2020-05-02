@@ -1,14 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    #if SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    import GRDB
-#endif
+import GRDB
 
 class DatabaseConfigurationTests: GRDBTestCase {
     // MARK: - prepareDatabase
@@ -176,7 +167,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         
         let s1 = DispatchSemaphore(value: 0)
         let s2 = DispatchSemaphore(value: 0)
-        let queue = DispatchQueue.global(priority: .default)
+        let queue = DispatchQueue.global(qos: .default)
         let group = DispatchGroup()
         
         queue.async(group: group) {

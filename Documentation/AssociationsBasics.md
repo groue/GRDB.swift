@@ -91,14 +91,14 @@ With GRDB associations, we can streamline these operations (and others), by decl
 extension Author {
     static let books = hasMany(Book.self)
     var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
+        request(for: Author.books)
     }
 }
 
 extension Book {
     static let author = belongsTo(Author.self)
     var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
+        request(for: Book.author)
     }
 }
 ```
@@ -165,7 +165,7 @@ Generally speaking, associations use the [TableRecord], [FetchableRecord], and [
     extension Book: EncodableRecord {
         // The request for the author of a book.
         var author: QueryInterfaceRequest<Author> {
-            return request(for: Book.author)
+            request(for: Book.author)
         }
     }
     
@@ -327,7 +327,7 @@ As in the examples above, **HasManyThrough** association is always built from tw
 ```swift
 struct Document: TableRecord {
     static let paragraphs = hasMany(
-        Paragraph.self, 
+        Paragraph.self,
         through: Document.hasMany(Section.self),
         using: Section.hasMany(Paragraph.self))
     ...
@@ -785,7 +785,7 @@ struct Book: TableRecord, EncodableRecord {
     
     /// The request for the author of a book
     var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
+        request(for: Book.author)
     }
 }
 ```
@@ -806,7 +806,7 @@ struct Author: TableRecord, EncodableRecord {
     
     /// The request for the books of an author
     var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
+        request(for: Author.books)
     }
 }
 
@@ -1140,7 +1140,7 @@ extension Team {
     static let players = hasMany(Player.self).order(Column("position"))
     
     var players: QueryInterfaceRequest<Player> {
-        return request(for: Team.players)
+        request(for: Team.players)
     }
 }
 ```
@@ -1174,7 +1174,7 @@ extension Team {
     static let players = hasMany(Player.self, through: playerRoles, using: PlayerRole.player)
     
     var players: QueryInterfaceRequest<Player> {
-        return request(for: Team.players)
+        request(for: Team.players)
     }
 }
 
@@ -1383,7 +1383,7 @@ For example, we can start by defining base requests as extensions to the [Deriva
 extension DerivableRequest where RowDecoder == Author {
     /// Filters authors by country
     func filter(country: String) -> Self {
-        return filter(Column("country") == country)
+        filter(Column("country") == country)
     }
 }
 
@@ -1391,7 +1391,7 @@ extension DerivableRequest where RowDecoder == Author {
 extension DerivableRequest where RowDecoder == Book {
     /// Filters books by author country
     func filter(authorCountry: String) -> Self {
-        return joining(required: Book.author.filter(country: country))
+        joining(required: Book.author.filter(country: country))
     }
     
     /// Order books by author name and then book title
@@ -1610,8 +1610,7 @@ And who is the most able to know those coding keys? BookInfo itself, thanks to i
 ```swift
 extension BookInfo {
     static func all() -> QueryInterfaceRequest<BookInfo> {
-        return Book
-            .including(optional: Book.coverImage)
+        Book.including(optional: Book.coverImage)
             .including(required: Book.author
                 .forKey(CodingKeys.authorInfo)        // (1)
                 .including(optional: Person.country))
@@ -1758,7 +1757,7 @@ When you need to compute aggregates **from a single record**, you use [regular a
 struct Author: TableRecord, EncodableRecord {
     static let books = hasMany(Book.self)
     var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
+        request(for: Author.books)
     }
 }
 
@@ -1831,7 +1830,7 @@ struct AuthorInfo: Decodable, FetchableRecord {
 }
 
 // SELECT author.*,
-//        COUNT(DISTINCT book.rowid) AS bookCount,
+//        COUNT(DISTINCT book.id) AS bookCount,
 //        MAX(book.year) AS maxBookYear,
 // FROM author
 // LEFT JOIN book ON book.authorId = author.id
@@ -1924,7 +1923,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) = 0
+    HAVING COUNT(DISTINCT book.id) = 0
     ```
     
     </details>
@@ -1943,7 +1942,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) > 0
+    HAVING COUNT(DISTINCT book.id) > 0
     ```
     
     </details>
@@ -1962,7 +1961,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) >= 2
+    HAVING COUNT(DISTINCT book.id) >= 2
     ```
     
     </details>
@@ -2000,7 +1999,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     FROM author
     LEFT JOIN book ON book.authorId = author.id AND book.kind = 'novel'
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) > 0
+    HAVING COUNT(DISTINCT book.id) > 0
     ```
     
     </details>
@@ -2021,7 +2020,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
     GROUP BY author.id
-    HAVING COUNT(DISTINCT book.rowid) > COUNT(DISTINCT painting.rowid)
+    HAVING COUNT(DISTINCT book.id) > COUNT(DISTINCT painting.id)
     ```
     
     </details>
@@ -2041,7 +2040,7 @@ The `having(_:)` method filters a request according to an aggregated value. You 
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
     GROUP BY author.id
-    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) > 0))
+    HAVING ((COUNT(DISTINCT book.id) = 0) AND (COUNT(DISTINCT painting.id) > 0))
     ```
     
     </details>
@@ -2066,7 +2065,7 @@ Aggregates can be modified and combined with Swift operators:
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
     GROUP BY author.id
-    HAVING ((COUNT(DISTINCT book.rowid) = 0) AND (COUNT(DISTINCT painting.rowid) = 0))
+    HAVING ((COUNT(DISTINCT book.id) = 0) AND (COUNT(DISTINCT painting.id) = 0))
     ```
     
     </details>
@@ -2102,8 +2101,8 @@ Aggregates can be modified and combined with Swift operators:
     
     ```sql
     SELECT author.*,
-           (COUNT(DISTINCT book.rowid) +
-            COUNT(DISTINCT painting.rowid)) AS workCount
+           (COUNT(DISTINCT book.id) +
+            COUNT(DISTINCT painting.id)) AS workCount
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
@@ -2184,7 +2183,7 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
     
     ```sql
     SELECT author.*,
-           (COUNT(DISTINCT book.rowid) + COUNT(DISTINCT painting.rowid)) AS workCount
+           (COUNT(DISTINCT book.id) + COUNT(DISTINCT painting.id)) AS workCount
     FROM author
     LEFT JOIN book ON book.authorId = author.id
     LEFT JOIN painting ON painting.authorId = author.id
@@ -2219,8 +2218,8 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```sql
     SELECT author.*,
-           COUNT(DISTINCT book1.rowid) AS novelCount,
-           COUNT(DISTINCT book2.rowid) AS theatrePlayCount
+           COUNT(DISTINCT book1.id) AS novelCount,
+           COUNT(DISTINCT book2.id) AS theatrePlayCount
     FROM author
     LEFT JOIN book book1 ON book1.authorId = author.id AND book1.kind = 'novel'
     LEFT JOIN book book2 ON book2.authorId = author.id AND book2.kind = 'theatrePlay'
@@ -2259,8 +2258,8 @@ But in the following example, we use the same association `Author.books` twice, 
     
     ```sql
     SELECT author.*,
-           COUNT(DISTINCT book.rowid) AS novelCount,
-           COUNT(DISTINCT book.rowid) AS theatrePlayCount
+           COUNT(DISTINCT book.id) AS novelCount,
+           COUNT(DISTINCT book.id) AS theatrePlayCount
     FROM author
     LEFT JOIN book ON book.authorId = author.id
           AND (book.kind = 'novel' AND book.kind = 'theatrePlay')
@@ -2306,17 +2305,17 @@ Those methods are defined on extensions to the `DerivableRequest` protocol:
 ```swift
 extension DerivableRequest where RowDecoder == Author {
     func filter(country: String) -> Self {
-        return filter(Column("country") == country)
+        filter(Column("country") == country)
     }
     
     func orderedByName() -> Self {
-        return order(Column("name").collating(.localizedCaseInsensitiveCompare))
+        order(Column("name").collating(.localizedCaseInsensitiveCompare))
     }
 }
 
 extension DerivableRequest where RowDecoder == Book {
     func filter(country: String) -> Self {
-        return joining(required: Book.author.filter(country: country))
+        joining(required: Book.author.filter(country: country))
     }
 }
 ```
@@ -2423,7 +2422,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Ordered Associations]: #ordered-associations
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
-[migration]: ../README.md#migrations
+[migration]: Migrations.md
 [Record]: ../README.md#records
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
 [Associations and the Database Schema]: #associations-and-the-database-schema

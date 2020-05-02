@@ -1,0 +1,43 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "FMDB",
+        "repositoryURL": "https://github.com/ccgus/fmdb.git",
+        "state": {
+          "branch": "master",
+          "revision": "dcd5bb68b348b51af7c76a51aa9f86f676feb3fc",
+          "version": null
+        }
+      },
+      {
+        "package": "Realm",
+        "repositoryURL": "https://github.com/realm/realm-cocoa.git",
+        "state": {
+          "branch": null,
+          "revision": "07734d6ee4b49b5656c51dab51c20a2d59b9de45",
+          "version": "4.4.0"
+        }
+      },
+      {
+        "package": "RealmCore",
+        "repositoryURL": "https://github.com/realm/realm-core",
+        "state": {
+          "branch": null,
+          "revision": "35662ff940e340bf630ad1d1d88acfc7af18bee6",
+          "version": "5.23.8"
+        }
+      },
+      {
+        "package": "SQLite.swift",
+        "repositoryURL": "https://github.com/stephencelis/SQLite.swift.git",
+        "state": {
+          "branch": null,
+          "revision": "0a9893ec030501a3956bee572d6b4fdd3ae158a1",
+          "version": "0.12.2"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

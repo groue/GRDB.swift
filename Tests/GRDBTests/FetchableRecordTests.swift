@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct Fetched {
     var firstName: String
@@ -58,7 +54,6 @@ class FetchableRecordTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchCursorWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -71,7 +66,6 @@ class FetchableRecordTests: GRDBTestCase {
             XCTAssertEqual(fetched.lastName, "O'Brien")
         }
     }
-    #endif
     
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -150,8 +144,8 @@ class FetchableRecordTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: [Fetched]) {
-                XCTAssertEqual(array.map { $0.firstName }, ["Arthur", "Barbara"])
-                XCTAssertEqual(array.map { $0.lastName }, ["Martin", "Gourde"])
+                XCTAssertEqual(array.map(\.firstName), ["Arthur", "Barbara"])
+                XCTAssertEqual(array.map(\.lastName), ["Martin", "Gourde"])
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
@@ -173,7 +167,6 @@ class FetchableRecordTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchAllWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -185,7 +178,6 @@ class FetchableRecordTests: GRDBTestCase {
             XCTAssertEqual(array[0].lastName, "O'Brien")
         }
     }
-    #endif
     
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
@@ -304,7 +296,6 @@ class FetchableRecordTests: GRDBTestCase {
         }
     }
     
-    #if swift(>=5.0)
     func testFetchOneWithInterpolation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -316,7 +307,6 @@ class FetchableRecordTests: GRDBTestCase {
             XCTAssertEqual(fetched!.lastName, "O'Brien")
         }
     }
-    #endif
     
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()

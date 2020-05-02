@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct Col {
     static let id = Column("id")
@@ -197,6 +193,41 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE)")
+    }
+    
+    func testSubqueryContains() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            let subquery = tableRequest.select(Col.age).filter(Col.name != nil).distinct()
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(subquery.contains(Col.age))),
+                """
+                SELECT * FROM "readers" WHERE "age" IN \
+                (SELECT DISTINCT "age" FROM "readers" WHERE "name" IS NOT NULL)
+                """)
+        }
+        
+        do {
+            let subquery = SQLRequest<Int>(sql: "SELECT ? UNION SELECT ?", arguments: [1, 2])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(subquery.contains(Col.age + 1))),
+                """
+                SELECT * FROM "readers" WHERE ("age" + 1) IN (SELECT 1 UNION SELECT 2)
+                """)
+        }
+        
+        do {
+            let subquery1 = tableRequest.select(max(Col.age))
+            let subquery2 = tableRequest.filter(Col.age == subquery1)
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(subquery2.select(Col.id).contains(Col.id))),
+                """
+                SELECT * FROM "readers" WHERE "id" IN (\
+                SELECT "id" FROM "readers" WHERE "age" = (\
+                SELECT MAX("age") FROM "readers"))
+                """)
+        }
     }
     
     func testGreaterThan() throws {
@@ -471,6 +502,28 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.collating(collation) == "fOo")),
             "SELECT * FROM \"readers\" WHERE \"name\" = 'fOo' COLLATE localized_case_insensitive")
+    }
+    
+    func testSubqueryEqual() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            let subquery = tableRequest.select(max(Col.age))
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter(Col.age == subquery)),
+                """
+                SELECT * FROM "readers" WHERE "age" = (SELECT MAX("age") FROM "readers")
+                """)
+        }
+        
+        do {
+            let subquery = SQLRequest<Int>(sql: "SELECT MAX(age + ?) FROM readers", arguments: [1])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.filter((Col.age + 2) == subquery)),
+                """
+                SELECT * FROM "readers" WHERE ("age" + 2) = (SELECT MAX(age + 1) FROM readers)
+                """)
+        }
     }
     
     func testNotEqual() throws {
@@ -1168,7 +1221,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         XCTAssertEqual(
-            sql(dbQueue, tableRequest.select(customFunction.apply(Col.age, 1, 2))),
+            sql(dbQueue, tableRequest.select(customFunction(Col.age, 1, 2))),
             "SELECT avgOf(\"age\", 1, 2) FROM \"readers\"")
     }
 }

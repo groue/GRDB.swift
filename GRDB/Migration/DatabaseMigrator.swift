@@ -93,28 +93,6 @@ public struct DatabaseMigrator {
         registerMigration(Migration(identifier: identifier, migrate: migrate))
     }
     
-    /// Registers a migration.
-    ///
-    ///     migrator.registerMigrationWithDeferredForeignKeyCheck("createAuthors") { db in
-    ///         try db.create(table: "author") { t in
-    ///             t.autoIncrementedPrimaryKey("id")
-    ///             t.column("creationDate", .datetime)
-    ///             t.column("name", .text).notNull()
-    ///         }
-    ///     }
-    ///
-    /// - parameters:
-    ///     - identifier: The migration identifier.
-    ///     - block: The migration block that performs SQL statements.
-    /// - precondition: No migration with the same same as already been registered.
-    @available(*, deprecated, renamed: "registerMigration(_:migrate:)")
-    public mutating func registerMigrationWithDeferredForeignKeyCheck(
-        _ identifier: String,
-        migrate: @escaping (Database) throws -> Void)
-    {
-        registerMigration(identifier, migrate: migrate)
-    }
-    
     // MARK: - Applying Migrations
     
     /// Iterate migrations in the same order as they were registered. If a
@@ -192,15 +170,6 @@ public struct DatabaseMigrator {
     
     // MARK: - Querying Migrations
     
-    /// Returns the set of applied migration identifiers.
-    ///
-    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
-    /// - throws: An eventual database error.
-    @available(*, deprecated, message: "Wrap this method: reader.read(migrator.appliedMigrations) }")
-    public func appliedMigrations(in reader: DatabaseReader) throws -> Set<String> {
-        return try Set(reader.read(appliedMigrations))
-    }
-    
     /// Returns the applied migration identifiers, in the same order as
     /// registered migrations.
     ///
@@ -218,7 +187,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual database error.
     public func completedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try appliedMigrations(db)
-        let knownIdentifiers = migrations.map { $0.identifier }
+        let knownIdentifiers = migrations.map(\.identifier)
         return Array(zip(appliedIdentifiers, knownIdentifiers)
             .prefix(while: { $0 == $1 })
             .map { $0.0 })
@@ -226,43 +195,12 @@ public struct DatabaseMigrator {
     
     /// Returns true if all migrations are applied.
     ///
-    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
-    /// - throws: An eventual database error.
-    @available(*, deprecated, message: "Wrap this method: reader.read(migrator.hasCompletedMigrations) }")
-    public func hasCompletedMigrations(in reader: DatabaseReader) throws -> Bool {
-        return try reader.read(hasCompletedMigrations)
-    }
-    
-    /// Returns true if all migrations are applied.
-    ///
     /// - parameter db: A database connection.
     /// - throws: An eventual database error.
     public func hasCompletedMigrations(_ db: Database) throws -> Bool {
-        return try completedMigrations(db).last == migrations.last?.identifier
+        try completedMigrations(db).last == migrations.last?.identifier
     }
-    
-    /// Returns true if all migrations up to the provided target are applied,
-    /// and maybe further.
-    ///
-    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
-    /// - parameter targetIdentifier: The identifier of a registered migration.
-    /// - throws: An eventual database error.
-    @available(*, deprecated, message: "Prefer reader.read(migrator.completedMigrations).contains(targetIdentifier)")
-    public func hasCompletedMigrations(in reader: DatabaseReader, through targetIdentifier: String) throws -> Bool {
-        return try reader.read(completedMigrations).contains(targetIdentifier)
-    }
-    
-    /// Returns the identifier of the last migration for which all predecessors
-    /// have been applied.
-    ///
-    /// - parameter reader: A DatabaseReader (DatabaseQueue or DatabasePool).
-    /// - returns: An eventual migration identifier.
-    /// - throws: An eventual database error.
-    @available(*, deprecated, message: "Prefer reader.read(migrator.completedMigrations).last")
-    public func lastCompletedMigration(in reader: DatabaseReader) throws -> String? {
-        return try reader.read(completedMigrations).last
-    }
-    
+        
     // MARK: - Non public
     
     private mutating func registerMigration(_ migration: Migration) {

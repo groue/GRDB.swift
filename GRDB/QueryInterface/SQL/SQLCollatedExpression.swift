@@ -25,7 +25,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var asc: SQLOrderingTerm {
-        return SQLOrdering.asc(sqlExpression)
+        SQLOrdering.asc(sqlExpression)
     }
     
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
@@ -37,7 +37,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var desc: SQLOrderingTerm {
-        return SQLOrdering.desc(sqlExpression)
+        SQLOrdering.desc(sqlExpression)
     }
     
     #if GRDBCUSTOMSQLITE
@@ -50,7 +50,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var ascNullsLast: SQLOrderingTerm {
-        return SQLOrdering.ascNullsLast(sqlExpression)
+        SQLOrdering.ascNullsLast(sqlExpression)
     }
     
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
@@ -62,7 +62,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var descNullsFirst: SQLOrderingTerm {
-        return SQLOrdering.descNullsFirst(sqlExpression)
+        SQLOrdering.descNullsFirst(sqlExpression)
     }
     #endif
     
@@ -72,7 +72,7 @@ public struct SQLCollatedExpression {
     }
     
     var sqlExpression: SQLExpression {
-        return SQLExpressionCollate(expression, collationName: collationName)
+        SQLExpressionCollate(expression, collationName: collationName)
     }
 }
 
@@ -82,18 +82,18 @@ extension SQLCollatedExpression: SQLOrderingTerm {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var reversed: SQLOrderingTerm {
-        return desc
+        desc
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func orderingTermSQL(_ context: inout SQLGenerationContext) -> String {
-        return sqlExpression.orderingTermSQL(&context)
+    public func orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlExpression.orderingTermSQL(context)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        return SQLCollatedExpression(expression.qualifiedExpression(with: alias), collationName: collationName)
+        SQLCollatedExpression(expression.qualifiedExpression(with: alias), collationName: collationName)
     }
 }

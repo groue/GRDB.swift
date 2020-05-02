@@ -27,14 +27,14 @@ public protocol ColumnExpression: SQLExpression {
 extension ColumnExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        return name.quotedDatabaseIdentifier
+    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+        name.quotedDatabaseIdentifier
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return QualifiedColumn(name, alias: alias)
+        QualifiedColumn(name, alias: alias)
     }
 }
 
@@ -73,7 +73,7 @@ struct QualifiedColumn: ColumnExpression {
         self.alias = alias
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
         if let qualifier = context.qualifier(for: alias) {
             return qualifier.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
         }
@@ -82,7 +82,7 @@ struct QualifiedColumn: ColumnExpression {
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         // Never requalify
-        return self
+        self
     }
 }
 
@@ -94,7 +94,5 @@ struct QualifiedColumn: ColumnExpression {
 ///         }
 ///     }
 extension ColumnExpression where Self: RawRepresentable, Self.RawValue == String {
-    public var name: String {
-        return rawValue
-    }
+    public var name: String { rawValue }
 }

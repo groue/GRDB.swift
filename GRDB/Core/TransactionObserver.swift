@@ -1,11 +1,3 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 extension Database {
     
     // MARK: - Database Observation
@@ -54,7 +46,7 @@ extension Database {
             }
             
             // Ignore individual changes and transaction rollbacks
-            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
             func databaseDidChange(with event: DatabaseEvent) { }
             func databaseDidRollback(_ db: Database) { }
             
@@ -504,7 +496,7 @@ class DatabaseObservationBroker {
     /// Remove transaction observers that have stopped observing transaction,
     /// and uninstall SQLite update hooks if there is no remaining observers.
     private func databaseDidEndTransaction() {
-        transactionObservations = transactionObservations.filter { $0.isObserving }
+        transactionObservations = transactionObservations.filter(\.isObserving)
         
         // Undo disableUntilNextTransaction(transactionObserver:)
         for observation in transactionObservations {
@@ -730,7 +722,7 @@ public protocol TransactionObserver: AnyObject {
     ///
     /// As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
     /// does not have this enabled, so you'll need to compile your own
-    /// copy using GRDBCustomSQLite.
+    /// version of SQLite:
     /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md
     ///
     /// The databaseDidChangeWithEvent callback is always available,
@@ -794,10 +786,10 @@ final class TransactionObservation {
     
     private weak var weakObserver: TransactionObserver?
     private var strongObserver: TransactionObserver?
-    private var observer: TransactionObserver? { return strongObserver ?? weakObserver }
+    private var observer: TransactionObserver? { strongObserver ?? weakObserver }
     
     fileprivate var isObserving: Bool {
-        return observer != nil
+        observer != nil
     }
     
     init(observer: TransactionObserver, extent: Database.TransactionObservationExtent) {
@@ -814,7 +806,7 @@ final class TransactionObservation {
     }
     
     func isWrapping(_ observer: TransactionObserver) -> Bool {
-        return self.observer === observer
+        self.observer === observer
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
@@ -934,10 +926,10 @@ public struct DatabaseEvent {
     public let kind: Kind
     
     /// The database name
-    public var databaseName: String { return impl.databaseName }
+    public var databaseName: String { impl.databaseName }
     
     /// The table name
-    public var tableName: String { return impl.tableName }
+    public var tableName: String { impl.tableName }
     
     /// The rowID of the changed row.
     public let rowID: Int64
@@ -951,7 +943,7 @@ public struct DatabaseEvent {
     ///         }
     ///     }
     public func copy() -> DatabaseEvent {
-        return impl.copy(self)
+        impl.copy(self)
     }
     
     fileprivate init(kind: Kind, rowID: Int64, impl: DatabaseEventImpl) {
@@ -999,11 +991,11 @@ private struct MetalDatabaseEventImpl: DatabaseEventImpl {
     let databaseNameCString: UnsafePointer<Int8>?
     let tableNameCString: UnsafePointer<Int8>?
     
-    var databaseName: String { return String(cString: databaseNameCString!) }
-    var tableName: String { return String(cString: tableNameCString!) }
+    var databaseName: String { String(cString: databaseNameCString!) }
+    var tableName: String { String(cString: tableNameCString!) }
     
     func copy(_ event: DatabaseEvent) -> DatabaseEvent {
-        return DatabaseEvent(
+        DatabaseEvent(
             kind: event.kind,
             rowID: event.rowID,
             impl: CopiedDatabaseEventImpl(
@@ -1016,9 +1008,7 @@ private struct MetalDatabaseEventImpl: DatabaseEventImpl {
 private struct CopiedDatabaseEventImpl: DatabaseEventImpl {
     let databaseName: String
     let tableName: String
-    func copy(_ event: DatabaseEvent) -> DatabaseEvent {
-        return event
-    }
+    func copy(_ event: DatabaseEvent) -> DatabaseEvent { event }
 }
 
 #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -1041,13 +1031,13 @@ public struct DatabasePreUpdateEvent {
     public let kind: Kind
     
     /// The database name
-    public var databaseName: String { return impl.databaseName }
+    public var databaseName: String { impl.databaseName }
     
     /// The table name
-    public var tableName: String { return impl.tableName }
+    public var tableName: String { impl.tableName }
     
     /// The number of columns in the row that is being inserted, updated, or deleted.
-    public var count: Int { return Int(impl.columnsCount) }
+    public var count: Int { Int(impl.columnsCount) }
     
     /// The triggering depth of the row update
     /// Returns:
@@ -1056,7 +1046,7 @@ public struct DatabasePreUpdateEvent {
     ///     1  for inserts, updates, or deletes invoked by top-level triggers;
     ///     2  for changes resulting from triggers called by top-level triggers;
     ///     ... and so forth
-    public var depth: CInt { return impl.depth }
+    public var depth: CInt { impl.depth }
     
     /// The initial rowID of the row being changed for .Update and .Delete changes,
     /// and nil for .Insert changes.
@@ -1119,7 +1109,7 @@ public struct DatabasePreUpdateEvent {
     ///         }
     ///     }
     public func copy() -> DatabasePreUpdateEvent {
-        return impl.copy(self)
+        impl.copy(self)
     }
     
     fileprivate init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
@@ -1194,11 +1184,11 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     let databaseNameCString: UnsafePointer<Int8>?
     let tableNameCString: UnsafePointer<Int8>?
     
-    var databaseName: String { return String(cString: databaseNameCString!) }
-    var tableName: String { return String(cString: tableNameCString!) }
+    var databaseName: String { String(cString: databaseNameCString!) }
+    var tableName: String { String(cString: tableNameCString!) }
     
-    var columnsCount: CInt { return sqlite3_preupdate_count(connection) }
-    var depth: CInt { return sqlite3_preupdate_depth(connection) }
+    var columnsCount: CInt { sqlite3_preupdate_count(connection) }
+    var depth: CInt { sqlite3_preupdate_depth(connection) }
     var initialDatabaseValues: [DatabaseValue]? {
         guard kind == .update || kind == .delete else { return nil }
         return preupdate_getValues_old(connection)
@@ -1232,7 +1222,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     }
     
     func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent {
-        return DatabasePreUpdateEvent(
+        DatabasePreUpdateEvent(
             kind: event.kind,
             initialRowID: event.initialRowID,
             finalRowID: event.finalRowID,
@@ -1278,7 +1268,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     }
     
     private func preupdate_getValues_old(_ connection: SQLiteConnection) -> [DatabaseValue]? {
-        return preupdate_getValues(
+        preupdate_getValues(
             connection,
             sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 sqlite3_preupdate_old(connection, column, &value)
@@ -1286,7 +1276,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     }
     
     private func preupdate_getValues_new(_ connection: SQLiteConnection) -> [DatabaseValue]? {
-        return preupdate_getValues(
+        preupdate_getValues(
             connection,
             sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 sqlite3_preupdate_new(connection, column, &value)
@@ -1303,12 +1293,10 @@ private struct CopiedDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     let initialDatabaseValues: [DatabaseValue]?
     let finalDatabaseValues: [DatabaseValue]?
     
-    func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? { return initialDatabaseValues?[index] }
-    func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? { return finalDatabaseValues?[index] }
+    func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? { initialDatabaseValues?[index] }
+    func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? { finalDatabaseValues?[index] }
     
-    func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent {
-        return event
-    }
+    func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent { event }
 }
 
 #endif
@@ -1363,7 +1351,7 @@ class SavepointStack {
     private var savepoints: [(name: String, index: Int)] = []
     
     /// If true, there is no current save point.
-    var isEmpty: Bool { return savepoints.isEmpty }
+    var isEmpty: Bool { savepoints.isEmpty }
     
     func clear() {
         eventsBuffer.removeAll()

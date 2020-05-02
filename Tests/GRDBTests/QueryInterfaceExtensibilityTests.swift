@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // Tests for sample code in Documentation/ExtendingGRDB.md
 
@@ -19,7 +15,7 @@ extension SQLFunctionName {
 ///     // STRFTIME('%Y', date)
 ///     strftime("%Y", Column("date"))
 func strftime(_ format: String, _ date: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.strftime, arguments: format, date)
+    SQLExpressionFunction(.strftime, arguments: format, date)
 }
 
 
@@ -31,31 +27,15 @@ extension SQLBinaryOperator {
 }
 
 func ~= (_ lhs: SQLExpressible, _ rhs: Column) -> SQLExpression {
-    return SQLExpressionBinary(.match, rhs, lhs)
+    SQLExpressionBinary(.match, rhs, lhs)
 }
 
 
 // CAST
 
-private func castDeprecated(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLExpression {
-    let literal = value.sqlExpression.sqlLiteral
-    let castLiteral = literal.mapSQL { sql in
-        "CAST(\(sql) AS \(type.rawValue))"
-    }
-    return SQLExpressionLiteral(literal: castLiteral)
+private func cast<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
+    SQLLiteral("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
 }
-
-private func cast(_ value: SQLExpressible, as type: Database.ColumnType) -> SQLExpression {
-    return SQLLiteral(value.sqlExpression)
-        .mapSQL({ sql in "CAST(\(sql) AS \(type.rawValue))" })
-        .sqlExpression
-}
-
-#if swift(>=5.0)
-private func castInterpolated<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
-    return SQLLiteral("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
-}
-#endif
 
 
 class QueryInterfaceExtensibilityTests: GRDBTestCase {
@@ -98,37 +78,6 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
         }
     }
 
-    func testCastDeprecated() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "records") { t in
-                t.column("text", .text)
-            }
-            struct Record : TableRecord {
-                static let databaseTableName = "records"
-            }
-            
-            try db.execute(sql: "INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
-            
-            do {
-                let request = Record.select(castDeprecated(Column("text"), as: .blob))
-                let dbValue = try DatabaseValue.fetchOne(db, request)!
-                switch dbValue.storage {
-                case .blob:
-                    break
-                default:
-                    XCTFail("Expected data blob")
-                }
-                XCTAssertEqual(self.lastSQLQuery, "SELECT CAST(\"text\" AS BLOB) FROM \"records\" LIMIT 1")
-            }
-            do {
-                let request = Record.select(castDeprecated(Column("text"), as: .blob) && true)
-                _ = try DatabaseValue.fetchOne(db, request)!
-                XCTAssertEqual(self.lastSQLQuery, "SELECT (CAST(\"text\" AS BLOB)) AND 1 FROM \"records\" LIMIT 1")
-            }
-        }
-    }
-    
     func testCast() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -159,37 +108,4 @@ class QueryInterfaceExtensibilityTests: GRDBTestCase {
             }
         }
     }
-    
-    #if swift(>=5.0)
-    func testCastInterpolated() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "records") { t in
-                t.column("text", .text)
-            }
-            struct Record : TableRecord {
-                static let databaseTableName = "records"
-            }
-            
-            try db.execute(sql: "INSERT INTO records (text) VALUES (?)", arguments: ["foo"])
-            
-            do {
-                let request = Record.select(castInterpolated(Column("text"), as: .blob))
-                let dbValue = try DatabaseValue.fetchOne(db, request)!
-                switch dbValue.storage {
-                case .blob:
-                    break
-                default:
-                    XCTFail("Expected data blob")
-                }
-                XCTAssertEqual(self.lastSQLQuery, "SELECT CAST(\"text\" AS BLOB) FROM \"records\" LIMIT 1")
-            }
-            do {
-                let request = Record.select(castInterpolated(Column("text"), as: .blob) && true)
-                _ = try DatabaseValue.fetchOne(db, request)!
-                XCTAssertEqual(self.lastSQLQuery, "SELECT (CAST(\"text\" AS BLOB)) AND 1 FROM \"records\" LIMIT 1")
-            }
-        }
-    }
-    #endif
 }

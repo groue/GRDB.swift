@@ -1,10 +1,4 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
+import Dispatch
 
 /// The protocol for all types that can fetch values from a database.
 ///
@@ -107,8 +101,7 @@ public protocol DatabaseReader: AnyObject {
     ///         let count = try Player.fetchCount(db)
     ///     }
     ///
-    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
-    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// Guarantee 2: attempts to write in the database throw a DatabaseError
     /// whose resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
@@ -116,16 +109,15 @@ public protocol DatabaseReader: AnyObject {
     ///   happen while establishing the read access to the database.
     func read<T>(_ block: (Database) throws -> T) throws -> T
     
-    #if compiler(>=5.0)
     /// Asynchronously executes a read-only block that takes a
     /// database connection.
     ///
     /// Guarantee 1: the block argument is isolated. Eventual concurrent
     /// database updates are not visible inside the block:
     ///
-    ///     try reader.asyncRead { result in
+    ///     try reader.asyncRead { dbResult in
     ///         do (
-    ///             let db = try result.get()
+    ///             let db = try dbResult.get()
     ///             // Those two values are guaranteed to be equal, even if the
     ///             // `player` table is modified between the two requests:
     ///             let count1 = try Player.fetchCount(db)
@@ -135,13 +127,16 @@ public protocol DatabaseReader: AnyObject {
     ///         }
     ///     }
     ///
-    /// Guarantee 2: Starting iOS 8.2, OSX 10.10, and with custom SQLite builds
-    /// and SQLCipher, attempts to write in the database throw a DatabaseError
+    /// Guarantee 2: attempts to write in the database throw a DatabaseError
     /// whose resultCode is `SQLITE_READONLY`.
     ///
     /// - parameter block: A block that accesses the database.
     func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
-    #endif
+    
+    /// Same as asyncRead, but without retaining self
+    ///
+    /// :nodoc:
+    func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void)
     
     /// Synchronously executes a read-only block that takes a database
     /// connection, and returns its result.
@@ -255,14 +250,14 @@ public protocol DatabaseReader: AnyObject {
     /// during observation
     /// - parameter onChange: a closure that is provided fresh values
     /// - returns: a TransactionObserver
-    func add<Reducer: ValueReducer>(
+    ///
+    /// :nodoc:
+    func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
-    
-    /// Remove a transaction observer.
-    func remove(transactionObserver: TransactionObserver)
+        -> DatabaseCancellable
 }
 
 extension DatabaseReader {
@@ -298,6 +293,51 @@ extension DatabaseReader {
     }
 }
 
+extension DatabaseReader {
+    // MARK: - Value Observation Support
+    
+    /// Adding an observation in a read-only database emits only the
+    /// initial value.
+    func _addReadOnly<Reducer: _ValueReducer>(
+        observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
+        onError: @escaping (Error) -> Void,
+        onChange: @escaping (Reducer.Value) -> Void)
+        -> DatabaseCancellable
+    {
+        if scheduler.immediateInitialValue() {
+            do {
+                try onChange(unsafeReentrantRead(observation.fetchValue))
+            } catch {
+                onError(error)
+            }
+            return AnyDatabaseCancellable(cancel: { })
+        } else {
+            var isCancelled = false
+            _weakAsyncRead { dbResult in
+                guard
+                    !isCancelled,
+                    let dbResult = dbResult
+                    else { return }
+                
+                let result = dbResult.flatMap { db in
+                    Result { try observation.fetchValue(db) }
+                }
+                
+                scheduler.schedule {
+                    guard !isCancelled else { return }
+                    do {
+                        try onChange(result.get())
+                    } catch {
+                        onError(error)
+                    }
+                }
+            }
+            return AnyDatabaseCancellable(cancel: { isCancelled = true })
+        }
+    }
+}
+
 /// A type-erased DatabaseReader
 ///
 /// Instances of AnyDatabaseReader forward their methods to an arbitrary
@@ -312,7 +352,7 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     /// :nodoc:
     public var configuration: Configuration {
-        return base.configuration
+        base.configuration
     }
     
     // MARK: - Interrupting Database Operations
@@ -326,24 +366,27 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.read(block)
+        try base.read(block)
     }
     
-    #if compiler(>=5.0)
     /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
     }
-    #endif
+    
+    /// :nodoc:
+    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(block)
+    }
     
     /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeRead(block)
+        try base.unsafeRead(block)
     }
     
     /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        return try base.unsafeReentrantRead(block)
+        try base.unsafeReentrantRead(block)
     }
     
     // MARK: - Functions
@@ -373,17 +416,17 @@ public final class AnyDatabaseReader: DatabaseReader {
     // MARK: - Value Observation
     
     /// :nodoc:
-    public func add<Reducer: ValueReducer>(
+    public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
+        scheduling scheduler: ValueObservationScheduler,
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> TransactionObserver
+        -> DatabaseCancellable
     {
-        return base.add(observation: observation, onError: onError, onChange: onChange)
-    }
-    
-    /// :nodoc:
-    public func remove(transactionObserver: TransactionObserver) {
-        base.remove(transactionObserver: transactionObserver)
+        base._add(
+            observation: observation,
+            scheduling: scheduler,
+            onError: onError,
+            onChange: onChange)
     }
 }

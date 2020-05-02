@@ -368,7 +368,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         guard let fetchedItems = fetchedItems else {
             fatalError("the performFetch() method must be called before accessing fetched records")
         }
-        return fetchedItems.map { $0.record }
+        return fetchedItems.map(\.record)
     }
     
     
@@ -541,7 +541,7 @@ private final class FetchedRecordsObserver<Record: FetchableRecord>: Transaction
     }
     
     func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-        return region.isModified(byEventsOfKind: eventKind)
+        region.isModified(byEventsOfKind: eventKind)
     }
     
     /// Part of the TransactionObserverType protocol
@@ -574,10 +574,8 @@ private final class FetchedRecordsObserver<Record: FetchableRecord>: Transaction
 
 // MARK: - Changes
 
-private typealias FetchCompletionHandler<Record: FetchableRecord, T> = (
-    DatabaseResult<(fetchedItems: [Item<Record>],
-    fetchedAlongside: T,
-    observer: FetchedRecordsObserver<Record>)>)
+private typealias FetchCompletionHandler<Record: FetchableRecord, T> =
+    (Result<(fetchedItems: [Item<Record>], fetchedAlongside: T, observer: FetchedRecordsObserver<Record>), Error>)
     -> Void
 
 private func makeFetchFunction<Record, T>(
@@ -1060,7 +1058,7 @@ public struct FetchedRecordsSectionInfo<Record: FetchableRecord> {
             // Programmer error
             fatalError("the performFetch() method must be called before accessing section contents")
         }
-        return items.map { $0.record }
+        return items.map(\.record)
     }
 }
 
@@ -1078,6 +1076,6 @@ private final class Item<T: FetchableRecord>: FetchableRecord, Equatable {
     }
     
     static func ==<T> (lhs: Item<T>, rhs: Item<T>) -> Bool {
-        return lhs.row == rhs.row
+        lhs.row == rhs.row
     }
 }

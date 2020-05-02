@@ -37,14 +37,8 @@ struct DatabasePromise<T> {
     
     /// Returns a promise whose value is transformed by the given closure.
     func map<U>(_ transform: @escaping (T) throws -> U) -> DatabasePromise<U> {
-        return DatabasePromise<U> { db in
+        DatabasePromise<U> { db in
             try transform(self.resolve(db))
-        }
-    }
-    
-    func flatMap<U>(_ transform: @escaping (T) -> DatabasePromise<U>) -> DatabasePromise<U> {
-        return DatabasePromise<U> { db in
-            try transform(self.resolve(db)).resolve(db)
         }
     }
 }

@@ -1,10 +1,6 @@
 import XCTest
 import Foundation
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 private protocol StrategyProvider {
     static var strategy: DatabaseUUIDEncodingStrategy { get }
@@ -19,12 +15,12 @@ private enum StrategyString: StrategyProvider {
 }
 
 private struct RecordWithUUID<Strategy: StrategyProvider>: PersistableRecord, Encodable {
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { return Strategy.strategy }
+    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { Strategy.strategy }
     var uuid: UUID
 }
 
 private struct RecordWithOptionalUUID<Strategy: StrategyProvider>: PersistableRecord, Encodable {
-    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { return Strategy.strategy }
+    static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { Strategy.strategy }
     var uuid: UUID?
 }
 

@@ -1,16 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    #if GRDBCIPHER
-        import SQLCipher
-    #elseif SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 // Support for Database.logError
 var lastResultCode: ResultCode? = nil
@@ -28,7 +17,7 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database queue based on dbConfiguration
     func makeDatabaseQueue(filename: String? = nil) throws -> DatabaseQueue {
-        return try makeDatabaseQueue(filename: filename, configuration: dbConfiguration)
+        try makeDatabaseQueue(filename: filename, configuration: dbConfiguration)
     }
     
     // Builds a database queue
@@ -42,7 +31,7 @@ class GRDBTestCase: XCTestCase {
     
     // Builds a database pool based on dbConfiguration
     func makeDatabasePool(filename: String? = nil) throws -> DatabasePool {
-        return try makeDatabasePool(filename: filename, configuration: dbConfiguration)
+        try makeDatabasePool(filename: filename, configuration: dbConfiguration)
     }
     
     // Builds a database pool
@@ -66,9 +55,7 @@ class GRDBTestCase: XCTestCase {
     var sqlQueries: [String]!   // TODO: protect against concurrent accesses
     
     // Populated by default configuration
-    var lastSQLQuery: String! {
-        return sqlQueries.last!
-    }
+    var lastSQLQuery: String! { sqlQueries.last! }
     
     override func setUp() {
         super.setUp()
@@ -158,8 +145,7 @@ class GRDBTestCase: XCTestCase {
     
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
     func assertEqualSQL<Request: FetchRequest>(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
-        let request = try request.makePreparedRequest(db, forSingleResult: false)
-        try request.statement.makeCursor().next()
+        try request.makeStatement(db).makeCursor().next()
         assertEqualSQL(lastSQLQuery, sql, file: file, line: line)
     }
     
@@ -171,18 +157,46 @@ class GRDBTestCase: XCTestCase {
     }
     
     func sql<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request) -> String {
-        return try! databaseReader.unsafeRead { db in
-            let request = try request.makePreparedRequest(db, forSingleResult: false)
-            try request.statement.makeCursor().next()
+        try! databaseReader.unsafeRead { db in
+            try request.makeStatement(db).makeCursor().next()
             return lastSQLQuery
         }
     }
 }
 
-#if !swift(>=4.2)
-extension Sequence {
-    func allSatisfy(_ predicate: (Self.Element) throws -> Bool) rethrows -> Bool {
-        return try !contains(where: { try !predicate($0) })
+extension FetchRequest {
+    /// Turn request into a statement
+    func makeStatement(_ db: Database) throws -> SelectStatement {
+        try makePreparedRequest(db, forSingleResult: false).statement
+    }
+    
+    /// Turn request into SQL and arguments
+    func build(_ db: Database) throws -> (sql: String, arguments: StatementArguments) {
+        let statement = try makePreparedRequest(db, forSingleResult: false).statement
+        return (sql: statement.sql, arguments: statement.arguments)
     }
 }
-#endif
+
+/// A type-erased ValueReducer.
+public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
+    private var _fetch: (Database) throws -> Fetched
+    private var _value: (Fetched) -> Value?
+    
+    public var isSelectedRegionDeterministic: Bool { false }
+    
+    public init(
+        fetch: @escaping (Database) throws -> Fetched,
+        value: @escaping (Fetched) -> Value?)
+    {
+        self._fetch = fetch
+        self._value = value
+    }
+    
+    public func fetch(_ db: Database) throws -> Fetched {
+        try _fetch(db)
+    }
+    
+    public func value(_ fetched: Fetched) -> Value? {
+        _value(fetched)
+    }
+}

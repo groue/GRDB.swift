@@ -100,7 +100,7 @@
 ///             .filter(Column("continent") == "EU")
 ///             .including(all: Country.citizens)
 struct SQLRelation {
-    struct Child: KeyPathRefining {
+    struct Child: Refinable {
         enum Kind {
             // Record.including(optional: association)
             case oneOptional
@@ -111,12 +111,12 @@ struct SQLRelation {
             // Record.including(all: associationThroughPivot)
             case allNotPrefetched
             
-            var cardinality: SQLAssociationCardinality {
+            var isSingular: Bool {
                 switch self {
                 case .oneOptional, .oneRequired:
-                    return .toOne
+                    return true
                 case .allPrefetched, .allNotPrefetched:
-                    return .toMany
+                    return false
                 }
             }
         }
@@ -140,25 +140,34 @@ struct SQLRelation {
         
         fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
             let key = SQLAssociationKey.fixed(key)
+            
+            let cardinality: SQLAssociationCardinality
+            switch kind {
+            case .oneOptional, .oneRequired:
+                cardinality = .toOne
+            case .allPrefetched, .allNotPrefetched:
+                cardinality = .toMany
+            }
+            
             return SQLAssociation(
                 key: key,
                 condition: condition,
                 relation: relation,
-                cardinality: kind.cardinality)
+                cardinality: cardinality)
         }
     }
     
     var source: SQLSource
-    var selection: [SQLSelectable]
+    var selectionPromise: DatabasePromise<[SQLSelectable]> = DatabasePromise(value: [])
     // Filter is an array of expressions that we'll join with the AND operator.
     // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
     // `((a AND b) AND c)`.
-    var filtersPromise: DatabasePromise<[SQLExpression]>
-    var ordering: SQLRelation.Ordering
-    var children: OrderedDictionary<String, Child>
+    var filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
+    var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
+    var children: OrderedDictionary<String, Child> = [:]
     
     var prefetchedAssociations: [SQLAssociation] {
-        return children.flatMap { key, child -> [SQLAssociation] in
+        children.flatMap { key, child -> [SQLAssociation] in
             switch child.kind {
             case .allPrefetched:
                 return [child.makeAssociationForKey(key)]
@@ -166,71 +175,80 @@ struct SQLRelation {
                 return child.relation.prefetchedAssociations.map { association in
                     // Remove redundant pivot child
                     let pivotKey = association.pivot.keyName
-                    let child = child.map(\.relation, { relation in
+                    let child = child.map(\.relation) { relation in
                         assert(relation.children[pivotKey] != nil)
                         return relation.removingChild(forKey: pivotKey)
-                    })
+                    }
                     return association.through(child.makeAssociationForKey(key))
                 }
             }
         }
     }
     
-    init(
-        source: SQLSource,
-        selection: [SQLSelectable] = [],
-        filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: []),
-        ordering: SQLRelation.Ordering = SQLRelation.Ordering(),
-        children: OrderedDictionary<String, Child> = [:])
-    {
-        self.source = source
-        self.selection = selection
-        self.filtersPromise = filtersPromise
-        self.ordering = ordering
-        self.children = children
+    /// Returns nil if there is no way to express the primary key of the
+    /// relation as an expression.
+    func primaryKeyExpression(_ db: Database) throws -> SQLExpression? {
+        switch source {
+        case .subquery:
+            // No primary key for subquery
+            return nil
+        case let .table(tableName: tableName, alias: _):
+            return try db.primaryKeyExpression(tableName)
+        }
     }
 }
 
-extension SQLRelation: KeyPathRefining {
-    func select(_ selection: [SQLSelectable]) -> SQLRelation {
-        return with(\.selection, selection)
+extension SQLRelation: Refinable {
+    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        with(\.selectionPromise, DatabasePromise(selection))
+    }
+    
+    // Convenience
+    func select(_ selection: [SQLSelectable]) -> Self {
+        select { _ in selection }
     }
     
     /// Removes all selections from chidren
-    func selectOnly(_ selection: [SQLSelectable]) -> SQLRelation {
-        return self
-            .with(\.selection, selection)
-            .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
+    func selectOnly(_ selection: [SQLSelectable]) -> Self {
+        select(selection).map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
     }
     
-    func annotated(with selection: [SQLSelectable]) -> SQLRelation {
-        return mapInto(\.selection, { $0.append(contentsOf: selection) })
-    }
-    
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> SQLRelation {
-        return map(\.filtersPromise, { filtersPromise in
-            filtersPromise.flatMap { filters in
-                DatabasePromise { try filters + [predicate($0).sqlExpression] }
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+        map(\.selectionPromise) { selectionPromise in
+            DatabasePromise { db in
+                try selectionPromise.resolve(db) + selection(db)
             }
-        })
+        }
     }
     
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> SQLRelation {
-        return with(\.ordering, SQLRelation.Ordering(orderings: orderings))
+    // Convenience
+    func annotated(with selection: [SQLSelectable]) -> Self {
+        annotated(with: { _ in selection })
     }
     
-    func reversed() -> SQLRelation {
-        return map(\.ordering, { $0.reversed })
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        map(\.filtersPromise) { filtersPromise in
+            DatabasePromise { db in
+                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
+            }
+        }
     }
     
-    func unordered() -> SQLRelation {
-        return self
-            .with(\.ordering, SQLRelation.Ordering())
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
+        with(\.ordering, SQLRelation.Ordering(orderings: orderings))
+    }
+    
+    func reversed() -> Self {
+        map(\.ordering, \.reversed)
+    }
+    
+    func unordered() -> Self {
+        self.with(\.ordering, SQLRelation.Ordering())
             .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.unordered() }) } })
     }
     
-    func qualified(with alias: TableAlias) -> SQLRelation {
-        return map(\.source, { $0.qualified(with: alias) })
+    func qualified(with alias: TableAlias) -> Self {
+        map(\.source) { $0.qualified(with: alias) }
     }
 }
 
@@ -267,13 +285,13 @@ extension SQLRelation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> SQLRelation {
+    func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
-        let childCardinality = (kind == .allNotPrefetched)
-            ? association.destination.cardinality
-            : kind.cardinality
-        let childKey = association.destination.key.name(for: childCardinality)
+        let isSingular = (kind == .allNotPrefetched)
+            ? association.destination.isSingular
+            : kind.isSingular
+        let childKey = association.destination.key.name(singular: isSingular)
         let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
@@ -333,7 +351,7 @@ extension SQLRelation {
         }
     }
     
-    private func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> SQLRelation {
+    private func appendingChild(_ child: SQLRelation.Child, forKey key: String) -> Self {
         var relation = self
         if let existingChild = relation.children.removeValue(forKey: key) {
             guard let mergedChild = existingChild.merged(with: child) else {
@@ -350,34 +368,34 @@ extension SQLRelation {
         return relation
     }
     
-    func removingChild(forKey key: String) -> SQLRelation {
-        return mapInto(\.children, { $0.removeValue(forKey: key) })
+    func removingChild(forKey key: String) -> Self {
+        mapInto(\.children) { $0.removeValue(forKey: key) }
     }
     
-    func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> SQLRelation {
-        return try map(\.children, { try $0.filter { try included($1) } })
+    func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> Self {
+        try map(\.children) { try $0.filter { try included($1) } }
     }
 }
 
 extension SQLRelation: _JoinableRequest {
-    func _including(all association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association, kind: .allPrefetched)
+    func _including(all association: SQLAssociation) -> Self {
+        appendingChild(for: association, kind: .allPrefetched)
     }
     
-    func _including(optional association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association, kind: .oneOptional)
+    func _including(optional association: SQLAssociation) -> Self {
+        appendingChild(for: association, kind: .oneOptional)
     }
     
-    func _including(required association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association, kind: .oneRequired)
+    func _including(required association: SQLAssociation) -> Self {
+        appendingChild(for: association, kind: .oneRequired)
     }
     
-    func _joining(optional association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
+    func _joining(optional association: SQLAssociation) -> Self {
+        appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
     }
     
-    func _joining(required association: SQLAssociation) -> SQLRelation {
-        return appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
+    func _joining(required association: SQLAssociation) -> Self {
+        appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
     }
 }
 
@@ -385,7 +403,7 @@ extension SQLRelation: _JoinableRequest {
 
 enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
-    indirect case query(SQLQuery)
+    indirect case subquery(SQLQuery)
     
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
@@ -397,8 +415,8 @@ enum SQLSource {
                 alias.setTableName(tableName)
                 return .table(tableName: tableName, alias: alias)
             }
-        case let .query(query):
-            return .query(query.qualified(with: alias))
+        case .subquery:
+            return self
         }
     }
 }
@@ -415,7 +433,7 @@ extension SQLRelation {
             var reversed: Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { $0.map { $0.reversed } })
+                    return .terms(terms.map { $0.map(\.reversed) })
                 case .ordering(let ordering):
                     return .ordering(ordering.reversed)
                 }
@@ -443,9 +461,7 @@ extension SQLRelation {
         private var elements: [Element] = []
         var isReversed: Bool
         
-        var isEmpty: Bool {
-            return elements.isEmpty
-        }
+        var isEmpty: Bool { elements.isEmpty }
         
         private init(elements: [Element], isReversed: Bool) {
             self.elements = elements
@@ -465,19 +481,19 @@ extension SQLRelation {
         }
         
         var reversed: Ordering {
-            return Ordering(
+            Ordering(
                 elements: elements,
                 isReversed: !isReversed)
         }
         
         func qualified(with alias: TableAlias) -> Ordering {
-            return Ordering(
+            Ordering(
                 elements: elements.map { $0.qualified(with: alias) },
                 isReversed: isReversed)
         }
         
         func appending(_ ordering: Ordering) -> Ordering {
-            return Ordering(
+            Ordering(
                 elements: elements + [.ordering(ordering)],
                 isReversed: isReversed)
         }
@@ -543,7 +559,7 @@ struct SQLAssociationCondition: Equatable {
     var originIsLeft: Bool
     
     var reversed: SQLAssociationCondition {
-        return SQLAssociationCondition(
+        SQLAssociationCondition(
             foreignKeyRequest: foreignKeyRequest,
             originIsLeft: !originIsLeft)
     }
@@ -567,13 +583,11 @@ struct SQLAssociationCondition: Equatable {
     /// - parameter db: A database connection.
     /// - parameter leftAlias: A TableAlias for the table on the left of the
     ///   JOIN operator.
-    /// - parameter rightAlias: A TableAlias for the table on the right of the
-    ///   JOIN operator.
     /// - Returns: An array of SQL expression that should be joined with
-    ///   the AND operator.
-    func expressions(_ db: Database, leftAlias: TableAlias, rightAlias: TableAlias) throws -> [SQLExpression] {
-        return try columnMappings(db).map {
-            QualifiedColumn($0.right, alias: rightAlias) == QualifiedColumn($0.left, alias: leftAlias)
+    ///   the AND operator and qualified with the right table.
+    func expressions(_ db: Database, leftAlias: TableAlias) throws -> [SQLExpression] {
+        try columnMappings(db).map {
+            Column($0.right) == QualifiedColumn($0.left, alias: leftAlias)
         }
     }
     
@@ -582,33 +596,44 @@ struct SQLAssociationCondition: Equatable {
     ///
     /// Given `right.a = left.b`, returns `right.a = 1` or
     /// `right.a IN (1, 2, 3)`.
-    func filteringExpression(_ db: Database, leftRows: [Row], rightAlias: TableAlias) throws -> SQLExpression {
-        if leftRows.isEmpty {
+    func filteringExpression<Row: ColumnAddressable>(_ db: Database, leftRows: [Row]) throws -> SQLExpression {
+        guard let firstLeftRow = leftRows.first else {
             // Degenerate case: there is no row to attach
             return false.sqlExpression
         }
         
+        // The (left, right) column mapping pairs
         let columnMappings = try self.columnMappings(db)
-        guard let columnMapping = columnMappings.first else {
+        
+        // We assume that all rows have the same layout, and that addressing
+        // rows by index is faster than addressing them by column name.
+        // So we use the first left row in order to convert left column names
+        // into row indexes.
+        let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = columnMappings.map { mapping in
+            guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
+                fatalError("Missing column: \(mapping.left)")
+            }
+            return (leftIndex: leftIndex, rightColumn: Column(mapping.right))
+        }
+        guard let mapping = mappings.first else {
             // Degenerate case: no joining column
             return true.sqlExpression
         }
         
-        if columnMappings.count == 1 {
+        if mappings.count == 1 {
             // Join on a single right column.
-            let rightColumn = QualifiedColumn(columnMapping.right, alias: rightAlias)
             
             // Unique database values and filter out NULL:
-            var dbValues = Set(leftRows.map { $0[columnMapping.left] as DatabaseValue })
+            let leftIndex = mapping.leftIndex
+            var dbValues = Set(leftRows.map { $0.databaseValue(at: leftIndex) })
             dbValues.remove(.null)
             
             if dbValues.isEmpty {
-                // Can't join
-                return false.sqlExpression
+                return mapping.rightColumn == nil
             } else {
                 // table.a IN (1, 2, 3, ...)
                 // Sort database values for nicer output.
-                return dbValues.sorted(by: <).contains(rightColumn)
+                return dbValues.sorted(by: <).contains(mapping.rightColumn)
             }
         } else {
             // Join on a multiple columns.
@@ -616,16 +641,48 @@ struct SQLAssociationCondition: Equatable {
             return leftRows
                 .map({ leftRow in
                     // (table.a = 1) AND (table.b = 2)
-                    columnMappings
-                        .map({ columns -> SQLExpression in
-                            let rightColumn = QualifiedColumn(columns.right, alias: rightAlias)
-                            let leftValue = leftRow[columns.left] as DatabaseValue
-                            return rightColumn == leftValue
+                    mappings
+                        .map({ mapping -> SQLExpression in
+                            let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
+                            return mapping.rightColumn == leftValue
                         })
                         .joined(operator: .and)
                 })
                 .joined(operator: .or)
         }
+    }
+}
+
+/// A protocol for row-like containers
+protocol ColumnAddressable {
+    associatedtype ColumnIndex
+    func index(forColumn column: String) -> ColumnIndex?
+    func databaseValue(at index: ColumnIndex) -> DatabaseValue
+}
+
+/// A "row" that contains null values for all columns
+struct NullRow: ColumnAddressable {
+    struct DummyIndex { }
+    func index(forColumn column: String) -> DummyIndex? { DummyIndex() }
+    @inline(__always)
+    func databaseValue(at index: DummyIndex) -> DatabaseValue { .null }
+}
+
+/// Row has columns
+extension Row: ColumnAddressable {
+    @inline(__always)
+    func databaseValue(at index: Int) -> DatabaseValue { self[index] }
+}
+
+/// PersistenceContainer has columns
+extension PersistenceContainer: ColumnAddressable {
+    func index(forColumn column: String) -> String? { column }
+    @inline(__always)
+    func databaseValue(at column: String) -> DatabaseValue {
+        guard let value = self[caseInsensitive: column] else {
+            fatalError("Missing column: \(column)")
+        }
+        return value.databaseValue
     }
 }
 
@@ -646,14 +703,14 @@ struct SQLAssociationCondition: Equatable {
 
 extension SQLRelation {
     /// Returns nil if relations can't be merged (conflict in source, joins...)
-    func merged(with other: SQLRelation) -> SQLRelation? {
+    func merged(with other: SQLRelation) -> Self? {
         guard let mergedSource = source.merged(with: other.source) else {
             // can't merge
             return nil
         }
         
-        let mergedFiltersPromise: DatabasePromise<[SQLExpression]> = filtersPromise.flatMap { filters in
-            DatabasePromise { try filters + other.filtersPromise.resolve($0) }
+        let mergedFiltersPromise = DatabasePromise<[SQLExpression]> { db in
+            try self.filtersPromise.resolve(db) + other.filtersPromise.resolve(db)
         }
         
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
@@ -673,14 +730,21 @@ extension SQLRelation {
         }
         
         // replace selection unless empty
-        let mergedSelection = other.selection.isEmpty ? selection : other.selection
+        let mergedSelectionPromise = DatabasePromise { db -> [SQLSelectable] in
+            let otherSelection = try other.selectionPromise.resolve(db)
+            if otherSelection.isEmpty {
+                return try self.selectionPromise.resolve(db)
+            } else {
+                return otherSelection
+            }
+        }
         
         // replace ordering unless empty
         let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
         
         return SQLRelation(
             source: mergedSource,
-            selection: mergedSelection,
+            selectionPromise: mergedSelectionPromise,
             filtersPromise: mergedFiltersPromise,
             ordering: mergedOrdering,
             children: mergedChildren)
@@ -717,7 +781,7 @@ extension SQLSource {
 
 extension SQLRelation.Child {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
-    func merged(with other: SQLRelation.Child) -> SQLRelation.Child? {
+    func merged(with other: SQLRelation.Child) -> Self? {
         guard condition == other.condition else {
             // can't merge
             return nil
@@ -742,7 +806,7 @@ extension SQLRelation.Child {
 
 extension SQLRelation.Child.Kind {
     /// Returns nil if kinds can't be merged
-    func merged(with other: SQLRelation.Child.Kind) -> SQLRelation.Child.Kind? {
+    func merged(with other: SQLRelation.Child.Kind) -> Self? {
         switch (self, other) {
         case (.oneRequired, .oneRequired),
              (.oneRequired, .oneOptional),

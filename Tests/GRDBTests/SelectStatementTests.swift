@@ -1,16 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    #if GRDBCIPHER
-        import SQLCipher
-    #elseif SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 class SelectStatementTests : GRDBTestCase {
     
@@ -187,7 +176,7 @@ class SelectStatementTests : GRDBTestCase {
                 }
                 
                 func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                    return region.isModified(byEventsOfKind: eventKind)
+                    region.isModified(byEventsOfKind: eventKind)
                 }
                 
                 func databaseDidChange(with event: DatabaseEvent) {
@@ -256,41 +245,41 @@ class SelectStatementTests : GRDBTestCase {
             try db.execute(sql: "INSERT INTO table3 (id) VALUES (1)")
             try db.execute(sql: "INSERT INTO table4 (id) VALUES (1)")
             try db.execute(sql: "INSERT INTO table1 (id, a, b, id3, id4) VALUES (NULL, 0, 0, 1, 1)")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])
             
             try db.execute(sql: "INSERT INTO table2 (id, a, b) VALUES (NULL, 0, 0)")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, true, doubtfulCountFunction])
             
             try db.execute(sql: "UPDATE table1 SET a = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])
             
             try db.execute(sql: "UPDATE table1 SET b = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, false, false, true])
             
             try db.execute(sql: "UPDATE table2 SET a = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, true, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, true, doubtfulCountFunction])
             
             try db.execute(sql: "UPDATE table2 SET b = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, false, doubtfulCountFunction])
             
             try db.execute(sql: "UPDATE table3 SET id = 2 WHERE id = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, true, false, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, true, false, true])
             
             try db.execute(sql: "UPDATE table4 SET id = 2 WHERE id = 1")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, false, false, true])
             
             try db.execute(sql: "DELETE FROM table4")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, false, false, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, false, false, true])
             
             try db.execute(sql: "INSERT INTO table4 (id) VALUES (1)")
             try db.execute(sql: "DELETE FROM table4")
-            XCTAssertEqual(observers.map { $0.triggered }, [false, false, false, doubtfulCountFunction])
+            XCTAssertEqual(observers.map(\.triggered), [false, false, false, doubtfulCountFunction])
             
             try db.execute(sql: "DELETE FROM table3")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])
             
             try db.execute(sql: "INSERT INTO table5 (id) VALUES (NULL)")
-            XCTAssertEqual(observers.map { $0.triggered }, [true, true, true, true])
+            XCTAssertEqual(observers.map(\.triggered), [true, true, true, true])
         }
     }
 }

@@ -6,20 +6,22 @@
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
-- [ ] Cancellation of a started ValueObservation. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524733140
-- [ ] Remove submodules
 
 
 ## Documentation
 
-- [ ] Document that creating "too many" ValueObservation increases database contention. This also applies to database pools, because when observations create reader contention, they also create writer contention. Context: https://github.com/groue/GRDB.swift/issues/601#issuecomment-524615772
 - [ ] Enhance the introduction to SQLRequest, based on the feedback in https://github.com/groue/GRDB.swift/issues/617
 - [ ] Association: document how to use aggregates with inner join (testAnnotatedWithHasManyDefaultMaxJoiningRequired)
-- [ ] Association: document ordered vs. non-ordered hasMany and hasManyThrough associations
 
 
 ## Features
 
+- [ ] Extract one row from a hasMany association (the one with the maximum date, the one with a flag set, etc.) https://stackoverflow.com/questions/43188771/sqlite-join-query-most-recent-posts-by-each-user (failed PR: https://github.com/groue/GRDB.swift/pull/767)
+- [ ] Turn a hasMany to hasOne without first/last : hasMany(Book.self).filter(Column("isBest") /* assume a single book is flagged best */).asOne()
+- [ ] Support for more kinds of joins: https://github.com/groue/GRDB.swift/issues/740
+- [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
+- [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
+- [ ] Support Subqueries: WHERE EXISTS (SELECT ...)
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
@@ -53,8 +55,6 @@
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
 - [ ] Configuration.crashOnError = true
 - [ ] Glossary (Database Access Methods, etc.)
-- [ ] ValueObservation.flatMap. Not sure it is still useful now that we have ValueObservation.tracking(value:)
-- [ ] rename fetchOne to fetchFirst. Not sure because it is a big breaking change. Not sure because ValueObservation.tracking(value:) has reduced the need for observationForFirst.
 - [ ] Not sure: type safety for SQL expressions
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?

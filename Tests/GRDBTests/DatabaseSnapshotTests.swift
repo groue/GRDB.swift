@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-@testable import GRDBCustomSQLite
-#else
 @testable import GRDB
-#endif
 
 class DatabaseSnapshotTests: GRDBTestCase {
     
@@ -22,7 +18,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
         
         func value(_ db: Database) throws -> Int {
-            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM counter")!
+            try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM counter")!
         }
     }
     
@@ -88,7 +84,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
                 self.snapshot = snapshot
             }
             
-            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
             func databaseDidChange(with event: DatabaseEvent) { }
             func databaseDidCommit(_ db: Database) {
                 snapshot = try! dbPool.makeSnapshot()

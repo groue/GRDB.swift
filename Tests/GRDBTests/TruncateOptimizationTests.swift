@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class TruncateOptimizationTests: GRDBTestCase {
     // https://www.sqlite.org/c3ref/update_hook.html
@@ -37,9 +33,7 @@ class TruncateOptimizationTests: GRDBTestCase {
             self.notify = notify
         }
         
-        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-            return true
-        }
+        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
         
         func databaseDidChange(with event: DatabaseEvent) {
             if case .delete = event.kind {
@@ -60,7 +54,7 @@ class TruncateOptimizationTests: GRDBTestCase {
     }
     
     class UniversalObserver : TransactionObserver {
-        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return true }
+        func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
         func databaseDidChange(with event: DatabaseEvent) { }
         func databaseDidCommit(_ db: Database) { }
         func databaseDidRollback(_ db: Database) { }

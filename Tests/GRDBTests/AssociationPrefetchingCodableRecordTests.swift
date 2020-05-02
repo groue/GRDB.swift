@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct A: TableRecord, FetchableRecord, Decodable, Equatable {
     var cola1: Int64
@@ -200,7 +196,6 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    print(records)
                     XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),

@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 import XCTest
 
@@ -46,6 +42,120 @@ class ResultCodeTests: GRDBTestCase {
         case ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY: XCTFail()
         case ResultCode.SQLITE_CONSTRAINT: XCTFail()
         default: break
+        }
+    }
+    
+    func testCatchResultCode() throws {
+        do {
+            do {
+                throw DatabaseError(resultCode: .SQLITE_ERROR)
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+                XCTFail()
+            } catch DatabaseError.SQLITE_CONSTRAINT {
+                XCTFail()
+            } catch DatabaseError.SQLITE_OK {
+                XCTFail()
+            } catch {
+                // Success
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT)
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+                XCTFail()
+            } catch DatabaseError.SQLITE_CONSTRAINT {
+                // Success
+            } catch DatabaseError.SQLITE_OK {
+                XCTFail()
+            } catch {
+                XCTFail()
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY)
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+                // Success
+            } catch DatabaseError.SQLITE_CONSTRAINT {
+                XCTFail()
+            } catch DatabaseError.SQLITE_OK {
+                XCTFail()
+            } catch {
+                XCTFail()
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_CHECK)
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY {
+                XCTFail()
+            } catch DatabaseError.SQLITE_CONSTRAINT {
+                // Success
+            } catch DatabaseError.SQLITE_OK {
+                XCTFail()
+            } catch {
+                XCTFail()
+            }
+        }
+        
+        do {
+            do {
+                throw DatabaseError(resultCode: .SQLITE_ERROR)
+            } catch let error as DatabaseError {
+                switch error {
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
+                    XCTFail()
+                case DatabaseError.SQLITE_CONSTRAINT:
+                    XCTFail()
+                case DatabaseError.SQLITE_OK:
+                    XCTFail()
+                default:
+                    break // Success
+                }
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT)
+            } catch let error as DatabaseError {
+                switch error {
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
+                    XCTFail()
+                case DatabaseError.SQLITE_CONSTRAINT:
+                break // Success
+                case DatabaseError.SQLITE_OK:
+                    XCTFail()
+                default:
+                    XCTFail()
+                }
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY)
+            } catch let error as DatabaseError {
+                switch error {
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
+                break // Success
+                case DatabaseError.SQLITE_CONSTRAINT:
+                    XCTFail()
+                case DatabaseError.SQLITE_OK:
+                    XCTFail()
+                default:
+                    XCTFail()
+                }
+            }
+            
+            do {
+                throw DatabaseError(resultCode: .SQLITE_CONSTRAINT_CHECK)
+            } catch let error as DatabaseError {
+                switch error {
+                case DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY:
+                    XCTFail()
+                case DatabaseError.SQLITE_CONSTRAINT:
+                break // Success
+                case DatabaseError.SQLITE_OK:
+                    XCTFail()
+                default:
+                    XCTFail()
+                }
+            }
         }
     }
 }

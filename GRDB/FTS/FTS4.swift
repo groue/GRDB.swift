@@ -29,7 +29,7 @@ public struct FTS4: VirtualTableModule {
     ///
     /// See Database.create(virtualTable:using:)
     public func makeTableDefinition() -> FTS4TableDefinition {
-        return FTS4TableDefinition()
+        FTS4TableDefinition()
     }
     
     /// Reserved; part of the VirtualTableModule protocol.
@@ -101,10 +101,10 @@ public struct FTS4: VirtualTableModule {
             let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
             let ftsTable = tableName.quotedDatabaseIdentifier
             let content = contentTable.quotedDatabaseIdentifier
-            let indexedColumns = definition.columns.map { $0.name }
+            let indexedColumns = definition.columns.map(\.name)
             
             let ftsColumns = (["docid"] + indexedColumns)
-                .map { $0.quotedDatabaseIdentifier }
+                .map(\.quotedDatabaseIdentifier)
                 .joined(separator: ", ")
             
             let newContentColumns = ([rowIDColumn] + indexedColumns)
@@ -261,7 +261,6 @@ public final class FTS4ColumnDefinition {
         self.isLanguageId = false
     }
     
-    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Excludes the column from the full-text index.
     ///
     ///     try db.create(virtualTable: "document", using: FTS4()) { t in
@@ -272,36 +271,11 @@ public final class FTS4ColumnDefinition {
     /// See https://www.sqlite.org/fts3.html#the_notindexed_option
     ///
     /// - returns: Self so that you can further refine the column definition.
-    /// :nodoc:
     @discardableResult
     public func notIndexed() -> Self {
-        // notindexed FTS4 option was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         self.isIndexed = false
         return self
     }
-    #else
-    /// Excludes the column from the full-text index.
-    ///
-    ///     try db.create(virtualTable: "document", using: FTS4()) { t in
-    ///         t.column("a")
-    ///         t.column("b").notIndexed()
-    ///     }
-    ///
-    /// See https://www.sqlite.org/fts3.html#the_notindexed_option
-    ///
-    /// - returns: Self so that you can further refine the column definition.
-    @available(OSX 10.10, *)
-    @discardableResult
-    public func notIndexed() -> Self {
-        // notindexed FTS4 option was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        self.isIndexed = false
-        return self
-    }
-    #endif
     
     /// Uses the column as the Int32 language id hidden column.
     ///

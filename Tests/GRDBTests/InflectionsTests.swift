@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 // https://github.com/rails/rails/blob/v6.0.0.rc1/activesupport/test/inflector_test.rb
 class InflectionsTests: GRDBTestCase {
@@ -29,7 +25,7 @@ class InflectionsTests: GRDBTestCase {
     
     func testStartIndexOfLastWord() {
         func lastWord(_ string: String) -> String {
-            return String(string.suffix(from: Inflections.startIndexOfLastWord(string)))
+            String(string.suffix(from: Inflections.startIndexOfLastWord(string)))
         }
         XCTAssertEqual(lastWord(""), "")
         XCTAssertEqual(lastWord(" "), " ")
@@ -265,7 +261,7 @@ struct InflectionTestCases: Decodable {
     
     struct AnyCodingKey: CodingKey {
         var stringValue: String
-        var intValue: Int? { return nil }
+        var intValue: Int? { nil }
         
         init?(stringValue: String) {
             self.stringValue = stringValue

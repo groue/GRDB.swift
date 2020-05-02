@@ -43,7 +43,7 @@ public struct FTS3: VirtualTableModule {
     ///
     /// See Database.create(virtualTable:using:)
     public func makeTableDefinition() -> FTS3TableDefinition {
-        return FTS3TableDefinition()
+        FTS3TableDefinition()
     }
     
     /// Reserved; part of the VirtualTableModule protocol.

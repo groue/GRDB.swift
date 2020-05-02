@@ -1,11 +1,7 @@
 #if SQLITE_ENABLE_FTS5
 import XCTest
 import Foundation
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // A custom wrapper tokenizer that ignores some tokens
 private final class StopWordsTokenizer : FTS5WrapperTokenizer {
@@ -20,9 +16,7 @@ private final class StopWordsTokenizer : FTS5WrapperTokenizer {
         }
     }
     
-    func ignores(_ token: String) -> Bool {
-        return token == "bar"
-    }
+    func ignores(_ token: String) -> Bool { token == "bar" }
     
     func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {
         // Notify token unless ignored
@@ -71,7 +65,7 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     }
     
     func synonyms(for token: String) -> Set<String>? {
-        return synonyms.first { $0.contains(token) }
+        synonyms.first { $0.contains(token) }
     }
     
     func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: FTS5WrapperTokenCallback) throws {

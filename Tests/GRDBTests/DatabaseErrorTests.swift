@@ -1,21 +1,14 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class DatabaseErrorTests: GRDBTestCase {
     
     func testDatabaseErrorMessage() {
-        // Error messages are not always available
-        if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, iOSApplicationExtension 8.2, *) {
-            // We don't test for actual messages, since they may depend on SQLite version
-            XCTAssertEqual(DatabaseError().resultCode, .SQLITE_ERROR)
-            XCTAssertNotNil(DatabaseError().message)
-            XCTAssertNotNil(DatabaseError(resultCode: .SQLITE_BUSY).message)
-            XCTAssertNotEqual(DatabaseError().message, DatabaseError(resultCode: .SQLITE_BUSY).message)
-        }
+        // We don't test for actual messages, since they may depend on SQLite version
+        XCTAssertEqual(DatabaseError().resultCode, .SQLITE_ERROR)
+        XCTAssertNotNil(DatabaseError().message)
+        XCTAssertNotNil(DatabaseError(resultCode: .SQLITE_BUSY).message)
+        XCTAssertNotEqual(DatabaseError().message, DatabaseError(resultCode: .SQLITE_BUSY).message)
     }
     
     func testDatabaseErrorInTransaction() throws {
@@ -30,9 +23,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 return .commit
             }
         } catch let error as DatabaseError {
-            // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-            XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+            XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
             XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
@@ -67,9 +58,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 }
             }
         } catch let error as DatabaseError {
-            // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-            // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-            XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+            XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
             XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
@@ -90,9 +79,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [1, "Bobby"])
                 XCTFail()
             } catch let error as DatabaseError {
-                // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-                // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-                XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
@@ -107,9 +94,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 try statement.execute(arguments: [1, "Bobby"])
                 XCTFail()
             } catch let error as DatabaseError {
-                // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-                // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-                XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
@@ -125,9 +110,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 try statement.execute()
                 XCTFail()
             } catch let error as DatabaseError {
-                // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-                // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-                XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
@@ -147,9 +130,7 @@ class DatabaseErrorTests: GRDBTestCase {
                     """)
                 XCTFail()
             } catch let error as DatabaseError {
-                // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-                // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-                XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
@@ -166,9 +147,7 @@ class DatabaseErrorTests: GRDBTestCase {
             do {
                 try db.execute(sql: "INSERT INTO children (parentId) VALUES (1)")
             } catch let error as DatabaseError {
-                // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-                // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-                XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode.rawValue, 19)           // primary SQLITE_CONSTRAINT
             }
         }
@@ -184,9 +163,7 @@ class DatabaseErrorTests: GRDBTestCase {
             } catch let error as NSError {
                 XCTAssertEqual(DatabaseError.errorDomain, "GRDB.DatabaseError")
                 XCTAssertEqual(error.domain, DatabaseError.errorDomain)
-                // SQLITE_CONSTRAINT_FOREIGNKEY was added in SQLite 3.7.16 http://www.sqlite.org/changes.html#version_3_7_16
-                // It is available from iOS 8.2 and OS X 10.10 https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-                XCTAssert([19, 787].contains(error.code))
+                XCTAssertEqual(error.code, 787)
             }
         }
     }

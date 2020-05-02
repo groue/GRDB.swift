@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct A: Codable, FetchableRecord, PersistableRecord {
     static let defaultB = belongsTo(B.self)
@@ -61,7 +57,7 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = A.joining(required: A.defaultC)
-            let (_, adapter) = try request.prepare(db, forSingleResult: false)
+            let adapter = try request.makePreparedRequest(db, forSingleResult: false).adapter
             XCTAssertNil(adapter)
         }
     }

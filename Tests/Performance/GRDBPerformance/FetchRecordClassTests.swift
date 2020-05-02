@@ -1,5 +1,4 @@
 import XCTest
-import SQLite3
 import GRDB
 #if GRDB_COMPARE
 import CoreData

@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-import GRDBCustomSQLite
-#else
 import GRDB
-#endif
 
 private struct Col {
     static let id = Column("id")
@@ -44,7 +40,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
     func testSimpleRequestDoesNotUseAnyRowAdapter() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let (_, adapter) = try Reader.all().prepare(db, forSingleResult: false)
+            let adapter = try Reader.all().makePreparedRequest(db, forSingleResult: false).adapter
             XCTAssertNil(adapter)
         }
     }
@@ -205,10 +201,8 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(rows[1][1] as Int64, 1)
             }
             try test(tableRequest.select(literal: SQLLiteral(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
-            #if swift(>=5)
             // Interpolation
             try test(tableRequest.select(literal: "\("O'Brien"), id - \(1)"))
-            #endif
         }
     }
     
@@ -355,7 +349,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
-                    #if swift(>=5.0)
                     // SQLLiteral with interpolation
                     do {
                         let value = try Reader
@@ -363,7 +356,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
-                    #endif
                     // raw sql without argument
                     do {
                         let value = try Reader
@@ -398,7 +390,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
-                    #if swift(>=5.0)
                     // SQLLiteral with interpolation
                     do {
                         let value = try Reader
@@ -407,7 +398,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, "O'Brien")
                     }
-                    #endif
                     // raw sql without argument
                     do {
                         let value = try Reader
@@ -444,7 +434,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 22])
                     }
-                    #if swift(>=5.0)
                     // SQLLiteral with interpolation
                     do {
                         let value = try Reader
@@ -452,7 +441,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "O'Brien", "age": 22])
                     }
-                    #endif
                     // raw sql with named argument
                     do {
                         let value = try Reader
@@ -487,7 +475,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "Arthur", "age": 22])
                     }
-                    #if swift(>=5.0)
                     // SQLLiteral with interpolation
                     do {
                         let value = try Reader
@@ -496,7 +483,6 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                             .fetchOne(db)!
                         XCTAssertEqual(value, ["name": "O'Brien", "age": 22])
                     }
-                    #endif
                     // raw sql with positional argument
                     do {
                         let value = try Reader
@@ -522,7 +508,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         _ = Reader.all().select(literal: SQLLiteral(sql: "name")) as QueryInterfaceRequest<String>
         
         func makeRequest() -> QueryInterfaceRequest<String> {
-            return Reader.select(Col.name)
+            Reader.select(Col.name)
         }
         
         // Those should be, without any ambiguuity, requests of Reader.

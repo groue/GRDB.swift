@@ -1,16 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    #if GRDBCIPHER
-        import SQLCipher
-    #elseif SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    import GRDB
-#endif
+import GRDB
 
 class TableDefinitionTests: GRDBTestCase {
     
@@ -35,25 +24,14 @@ class TableDefinitionTests: GRDBTestCase {
     func testTableCreationOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            if #available(iOS 8.2, OSX 10.10, *) {
-                try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
-                    t.column("id", .integer).primaryKey()
-                }
-                assertEqualSQL(
-                    lastSQLQuery,
-                    ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
-                        "\"id\" INTEGER PRIMARY KEY" +
-                        ") WITHOUT ROWID") as String)
-            } else {
-                try db.create(table: "test", temporary: true, ifNotExists: true) { t in
-                    t.column("id", .integer).primaryKey()
-                }
-                assertEqualSQL(
-                    lastSQLQuery,
-                    ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
-                        "\"id\" INTEGER PRIMARY KEY" +
-                        ")") as String)
+            try db.create(table: "test", temporary: true, ifNotExists: true, withoutRowID: true) { t in
+                t.column("id", .integer).primaryKey()
             }
+            assertEqualSQL(
+                lastSQLQuery,
+                ("CREATE TEMPORARY TABLE IF NOT EXISTS \"test\" (" +
+                    "\"id\" INTEGER PRIMARY KEY" +
+                    ") WITHOUT ROWID") as String)
         }
     }
 
@@ -563,17 +541,11 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\")")
             
             // Sanity check
-            XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a", "test_on_a_b"])
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a", "test_on_a_b"])
         }
     }
     
     func testCreatePartialIndex() throws {
-        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
-            guard #available(iOS 8.2, OSX 10.10, *) else {
-                return
-            }
-        #endif
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
@@ -586,7 +558,7 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(lastSQLQuery, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE \"a\" = 1")
             
             // Sanity check
-            XCTAssertEqual(try Set(db.indexes(on: "test").map { $0.name }), ["test_on_a_b"])
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a_b"])
         }
     }
 

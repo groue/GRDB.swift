@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private class Reader : Record {
     var id: Int64?
@@ -25,7 +21,7 @@ private class Reader : Record {
     }
     
     override class var databaseTableName: String {
-        return "readers"
+        "readers"
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -90,7 +86,7 @@ class RecordQueryInterfaceRequestTests: GRDBTestCase {
             
             do {
                 let cursor = try request.fetchCursor(db)
-                let names = cursor.map { $0.name }
+                let names = cursor.map(\.name)
                 XCTAssertEqual(try names.next()!, arthur.name)
                 XCTAssertEqual(try names.next()!, barbara.name)
                 XCTAssertTrue(try names.next() == nil)

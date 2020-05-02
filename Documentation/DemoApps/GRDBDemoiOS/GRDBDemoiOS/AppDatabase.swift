@@ -19,7 +19,7 @@ struct AppDatabase {
     
     /// The DatabaseMigrator that defines the database schema.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#migrations
+    /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/Migrations.md
     static var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         

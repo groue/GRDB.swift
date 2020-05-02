@@ -128,7 +128,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
 Now you can use GRDB with your custom SQLite build:
 
 ```swift
-import GRDBCustomSQLite
+import GRDB
 
 let dbQueue = try DatabaseQueue(...)
 ```

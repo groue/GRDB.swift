@@ -9,13 +9,16 @@ public protocol SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an SQL string that represents the collection.
-    func collectionSQL(_ context: inout SQLGenerationContext) -> String
+    func collectionSQL(_ context: SQLGenerationContext) throws -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns an expression that check whether the collection contains
     /// the expression.
     func contains(_ value: SQLExpressible) -> SQLExpression
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    func qualifiedCollection(with alias: TableAlias) -> SQLCollection
 }
 
 
@@ -27,7 +30,7 @@ extension SQLCollection {
     ///
     /// Returns a SQLExpressionContains which applies the `IN` SQL operator.
     public func contains(_ value: SQLExpressible) -> SQLExpression {
-        return SQLExpressionContains(value, self)
+        SQLExpressionContains(value, self)
     }
 }
 
@@ -40,13 +43,9 @@ extension SQLCollection {
 struct SQLExpressionsArray: SQLCollection {
     let expressions: [SQLExpression]
     
-    init<S: Sequence>(_ expressions: S) where S.Iterator.Element: SQLExpressible {
-        self.expressions = expressions.map { $0.sqlExpression }
-    }
-    
-    func collectionSQL(_ context: inout SQLGenerationContext) -> String {
-        return expressions
-            .map { $0.expressionSQL(&context, wrappedInParenthesis: false) }
+    func collectionSQL(_ context: SQLGenerationContext) throws -> String {
+        try expressions
+            .map { try $0.expressionSQL(context, wrappedInParenthesis: false) }
             .joined(separator: ", ")
     }
     
@@ -61,5 +60,9 @@ struct SQLExpressionsArray: SQLCollection {
         }
         // ["foo", "bar"].contains(Column("name")) => name IN ('foo', 'bar')
         return SQLExpressionContains(value, self)
+    }
+    
+    func qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        SQLExpressionsArray(expressions: expressions.map { $0.qualifiedExpression(with: alias) })
     }
 }

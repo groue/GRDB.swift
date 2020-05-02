@@ -1,11 +1,4 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     public let rawValue: Int32
@@ -20,12 +13,10 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     ///     let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
     ///     resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
     public var primaryResultCode: ResultCode {
-        return ResultCode(rawValue: rawValue & 0xFF)
+        ResultCode(rawValue: rawValue & 0xFF)
     }
     
-    var isPrimary: Bool {
-        return self == primaryResultCode
-    }
+    var isPrimary: Bool { self == primaryResultCode }
     
     /// Returns true if the code on the left matches the code on the right.
     ///
@@ -156,21 +147,31 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     // swiftlint:enable operator_usage_whitespace line_length
 }
 
+extension ResultCode {
+    /// Returns true if the code on the left matches the error on the right.
+    ///
+    /// Primary result codes match themselves and their extended result codes,
+    /// while extended result codes match only themselves.
+    ///
+    ///     do {
+    ///         try ...
+    ///     } catch ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY {
+    ///         // foreign key constraint error
+    ///     } catch ResultCode.SQLITE_CONSTRAINT {
+    ///         // any other constraint error
+    ///     } catch {
+    ///         // any other database error
+    ///     }
+    public static func ~= (lhs: Self, rhs: Error) -> Bool {
+        guard let error = rhs as? DatabaseError else { return false }
+        return lhs ~= error.extendedResultCode
+    }
+}
+
 // CustomStringConvertible
 extension ResultCode {
     var errorString: String? {
-        // sqlite3_errstr was added in SQLite 3.7.15 http://www.sqlite.org/changes.html#version_3_7_15
-        // It is available from iOS 8.2 and OS X 10.10
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        return String(cString: sqlite3_errstr(rawValue))
-        #else
-        if #available(iOS 8.2, OSX 10.10, OSXApplicationExtension 10.10, *) {
-            return String(cString: sqlite3_errstr(rawValue))
-        } else {
-            return nil
-        }
-        #endif
+        String(cString: sqlite3_errstr(rawValue))
     }
     
     /// :nodoc:
@@ -201,7 +202,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     ///
     /// See also `extendedResultCode`.
     public var resultCode: ResultCode {
-        return extendedResultCode.primaryResultCode
+        extendedResultCode.primaryResultCode
     }
     
     /// The SQLite extended error code (see
@@ -221,6 +222,9 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     
     /// The SQL query that yielded the error (if relevant).
     public let sql: String?
+    
+    /// The query arguments that yielded the error (if relevant).
+    public let arguments: StatementArguments?
     
     /// Creates a Database Error
     public init(
@@ -242,12 +246,108 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     init(resultCode: Int32, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
     }
-    
-    // MARK: Not public
-    
-    /// The query arguments that yielded the error (if relevant).
-    /// Not public because the StatementArguments class has no public method.
-    let arguments: StatementArguments?
+}
+
+// Support for `catch DatabaseError.SQLITE_XXX`
+extension DatabaseError {
+    public static let SQLITE_OK = ResultCode.SQLITE_OK
+    public static let SQLITE_ERROR = ResultCode.SQLITE_ERROR
+    public static let SQLITE_INTERNAL = ResultCode.SQLITE_INTERNAL
+    public static let SQLITE_PERM = ResultCode.SQLITE_PERM
+    public static let SQLITE_ABORT = ResultCode.SQLITE_ABORT
+    public static let SQLITE_BUSY = ResultCode.SQLITE_BUSY
+    public static let SQLITE_LOCKED = ResultCode.SQLITE_LOCKED
+    public static let SQLITE_NOMEM = ResultCode.SQLITE_NOMEM
+    public static let SQLITE_READONLY = ResultCode.SQLITE_READONLY
+    public static let SQLITE_INTERRUPT = ResultCode.SQLITE_INTERRUPT
+    public static let SQLITE_IOERR = ResultCode.SQLITE_IOERR
+    public static let SQLITE_CORRUPT = ResultCode.SQLITE_CORRUPT
+    public static let SQLITE_NOTFOUND = ResultCode.SQLITE_NOTFOUND
+    public static let SQLITE_FULL = ResultCode.SQLITE_FULL
+    public static let SQLITE_CANTOPEN = ResultCode.SQLITE_CANTOPEN
+    public static let SQLITE_PROTOCOL = ResultCode.SQLITE_PROTOCOL
+    public static let SQLITE_EMPTY = ResultCode.SQLITE_EMPTY
+    public static let SQLITE_SCHEMA = ResultCode.SQLITE_SCHEMA
+    public static let SQLITE_TOOBIG = ResultCode.SQLITE_TOOBIG
+    public static let SQLITE_CONSTRAINT = ResultCode.SQLITE_CONSTRAINT
+    public static let SQLITE_MISMATCH = ResultCode.SQLITE_MISMATCH
+    public static let SQLITE_MISUSE = ResultCode.SQLITE_MISUSE
+    public static let SQLITE_NOLFS = ResultCode.SQLITE_NOLFS
+    public static let SQLITE_AUTH = ResultCode.SQLITE_AUTH
+    public static let SQLITE_FORMAT = ResultCode.SQLITE_FORMAT
+    public static let SQLITE_RANGE = ResultCode.SQLITE_RANGE
+    public static let SQLITE_NOTADB = ResultCode.SQLITE_NOTADB
+    public static let SQLITE_NOTICE = ResultCode.SQLITE_NOTICE
+    public static let SQLITE_WARNING = ResultCode.SQLITE_WARNING
+    public static let SQLITE_ROW = ResultCode.SQLITE_ROW
+    public static let SQLITE_DONE = ResultCode.SQLITE_DONE
+    public static let SQLITE_ERROR_MISSING_COLLSEQ = ResultCode.SQLITE_ERROR_MISSING_COLLSEQ
+    public static let SQLITE_ERROR_RETRY = ResultCode.SQLITE_ERROR_RETRY
+    public static let SQLITE_ERROR_SNAPSHOT = ResultCode.SQLITE_ERROR_SNAPSHOT
+    public static let SQLITE_IOERR_READ = ResultCode.SQLITE_IOERR_READ
+    public static let SQLITE_IOERR_SHORT_READ = ResultCode.SQLITE_IOERR_SHORT_READ
+    public static let SQLITE_IOERR_WRITE = ResultCode.SQLITE_IOERR_WRITE
+    public static let SQLITE_IOERR_FSYNC = ResultCode.SQLITE_IOERR_FSYNC
+    public static let SQLITE_IOERR_DIR_FSYNC = ResultCode.SQLITE_IOERR_DIR_FSYNC
+    public static let SQLITE_IOERR_TRUNCATE = ResultCode.SQLITE_IOERR_TRUNCATE
+    public static let SQLITE_IOERR_FSTAT = ResultCode.SQLITE_IOERR_FSTAT
+    public static let SQLITE_IOERR_UNLOCK = ResultCode.SQLITE_IOERR_UNLOCK
+    public static let SQLITE_IOERR_RDLOCK = ResultCode.SQLITE_IOERR_RDLOCK
+    public static let SQLITE_IOERR_DELETE = ResultCode.SQLITE_IOERR_DELETE
+    public static let SQLITE_IOERR_BLOCKED = ResultCode.SQLITE_IOERR_BLOCKED
+    public static let SQLITE_IOERR_NOMEM = ResultCode.SQLITE_IOERR_NOMEM
+    public static let SQLITE_IOERR_ACCESS = ResultCode.SQLITE_IOERR_ACCESS
+    public static let SQLITE_IOERR_CHECKRESERVEDLOCK = ResultCode.SQLITE_IOERR_CHECKRESERVEDLOCK
+    public static let SQLITE_IOERR_LOCK = ResultCode.SQLITE_IOERR_LOCK
+    public static let SQLITE_IOERR_CLOSE = ResultCode.SQLITE_IOERR_CLOSE
+    public static let SQLITE_IOERR_DIR_CLOSE = ResultCode.SQLITE_IOERR_DIR_CLOSE
+    public static let SQLITE_IOERR_SHMOPEN = ResultCode.SQLITE_IOERR_SHMOPEN
+    public static let SQLITE_IOERR_SHMSIZE = ResultCode.SQLITE_IOERR_SHMSIZE
+    public static let SQLITE_IOERR_SHMLOCK = ResultCode.SQLITE_IOERR_SHMLOCK
+    public static let SQLITE_IOERR_SHMMAP = ResultCode.SQLITE_IOERR_SHMMAP
+    public static let SQLITE_IOERR_SEEK = ResultCode.SQLITE_IOERR_SEEK
+    public static let SQLITE_IOERR_DELETE_NOENT = ResultCode.SQLITE_IOERR_DELETE_NOENT
+    public static let SQLITE_IOERR_MMAP = ResultCode.SQLITE_IOERR_MMAP
+    public static let SQLITE_IOERR_GETTEMPPATH = ResultCode.SQLITE_IOERR_GETTEMPPATH
+    public static let SQLITE_IOERR_CONVPATH = ResultCode.SQLITE_IOERR_CONVPATH
+    public static let SQLITE_IOERR_VNODE = ResultCode.SQLITE_IOERR_VNODE
+    public static let SQLITE_IOERR_AUTH = ResultCode.SQLITE_IOERR_AUTH
+    public static let SQLITE_IOERR_BEGIN_ATOMIC = ResultCode.SQLITE_IOERR_BEGIN_ATOMIC
+    public static let SQLITE_IOERR_COMMIT_ATOMIC = ResultCode.SQLITE_IOERR_COMMIT_ATOMIC
+    public static let SQLITE_IOERR_ROLLBACK_ATOMIC = ResultCode.SQLITE_IOERR_ROLLBACK_ATOMIC
+    public static let SQLITE_LOCKED_SHAREDCACHE = ResultCode.SQLITE_LOCKED_SHAREDCACHE
+    public static let SQLITE_LOCKED_VTAB = ResultCode.SQLITE_LOCKED_VTAB
+    public static let SQLITE_BUSY_RECOVERY = ResultCode.SQLITE_BUSY_RECOVERY
+    public static let SQLITE_BUSY_SNAPSHOT = ResultCode.SQLITE_BUSY_SNAPSHOT
+    public static let SQLITE_CANTOPEN_NOTEMPDIR = ResultCode.SQLITE_CANTOPEN_NOTEMPDIR
+    public static let SQLITE_CANTOPEN_ISDIR = ResultCode.SQLITE_CANTOPEN_ISDIR
+    public static let SQLITE_CANTOPEN_FULLPATH = ResultCode.SQLITE_CANTOPEN_FULLPATH
+    public static let SQLITE_CANTOPEN_CONVPATH = ResultCode.SQLITE_CANTOPEN_CONVPATH
+    public static let SQLITE_CANTOPEN_DIRTYWAL = ResultCode.SQLITE_CANTOPEN_DIRTYWAL
+    public static let SQLITE_CORRUPT_VTAB = ResultCode.SQLITE_CORRUPT_VTAB
+    public static let SQLITE_CORRUPT_SEQUENCE = ResultCode.SQLITE_CORRUPT_SEQUENCE
+    public static let SQLITE_READONLY_RECOVERY = ResultCode.SQLITE_READONLY_RECOVERY
+    public static let SQLITE_READONLY_CANTLOCK = ResultCode.SQLITE_READONLY_CANTLOCK
+    public static let SQLITE_READONLY_ROLLBACK = ResultCode.SQLITE_READONLY_ROLLBACK
+    public static let SQLITE_READONLY_DBMOVED = ResultCode.SQLITE_READONLY_DBMOVED
+    public static let SQLITE_READONLY_CANTINIT = ResultCode.SQLITE_READONLY_CANTINIT
+    public static let SQLITE_READONLY_DIRECTORY = ResultCode.SQLITE_READONLY_DIRECTORY
+    public static let SQLITE_ABORT_ROLLBACK = ResultCode.SQLITE_ABORT_ROLLBACK
+    public static let SQLITE_CONSTRAINT_CHECK = ResultCode.SQLITE_CONSTRAINT_CHECK
+    public static let SQLITE_CONSTRAINT_COMMITHOOK = ResultCode.SQLITE_CONSTRAINT_COMMITHOOK
+    public static let SQLITE_CONSTRAINT_FOREIGNKEY = ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY
+    public static let SQLITE_CONSTRAINT_FUNCTION = ResultCode.SQLITE_CONSTRAINT_FUNCTION
+    public static let SQLITE_CONSTRAINT_NOTNULL = ResultCode.SQLITE_CONSTRAINT_NOTNULL
+    public static let SQLITE_CONSTRAINT_PRIMARYKEY = ResultCode.SQLITE_CONSTRAINT_PRIMARYKEY
+    public static let SQLITE_CONSTRAINT_TRIGGER = ResultCode.SQLITE_CONSTRAINT_TRIGGER
+    public static let SQLITE_CONSTRAINT_UNIQUE = ResultCode.SQLITE_CONSTRAINT_UNIQUE
+    public static let SQLITE_CONSTRAINT_VTAB = ResultCode.SQLITE_CONSTRAINT_VTAB
+    public static let SQLITE_CONSTRAINT_ROWID = ResultCode.SQLITE_CONSTRAINT_ROWID
+    public static let SQLITE_NOTICE_RECOVER_WAL = ResultCode.SQLITE_NOTICE_RECOVER_WAL
+    public static let SQLITE_NOTICE_RECOVER_ROLLBACK = ResultCode.SQLITE_NOTICE_RECOVER_ROLLBACK
+    public static let SQLITE_WARNING_AUTOINDEX = ResultCode.SQLITE_WARNING_AUTOINDEX
+    public static let SQLITE_AUTH_USER = ResultCode.SQLITE_AUTH_USER
+    public static let SQLITE_OK_LOAD_PERMANENTLY = ResultCode.SQLITE_OK_LOAD_PERMANENTLY
 }
 
 extension DatabaseError {
@@ -292,19 +392,13 @@ extension DatabaseError {
     
     /// NSError bridging: the domain of the error.
     /// :nodoc:
-    public static var errorDomain: String {
-        return "GRDB.DatabaseError"
-    }
+    public static var errorDomain: String { "GRDB.DatabaseError" }
     
     /// NSError bridging: the error code within the given domain.
     /// :nodoc:
-    public var errorCode: Int {
-        return Int(extendedResultCode.rawValue)
-    }
+    public var errorCode: Int { Int(extendedResultCode.rawValue) }
     
     /// NSError bridging: the user-info dictionary.
     /// :nodoc:
-    public var errorUserInfo: [String: Any] {
-        return [NSLocalizedDescriptionKey: description]
-    }
+    public var errorUserInfo: [String: Any] { [NSLocalizedDescriptionKey: description] }
 }

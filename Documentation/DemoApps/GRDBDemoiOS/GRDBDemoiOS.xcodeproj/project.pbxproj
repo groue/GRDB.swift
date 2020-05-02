@@ -43,20 +43,6 @@
 			remoteGlobalIDString = 56E5D7F91B4D422D00430942;
 			remoteInfo = GRDBOSXTests;
 		};
-		56606D0D2355931F00185962 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 560C981A1C0E22D300BF8471;
-			remoteInfo = GRDBOSXPerformanceTests;
-		};
-		56606D0F2355931F00185962 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 56439B501F4CA1DC0066043F;
-			remoteInfo = GRDBOSXPerformanceComparisonTests;
-		};
 		56606D112355931F00185962 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */;
@@ -224,8 +210,6 @@
 			children = (
 				56606D0A2355931F00185962 /* GRDB.framework */,
 				56606D0C2355931F00185962 /* GRDBOSXTests.xctest */,
-				56606D0E2355931F00185962 /* GRDBOSXPerformanceTests.xctest */,
-				56606D102355931F00185962 /* GRDBOSXPerformanceComparisonTests.xctest */,
 				56606D122355931F00185962 /* GRDBOSXCrashTests.xctest */,
 				56606D142355931F00185962 /* GRDB.framework */,
 				56606D162355931F00185962 /* GRDBiOSTests.xctest */,
@@ -432,20 +416,6 @@
 			remoteRef = 56606D0B2355931F00185962 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		56606D0E2355931F00185962 /* GRDBOSXPerformanceTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBOSXPerformanceTests.xctest;
-			remoteRef = 56606D0D2355931F00185962 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		56606D102355931F00185962 /* GRDBOSXPerformanceComparisonTests.xctest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = GRDBOSXPerformanceComparisonTests.xctest;
-			remoteRef = 56606D0F2355931F00185962 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
 		56606D122355931F00185962 /* GRDBOSXCrashTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
@@ -608,7 +578,6 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 3.2;
 			};
 			name = Debug;
 		};
@@ -625,7 +594,6 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 3.2;
 			};
 			name = Release;
 		};
@@ -643,7 +611,6 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 3.2;
 			};
 			name = Debug;
 		};
@@ -661,7 +628,6 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 3.2;
 			};
 			name = Release;
 		};
@@ -715,12 +681,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Debug;
 		};
@@ -768,11 +736,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
+				WATCHOS_DEPLOYMENT_TARGET = 2.0;
 			};
 			name = Release;
 		};

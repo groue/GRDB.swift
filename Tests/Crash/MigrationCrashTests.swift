@@ -1,8 +1,4 @@
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class MigrationCrashTests: GRDBCrashTestCase {
     

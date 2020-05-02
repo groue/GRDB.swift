@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 class DatabasePoolBackupTests: GRDBTestCase {
 
@@ -36,7 +32,6 @@ class DatabasePoolBackupTests: GRDBTestCase {
     }
     
     // TODO: fix flaky test
-//    @available(OSX 10.10, *)
 //    func testConcurrentWriteDuringBackup() throws {
 //        let source = try makeDatabasePool(filename: "source.sqlite")
 //        let destination = try makeDatabasePool(filename: "destination.sqlite")

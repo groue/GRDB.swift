@@ -38,7 +38,7 @@ extension TableRecord {
     /// If the search pattern is nil, the request does not match any
     /// database row.
     public static func matching(_ pattern: FTS5Pattern?) -> QueryInterfaceRequest<Self> {
-        return all().matching(pattern)
+        all().matching(pattern)
     }
 }
 #endif

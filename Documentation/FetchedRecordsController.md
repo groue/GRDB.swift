@@ -227,11 +227,11 @@ The table view data source asks the fetched records controller to provide releva
 
 ```swift
 func numberOfSections(in tableView: UITableView) -> Int {
-    return fetchedRecordsController.sections.count
+    fetchedRecordsController.sections.count
 }
 
 func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    return fetchedRecordsController.sections[section].numberOfRecords
+    fetchedRecordsController.sections[section].numberOfRecords
 }
 
 func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {

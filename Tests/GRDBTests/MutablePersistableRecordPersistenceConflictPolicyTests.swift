@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private struct DefaultPolicy: MutablePersistableRecord {
     var id: Int64?
@@ -164,9 +160,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             var transactionEvents: [DatabaseEvent] = []
             var events: [DatabaseEvent] = []
             
-            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
-                return true
-            }
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
             
             func databaseDidChange(with event: DatabaseEvent) {
                 transactionEvents.append(event.copy())

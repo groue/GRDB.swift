@@ -1,15 +1,7 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 // MARK: - Conversion Context and Errors
 
 /// A type that helps the user understanding value conversion errors
-struct ValueConversionContext: KeyPathRefining {
+struct ValueConversionContext: Refinable {
     private enum Column {
         case columnIndex(Int)
         case columnName(String)
@@ -20,12 +12,12 @@ struct ValueConversionContext: KeyPathRefining {
     var arguments: StatementArguments?
     private var column: Column?
     
-    func atColumn(_ columnIndex: Int) -> ValueConversionContext {
-        return with(\.column, .columnIndex(columnIndex))
+    func atColumn(_ columnIndex: Int) -> Self {
+        with(\.column, .columnIndex(columnIndex))
     }
     
-    func atColumn(_ columnName: String) -> ValueConversionContext {
-        return with(\.column, .columnName(columnName))
+    func atColumn(_ columnName: String) -> Self {
+        with(\.column, .columnName(columnName))
     }
     
     var columnIndex: Int? {
@@ -34,7 +26,7 @@ struct ValueConversionContext: KeyPathRefining {
         case .columnIndex(let index):
             return index
         case .columnName(let name):
-            return row?.index(ofColumn: name)
+            return row?.index(forColumn: name)
         }
     }
     
@@ -224,7 +216,7 @@ extension DatabaseValueConvertible {
     
     @usableFromInline
     static func decode(from row: Row, atUncheckedIndex index: Int) -> Self {
-        return decode(
+        decode(
             from: row.impl.databaseValue(atUncheckedIndex: index),
             conversionContext: ValueConversionContext(row).atColumn(index))
     }
@@ -258,7 +250,7 @@ extension DatabaseValueConvertible {
     
     @usableFromInline
     static func decodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
-        return decodeIfPresent(
+        decodeIfPresent(
             from: row.impl.databaseValue(atUncheckedIndex: index),
             conversionContext: ValueConversionContext(row).atColumn(index))
     }
@@ -309,7 +301,7 @@ extension Row {
         atUncheckedIndex index: Int)
         -> Value
     {
-        return impl.fastDecode(type, atUncheckedIndex: index)
+        impl.fastDecode(type, atUncheckedIndex: index)
     }
     
     @usableFromInline
@@ -318,6 +310,6 @@ extension Row {
         atUncheckedIndex index: Int)
         -> Value?
     {
-        return impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
+        impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }
 }

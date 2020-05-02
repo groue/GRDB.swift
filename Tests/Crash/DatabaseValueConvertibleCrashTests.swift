@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // A type that adopts DatabaseValueConvertible but does not adopt StatementColumnConvertible
 private struct IntConvertible: DatabaseValueConvertible {
@@ -11,9 +7,7 @@ private struct IntConvertible: DatabaseValueConvertible {
     init(int: Int) {
         self.int = int
     }
-    var databaseValue: DatabaseValue {
-        return int.databaseValue
-    }
+    var databaseValue: DatabaseValue { int.databaseValue }
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> IntConvertible? {
         guard let int = Int.fromDatabaseValue(dbValue) else {
             return nil

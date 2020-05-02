@@ -1,8 +1,4 @@
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // GRDB 1.2 has shipped with a change in the DatabaseReader public protocol.
 //
@@ -22,7 +18,7 @@ private class UserCursor<T> : Cursor {
 
 extension UserCursor {
     // Test presence of the Element associated type
-    static var elementType: Element.Type { return Element.self }
+    static var elementType: Element.Type { Element.self }
 }
 
 // MARK: - DatabaseAggregate
@@ -110,8 +106,6 @@ private class UserPersistableRecord2 : PersistableRecord {
 private struct UserRowRequest : FetchRequest {
     struct CustomType { }
     typealias RowDecoder = CustomType
-    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
-    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) { preconditionFailure() }
     func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest { preconditionFailure() }
 }
 
@@ -148,7 +142,7 @@ private class UserTableRecord2 : TableRecord {
 // MARK: - TransactionObserver
 
 private class UserTransactionObserver : TransactionObserver {
-    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { return false }
+    func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { false }
     func databaseDidChange(with event: DatabaseEvent) { }
     func databaseDidCommit(_ db: Database) { }
     func databaseDidRollback(_ db: Database) { }

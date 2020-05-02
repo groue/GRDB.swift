@@ -1,12 +1,11 @@
 // MARK: - Custom Functions
 
 extension DatabaseFunction {
-    // TODO: rename call (https://forums.swift.org/t/se-0253-callable-values-of-user-defined-nominal-types/24177)
     /// Returns an SQL expression that applies the function.
     ///
     /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func apply(_ arguments: SQLExpressible...) -> SQLExpression {
-        return SQLExpressionFunction(SQLFunctionName(name), arguments: arguments.map { $0.sqlExpression })
+    public func callAsFunction(_ arguments: SQLExpressible...) -> SQLExpression {
+        SQLExpressionFunction(SQLFunctionName(name), arguments: arguments.map(\.sqlExpression))
     }
 }
 
@@ -23,7 +22,7 @@ extension SQLFunctionName {
 ///     // ABS(amount)
 ///     abs(Column("amount"))
 public func abs(_ value: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.abs, arguments: value)
+    SQLExpressionFunction(.abs, arguments: value)
 }
 
 
@@ -39,7 +38,7 @@ extension SQLFunctionName {
 ///     // AVG(length)
 ///     average(Column("length"))
 public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.avg, arguments: value)
+    SQLExpressionFunction(.avg, arguments: value)
 }
 
 
@@ -50,7 +49,7 @@ public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // COUNT(email)
 ///     count(Column("email"))
 public func count(_ counted: SQLSelectable) -> SQLExpression {
-    return SQLExpressionCount(counted)
+    SQLExpressionCount(counted)
 }
 
 
@@ -61,7 +60,7 @@ public func count(_ counted: SQLSelectable) -> SQLExpression {
 ///     // COUNT(DISTINCT email)
 ///     count(distinct: Column("email"))
 public func count(distinct value: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionCountDistinct(value.sqlExpression)
+    SQLExpressionCountDistinct(value.sqlExpression)
 }
 
 
@@ -77,7 +76,7 @@ extension SQLFunctionName {
 ///     // IFNULL(name, 'Anonymous')
 ///     Column("name") ?? "Anonymous"
 public func ?? (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.ifNull, arguments: lhs, rhs)
+    SQLExpressionFunction(.ifNull, arguments: lhs, rhs)
 }
 
 
@@ -93,7 +92,7 @@ extension SQLFunctionName {
 ///     // LENGTH(name)
 ///     length(Column("name"))
 public func length(_ value: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.length, arguments: value)
+    SQLExpressionFunction(.length, arguments: value)
 }
 
 
@@ -109,7 +108,7 @@ extension SQLFunctionName {
 ///     // MAX(score)
 ///     max(Column("score"))
 public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.max, arguments: value)
+    SQLExpressionFunction(.max, arguments: value)
 }
 
 
@@ -125,7 +124,7 @@ extension SQLFunctionName {
 ///     // MIN(score)
 ///     min(Column("score"))
 public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.min, arguments: value)
+    SQLExpressionFunction(.min, arguments: value)
 }
 
 
@@ -141,7 +140,7 @@ extension SQLFunctionName {
 ///     // SUM(amount)
 ///     sum(Column("amount"))
 public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
-    return SQLExpressionFunction(.sum, arguments: value)
+    SQLExpressionFunction(.sum, arguments: value)
 }
 
 
@@ -156,7 +155,7 @@ extension SQLSpecificExpressible {
     ///     let request = Player.select(nameColumn.capitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var capitalized: SQLExpression {
-        return DatabaseFunction.capitalize.apply(sqlExpression)
+        DatabaseFunction.capitalize(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -166,7 +165,7 @@ extension SQLSpecificExpressible {
     ///     let request = Player.select(nameColumn.lowercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var lowercased: SQLExpression {
-        return DatabaseFunction.lowercase.apply(sqlExpression)
+        DatabaseFunction.lowercase(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -176,7 +175,7 @@ extension SQLSpecificExpressible {
     ///     let request = Player.select(nameColumn.uppercased())
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     public var uppercased: SQLExpression {
-        return DatabaseFunction.uppercase.apply(sqlExpression)
+        DatabaseFunction.uppercase(sqlExpression)
     }
 }
 
@@ -190,7 +189,7 @@ extension SQLSpecificExpressible {
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedCapitalized: SQLExpression {
-        return DatabaseFunction.localizedCapitalize.apply(sqlExpression)
+        DatabaseFunction.localizedCapitalize(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -201,7 +200,7 @@ extension SQLSpecificExpressible {
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedLowercased: SQLExpression {
-        return DatabaseFunction.localizedLowercase.apply(sqlExpression)
+        DatabaseFunction.localizedLowercase(sqlExpression)
     }
     
     /// Returns an SQL expression that applies the Swift's built-in
@@ -212,6 +211,6 @@ extension SQLSpecificExpressible {
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
     @available(iOS 9.0, OSX 10.11, watchOS 3.0, *)
     public var localizedUppercased: SQLExpression {
-        return DatabaseFunction.localizedUppercase.apply(sqlExpression)
+        DatabaseFunction.localizedUppercase(sqlExpression)
     }
 }

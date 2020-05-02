@@ -111,7 +111,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func _fetchStructs(_ db: Database) throws -> [ItemStruct] {
-        return try ItemStruct.fetchAll(db)
+        try ItemStruct.fetchAll(db)
     }
     
     // MARK: -
@@ -127,7 +127,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func _fetchCodables(_ db: Database) throws -> [ItemCodable] {
-        return try ItemCodable.fetchAll(db)
+        try ItemCodable.fetchAll(db)
     }
 
     // MARK: -
@@ -143,7 +143,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func _fetchRecords(_ db: Database) throws -> [ItemRecord] {
-        return try ItemRecord.fetchAll(db)
+        try ItemRecord.fetchAll(db)
     }
     
     // MARK: -
@@ -316,7 +316,7 @@ class ItemRecord : Record {
     }
     
     override class var databaseTableName: String {
-        return "items"
+        "items"
     }
     
     required init(row: GRDB.Row) {

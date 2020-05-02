@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // BadlyMangledStuff.updateFromRow() accepts a row with mangled column names.
 // Its hasPersistentChangedValues flag is wrong.
@@ -24,7 +20,7 @@ class BadlyMangledStuff : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "stuffs"
+        "stuffs"
     }
     
     required init(row: Row) {

@@ -1,11 +1,3 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 extension Database {
     
     // MARK: - Database Schema
@@ -28,7 +20,7 @@ extension Database {
     
     /// Returns whether a table exists.
     public func tableExists(_ name: String) throws -> Bool {
-        return try exists(type: .table, name: name)
+        try exists(type: .table, name: name)
     }
     
     /// Returns whether a table is an internal SQLite table.
@@ -50,17 +42,17 @@ extension Database {
     ///
     /// Those are tables whose name begins with "grdb_".
     public func isGRDBInternalTable(_ tableName: String) -> Bool {
-        return tableName.starts(with: "grdb_")
+        tableName.starts(with: "grdb_")
     }
     
     /// Returns whether a view exists.
     public func viewExists(_ name: String) throws -> Bool {
-        return try exists(type: .view, name: name)
+        try exists(type: .view, name: name)
     }
     
     /// Returns whether a trigger exists.
     public func triggerExists(_ name: String) throws -> Bool {
-        return try exists(type: .trigger, name: name)
+        try exists(type: .trigger, name: name)
     }
     
     private func exists(type: SchemaObjectType, name: String) throws -> Bool {
@@ -152,7 +144,7 @@ extension Database {
             }
         default:
             // Multi-columns primary key
-            primaryKey = .regular(pkColumns.map { $0.name })
+            primaryKey = .regular(pkColumns.map(\.name))
         }
         
         schemaCache.set(primaryKey: primaryKey, forTable: tableName)
@@ -180,10 +172,10 @@ extension Database {
                 let unique: Bool = row[2]
                 let columns = try Row
                     .fetchAll(self, sql: "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
-                    .map { row -> (Int, String) in
+                    .map({ row -> (Int, String) in
                         // [seqno:0 cid:2 name:"column"]
                         (row[0] as Int, row[2] as String)
-                    }
+                    })
                     .sorted { $0.0 < $1.0 }
                     .map { $0.1 }
                 return IndexInfo(name: indexName, columns: columns, unique: unique)
@@ -209,7 +201,7 @@ extension Database {
         throws -> Bool
         where T.Iterator.Element == String
     {
-        return try columnsForUniqueKey(Array(columns), in: tableName) != nil
+        try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
     
     /// The foreign keys defined on table named `tableName`.
@@ -361,14 +353,14 @@ extension Database {
         }
         
         let primaryKey = try self.primaryKey(tableName)
-        if Set(primaryKey.columns.map { $0.lowercased() }) == lowercasedColumns {
+        if Set(primaryKey.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns) {
             return primaryKey.columns
         }
         
         // Is there is an explicit unique index on the columns?
         let indexes = try self.indexes(on: tableName)
         let matchingIndex = indexes.first { index in
-            index.isUnique && Set(index.columns.map { $0.lowercased() }) == lowercasedColumns
+            index.isUnique && Set(index.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns)
         }
         if let index = matchingIndex {
             return index.columns
@@ -531,7 +523,7 @@ public struct PrimaryKeyInfo {
     private let impl: Impl
     
     static func rowID(_ column: String) -> PrimaryKeyInfo {
-        return PrimaryKeyInfo(impl: .rowID(column))
+        PrimaryKeyInfo(impl: .rowID(column))
     }
     
     static func regular(_ columns: [String]) -> PrimaryKeyInfo {
@@ -589,12 +581,12 @@ public struct ForeignKeyInfo {
     
     /// The origin columns
     public var originColumns: [String] {
-        return mapping.map { $0.origin }
+        mapping.map(\.origin)
     }
     
     /// The destination columns
     public var destinationColumns: [String] {
-        return mapping.map { $0.destination }
+        mapping.map(\.destination)
     }
 }
 
@@ -618,7 +610,7 @@ struct SchemaInfo: Equatable {
     
     /// All names for a given type
     func names(ofType type: SchemaObjectType) -> Set<String> {
-        return objects.reduce(into: []) { (set, key) in
+        objects.reduce(into: []) { (set, key) in
             if key.type == type.rawValue {
                 set.insert(key.name)
             }

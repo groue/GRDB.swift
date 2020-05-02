@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // Pet has a non-RowID primary key.
 class Pet : Record {
@@ -27,7 +23,7 @@ class Pet : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "pets"
+        "pets"
     }
     
     required init(row: Row) {
@@ -420,8 +416,7 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let request = Pet.orderByPrimaryKey()
-            let sqlRequest = try SQLRequest(db, request: request)
-            XCTAssertEqual(sqlRequest.sql, "SELECT * FROM \"pets\" ORDER BY \"UUID\"")
+            try assertEqualSQL(db, request, "SELECT * FROM \"pets\" ORDER BY \"UUID\"")
         }
     }
     

@@ -1,11 +1,4 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 #if !os(Linux)
 /// NSDate is stored in the database using the format
@@ -14,7 +7,7 @@ extension NSDate: DatabaseValueConvertible {
     /// Returns a database value that contains the date encoded as
     /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
     public var databaseValue: DatabaseValue {
-        return (self as Date).databaseValue
+        (self as Date).databaseValue
     }
     
     /// Returns a date initialized from dbValue, if possible.
@@ -42,7 +35,7 @@ extension Date: DatabaseValueConvertible {
     /// Returns a database value that contains the date encoded as
     /// "yyyy-MM-dd HH:mm:ss.SSS", in the UTC time zone.
     public var databaseValue: DatabaseValue {
-        return storageDateFormatter.string(from: self).databaseValue
+        storageDateFormatter.string(from: self).databaseValue
     }
     
     /// Returns a date initialized from dbValue, if possible.

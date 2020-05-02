@@ -1,12 +1,5 @@
 #if SQLITE_ENABLE_FTS5
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// FTS5 lets you define "fts5" virtual tables.
 ///
@@ -55,7 +48,7 @@ public struct FTS5: VirtualTableModule {
     
     /// Don't use this method.
     public func makeTableDefinition() -> FTS5TableDefinition {
-        return FTS5TableDefinition()
+        FTS5TableDefinition()
     }
     
     /// Don't use this method.
@@ -76,40 +69,40 @@ public struct FTS5: VirtualTableModule {
         }
         
         if let tokenizer = definition.tokenizer {
-            let tokenizerSQL = tokenizer
+            let tokenizerSQL = try tokenizer
                 .components
                 .joined(separator: " ")
                 .sqlExpression
-                .quotedSQL()
+                .quotedSQL(db)
             arguments.append("tokenize=\(tokenizerSQL)")
         }
         
         switch definition.contentMode {
         case let .raw(content, contentRowID):
             if let content = content {
-                let quotedContent = content.sqlExpression.quotedSQL()
+                let quotedContent = try content.sqlExpression.quotedSQL(db)
                 arguments.append("content=\(quotedContent)")
             }
             if let contentRowID = contentRowID {
-                let quotedContentRowID = contentRowID.sqlExpression.quotedSQL()
+                let quotedContentRowID = try contentRowID.sqlExpression.quotedSQL(db)
                 arguments.append("content_rowid=\(quotedContentRowID)")
             }
         case let .synchronized(contentTable):
-            arguments.append("content=\(contentTable.sqlExpression.quotedSQL())")
+            try arguments.append("content=\(contentTable.sqlExpression.quotedSQL(db))")
             if let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn {
-                let quotedRowID = rowIDColumn.sqlExpression.quotedSQL()
+                let quotedRowID = try rowIDColumn.sqlExpression.quotedSQL(db)
                 arguments.append("content_rowid=\(quotedRowID)")
             }
         }
         
         
         if let prefixes = definition.prefixes {
-            let prefix = prefixes
+            let prefix = try prefixes
                 .sorted()
                 .map { "\($0)" }
                 .joined(separator: " ")
                 .sqlExpression
-                .quotedSQL()
+                .quotedSQL(db)
             arguments.append("prefix=\(prefix)")
         }
         
@@ -137,10 +130,10 @@ public struct FTS5: VirtualTableModule {
             let rowIDColumn = try db.primaryKey(contentTable).rowIDColumn ?? Column.rowID.name
             let ftsTable = tableName.quotedDatabaseIdentifier
             let content = contentTable.quotedDatabaseIdentifier
-            let indexedColumns = definition.columns.map { $0.name }
+            let indexedColumns = definition.columns.map(\.name)
             
             let ftsColumns = (["rowid"] + indexedColumns)
-                .map { $0.quotedDatabaseIdentifier }
+                .map(\.quotedDatabaseIdentifier)
                 .joined(separator: ", ")
             
             let newContentColumns = ([rowIDColumn] + indexedColumns)
@@ -200,15 +193,9 @@ public struct FTS5: VirtualTableModule {
         guard let data = try! Data.fetchOne(db, sql: "SELECT fts5()") else {
             fatalError("FTS5 is not available")
         }
-        #if swift(>=5.0)
         return data.withUnsafeBytes {
             $0.bindMemory(to: UnsafePointer<fts5_api>.self).first!
         }
-        #else
-        return data.withUnsafeBytes {
-            $0.pointee
-        }
-        #endif
     }
     
     // Technique given by Jordan Rose:
@@ -221,7 +208,6 @@ public struct FTS5: VirtualTableModule {
         _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> Int32)
         -> UnsafePointer<fts5_api>
     {
-        let sqliteConnection = db.sqliteConnection
         var statement: SQLiteStatement? = nil
         var api: UnsafePointer<fts5_api>? = nil
         let type: StaticString = "fts5_api_ptr"

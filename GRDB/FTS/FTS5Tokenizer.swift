@@ -1,12 +1,5 @@
 #if SQLITE_ENABLE_FTS5
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 /// A low-level SQLite function that lets FTS5Tokenizer notify tokens.
 ///
@@ -86,7 +79,7 @@ extension FTS5Tokenizer {
     ///     - .query: Tokenize like the search pattern of the MATCH operator.
     /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
     func tokenize(_ string: String, for tokenization: FTS5Tokenization) throws -> [(String, FTS5TokenFlags)] {
-        return try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
+        try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
             guard let addr = buffer.baseAddress else {
                 return []
             }
@@ -170,7 +163,7 @@ extension Database {
                     _ body: (ContiguousArray<UnsafePointer<Int8>>) -> Result)
                     -> Result
                 {
-                    return car.withCString { cString in
+                    car.withCString { cString in
                         if let car = cdr.first {
                             array.append(cString)
                             return convertArguments(&array, car, Array(cdr.suffix(from: 1)), body)

@@ -1,5 +1,5 @@
-framework module GRDBCustomSQLite {
-    umbrella header "GRDBCustomSQLite.h"
+framework module GRDB {
+    umbrella header "GRDB.h"
     
     export *
     module * { export * }

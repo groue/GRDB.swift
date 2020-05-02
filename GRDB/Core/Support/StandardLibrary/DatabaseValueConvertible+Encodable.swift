@@ -1,7 +1,7 @@
 private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     let encode: (DatabaseValue) -> Void
     
-    var codingPath: [CodingKey] { return [] }
+    var codingPath: [CodingKey] { [] }
     
     /// Encodes a null value.
     ///
@@ -50,14 +50,10 @@ private struct DatabaseValueEncoder: Encoder {
     
     /// The path of coding keys taken to get to this point in encoding.
     /// A `nil` value indicates an unkeyed container.
-    var codingPath: [CodingKey] { return [] }
+    var codingPath: [CodingKey] { [] }
     
     /// Any contextual information set by the user for encoding.
     var userInfo: [CodingUserInfoKey: Any] = [:]
-    
-    init(encode: @escaping (DatabaseValue) -> Void) {
-        self.encode = encode
-    }
     
     /// Returns an encoding container appropriate for holding multiple values keyed by the given key type.
     ///
@@ -88,7 +84,7 @@ private struct DatabaseValueEncoder: Encoder {
     /// - precondition: May not be called after a value has been encoded through
     ///   a previous `self.singleValueContainer()` call.
     func singleValueContainer() -> SingleValueEncodingContainer {
-        return DatabaseValueEncodingContainer(encode: encode)
+        DatabaseValueEncodingContainer(encode: encode)
     }
 }
 

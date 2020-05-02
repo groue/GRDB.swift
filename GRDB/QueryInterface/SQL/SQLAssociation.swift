@@ -54,17 +54,15 @@
 public /* TODO: internal */ struct SQLAssociation {
     // All steps, from pivot to destination. Never empty.
     private(set) var steps: [SQLAssociationStep]
-    var keyPath: [String] {
-        return steps.map { $0.keyName }
-    }
+    var keyPath: [String] { steps.map(\.keyName) }
     
     var destination: SQLAssociationStep {
-        get { return steps[steps.count - 1] }
+        get { steps[steps.count - 1] }
         set { steps[steps.count - 1] = newValue }
     }
     
     var pivot: SQLAssociationStep {
-        get { return steps[0] }
+        get { steps[0] }
         set { steps[0] = newValue }
     }
     
@@ -88,13 +86,13 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     
     /// Changes the destination key
-    func forDestinationKey(_ key: SQLAssociationKey) -> SQLAssociation {
-        return with(\.destination.key, key)
+    func forDestinationKey(_ key: SQLAssociationKey) -> Self {
+        with(\.destination.key, key)
     }
     
     /// Returns a new association
-    func through(_ other: SQLAssociation) -> SQLAssociation {
-        return SQLAssociation(steps: other.steps + steps)
+    func through(_ other: SQLAssociation) -> Self {
+        SQLAssociation(steps: other.steps + steps)
     }
     
     /// Given an origin alias and rows, returns the destination of the
@@ -137,16 +135,16 @@ public /* TODO: internal */ struct SQLAssociation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func destinationRelation(fromOriginRows originRows: @escaping (Database) throws -> [Row]) -> SQLRelation {
-        // Filter the pivot
+    func destinationRelation<Row>(
+        fromOriginRows originRows: @escaping (Database) throws -> [Row])
+        -> SQLRelation
+        where Row: ColumnAddressable
+    {
+        // Filter the pivot: `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
         let pivot = self.pivot
-        let pivotAlias = TableAlias()
-        let filteredPivotRelation = pivot.relation
-            .qualified(with: pivotAlias)
-            .filter({ db in
-                // `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
-                try pivot.condition.filteringExpression(db, leftRows: originRows(db), rightAlias: pivotAlias)
-            })
+        let filteredPivotRelation = pivot.relation.filter { db in
+            try pivot.condition.filteringExpression(db, leftRows: originRows(db))
+        }
         
         if steps.count == 1 {
             // This is a direct join from origin to destination, without
@@ -180,10 +178,15 @@ public /* TODO: internal */ struct SQLAssociation {
                 // children are useless:
                 let relation = step.relation
                     .selectOnly([])
-                    .filteringChildren { $0.kind.cardinality == .toOne }
+                    .filteringChildren({
+                         switch $0.kind {
+                         case .allPrefetched, .allNotPrefetched: return false
+                         case .oneRequired, .oneOptional: return true
+                         }
+                     })
                 
                 // Don't interfere with user-defined keys that could be added later
-                let key = step.key.map(\.baseName, { "grdb_\($0)" })
+                let key = step.key.map(\.baseName) { "grdb_\($0)" }
                 
                 return SQLAssociationStep(
                     key: key,
@@ -197,17 +200,24 @@ public /* TODO: internal */ struct SQLAssociation {
     }
 }
 
-extension SQLAssociation: KeyPathRefining { }
+extension SQLAssociation: Refinable { }
 
-struct SQLAssociationStep: KeyPathRefining {
+struct SQLAssociationStep: Refinable {
     var key: SQLAssociationKey
     var condition: SQLAssociationCondition
     var relation: SQLRelation
     var cardinality: SQLAssociationCardinality
     
-    var keyName: String {
-        return key.name(for: cardinality)
+    var isSingular: Bool {
+        switch cardinality {
+        case .toOne:
+            return true
+        case .toMany:
+            return false
+        }
     }
+    
+    var keyName: String { key.name(singular: isSingular) }
 }
 
 enum SQLAssociationCardinality {
@@ -260,7 +270,7 @@ enum SQLAssociationCardinality {
 ///
 /// The SQLAssociationKey type aims at providing the necessary support for
 /// those various inflections.
-enum SQLAssociationKey: KeyPathRefining {
+enum SQLAssociationKey: Refinable {
     /// A key that is inflected in singular and plural contexts.
     ///
     /// For example:
@@ -323,11 +333,10 @@ enum SQLAssociationKey: KeyPathRefining {
         }
     }
     
-    func name(for cardinality: SQLAssociationCardinality) -> String {
-        switch cardinality {
-        case .toOne:
+    func name(singular: Bool) -> String {
+        if singular {
             return singularizedName
-        case .toMany:
+        } else {
             return pluralizedName
         }
     }

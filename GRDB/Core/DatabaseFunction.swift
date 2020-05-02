@@ -1,11 +1,3 @@
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
-
 /// An SQL function or aggregate.
 public final class DatabaseFunction: Hashable {
     // SQLite identifies functions by (name + argument count)
@@ -14,11 +6,11 @@ public final class DatabaseFunction: Hashable {
         let nArg: Int32 // -1 for variadic functions
     }
     
-    public var name: String { return identity.name }
+    public var name: String { identity.name }
     private let identity: Identity
     let pure: Bool
     private let kind: Kind
-    private var eTextRep: Int32 { return (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
+    private var eTextRep: Int32 { (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
     
     /// Returns an SQL function.
     ///
@@ -316,15 +308,9 @@ public final class DatabaseFunction: Hashable {
         case .string(let string):
             sqlite3_result_text(sqliteContext, string, -1, SQLITE_TRANSIENT)
         case .blob(let data):
-            #if swift(>=5.0)
             data.withUnsafeBytes {
                 sqlite3_result_blob(sqliteContext, $0.baseAddress, Int32($0.count), SQLITE_TRANSIENT)
             }
-            #else
-            data.withUnsafeBytes {
-                sqlite3_result_blob(sqliteContext, $0, Int32(data.count), SQLITE_TRANSIENT)
-            }
-            #endif
         }
     }
     
@@ -349,7 +335,7 @@ extension DatabaseFunction {
     /// Two functions are equal if they share the same name and arity.
     /// :nodoc:
     public static func == (lhs: DatabaseFunction, rhs: DatabaseFunction) -> Bool {
-        return lhs.identity == rhs.identity
+        lhs.identity == rhs.identity
     }
 }
 

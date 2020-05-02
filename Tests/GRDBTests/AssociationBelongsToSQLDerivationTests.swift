@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 // A -> B
 private struct A : TableRecord {
@@ -133,6 +129,18 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                     """)
             }
             do {
+                let alias = TableAlias()
+                let request = A
+                    .aliased(alias)
+                    .including(required: A.b
+                        .filter([alias[Column("id")], Column("id"), 42].contains(Column("id"))))
+                try assertEqualSQL(db, request, """
+                    SELECT "a".*, "b".* \
+                    FROM "a" \
+                    JOIN "b" ON ("b"."id" = "a"."bid") AND ("b"."id" IN ("a"."id", "b"."id", 42))
+                    """)
+            }
+            do {
                 let request = A.including(required: A.b.filter(key: ["id": 1]))
                 try assertEqualSQL(db, request, """
                     SELECT "a".*, "b".* \
@@ -210,8 +218,7 @@ class AssociationBelongsToSQLDerivationTests: GRDBTestCase {
                         let request = aTransform(aBase)
                             .including(required: abTransform(abBase)
                                 .including(required: abaTransform(abaBase)))
-                        let sqlRequest = try SQLRequest(db, request: request)
-                        sqls.append(sqlRequest.sql)
+                        try sqls.append(request.build(db).sql)
                     }
                 }
             }

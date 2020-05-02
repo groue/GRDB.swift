@@ -79,7 +79,7 @@ class TestDeleteAll: NSObject {
 struct MyRecord: FetchableRecord, TableRecord, PersistableRecord {
     
     static let MyColumn = Column("MyColumn")
-    static var databaseTableName: String { return String(describing: self) }
+    static var databaseTableName: String { String(describing: self) }
     
     let myColumn: String
     

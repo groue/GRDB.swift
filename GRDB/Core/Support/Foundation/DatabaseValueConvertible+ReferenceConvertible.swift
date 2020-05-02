@@ -17,12 +17,12 @@ extension DatabaseValueConvertible where Self: ReferenceConvertible, Self.Refere
     
     /// Returns a value that can be stored in the database.
     public var databaseValue: DatabaseValue {
-        return (self as! ReferenceType).databaseValue
+        (self as! ReferenceType).databaseValue
     }
     
     /// Returns a value initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
-        return ReferenceType.fromDatabaseValue(dbValue).flatMap { cast($0) }
+        ReferenceType.fromDatabaseValue(dbValue).flatMap { cast($0) }
     }
 }
 

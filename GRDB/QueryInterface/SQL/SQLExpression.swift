@@ -16,7 +16,7 @@ public protocol SQLExpression: SQLSpecificExpressible, SQLSelectable, SQLOrderin
     ///   statement arguments.
     /// - parameter wrappedInParenthesis: If true, the returned SQL should be
     ///   wrapped inside parenthesis.
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
@@ -41,6 +41,27 @@ public protocol SQLExpression: SQLSpecificExpressible, SQLSelectable, SQLOrderin
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The elements of the returned array, when joined with the AND operator,
+    /// are guaranteed to have the same truth value as the receiver.
+    ///
+    /// Those truth components allow easier introspection of the expression.
+    /// For example:
+    ///
+    ///     // No change:
+    ///     // [Column("a")]
+    ///     Column("a").truthComponents
+    ///
+    ///     // Erase a SQLExpressionBinaryReduce `and` expression:
+    ///     // [Column("a"), Column("b")]
+    ///     [Column("a"), Column("b")].joined(operator: .and).truthComponents
+    ///
+    ///     // Erase a SQLExpressionBinaryReduce `or` expression:
+    ///     // [Column("a")]
+    ///     [Column("a")].joined(operator: .or).truthComponents
+    var truthComponents: [SQLExpression] { get }
 }
 
 extension SQLExpression {
@@ -54,7 +75,7 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public var negated: SQLExpression {
-        return SQLExpressionNot(self)
+        SQLExpressionNot(self)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -63,7 +84,7 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public func matchedRowIds(rowIdName: String?) -> Set<Int64>? {
-        return nil
+        nil
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -72,7 +93,7 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        return qualifiedExpression(with: alias)
+        qualifiedExpression(with: alias)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -81,8 +102,15 @@ extension SQLExpression {
     ///
     /// :nodoc:
     public func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        return qualifiedExpression(with: alias)
+        qualifiedExpression(with: alias)
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// The default implementation returns [self]
+    ///
+    /// :nodoc:
+    public var truthComponents: [SQLExpression] { [self] }
 }
 
 // SQLExpression: SQLExpressible
@@ -92,7 +120,7 @@ extension SQLExpression {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
-        return self
+        self
     }
 }
 
@@ -126,18 +154,37 @@ struct SQLExpressionNot: SQLExpression {
         self.expression = expression
     }
     
-    func expressionSQL(_ context: inout SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
-            return "(\(expressionSQL(&context, wrappedInParenthesis: false)))"
+            return try "(\(expressionSQL(context, wrappedInParenthesis: false)))"
         }
-        return "NOT \(expression.expressionSQL(&context, wrappedInParenthesis: true))"
+        return try "NOT \(expression.expressionSQL(context, wrappedInParenthesis: true))"
     }
     
     var negated: SQLExpression {
-        return expression
+        expression
     }
     
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return SQLExpressionNot(expression.qualifiedExpression(with: alias))
+        SQLExpressionNot(expression.qualifiedExpression(with: alias))
+    }
+}
+
+// MARK: -
+
+extension Database {
+    /// Returns an expression for the primary key of this table.
+    ///
+    /// When the table as a primary key made of several columns, we return
+    /// the rowid column. Eventually we'll support
+    /// [row values](https://www.sqlite.org/rowvalue.html) and be able to deal
+    /// with WITHOUT ROWID tables.
+    func primaryKeyExpression(_ tableName: String) throws -> SQLExpression {
+        let columns = try primaryKey(tableName).columns
+        if columns.count == 1 {
+            return Column(columns[0])
+        } else {
+            return Column.rowID
+        }
     }
 }

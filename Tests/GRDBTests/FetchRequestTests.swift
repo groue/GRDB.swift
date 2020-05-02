@@ -1,44 +1,13 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class FetchRequestTests: GRDBTestCase {
     
-    // TODO: remove when we remove the deprecated prepare(_:forSingleResult:) method
-    func testDeprecatedPrepareMethod() throws {
-        struct CustomRequest : FetchRequest {
-            typealias RowDecoder = Row
-            // This method is deprecated but we must support it
-            func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
-                return try (db.makeSelectStatement(sql: "SELECT * FROM table1"), nil)
-            }
-        }
-        
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            try db.create(table: "table1") { t in
-                t.column("id", .integer).primaryKey()
-            }
-            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
-            try db.execute(sql: "INSERT INTO table1 DEFAULT VALUES")
-            
-            let request = CustomRequest()
-            let rows = try request.fetchAll(db)
-            XCTAssertEqual(lastSQLQuery, "SELECT * FROM table1")
-            XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0], ["id": 1])
-            XCTAssertEqual(rows[1], ["id": 2])
-        }
-    }
-
     func testRequestFetchRows() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
             }
         }
         
@@ -63,7 +32,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Int
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
             }
         }
         
@@ -91,7 +60,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = CustomRecord
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
             }
         }
         
@@ -116,7 +85,7 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
             }
         }
         
@@ -139,12 +108,10 @@ class FetchRequestTests: GRDBTestCase {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "INVALID"))
+                try PreparedRequest(statement: db.makeSelectStatement(sql: "INVALID"))
             }
             
-            func fetchCount(_ db: Database) throws -> Int {
-                return 2
-            }
+            func fetchCount(_ db: Database) throws -> Int { 2 }
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -222,9 +189,9 @@ class FetchRequestTests: GRDBTestCase {
             do {
                 struct Value: DatabaseValueConvertible {
                     var string: String
-                    var databaseValue: DatabaseValue { return string.databaseValue }
+                    var databaseValue: DatabaseValue { string.databaseValue }
                     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Value? {
-                        return String.fromDatabaseValue(dbValue).map(Value.init)
+                        String.fromDatabaseValue(dbValue).map(Value.init)
                     }
                 }
                 do {
@@ -275,9 +242,9 @@ class FetchRequestTests: GRDBTestCase {
                     init(sqliteStatement: SQLiteStatement, index: Int32) {
                         self.init(string: String(sqliteStatement: sqliteStatement, index: index))
                     }
-                    var databaseValue: DatabaseValue { return string.databaseValue }
+                    var databaseValue: DatabaseValue { string.databaseValue }
                     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Value? {
-                        return String.fromDatabaseValue(dbValue).map { Value(string: $0) }
+                        String.fromDatabaseValue(dbValue).map { Value(string: $0) }
                     }
                 }
                 do {

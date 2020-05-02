@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 class DatabaseWriterTests : GRDBTestCase {
     
@@ -93,7 +89,6 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    #if compiler(>=5.0)
     func testAsyncWriteSuccess() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
@@ -122,9 +117,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
     }
-    #endif
     
-    #if compiler(>=5.0)
     func testAsyncWriteError() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             let expectation = self.expectation(description: "updates")
@@ -154,8 +147,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
     }
-    #endif
-
+    
     func testAnyDatabaseWriter() {
         // This test passes if this code compiles.
         let writer: DatabaseWriter = DatabaseQueue()

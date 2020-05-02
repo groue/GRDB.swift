@@ -6,7 +6,7 @@ final class LockedBox<T> {
     private var lock = NSLock()
     
     var value: T {
-        get { return read { $0 } }
+        get { read { $0 } }
         set { write { $0 = newValue } }
     }
     
@@ -30,7 +30,7 @@ final class LockedBox<T> {
 extension LockedBox where T: Numeric {
     @discardableResult
     func increment() -> T {
-        return write { n in
+        write { n in
             n += 1
             return n
         }
@@ -38,7 +38,7 @@ extension LockedBox where T: Numeric {
 
     @discardableResult
     func decrement() -> T {
-        return write { n in
+        write { n in
             n -= 1
             return n
         }

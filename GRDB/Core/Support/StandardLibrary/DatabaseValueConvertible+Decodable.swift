@@ -5,9 +5,7 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     /// Decodes a null value.
     ///
     /// - returns: Whether the encountered value was null.
-    func decodeNil() -> Bool {
-        return dbValue.isNull
-    }
+    func decodeNil() -> Bool { dbValue.isNull }
     
     /// Decodes a single value of the given type.
     ///
@@ -153,15 +151,8 @@ private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
 
 private struct DatabaseValueDecoder: Decoder {
     let dbValue: DatabaseValue
-    
-    init(dbValue: DatabaseValue, codingPath: [CodingKey]) {
-        self.dbValue = dbValue
-        self.codingPath = codingPath
-    }
-    
-    // Decoder
     let codingPath: [CodingKey]
-    var userInfo: [CodingUserInfoKey: Any] { return [:] }
+    var userInfo: [CodingUserInfoKey: Any] { [:] }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
         throw DecodingError.typeMismatch(
@@ -176,13 +167,13 @@ private struct DatabaseValueDecoder: Decoder {
     }
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
-        return DatabaseValueDecodingContainer(dbValue: dbValue, codingPath: codingPath)
+        DatabaseValueDecodingContainer(dbValue: dbValue, codingPath: codingPath)
     }
 }
 
 extension DatabaseValueConvertible where Self: Decodable {
     public static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Self? {
-        return try? self.init(from: DatabaseValueDecoder(dbValue: databaseValue, codingPath: []))
+        try? self.init(from: DatabaseValueDecoder(dbValue: databaseValue, codingPath: []))
     }
 }
 

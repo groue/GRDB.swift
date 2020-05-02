@@ -182,7 +182,7 @@ extension MutablePersistableRecord {
     /// The default value specifies ABORT policy for both insertions and
     /// updates, which has GRDB generate regular INSERT and UPDATE queries.
     public static var persistenceConflictPolicy: PersistenceConflictPolicy {
-        return PersistenceConflictPolicy(insert: .abort, update: .abort)
+        PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
     /// Notifies the record that it was succesfully inserted.
@@ -222,7 +222,7 @@ extension MutablePersistableRecord {
         throws
         where Sequence: Swift.Sequence, Sequence.Element: ColumnExpression
     {
-        try update(db, columns: Set(columns.map { $0.name }))
+        try update(db, columns: Set(columns.map(\.name)))
     }
     
     /// Executes an UPDATE statement.
@@ -248,7 +248,7 @@ extension MutablePersistableRecord {
     public func update(_ db: Database) throws {
         let databaseTableName = type(of: self).databaseTableName
         let columns = try db.columns(in: databaseTableName)
-        try update(db, columns: Set(columns.map { $0.name }))
+        try update(db, columns: Set(columns.map(\.name)))
     }
     
     /// If the record has any difference from the other record, executes an
@@ -276,7 +276,7 @@ extension MutablePersistableRecord {
     /// - SeeAlso: updateChanges(_:with:)
     @discardableResult
     public func updateChanges<Record: MutablePersistableRecord>(_ db: Database, from record: Record) throws -> Bool {
-        return try updateChanges(db, from: PersistenceContainer(db, record))
+        try updateChanges(db, from: PersistenceContainer(db, record))
     }
     
     /// Mutates the record according to the provided closure, and then, if the
@@ -322,7 +322,7 @@ extension MutablePersistableRecord {
     /// The default implementation for delete() invokes performDelete().
     @discardableResult
     public func delete(_ db: Database) throws -> Bool {
-        return try performDelete(db)
+        try performDelete(db)
     }
     
     /// Returns true if and only if the primary key matches a row in
@@ -330,7 +330,7 @@ extension MutablePersistableRecord {
     ///
     /// The default implementation for exists() invokes performExists().
     public func exists(_ db: Database) throws -> Bool {
-        return try performExists(db)
+        try performExists(db)
     }
     
     // MARK: - Record Comparison
@@ -515,7 +515,7 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func deleteAll(_ db: Database) throws -> Int {
-        return try all().deleteAll(db)
+        try all().deleteAll(db)
     }
     
     // MARK: Batch Update
@@ -542,7 +542,7 @@ extension MutablePersistableRecord {
         _ assignments: [ColumnAssignment])
         throws -> Int
     {
-        return try all().updateAll(db, onConflict: conflictResolution, assignments)
+        try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
     
     /// Updates all records; returns the number of updated records.
@@ -569,7 +569,7 @@ extension MutablePersistableRecord {
         _ otherAssignments: ColumnAssignment...)
         throws -> Int
     {
-        return try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
 }
 
@@ -674,7 +674,7 @@ extension MutablePersistableRecord {
     /// - returns: Whether a database row was deleted.
     @discardableResult
     public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
-        return try deleteAll(db, keys: [key]) > 0
+        try deleteAll(db, keys: [key]) > 0
     }
 }
 
@@ -884,7 +884,7 @@ final class DAO<Record: MutablePersistableRecord> {
         
         var updatedColumns: [String] = try db
             .columns(in: databaseTableName)
-            .map { $0.name }
+            .map(\.name)
             .filter { lowercaseUpdatedColumns.contains($0.lowercased()) }
         
         if updatedColumns.isEmpty {
@@ -980,21 +980,21 @@ extension InsertQuery {
         if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
             return sql
         }
-        let columnsSQL = insertedColumns.map { $0.quotedDatabaseIdentifier }.joined(separator: ", ")
+        let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
         let valuesSQL = databaseQuestionMarks(count: insertedColumns.count)
         let sql: String
         switch onConflict {
         case .abort:
             sql = """
-                INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-                VALUES (\(valuesSQL))
-                """
+            INSERT INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL))
+            """
         default:
             sql = """
-                INSERT OR \(onConflict.rawValue) \
-                INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
-                VALUES (\(valuesSQL))
-                """
+            INSERT OR \(onConflict.rawValue) \
+            INTO \(tableName.quotedDatabaseIdentifier) (\(columnsSQL)) \
+            VALUES (\(valuesSQL))
+            """
         }
         InsertQuery.sqlCache.write { $0[self] = sql }
         return sql
@@ -1023,16 +1023,16 @@ extension UpdateQuery {
         switch onConflict {
         case .abort:
             sql = """
-                UPDATE \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+            UPDATE \(tableName.quotedDatabaseIdentifier) \
+            SET \(updateSQL) \
+            WHERE \(whereSQL)
+            """
         default:
             sql = """
-                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
-                SET \(updateSQL) \
-                WHERE \(whereSQL)
-                """
+            UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+            SET \(updateSQL) \
+            WHERE \(whereSQL)
+            """
         }
         UpdateQuery.sqlCache.write { $0[self] = sql }
         return sql

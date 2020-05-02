@@ -1,35 +1,51 @@
 import XCTest
 
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 class DatabaseValueConvertibleEscapingTests: GRDBTestCase {
-
-    func testText() {
-        XCTAssertEqual("".databaseValue.quotedSQL(), "''")
-        XCTAssertEqual("foo".databaseValue.quotedSQL(), "'foo'")
-        XCTAssertEqual("\"foo\"".databaseValue.quotedSQL(), "'\"foo\"'")
-        XCTAssertEqual("'foo'".databaseValue.quotedSQL(), "'''foo'''")
+    
+    func testNull() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try XCTAssertEqual(DatabaseValue.null.quotedSQL(db), "NULL")
+        }
     }
     
-    func testInteger() {
-        XCTAssertEqual(0.databaseValue.quotedSQL(), "0")
-        XCTAssertEqual(Int64.min.databaseValue.quotedSQL(), "-9223372036854775808")
-        XCTAssertEqual(Int64.max.databaseValue.quotedSQL(), "9223372036854775807")
+    func testText() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try XCTAssertEqual("".databaseValue.quotedSQL(db), "''")
+            try XCTAssertEqual("foo".databaseValue.quotedSQL(db), "'foo'")
+            try XCTAssertEqual("\"foo\"".databaseValue.quotedSQL(db), #"'"foo"'"#)
+            try XCTAssertEqual("'foo'".databaseValue.quotedSQL(db), "'''foo'''")
+        }
     }
     
-    func testDouble() {
-        XCTAssertEqual(0.0.databaseValue.quotedSQL(), "0.0")
-        XCTAssertEqual(1.0.databaseValue.quotedSQL(), "1.0")
-        XCTAssertEqual((-1.0).databaseValue.quotedSQL(), "-1.0")
-        XCTAssertEqual(1.5.databaseValue.quotedSQL(), "1.5")
+    func testInteger() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try XCTAssertEqual(0.databaseValue.quotedSQL(db), "0")
+            try XCTAssertEqual(Int64.min.databaseValue.quotedSQL(db), "-9223372036854775808")
+            try XCTAssertEqual(Int64.max.databaseValue.quotedSQL(db), "9223372036854775807")
+        }
     }
     
-    func testBlob() {
-        XCTAssertEqual(Data().databaseValue.quotedSQL(), "X''")
-        XCTAssertEqual("foo".data(using: .utf8)!.databaseValue.quotedSQL(), "X'666F6F'")
+    func testDouble() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try XCTAssertEqual(0.0.databaseValue.quotedSQL(db), "0.0")
+            try XCTAssertEqual(1.0.databaseValue.quotedSQL(db), "1.0")
+            try XCTAssertEqual((-1.0).databaseValue.quotedSQL(db), "-1.0")
+            try XCTAssertEqual(1.5.databaseValue.quotedSQL(db), "1.5")
+        }
+    }
+    
+    func testBlob() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try XCTAssertEqual(Data().databaseValue.quotedSQL(db), "X''")
+            try XCTAssertEqual("foo".data(using: .utf8)!.databaseValue.quotedSQL(db), "X'666F6F'")
+        }
+    }
+    
+    func testComplexExpression() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try XCTAssertEqual((Column("a") == 12).quotedSQL(db), #""a" = 12"#)
+        }
     }
 }

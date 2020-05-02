@@ -1,9 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    import GRDBCustomSQLite
-#else
-    import GRDB
-#endif
+import GRDB
 
 private class Person : Record {
     var id: Int64!
@@ -32,7 +28,7 @@ private class Person : Record {
     // Record
     
     override class var databaseTableName: String {
-        return "persons"
+        "persons"
     }
     
     required init(row: Row) {
@@ -101,7 +97,7 @@ private class PersonWithModifiedCaseColumns: Record {
     // Record
     
     override class var databaseTableName: String {
-        return "persons"
+        "persons"
     }
     
     required init(row: Row) {

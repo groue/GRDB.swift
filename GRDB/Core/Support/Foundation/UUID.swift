@@ -1,11 +1,4 @@
 import Foundation
-#if SWIFT_PACKAGE
-import CSQLite
-#elseif GRDBCIPHER
-import SQLCipher
-#elseif !GRDBCUSTOMSQLITE && !GRDBCIPHER
-import SQLite3
-#endif
 
 #if !os(Linux)
 /// NSUUID adopts DatabaseValueConvertible
@@ -21,15 +14,9 @@ extension NSUUID: DatabaseValueConvertible {
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self? {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:
-            #if swift(>=5.0)
             return data.withUnsafeBytes {
                 self.init(uuidBytes: $0.bindMemory(to: UInt8.self).baseAddress)
             }
-            #else
-            return data.withUnsafeBytes {
-                self.init(uuidBytes: $0)
-            }
-            #endif
         case .string(let string):
             return self.init(uuidString: string)
         default:
@@ -42,7 +29,7 @@ extension NSUUID: DatabaseValueConvertible {
 /// UUID adopts DatabaseValueConvertible
 extension UUID: DatabaseValueConvertible {
     public var databaseValue: DatabaseValue {
-        return withUnsafeBytes(of: uuid) {
+        withUnsafeBytes(of: uuid) {
             Data(bytes: $0.baseAddress!, count: $0.count).databaseValue
         }
     }
@@ -50,15 +37,9 @@ extension UUID: DatabaseValueConvertible {
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UUID? {
         switch dbValue.storage {
         case .blob(let data) where data.count == 16:
-            #if swift(>=5.0)
             return data.withUnsafeBytes {
                 UUID(uuid: $0.bindMemory(to: uuid_t.self).first!)
             }
-            #else
-            return data.withUnsafeBytes {
-                UUID(uuid: $0.pointee)
-            }
-            #endif
         case .string(let string):
             return UUID(uuidString: string)
         default:

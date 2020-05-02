@@ -6,6 +6,32 @@
 ///
 /// :nodoc:
 public protocol SelectionRequest {
+    /// Creates a request which selects *selection promise*.
+    ///
+    ///     // SELECT id, email FROM player
+    ///     var request = Player.all()
+    ///     request = request.select { db in [Column("id"), Column("email") })
+    ///
+    /// Any previous selection is replaced:
+    ///
+    ///     // SELECT email FROM player
+    ///     request
+    ///         .select { db in [Column("id")] }
+    ///         .select { db in [Column("email")] }
+    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+    
+    /// Creates a request which appends *selection promise*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: { db in [Column("name")] })
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+}
+
+/// :nodoc:
+extension SelectionRequest {
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -18,20 +44,10 @@ public protocol SelectionRequest {
     ///     request
     ///         .select([Column("id")])
     ///         .select([Column("email")])
-    func select(_ selection: [SQLSelectable]) -> Self
+    public func select(_ selection: [SQLSelectable]) -> Self {
+        select { _ in selection }
+    }
     
-    /// Creates a request which appends *selection*.
-    ///
-    ///     // SELECT id, email, name FROM player
-    ///     var request = Player.all()
-    ///     request = request
-    ///         .select([Column("id"), Column("email")])
-    ///         .annotated(with: [Column("name")])
-    func annotated(with selection: [SQLSelectable]) -> Self
-}
-
-/// :nodoc:
-extension SelectionRequest {
     /// Creates a request which selects *selection*.
     ///
     ///     // SELECT id, email FROM player
@@ -45,7 +61,7 @@ extension SelectionRequest {
     ///         .select(Column("id"))
     ///         .select(Column("email"))
     public func select(_ selection: SQLSelectable...) -> Self {
-        return select(selection)
+        select(selection)
     }
     
     /// Creates a request which selects *sql*.
@@ -61,7 +77,7 @@ extension SelectionRequest {
     ///         .select(sql: "id")
     ///         .select(sql: "email")
     public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return select(literal: SQLLiteral(sql: sql, arguments: arguments))
+        select(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects an SQL *literal*.
@@ -91,7 +107,18 @@ extension SelectionRequest {
     ///         .select(literal: SQLLiteral(sql: "email"))
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return select(sqlLiteral.sqlSelectable)
+        select(sqlLiteral.sqlSelectable)
+    }
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     var request = Player.all()
+    ///     request = request
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: [Column("name")])
+    public func annotated(with selection: [SQLSelectable]) -> Self {
+        annotated(with: { _ in selection })
     }
     
     /// Creates a request which appends *selection*.
@@ -102,7 +129,7 @@ extension SelectionRequest {
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
     public func annotated(with selection: SQLSelectable...) -> Self {
-        return annotated(with: selection)
+        annotated(with: selection)
     }
 }
 
@@ -121,23 +148,10 @@ public protocol FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
-    
-    /// Creates a request which expects a single result.
-    ///
-    /// Requests expecting a single result may ignore the second parameter of
-    /// the `FetchRequest.prepare(_:forSingleResult:)` method, in order to
-    /// produce sharply tailored SQL.
-    ///
-    /// This method has a default implementation which returns self.
-    func expectingSingleResult() -> Self
 }
 
 /// :nodoc:
 extension FilteredRequest {
-    public func expectingSingleResult() -> Self {
-        return self
-    }
-    
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
@@ -145,7 +159,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter(Column("email") == "arthur@example.com")
     public func filter(_ predicate: SQLExpressible) -> Self {
-        return filter { _ in predicate }
+        filter { _ in predicate }
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -155,7 +169,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return filter(literal: SQLLiteral(sql: sql, arguments: arguments))
+        filter(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -174,7 +188,7 @@ extension FilteredRequest {
     ///     request = request.filter(literal: "name = \("O'Brien")")
     public func filter(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return filter(sqlLiteral.sqlExpression)
+        filter(sqlLiteral.sqlExpression)
     }
     
     /// Creates a request that matches nothing.
@@ -183,7 +197,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.none()
     public func none() -> Self {
-        return filter(false)
+        filter(false)
     }
 }
 
@@ -234,19 +248,13 @@ extension TableRequest where Self: FilteredRequest {
         -> Self
         where Sequence.Element: DatabaseValueConvertible
     {
-        var request = self
         let keys = Array(keys)
-        switch keys.count {
-        case 0:
+        if keys.isEmpty {
             return none()
-        case 1:
-            request = request.expectingSingleResult()
-        default:
-            break
         }
         
         let databaseTableName = self.databaseTableName
-        return request.filter { db in
+        return filter { db in
             let primaryKey = try db.primaryKey(databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
@@ -271,18 +279,12 @@ extension TableRequest where Self: FilteredRequest {
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
     public func filter(keys: [[String: DatabaseValueConvertible?]]) -> Self {
-        var request = self
-        switch keys.count {
-        case 0:
+        if keys.isEmpty {
             return none()
-        case 1:
-            request = request.expectingSingleResult()
-        default:
-            break
         }
         
         let databaseTableName = self.databaseTableName
-        return request.filter { db in
+        return filter { db in
             try keys
                 .map { key in
                     // Prevent filter(keys: [["foo": 1, "bar": 2]]) where
@@ -344,45 +346,51 @@ public protocol AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
     func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self
     
-    /// Creates a request with the provided *predicate* added to the
+    /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    func having(_ predicate: SQLExpressible) -> Self
+    func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
 }
 
 /// :nodoc:
 extension AggregatingRequest {
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: [SQLExpressible]) -> Self {
-        return group { _ in expressions }
+        group { _ in expressions }
     }
     
     /// Creates a request grouped according to *expressions*.
     public func group(_ expressions: SQLExpressible...) -> Self {
-        return group(expressions)
+        group(expressions)
     }
     
     /// Creates a request with a new grouping.
     public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return group(literal: SQLLiteral(sql: sql, arguments: arguments))
+        group(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with a new grouping.
     public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return group(sqlLiteral.sqlExpression)
+        group(sqlLiteral.sqlExpression)
+    }
+    
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    public func having(_ predicate: SQLExpressible) -> Self {
+        having { _ in predicate }
     }
     
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return having(literal: SQLLiteral(sql: sql, arguments: arguments))
+        having(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return having(sqlLiteral.sqlExpression)
+        having(sqlLiteral.sqlExpression)
     }
 }
 
@@ -446,7 +454,7 @@ extension OrderedRequest {
     ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: SQLOrderingTerm...) -> Self {
-        return order { _ in orderings }
+        order { _ in orderings }
     }
     
     /// Creates a request with the provided *orderings*.
@@ -463,7 +471,7 @@ extension OrderedRequest {
     ///         .reversed()
     ///         .order(Column("name"))
     public func order(_ orderings: [SQLOrderingTerm]) -> Self {
-        return order { _ in orderings }
+        order { _ in orderings }
     }
     
     /// Creates a request sorted according to *sql*.
@@ -479,7 +487,7 @@ extension OrderedRequest {
     ///         .order(sql: "email")
     ///         .order(sql: "name")
     public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        return order(literal: SQLLiteral(sql: sql, arguments: arguments))
+        order(literal: SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request sorted according to an SQL *literal*.
@@ -496,7 +504,7 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        return order(sqlLiteral.sqlOrderingTerm)
+        order(sqlLiteral.sqlOrderingTerm)
     }
 }
 
@@ -556,35 +564,35 @@ public protocol JoinableRequest: _JoinableRequest {
 extension JoinableRequest {
     /// Creates a request that prefetches an association.
     public func including<A: AssociationToMany>(all association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _including(all: association.sqlAssociation)
+        _including(all: association.sqlAssociation)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func including<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _including(optional: association.sqlAssociation)
+        _including(optional: association.sqlAssociation)
     }
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func including<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _including(required: association.sqlAssociation)
+        _including(required: association.sqlAssociation)
     }
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request does not
     /// require that the associated database table contains a matching row.
     public func joining<A: Association>(optional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _joining(optional: association.sqlAssociation)
+        _joining(optional: association.sqlAssociation)
     }
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request requires
     /// that the associated database table contains a matching row.
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
-        return _joining(required: association.sqlAssociation)
+        _joining(required: association.sqlAssociation)
     }
 }
 

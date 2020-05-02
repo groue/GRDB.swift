@@ -1,16 +1,5 @@
 import XCTest
-#if GRDBCUSTOMSQLITE
-    @testable import GRDBCustomSQLite
-#else
-    #if GRDBCIPHER
-        import SQLCipher
-    #elseif SWIFT_PACKAGE
-        import CSQLite
-    #else
-        import SQLite3
-    #endif
-    @testable import GRDB
-#endif
+@testable import GRDB
 
 class DatabaseRegionTests : GRDBTestCase {
     
@@ -57,7 +46,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(unions.map { $0.description }, [
+        XCTAssertEqual(unions.map(\.description), [
             "full database",
             "full database",
             "full database",
@@ -144,7 +133,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(unions.map { $0.description }, ["foo(a)[1]", "foo(a,b)[1,2]", "foo(a,b)[1,2]", "foo(b)[2]"])
+        XCTAssertEqual(unions.map(\.description), ["foo(a)[1]", "foo(a,b)[1,2]", "foo(a,b)[1,2]", "foo(b)[2]"])
     }
     
     func testRegionIntersection() {
@@ -165,7 +154,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(intersection.map { $0.description }, [
+        XCTAssertEqual(intersection.map(\.description), [
             "full database",
             "empty",
             "foo(*)",
@@ -252,7 +241,7 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
         
-        XCTAssertEqual(intersection.map { $0.description }, ["foo(a)[1]", "empty", "empty", "foo(b)[2]"])
+        XCTAssertEqual(intersection.map(\.description), ["foo(a)[1]", "empty", "empty", "foo(b)[2]"])
     }
 
     func testSelectStatement() throws {
@@ -463,11 +452,6 @@ class DatabaseRegionTests : GRDBTestCase {
             do {
                 let derivedRequest: AdaptedFetchRequest = request.adapted { db in SuffixRowAdapter(fromIndex: 1) }
                 try XCTAssertEqual(derivedRequest.databaseRegion(db).description, "foo(a,id)[1,2,3]")
-            }
-            do {
-                // SQL request loses region info
-                let derivedRequest = try SQLRequest(db, request: request)
-                try XCTAssertEqual(derivedRequest.databaseRegion(db).description, "foo(a,id)")
             }
         }
     }

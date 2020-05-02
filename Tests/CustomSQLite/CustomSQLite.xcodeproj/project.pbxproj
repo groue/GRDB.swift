@@ -11,8 +11,8 @@
 		56F5F6C82349F11E00C4D9F7 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F5F6C72349F11E00C4D9F7 /* ViewController.swift */; };
 		56F5F6CA2349F11F00C4D9F7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 56F5F6C92349F11F00C4D9F7 /* Assets.xcassets */; };
 		56F5F6CD2349F11F00C4D9F7 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 56F5F6CB2349F11F00C4D9F7 /* Main.storyboard */; };
-		56F5F6E82349F26400C4D9F7 /* GRDBCustomSQLite.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */; };
-		56F5F6E92349F26500C4D9F7 /* GRDBCustomSQLite.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		56F5F6E82349F26400C4D9F7 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */; };
+		56F5F6E92349F26500C4D9F7 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,7 +60,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				56F5F6E92349F26500C4D9F7 /* GRDBCustomSQLite.framework in Embed Frameworks */,
+				56F5F6E92349F26500C4D9F7 /* GRDB.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -68,6 +68,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		56E987D9243EF667005CFD0D /* GRDBCustomSQLite-INSTALL.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = "GRDBCustomSQLite-INSTALL.sh"; sourceTree = "<group>"; };
+		56E987DA243EF667005CFD0D /* SQLiteLib-USER.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "SQLiteLib-USER.xcconfig"; sourceTree = "<group>"; };
+		56E987DB243EF667005CFD0D /* GRDBCustomSQLite-USER.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = "GRDBCustomSQLite-USER.xcconfig"; sourceTree = "<group>"; };
+		56E987DC243EF667005CFD0D /* GRDBCustomSQLite-USER.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBCustomSQLite-USER.h"; sourceTree = "<group>"; };
 		56F5F6C22349F11E00C4D9F7 /* CustomSQLite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CustomSQLite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F5F6C52349F11E00C4D9F7 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		56F5F6C72349F11E00C4D9F7 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -83,17 +87,29 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				56F5F6E82349F26400C4D9F7 /* GRDBCustomSQLite.framework in Frameworks */,
+				56F5F6E82349F26400C4D9F7 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		56E987D8243EF667005CFD0D /* GRDBCustomSQLite */ = {
+			isa = PBXGroup;
+			children = (
+				56E987D9243EF667005CFD0D /* GRDBCustomSQLite-INSTALL.sh */,
+				56E987DA243EF667005CFD0D /* SQLiteLib-USER.xcconfig */,
+				56E987DB243EF667005CFD0D /* GRDBCustomSQLite-USER.xcconfig */,
+				56E987DC243EF667005CFD0D /* GRDBCustomSQLite-USER.h */,
+			);
+			path = GRDBCustomSQLite;
+			sourceTree = "<group>";
+		};
 		56F5F6B92349F11E00C4D9F7 = {
 			isa = PBXGroup;
 			children = (
 				56F5F6D52349F22A00C4D9F7 /* GRDBCustom.xcodeproj */,
+				56E987D8243EF667005CFD0D /* GRDBCustomSQLite */,
 				56F5F6C42349F11E00C4D9F7 /* CustomSQLite */,
 				56F5F6C32349F11E00C4D9F7 /* Products */,
 				56F5F6E72349F26400C4D9F7 /* Frameworks */,
@@ -124,10 +140,10 @@
 		56F5F6D62349F22A00C4D9F7 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */,
-				56F5F6E02349F22A00C4D9F7 /* GRDBCustomSQLiteOSXTests.xctest */,
-				56F5F6E22349F22A00C4D9F7 /* GRDBCustomSQLite.framework */,
-				56F5F6E42349F22A00C4D9F7 /* GRDBCustomSQLiteiOSTests.xctest */,
+				56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */,
+				56F5F6E02349F22A00C4D9F7 /* GRDBOSXTests.xctest */,
+				56F5F6E22349F22A00C4D9F7 /* GRDB.framework */,
+				56F5F6E42349F22A00C4D9F7 /* GRDBiOSTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -202,31 +218,31 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		56F5F6DE2349F22A00C4D9F7 /* GRDBCustomSQLite.framework */ = {
+		56F5F6DE2349F22A00C4D9F7 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			path = GRDBCustomSQLite.framework;
+			path = GRDB.framework;
 			remoteRef = 56F5F6DD2349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		56F5F6E02349F22A00C4D9F7 /* GRDBCustomSQLiteOSXTests.xctest */ = {
+		56F5F6E02349F22A00C4D9F7 /* GRDBOSXTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBCustomSQLiteOSXTests.xctest;
+			path = GRDBOSXTests.xctest;
 			remoteRef = 56F5F6DF2349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		56F5F6E22349F22A00C4D9F7 /* GRDBCustomSQLite.framework */ = {
+		56F5F6E22349F22A00C4D9F7 /* GRDB.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
-			path = GRDBCustomSQLite.framework;
+			path = GRDB.framework;
 			remoteRef = 56F5F6E12349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		56F5F6E42349F22A00C4D9F7 /* GRDBCustomSQLiteiOSTests.xctest */ = {
+		56F5F6E42349F22A00C4D9F7 /* GRDBiOSTests.xctest */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.cfbundle;
-			path = GRDBCustomSQLiteiOSTests.xctest;
+			path = GRDBiOSTests.xctest;
 			remoteRef = 56F5F6E32349F22A00C4D9F7 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
@@ -326,13 +342,14 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -380,12 +397,13 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -404,7 +422,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.CustomSQLite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
 			};
 			name = Debug;
 		};
@@ -423,7 +440,6 @@
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.CustomSQLite;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_VERSION = 4.2;
 			};
 			name = Release;
 		};

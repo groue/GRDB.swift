@@ -61,16 +61,12 @@ struct Book: Codable, FetchableRecord, MutablePersistableRecord {
 
 extension Author {
     static let books = hasMany(Book.self)
-    var books: QueryInterfaceRequest<Book> {
-        return request(for: Author.books)
-    }
+    var books: QueryInterfaceRequest<Book> { request(for: Author.books) }
 }
 
 extension Book {
     static let author = belongsTo(Author.self)
-    var author: QueryInterfaceRequest<Author> {
-        return request(for: Book.author)
-    }
+    var author: QueryInterfaceRequest<Author> { request(for: Book.author) }
 }
 
 //: Populate the database

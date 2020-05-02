@@ -18,7 +18,7 @@ extension String {
 ///     databaseQuestionMarks(count: 3) // "?,?,?"
 @inlinable
 public func databaseQuestionMarks(count: Int) -> String {
-    return repeatElement("?", count: count).joined(separator: ",")
+    repeatElement("?", count: count).joined(separator: ",")
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -29,7 +29,7 @@ public func databaseQuestionMarks(count: Int) -> String {
 public protocol _OptionalProtocol {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    associatedtype _Wrapped
+    associatedtype Wrapped
 }
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
@@ -37,11 +37,7 @@ public protocol _OptionalProtocol {
 /// This conformance is an implementation detail of GRDB. Don't rely on it.
 ///
 /// :nodoc:
-extension Optional: _OptionalProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public typealias _Wrapped = Wrapped
-}
+extension Optional: _OptionalProtocol { }
 
 
 // MARK: - Internal
@@ -64,7 +60,7 @@ func GRDBPrecondition(
 
 // Workaround Swift inconvenience around factory methods of non-final classes
 func cast<T, U>(_ value: T) -> U? {
-    return value as? U
+    value as? U
 }
 
 extension RangeReplaceableCollection {
@@ -93,15 +89,13 @@ extension DispatchQueue {
     }()
     
     static var isMain: Bool {
-        return DispatchQueue.getSpecific(key: mainKey) != nil
+        DispatchQueue.getSpecific(key: mainKey) != nil
     }
 }
 
-// Has SE-0220 been removed in Xcode 10.2 beta 4?
-// #if compiler(<5.0)
 extension Sequence {
     @inlinable
-    func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
+    func countElements(where predicate: (Element) throws -> Bool) rethrows -> Int {
         var count = 0
         for e in self where try predicate(e) {
             count += 1
@@ -109,19 +103,6 @@ extension Sequence {
         return count
     }
 }
-// #endif
-
-#if !compiler(>=5.0)
-extension Character {
-    func uppercased() -> String {
-        return String(self).uppercased()
-    }
-    
-    func lowercased() -> String {
-        return String(self).lowercased()
-    }
-}
-#endif
 
 /// Makes sure the `finally` function is executed even if `execute` throws, and
 /// rethrows the eventual first thrown error.
