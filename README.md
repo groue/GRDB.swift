@@ -123,9 +123,10 @@ try dbQueue.write { db in
     
     let parisId = db.lastInsertedRowID
     
+    // Avoid SQL injection with SQL interpolation
     try db.execute(literal: """
         INSERT INTO place (title, favorite, latitude, longitude)
-        VALUES (\("Madrid"), \(true), \(40.41678), \(-3.70379))
+        VALUES (\("King's Cross"), \(true), \(51.52151), \(-0.12763))
         """)
 }
 ```
@@ -6443,9 +6444,7 @@ Considering that a local database is not some JSON loaded from a remote server, 
 
 ```swift
 do {
-    try db.execute(
-        sql: "INSERT INTO pet (masterId, name) VALUES (?, ?)",
-        arguments: [1, "Bobby"])
+    try Pet(masterId: 1, name: "Bobby").insert(db)
 } catch let error as DatabaseError {
     // The SQLite error code: 19 (SQLITE_CONSTRAINT)
     error.resultCode
@@ -6459,6 +6458,10 @@ do {
     // The eventual erroneous SQL query
     // "INSERT INTO pet (masterId, name) VALUES (?, ?)"
     error.sql
+    
+    // The eventual SQL arguments
+    // [1, "Bobby"]
+    error.arguments
     
     // Full error description:
     // "SQLite error 19 with statement `INSERT INTO pet (masterId, name)
