@@ -300,7 +300,6 @@ Documentation
 - [Memory Management](#memory-management)
 - [Data Protection](#data-protection)
 - [Concurrency](#concurrency)
-- [Performance](#performance)
 
 #### General Guides & Good Practices
 
