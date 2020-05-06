@@ -1300,7 +1300,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     // MARK: - NSFileCoordinator sample code tests
     
-    // Test for sample code in Documentation/AppGroupContainers.md.
+    // Test for sample code in Documentation/SharingADatabase.md.
     // This test passes if this method compiles
     private func openSharedDatabase(at databaseURL: URL) throws -> DatabasePool {
         let coordinator = NSFileCoordinator(filePresenter: nil)
@@ -1320,7 +1320,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         return dbPool!
     }
 
-    // Test for sample code in Documentation/AppGroupContainers.md.
+    // Test for sample code in Documentation/SharingADatabase.md.
     // This test passes if this method compiles
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
         let dbPool = try DatabasePool(path: databaseURL.path)
@@ -1329,7 +1329,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         return dbPool
     }
     
-    // Test for sample code in Documentation/AppGroupContainers.md.
+    // Test for sample code in Documentation/SharingADatabase.md.
     // This test passes if this method compiles
     private func openSharedReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {
         let coordinator = NSFileCoordinator(filePresenter: nil)
@@ -1349,7 +1349,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         return dbPool
     }
 
-    // Test for sample code in Documentation/AppGroupContainers.md.
+    // Test for sample code in Documentation/SharingADatabase.md.
     // This test passes if this method compiles
     private func openReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {
         do {

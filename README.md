@@ -290,7 +290,7 @@ Documentation
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 - [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
-- [App Group Containers]
+- [Sharing a Database]: Recommendations for App Group Containers and sandboxed macOS apps.
 
 #### Good to Know
 
@@ -7862,4 +7862,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Demo Application]: Documentation/DemoApps/GRDBDemoiOS/README.md
-[App Group Containers]: Documentation/AppGroupContainers.md
+[Sharing a Database]: Documentation/SharingADatabase.md
