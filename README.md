@@ -6806,7 +6806,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
 - [Asynchronous APIs](#asynchronous-apis)
 - [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
-- [App Group Containers]
+- [Sharing a Database]
 
 
 ### Guarantees and Rules
@@ -6847,7 +6847,7 @@ Those guarantees hold as long as you follow three rules:
     
     See the [Demo Application] for a sample app that sets up a single database queue that is available throughout the application.
     
-    See [App Group Containers] for the specific setup required by applications that share their database files.
+    See [Sharing a Database] for the specific setup required by applications that share their database files.
     
     ```swift
     // SAFE CONCURRENCY
@@ -7798,7 +7798,7 @@ This chapter has been renamed [Beyond FetchableRecord].
 
 #### Dealing with External Connections
 
-This chapter has been superseded by [App Group Containers].
+This chapter has been superseded by the [Sharing a Database] guide.
 
 #### Enabling FTS5 Support
 
