@@ -1,9 +1,11 @@
-Sharing a Database in an App Group Container
-============================================
+Sharing a Database
+==================
 
-On iOS, you can share database files between multiple processes by storing them in an [App Group Container](https://developer.apple.com/documentation/foundation/nsfilemanager/1412643-containerurlforsecurityapplicati).
+This chapter describes a recommended setup that applies as soon as several processes want to access a same SQLite database.
 
-A shared database is accessed from several SQLite connections, from several processes. This creates challenges at various levels:
+On iOS for example, you can share database files between multiple processes by storing them in an [App Group Container](https://developer.apple.com/documentation/foundation/nsfilemanager/1412643-containerurlforsecurityapplicati). On macOS as well, several processes may want to open the same database, according to their particular sandboxing contexts.
+
+Accessing a shared database from several SQLite connections, from several processes, creates challenges at various levels:
 
 1. **Database setup** may be attempted by multiple processes, concurrently.
 2. **SQLite** may throw `SQLITE_BUSY` errors, code 5, "database is locked".
@@ -49,7 +51,7 @@ Since several processes may open the database at the same time, protect the crea
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
         let dbPool = try DatabasePool(path: databaseURL.path)
         
-        // Perform here other database setups, such as defining 
+        // Perform here other database setups, such as defining
         // the database schema with a DatabaseMigrator.
         try migrator.migrate(dbPool)
         return dbPool
@@ -185,7 +187,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     
     ```swift
     var configuration = Configuration()
-    configuration.suspendsOnBackgroundTimeExpiration = true
+    configuration.observesSuspensionNotifications = true
     let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
     
