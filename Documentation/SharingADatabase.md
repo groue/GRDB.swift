@@ -114,12 +114,12 @@ Such process is unable to open the database unless two extra files ending in `-s
 
 As a consequence, make sure you activate the "persistent WAL mode", as explained below. This mode makes sure the `-shm` and `-wal` files are never deleted, and guarantees a database access to processes that lack the write permission.
 
-The "persistent WAL mode" must be enabled on all writer connections, by setting the [SQLITE_FCNTL_PERSIST_WAL](https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal) flag. With GRDB, processes that can create and write in the database open the database as in this sample code:
+The "persistent WAL mode" must be enabled on all writer connections, by setting the [SQLITE_FCNTL_PERSIST_WAL](https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal) flag. With GRDB, writers processes can use this sample code:
 
 ```swift
 var configuration = Configuration()
 configuration.prepareDatabase = { db in
-    // Activate the persistent WAL mode for writer connections
+    // Activate the persistent WAL mode for writer connection
     if db.configuration.readonly == false {
         var flag: CInt = 1
         let code = withUnsafeMutablePointer(to: &flag) { flagP in
