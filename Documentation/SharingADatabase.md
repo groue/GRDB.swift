@@ -51,7 +51,9 @@ Since several processes may open the database at the same time, protect the crea
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
         var configuration = Configuration()
         configuration.prepareDatabase = { db in
-            // Activate the persistent WAL mode
+            // Activate the persistent WAL mode so that
+            // readonly processes can access the database.
+            //
             // See https://www.sqlite.org/walformat.html#operations_that_require_locks_and_which_locks_those_operations_use
             // and https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal
             if db.configuration.readonly == false {
