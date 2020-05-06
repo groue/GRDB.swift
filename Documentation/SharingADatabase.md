@@ -49,6 +49,21 @@ Since several processes may open the database at the same time, protect the crea
     }
     
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
+        var configuration = Configuration()
+        configuration.prepareDatabase = { db in
+            // Activate the persistent WAL mode
+            // See https://www.sqlite.org/walformat.html#operations_that_require_locks_and_which_locks_those_operations_use
+            // and https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal
+            if db.configuration.readonly == false {
+                var flag: CInt = 1
+                let code = withUnsafeMutablePointer(to: &flag) { flagP in
+                    sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
+                }
+                guard code == SQLITE_OK else {
+                    throw DatabaseError(resultCode: ResultCode(rawValue: code))
+                }
+            }
+        }
         let dbPool = try DatabasePool(path: databaseURL.path)
         
         // Perform here other database setups, such as defining
@@ -106,32 +121,11 @@ Since several processes may open the database at the same time, protect the crea
     ```
 
 
-#### The specific case of processes that lack write permission
+#### The specific case of readonly connections
 
-If a process lacks the write permission, at the system level, on the shared database file, some extra setup is needed. This is the case, for example, of iOS keyboard extensions, or sandboxed macOS apps that lack some entitlements.
+Readonly connections will fail unless two extra files ending in `-shm` and `-wal` are present next to the database file ([source](https://www.sqlite.org/walformat.html#operations_that_require_locks_and_which_locks_those_operations_use)). Those files are regular companions of databases in the [WAL mode]. But they are deleted, under regular operations, when database connections are closed. Precisely speaking, they *may* be deleted: it depends on the SQLite and the operating system versions ([source](https://github.com/groue/GRDB.swift/issues/739#issuecomment-604363998)). And when they are deleted, readonly connections fail.
 
-Such process is unable to open the database unless two extra files ending in `-shm` and `-wal` are present next to the database file ([source](https://www.sqlite.org/walformat.html#operations_that_require_locks_and_which_locks_those_operations_use)). Those files are regular companions of databases in the [WAL mode], but they are deleted, under regular operations, when database connections are closed. Precisely speaking, they *may* be deleted: it depends on the SQLite and the operating system versions ([source](https://github.com/groue/GRDB.swift/issues/739#issuecomment-604363998)).
-
-As a consequence, make sure you activate the "persistent WAL mode", as explained below. This mode makes sure the `-shm` and `-wal` files are never deleted, and guarantees a database access to processes that lack the write permission.
-
-The "persistent WAL mode" must be enabled on all writer connections, by setting the [SQLITE_FCNTL_PERSIST_WAL](https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal) flag. With GRDB, writers processes can use this sample code:
-
-```swift
-var configuration = Configuration()
-configuration.prepareDatabase = { db in
-    // Activate the persistent WAL mode for writer connection
-    if db.configuration.readonly == false {
-        var flag: CInt = 1
-        let code = withUnsafeMutablePointer(to: &flag) { flagP in
-            sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
-        }
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: ResultCode(rawValue: code))
-        }
-    }
-}
-let dbPool = try DatabasePool(path: ..., configuration: configuration)
-```
+The solution is to enable the "persistent WAL mode", as shown in the sample code above, by setting the [SQLITE_FCNTL_PERSIST_WAL](https://www.sqlite.org/c3ref/c_fcntl_begin_atomic_write.html#sqlitefcntlpersistwal) flag. This mode makes sure the `-shm` and `-wal` files are never deleted, and guarantees a database access to readonly connections.
 
 
 ## How to limit the `SQLITE_BUSY` error
