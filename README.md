@@ -290,7 +290,7 @@ Documentation
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 - [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
-- [App Group Containers]
+- [Sharing a Database]: Recommendations for App Group Containers and sandboxed macOS apps.
 
 #### Good to Know
 
@@ -300,7 +300,6 @@ Documentation
 - [Memory Management](#memory-management)
 - [Data Protection](#data-protection)
 - [Concurrency](#concurrency)
-- [Performance](#performance)
 
 #### General Guides & Good Practices
 
@@ -6806,7 +6805,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
 - [Asynchronous APIs](#asynchronous-apis)
 - [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
-- [App Group Containers]
+- [Sharing a Database]
 
 
 ### Guarantees and Rules
@@ -6847,7 +6846,7 @@ Those guarantees hold as long as you follow three rules:
     
     See the [Demo Application] for a sample app that sets up a single database queue that is available throughout the application.
     
-    See [App Group Containers] for the specific setup required by applications that share their database files.
+    See [Sharing a Database] for the specific setup required by applications that share their database files.
     
     ```swift
     // SAFE CONCURRENCY
@@ -7343,247 +7342,6 @@ try writer.asyncWriteWithoutTransaction { db in
     There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
 
 
-## Performance
-
-GRDB is a reasonably fast library, and can deliver quite efficient SQLite access. See [Comparing the Performances of Swift SQLite libraries](https://github.com/groue/GRDB.swift/wiki/Performance) for an overview.
-
-You'll find below general advice when you do look after performance:
-
-- Focus
-- Know your platform
-- Use transactions
-- Don't do useless work
-- Learn about SQL strengths and weaknesses
-- Avoid strings & dictionaries
-
-
-### Performance tip: focus
-
-You don't know which part of your program needs improvement until you have run a benchmarking tool.
-
-Don't make any assumption, avoid optimizing code too early, and use [Instruments](https://developer.apple.com/library/ios/documentation/ToolsLanguages/Conceptual/Xcode_Overview/MeasuringPerformance.html).
-
-
-### Performance tip: know your platform
-
-If your application processes a huge JSON file and inserts thousands of rows in the database right from the main thread, it will quite likely become unresponsive, and provide a sub-quality user experience.
-
-If not done yet, read the [Concurrency Programming Guide](https://developer.apple.com/library/ios/documentation/General/Conceptual/ConcurrencyProgrammingGuide/Introduction/Introduction.html#//apple_ref/doc/uid/TP40008091) and learn how to perform heavy computations without blocking your application.
-
-Most GRBD APIs are [synchronous](#database-connections). Spawning them into parallel queues is as easy as:
-
-```swift
-DispatchQueue.global().async { 
-    dbQueue.write { db in
-        // Perform database work
-    }
-    DispatchQueue.main.async { 
-        // update your user interface
-    }
-}
-```
-
-
-### Performance tip: use transactions
-
-Performing multiple updates to the database is much faster when executed inside a [transaction](#transactions-and-savepoints). This is because a transaction allows SQLite to postpone writing changes to disk until the final commit:
-
-```swift
-// Inefficient
-try dbQueue.inDatabase { db in // or dbPool.writeWithoutTransaction
-    for player in players {
-        try player.insert(db)
-    }
-}
-
-// Efficient
-try dbQueue.write { db in      // or dbPool.write
-    for player in players {
-        try player.insert(db)
-    }
-}
-
-// Efficient
-try dbQueue.inTransaction { db in // or dbPool.writeInTransaction
-    for player in players {
-        try player.insert(db)
-    }
-    return .commit
-}
-```
-
-
-### Performance tip: don't do useless work
-
-Obviously, no code is faster than any code.
-
-
-**Don't fetch columns you don't use**
-
-```swift
-// SELECT * FROM player
-try Player.fetchAll(db)
-
-// SELECT id, name FROM player
-try Player.select(idColumn, nameColumn).fetchAll(db)
-```
-
-If your Player type can't be built without other columns (it has non-optional properties for other columns), *do define and use a different type*.
-
-See [Columns Selected by a Request] for more information.
-
-
-**Don't fetch rows you don't use**
-
-Use [fetchOne](#fetching-methods) when you need a single value, and otherwise limit your queries at the database level:
-
-```swift
-// Wrong way: this code may discard hundreds of useless database rows
-let players = try Player.order(scoreColumn.desc).fetchAll(db)
-let hallOfFame = players.prefix(5)
-
-// Better way
-let hallOfFame = try Player.order(scoreColumn.desc).limit(5).fetchAll(db)
-```
-
-
-**Don't copy values unless necessary**
-
-Particularly: the Array returned by the `fetchAll` method, and the cursor returned by `fetchCursor` aren't the same:
-
-`fetchAll` copies all values from the database into memory, when `fetchCursor` iterates database results as they are generated by SQLite, taking profit from SQLite efficiency.
-
-You should only load arrays if you need to keep them for later use (such as iterating their contents in the main thread). Otherwise, use `fetchCursor`.
-
-See [fetching methods](#fetching-methods) for more information about `fetchAll` and `fetchCursor`. See also the [Row.dataNoCopy](#data-and-memory-savings) method.
-
-
-**Don't update rows unless necessary**
-
-An UPDATE statement is costly: SQLite has to look for the updated row, update values, and write changes to disk.
-
-When the overwritten values are the same as the existing ones, it's thus better to avoid performing the UPDATE statement:.
-
-```swift
-if player.hasDatabaseChanges {
-    try player.update(db)
-}
-```
-
-See [Record Comparison] for more information.
-
-
-### Performance tip: learn about SQL strengths and weaknesses
-
-Consider a simple use case: your store application has to display a list of authors with the number of available books:
-
-- J. M. Coetzee (6)
-- Herman Melville (1)
-- Alice Munro (3)
-- Kim Stanley Robinson (7)
-- Oliver Sacks (4)
-
-The following code is inefficient. It is an example of the [N+1 problem](http://stackoverflow.com/questions/97197/what-is-the-n1-selects-issue), because it performs one query to load the authors, and then N queries, as many as there are authors. This turns very inefficient as the number of authors grows:
-
-```swift
-// SELECT * FROM author
-let authors = try Author.fetchAll(db)
-for author in authors {
-    // SELECT COUNT(*) FROM book WHERE authorId = ...
-    author.bookCount = try Book.filter(authorIdColumn == author.id).fetchCount(db)
-}
-```
-
-Instead, perform *a single query*:
-
-```swift
-let sql = """
-    SELECT author.*, COUNT(book.id) AS bookCount
-    FROM author
-    LEFT JOIN book ON book.authorId = author.id
-    GROUP BY author.id
-    """
-let authors = try Author.fetchAll(db, sql: sql)
-```
-
-In the example above, consider extending your Author with an extra bookCount property, or define and use a different type.
-
-Generally, define indexes on your database tables, and use SQLite's efficient query planning:
-
-- [Query Planning](https://www.sqlite.org/queryplanner.html)
-- [CREATE INDEX](https://www.sqlite.org/lang_createindex.html)
-- [The SQLite Query Planner](https://www.sqlite.org/optoverview.html)
-- [EXPLAIN QUERY PLAN](https://www.sqlite.org/eqp.html)
-
-
-### Performance tip: avoid strings & dictionaries
-
-The String and Dictionary Swift types are better avoided when you look for the best performance.
-
-Now GRDB [records](#records), for your convenience, do use strings and dictionaries:
-
-```swift
-class Player : Record {
-    var id: Int64?
-    var name: String
-    var email: String
-    
-    required init(_ row: Row) {
-        id = row["id"]       // String
-        name = row["name"]   // String
-        email = row["email"] // String
-        super.init()
-    }
-    
-    override func encode(to container: inout PersistenceContainer) {
-        container["id"] = id              // String
-        container["name"] = name          // String
-        container["email"] = email        // String
-    }
-}
-```
-
-When convenience hurts performance, you can still use records, but you have better avoiding their string and dictionary-based methods.
-
-For example, when fetching values, prefer loading columns by index:
-
-```swift
-// Strings & dictionaries
-let players = try Player.fetchAll(db)
-
-// Column indexes
-// SELECT id, name, email FROM player
-let request = Player.select(idColumn, nameColumn, emailColumn)
-let rows = try Row.fetchCursor(db, request)
-while let row = try rows.next() {
-    let id: Int64 = row[0]
-    let name: String = row[1]
-    let email: String = row[2]
-    let player = Player(id: id, name: name, email: email)
-    ...
-}
-```
-
-When inserting values, use reusable [prepared statements](#prepared-statements), and set statements values with an *array*:
-
-```swift
-// Strings & dictionaries
-for player in players {
-    try player.insert(db)
-}
-
-// Prepared statement
-let insertStatement = db.makeUpdateStatement(sql: "INSERT INTO player (name, email) VALUES (?, ?)")
-for player in players {
-    // Only use the unchecked arguments setter if you are sure that you provide
-    // all statement arguments. A mistake can store unexpected values in
-    // the database.
-    insertStatement.setUncheckedArguments([player.name, player.email])
-    try insertStatement.execute()
-}
-```
-
-
 FAQ
 ===
 
@@ -7798,7 +7556,7 @@ This chapter has been renamed [Beyond FetchableRecord].
 
 #### Dealing with External Connections
 
-This chapter has been superseded by [App Group Containers].
+This chapter has been superseded by the [Sharing a Database] guide.
 
 #### Enabling FTS5 Support
 
@@ -7862,4 +7620,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Demo Application]: Documentation/DemoApps/GRDBDemoiOS/README.md
-[App Group Containers]: Documentation/AppGroupContainers.md
+[Sharing a Database]: Documentation/SharingADatabase.md
