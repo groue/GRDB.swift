@@ -146,9 +146,7 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
 ///
 /// An AnyFetchRequest forwards its operations to an underlying request,
 /// hiding its specifics.
-public struct AnyFetchRequest<T>: FetchRequest {
-    public typealias RowDecoder = T
-    
+public struct AnyFetchRequest<RowDecoder>: FetchRequest {
     private let _preparedRequest: (Database, _ singleResult: Bool) throws -> PreparedRequest
     private let _fetchCount: (Database) throws -> Int
     private let _databaseRegion: (Database) throws -> DatabaseRegion

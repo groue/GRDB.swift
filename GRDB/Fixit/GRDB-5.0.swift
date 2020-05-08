@@ -7,6 +7,9 @@ import UIKit
 #endif
 
 extension AnyFetchRequest {
+    @available(*, unavailable, renamed: "RowDecoder")
+    typealias T = RowDecoder
+    
     @available(*, unavailable, message: "Define your own FetchRequest type instead.")
     public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
     { preconditionFailure() }
