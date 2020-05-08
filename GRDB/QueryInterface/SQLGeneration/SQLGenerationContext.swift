@@ -13,39 +13,38 @@
 ///
 /// :nodoc:
 public final class SQLGenerationContext {
-    private enum Impl {
-        case base(db: Database, argumentsSink: StatementArgumentsSink)
-        case parent(SQLGenerationContext)
-        
-        var db: Database {
-            switch self {
-            case let .base(db: db, argumentsSink: _): return db
-            case let .parent(context): return context.db
-            }
-        }
-        
-        var argumentsSink: StatementArgumentsSink {
-            switch self {
-            case let .base(db: _, argumentsSink: argumentsSink): return argumentsSink
-            case let .parent(context): return context.argumentsSink
-            }
-        }
+    private enum Parent {
+        case none(db: Database, argumentsSink: StatementArgumentsSink)
+        case context(SQLGenerationContext)
     }
-    
-    private let impl: Impl
     
     /// A database connection so that request elements can perform database
     /// introspection in order to build their SQL representation.
-    var db: Database { impl.db }
+    var db: Database {
+        switch parent {
+        case let .none(db: db, argumentsSink: _): return db
+        case let .context(context): return context.db
+        }
+    }
     
-    /// The arguments sink which prevents SQL injection.
-    var argumentsSink: StatementArgumentsSink { impl.argumentsSink }
-    
-    /// All arguments gathered so far
+    /// All gathered arguments
     var arguments: StatementArguments { argumentsSink.arguments }
     
-    private var resolvedNames: [TableAlias: String]
-    private var ownAliases: Set<TableAlias>
+    /// Access to the database connection, the arguments sink, and resolved
+    /// names of table aliases from outer contexts (useful in case of
+    /// subquery generation).
+    private let parent: Parent
+    
+    /// The arguments sink which prevents SQL injection.
+    private var argumentsSink: StatementArgumentsSink {
+        switch parent {
+        case let .none(db: _, argumentsSink: argumentsSink): return argumentsSink
+        case let .context(context): return context.argumentsSink
+        }
+    }
+    
+    private let resolvedNames: [TableAlias: String]
+    private let ownAliases: Set<TableAlias>
     
     /// Creates a generation context.
     ///
@@ -57,21 +56,20 @@ public final class SQLGenerationContext {
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
         aliases: [TableAlias] = [])
     {
-        self.impl = .base(db: db, argumentsSink: argumentsSink)
+        self.parent = .none(db: db, argumentsSink: argumentsSink)
         self.resolvedNames = aliases.resolvedNames
         self.ownAliases = Set(aliases)
     }
     
     /// Creates a generation context.
     ///
-    /// - parameter db: A database connection.
-    /// - parameter argumentsSink: An arguments sink.
+    /// - parameter parent: A parent context.
     /// - parameter aliases: An array of table aliases to disambiguate.
     init(
         parent: SQLGenerationContext,
         aliases: [TableAlias] = [])
     {
-        self.impl = .parent(parent)
+        self.parent = .context(parent)
         self.resolvedNames = aliases.resolvedNames
         self.ownAliases = Set(aliases)
     }
@@ -107,10 +105,10 @@ public final class SQLGenerationContext {
         if let name = resolvedNames[alias] {
             return name
         }
-        switch impl {
-        case .base:
+        switch parent {
+        case .none:
             return alias.identityName
-        case let .parent(context):
+        case let .context(context):
             return context.resolvedName(for: alias)
         }
     }
@@ -357,7 +355,7 @@ public class TableAlias: Hashable {
     public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
         ordering.qualifiedOrdering(with: self)
     }
-
+    
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(root))
