@@ -12,19 +12,40 @@
 ///   in order to prevent SQL injection.
 ///
 /// :nodoc:
-public struct SQLGenerationContext {
+public final class SQLGenerationContext {
+    private enum Impl {
+        case base(db: Database, argumentsSink: StatementArgumentsSink)
+        case parent(SQLGenerationContext)
+        
+        var db: Database {
+            switch self {
+            case let .base(db: db, argumentsSink: _): return db
+            case let .parent(context): return context.db
+            }
+        }
+        
+        var argumentsSink: StatementArgumentsSink {
+            switch self {
+            case let .base(db: _, argumentsSink: argumentsSink): return argumentsSink
+            case let .parent(context): return context.argumentsSink
+            }
+        }
+    }
+    
+    private let impl: Impl
+    
     /// A database connection so that request elements can perform database
     /// introspection in order to build their SQL representation.
-    let db: Database
+    var db: Database { impl.db }
     
     /// The arguments sink which prevents SQL injection.
-    let argumentsSink: StatementArgumentsSink
+    var argumentsSink: StatementArgumentsSink { impl.argumentsSink }
     
     /// All arguments gathered so far
     var arguments: StatementArguments { argumentsSink.arguments }
     
     private var resolvedNames: [TableAlias: String]
-    private var qualifiesColumnsWithTable: Bool
+    private var ownAliases: Set<TableAlias>
     
     /// Creates a generation context.
     ///
@@ -36,10 +57,23 @@ public struct SQLGenerationContext {
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
         aliases: [TableAlias] = [])
     {
-        self.db = db
-        self.argumentsSink = argumentsSink
+        self.impl = .base(db: db, argumentsSink: argumentsSink)
         self.resolvedNames = aliases.resolvedNames
-        self.qualifiesColumnsWithTable = aliases.count > 1
+        self.ownAliases = Set(aliases)
+    }
+    
+    /// Creates a generation context.
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter argumentsSink: An arguments sink.
+    /// - parameter aliases: An array of table aliases to disambiguate.
+    init(
+        parent: SQLGenerationContext,
+        aliases: [TableAlias] = [])
+    {
+        self.impl = .parent(parent)
+        self.resolvedNames = aliases.resolvedNames
+        self.ownAliases = Set(aliases)
     }
     
     /// Returns whether arguments could be appended.
@@ -59,15 +93,26 @@ public struct SQLGenerationContext {
         if alias.hasUserName {
             return alias.identityName
         }
-        if qualifiesColumnsWithTable == false {
-            return nil
+        if !ownAliases.contains(alias) {
+            return resolvedName(for: alias)
         }
-        return resolvedName(for: alias)
+        if ownAliases.count > 1 {
+            return resolvedName(for: alias)
+        }
+        return nil
     }
     
     /// WHERE <resolvedName> MATCH pattern
     func resolvedName(for alias: TableAlias) -> String {
-        resolvedNames[alias] ?? alias.identityName
+        if let name = resolvedNames[alias] {
+            return name
+        }
+        switch impl {
+        case .base:
+            return alias.identityName
+        case let .parent(context):
+            return context.resolvedName(for: alias)
+        }
     }
     
     /// FROM tableName <alias>
