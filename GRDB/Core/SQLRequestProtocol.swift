@@ -1,5 +1,7 @@
 /// The protocol that can generate SQL requests and subqueries.
 public protocol SQLRequestProtocol: SQLExpression, SQLCollection {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// 
     /// Returns the request SQL.
     ///
     /// - parameter context: An SQL generation context.
