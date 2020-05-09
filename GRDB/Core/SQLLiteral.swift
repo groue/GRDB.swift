@@ -98,6 +98,7 @@ public struct SQLLiteral {
         return (sql: sql, arguments: context.arguments)
     }
     
+    // TODO: remove when FetchRequest is a closed protocol.
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the literal SQL string given an SQL generation context.
