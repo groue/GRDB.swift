@@ -10,6 +10,29 @@ public struct PreparedRequest {
     
     /// Support for eager loading of hasMany associations.
     var supplementaryFetch: (([Row]) throws -> Void)?
+    
+    /// Creates a PreparedRequest.
+    ///
+    /// - parameter statement: A prepared statement that is ready to
+    ///   be executed.
+    /// - parameter adapter: An eventual adapter for rows fetched by the
+    ///   select statement.
+    public init(
+        statement: SelectStatement,
+        adapter: RowAdapter? = nil)
+    {
+        self.init(statement: statement, adapter: adapter, supplementaryFetch: nil)
+    }
+    
+    init(
+        statement: SelectStatement,
+        adapter: RowAdapter?,
+        supplementaryFetch: (([Row]) throws -> Void)?)
+    {
+        self.statement = statement
+        self.adapter = adapter
+        self.supplementaryFetch = supplementaryFetch
+    }
 }
 
 extension PreparedRequest: Refinable { }
@@ -19,8 +42,11 @@ extension PreparedRequest: Refinable { }
 /// The protocol for all requests that fetch database rows, and tell how those
 /// rows should be interpreted.
 ///
-/// This protocol is "closed": you can not define custom types that conform
-/// to it.
+///     struct Player: FetchableRecord { ... }
+///     let request: ... // Some FetchRequest that fetches Player
+///     try request.fetchCursor(db) // Cursor of Player
+///     try request.fetchAll(db)    // [Player]
+///     try request.fetchOne(db)    // Player?
 public protocol FetchRequest: SQLRequestProtocol, DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder

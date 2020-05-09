@@ -101,6 +101,22 @@ private class UserPersistableRecord2 : PersistableRecord {
     func encode(to container: inout PersistenceContainer) { }
 }
 
+// MARK: - SQLRequestProtocol
+
+private struct UserRowSQLRequest : SQLRequestProtocol {
+    func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String { preconditionFailure() }
+}
+
+// MARK: - FetchRequest
+
+private struct UserRowRequest : FetchRequest {
+    struct CustomType { }
+    typealias RowDecoder = CustomType
+    #warning("TODO: what do we tell users?")
+    func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String { preconditionFailure() }
+    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest { preconditionFailure() }
+}
+
 // MARK: - FetchableRecord
 
 private struct UserFetchableRecord1 : FetchableRecord {

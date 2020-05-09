@@ -137,14 +137,6 @@ extension FetchRequest where RowDecoder == Row {
     { preconditionFailure() }
 }
 
-extension PreparedRequest {
-    @available(*, unavailable, message: "PreparedRequest initializer is no longer available.")
-    public init(
-        statement: SelectStatement,
-        adapter: RowAdapter? = nil)
-    { preconditionFailure() }
-}
-
 extension QueryInterfaceRequest {
     @available(*, unavailable, renamed: "RowDecoder")
     typealias T = RowDecoder
