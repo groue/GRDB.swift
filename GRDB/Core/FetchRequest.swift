@@ -57,6 +57,26 @@ extension PreparedRequest: Refinable { }
 ///     try request.fetchCursor(db) // Cursor of Player
 ///     try request.fetchAll(db)    // [Player]
 ///     try request.fetchOne(db)    // Player?
+///     try request.fetchCount(db)  // Int
+///
+/// To build a custom FetchRequest, declare a type with the `RowDecoder`
+/// associated type, and implement the `requestSQL(_:forSingleResult:)` method
+/// with the help of SQLLiteral.
+///
+/// For example:
+///
+///     struct PlayerRequest: FetchRequest {
+///         typealias RowDecoder = Player
+///         var id: Int64
+///         func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+///             let query: SQLLiteral = "SELECT * FROM player WHERE id = \(id)"
+///             return try query.sql(context)
+///         }
+///     }
+///
+///     let player = try dbQueue.read { db in
+///         try PlayerRequest(id: 42).fetchOne(db)
+///     }
 public protocol FetchRequest: SQLRequestProtocol, DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
