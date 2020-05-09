@@ -4780,48 +4780,7 @@ But you may prefer to bring some elegance back in, and build custom requests:
 try Player.customRequest().fetchAll(db) // [Player]
 ```
 
-- [FetchRequest Protocol](#fetchrequest-protocol)
-- [Building Custom Requests](#building-custom-requests)
-- [Fetching From Custom Requests](#fetching-from-custom-requests)
-
-
-### FetchRequest Protocol
-
-**FetchRequest** is the protocol for all requests that run from a single select statement, and know how fetched rows should be interpreted:
-
-```swift
-protocol FetchRequest: DatabaseRegionConvertible {
-    /// The type that tells how fetched rows should be decoded
-    associatedtype RowDecoder
-    
-    /// Returns a PreparedRequest made of a prepared statement that is ready to
-    /// be executed, and an eventual row adapter.
-    func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
-    
-    /// The number of rows fetched by the request.
-    func fetchCount(_ db: Database) throws -> Int
-}
-```
-
-When the `RowDecoder` associated type is [Row](#fetching-rows), or a [value](#value-queries), or a type that conforms to [FetchableRecord], the request can fetch: see [Fetching From Custom Requests](#fetching-from-custom-requests) below.
-
-The `makePreparedRequest(_:forSingleResult:)` method accepts a database connection, a `singleResult` hint, and returns a "prepared request" made of a [prepared statement](#prepared-statements) and an optional [row adapter](#row-adapters). Conforming types can use the `singleResult` hint as an optimization opportunity, and return a statement that fetches at most one row, with a `LIMIT` SQL clause, when possible.
-
-The `fetchCount` method has a default implementation that builds a correct but naive SQL query from the statement returned by `prepare`: `SELECT COUNT(*) FROM (...)`. Adopting types can refine the counting SQL by customizing their `fetchCount` implementation.
-
-The base `DatabaseRegionConvertible` protocol is involved in [database observation](#database-changes-observation). For more information, see [DatabaseRegion], [DatabaseRegionObservation], and [ValueObservation].
-
-The FetchRequest protocol is adopted, for example, by [query interface requests](#requests):
-
-```swift
-// A FetchRequest whose RowDecoder associated type is Player:
-let request = Player.all()
-```
-
-
-### Building Custom Requests
-
-**To build custom requests**, you can use one of the built-in requests, derive requests from other requests, or create your own request type that adopts the [FetchRequest](#fetchrequest-protocol) protocol. 
+**To build custom requests**, you can use one of the built-in requests or derive requests from other requests.
 
 - [SQLRequest](http://groue.github.io/GRDB.swift/docs/5.0.0-beta/Structs/SQLRequest.html) is a fetch request built from raw SQL. For example:
     
@@ -4866,36 +4825,7 @@ let request = Player.all()
 
 - The `adapted(_:)` method eases the consumption of complex rows with [row adapters](#row-adapters). See [Joined Queries Support](#joined-queries-support) for some sample code that uses this method.
 
-- [AnyFetchRequest](http://groue.github.io/GRDB.swift/docs/5.0.0-beta/Structs/AnyFetchRequest.html): a [type-erased](http://chris.eidhof.nl/post/type-erasers-in-swift/) request.
-
-
-### Fetching From Custom Requests
-
-A type adopting [FetchRequest](#fetchrequest-protocol) knows exactly what it has to do when its RowDecoder associated type can decode database rows ([Row](#fetching-rows) itself, [values](#value-queries), or [FetchableRecord]):
-
-```swift
-let rowRequest = ...        // Some FetchRequest that fetches Row
-try request.fetchCursor(db) // A cursor of rows
-
-let playerRequest = ...     // Some FetchRequest that fetches Player
-try request.fetchAll(db)    // [Player]
-
-let intRequest = ...        // Some FetchRequest that fetches Int
-try request.fetchOne(db)    // Int?
-```
-
-For example:
-
-```swift
-let playerRequest = SQLRequest<Player>(
-    sql: "SELECT * FROM player WHERE color = ?"
-    arguments: [color])
-try request.fetchAll(db)    // [Player]
-```
-
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
-
-The RowDecoder type associated with the FetchRequest does not have to be Row, DatabaseValueConvertible, or FetchableRecord. See the [Beyond FetchableRecord] chapter for more information.
+- [AnyFetchRequest](http://groue.github.io/GRDB.swift/docs/5.0.0-beta/Structs/AnyFetchRequest.html): a type-erased request.
 
 
 ## Joined Queries Support
