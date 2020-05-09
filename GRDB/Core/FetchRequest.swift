@@ -33,6 +33,16 @@ public struct PreparedRequest {
         self.adapter = adapter
         self.supplementaryFetch = supplementaryFetch
     }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// Returns the request SQL.
+    ///
+    /// - parameter context: An SQL generation context.
+    /// - returns: An SQL string.
+    public func requestSQL(_ context: SQLGenerationContext) throws -> String {
+        try SQLLiteral(sql: statement.sql, arguments: statement.arguments).sql(context)
+    }
 }
 
 extension PreparedRequest: Refinable { }

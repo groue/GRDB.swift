@@ -370,6 +370,7 @@ class FetchRequestTests: GRDBTestCase {
     }
     
     func testSQLLiteralBasedFetchRequest() throws {
+        // Here we test that users can implement their own FetchRequest type.
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = String
             func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
@@ -383,6 +384,31 @@ class FetchRequestTests: GRDBTestCase {
             let value = try CustomRequest().fetchOne(db)
             XCTAssertEqual(value, "O'Brien")
             XCTAssertEqual(lastSQLQuery, "SELECT 'O''Brien'")
+        }
+    }
+    
+    func testFetchRequestDerivedFromPreparedRequest() throws {
+        // Here we test that we can derive requestSQL(_:forSingleResult:) from
+        // makePreparedRequest(_:forSingleResult:).
+        //
+        // This is an upgrade path from GRDB4 to GRDB5.
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = Row
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                try makePreparedRequest(context.db, forSingleResult: singleResult).requestSQL(context)
+            }
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+                let statement = try db.makeSelectStatement(sql: "SELECT ?")
+                statement.arguments = ["O'Brien"]
+                return PreparedRequest(statement: statement)
+            }
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = CustomRequest()
+            _ = try SQLRequest<Row>("SELECT * FROM (\(request))").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM (SELECT 'O''Brien')")
         }
     }
     

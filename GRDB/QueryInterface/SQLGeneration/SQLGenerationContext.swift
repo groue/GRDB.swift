@@ -17,9 +17,8 @@ public final class SQLGenerationContext {
         case context(SQLGenerationContext)
     }
     
-    /// A database connection so that request elements can perform database
-    /// introspection in order to build their SQL representation.
-    var db: Database {
+    /// A database connection.
+    public var db: Database {
         switch parent {
         case let .none(db: db, argumentsSink: _): return db
         case let .context(context): return context.db

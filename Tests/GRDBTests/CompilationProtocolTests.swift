@@ -112,7 +112,6 @@ private struct UserRowSQLRequest : SQLRequestProtocol {
 private struct UserRowRequest : FetchRequest {
     struct CustomType { }
     typealias RowDecoder = CustomType
-    #warning("TODO: what do we tell users?")
     func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String { preconditionFailure() }
     func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest { preconditionFailure() }
 }
