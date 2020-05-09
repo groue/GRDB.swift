@@ -110,7 +110,7 @@ class FetchRequestTests: GRDBTestCase {
             func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
                 "INVALID"
             }
-
+            
             func fetchCount(_ db: Database) throws -> Int { 2 }
         }
         
@@ -142,7 +142,7 @@ class FetchRequestTests: GRDBTestCase {
                 }
             }
         }
-
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             // Row
@@ -366,6 +366,74 @@ class FetchRequestTests: GRDBTestCase {
             let request = CustomRequest()
             let region = try request.databaseRegion(db)
             XCTAssertEqual(region.description, "multiple(a)")
+        }
+    }
+    
+    func testSQLLiteralBasedFetchRequest() throws {
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = String
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                let literal: SQLLiteral = "SELECT \("O'Brien")"
+                return try literal.sql(context)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let value = try CustomRequest().fetchOne(db)
+            XCTAssertEqual(value, "O'Brien")
+            XCTAssertEqual(lastSQLQuery, "SELECT 'O''Brien'")
+        }
+    }
+    
+    func testFetchRequestInconsistency() throws {
+        // What happens when requestSQL(_:forSingleResult:)
+        // and makePreparedRequest(_:forSingleResult:) do not agree?
+        struct Table1: TableRecord { }
+        struct Table2: TableRecord { }
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = Row
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                try Table1.all().requestSQL(context, forSingleResult: singleResult)
+            }
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+                try Table2.all().makePreparedRequest(db, forSingleResult: singleResult)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "table1") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "table2") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            
+            let request = CustomRequest()
+            
+            // DatabaseRegionConvertible
+            let region = try request.databaseRegion(db)
+            XCTAssertEqual(region.description, "table1(*)")
+            
+            // FetchRequest
+            _ = try request.fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"table2\"")
+            
+            _ = try request.fetchCount(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"table1\")")
+            
+            // SQLExpression
+            _ = try SQLRequest<Row>("SELECT \(request == 1)").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT (SELECT * FROM \"table1\") = 1")
+            
+            // SQLCollection
+            _ = try SQLRequest<Row>("SELECT \(request.contains(1))").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT 1 IN (SELECT * FROM \"table1\")")
+            
+            // SQLRequestProtocol
+            _ = try SQLRequest<Row>("SELECT * FROM (\(request))").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM (SELECT * FROM \"table1\")")
         }
     }
     
