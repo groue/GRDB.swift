@@ -12,19 +12,39 @@
 ///   in order to prevent SQL injection.
 ///
 /// :nodoc:
-public struct SQLGenerationContext {
+public final class SQLGenerationContext {
+    private enum Parent {
+        case none(db: Database, argumentsSink: StatementArgumentsSink)
+        case context(SQLGenerationContext)
+    }
+    
     /// A database connection so that request elements can perform database
     /// introspection in order to build their SQL representation.
-    let db: Database
+    var db: Database {
+        switch parent {
+        case let .none(db: db, argumentsSink: _): return db
+        case let .context(context): return context.db
+        }
+    }
     
-    /// The arguments sink which prevents SQL injection.
-    let argumentsSink: StatementArgumentsSink
-    
-    /// All arguments gathered so far
+    /// All gathered arguments
     var arguments: StatementArguments { argumentsSink.arguments }
     
-    private var resolvedNames: [TableAlias: String]
-    private var qualifiesColumnsWithTable: Bool
+    /// Access to the database connection, the arguments sink, and resolved
+    /// names of table aliases from outer contexts (useful in case of
+    /// subquery generation).
+    private let parent: Parent
+    
+    /// The arguments sink which prevents SQL injection.
+    private var argumentsSink: StatementArgumentsSink {
+        switch parent {
+        case let .none(db: _, argumentsSink: argumentsSink): return argumentsSink
+        case let .context(context): return context.argumentsSink
+        }
+    }
+    
+    private let resolvedNames: [TableAlias: String]
+    private let ownAliases: Set<TableAlias>
     
     /// Creates a generation context.
     ///
@@ -36,10 +56,22 @@ public struct SQLGenerationContext {
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
         aliases: [TableAlias] = [])
     {
-        self.db = db
-        self.argumentsSink = argumentsSink
+        self.parent = .none(db: db, argumentsSink: argumentsSink)
         self.resolvedNames = aliases.resolvedNames
-        self.qualifiesColumnsWithTable = aliases.count > 1
+        self.ownAliases = Set(aliases)
+    }
+    
+    /// Creates a generation context.
+    ///
+    /// - parameter parent: A parent context.
+    /// - parameter aliases: An array of table aliases to disambiguate.
+    init(
+        parent: SQLGenerationContext,
+        aliases: [TableAlias] = [])
+    {
+        self.parent = .context(parent)
+        self.resolvedNames = aliases.resolvedNames
+        self.ownAliases = Set(aliases)
     }
     
     /// Returns whether arguments could be appended.
@@ -59,15 +91,26 @@ public struct SQLGenerationContext {
         if alias.hasUserName {
             return alias.identityName
         }
-        if qualifiesColumnsWithTable == false {
-            return nil
+        if !ownAliases.contains(alias) {
+            return resolvedName(for: alias)
         }
-        return resolvedName(for: alias)
+        if ownAliases.count > 1 {
+            return resolvedName(for: alias)
+        }
+        return nil
     }
     
     /// WHERE <resolvedName> MATCH pattern
     func resolvedName(for alias: TableAlias) -> String {
-        resolvedNames[alias] ?? alias.identityName
+        if let name = resolvedNames[alias] {
+            return name
+        }
+        switch parent {
+        case .none:
+            return alias.identityName
+        case let .context(context):
+            return context.resolvedName(for: alias)
+        }
     }
     
     /// FROM tableName <alias>
@@ -312,7 +355,7 @@ public class TableAlias: Hashable {
     public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
         ordering.qualifiedOrdering(with: self)
     }
-
+    
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(root))
