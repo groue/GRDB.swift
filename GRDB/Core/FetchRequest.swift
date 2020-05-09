@@ -11,6 +11,7 @@ public struct PreparedRequest {
     /// Support for eager loading of hasMany associations.
     var supplementaryFetch: (([Row]) throws -> Void)?
     
+    // TODO: remove when FetchRequest is a closed protocol.
     /// Creates a PreparedRequest.
     ///
     /// - parameter statement: A prepared statement that is ready to
@@ -34,6 +35,7 @@ public struct PreparedRequest {
         self.supplementaryFetch = supplementaryFetch
     }
     
+    // TODO: remove when FetchRequest is a closed protocol.
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the request SQL.

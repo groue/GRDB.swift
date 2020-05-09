@@ -373,6 +373,7 @@ class FetchRequestTests: GRDBTestCase {
         // Here we test that users can implement their own FetchRequest type.
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = String
+            
             func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
                 let literal: SQLLiteral = "SELECT \("O'Brien")"
                 return try literal.sql(context)
@@ -392,14 +393,19 @@ class FetchRequestTests: GRDBTestCase {
         // makePreparedRequest(_:forSingleResult:).
         //
         // This is an upgrade path from GRDB4 to GRDB5.
+        //
+        // We also test that the same SQLLiteral can be used in both
+        // makePreparedRequest() and requestSQL() (see testSQLLiteralBasedFetchRequest)
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
+            
             func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
                 try makePreparedRequest(context.db, forSingleResult: singleResult).requestSQL(context)
             }
+            
             func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                let statement = try db.makeSelectStatement(sql: "SELECT ?")
-                statement.arguments = ["O'Brien"]
+                let literal: SQLLiteral = "SELECT \("O'Brien")"
+                let statement = try db.makeSelectStatement(literal: literal)
                 return PreparedRequest(statement: statement)
             }
         }

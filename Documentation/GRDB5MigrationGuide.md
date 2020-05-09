@@ -342,7 +342,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     > let query: SQLLiteral = "SELECT * FROM player WHERE score = (\(maximumScore))"
     > ```
 
-4. In order to extract raw SQL string from a request (SQLRequest or QueryInterfaceRequest), you now need a database connection:
+4. In order to extract raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest(_:)` method:
 
     ```swift
     // BEFORE: GRDB 4
@@ -356,7 +356,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     // NEW: GRDB 5
     try dbQueue.read { db in
         let request = Player.filter(Column("name") == "O'Brien")
-        let statement = try request.makePreparedRequest(db).statement
+        let statement = try request.makePreparedRequest(db, forSingleResult: false).statement
         print(statement.sql)        // "SELECT * FROM player WHERE name = ?"
         print(statement.arguments)  // ["O'Brien"]
     }
@@ -391,28 +391,12 @@ The changes can quite impact your application. We'll describe them below, as wel
     Player.select(myFunction(Column("name")))
     ```
 
-7. If you happen to implement custom fetch requests with the `FetchRequest` protocol, you now have to define the `makePreparedRequest(_:forSingleResult:)` method:
+7. Defining custom `FetchRequest` types is now **discouraged**.
     
-    ```swift
-    // BEFORE: GRDB 4
-    struct MyRequest: FetchRequest {
-        func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?) {
-            let statement: SelectStatement = ...
-            let adapter: RowAdapter? = ...
-            return (statement, adapter)
-        }
-    }
-     
-    // NEW: GRDB 5
-    struct MyRequest: FetchRequest {
-        func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
-            let statement: SelectStatement = ...
-            let adapter: RowAdapter? = ...
-            return PreparedRequest(statement: statement, adapter: adapter)
-        }
-    }
-    ```
-
+    A future GRDB version will remove the ability to define custom `FetchRequest` types.
+    
+    Our suggestion is to refactor your app so that this custom request type is no longer needed: [SQLRequest] and [QueryInterfaceRequest] are supposed to fully address your needs. If it is not possible, then please [open an issue](https://github.com/groue/GRDB.swift/issues) and describe your particular use case.
+    
 8. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
     ```swift
@@ -448,3 +432,5 @@ The changes can quite impact your application. We'll describe them below, as wel
 [Batch updates]: ../README.md#update-requests
 [SQL Interpolation]: SQLInterpolation.md
 [SQLLiteral]: SQLInterpolation.md#sqlliteral
+[SQLRequest]: ../README.md#custom-requests
+[QueryInterfaceRequest]: ../README.md#requests

@@ -6,15 +6,33 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?")
-    ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
-    ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = ?")
+    ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
+    ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
     ///
     /// - parameter sql: An SQL query.
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeSelectStatement(sql: String) throws -> SelectStatement {
         try makeSelectStatement(sql: sql, prepFlags: 0)
+    }
+    
+    // TODO: remove when FetchRequest is a closed protocol.
+    /// Returns a new prepared statement.
+    ///
+    ///     let id = 1
+    ///     let literal: SQLLiteral = "SELECT * FROM player WHERE id = \(id)"
+    ///     let statement = try db.makeSelectStatement(literal: literal)
+    ///     let player = try Player.fetchOne(statement)!
+    ///
+    /// - parameter sql: An SQL query.
+    /// - returns: A SelectStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    public func makeSelectStatement(literal: SQLLiteral) throws -> SelectStatement {
+        let (sql, arguments) = try literal.build(self)
+        let statement = try makeSelectStatement(sql: sql, prepFlags: 0)
+        statement.arguments = arguments
+        return statement
     }
     
     /// Returns a new prepared statement that can be reused.
