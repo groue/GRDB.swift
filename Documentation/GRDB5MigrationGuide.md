@@ -342,7 +342,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     > let query: SQLLiteral = "SELECT * FROM player WHERE score = (\(maximumScore))"
     > ```
 
-4. In order to extract raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest(_:)` method:
+4. In order to extract raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest()` method:
 
     ```swift
     // BEFORE: GRDB 4
