@@ -395,7 +395,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     
     A future GRDB version will remove the ability to define custom `FetchRequest` types.
     
-    Our suggestion is to refactor your app so that this custom request type is no longer needed: [SQLRequest] and [QueryInterfaceRequest] are supposed to fully address your needs. If it is not possible, then please [open an issue](https://github.com/groue/GRDB.swift/issues) and describe your particular use case.
+    Our suggestion is to refactor your app so that your custom request type is no longer needed: [SQLRequest] and [QueryInterfaceRequest] are now supposed to fully address your needs. If it is not possible, then please [open an issue](https://github.com/groue/GRDB.swift/issues) and describe your particular use case.
     
 8. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
