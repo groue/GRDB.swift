@@ -14,7 +14,7 @@ public struct SQLLiteral {
     /// table aliases.
     enum Element {
         case sql(String, StatementArguments = StatementArguments())
-        case subquery((SQLGenerationContext) throws -> String)
+        case subquery(SQLRequestProtocol)
         // Cases below can be qualified with a table alias
         case expression(SQLExpression)
         case selectable(SQLSelectable)
@@ -29,8 +29,8 @@ public struct SQLLiteral {
                     fatalError("Not implemented: turning an SQL parameter into an SQL literal value")
                 }
                 return sql
-            case let .subquery(function):
-                return try function(context)
+            case let .subquery(request):
+                return try request.requestSQL(context, forSingleResult: false)
             case let .expression(expression):
                 return try expression.expressionSQL(context, wrappedInParenthesis: false)
             case let .selectable(selectable):

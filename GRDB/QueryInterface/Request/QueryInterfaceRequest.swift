@@ -5,13 +5,13 @@
 //
 // It wraps an SQLQuery, and has an attached type.
 //
-// The attached type helps decoding raw database values:
+// The attached RowDecoder type helps decoding raw database values:
 //
 //     try dbQueue.read { db in
 //         try playerRequest.fetchAll(db) // [Player]
 //     }
 //
-// The attached type also helps the compiler validate associated requests:
+// RowDecoder also helps the compiler validate associated requests:
 //
 //     playerRequest.including(required: Player.team) // OK
 //     fruitRequest.including(required: Player.team)  // Does not compile
@@ -38,43 +38,11 @@ extension QueryInterfaceRequest {
     }
 }
 
-extension QueryInterfaceRequest: FetchRequest {
-    /// Returns a tuple that contains a prepared statement that is ready to be
-    /// executed, and an eventual row adapter.
-    ///
-    /// - parameter db: A database connection.
-    /// - parameter singleResult: A hint as to whether the query should be optimized for a single result.
-    /// - returns: A prepared statement and an eventual row adapter.
-    /// :nodoc:
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
-        let (statement, adapter) = try generator.prepare(db)
-        let associations = query.relation.prefetchedAssociations
-        if associations.isEmpty {
-            return PreparedRequest(statement: statement, adapter: adapter)
-        } else {
-            // Eager loading of prefetched associations
-            return PreparedRequest(
-                statement: statement,
-                adapter: adapter,
-                supplementaryFetch: { rows in
-                    try prefetch(db, associations: associations, in: rows)
-            })
-        }
-    }
-    
-    /// Returns the number of rows fetched by the request.
-    ///
-    /// - parameter db: A database connection.
-    /// :nodoc:
-    public func fetchCount(_ db: Database) throws -> Int {
-        try query.fetchCount(db)
-    }
-    
-    /// Returns the database region that the request looks into.
-    ///
-    /// - parameter db: A database connection.
-    /// :nodoc:
+extension QueryInterfaceRequest: Refinable { }
+
+// MARK: - DatabaseRegionConvertible
+
+extension QueryInterfaceRequest: DatabaseRegionConvertible {
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         var region = try SQLQueryGenerator(query: query)
             .makeSelectStatement(db)
@@ -116,9 +84,41 @@ extension QueryInterfaceRequest: FetchRequest {
     }
 }
 
-extension QueryInterfaceRequest: SelectionRequest {
-    // MARK: Request Derivation
+// MARK: - SQLRequestProtocol
+
+extension QueryInterfaceRequest: SQLRequestProtocol {
+    /// :nodoc:
+    public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
+        return try generator.requestSQL(context)
+    }
+}
+
+// MARK: - FetchRequest
+
+extension QueryInterfaceRequest: FetchRequest {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
+        let preparedRequest = try generator.makePreparedRequest(db)
+        let associations = query.relation.prefetchedAssociations
+        if associations.isEmpty {
+            return preparedRequest
+        } else {
+            // Eager loading of prefetched associations
+            return preparedRequest.with(\.supplementaryFetch) { rows in
+                try prefetch(db, associations: associations, in: rows)
+            }
+        }
+    }
     
+    public func fetchCount(_ db: Database) throws -> Int {
+        try query.fetchCount(db)
+    }
+}
+
+// MARK: - Request Derivation
+
+extension QueryInterfaceRequest: SelectionRequest {
     /// Creates a request which selects *selection promise*.
     ///
     ///     // SELECT id, email FROM player
@@ -228,8 +228,6 @@ extension QueryInterfaceRequest: SelectionRequest {
 }
 
 extension QueryInterfaceRequest: FilteredRequest {
-    // MARK: Request Derivation
-    
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     ///
@@ -242,8 +240,6 @@ extension QueryInterfaceRequest: FilteredRequest {
 }
 
 extension QueryInterfaceRequest: OrderedRequest {
-    // MARK: Request Derivation
-    
     /// Creates a request with the provided *orderings promise*.
     ///
     ///     // SELECT * FROM player ORDER BY name
@@ -287,8 +283,6 @@ extension QueryInterfaceRequest: OrderedRequest {
 }
 
 extension QueryInterfaceRequest: AggregatingRequest {
-    // MARK: Request Derivation
-    
     /// Creates a request grouped according to *expressions promise*.
     public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
         map(\.query) { $0.group(expressions) }
@@ -330,142 +324,6 @@ extension QueryInterfaceRequest: _JoinableRequest {
 
 extension QueryInterfaceRequest: JoinableRequest where RowDecoder: TableRecord { }
 
-extension QueryInterfaceRequest: Refinable {
-    
-    // MARK: Request Derivation
-    
-    /// Creates a request which returns distinct rows.
-    ///
-    ///     // SELECT DISTINCT * FROM player
-    ///     var request = Player.all()
-    ///     request = request.distinct()
-    ///
-    ///     // SELECT DISTINCT name FROM player
-    ///     var request = Player.select(Column("name"))
-    ///     request = request.distinct()
-    public func distinct() -> QueryInterfaceRequest {
-        map(\.query) { $0.distinct() }
-    }
-    
-    /// Creates a request which fetches *limit* rows, starting at *offset*.
-    ///
-    ///     // SELECT * FROM player LIMIT 1
-    ///     var request = Player.all()
-    ///     request = request.limit(1)
-    ///
-    /// Any previous limit is replaced.
-    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest {
-        map(\.query) { $0.limit(limit, offset: offset) }
-    }
-    
-    /// Creates a request that allows you to define expressions that target
-    /// a specific database table.
-    ///
-    /// In the example below, the "team.avgScore < player.score" condition in
-    /// the ON clause could be not achieved without table aliases.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // JOIN team ON ... AND team.avgScore < player.score
-    ///     let playerAlias = TableAlias()
-    ///     let request = Player
-    ///         .all()
-    ///         .aliased(playerAlias)
-    ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
-    public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
-        map(\.query) { $0.qualified(with: alias) }
-    }
-    
-    /// Creates a request bound to type Target.
-    ///
-    /// The returned request can fetch if the type Target is fetchable (Row,
-    /// value, record).
-    ///
-    ///     // Int?
-    ///     let maxScore = try Player
-    ///         .select(max(scoreColumn))
-    ///         .asRequest(of: Int.self)    // <--
-    ///         .fetchOne(db)
-    ///
-    /// - parameter type: The fetched type Target
-    /// - returns: A typed request bound to type Target.
-    public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
-        QueryInterfaceRequest<RowDecoder>(query: query)
-    }
-}
-
-// Support for `request.contains(expression)`
-extension QueryInterfaceRequest: SQLCollection {
-    /// :nodoc
-    public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
-        // If the request selects several colums, SQLite 3.28.0 may complain
-        // with an error:
-        //
-        //  -- Error: sub-select returns 2 columns - expected 1
-        //  SELECT * FROM t WHERE a IN (SELECT a, b FROM t);
-        //
-        // But other requests accept multiple columns:
-        //
-        //  -- OK
-        //  SELECT * FROM t WHERE (a, b) IN (SELECT a, b FROM t);
-        //
-        // So we do not prevent using requests that select several columns
-        // as expressions.
-        try SQLQueryGenerator(query: query).sql(context)
-    }
-    
-    /// :nodoc
-    public func qualifiedCollection(with alias: TableAlias) -> SQLCollection {
-        self
-    }
-}
-
-// Support for `request == expression`
-//
-// Note: I wish we would give SQLExpression conformance to
-// QueryInterfaceRequest. See SQLRequest for more information.
-extension QueryInterfaceRequest: SQLSpecificExpressible {
-    private struct Expression: SQLExpression {
-        let generator: SQLQueryGenerator
-        
-        func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-            try "(" + generator.sql(context) + ")"
-        }
-        
-        func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-            self
-        }
-    }
-    
-    /// :nodoc
-    public var sqlExpression: SQLExpression {
-        // We're generating an *expression*, so we have to deal with the fact
-        // that the request may return several rows, and select several columns.
-        //
-        // In practice, SQLite only considers the first returned row.
-        // So we don't have to set the `forSingleResult` flag of the generator
-        // in order to make sure a single row is returned.
-        //
-        // And if the request selects several colums, SQLite 3.28.0 may complain
-        // with a "row value misused" error:
-        //
-        //  -- Error: row value misused
-        //  SELECT * FROM t WHERE a = (SELECT a, b FROM t);
-        //
-        // But other requests accept multiple columns:
-        //
-        //  -- OK
-        //  SELECT * FROM t WHERE (a, b) = (SELECT a, b FROM t);
-        //
-        // So we do not prevent using requests that select several columns
-        // as expressions.
-        Expression(generator: SQLQueryGenerator(query: query))
-    }
-}
-
 extension QueryInterfaceRequest: TableRequest {
     /// :nodoc:
     public var databaseTableName: String {
@@ -491,14 +349,77 @@ extension QueryInterfaceRequest: TableRequest {
             fatalError("Request is not based on a database table")
         }
     }
+    
+    /// Creates a request that allows you to define expressions that target
+    /// a specific database table.
+    ///
+    /// In the example below, the "team.avgScore < player.score" condition in
+    /// the ON clause could be not achieved without table aliases.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // JOIN team ON ... AND team.avgScore < player.score
+    ///     let playerAlias = TableAlias()
+    ///     let request = Player
+    ///         .all()
+    ///         .aliased(playerAlias)
+    ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
+    public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
+        map(\.query) { $0.qualified(with: alias) }
+    }
 }
 
 extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
 
+extension QueryInterfaceRequest {
+    /// Creates a request which returns distinct rows.
+    ///
+    ///     // SELECT DISTINCT * FROM player
+    ///     var request = Player.all()
+    ///     request = request.distinct()
+    ///
+    ///     // SELECT DISTINCT name FROM player
+    ///     var request = Player.select(Column("name"))
+    ///     request = request.distinct()
+    public func distinct() -> QueryInterfaceRequest {
+        map(\.query) { $0.distinct() }
+    }
+    
+    /// Creates a request which fetches *limit* rows, starting at *offset*.
+    ///
+    ///     // SELECT * FROM player LIMIT 1
+    ///     var request = Player.all()
+    ///     request = request.limit(1)
+    ///
+    /// Any previous limit is replaced.
+    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest {
+        map(\.query) { $0.limit(limit, offset: offset) }
+    }
+    
+    /// Creates a request bound to type Target.
+    ///
+    /// The returned request can fetch if the type Target is fetchable (Row,
+    /// value, record).
+    ///
+    ///     // Int?
+    ///     let maxScore = try Player
+    ///         .select(max(scoreColumn))
+    ///         .asRequest(of: Int.self)    // <--
+    ///         .fetchOne(db)
+    ///
+    /// - parameter type: The fetched type Target
+    /// - returns: A typed request bound to type Target.
+    public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
+        QueryInterfaceRequest<RowDecoder>(query: query)
+    }
+}
+
+// MARK: - Batch Delete
+
 extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
-    
-    // MARK: Batch Delete
-    
     /// Deletes matching rows; returns the number of deleted rows.
     ///
     /// - parameter db: A database connection.
@@ -509,9 +430,11 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
         try SQLQueryGenerator(query: query).makeDeleteStatement(db).execute()
         return db.changesCount
     }
-    
-    // MARK: Batch Update
-    
+}
+
+// MARK: - Batch Update
+
+extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     /// Updates matching rows; returns the number of updated rows.
     ///
     /// For example:
