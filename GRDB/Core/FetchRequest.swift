@@ -87,8 +87,14 @@ public protocol FetchRequest: SQLRequestProtocol, DatabaseRegionConvertible {
     ///
     /// - parameter db: A database connection.
     /// - parameter singleResult: A hint that a single result row will be
-    ///   consumed. Implementations can optionally use this to optimize the
-    ///   prepared statement.
+    ///   consumed. Implementations can optionally use it to optimize the
+    ///   prepared statement, for example by adding a `LIMIT 1` SQL clause.
+    ///
+    ///       // Calls makePreparedRequest(db, forSingleResult: true)
+    ///       try request.fetchOne(db)
+    ///
+    ///       // Calls makePreparedRequest(db, forSingleResult: false)
+    ///       try request.fetchAll(db)
     /// - returns: A prepared request.
     func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest
     

@@ -1,13 +1,13 @@
 /// The protocol that can generate SQL requests and subqueries.
 public protocol SQLRequestProtocol: SQLExpression, SQLCollection {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// 
+    ///
     /// Returns the request SQL.
     ///
     /// - parameter context: An SQL generation context.
     /// - parameter singleResult: A hint that a single result row will be
-    ///   consumed. Implementations can optionally use this to optimize the
-    ///   returned SQL.
+    ///   consumed. Implementations can optionally use it to optimize the
+    ///   generated SQL, for example by adding a `LIMIT 1` SQL clause.
     /// - returns: An SQL string.
     func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String
 }
