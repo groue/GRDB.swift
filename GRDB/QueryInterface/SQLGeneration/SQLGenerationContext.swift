@@ -17,7 +17,7 @@ public final class SQLGenerationContext {
         case context(SQLGenerationContext)
     }
     
-    // TODO: remove when FetchRequest is a closed protocol.
+    // TODO: make internal when FetchRequest is a closed protocol.
     /// A database connection.
     public var db: Database {
         switch parent {
