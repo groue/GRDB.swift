@@ -110,6 +110,7 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         self.adapter = adapter
     }
     
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
         try base.requestSQL(context, forSingleResult: singleResult)
@@ -168,6 +169,7 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
         try _databaseRegion(db)
     }
     
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
         try _requestSQL(context, singleResult)

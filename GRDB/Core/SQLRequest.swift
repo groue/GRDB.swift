@@ -102,6 +102,7 @@ public struct SQLRequest<RowDecoder> {
 }
 
 extension SQLRequest: SQLRequestProtocol {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
         try sqlLiteral.sql(context)

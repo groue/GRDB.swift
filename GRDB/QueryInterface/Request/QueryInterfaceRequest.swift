@@ -87,6 +87,7 @@ extension QueryInterfaceRequest: DatabaseRegionConvertible {
 // MARK: - SQLRequestProtocol
 
 extension QueryInterfaceRequest: SQLRequestProtocol {
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
         let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
