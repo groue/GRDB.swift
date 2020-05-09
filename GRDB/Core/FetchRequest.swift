@@ -1,7 +1,6 @@
 // MARK: - PreparedRequest
 
 /// A PreparedRequest is a request that is ready to be executed.
-/// :nodoc:
 public struct PreparedRequest {
     /// A prepared statement
     public var statement: SelectStatement
