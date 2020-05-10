@@ -334,13 +334,6 @@ The changes can quite impact your application. We'll describe them below, as wel
     print(sql)             // prints "UPDATE player SET name = ? WHERE id = ?"
     print(arguments)       // prints ["O'Brien", 42]
     ```
-    
-    > :question: This change makes it possible to embed query interface requests as subqueries inside SQLLiteral:
-    >
-    > ```swift
-    > let maximumScore = Player.select(max(Column("score")))
-    > let query: SQLLiteral = "SELECT * FROM player WHERE score = (\(maximumScore))"
-    > ```
 
 4. In order to extract raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest()` method:
 
@@ -361,13 +354,6 @@ The changes can quite impact your application. We'll describe them below, as wel
         print(statement.arguments)  // ["O'Brien"]
     }
     ```
-    
-    > :question: This change makes it possible to embed query interface requests as subqueries inside SQLRequest:
-    >
-    > ```swift
-    > let maximumScore = Player.select(max(Column("score")))
-    > let request: SQLRequest<Player> = "SELECT * FROM player WHERE score = (\(maximumScore))"
-    > ```
 
 5. The `TableRecord.selectionSQL()` method is no longer avaible. When you need to embed the columns selected by a record type in an SQL request, you now have to use [SQL Interpolation]:
 
