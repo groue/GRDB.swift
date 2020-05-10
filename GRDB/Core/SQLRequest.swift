@@ -118,7 +118,7 @@ extension SQLRequest: DatabaseRegionConvertible {
 extension SQLRequest: FetchRequest {
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         let context = SQLGenerationContext(db)
-        let sql = try requestSQL(context, forSingleResult: false)
+        let sql = try sqlLiteral.sql(context)
         let statement: SelectStatement
         switch cache {
         case .none:
