@@ -466,6 +466,8 @@
 		56ED8A801DAB8D6800BD0ABC /* FTS5WrapperTokenizerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56ED8A7E1DAB8D6800BD0ABC /* FTS5WrapperTokenizerTests.swift */; };
 		56F3E74C1E66F83A00BF0F01 /* ResultCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F3E7481E66F83A00BF0F01 /* ResultCodeTests.swift */; };
 		56F3E7501E66F83A00BF0F01 /* ResultCodeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F3E7481E66F83A00BF0F01 /* ResultCodeTests.swift */; };
+		56F409282465C8F500A7A152 /* SQLRequestProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F409262465C8F500A7A152 /* SQLRequestProtocol.swift */; };
+		56F409292465C8F500A7A152 /* SQLRequestProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56F409262465C8F500A7A152 /* SQLRequestProtocol.swift */; };
 		56FBFED62210731100945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED52210731000945324 /* SQLRequest.swift */; };
 		56FBFED72210731100945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED52210731000945324 /* SQLRequest.swift */; };
 		56FEE7FE1F47253700D930EA /* TableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FEE7FA1F47253700D930EA /* TableRecordTests.swift */; };
@@ -1034,6 +1036,7 @@
 		56ED8A7E1DAB8D6800BD0ABC /* FTS5WrapperTokenizerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS5WrapperTokenizerTests.swift; sourceTree = "<group>"; };
 		56F0B98E1B6001C600A2F135 /* FoundationNSDateTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FoundationNSDateTests.swift; sourceTree = "<group>"; };
 		56F3E7481E66F83A00BF0F01 /* ResultCodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultCodeTests.swift; sourceTree = "<group>"; };
+		56F409262465C8F500A7A152 /* SQLRequestProtocol.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestProtocol.swift; sourceTree = "<group>"; };
 		56FBFED52210731000945324 /* SQLRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLRequest.swift; sourceTree = "<group>"; };
 		56FDECE11BB32DFD009AD709 /* RowFromStatementTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFromStatementTests.swift; sourceTree = "<group>"; };
 		56FEE7FA1F47253700D930EA /* TableRecordTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableRecordTests.swift; sourceTree = "<group>"; };
@@ -1666,6 +1669,7 @@
 				56E9FAC32210468500C703A8 /* SQLInterpolation.swift */,
 				56E9FAD42210538400C703A8 /* SQLLiteral.swift */,
 				56FBFED52210731000945324 /* SQLRequest.swift */,
+				56F409262465C8F500A7A152 /* SQLRequestProtocol.swift */,
 				56A238781B9C75030082EB20 /* Statement.swift */,
 				566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */,
 				560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */,
@@ -2194,6 +2198,7 @@
 				5656A87E2295BD56001FF3FF /* SQLAssociation.swift in Sources */,
 				F3BA80131CFB2876003DC1BA /* DatabaseValue.swift in Sources */,
 				56C0539822ACEECD0029D27D /* ValueReducer.swift in Sources */,
+				56F409292465C8F500A7A152 /* SQLRequestProtocol.swift in Sources */,
 				56A2FA3A24424F4200E97D23 /* Export.swift in Sources */,
 				56B964B61DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
 				F3BA80171CFB2876003DC1BA /* RowAdapter.swift in Sources */,
@@ -2530,6 +2535,7 @@
 				5656A87D2295BD56001FF3FF /* SQLAssociation.swift in Sources */,
 				F3BA806F1CFB2E55003DC1BA /* DatabaseValue.swift in Sources */,
 				56C0539722ACEECD0029D27D /* ValueReducer.swift in Sources */,
+				56F409282465C8F500A7A152 /* SQLRequestProtocol.swift in Sources */,
 				56A2FA3924424F4200E97D23 /* Export.swift in Sources */,
 				56B964B31DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
 				F3BA80731CFB2E55003DC1BA /* RowAdapter.swift in Sources */,

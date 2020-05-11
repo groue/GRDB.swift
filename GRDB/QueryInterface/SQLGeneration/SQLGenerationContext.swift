@@ -1,15 +1,14 @@
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// SQLGenerationContext support for SQL generation:
+/// SQLGenerationContext supports SQL generation:
 ///
-/// - It provides a database connection so that request elements can perform
-///   database introspection in order to build their SQL representation.
+/// - It provides a database connection during SQL generation, for any purpose
+///   such as schema introspection.
 ///
 /// - It provides unique table aliases in order to disambiguates table names
 ///   and columns.
 ///
-/// - Request elements can turn database values as SQLite statement arguments,
-///   in order to prevent SQL injection.
+/// - It gathers SQL arguments in order to prevent SQL injection.
 ///
 /// :nodoc:
 public final class SQLGenerationContext {
@@ -18,9 +17,9 @@ public final class SQLGenerationContext {
         case context(SQLGenerationContext)
     }
     
-    /// A database connection so that request elements can perform database
-    /// introspection in order to build their SQL representation.
-    var db: Database {
+    // TODO: make internal when FetchRequest is a closed protocol.
+    /// A database connection.
+    public var db: Database {
         switch parent {
         case let .none(db: db, argumentsSink: _): return db
         case let .context(context): return context.db
@@ -75,7 +74,9 @@ public final class SQLGenerationContext {
     }
     
     /// Returns whether arguments could be appended.
-    /// May be false for SQLGenerationContext.rawSQLContext
+    ///
+    /// A false result means that the generation context does not support
+    /// SQL arguments.
     func append(arguments: StatementArguments) -> Bool {
         argumentsSink.append(arguments: arguments)
     }
@@ -144,7 +145,7 @@ class StatementArgumentsSink {
     
     // fileprivate so that SQLGenerationContext.append(arguments:) is the only
     // available api.
-    /// Returns whether arguments could be appended.
+    /// Returns false for SQLGenerationContext.rawSQLContext
     fileprivate func append(arguments: StatementArguments) -> Bool {
         if arguments.isEmpty {
             return true

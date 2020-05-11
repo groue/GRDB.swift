@@ -231,6 +231,18 @@ extension SQLLiteralTests {
                     """)
                 XCTAssert(arguments.isEmpty)
             }
+            do {
+                // Existential
+                let query: SQLLiteral = """
+                    SELECT \(nil as SQLSelectable?)
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT NULL
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
         }
     }
     
@@ -238,6 +250,7 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             struct Player: TableRecord { }
             do {
+                // Non-existential
                 let query: SQLLiteral = """
                     SELECT *
                     FROM \(Player.self)
@@ -251,8 +264,21 @@ extension SQLLiteralTests {
                 XCTAssert(arguments.isEmpty)
             }
             do {
+                // Non-existential
                 let query: SQLLiteral = """
                     INSERT INTO \(tableOf: Player()) DEFAULT VALUES
+                    """
+                
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    INSERT INTO "player" DEFAULT VALUES
+                    """)
+                XCTAssert(arguments.isEmpty)
+            }
+            do {
+                // Existential
+                let query: SQLLiteral = """
+                    INSERT INTO \(tableOf: Player() as TableRecord) DEFAULT VALUES
                     """
                 
                 let (sql, arguments) = try query.build(db)

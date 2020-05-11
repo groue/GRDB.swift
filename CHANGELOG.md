@@ -81,6 +81,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [#772](https://github.com/groue/GRDB.swift/pull/772): Update the Database Sharing Guide with mention of the persistent WAL mode
 
+### Breaking Changes
+
+- [#774](https://github.com/groue/GRDB.swift/pull/774): All requests are usable as SQL expressions and collections
+
 ### Fixed
 
 - [#773](https://github.com/groue/GRDB.swift/pull/773): Allow subqueries to refer to outer tables
