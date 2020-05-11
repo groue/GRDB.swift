@@ -311,37 +311,78 @@ class DatabaseMigratorTests : GRDBTestCase {
     
     func testMergedMigrators() throws {
         // Migrate a database
-        var oldMigrator = DatabaseMigrator()
-        oldMigrator.registerMigration("1", migrate: { _ in })
-        oldMigrator.registerMigration("3", migrate: { _ in })
+        var migrator1 = DatabaseMigrator()
+        migrator1.registerMigration("1", migrate: { _ in })
+        migrator1.registerMigration("3", migrate: { _ in })
         
         let dbQueue = try makeDatabaseQueue()
-        try oldMigrator.migrate(dbQueue)
+        try migrator1.migrate(dbQueue)
         
-        try XCTAssertEqual(dbQueue.read(oldMigrator.appliedMigrations), ["1", "3"])
-        try XCTAssertEqual(dbQueue.read(oldMigrator.completedMigrations), ["1", "3"])
-        try XCTAssertTrue(dbQueue.read(oldMigrator.hasCompletedMigrations))
+        try XCTAssertEqual(dbQueue.read(migrator1.appliedMigrations), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator1.appliedIdentifiers), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator1.completedMigrations), ["1", "3"])
+        try XCTAssertTrue(dbQueue.read(migrator1.hasCompletedMigrations))
+        try XCTAssertFalse(dbQueue.read(migrator1.hasBeenSuperseded))
         
+        // ---
         // A source code merge inserts a migration between "1" and "3"
-        var newMigrator = DatabaseMigrator()
-        newMigrator.registerMigration("1", migrate: { _ in })
-        newMigrator.registerMigration("2", migrate: { _ in })
-        newMigrator.registerMigration("3", migrate: { _ in })
+        var migrator2 = DatabaseMigrator()
+        migrator2.registerMigration("1", migrate: { _ in })
+        migrator2.registerMigration("2", migrate: { _ in })
+        migrator2.registerMigration("3", migrate: { _ in })
         
-        try XCTAssertEqual(dbQueue.read(newMigrator.appliedMigrations), ["1", "3"])
-        try XCTAssertEqual(dbQueue.read(newMigrator.completedMigrations), ["1"])
-        try XCTAssertFalse(dbQueue.read(newMigrator.hasCompletedMigrations))
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedIdentifiers), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator2.completedMigrations), ["1"])
+        try XCTAssertFalse(dbQueue.read(migrator2.hasCompletedMigrations))
+        try XCTAssertFalse(dbQueue.read(migrator2.hasBeenSuperseded))
         
         // The new source code migrates the database
-        try newMigrator.migrate(dbQueue)
+        try migrator2.migrate(dbQueue)
         
-        try XCTAssertEqual(dbQueue.read(oldMigrator.appliedMigrations), ["1", "3"])
-        try XCTAssertEqual(dbQueue.read(oldMigrator.completedMigrations), ["1", "3"])
-        try XCTAssertTrue(dbQueue.read(oldMigrator.hasCompletedMigrations))
+        try XCTAssertEqual(dbQueue.read(migrator1.appliedMigrations), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator1.appliedIdentifiers), ["1", "2", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator1.completedMigrations), ["1", "3"])
+        try XCTAssertTrue(dbQueue.read(migrator1.hasCompletedMigrations))
+        try XCTAssertTrue(dbQueue.read(migrator1.hasBeenSuperseded))
         
-        try XCTAssertEqual(dbQueue.read(newMigrator.appliedMigrations), ["1", "2", "3"])
-        try XCTAssertEqual(dbQueue.read(newMigrator.completedMigrations), ["1", "2", "3"])
-        try XCTAssertTrue(dbQueue.read(newMigrator.hasCompletedMigrations))
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedIdentifiers), ["1", "2", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator2.completedMigrations), ["1", "2", "3"])
+        try XCTAssertTrue(dbQueue.read(migrator2.hasCompletedMigrations))
+        try XCTAssertFalse(dbQueue.read(migrator2.hasBeenSuperseded))
+        
+        // ---
+        // A source code merge appends a migration
+        var migrator3 = migrator2
+        migrator3.registerMigration("4", migrate: { _ in })
+        
+        try XCTAssertEqual(dbQueue.read(migrator3.appliedMigrations), ["1", "2", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator3.appliedIdentifiers), ["1", "2", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator3.completedMigrations), ["1", "2", "3"])
+        try XCTAssertFalse(dbQueue.read(migrator3.hasCompletedMigrations))
+        try XCTAssertFalse(dbQueue.read(migrator3.hasBeenSuperseded))
+        
+        // The new source code migrates the database
+        try migrator3.migrate(dbQueue)
+        
+        try XCTAssertEqual(dbQueue.read(migrator1.appliedMigrations), ["1", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator1.appliedIdentifiers), ["1", "2", "3", "4"])
+        try XCTAssertEqual(dbQueue.read(migrator1.completedMigrations), ["1", "3"])
+        try XCTAssertTrue(dbQueue.read(migrator1.hasCompletedMigrations))
+        try XCTAssertTrue(dbQueue.read(migrator1.hasBeenSuperseded))
+        
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2", "3"])
+        try XCTAssertEqual(dbQueue.read(migrator2.appliedIdentifiers), ["1", "2", "3", "4"])
+        try XCTAssertEqual(dbQueue.read(migrator2.completedMigrations), ["1", "2", "3"])
+        try XCTAssertTrue(dbQueue.read(migrator2.hasCompletedMigrations))
+        try XCTAssertTrue(dbQueue.read(migrator2.hasBeenSuperseded))
+        
+        try XCTAssertEqual(dbQueue.read(migrator3.appliedMigrations), ["1", "2", "3", "4"])
+        try XCTAssertEqual(dbQueue.read(migrator3.appliedIdentifiers), ["1", "2", "3", "4"])
+        try XCTAssertEqual(dbQueue.read(migrator3.completedMigrations), ["1", "2", "3", "4"])
+        try XCTAssertTrue(dbQueue.read(migrator3.hasCompletedMigrations))
+        try XCTAssertFalse(dbQueue.read(migrator3.hasBeenSuperseded))
     }
     
     // Regression test for https://github.com/groue/GRDB.swift/issues/741
