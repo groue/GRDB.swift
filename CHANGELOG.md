@@ -80,6 +80,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ### New
 
 - [#772](https://github.com/groue/GRDB.swift/pull/772): Update the Database Sharing Guide with mention of the persistent WAL mode
+- [#775](https://github.com/groue/GRDB.swift/pull/775): DatabaseMigrator can check if it has been superseded
 
 ### Breaking Changes
 
