@@ -170,14 +170,34 @@ public struct DatabaseMigrator {
     
     // MARK: - Querying Migrations
     
-    /// Returns the applied migration identifiers, in the same order as
-    /// registered migrations.
+    /// Returns the identifiers of registered and applied migrations, in the
+    /// order of registration.
+    ///
+    /// See also `appliedIdentifiers(_:)`.
     ///
     /// - parameter db: A database connection.
     /// - throws: An eventual database error.
     public func appliedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try self.appliedIdentifiers(db)
         return migrations.map { $0.identifier }.filter { appliedIdentifiers.contains($0) }
+    }
+    
+    /// Returns the applied migration identifiers, even unregistered ones.
+    ///
+    /// See also `appliedMigrations(_:)`.
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: An eventual database error.
+    public func appliedIdentifiers(_ db: Database) throws -> Set<String> {
+        do {
+            return try Set(String.fetchCursor(db, sql: "SELECT identifier FROM grdb_migrations"))
+        } catch {
+            // Rethrow if we can't prove grdb_migrations does not exist yet
+            if (try? !db.tableExists("grdb_migrations")) ?? false {
+                return []
+            }
+            throw error
+        }
     }
     
     /// Returns the identifiers of completed migrations, of which all previous
@@ -200,7 +220,19 @@ public struct DatabaseMigrator {
     public func hasCompletedMigrations(_ db: Database) throws -> Bool {
         try completedMigrations(db).last == migrations.last?.identifier
     }
-        
+    
+    /// Returns whether database contains unknown migration
+    /// identifiers, which is likely the sign that the database
+    /// has migrated further than the migrator itself supports.
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: An eventual database error.
+    public func hasBeenSuperseded(_ db: Database) throws -> Bool {
+        let appliedIdentifiers = try self.appliedIdentifiers(db)
+        let knownIdentifiers = migrations.map(\.identifier)
+        return appliedIdentifiers.contains { !knownIdentifiers.contains($0) }
+    }
+    
     // MARK: - Non public
     
     private mutating func registerMigration(_ migration: Migration) {
@@ -208,22 +240,6 @@ public struct DatabaseMigrator {
             !migrations.map({ $0.identifier }).contains(migration.identifier),
             "already registered migration: \(String(reflecting: migration.identifier))")
         migrations.append(migration)
-    }
-    
-    /// Returns the applied migration identifiers, even unregistered ones
-    ///
-    /// - parameter db: A database connection.
-    /// - throws: An eventual database error.
-    public func appliedIdentifiers(_ db: Database) throws -> Set<String> {
-        do {
-            return try Set(String.fetchCursor(db, sql: "SELECT identifier FROM grdb_migrations"))
-        } catch {
-            // Rethrow if we can't prove grdb_migrations does not exist yet
-            if (try? !db.tableExists("grdb_migrations")) ?? false {
-                return []
-            }
-            throw error
-        }
     }
     
     /// Returns unapplied migration identifier,
