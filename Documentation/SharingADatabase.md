@@ -69,8 +69,14 @@ Since several processes may open the database at the same time, protect the crea
         let dbPool = try DatabasePool(path: databaseURL.path)
         
         // Perform here other database setups, such as defining
-        // the database schema with a DatabaseMigrator.
+        // the database schema with a DatabaseMigrator, and 
+        // checking if the application can open the file:
         try migrator.migrate(dbPool)
+        if try dbPool.read(migrator.hasBeenSuperseded) {
+            // Database is too recent
+            throw /* some error */
+        }
+        
         return dbPool
     }
     ```
@@ -105,12 +111,17 @@ Since several processes may open the database at the same time, protect the crea
             configuration.readonly = true
             let dbPool = try DatabasePool(path: databaseURL.path, configuration: configuration)
             
-            // Check here if the database schema is correct, for example
-            // with a DatabaseMigrator.
-            if try dbPool.read(migrator.hasCompletedMigrations) {
+            // Check here if the database schema is the expected one,
+            // for example with a DatabaseMigrator:
+            return try dbPool.read { db in
+                if try migrator.hasBeenSuperseded(db) {
+                    // Database is too recent
+                    return nil
+                } else if try migrator.hasCompletedMigrations(db) == false {
+                    // Database is too old
+                    return nil
+                }
                 return dbPool
-            } else {
-                return nil
             }
         } catch {
             if FileManager.default.fileExists(atPath: databaseURL.path) {

@@ -4,10 +4,10 @@ import GRDB
 class FetchRequestTests: GRDBTestCase {
     
     func testRequestFetchRows() throws {
-        struct CustomRequest : FetchRequest {
+        struct CustomRequest: FetchRequest {
             typealias RowDecoder = Row
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "SELECT * FROM table1"
             }
         }
         
@@ -31,8 +31,8 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchValues() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Int
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "SELECT id FROM table1"
             }
         }
         
@@ -59,8 +59,8 @@ class FetchRequestTests: GRDBTestCase {
         }
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = CustomRecord
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT id FROM table1"))
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "SELECT id FROM table1"
             }
         }
         
@@ -84,8 +84,8 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestFetchCount() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM table1"))
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "SELECT * FROM table1"
             }
         }
         
@@ -107,8 +107,8 @@ class FetchRequestTests: GRDBTestCase {
     func testRequestCustomizedFetchCount() throws {
         struct CustomRequest : FetchRequest {
             typealias RowDecoder = Row
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-                try PreparedRequest(statement: db.makeSelectStatement(sql: "INVALID"))
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "INVALID"
             }
             
             func fetchCount(_ db: Database) throws -> Int { 2 }
@@ -134,15 +134,15 @@ class FetchRequestTests: GRDBTestCase {
     func testSingleResultHint() throws {
         struct CustomRequest<T>: FetchRequest {
             typealias RowDecoder = T
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
                 if singleResult {
-                    return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT 'single' AS hint"))
+                    return "SELECT 'single' AS hint"
                 } else {
-                    return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT 'multiple' AS hint"))
+                    return "SELECT 'multiple' AS hint"
                 }
             }
         }
-
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             // Row
@@ -336,9 +336,9 @@ class FetchRequestTests: GRDBTestCase {
     func testSingleResultHintIsNotUsedForDefaultFetchCount() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Void
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
                 if singleResult { fatalError("not implemented") }
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT 'multiple'"))
+                return "SELECT 'multiple'"
             }
         }
         
@@ -353,9 +353,9 @@ class FetchRequestTests: GRDBTestCase {
     func testSingleResultHintIsNotUsedForDefaultDatabaseRegion() throws {
         struct CustomRequest: FetchRequest {
             typealias RowDecoder = Void
-            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
                 if singleResult { fatalError("not implemented") }
-                return try PreparedRequest(statement: db.makeSelectStatement(sql: "SELECT * FROM multiple"))
+                return "SELECT * FROM multiple"
             }
         }
         
@@ -366,6 +366,168 @@ class FetchRequestTests: GRDBTestCase {
             let request = CustomRequest()
             let region = try request.databaseRegion(db)
             XCTAssertEqual(region.description, "multiple(a)")
+        }
+    }
+    
+    func testSQLLiteralBasedFetchRequest() throws {
+        // Here we test that users can implement their own FetchRequest type.
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = String
+            
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                let literal: SQLLiteral = "SELECT \("O'Brien")"
+                return try literal.sql(context)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let value = try CustomRequest().fetchOne(db)
+            XCTAssertEqual(value, "O'Brien")
+            XCTAssertEqual(lastSQLQuery, "SELECT 'O''Brien'")
+        }
+    }
+    
+    func testFetchRequestDerivedFromPreparedRequest() throws {
+        // Here we test that we can derive requestSQL(_:forSingleResult:) from
+        // makePreparedRequest(_:forSingleResult:).
+        //
+        // This is an upgrade path from GRDB4 to GRDB5.
+        //
+        // We also test that the same SQLLiteral can be used in both
+        // makePreparedRequest() and requestSQL() (see testSQLLiteralBasedFetchRequest)
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = Row
+            
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                try makePreparedRequest(context.db, forSingleResult: singleResult).requestSQL(context)
+            }
+            
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+                let literal: SQLLiteral = "SELECT \("O'Brien")"
+                let statement = try db.makeSelectStatement(literal: literal)
+                return PreparedRequest(statement: statement)
+            }
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request = CustomRequest()
+            _ = try SQLRequest<Row>("SELECT * FROM (\(request))").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM (SELECT 'O''Brien')")
+        }
+    }
+    
+    func testFetchRequestInconsistency() throws {
+        // What happens when requestSQL(_:forSingleResult:)
+        // and makePreparedRequest(_:forSingleResult:) do not agree?
+        struct Table1: TableRecord { }
+        struct Table2: TableRecord { }
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = Row
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                try Table1.all().requestSQL(context, forSingleResult: singleResult)
+            }
+            func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+                try Table2.all().makePreparedRequest(db, forSingleResult: singleResult)
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "table1") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "table2") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            
+            let request = CustomRequest()
+            
+            // DatabaseRegionConvertible
+            let region = try request.databaseRegion(db)
+            XCTAssertTrue(region.description.contains("table1"))
+            
+            // FetchRequest
+            _ = try request.fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"table2\"")
+            
+            _ = try request.fetchCount(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM (SELECT * FROM \"table1\")")
+            
+            // SQLExpression
+            _ = try SQLRequest<Row>("SELECT \(request == 1)").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT (SELECT * FROM \"table1\") = 1")
+            
+            // SQLCollection
+            _ = try SQLRequest<Row>("SELECT \(request.contains(1))").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT 1 IN (SELECT * FROM \"table1\")")
+            
+            // SQLRequestProtocol
+            _ = try SQLRequest<Row>("SELECT * FROM (\(request))").fetchAll(db)
+            XCTAssertEqual(lastSQLQuery, "SELECT * FROM (SELECT * FROM \"table1\")")
+        }
+    }
+    
+    func testRequestAsSQLExpression() throws {
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = Row
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "SELECT id FROM table1"
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "table1") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            
+            let derivedExpression = CustomRequest() > 0
+            let sqlRequest: SQLRequest<Row> = "SELECT \(derivedExpression)"
+            let statement = try sqlRequest.makePreparedRequest(db, forSingleResult: false).statement
+            XCTAssertEqual(statement.sql, "SELECT (SELECT id FROM table1) > ?")
+        }
+    }
+    
+    func testRequestAsSQLCollection() throws {
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = Row
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "SELECT id FROM table1"
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "table1") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            
+            let derivedExpression = CustomRequest().contains(0)
+            let sqlRequest: SQLRequest<Row> = "SELECT \(derivedExpression)"
+            let statement = try sqlRequest.makePreparedRequest(db, forSingleResult: false).statement
+            XCTAssertEqual(statement.sql, "SELECT ? IN (SELECT id FROM table1)")
+        }
+    }
+    
+    func testRequestInterpolation() throws {
+        struct CustomRequest : FetchRequest {
+            typealias RowDecoder = Row
+            func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+                "SELECT id FROM table1"
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "table1") { t in
+                t.column("id", .integer).primaryKey()
+            }
+            
+            let sqlRequest: SQLRequest<Row> = "SELECT * FROM (\(CustomRequest()))"
+            let statement = try sqlRequest.makePreparedRequest(db, forSingleResult: false).statement
+            XCTAssertEqual(statement.sql, "SELECT * FROM (SELECT id FROM table1)")
         }
     }
 }

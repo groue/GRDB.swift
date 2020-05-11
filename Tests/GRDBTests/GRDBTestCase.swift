@@ -100,6 +100,7 @@ class GRDBTestCase: XCTestCase {
         }
         
         dbConfiguration.trace = { [unowned self] sql in
+            #warning("TODO: make it thread-safe")
             self.sqlQueries.append(sql)
         }
         

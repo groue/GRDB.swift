@@ -59,15 +59,11 @@ struct SQLQueryGenerator: Refinable {
         self.singleResult = singleResult
     }
     
-    func sql(
-        _ db: Database,
-        argumentsSink: StatementArgumentsSink = StatementArgumentsSink())
-        throws -> String
-    {
+    func requestSQL(_ context: SQLGenerationContext) throws -> String {
         // Build an SQL generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
-        let context = SQLGenerationContext(db, argumentsSink: argumentsSink, aliases: relation.allAliases)
+        let context = SQLGenerationContext(parent: context, aliases: relation.allAliases)
         
         var sql = "SELECT"
         
@@ -125,7 +121,7 @@ struct SQLQueryGenerator: Refinable {
         
         var limit = self.limit
         if try singleResult && !expectsSingleResult(
-            db,
+            context.db,
             selection: selection,
             filters: filters,
             groupExpressions: groupExpressions)
@@ -141,13 +137,25 @@ struct SQLQueryGenerator: Refinable {
         return sql
     }
     
-    // Convenience
-    func sql(_ context: SQLGenerationContext) throws -> String {
-        try sql(context.db, argumentsSink: context.argumentsSink)
+    func makePreparedRequest(_ db: Database) throws -> PreparedRequest {
+        try PreparedRequest(
+            statement: makeSelectStatement(db),
+            adapter: rowAdapter(db))
     }
     
-    func prepare(_ db: Database) throws -> (SelectStatement, RowAdapter?) {
-        try (makeSelectStatement(db), rowAdapter(db))
+    /// Returns a select statement
+    func makeSelectStatement(_ db: Database) throws -> SelectStatement {
+        // Build
+        let context = SQLGenerationContext(db)
+        let sql = try requestSQL(context)
+        
+        // Compile & set arguments
+        let statement = try db.makeSelectStatement(sql: sql)
+        statement.arguments = context.arguments
+        
+        // Optimize databaseRegion
+        statement.selectedRegion = try optimizedSelectedRegion(db, statement.selectedRegion)
+        return statement
     }
     
     private func optimizedSelectedRegion(_ db: Database, _ selectedRegion: DatabaseRegion) throws -> DatabaseRegion {
@@ -330,7 +338,7 @@ struct SQLQueryGenerator: Refinable {
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
         sql += try primaryKey.expressionSQL(context, wrappedInParenthesis: false)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, argumentsSink: context.argumentsSink)
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(context)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
@@ -448,26 +456,11 @@ struct SQLQueryGenerator: Refinable {
         sql += " WHERE "
         sql += try primaryKey.expressionSQL(context, wrappedInParenthesis: false)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).sql(db, argumentsSink: context.argumentsSink)
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(context)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
-        return statement
-    }
-    
-    /// Returns a select statement
-    func makeSelectStatement(_ db: Database) throws -> SelectStatement {
-        // Build
-        let argumentsSink = StatementArgumentsSink()
-        let sql = try self.sql(db, argumentsSink: argumentsSink)
-        
-        // Compile & set arguments
-        let statement = try db.makeSelectStatement(sql: sql)
-        statement.arguments = argumentsSink.arguments
-        
-        // Optimize databaseRegion
-        statement.selectedRegion = try optimizedSelectedRegion(db, statement.selectedRegion)
         return statement
     }
     
@@ -766,7 +759,7 @@ private enum SQLQualifiedSource {
                 return "\(tableName.quotedDatabaseIdentifier)"
             }
         case let .subquery(generator):
-            let sql = try generator.sql(context)
+            let sql = try generator.requestSQL(context)
             return "(\(sql))"
         }
     }

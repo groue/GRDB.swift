@@ -14,7 +14,7 @@ public struct SQLLiteral {
     /// table aliases.
     enum Element {
         case sql(String, StatementArguments = StatementArguments())
-        case subquery((SQLGenerationContext) throws -> String)
+        case subquery(SQLRequestProtocol)
         // Cases below can be qualified with a table alias
         case expression(SQLExpression)
         case selectable(SQLSelectable)
@@ -29,8 +29,8 @@ public struct SQLLiteral {
                     fatalError("Not implemented: turning an SQL parameter into an SQL literal value")
                 }
                 return sql
-            case let .subquery(function):
-                return try function(context)
+            case let .subquery(request):
+                return try request.requestSQL(context, forSingleResult: false)
             case let .expression(expression):
                 return try expression.expressionSQL(context, wrappedInParenthesis: false)
             case let .selectable(selectable):
@@ -98,7 +98,11 @@ public struct SQLLiteral {
         return (sql: sql, arguments: context.arguments)
     }
     
-    func sql(_ context: SQLGenerationContext) throws -> String {
+    // TODO: make internal when FetchRequest is a closed protocol.
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// Returns the literal SQL string given an SQL generation context.
+    public func sql(_ context: SQLGenerationContext) throws -> String {
         try elements.map { try $0.sql(context) }.joined()
     }
     
@@ -231,8 +235,6 @@ extension SQLLiteral: ExpressibleByStringInterpolation {
 
 // MARK: - _SQLExpressionLiteral
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// SQLExpressionLiteral is an expression built from a raw SQL snippet.
 ///
 ///     SQLExpressionLiteral(sql: "1 + 2")
@@ -249,8 +251,6 @@ private struct _SQLExpressionLiteral: SQLExpression {
         self.sqlLiteral = sqlLiteral
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
     func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
         if wrappedInParenthesis {
             return try "(\(expressionSQL(context, wrappedInParenthesis: false)))"
@@ -258,8 +258,6 @@ private struct _SQLExpressionLiteral: SQLExpression {
         return try sqlLiteral.sql(context)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
     func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         sqlLiteral.qualified(with: alias).sqlExpression
     }

@@ -526,6 +526,42 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         }
     }
     
+    func testSubqueryWithOuterAlias() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.write { db in
+            try db.create(table: "parent") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("parentId", .integer).references("parent")
+            }
+            try db.create(table: "child") { t in
+                t.column("childParentId", .integer).references("parent")
+            }
+        }
+        
+        struct Parent: TableRecord {
+            static let parent = belongsTo(Parent.self)
+        }
+        struct Child: TableRecord { }
+        
+        do {
+            let parentAlias = TableAlias()
+            // Some ugly subquery whose only purpose is to use a table alias
+            // which requires disambiguation in the parent query.
+            let subquery = Child.select(sql: "COUNT(*)").filter(Column("childParentId") == parentAlias[Column("id")])
+            let request = Parent
+                .joining(optional: Parent.parent.aliased(parentAlias))
+                .filter(subquery > 1)
+            XCTAssertEqual(
+                sql(dbQueue, request),
+                """
+                SELECT "parent1".* FROM "parent" "parent1" \
+                LEFT JOIN "parent" "parent2" ON "parent2"."id" = "parent1"."parentId" \
+                WHERE (SELECT COUNT(*) FROM "child" WHERE "childParentId" = "parent2"."id") > 1
+                """)
+        }
+    }
+
     func testNotEqual() throws {
         let dbQueue = try makeDatabaseQueue()
         
