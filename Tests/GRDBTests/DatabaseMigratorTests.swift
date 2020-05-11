@@ -309,6 +309,48 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
+    func testSuperseded() throws {
+        var migrator = DatabaseMigrator()
+        
+        // No migration
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(dbQueue.read(migrator.hasBeenSuperseded))
+        }
+        
+        // One migration
+        
+        migrator.registerMigration("1") { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+                t.column("score", .integer)
+            }
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(dbQueue.read(migrator.hasBeenSuperseded))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertFalse(dbQueue.read(migrator.hasBeenSuperseded))
+        }
+        
+        // Two migrations
+        
+        migrator.registerMigration("2") { db in
+            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
+        }
+        
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try XCTAssertFalse(dbQueue.read(migrator.hasBeenSuperseded))
+            try migrator.migrate(dbQueue, upTo: "1")
+            try XCTAssertFalse(dbQueue.read(migrator.hasBeenSuperseded))
+            try migrator.migrate(dbQueue, upTo: "2")
+            try XCTAssertFalse(dbQueue.read(migrator.hasBeenSuperseded))
+        }
+    }
+
     func testMergedMigrators() throws {
         // Migrate a database
         var migrator1 = DatabaseMigrator()
