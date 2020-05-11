@@ -200,7 +200,19 @@ public struct DatabaseMigrator {
     public func hasCompletedMigrations(_ db: Database) throws -> Bool {
         try completedMigrations(db).last == migrations.last?.identifier
     }
-        
+    
+    /// Returns whether database contains unknown migration
+    /// identifiers, which is likely the sign that the database
+    /// has migrated further than the migrator itself supports.
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: An eventual database error.
+    public func hasBeenSuperseded(_ db: Database) throws -> Bool {
+        let appliedIdentifiers = try self.appliedIdentifiers(db)
+        let knownIdentifiers = migrations.map(\.identifier)
+        return appliedIdentifiers.contains { !knownIdentifiers.contains($0) }
+    }
+    
     // MARK: - Non public
     
     private mutating func registerMigration(_ migration: Migration) {
