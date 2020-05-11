@@ -230,13 +230,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // One migration
         
-        migrator.registerMigration("1") { db in
-            try db.create(table: "player") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("name", .text)
-                t.column("score", .integer)
-            }
-        }
+        migrator.registerMigration("1", migrate: { _ in })
         
         do {
             let dbQueue = try makeDatabaseQueue()
@@ -247,9 +241,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // Two migrations
         
-        migrator.registerMigration("2") { db in
-            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
-        }
+        migrator.registerMigration("2", migrate: { _ in })
         
         do {
             let dbQueue = try makeDatabaseQueue()
@@ -273,13 +265,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // One migration
         
-        migrator.registerMigration("1") { db in
-            try db.create(table: "player") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("name", .text)
-                t.column("score", .integer)
-            }
-        }
+        migrator.registerMigration("1", migrate: { _ in })
         
         do {
             let dbQueue = try makeDatabaseQueue()
@@ -292,9 +278,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // Two migrations
         
-        migrator.registerMigration("2") { db in
-            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
-        }
+        migrator.registerMigration("2", migrate: { _ in })
         
         do {
             let dbQueue = try makeDatabaseQueue()
@@ -320,13 +304,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // One migration
         
-        migrator.registerMigration("1") { db in
-            try db.create(table: "player") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("name", .text)
-                t.column("score", .integer)
-            }
-        }
+        migrator.registerMigration("1", migrate: { _ in })
         
         do {
             let dbQueue = try makeDatabaseQueue()
@@ -337,9 +315,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // Two migrations
         
-        migrator.registerMigration("2") { db in
-            try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, 'Arthur', 1000)")
-        }
+        migrator.registerMigration("2", migrate: { _ in })
         
         do {
             let dbQueue = try makeDatabaseQueue()
@@ -501,7 +477,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("name", .text)
-                t.column("score", .integer) // <- schema change, because reasons (development)
+                t.column("score", .integer) // <- schema change
             }
             try db.execute(sql: "INSERT INTO player (id, name, score) VALUES (NULL, testFunction(), 1000)")
         }
