@@ -42,7 +42,7 @@ You migrate the database up to the latest version with the `migrate(_:)` method:
 try migrator.migrate(dbQueue) // or migrator.migrate(dbPool)
 ```
 
-Migrate a database up to a specific version:
+Migrate a database up to a specific version (useful for testing):
 
 ```swift
 try migrator.migrate(dbQueue, upTo: "v2")
@@ -53,27 +53,24 @@ try migrator.migrate(dbQueue, upTo: "v1")
 // ^ fatal error: database is already migrated beyond migration "v1"
 ```
 
-Check if consecutive migrations have been applied:
+When several versions of your app are deployed in the wild, you may want to perform extra checks:
 
 ```swift
-if try dbQueue.read(migrator.hasCompletedMigrations) {
-    // All migrations have been applied, up to the last one.
-}
-if try dbQueue.read(migrator.completedMigrations).last == "v2" {
-    // All migrations up to "v2" have been applied, and no further.
-}
-if try dbQueue.read(migrator.completedMigrations).contains("v2") {
-    // All migrations up to "v2" have been applied, and maybe further.
+try dbQueue.read { db in
+    // Readonly apps may want to check if database lacks expected migrations:
+    if try migrator.hasCompletedMigrations(db) == false {
+        // database too old
+    }
+    
+    // All apps may want to check if database contains unknown (future) migrations:
+    if try migrator.hasBeenSuperseded(db) {
+        // database too new
+    }
 }
 ```
 
-Check if individual migrations have been applied:
+See the [DatabaseMigrator reference](http://groue.github.io/GRDB.swift/docs/5.0.0-beta/Structs/DatabaseMigrator.html) for more migrator methods.
 
-```swift
-if try dbQueue.read(migrator.appliedMigrations).contains("v2") {
-    // "v2" migration has been applied
-}
-```
 
 ## The `eraseDatabaseOnSchemaChange` Option
 
