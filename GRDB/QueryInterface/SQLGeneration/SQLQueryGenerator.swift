@@ -209,18 +209,18 @@ struct SQLQueryGenerator: Refinable {
                 }
                 
                 if equalExpression.lhs is DatabaseValue,
-                    let qualifiedColumn = equalExpression.rhs as? QualifiedColumn
+                    let qualifiedColumn = equalExpression.rhs as? QualifiedColumn,
+                    qualifiedColumn.alias == sourceAlias
                 {
                     // value == Column("foo")
-                    assert(qualifiedColumn.alias == sourceAlias)
                     return qualifiedColumn.name
                 }
                 
                 if equalExpression.rhs is DatabaseValue,
-                    let qualifiedColumn = equalExpression.lhs as? QualifiedColumn
+                    let qualifiedColumn = equalExpression.lhs as? QualifiedColumn,
+                    qualifiedColumn.alias == sourceAlias
                 {
                     // Column("foo") == value
-                    assert(qualifiedColumn.alias == sourceAlias)
                     return qualifiedColumn.name
                 }
                 
@@ -250,6 +250,7 @@ struct SQLQueryGenerator: Refinable {
                     let functionName = expression.functionName.sql.uppercased()
                     guard aggregateFunctionNames.contains(functionName) else {
                         // Not an aggregate function.
+                        // (We miss custom aggregates)
                         continue
                     }
                     guard expression.arguments.allSatisfy({ $0 is QualifiedColumn }) else {
