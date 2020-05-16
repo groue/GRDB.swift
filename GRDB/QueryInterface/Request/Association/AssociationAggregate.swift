@@ -9,15 +9,21 @@ extension AssociationToMany {
         -> AssociationAggregate<OriginRowDecoder>
     {
         AssociationAggregate { originRequest in
+            // We need a reference to the origin request.
+            //
+            // In `Team.annotated(with: Team.players.count)`, this is:
+            // SELECT * FROM team
             let originAlias = TableAlias()
             originRequest = originRequest.aliased(originAlias)
             
-            let subqueryAlias = TableAlias()
+            // Build a subquery expression that evaluates the aggregate.
+            //
+            // In `Team.annotated(with: Team.players.count)`, this is:
+            // SELECT COUNT(*) FROM player WHERE player.teamId = team.id
             let subrelation = self.sqlAssociation
                 .destinationRelation(from: originAlias)
                 .select(expressionPromise.map { [$0] }.resolve)
                 .droppingChildrenSelection()
-                .qualified(with: subqueryAlias)
             let subrequest = QueryInterfaceRequest<Void>(relation: subrelation)
             return DatabasePromise(value: subrequest)
         }

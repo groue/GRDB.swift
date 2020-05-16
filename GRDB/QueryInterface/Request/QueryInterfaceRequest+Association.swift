@@ -34,6 +34,7 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
         }
     }
     
+    #warning("TODO: rename to filter(_:)")
     /// Creates a request which appends the provided aggregate *predicate* to
     /// the eventual set of already applied predicates.
     ///

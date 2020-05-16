@@ -565,6 +565,7 @@ extension TableRecord {
         all().annotated(with: aggregates)
     }
     
+    #warning("TODO: rename to filter(_:)")
     /// Creates a request with the provided aggregate *predicate*.
     ///
     ///     // SELECT player.*
