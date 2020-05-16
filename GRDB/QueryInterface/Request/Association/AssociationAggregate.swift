@@ -21,7 +21,7 @@ extension AssociationToMany {
             // In `Team.annotated(with: Team.players.count)`, this is:
             // SELECT COUNT(*) FROM player WHERE player.teamId = team.id
             let subrelation = self.sqlAssociation
-                .destinationRelation(from: originAlias)
+                .destinationRelation(fromOriginAlias: originAlias)
                 .select(expressionPromise.map { [$0] }.resolve)
                 .droppingChildrenSelection()
             let subrequest = QueryInterfaceRequest<Void>(relation: subrelation)

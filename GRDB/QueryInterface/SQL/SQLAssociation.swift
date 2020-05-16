@@ -140,15 +140,31 @@ public /* TODO: internal */ struct SQLAssociation {
         -> SQLRelation
         where Row: ColumnAddressable
     {
-        // Filter the pivot: `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
-        let pivotCondition = pivot.condition
-        let filteredPivotRelation = pivot.relation.filter { db in
-            try pivotCondition.filteringExpression(db, leftRows: originRows(db))
-        }
+        destinationRelation(pivotingOn: { pivot in
+            // Filter the pivot: `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
+            pivot.relation.filter { db in
+                try pivot.condition.filteringExpression(db, leftRows: originRows(db))
+            }
+        })
+    }
+    
+    func destinationRelation(fromOriginAlias originAlias: TableAlias) -> SQLRelation {
+        // Filter the pivot: `pivot.originId = origin.id`
+        destinationRelation(pivotingOn: { pivot in
+            pivot.relation.filter { db in
+                try pivot.condition.expressions(db, leftAlias: originAlias).joined(operator: .and)
+            }
+        })
+    }
+    
+    private func destinationRelation(pivotingOn: (SQLAssociationStep) -> SQLRelation) -> SQLRelation {
+        let pivotRelation = pivotingOn(pivot)
         
         if steps.count == 1 {
             // This is a direct join from origin to destination, without
             // intermediate step.
+            //
+            // For example:
             //
             // SELECT destination.*
             // FROM destination
@@ -156,11 +172,13 @@ public /* TODO: internal */ struct SQLAssociation {
             //
             // let association = Origin.hasMany(Destination.self)
             // Origin(id: 1).request(for: association)
-            return filteredPivotRelation
+            return pivotRelation
         }
         
         // This is an indirect join from origin to destination, through
-        // some intermediate steps:
+        // some intermediate steps.
+        //
+        // For example:
         //
         // SELECT destination.*
         // FROM destination
@@ -171,23 +189,8 @@ public /* TODO: internal */ struct SQLAssociation {
         //     through: Origin.hasMany(Pivot.self),
         //     via: Pivot.belongsTo(Destination.self))
         // Origin(id: 1).request(for: association)
-        let filteredSteps = steps.with(\.[0].relation, filteredPivotRelation)
-        let reversedAssociation = SQLAssociation(steps: filteredSteps).reversed()
-        return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
-    }
-    
-    func destinationRelation(from originAlias: TableAlias) -> SQLRelation {
-        let pivotCondition = pivot.condition
-        let filteredPivotRelation = pivot.relation.filter { db in
-            try pivotCondition.expressions(db, leftAlias: originAlias).joined(operator: .and)
-        }
-        
-        if steps.count == 1 {
-            return filteredPivotRelation
-        }
-        
-        let filteredSteps = steps.with(\.[0].relation, filteredPivotRelation)
-        let reversedAssociation = SQLAssociation(steps: filteredSteps).reversed()
+        let newSteps = steps.with(\.[0].relation, pivotRelation)
+        let reversedAssociation = SQLAssociation(steps: newSteps).reversed()
         return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
     }
     
