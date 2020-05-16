@@ -45,6 +45,6 @@ extension QueryInterfaceRequest where RowDecoder: TableRecord {
     public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
         var request = self
         let expressionPromise = predicate.prepare(&request)
-        return request.having(expressionPromise.resolve)
+        return request.filter(expressionPromise.resolve)
     }
 }

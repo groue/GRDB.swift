@@ -208,9 +208,16 @@ extension SQLRelation: Refinable {
         select { _ in selection }
     }
     
-    /// Removes all selections from chidren
-    func selectOnly(_ selection: [SQLSelectable]) -> Self {
-        select(selection).map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
+    func droppingChildrenSelection() -> Self {
+        map(\.children) { children in
+            children.mapValues { child in
+                child.map(\.relation) { relation in
+                    relation
+                        .select([])
+                        .droppingChildrenSelection()
+                }
+            }
+        }
     }
     
     func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {

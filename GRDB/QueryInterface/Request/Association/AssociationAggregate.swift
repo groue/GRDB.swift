@@ -8,12 +8,18 @@ extension AssociationToMany {
     private func makeAggregate(_ expressionPromise: DatabasePromise<SQLExpression>)
         -> AssociationAggregate<OriginRowDecoder>
     {
-        AssociationAggregate { request in
-            let tableAlias = TableAlias()
-            request = request
-                .joining(optional: self.aliased(tableAlias))
-                .groupByPrimaryKey()
-            return expressionPromise.map { tableAlias[$0] }
+        AssociationAggregate { originRequest in
+            let originAlias = TableAlias()
+            originRequest = originRequest.aliased(originAlias)
+            
+            let subqueryAlias = TableAlias()
+            let subrelation = self.sqlAssociation
+                .destinationRelation(from: originAlias)
+                .select(expressionPromise.map { [$0] }.resolve)
+                .droppingChildrenSelection()
+                .qualified(with: subqueryAlias)
+            let subrequest = QueryInterfaceRequest<Void>(relation: subrelation)
+            return DatabasePromise(value: subrequest)
         }
     }
     
@@ -40,7 +46,7 @@ extension AssociationToMany {
     public var count: AssociationAggregate<OriginRowDecoder> {
         let expression = DatabasePromise<SQLExpression> { db in
             let primaryKey = try db.primaryKeyExpression(self.databaseTableName)
-            return SQLExpressionCountDistinct(primaryKey)
+            return SQLExpressionCount(primaryKey)
         }
         return makeAggregate(expression).forKey("\(key.singularizedName)Count")
     }
@@ -63,7 +69,7 @@ extension AssociationToMany {
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
         let expression = DatabasePromise<SQLExpression> { db in
             let primaryKey = try db.primaryKeyExpression(self.databaseTableName)
-            return SQLExpressionIsEmpty(SQLExpressionCountDistinct(primaryKey))
+            return SQLExpressionIsEmpty(SQLExpressionCount(primaryKey))
         }
         return makeAggregate(expression).forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }

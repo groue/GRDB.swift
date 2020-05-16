@@ -141,9 +141,9 @@ public /* TODO: internal */ struct SQLAssociation {
         where Row: ColumnAddressable
     {
         // Filter the pivot: `pivot.originId = 123` or `pivot.originId IN (1, 2, 3)`
-        let pivot = self.pivot
+        let pivotCondition = pivot.condition
         let filteredPivotRelation = pivot.relation.filter { db in
-            try pivot.condition.filteringExpression(db, leftRows: originRows(db))
+            try pivotCondition.filteringExpression(db, leftRows: originRows(db))
         }
         
         if steps.count == 1 {
@@ -172,18 +172,39 @@ public /* TODO: internal */ struct SQLAssociation {
         //     via: Pivot.belongsTo(Destination.self))
         // Origin(id: 1).request(for: association)
         let filteredSteps = steps.with(\.[0].relation, filteredPivotRelation)
-        let reversedSteps = zip(filteredSteps, filteredSteps.dropFirst())
+        let reversedAssociation = SQLAssociation(steps: filteredSteps).reversed()
+        return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
+    }
+    
+    func destinationRelation(from originAlias: TableAlias) -> SQLRelation {
+        let pivotCondition = pivot.condition
+        let filteredPivotRelation = pivot.relation.filter { db in
+            try pivotCondition.expressions(db, leftAlias: originAlias).joined(operator: .and)
+        }
+        
+        if steps.count == 1 {
+            return filteredPivotRelation
+        }
+        
+        let filteredSteps = steps.with(\.[0].relation, filteredPivotRelation)
+        let reversedAssociation = SQLAssociation(steps: filteredSteps).reversed()
+        return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
+    }
+    
+    private func reversed() -> SQLAssociation {
+        let reversedSteps = zip(steps, steps.dropFirst())
             .map({ (step, nextStep) -> SQLAssociationStep in
                 // Intermediate steps are not selected, and including(all:)
                 // children are useless:
                 let relation = step.relation
-                    .selectOnly([])
                     .filteringChildren({
                          switch $0.kind {
                          case .allPrefetched, .allNotPrefetched: return false
                          case .oneRequired, .oneOptional: return true
                          }
                      })
+                    .select([])
+                    .droppingChildrenSelection()
                 
                 // Don't interfere with user-defined keys that could be added later
                 let key = step.key.map(\.baseName) { "grdb_\($0)" }
@@ -195,8 +216,7 @@ public /* TODO: internal */ struct SQLAssociation {
                     cardinality: .toOne)
             })
             .reversed()
-        let reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
-        return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
+        return SQLAssociation(steps: Array(reversedSteps))
     }
 }
 
