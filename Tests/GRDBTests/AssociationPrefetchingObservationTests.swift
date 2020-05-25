@@ -45,39 +45,6 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                 t.column("cold2", .integer).references("c")
                 t.column("cold3", .text)
             }
-            try db.execute(
-                sql: """
-                    INSERT INTO a (cola1, cola2) VALUES (?, ?);
-                    INSERT INTO a (cola1, cola2) VALUES (?, ?);
-                    INSERT INTO a (cola1, cola2) VALUES (?, ?);
-                    INSERT INTO b (colb1, colb2, colb3) VALUES (?, ?, ?);
-                    INSERT INTO b (colb1, colb2, colb3) VALUES (?, ?, ?);
-                    INSERT INTO b (colb1, colb2, colb3) VALUES (?, ?, ?);
-                    INSERT INTO b (colb1, colb2, colb3) VALUES (?, ?, ?);
-                    INSERT INTO c (colc1, colc2) VALUES (?, ?);
-                    INSERT INTO c (colc1, colc2) VALUES (?, ?);
-                    INSERT INTO c (colc1, colc2) VALUES (?, ?);
-                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
-                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
-                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
-                    INSERT INTO d (cold1, cold2, cold3) VALUES (?, ?, ?);
-                    """,
-                arguments: [
-                    1, "a1",
-                    2, "a2",
-                    3, "a3",
-                    4, 1, "b1",
-                    5, 1, "b2",
-                    6, 2, "b3",
-                    14, nil, "b4",
-                    7, 1,
-                    8, 2,
-                    9, 2,
-                    10, 7, "d1",
-                    11, 8, "d2",
-                    12, 8, "d3",
-                    13, 9, "d4",
-                ])
         }
     }
     
