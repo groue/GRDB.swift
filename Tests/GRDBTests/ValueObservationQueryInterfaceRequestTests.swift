@@ -31,36 +31,41 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         }
     }
     
-    private func performDatabaseModifications(in writer: DatabaseWriter) throws {
-        try writer.write { db in
+    private func performDatabaseModifications(_ db: Database) throws {
+        try db.inTransaction {
             try db.execute(sql: """
                 INSERT INTO parent (id, name) VALUES (1, 'foo');
                 INSERT INTO parent (id, name) VALUES (2, 'bar');
                 """)
+            return .commit
         }
-        try writer.write { db in
+        try db.inTransaction {
             try db.execute(sql: """
                 INSERT INTO child (id, parentId, name) VALUES (1, 1, 'fooA');
                 INSERT INTO child (id, parentId, name) VALUES (2, 1, 'fooB');
                 INSERT INTO child (id, parentId, name) VALUES (3, 2, 'barA');
                 """)
+            return .commit
         }
-        try writer.write { db in
+        try db.inTransaction {
             try db.execute(sql: """
                 UPDATE child SET name = 'fooA2' WHERE id = 1;
                 """)
+            return .commit
         }
-        try writer.write { db in
+        try db.inTransaction {
             try db.execute(sql: """
                 INSERT INTO parent (id, name) VALUES (3, 'baz');
                 INSERT INTO child (id, parentId, name) VALUES (4, 3, 'bazA');
                 """)
+            return .commit
         }
-        try writer.write { db in
+        try db.inTransaction {
             try db.execute(sql: """
                 DELETE FROM parent WHERE id = 1;
                 DELETE FROM child;
                 """)
+            return .commit
         }
     }
     
@@ -74,14 +79,14 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         let observation = ValueObservation.tracking(request.fetchOne)
         
         let recorder = observation.record(in: dbQueue)
-        try performDatabaseModifications(in: dbQueue)
+        try dbQueue.writeWithoutTransaction(performDatabaseModifications)
         let results = try wait(for: recorder.next(6), timeout: 1)
         
         XCTAssertNil(results[0])
         
         XCTAssertEqual(results[1]!.unscoped, ["id": 1, "name": "foo"])
         XCTAssertEqual(results[1]!.prefetchedRows["children"], [])
-
+        
         XCTAssertEqual(results[2]!.unscoped, ["id": 1, "name": "foo"])
         XCTAssertEqual(results[2]!.prefetchedRows["children"], [
             ["id": 1, "parentId": 1, "name": "fooA", "grdb_parentId": 1],
@@ -111,27 +116,54 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         let observation = ValueObservation.tracking(request.fetchAll)
         
         let recorder = observation.record(in: dbQueue)
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "DELETE FROM child")
-        }
-        let results = try wait(for: recorder.next(2), timeout: 1)
+        try dbQueue.writeWithoutTransaction(performDatabaseModifications)
+        let results = try wait(for: recorder.next(6), timeout: 1)
         
-        XCTAssertEqual(results[0].count, 2)
-        XCTAssertEqual(results[0][0].unscoped, ["id": 1, "name": "foo"])
-        XCTAssertEqual(results[0][0].prefetchedRows["children"], [
-            ["id": 1, "parentId": 1, "name": "fooA", "grdb_parentId": 1],
-            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
-        XCTAssertEqual(results[0][1].unscoped, ["id": 2, "name": "bar"])
-        XCTAssertEqual(results[0][1].prefetchedRows["children"], [
-            ["id": 3, "parentId": 2, "name": "barA", "grdb_parentId": 2]])
+        XCTAssertEqual(results[0].count, 0)
         
         XCTAssertEqual(results[1].count, 2)
         XCTAssertEqual(results[1][0].unscoped, ["id": 1, "name": "foo"])
         XCTAssertEqual(results[1][0].prefetchedRows["children"], [])
         XCTAssertEqual(results[1][1].unscoped, ["id": 2, "name": "bar"])
         XCTAssertEqual(results[1][1].prefetchedRows["children"], [])
+        
+        XCTAssertEqual(results[2].count, 2)
+        XCTAssertEqual(results[2][0].unscoped, ["id": 1, "name": "foo"])
+        XCTAssertEqual(results[2][0].prefetchedRows["children"], [
+            ["id": 1, "parentId": 1, "name": "fooA", "grdb_parentId": 1],
+            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
+        XCTAssertEqual(results[2][1].unscoped, ["id": 2, "name": "bar"])
+        XCTAssertEqual(results[2][1].prefetchedRows["children"], [
+            ["id": 3, "parentId": 2, "name": "barA", "grdb_parentId": 2]])
+        
+        XCTAssertEqual(results[3].count, 2)
+        XCTAssertEqual(results[3][0].unscoped, ["id": 1, "name": "foo"])
+        XCTAssertEqual(results[3][0].prefetchedRows["children"], [
+            ["id": 1, "parentId": 1, "name": "fooA2", "grdb_parentId": 1],
+            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
+        XCTAssertEqual(results[3][1].unscoped, ["id": 2, "name": "bar"])
+        XCTAssertEqual(results[3][1].prefetchedRows["children"], [
+            ["id": 3, "parentId": 2, "name": "barA", "grdb_parentId": 2]])
+        
+        XCTAssertEqual(results[4].count, 3)
+        XCTAssertEqual(results[4][0].unscoped, ["id": 1, "name": "foo"])
+        XCTAssertEqual(results[4][0].prefetchedRows["children"], [
+            ["id": 1, "parentId": 1, "name": "fooA2", "grdb_parentId": 1],
+            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
+        XCTAssertEqual(results[4][1].unscoped, ["id": 2, "name": "bar"])
+        XCTAssertEqual(results[4][1].prefetchedRows["children"], [
+            ["id": 3, "parentId": 2, "name": "barA", "grdb_parentId": 2]])
+        XCTAssertEqual(results[4][2].unscoped, ["id": 3, "name": "baz"])
+        XCTAssertEqual(results[4][2].prefetchedRows["children"], [
+            ["id": 4, "parentId": 3, "name": "bazA", "grdb_parentId": 3]])
+        
+        XCTAssertEqual(results[5].count, 2)
+        XCTAssertEqual(results[5][0].unscoped, ["id": 2, "name": "bar"])
+        XCTAssertEqual(results[5][0].prefetchedRows["children"], [])
+        XCTAssertEqual(results[5][1].unscoped, ["id": 3, "name": "baz"])
+        XCTAssertEqual(results[5][1].prefetchedRows["children"], [])
     }
-
+    
     func testOneRecordWithPrefetchedRows() throws {
         let request = Parent
             .including(all: Parent.children.orderByPrimaryKey())
@@ -141,6 +173,10 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         try assertValueObservation(
             ValueObservation.tracking(request.fetchOne),
             records: [
+                nil,
+                ParentInfo(
+                    parent: Parent(id: 1, name: "foo"),
+                    children: []),
                 ParentInfo(
                     parent: Parent(id: 1, name: "foo"),
                     children: [
@@ -149,12 +185,22 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                 ]),
                 ParentInfo(
                     parent: Parent(id: 1, name: "foo"),
+                    children: [
+                        Child(id: 1, parentId: 1, name: "fooA2"),
+                        Child(id: 2, parentId: 1, name: "fooB"),
+                ]),
+                ParentInfo(
+                    parent: Parent(id: 1, name: "foo"),
+                    children: [
+                        Child(id: 1, parentId: 1, name: "fooA2"),
+                        Child(id: 2, parentId: 1, name: "fooB"),
+                ]),
+                ParentInfo(
+                    parent: Parent(id: 2, name: "bar"),
                     children: []),
             ],
             setup: setup,
-            recordedUpdates: { db in
-                try db.execute(sql: "DELETE FROM child")
-            })
+            recordedUpdates: performDatabaseModifications)
         
         // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
@@ -163,6 +209,10 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                 .removeDuplicates()
                 .map { row in row.map(ParentInfo.init(row:)) },
             records: [
+                nil,
+                ParentInfo(
+                    parent: Parent(id: 1, name: "foo"),
+                    children: []),
                 ParentInfo(
                     parent: Parent(id: 1, name: "foo"),
                     children: [
@@ -171,12 +221,16 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                 ]),
                 ParentInfo(
                     parent: Parent(id: 1, name: "foo"),
+                    children: [
+                        Child(id: 1, parentId: 1, name: "fooA2"),
+                        Child(id: 2, parentId: 1, name: "fooB"),
+                ]),
+                ParentInfo(
+                    parent: Parent(id: 2, name: "bar"),
                     children: []),
             ],
             setup: setup,
-            recordedUpdates: { db in
-                try db.execute(sql: "DELETE FROM child")
-            })
+            recordedUpdates: performDatabaseModifications)
     }
     
     func testAllRecordsWithPrefetchedRows() throws {
@@ -188,6 +242,15 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         try assertValueObservation(
             ValueObservation.tracking(request.fetchAll),
             records: [
+                [],
+                [
+                    ParentInfo(
+                        parent: Parent(id: 1, name: "foo"),
+                        children: []),
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: []),
+                ],
                 [
                     ParentInfo(
                         parent: Parent(id: 1, name: "foo"),
@@ -204,16 +267,45 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                 [
                     ParentInfo(
                         parent: Parent(id: 1, name: "foo"),
-                        children: []),
+                        children: [
+                            Child(id: 1, parentId: 1, name: "fooA2"),
+                            Child(id: 2, parentId: 1, name: "fooB"),
+                    ]),
                     ParentInfo(
                         parent: Parent(id: 2, name: "bar"),
+                        children: [
+                            Child(id: 3, parentId: 2, name: "barA"),
+                    ]),
+                ],
+                [
+                    ParentInfo(
+                        parent: Parent(id: 1, name: "foo"),
+                        children: [
+                            Child(id: 1, parentId: 1, name: "fooA2"),
+                            Child(id: 2, parentId: 1, name: "fooB"),
+                    ]),
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: [
+                            Child(id: 3, parentId: 2, name: "barA"),
+                    ]),
+                    ParentInfo(
+                        parent: Parent(id: 3, name: "baz"),
+                        children: [
+                            Child(id: 4, parentId: 3, name: "bazA"),
+                    ]),
+                ],
+                [
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: []),
+                    ParentInfo(
+                        parent: Parent(id: 3, name: "baz"),
                         children: []),
                 ],
             ],
             setup: setup,
-            recordedUpdates: { db in
-                try db.execute(sql: "DELETE FROM child")
-            })
+            recordedUpdates: performDatabaseModifications)
         
         // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
@@ -222,6 +314,15 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                 .removeDuplicates()
                 .map { rows in rows.map(ParentInfo.init(row:)) },
             records: [
+                [],
+                [
+                    ParentInfo(
+                        parent: Parent(id: 1, name: "foo"),
+                        children: []),
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: []),
+                ],
                 [
                     ParentInfo(
                         parent: Parent(id: 1, name: "foo"),
@@ -238,15 +339,44 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
                 [
                     ParentInfo(
                         parent: Parent(id: 1, name: "foo"),
-                        children: []),
+                        children: [
+                            Child(id: 1, parentId: 1, name: "fooA2"),
+                            Child(id: 2, parentId: 1, name: "fooB"),
+                    ]),
                     ParentInfo(
                         parent: Parent(id: 2, name: "bar"),
+                        children: [
+                            Child(id: 3, parentId: 2, name: "barA"),
+                    ]),
+                ],
+                [
+                    ParentInfo(
+                        parent: Parent(id: 1, name: "foo"),
+                        children: [
+                            Child(id: 1, parentId: 1, name: "fooA2"),
+                            Child(id: 2, parentId: 1, name: "fooB"),
+                    ]),
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: [
+                            Child(id: 3, parentId: 2, name: "barA"),
+                    ]),
+                    ParentInfo(
+                        parent: Parent(id: 3, name: "baz"),
+                        children: [
+                            Child(id: 4, parentId: 3, name: "bazA"),
+                    ]),
+                ],
+                [
+                    ParentInfo(
+                        parent: Parent(id: 2, name: "bar"),
+                        children: []),
+                    ParentInfo(
+                        parent: Parent(id: 3, name: "baz"),
                         children: []),
                 ],
             ],
             setup: setup,
-            recordedUpdates: { db in
-                try db.execute(sql: "DELETE FROM child")
-        })
+            recordedUpdates: performDatabaseModifications)
     }
 }
