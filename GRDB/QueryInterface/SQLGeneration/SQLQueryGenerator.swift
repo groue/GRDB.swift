@@ -156,40 +156,17 @@ struct SQLQueryGenerator: Refinable {
         let statement = try db.makeSelectStatement(sql: sql)
         statement.arguments = context.arguments
         
-        // Optimize databaseRegion
-        statement.selectedRegion = try optimizedSelectedRegion(db, statement.selectedRegion)
+        // Optimize statement region. This allows us to track individual rowids.
+        statement.databaseRegion = try optimizedSelectedRegion(db, statement.databaseRegion)
         
-        // Append region of prefetched associations
-        var fifo = prefetchedAssociations
-        while !fifo.isEmpty {
-            let association = fifo.removeFirst()
-            
-            // Build the query for prefetched rows.
-            // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
-            let pivotMappings = try association.pivot.condition.columnMappings(db)
-            let pivotColumns = pivotMappings.map(\.right)
-            let pivotAlias = TableAlias()
-            let prefetchedRelation = association
-                .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
-                // Use a `NullRow` in order to make sure all join condition
-                // columns are made visible to SQLite, and present in the
-                // selected region:
-                //  ... JOIN right ON right.leftId IS NULL
-                //                                    ^ content of the NullRow
-                .destinationRelation(fromOriginRows: { _ in [NullRow()] })
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
-            let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
-            
-            // Union prefetched region
-            let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
-                .makeSelectStatement(db)
-                .selectedRegion
-            statement.selectedRegion.formUnion(prefetchedRegion)
-            
-            // Append nested prefetched associations (support for
-            // A.including(all: A.bs.including(all: B.cs))
-            fifo.append(contentsOf: prefetchedRelation.prefetchedAssociations)
-        }
+        // Also append the prefetched region. This makes sure we observe the
+        // correct database region when the statement is executed, even if we
+        // don't execute all request statements due to lacking database content.
+        // For example, fetching `parent.including(all: children)` will select
+        // parents, but won't attempt to select any children if there is no
+        // parent in the database. And yet we need to observe the table for
+        // children. This is why we include the prefetched region.
+        try statement.databaseRegion.formUnion(prefetchedRegion(db, associations: prefetchedAssociations))
         
         return statement
     }

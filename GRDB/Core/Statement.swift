@@ -24,11 +24,12 @@ public class Statement {
             .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
-    // Selected region is computed during statement compilation, and maybe
-    // optimized for select statements compiled by QueryInterfaceRequest, in
+    // Database region is computed during statement compilation, and maybe
+    // extended for select statements compiled by QueryInterfaceRequest, in
     // order to perform focused database observation. See
-    // SQLQueryGenerator.optimizedSelectedRegion(_:_:)
-    var selectedRegion = DatabaseRegion()
+    // SQLQueryGenerator.makeSelectStatement(_:)
+    /// The database region that the statement looks into.
+    public internal(set) var databaseRegion = DatabaseRegion()
     
     var isReadonly: Bool {
         sqlite3_stmt_readonly(sqliteStatement) != 0
@@ -87,7 +88,7 @@ public class Statement {
         
         self.database = database
         self.sqliteStatement = statement
-        self.selectedRegion = authorizer.selectedRegion
+        self.databaseRegion = authorizer.selectedRegion
     }
     
     deinit {
@@ -355,9 +356,6 @@ public final class SelectStatement: Statement {
             authorizer.transactionEffect == nil,
             "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
     }
-    
-    /// The database region that the statement looks into.
-    public var databaseRegion: DatabaseRegion { selectedRegion }
     
     /// The number of columns in the resulting rows.
     public var columnCount: Int {

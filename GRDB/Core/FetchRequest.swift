@@ -129,7 +129,7 @@ extension FetchRequest {
         let context = SQLGenerationContext(db)
         let sql = try requestSQL(context, forSingleResult: false)
         let statement = try db.makeSelectStatement(sql: sql)
-        return statement.selectedRegion
+        return statement.databaseRegion
     }
     
     /// Returns a PreparedRequest that is ready to be executed.
