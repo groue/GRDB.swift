@@ -111,7 +111,7 @@ extension SQLRequest: SQLRequestProtocol {
 
 extension SQLRequest: DatabaseRegionConvertible {
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        try makePreparedRequest(db, forSingleResult: false).statement.selectedRegion
+        try makePreparedRequest(db, forSingleResult: false).statement.databaseRegion
     }
 }
 

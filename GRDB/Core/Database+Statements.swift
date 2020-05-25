@@ -240,7 +240,7 @@ extension Database {
         try checkForSuspensionViolation(from: statement)
         
         if _isRecordingSelectedRegion {
-            _selectedRegion.formUnion(statement.selectedRegion)
+            _selectedRegion.formUnion(statement.databaseRegion)
         }
         
         let authorizer = observationBroker.updateStatementWillExecute(statement)
@@ -317,7 +317,7 @@ extension Database {
         try checkForSuspensionViolation(from: statement)
         
         if _isRecordingSelectedRegion {
-            _selectedRegion.formUnion(statement.selectedRegion)
+            _selectedRegion.formUnion(statement.databaseRegion)
         }
     }
     

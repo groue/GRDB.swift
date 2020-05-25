@@ -44,43 +44,9 @@ extension QueryInterfaceRequest: Refinable { }
 
 extension QueryInterfaceRequest: DatabaseRegionConvertible {
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        var region = try SQLQueryGenerator(query: query)
+        try SQLQueryGenerator(query: query)
             .makeSelectStatement(db)
-            .selectedRegion
-        
-        // Iterate all prefetched associations
-        var fifo = query.relation.prefetchedAssociations
-        while !fifo.isEmpty {
-            let association = fifo.removeFirst()
-            
-            // Build the query for prefetched rows.
-            // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
-            let pivotMappings = try association.pivot.condition.columnMappings(db)
-            let pivotColumns = pivotMappings.map(\.right)
-            let pivotAlias = TableAlias()
-            let prefetchedRelation = association
-                .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
-                // Use a `NullRow` in order to make sure all join condition
-                // columns are made visible to SQLite, and present in the
-                // selected region:
-                //  ... JOIN right ON right.leftId IS NULL
-                //                                    ^ content of the NullRow
-                .destinationRelation(fromOriginRows: { _ in [NullRow()] })
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
-            let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
-            
-            // Union prefetched region
-            let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
-                .makeSelectStatement(db)
-                .selectedRegion
-            region.formUnion(prefetchedRegion)
-            
-            // Append nested prefetched associations (support for
-            // A.including(all: A.bs.including(all: B.cs))
-            fifo.append(contentsOf: prefetchedRelation.prefetchedAssociations)
-        }
-        
-        return region
+            .databaseRegion
     }
 }
 
@@ -507,7 +473,7 @@ private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [
         return
     }
     
-    // CAUTION: Keep this code in sync with QueryInterfaceRequest.databaseRegion(_:)
+    // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
     for association in associations {
         let pivotMappings = try association.pivot.condition.columnMappings(db)
         
@@ -552,6 +518,32 @@ private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [
             let prefetchedRows = prefetchedRows[groupingKey, default: []]
             row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
         }
+    }
+}
+
+// Returns the region of prefetched associations
+func prefetchedRegion(_ db: Database, associations: [SQLAssociation]) throws -> DatabaseRegion {
+    try associations.reduce(into: DatabaseRegion()) { (region, association) in
+        // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
+        let pivotMappings = try association.pivot.condition.columnMappings(db)
+        let pivotColumns = pivotMappings.map(\.right)
+        let pivotAlias = TableAlias()
+        let prefetchedRelation = association
+            .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
+            // Use a `NullRow` in order to make sure all join condition
+            // columns are made visible to SQLite, and present in the
+            // selected region:
+            //  ... JOIN right ON right.leftId IS NULL
+            //                                    ^ content of the NullRow
+            .destinationRelation(fromOriginRows: { _ in [NullRow()] })
+            .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
+        let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
+        
+        // Union prefetched region
+        let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
+            .makeSelectStatement(db)
+            .databaseRegion // contains region of nested associations
+        region.formUnion(prefetchedRegion)
     }
 }
 
