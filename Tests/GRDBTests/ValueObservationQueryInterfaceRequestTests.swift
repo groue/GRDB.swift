@@ -29,13 +29,39 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             t.column("parentId", .integer).references("parent", onDelete: .cascade)
             t.column("name", .text)
         }
-        try db.execute(sql: """
+    }
+    
+    private func performDatabaseModifications(in writer: DatabaseWriter) throws {
+        try writer.write { db in
+            try db.execute(sql: """
                 INSERT INTO parent (id, name) VALUES (1, 'foo');
                 INSERT INTO parent (id, name) VALUES (2, 'bar');
+                """)
+        }
+        try writer.write { db in
+            try db.execute(sql: """
                 INSERT INTO child (id, parentId, name) VALUES (1, 1, 'fooA');
                 INSERT INTO child (id, parentId, name) VALUES (2, 1, 'fooB');
                 INSERT INTO child (id, parentId, name) VALUES (3, 2, 'barA');
                 """)
+        }
+        try writer.write { db in
+            try db.execute(sql: """
+                UPDATE child SET name = 'fooA2' WHERE id = 1;
+                """)
+        }
+        try writer.write { db in
+            try db.execute(sql: """
+                INSERT INTO parent (id, name) VALUES (3, 'baz');
+                INSERT INTO child (id, parentId, name) VALUES (4, 3, 'bazA');
+                """)
+        }
+        try writer.write { db in
+            try db.execute(sql: """
+                DELETE FROM parent WHERE id = 1;
+                DELETE FROM child;
+                """)
+        }
     }
     
     func testOneRowWithPrefetchedRows() throws {
@@ -48,18 +74,31 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         let observation = ValueObservation.tracking(request.fetchOne)
         
         let recorder = observation.record(in: dbQueue)
-        try dbQueue.inDatabase { db in
-            try db.execute(sql: "DELETE FROM child")
-        }
-        let results = try wait(for: recorder.next(2), timeout: 1)
+        try performDatabaseModifications(in: dbQueue)
+        let results = try wait(for: recorder.next(6), timeout: 1)
         
-        XCTAssertEqual(results[0]!.unscoped, ["id": 1, "name": "foo"])
-        XCTAssertEqual(results[0]!.prefetchedRows["children"], [
-            ["id": 1, "parentId": 1, "name": "fooA", "grdb_parentId": 1],
-            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
+        XCTAssertNil(results[0])
         
         XCTAssertEqual(results[1]!.unscoped, ["id": 1, "name": "foo"])
         XCTAssertEqual(results[1]!.prefetchedRows["children"], [])
+
+        XCTAssertEqual(results[2]!.unscoped, ["id": 1, "name": "foo"])
+        XCTAssertEqual(results[2]!.prefetchedRows["children"], [
+            ["id": 1, "parentId": 1, "name": "fooA", "grdb_parentId": 1],
+            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
+        
+        XCTAssertEqual(results[3]!.unscoped, ["id": 1, "name": "foo"])
+        XCTAssertEqual(results[3]!.prefetchedRows["children"], [
+            ["id": 1, "parentId": 1, "name": "fooA2", "grdb_parentId": 1],
+            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
+        
+        XCTAssertEqual(results[4]!.unscoped, ["id": 1, "name": "foo"])
+        XCTAssertEqual(results[4]!.prefetchedRows["children"], [
+            ["id": 1, "parentId": 1, "name": "fooA2", "grdb_parentId": 1],
+            ["id": 2, "parentId": 1, "name": "fooB", "grdb_parentId": 1]])
+        
+        XCTAssertEqual(results[5]!.unscoped, ["id": 2, "name": "bar"])
+        XCTAssertEqual(results[5]!.prefetchedRows["children"], [])
     }
     
     func testAllRowsWithPrefetchedRows() throws {
