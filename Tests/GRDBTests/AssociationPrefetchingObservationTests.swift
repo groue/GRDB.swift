@@ -7,6 +7,24 @@ private struct C: TableRecord { }
 private struct D: TableRecord { }
 
 class AssociationPrefetchingObservationTests: GRDBTestCase {
+    private func assertRequestRegionEqual<T>(
+        _ db: Database,
+        _ request: QueryInterfaceRequest<T>,
+        _ expectedDescriptions: String...,
+        file: StaticString = #file, line: UInt = #line) throws
+    {
+        // Test DatabaseRegionConvertible
+        let region1 = try request.databaseRegion(db)
+        XCTAssertTrue(expectedDescriptions.contains(region1.description), description, file: file, line: line)
+        
+        // Test raw statement region, as support for Database.recordingSelection
+        let region2 = try request
+            .makePreparedRequest(db, forSingleResult: false)
+            .statement
+            .databaseRegion
+        XCTAssertTrue(expectedDescriptions.contains(region2.description), description, file: file, line: line)
+    }
+    
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "a") { t in
@@ -72,7 +90,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                     .including(all: A
                         .hasMany(B.self))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2,colb3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),b(colb1,colb2,colb3)")
             }
             
             // Request with filters
@@ -88,7 +106,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .filter(Column("colb1") != 4)
                         .forKey("bs2"))
 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2,colb3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),b(colb1,colb2,colb3)")
             }
             
             // Request with altered selection
@@ -98,7 +116,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .hasMany(B.self)
                         .select(Column("colb1")))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),b(colb1,colb2)")
             }
         }
     }
@@ -114,7 +132,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(all: C
                             .hasMany(D.self)))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
             
             // Request with filters
@@ -146,7 +164,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                             .forKey("ds2"))
                         .forKey("cs2"))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }
@@ -162,7 +180,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .including(required: C
                             .hasMany(D.self)))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
             
             // Request with filters
@@ -194,7 +212,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                             .forKey("d2"))
                         .forKey("cs2"))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }
@@ -208,7 +226,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                     .including(all: A
                         .hasMany(D.self, through: A.hasMany(C.self), using: C.hasMany(D.self)))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
             
             // Request with filters
@@ -227,7 +245,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .filter(Column("cold1") == 11)
                         .forKey("ds3"))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }
@@ -244,10 +262,10 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                             .hasMany(C.self))
                     )
                 
-                try XCTAssert([
+                try assertRequestRegionEqual(
+                    db, request,
                     "a(*),b(colb1,colb2,colb3),c(colc1,colc2)",             // iOS 12
-                    "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)",   // iOS 9
-                    ].contains(request.databaseRegion(db).description))
+                    "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)")   // iOS 9
             }
             
             // Request with filters
@@ -278,7 +296,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                             .forKey("cs2"))
                         .forKey("a2"))
                 
-                try XCTAssertEqual(request.databaseRegion(db).description, "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)")
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)")
             }
         }
     }
@@ -296,10 +314,10 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                             .orderByPrimaryKey()))
                     .orderByPrimaryKey()
                 
-                try XCTAssert([
+                try assertRequestRegionEqual(
+                    db, request,
                     "a(*),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)",     // iOS 12
-                    "a(cola1),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)", // iOS 9
-                    ].contains(request.databaseRegion(db).description))
+                    "a(cola1),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)") // iOS 9
             }
         }
     }
