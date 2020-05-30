@@ -144,7 +144,7 @@ public final class Database {
     var isInsideTransactionBlock = false
     
     /// Support for checkForSuspensionViolation(from:)
-    var isSuspended = LockedBox<Bool>(value: false)
+    @LockedBox var isSuspended = false
     
     /// Support for checkForSuspensionViolation(from:)
     /// This cache is never cleared: we assume journal mode never changes.
@@ -596,7 +596,7 @@ public final class Database {
     ///
     /// Suspension ends with resume().
     func suspend() {
-        isSuspended.write { isSuspended in
+        $isSuspended.update { isSuspended in
             if isSuspended {
                 return
             }
@@ -623,9 +623,7 @@ public final class Database {
     ///
     /// See suspend().
     func resume() {
-        isSuspended.write { isSuspended in
-            isSuspended = false
-        }
+        isSuspended = false
     }
     
     /// Support for checkForSuspensionViolation(from:)
@@ -653,7 +651,7 @@ public final class Database {
     /// the database, in order to avoid the [`0xdead10cc`
     /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     func checkForSuspensionViolation(from statement: Statement) throws {
-        try isSuspended.read { isSuspended in
+        try $isSuspended.read { isSuspended in
             guard isSuspended else {
                 return
             }

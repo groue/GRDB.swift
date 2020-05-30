@@ -52,10 +52,10 @@ class GRDBTestCase: XCTestCase {
     private var dbDirectoryPath: String!
     
     // Populated by default configuration
-    var sqlQueries: [String]!   // TODO: protect against concurrent accesses
+    @LockedBox var sqlQueries: [String] = []
     
     // Populated by default configuration
-    var lastSQLQuery: String! { sqlQueries.last! }
+    var lastSQLQuery: String? { sqlQueries.last }
     
     override func setUp() {
         super.setUp()
@@ -100,7 +100,6 @@ class GRDBTestCase: XCTestCase {
         }
         
         dbConfiguration.trace = { [unowned self] sql in
-            #warning("TODO: make it thread-safe")
             self.sqlQueries.append(sql)
         }
         
@@ -147,7 +146,7 @@ class GRDBTestCase: XCTestCase {
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
     func assertEqualSQL<Request: FetchRequest>(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
         try request.makeStatement(db).makeCursor().next()
-        assertEqualSQL(lastSQLQuery, sql, file: file, line: line)
+        assertEqualSQL(lastSQLQuery!, sql, file: file, line: line)
     }
     
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
@@ -160,7 +159,7 @@ class GRDBTestCase: XCTestCase {
     func sql<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request) -> String {
         try! databaseReader.unsafeRead { db in
             try request.makeStatement(db).makeCursor().next()
-            return lastSQLQuery
+            return lastSQLQuery!
         }
     }
 }

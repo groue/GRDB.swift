@@ -12,7 +12,7 @@ public final class DatabasePool: DatabaseWriter {
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
     
-    var databaseSnapshotCount = LockedBox(value: 0)
+    @LockedBox var databaseSnapshotCount = 0
     
     // MARK: - Database Information
     
@@ -1031,7 +1031,7 @@ extension DatabasePool {
             path: path,
             configuration: writer.configuration,
             defaultLabel: "GRDB.DatabasePool",
-            purpose: "snapshot.\(databaseSnapshotCount.increment())")
+            purpose: "snapshot.\($databaseSnapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }

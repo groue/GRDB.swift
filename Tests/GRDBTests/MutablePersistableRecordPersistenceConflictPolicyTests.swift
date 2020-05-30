@@ -125,13 +125,13 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             var record = DefaultPolicy(id: nil)
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT INTO \"records\""))
             XCTAssertEqual(record.id, 1)
             
             // Update
             record = DefaultPolicy(id: 1)
             try record.update(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE \"records\""))
         }
     }
 
@@ -145,13 +145,13 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             var record = MixedPolicy(id: nil)
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR FAIL INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR FAIL INTO \"records\""))
             XCTAssertEqual(record.id, 1)
             
             // Update
             record = MixedPolicy(id: 1)
             try record.update(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE OR ROLLBACK \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE OR ROLLBACK \"records\""))
         }
     }
 
@@ -190,7 +190,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             var record = ReplacePolicy(id: nil, email: "arthur@example.com")
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR REPLACE INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR REPLACE INTO \"records\""))
             XCTAssertEqual(record.id, 1)
             XCTAssertEqual(observer.events.count, 1)
             XCTAssertEqual(observer.events[0].kind, .insert)
@@ -199,7 +199,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             record = ReplacePolicy(id: nil, email: "arthur@example.com")
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR REPLACE INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR REPLACE INTO \"records\""))
             XCTAssertEqual(record.id, 2)
             XCTAssertTrue(try ReplacePolicy.fetchCount(db) == 1)
             XCTAssertEqual(observer.events.count, 1)
@@ -209,7 +209,7 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Update
             record = ReplacePolicy(id: 2, email: "arthur@example.com")
             try record.update(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE OR REPLACE \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE OR REPLACE \"records\""))
             XCTAssertEqual(observer.events.count, 1)
             XCTAssertEqual(observer.events[0].kind, .update)
             XCTAssertEqual(observer.events[0].rowID, 2)
@@ -241,13 +241,13 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             var record = IgnorePolicy(id: nil)
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR IGNORE INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR IGNORE INTO \"records\""))
             XCTAssertTrue(record.id == nil)
             
             // Update
             record = IgnorePolicy(id: 1)
             try record.update(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE OR IGNORE \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE OR IGNORE \"records\""))
         }
     }
 
@@ -261,13 +261,13 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             var record = FailPolicy(id: nil)
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR FAIL INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR FAIL INTO \"records\""))
             XCTAssertEqual(record.id, 1)
             
             // Update
             record = FailPolicy(id: 1)
             try record.update(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE OR FAIL \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE OR FAIL \"records\""))
         }
     }
 
@@ -281,13 +281,13 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             var record = AbortPolicy(id: nil)
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT INTO \"records\""))
             XCTAssertEqual(record.id, 1)
             
             // Update
             record = AbortPolicy(id: 1)
             try record.update(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE \"records\""))
         }
     }
 
@@ -301,13 +301,13 @@ class MutablePersistableRecordPersistenceConflictPolicyTests: GRDBTestCase {
             // Insert
             var record = RollbackPolicy(id: nil)
             try record.insert(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("INSERT OR ROLLBACK INTO \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("INSERT OR ROLLBACK INTO \"records\""))
             XCTAssertEqual(record.id, 1)
             
             // Update
             record = RollbackPolicy(id: 1)
             try record.update(db)
-            XCTAssertTrue(self.lastSQLQuery.hasPrefix("UPDATE OR ROLLBACK \"records\""))
+            XCTAssertTrue(self.lastSQLQuery!.hasPrefix("UPDATE OR ROLLBACK \"records\""))
         }
     }
 }

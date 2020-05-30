@@ -1,29 +1,33 @@
 import Dispatch
 
-/// A ReadWriteBox grants multiple readers and single-writer guarantees on a value.
+/// A ReadWriteBox grants multiple readers and single-writer guarantees on a
+/// value. It is backed by a concurrent DispatchQueue.
+@propertyWrapper
 final class ReadWriteBox<T> {
-    private var _value: T
+    private var _wrappedValue: T
     private var queue: DispatchQueue
     
-    var value: T {
+    var wrappedValue: T {
         get { read { $0 } }
-        set { write { $0 = newValue } }
+        set { update { $0 = newValue } }
     }
     
-    init(value: T) {
-        _value = value
+    var projectedValue: ReadWriteBox<T> { self }
+    
+    init(wrappedValue: T) {
+        _wrappedValue = wrappedValue
         queue = DispatchQueue(label: "GRDB.ReadWriteBox", attributes: [.concurrent])
     }
     
     func read<U>(_ block: (T) throws -> U) rethrows -> U {
         try queue.sync {
-            try block(_value)
+            try block(_wrappedValue)
         }
     }
     
-    func write<U>(_ block: (inout T) throws -> U) rethrows -> U {
+    func update<U>(_ block: (inout T) throws -> U) rethrows -> U {
         try queue.sync(flags: [.barrier]) {
-            try block(&_value)
+            try block(&_wrappedValue)
         }
     }
 }
@@ -31,7 +35,7 @@ final class ReadWriteBox<T> {
 extension ReadWriteBox where T: Numeric {
     @discardableResult
     func increment() -> T {
-        write { n in
+        update { n in
             n += 1
             return n
         }
@@ -39,7 +43,7 @@ extension ReadWriteBox where T: Numeric {
     
     @discardableResult
     func decrement() -> T {
-        write { n in
+        update { n in
             n -= 1
             return n
         }
