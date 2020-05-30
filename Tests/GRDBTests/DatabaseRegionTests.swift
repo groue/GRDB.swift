@@ -446,7 +446,7 @@ class DatabaseRegionTests : GRDBTestCase {
             try XCTAssertEqual(request.databaseRegion(db).description, "foo(a,id)[1,2,3]")
 
             do {
-                let derivedRequest: AnyFetchRequest<Row> = AnyFetchRequest(request)
+                let derivedRequest = AnyFetchRequest(request)
                 try XCTAssertEqual(derivedRequest.databaseRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {

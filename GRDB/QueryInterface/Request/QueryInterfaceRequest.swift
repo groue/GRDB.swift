@@ -366,9 +366,9 @@ extension QueryInterfaceRequest {
         map(\.query) { $0.limit(limit, offset: offset) }
     }
     
-    /// Creates a request bound to type Target.
+    /// Creates a request bound to type RowDecoder.
     ///
-    /// The returned request can fetch if the type Target is fetchable (Row,
+    /// The returned request can fetch if the type RowDecoder is fetchable (Row,
     /// value, record).
     ///
     ///     // Int?
@@ -377,8 +377,8 @@ extension QueryInterfaceRequest {
     ///         .asRequest(of: Int.self)    // <--
     ///         .fetchOne(db)
     ///
-    /// - parameter type: The fetched type Target
-    /// - returns: A typed request bound to type Target.
+    /// - parameter type: The fetched type RowDecoder
+    /// - returns: A request bound to type RowDecoder.
     public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> QueryInterfaceRequest<RowDecoder> {
         QueryInterfaceRequest<RowDecoder>(query: query)
     }

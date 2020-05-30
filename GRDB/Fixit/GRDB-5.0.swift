@@ -10,6 +10,10 @@ extension AnyFetchRequest {
     @available(*, unavailable, renamed: "RowDecoder")
     typealias T = RowDecoder
     
+    @available(*, unavailable, message: "Use AnyFetchRequest(request).asRequest(of: SomeType.self) instead.")
+    public init<Request: FetchRequest>(_ request: Request)
+    { preconditionFailure() }
+    
     @available(*, unavailable, message: "Define your own FetchRequest type instead.")
     public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
     { preconditionFailure() }
