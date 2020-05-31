@@ -63,11 +63,6 @@ public struct Configuration {
     /// The default label is nil.
     public var label: String? = nil
     
-    /// A function that is called on every statement executed by the database.
-    ///
-    /// Default: nil
-    public var trace: TraceFunction?
-    
     /// If false, SQLite from version 3.29.0 will not interpret a double-quoted
     /// string as a string literal if it does not match any valid identifier.
     ///
@@ -219,6 +214,3 @@ public struct Configuration {
         }
     }
 }
-
-/// A tracing function that takes an SQL string.
-public typealias TraceFunction = (String) -> Void
