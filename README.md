@@ -470,7 +470,6 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
-config.trace = { print($0) }     // Prints all SQL statements
 config.label = "MyDatabase"      // Useful when your app opens multiple databases
 
 let dbQueue = try DatabaseQueue(
@@ -550,7 +549,6 @@ let newPlaceCount = try dbPool.write { db -> Int in
 var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
-config.trace = { print($0) }     // Prints all SQL statements
 config.label = "MyDatabase"      // Useful when your app opens multiple databases
 config.maximumReaderCount = 10   // The default is 5
 
@@ -7351,8 +7349,13 @@ try dbQueue.read { db in
 Another option is to setup a tracing function that prints out all SQL requests executed by your application. You provide the trace function when you connect to the database:
 
 ```swift
+// Prints all SQL statements
 var config = Configuration()
-config.trace = { print($0) } // Prints all SQL statements
+config.prepareDatabase = { db in
+    try db.trace(options: .statement) {
+        print($0)
+    }
+}
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
