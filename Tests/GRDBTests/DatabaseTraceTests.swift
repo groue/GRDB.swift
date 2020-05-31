@@ -110,14 +110,6 @@ class DatabaseTraceTests : GRDBTestCase {
             var events: [String] = []
             db.trace(options: [.statement, .profile]) { event in
                 events.append(event.description)
-                switch event {
-                case .statement:
-                    break
-                case .profile:
-                    break
-                default:
-                    XCTFail("Unexpected event")
-                }
             }
             try db.execute(sql: "CREATE table t(a);")
             XCTAssertEqual(events.count, 2)

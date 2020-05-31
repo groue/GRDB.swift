@@ -3,18 +3,6 @@ import XCTest
 import GRDB
 
 class FTS5TableBuilderTests: GRDBTestCase {
-    
-    override func setUp() {
-        super.setUp()
-        
-        dbConfiguration.trace = { [unowned self] sql in
-            // Ignore virtual table logs
-            if !sql.hasPrefix("--") {
-                self.sqlQueries.append(sql)
-            }
-        }
-    }
-    
     func testWithoutBody() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
