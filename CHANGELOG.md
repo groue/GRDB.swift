@@ -74,6 +74,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [#784](https://github.com/groue/GRDB.swift/pull/784): Fix observation of eager-loaded to-many associations
 
+### Breaking Changes
+
+- [#790](https://github.com/groue/GRDB.swift/pull/790): Bump required iOS version to 10.0
+
 
 ## 5.0.0-beta.2
 
