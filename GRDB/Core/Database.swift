@@ -228,9 +228,9 @@ public final class Database {
         }
         // sqlite3_trace_v2 and sqlite3_expanded_sql were introduced in SQLite 3.14.0
         // http://www.sqlite.org/changes.html#version_3_14
-        // It is available from iOS 10.0 and OS X 10.12
+        // It is available from macOS 10.12, tvOS 10.0, watchOS 3.0
         // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_trace_v2(
             sqliteConnection,
@@ -242,7 +242,7 @@ public final class Database {
         #elseif os(Linux)
         setupTrace_v1()
         #else
-        if #available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+        if #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
             let dbPointer = Unmanaged.passUnretained(self).toOpaque()
             sqlite3_trace_v2(
                 sqliteConnection,
@@ -257,6 +257,7 @@ public final class Database {
         #endif
     }
     
+    #if !(GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS))
     // Precondition: configuration.trace != nil
     private func setupTrace_v1() {
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
@@ -266,6 +267,7 @@ public final class Database {
             db.configuration.trace!(sql)
         }, dbPointer)
     }
+    #endif
     
     // Precondition: configuration.trace != nil
     private static func trace_v2(
@@ -331,7 +333,7 @@ public final class Database {
         add(function: .lowercase)
         add(function: .uppercase)
         
-        if #available(iOS 9.0, OSX 10.11, watchOS 3.0, *) {
+        if #available(OSX 10.11, watchOS 3.0, *) {
             add(function: .localizedCapitalize)
             add(function: .localizedLowercase)
             add(function: .localizedUppercase)

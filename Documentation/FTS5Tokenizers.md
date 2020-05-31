@@ -371,7 +371,7 @@ final class LatinAsciiTokenizer : FTS5WrapperTokenizer {
 }
 ```
 
-> :point_up: **Note**: String.applyingTransform is not available before iOS 9.0 and macOS 10.11. Use the Core Foundation function [CFStringTransform](https://developer.apple.com/reference/corefoundation/1542411-cfstringtransform) instead.
+> :point_up: **Note**: String.applyingTransform is not available before macOS 10.11. Use the Core Foundation function [CFStringTransform](https://developer.apple.com/reference/corefoundation/1542411-cfstringtransform) instead.
 
 Remember to register LatinAsciiTokenizer before using it:
 

@@ -4,10 +4,7 @@ struct Migration {
     let migrate: (Database) throws -> Void
     
     func run(_ db: Database) throws {
-        // PRAGMA foreign_key_check and SQLITE_CONSTRAINT_FOREIGNKEY were
-        // introduced in SQLite 3.7.16
-        // http://www.sqlite.org/changes.html#version_3_7_16
-        if try sqlite3_libversion_number() >= 3007016 && (Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false) {
+        if try Bool.fetchOne(db, sql: "PRAGMA foreign_keys") ?? false {
             try runWithDeferredForeignKeysChecks(db)
         } else {
             try runWithoutDisabledForeignKeys(db)
