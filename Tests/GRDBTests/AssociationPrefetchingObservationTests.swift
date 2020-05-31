@@ -231,8 +231,8 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                 
                 try assertRequestRegionEqual(
                     db, request,
-                    "a(*),b(colb1,colb2,colb3),c(colc1,colc2)",             // iOS 12
-                    "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)")   // iOS 9
+                    "a(*),b(colb1,colb2,colb3),c(colc1,colc2)",
+                    "a(cola1,cola2),b(colb1,colb2,colb3),c(colc1,colc2)")
             }
             
             // Request with filters
@@ -283,8 +283,8 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                 
                 try assertRequestRegionEqual(
                     db, request,
-                    "a(*),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)",     // iOS 12
-                    "a(cola1),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)") // iOS 9
+                    "a(*),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)",
+                    "a(cola1),b(colb1,colb2,colb3),c(colc1,colc2),d(cold1,cold2,cold3)")
             }
         }
     }

@@ -31,7 +31,7 @@ class DatabaseFunctionTests: GRDBTestCase {
             let uppercase = DatabaseFunction.uppercase
             XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(uppercase.name)('jérÔME')"), "JÉRÔME")
             
-            if #available(iOS 9.0, OSX 10.11, *) {
+            if #available(OSX 10.11, *) {
                 // Locale-dependent tests. Are they fragile?
                 
                 let localizedCapitalize = DatabaseFunction.localizedCapitalize

@@ -927,7 +927,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.select(Col.name.uppercased)),
             "SELECT swiftUppercaseString(\"name\") FROM \"readers\"")
         
-        if #available(iOS 9.0, OSX 10.11, *) {
+        if #available(OSX 10.11, *) {
             XCTAssertEqual(
                 sql(dbQueue, tableRequest.select(Col.name.localizedCapitalized)),
                 "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
