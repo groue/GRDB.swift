@@ -4,6 +4,12 @@ Here is a list of people who were happy to meet GRDB :-)
 
 ---
 
+https://twitter.com/peres/status/1262682199482142720
+
+> GRDB in already in my top3 when it comes to documentation. Clearly and pragmatically explained.GRDB in already in my top3 when it comes to documentation. Clearly and pragmatically explained.
+
+---
+
 https://twitter.com/layoutsubviews/status/1249940744929816582
 
 > Mixing SQLite / GRDB with Combine is my whole world right now, and it is delightful.
