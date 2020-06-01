@@ -35,18 +35,6 @@ extension Book : MutablePersistableRecord {
 }
 
 class FTS5RecordTests: GRDBTestCase {
-    
-    override func setUp() {
-        super.setUp()
-        
-        dbConfiguration.trace = { [unowned self] sql in
-            // Ignore virtual table logs
-            if !sql.hasPrefix("--") {
-                self.sqlQueries.append(sql)
-            }
-        }
-    }
-    
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(virtualTable: "books", using: FTS5()) { t in
@@ -109,12 +97,18 @@ class FTS5RecordTests: GRDBTestCase {
                 try book.insert(db)
             }
             
-            let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
-            XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\" WHERE \"books\" MATCH 'herman melville'")
+            do {
+                sqlQueries = []
+                let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
+                XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
+                XCTAssertTrue(sqlQueries.contains("SELECT COUNT(*) FROM \"books\" WHERE \"books\" MATCH 'herman melville'"))
+            }
             
-            XCTAssertEqual(try Book.fetchCount(db), 1)
-            XCTAssertEqual(lastSQLQuery, "SELECT COUNT(*) FROM \"books\"")
+            do {
+                sqlQueries = []
+                XCTAssertEqual(try Book.fetchCount(db), 1)
+                XCTAssertTrue(sqlQueries.contains("SELECT COUNT(*) FROM \"books\""))
+            }
         }
     }
 }

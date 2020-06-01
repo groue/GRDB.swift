@@ -293,7 +293,23 @@ The changes can quite impact your application. We'll describe them below, as wel
 
 ## Other Changes
 
-1. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
+1. The `Configuration.trace` property has been removed. You know use the `Database.trace(options:_:)` method instead:
+
+    ```swift
+    // BEFORE: GRDB 4
+    var config = Configuration()
+    config.trace = { print($0) }
+    let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+     
+    // NEW: GRDB 5
+    var config = Configuration()
+    config.prepareDatabase = { db in
+        db.trace { print($0) }
+    }
+    let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+    ```
+
+2. [Batch updates] used to rely of the `<-` operator. This operator has been removed. Use the `set(to:)` method instead:
     
     ```swift
     // BEFORE: GRDB 4
@@ -305,7 +321,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     
     > :question: This change avoids conflicts with other libraries that define the same operator.
 
-2. [SQL Interpolation] does no longer wrap subqueries in parenthesis:
+3. [SQL Interpolation] does no longer wrap subqueries in parenthesis:
     
     ```swift
     // BEFORE: GRDB 4
@@ -320,7 +336,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     
     > :question: This change makes it possible to concatenate subqueries with the UNION operator.
 
-3. In order to extract raw SQL string from an [SQLLiteral], you now need a database connection:
+4. In order to extract raw SQL string from an [SQLLiteral], you now need a database connection:
 
     ```swift
     let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
@@ -335,7 +351,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     print(arguments)       // prints ["O'Brien", 42]
     ```
 
-4. In order to extract raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest()` method:
+5. In order to extract raw SQL string from a request ([SQLRequest] or [QueryInterfaceRequest]), you now need to call the `makePreparedRequest()` method:
 
     ```swift
     // BEFORE: GRDB 4
@@ -355,7 +371,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     }
     ```
 
-5. The `TableRecord.selectionSQL()` method is no longer avaible. When you need to embed the columns selected by a record type in an SQL request, you now have to use [SQL Interpolation]:
+6. The `TableRecord.selectionSQL()` method is no longer avaible. When you need to embed the columns selected by a record type in an SQL request, you now have to use [SQL Interpolation]:
 
     ```swift
     // BEFORE: GRDB 4
@@ -367,7 +383,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     let players = try request.fetchAll(db)
     ```
 
-6. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
+7. [Custom SQL functions] are now [callable values](https://github.com/apple/swift-evolution/blob/master/proposals/0253-callable.md):
     
     ```swift
     // BEFORE: GRDB 4
@@ -377,13 +393,13 @@ The changes can quite impact your application. We'll describe them below, as wel
     Player.select(myFunction(Column("name")))
     ```
 
-7. Defining custom `FetchRequest` types is now **discouraged**.
+8. Defining custom `FetchRequest` types is now **discouraged**.
     
     A future GRDB version will remove the ability to define custom `FetchRequest` types.
     
     Our suggestion is to refactor your app so that your custom request type is no longer needed: [SQLRequest] and [QueryInterfaceRequest] are now supposed to fully address your needs. If it is not possible, then please [open an issue](https://github.com/groue/GRDB.swift/issues) and describe your particular use case.
     
-8. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
+9. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
     ```swift
     // BEFORE: GRDB 4
@@ -393,7 +409,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     import GRDB
     ```
 
-9. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
+10. Importing the `GRDB` module grants access to the [SQLite C interface](https://www.sqlite.org/c3ref/intro.html). You don't need any longer to import the underlying SQLite library:
     
     ```swift
     // BEFORE: GRDB 4

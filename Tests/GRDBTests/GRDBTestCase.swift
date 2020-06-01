@@ -99,16 +99,15 @@ class GRDBTestCase: XCTestCase {
             }
         }
         
-        dbConfiguration.trace = { [unowned self] sql in
-            self.sqlQueries.append(sql)
-        }
-        
-        #if GRDBCIPHER_USE_ENCRYPTION
-        // Encrypt all databases by default.
         dbConfiguration.prepareDatabase = { db in
+            db.trace { event in
+                self.sqlQueries.append(event.description)
+            }
+            
+            #if GRDBCIPHER_USE_ENCRYPTION
             try db.usePassphrase("secret")
+            #endif
         }
-        #endif
         
         sqlQueries = []
     }

@@ -47,6 +47,14 @@ extension AssociationAggregate {
     { preconditionFailure() }
 }
 
+extension Configuration {
+    @available(*, unavailable, message: "Use Database.trace(options:_:) in Configuration.prepareDatabase instead.")
+    public var trace: TraceFunction? {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+}
+
 extension DatabaseFunction {
     @available(*, unavailable, renamed: "callAsFunction(_:)")
     public func apply(_ arguments: SQLExpressible...) -> SQLExpression
@@ -250,6 +258,9 @@ extension TableRecord where Self: FetchableRecord {
     public static func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<Self?>>
     { preconditionFailure() }
 }
+
+@available(*, unavailable)
+public typealias TraceFunction = (String) -> Void
 
 extension ValueObservation {
     @available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")

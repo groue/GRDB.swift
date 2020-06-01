@@ -470,7 +470,6 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
-config.trace = { print($0) }     // Prints all SQL statements
 config.label = "MyDatabase"      // Useful when your app opens multiple databases
 
 let dbQueue = try DatabaseQueue(
@@ -550,7 +549,6 @@ let newPlaceCount = try dbPool.write { db -> Int in
 var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
-config.trace = { print($0) }     // Prints all SQL statements
 config.label = "MyDatabase"      // Useful when your app opens multiple databases
 config.maximumReaderCount = 10   // The default is 5
 
@@ -7279,6 +7277,7 @@ FAQ
 - [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application)
 - [How do I close a database connection?](#how-do-i-close-a-database-connection)
 - [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql)
+- [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
@@ -7348,11 +7347,14 @@ try dbQueue.read { db in
 }
 ```
 
-Another option is to setup a tracing function that prints out all SQL requests executed by your application. You provide the trace function when you connect to the database:
+Another option is to setup a tracing function that prints out the executed SQL requests. For example, provide a tracing function when you connect to the database:
 
 ```swift
+// Prints all SQL statements
 var config = Configuration()
-config.trace = { print($0) } // Prints all SQL statements
+config.prepareDatabase = { db in
+    db.trace { print($0) }
+}
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
@@ -7361,7 +7363,44 @@ try dbQueue.read { db in
 }
 ```
 
+If you want to hide values such as `'O''Brien'` from the logged statements, adapt the tracing function as below:
+
+```swift
+db.trace { event in
+    if case let .statement(statement) = event {
+        // Prints SELECT * FROM player WHERE name = ?
+        print(statement.sql)
+    }
+}
+```
+
 > :point_up: **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
+
+
+### How do I monitor the duration of database statements execution?
+
+Use the `trace(options:_:)` method, with the `.profile` option:
+
+```swift
+var config = Configuration()
+config.prepareDatabase = { db in
+    db.trace(options: .profile) { event in
+        // Prints all SQL statements with their duration
+        print(event)
+        
+        // Access to detailed profiling information
+        if case let .profile(statement, duration) = event, duration > 0.5 {
+            print("Slow query: \(statement.sql)")
+        }
+    }
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+
+try dbQueue.read { db in
+    let players = try Player.filter(Column("name") == "O'Brien").fetchAll(db)
+    // Prints "0.003s SELECT * FROM player WHERE name = 'O''Brien'"
+}
+```
 
 
 ### Generic parameter 'T' could not be inferred
