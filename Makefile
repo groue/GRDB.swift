@@ -387,10 +387,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.0.0-beta.2 \
-	  --module-version 5.0.0-beta.2 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.0.0-beta.3 \
+	  --module-version 5.0.0-beta.3 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/5.0.0-beta.2/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/5.0.0-beta.3/ \
 	  --output Documentation/Reference \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else
