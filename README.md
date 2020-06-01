@@ -7352,9 +7352,7 @@ Another option is to setup a tracing function that prints out all SQL requests e
 // Prints all SQL statements
 var config = Configuration()
 config.prepareDatabase = { db in
-    try db.trace(options: .statement) {
-        print($0)
-    }
+    try db.trace { print($0) }
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 

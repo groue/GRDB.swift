@@ -116,11 +116,11 @@ class DatabaseTraceTests : GRDBTestCase {
         }
     }
     
-    func testTraceFromConfiguration() throws {
+    func testTraceFromConfigurationWithDefaultOptions() throws {
         var events: [String] = []
         var configuration = Configuration()
         configuration.prepareDatabase = { db in
-            db.trace(options: .statement) { event in
+            db.trace { event in
                 events.append("SQL: \(event)")
             }
         }
@@ -136,7 +136,7 @@ class DatabaseTraceTests : GRDBTestCase {
         }
     }
     
-    func testTraceReset() throws {
+    func testStopTrace() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var events: [String] = []

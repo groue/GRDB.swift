@@ -503,14 +503,17 @@ public final class Database {
     ///     }
     ///     let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
     ///
-    /// Pass an empty options set, or a nil tracing function in order to stop
-    /// database tracing.
+    /// Pass an empty options set in order to stop database tracing:
+    ///
+    ///     // Stop tracing
+    ///     db.trace(options: [])
     ///
     /// See https://www.sqlite.org/c3ref/trace_v2.html for more information.
     ///
-    /// - parameter options: The set of desired event kinds.
+    /// - parameter options: The set of desired event kinds. Defaults to
+    ///   `.statement`, which notifies all executed database statements.
     /// - parameter trace: the tracing function.
-    public func trace(options: TracingOptions, _ trace: ((TraceEvent) -> Void)? = nil) {
+    public func trace(options: TracingOptions = .statement, _ trace: ((TraceEvent) -> Void)? = nil) {
         SchedulingWatchdog.preconditionValidQueue(self)
         self.trace = trace
         

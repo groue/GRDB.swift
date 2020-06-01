@@ -304,7 +304,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     // NEW: GRDB 5
     var config = Configuration()
     config.prepareDatabase = { db in
-        try db.trace(options: .statement) { print($0) }
+        try db.trace { print($0) }
     }
     let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
     ```
