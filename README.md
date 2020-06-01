@@ -7353,7 +7353,7 @@ Another option is to setup a tracing function that prints out the executed SQL r
 // Prints all SQL statements
 var config = Configuration()
 config.prepareDatabase = { db in
-    try db.trace { print($0) }
+    db.trace { print($0) }
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
@@ -7366,7 +7366,7 @@ try dbQueue.read { db in
 If you want to hide values such as `'O''Brien'` from the logged statements, adapt the tracing function as below:
 
 ```swift
-try db.trace { event in
+db.trace { event in
     if case let .statement(statement) = event {
         // Prints SELECT * FROM player WHERE name = ?
         print(statement.sql)
@@ -7384,7 +7384,7 @@ Use the `trace(options:_:)` method, with the `.profile` option:
 ```swift
 var config = Configuration()
 config.prepareDatabase = { db in
-    try db.trace(options: .profile) { event in
+    db.trace(options: .profile) { event in
         // Prints all SQL statements with their duration
         print(event)
         
