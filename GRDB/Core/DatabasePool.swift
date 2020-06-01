@@ -12,7 +12,7 @@ public final class DatabasePool: DatabaseWriter {
     private var collations = Set<DatabaseCollation>()
     private var tokenizerRegistrations: [(Database) -> Void] = []
     
-    var databaseSnapshotCount = LockedBox(value: 0)
+    @LockedBox var databaseSnapshotCount = 0
     
     // MARK: - Database Information
     
@@ -139,7 +139,7 @@ public final class DatabasePool: DatabaseWriter {
         // Undo job done in setupMemoryManagement()
         //
         // https://developer.apple.com/library/mac/releasenotes/Foundation/RN-Foundation/index.html#10_11Error
-        // Explicit unregistration is required before iOS 9 and OS X 10.11.
+        // Explicit unregistration is required before OS X 10.11.
         NotificationCenter.default.removeObserver(self)
         
         // Close reader connections before the writer connection.
@@ -1031,7 +1031,7 @@ extension DatabasePool {
             path: path,
             configuration: writer.configuration,
             defaultLabel: "GRDB.DatabasePool",
-            purpose: "snapshot.\(databaseSnapshotCount.increment())")
+            purpose: "snapshot.\($databaseSnapshotCount.increment())")
         snapshot.read { setupDatabase($0) }
         return snapshot
     }

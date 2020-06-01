@@ -382,7 +382,7 @@ extension GRDBTestCase {
         // debug SQLite builds can be *very* slow
         let timeout: TimeInterval = 2
         #else
-        let timeout: TimeInterval = 0.3
+        let timeout: TimeInterval = 1
         #endif
         
         func test(
@@ -599,7 +599,7 @@ extension GRDBTestCase {
         // debug SQLite builds can be *very* slow
         let timeout: TimeInterval = 2
         #else
-        let timeout: TimeInterval = 0.3
+        let timeout: TimeInterval = 1
         #endif
         
         func test(

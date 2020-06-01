@@ -103,7 +103,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         where Request: FetchRequest, Request.RowDecoder == Record
     {
         self.itemsAreIdenticalFactory = itemsAreIdenticalFactory
-        self.request = ItemRequest(request)
+        self.request = AnyFetchRequest(request).asRequest(of: Item<Record>.self)
         (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
             let region = try request.databaseRegion(db)
             let itemsAreIdentical = try itemsAreIdenticalFactory(db)
@@ -166,7 +166,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
         throws
         where Request: FetchRequest, Request.RowDecoder == Record
     {
-        self.request = ItemRequest(request)
+        self.request = AnyFetchRequest(request).asRequest(of: Item<Record>.self)
         (self.region, self.itemsAreIdentical) = try databaseWriter.unsafeRead { db in
             let region = try request.databaseRegion(db)
             let itemsAreIdentical = try itemsAreIdenticalFactory(db)
@@ -389,8 +389,7 @@ public final class FetchedRecordsController<Record: FetchableRecord> {
     private let itemsAreIdenticalFactory: ItemComparatorFactory<Record>
     
     /// The request
-    fileprivate typealias ItemRequest = AnyFetchRequest<Item<Record>>
-    fileprivate var request: ItemRequest
+    fileprivate var request: AnyFetchRequest<Item<Record>>
     
     /// The observed database region
     private var region: DatabaseRegion

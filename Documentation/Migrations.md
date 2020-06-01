@@ -31,8 +31,7 @@ migrator.registerMigration("v2") { db in
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
 
-**Migrations run with deferred foreign key checks,** starting SQLite 3.7.16+ (iOS 9.0+ / 
-+ / tvOS 9.0+ / watchOS 2.0+ / [custom SQLite build] / [SQLCipher](../README.md#encryption)). This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
+**Migrations run with deferred foreign key checks.** This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
@@ -69,7 +68,7 @@ try dbQueue.read { db in
 }
 ```
 
-See the [DatabaseMigrator reference](http://groue.github.io/GRDB.swift/docs/5.0.0-beta.2/Structs/DatabaseMigrator.html) for more migrator methods.
+See the [DatabaseMigrator reference](http://groue.github.io/GRDB.swift/docs/5.0.0-beta.3/Structs/DatabaseMigrator.html) for more migrator methods.
 
 
 ## The `eraseDatabaseOnSchemaChange` Option

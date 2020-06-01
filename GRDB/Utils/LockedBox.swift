@@ -1,36 +1,39 @@
 import Foundation
 
 /// A LockedBox protects a value with an NSLock.
+@propertyWrapper
 final class LockedBox<T> {
-    private var _value: T
+    private var _wrappedValue: T
     private var lock = NSLock()
     
-    var value: T {
+    var wrappedValue: T {
         get { read { $0 } }
-        set { write { $0 = newValue } }
+        set { update { $0 = newValue } }
     }
     
-    init(value: T) {
-        _value = value
+    var projectedValue: LockedBox<T> { self }
+    
+    init(wrappedValue: T) {
+        _wrappedValue = wrappedValue
     }
     
     func read<U>(_ block: (T) throws -> U) rethrows -> U {
         lock.lock()
         defer { lock.unlock() }
-        return try block(_value)
+        return try block(_wrappedValue)
     }
     
-    func write<U>(_ block: (inout T) throws -> U) rethrows -> U {
+    func update<U>(_ block: (inout T) throws -> U) rethrows -> U {
         lock.lock()
         defer { lock.unlock() }
-        return try block(&_value)
+        return try block(&_wrappedValue)
     }
 }
 
 extension LockedBox where T: Numeric {
     @discardableResult
     func increment() -> T {
-        write { n in
+        update { n in
             n += 1
             return n
         }
@@ -38,7 +41,7 @@ extension LockedBox where T: Numeric {
 
     @discardableResult
     func decrement() -> T {
-        write { n in
+        update { n in
             n -= 1
             return n
         }

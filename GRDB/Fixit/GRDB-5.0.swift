@@ -10,6 +10,10 @@ extension AnyFetchRequest {
     @available(*, unavailable, renamed: "RowDecoder")
     typealias T = RowDecoder
     
+    @available(*, unavailable, message: "Use AnyFetchRequest(request).asRequest(of: SomeType.self) instead.")
+    public init<Request: FetchRequest>(_ request: Request)
+    { preconditionFailure() }
+    
     @available(*, unavailable, message: "Define your own FetchRequest type instead.")
     public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
     { preconditionFailure() }
@@ -41,6 +45,14 @@ extension AssociationAggregate {
     @available(*, unavailable, renamed: "forKey(_:)")
     public func aliased(_ key: CodingKey) -> AssociationAggregate<RowDecoder>
     { preconditionFailure() }
+}
+
+extension Configuration {
+    @available(*, unavailable, message: "Use Database.trace(options:_:) in Configuration.prepareDatabase instead.")
+    public var trace: TraceFunction? {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
 }
 
 extension DatabaseFunction {
@@ -246,6 +258,9 @@ extension TableRecord where Self: FetchableRecord {
     public static func observationForFirst() -> ValueObservation<ValueReducers.Unavailable<Self?>>
     { preconditionFailure() }
 }
+
+@available(*, unavailable)
+public typealias TraceFunction = (String) -> Void
 
 extension ValueObservation {
     @available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")

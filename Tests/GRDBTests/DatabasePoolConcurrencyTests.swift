@@ -959,7 +959,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testTargetQueue() throws {
         // dispatchPrecondition(condition:) availability
-        if #available(OSX 10.12, iOS 10.0, tvOS 10.0, *) {
+        if #available(OSX 10.12, tvOS 10.0, *) {
             func test(targetQueue: DispatchQueue) throws {
                 dbConfiguration.targetQueue = targetQueue
                 let dbPool = try makeDatabasePool()
@@ -986,7 +986,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
     
     func testQoS() throws {
         // dispatchPrecondition(condition:) availability
-        if #available(OSX 10.12, iOS 10.0, tvOS 10.0, *) {
+        if #available(OSX 10.12, tvOS 10.0, *) {
             func test(qos: DispatchQoS) throws {
                 // https://forums.swift.org/t/what-is-the-default-target-queue-for-a-serial-queue/18094/5
                 //

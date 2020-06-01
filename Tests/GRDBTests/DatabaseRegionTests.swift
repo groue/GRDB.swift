@@ -446,7 +446,7 @@ class DatabaseRegionTests : GRDBTestCase {
             try XCTAssertEqual(request.databaseRegion(db).description, "foo(a,id)[1,2,3]")
 
             do {
-                let derivedRequest: AnyFetchRequest<Row> = AnyFetchRequest(request)
+                let derivedRequest = AnyFetchRequest(request)
                 try XCTAssertEqual(derivedRequest.databaseRegion(db).description, "foo(a,id)[1,2,3]")
             }
             do {
@@ -513,12 +513,6 @@ class DatabaseRegionTests : GRDBTestCase {
         // the rowid column, regardless of its name in the request (rowid, oid, _rowid_)
         //
         // See also testRowIdNameInSelectStatement
-        
-        guard sqlite3_libversion_number() > 3007013 else {
-            // This test fails on iOS 8.1 (SQLite 3.7.13)
-            // TODO: evaluate the consequences
-            return
-        }
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(sql: "CREATE TABLE foo (name TEXT)")

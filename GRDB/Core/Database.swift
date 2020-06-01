@@ -144,7 +144,7 @@ public final class Database {
     var isInsideTransactionBlock = false
     
     /// Support for checkForSuspensionViolation(from:)
-    var isSuspended = LockedBox<Bool>(value: false)
+    @LockedBox var isSuspended = false
     
     /// Support for checkForSuspensionViolation(from:)
     /// This cache is never cleared: we assume journal mode never changes.
@@ -153,7 +153,7 @@ public final class Database {
     // MARK: - Private properties
     
     private var busyCallback: BusyCallback?
-    
+    private var trace: ((TraceEvent) -> Void)?
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     private var _readOnlyDepth = 0 // Modify with beginReadOnly/endReadOnly
@@ -200,8 +200,6 @@ public final class Database {
     
     /// This method must be called after database initialization
     func setup() throws {
-        // Setup trace first, so that setup queries are traced.
-        setupTrace()
         setupDoubleQuotedStringLiterals()
         try setupForeignKeys()
         setupBusyMode()
@@ -220,69 +218,6 @@ public final class Database {
         
         try validateFormat()
         configuration.SQLiteConnectionDidOpen?()
-    }
-    
-    private func setupTrace() {
-        guard configuration.trace != nil else {
-            return
-        }
-        // sqlite3_trace_v2 and sqlite3_expanded_sql were introduced in SQLite 3.14.0
-        // http://www.sqlite.org/changes.html#version_3_14
-        // It is available from iOS 10.0 and OS X 10.12
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-        sqlite3_trace_v2(
-            sqliteConnection,
-            UInt32(SQLITE_TRACE_STMT),
-            { (mask, dbPointer, stmt, unexpandedSQL) -> Int32 in
-                Database.trace_v2(mask, dbPointer, stmt, unexpandedSQL, sqlite3_expanded_sql)
-        },
-            dbPointer)
-        #elseif os(Linux)
-        setupTrace_v1()
-        #else
-        if #available(iOS 10.0, OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
-            let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-            sqlite3_trace_v2(
-                sqliteConnection,
-                UInt32(SQLITE_TRACE_STMT),
-                { (mask, dbPointer, stmt, unexpandedSQL) -> Int32 in
-                    Database.trace_v2(mask, dbPointer, stmt, unexpandedSQL, sqlite3_expanded_sql)
-            },
-                dbPointer)
-        } else {
-            setupTrace_v1()
-        }
-        #endif
-    }
-    
-    // Precondition: configuration.trace != nil
-    private func setupTrace_v1() {
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
-            guard let sql = sql.map(String.init) else { return }
-            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-            db.configuration.trace!(sql)
-        }, dbPointer)
-    }
-    
-    // Precondition: configuration.trace != nil
-    private static func trace_v2(
-        _ mask: UInt32,
-        _ dbPointer: UnsafeMutableRawPointer?,
-        _ stmt: UnsafeMutableRawPointer?,
-        _ unexpandedSQL: UnsafeMutableRawPointer?,
-        _ sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
-        -> Int32
-    {
-        guard let stmt = stmt else { return SQLITE_OK }
-        guard let expandedSQLCString = sqlite3_expanded_sql(OpaquePointer(stmt)) else { return SQLITE_OK }
-        let sql = String(cString: expandedSQLCString)
-        sqlite3_free(expandedSQLCString)
-        let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-        db.configuration.trace!(sql)
-        return SQLITE_OK
     }
     
     private func setupDoubleQuotedStringLiterals() {
@@ -331,7 +266,7 @@ public final class Database {
         add(function: .lowercase)
         add(function: .uppercase)
         
-        if #available(iOS 9.0, OSX 10.11, watchOS 3.0, *) {
+        if #available(OSX 10.11, watchOS 3.0, *) {
             add(function: .localizedCapitalize)
             add(function: .localizedLowercase)
             add(function: .localizedUppercase)
@@ -553,6 +488,128 @@ public final class Database {
         return try block()
     }
     
+    // MARK: - Trace
+    
+    /// Registers a tracing function.
+    ///
+    /// For example:
+    ///
+    ///     // Trace all SQL statements executed by the database
+    ///     var configuration = Configuration()
+    ///     configuration.prepareDatabase = { db in
+    ///         db.trace(options: .statement) { event in
+    ///             print("SQL: \(event)")
+    ///         }
+    ///     }
+    ///     let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
+    ///
+    /// Pass an empty options set in order to stop database tracing:
+    ///
+    ///     // Stop tracing
+    ///     db.trace(options: [])
+    ///
+    /// See https://www.sqlite.org/c3ref/trace_v2.html for more information.
+    ///
+    /// - parameter options: The set of desired event kinds. Defaults to
+    ///   `.statement`, which notifies all executed database statements.
+    /// - parameter trace: the tracing function.
+    public func trace(options: TracingOptions = .statement, _ trace: ((TraceEvent) -> Void)? = nil) {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        self.trace = trace
+        
+        if options.isEmpty || trace == nil {
+            #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+            sqlite3_trace_v2(sqliteConnection, 0, nil, nil)
+            #elseif os(Linux)
+            sqlite3_trace(sqliteConnection, nil)
+            #else
+            if #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+                sqlite3_trace_v2(sqliteConnection, 0, nil, nil)
+            } else {
+                sqlite3_trace(sqliteConnection, nil, nil)
+            }
+            #endif
+            return
+        }
+        
+        // sqlite3_trace_v2 and sqlite3_expanded_sql were introduced in SQLite 3.14.0
+        // http://www.sqlite.org/changes.html#version_3_14
+        // It is available from macOS 10.12, tvOS 10.0, watchOS 3.0
+        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+        sqlite3_trace_v2(sqliteConnection, UInt32(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
+            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+            db.trace_v2(CInt(bitPattern: mask), p, x, sqlite3_expanded_sql)
+            return SQLITE_OK
+        }, dbPointer)
+        #elseif os(Linux)
+        setupTrace_v1()
+        #else
+        if #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+            let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+            sqlite3_trace_v2(sqliteConnection, UInt32(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
+                let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+                db.trace_v2(CInt(bitPattern: mask), p, x, sqlite3_expanded_sql)
+                return SQLITE_OK
+            }, dbPointer)
+        } else {
+            setupTrace_v1()
+        }
+        #endif
+    }
+    
+    #if !(GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS))
+    private func setupTrace_v1() {
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+        sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
+            guard let sql = sql.map(String.init(cString:)) else { return }
+            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+            db.trace?(Database.TraceEvent.statement(TraceEvent.Statement(impl: .trace_v1(sql))))
+        }, dbPointer)
+    }
+    #endif
+    
+    // Precondition: configuration.trace != nil
+    private func trace_v2(
+        _ mask: CInt,
+        _ p: UnsafeMutableRawPointer?,
+        _ x: UnsafeMutableRawPointer?,
+        _ sqlite3_expanded_sql: @escaping @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
+    {
+        guard let trace = trace else { return }
+        
+        switch mask {
+        case SQLITE_TRACE_STMT:
+            if let sqliteStatement = p, let unexpandedSQL = x {
+                let statement = TraceEvent.Statement(impl: .trace_v2(
+                    sqliteStatement: OpaquePointer(sqliteStatement),
+                    unexpandedSQL: UnsafePointer(unexpandedSQL.assumingMemoryBound(to: CChar.self)),
+                    sqlite3_expanded_sql: sqlite3_expanded_sql))
+                trace(TraceEvent.statement(statement))
+            }
+        case SQLITE_TRACE_PROFILE:
+            if let sqliteStatement = p, let durationP = x?.assumingMemoryBound(to: Int64.self) {
+                let statement = TraceEvent.Statement(impl: .trace_v2(
+                    sqliteStatement: OpaquePointer(sqliteStatement),
+                    unexpandedSQL: nil,
+                    sqlite3_expanded_sql: sqlite3_expanded_sql))
+                let duration = TimeInterval(durationP.pointee) / 1.0e9
+                
+                #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+                trace(TraceEvent.profile(statement: statement, duration: duration))
+                #elseif os(Linux)
+                #else
+                if #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
+                    trace(TraceEvent.profile(statement: statement, duration: duration))
+                }
+                #endif
+            }
+        default:
+            break
+        }
+    }
+    
     // MARK: - Checkpoints
     
     func checkpoint(_ kind: Database.CheckpointMode) throws {
@@ -596,7 +653,7 @@ public final class Database {
     ///
     /// Suspension ends with resume().
     func suspend() {
-        isSuspended.write { isSuspended in
+        $isSuspended.update { isSuspended in
             if isSuspended {
                 return
             }
@@ -623,9 +680,7 @@ public final class Database {
     ///
     /// See suspend().
     func resume() {
-        isSuspended.write { isSuspended in
-            isSuspended = false
-        }
+        isSuspended = false
     }
     
     /// Support for checkForSuspensionViolation(from:)
@@ -653,7 +708,7 @@ public final class Database {
     /// the database, in order to avoid the [`0xdead10cc`
     /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
     func checkForSuspensionViolation(from statement: Statement) throws {
-        try isSuspended.read { isSuspended in
+        try $isSuspended.read { isSuspended in
             guard isSuspended else {
                 return
             }
@@ -1307,6 +1362,112 @@ extension Database {
     
     /// log function that takes an error message.
     public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
+    
+    /// An option for `Database.trace(options:_:)`
+    public struct TracingOptions: OptionSet {
+        public let rawValue: CInt
+        
+        public init(rawValue: CInt) {
+            self.rawValue = rawValue
+        }
+        
+        /// Reports executed statements
+        public static let statement = TracingOptions(rawValue: SQLITE_TRACE_STMT)
+        
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+        /// Reports executed statements and the estimated duration that the
+        /// statement took to run.
+        public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
+        #elseif os(Linux)
+        #else
+        /// Reports executed statements and the estimated duration that the
+        /// statement took to run.
+        @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
+        public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
+        #endif
+    }
+    
+    /// An event reported by `Database.trace(options:_:)`
+    public enum TraceEvent: CustomStringConvertible {
+        
+        /// Information about a statement reported by `Database.trace(options:_:)`
+        public struct Statement {
+            enum Impl {
+                case trace_v1(String)
+                case trace_v2(
+                    sqliteStatement: SQLiteStatement,
+                    unexpandedSQL: UnsafePointer<CChar>?,
+                    sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
+            }
+            let impl: Impl
+            
+            #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+            /// The executed SQL.
+            public var sql: String { _sql }
+            #elseif os(Linux)
+            #else
+            /// The executed SQL.
+            @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
+            public var sql: String { _sql }
+            #endif
+            
+            var _sql: String {
+                switch impl {
+                case .trace_v1:
+                    // Likely a GRDB bug
+                    fatalError("Not get statement SQL")
+                    
+                case let .trace_v2(sqliteStatement, unexpandedSQL, _):
+                    if let unexpandedSQL = unexpandedSQL {
+                        return String(cString: unexpandedSQL)
+                            .trimmingCharacters(in: .sqlStatementSeparators)
+                    } else {
+                        return String(cString: sqlite3_sql(sqliteStatement))
+                            .trimmingCharacters(in: .sqlStatementSeparators)
+                    }
+                }
+            }
+            
+            /// The executed SQL, with bound parameters expanded.
+            public var expandedSQL: String {
+                switch impl {
+                case let .trace_v1(expandedSQL):
+                    return expandedSQL
+                    
+                case let .trace_v2(sqliteStatement, _, sqlite3_expanded_sql):
+                    guard let cString = sqlite3_expanded_sql(sqliteStatement) else {
+                        return ""
+                    }
+                    defer { sqlite3_free(cString) }
+                    return String(cString: cString)
+                        .trimmingCharacters(in: .sqlStatementSeparators)
+                }
+            }
+        }
+        
+        /// An event reported by `TracingOptions.statement`.
+        case statement(Statement)
+        
+        #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+        /// An event reported by `TracingOptions.profile`.
+        case profile(statement: Statement, duration: TimeInterval)
+        #elseif os(Linux)
+        #else
+        /// An event reported by `TracingOptions.profile`.
+        @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
+        case profile(statement: Statement, duration: TimeInterval)
+        #endif
+        
+        public var description: String {
+            switch self {
+            case let .statement(statement):
+                return statement.expandedSQL
+            case let .profile(statement: statement, duration: duration):
+                let durationString = String(format: "%.3f", duration)
+                return "\(durationString)s \(statement.expandedSQL)"
+            }
+        }
+    }
     
     /// The end of a transaction: Commit, or Rollback
     public enum TransactionCompletion {

@@ -11,7 +11,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3)
 
 
 #### 4.x Releases
@@ -73,6 +73,24 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+## 5.0.0-beta.3
+
+Released June 1, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.2...v5.0.0-beta.3)
+
+### Documentation Diff
+
+- Updated FAQ: [How do I print a request as SQL?](README.md#how-do-i-print-a-request-as-sql)
+- New FAQ: [How do I monitor the duration of database statements execution?](README.md#how-do-i-monitor-the-duration-of-database-statements-execution)
+
+### Fixed
+
+- [#784](https://github.com/groue/GRDB.swift/pull/784): Fix observation of eager-loaded to-many associations
+
+### Breaking Changes
+
+- [#790](https://github.com/groue/GRDB.swift/pull/790): Bump required iOS version to 10.0
+- [#791](https://github.com/groue/GRDB.swift/pull/791): Extend tracing of statement execution
 
 
 ## 5.0.0-beta.2

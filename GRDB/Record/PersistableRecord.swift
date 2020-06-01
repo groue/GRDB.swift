@@ -975,9 +975,9 @@ private struct InsertQuery: Hashable {
 }
 
 extension InsertQuery {
-    static let sqlCache = ReadWriteBox(value: [InsertQuery: String]())
+    @ReadWriteBox private static var sqlCache: [InsertQuery: String] = [:]
     var sql: String {
-        if let sql = InsertQuery.sqlCache.read({ $0[self] }) {
+        if let sql = Self.sqlCache[self] {
             return sql
         }
         let columnsSQL = insertedColumns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
@@ -996,7 +996,7 @@ extension InsertQuery {
             VALUES (\(valuesSQL))
             """
         }
-        InsertQuery.sqlCache.write { $0[self] = sql }
+        Self.sqlCache[self] = sql
         return sql
     }
 }
@@ -1012,9 +1012,9 @@ private struct UpdateQuery: Hashable {
 }
 
 extension UpdateQuery {
-    static let sqlCache = ReadWriteBox(value: [UpdateQuery: String]())
+    @ReadWriteBox private static var sqlCache: [UpdateQuery: String] = [:]
     var sql: String {
-        if let sql = UpdateQuery.sqlCache.read({ $0[self] }) {
+        if let sql = Self.sqlCache[self] {
             return sql
         }
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
@@ -1034,7 +1034,7 @@ extension UpdateQuery {
             WHERE \(whereSQL)
             """
         }
-        UpdateQuery.sqlCache.write { $0[self] = sql }
+        Self.sqlCache[self] = sql
         return sql
     }
 }

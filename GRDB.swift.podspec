@@ -1,6 +1,6 @@
 Pod::Spec.new do |s|
   s.name     = 'GRDB.swift'
-  s.version  = '5.0.0-beta.2'
+  s.version  = '5.0.0-beta.3'
   
   s.license  = { :type => 'MIT', :file => 'LICENSE' }
   s.summary  = 'A toolkit for SQLite databases, with a focus on application development.'
@@ -10,7 +10,7 @@ Pod::Spec.new do |s|
   s.module_name = 'GRDB'
   
   s.swift_versions = ['5.2']
-  s.ios.deployment_target = '9.0'
+  s.ios.deployment_target = '10.0'
   s.osx.deployment_target = '10.10'
   s.watchos.deployment_target = '2.0'
   s.tvos.deployment_target = '9.0'

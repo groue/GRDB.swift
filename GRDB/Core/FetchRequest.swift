@@ -129,7 +129,7 @@ extension FetchRequest {
         let context = SQLGenerationContext(db)
         let sql = try requestSQL(context, forSingleResult: false)
         let statement = try db.makeSelectStatement(sql: sql)
-        return statement.selectedRegion
+        return statement.databaseRegion
     }
     
     /// Returns a PreparedRequest that is ready to be executed.
@@ -216,16 +216,19 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
     private let _requestSQL: (SQLGenerationContext, _ singleResult: Bool) throws -> String
     
     // FetchRequest
-    private let _preparedRequest: (Database, _ singleResult: Bool) throws -> PreparedRequest
+    private let _makePreparedRequest: (Database, _ singleResult: Bool) throws -> PreparedRequest
     private let _fetchCount: (Database) throws -> Int
     
-    #warning("TODO: force same RowDecoder, and expose asRequest(of:)")
-    /// Creates a request that wraps and forwards operations to `request`.
-    public init<Request: FetchRequest>(_ request: Request) {
-        _databaseRegion = request.databaseRegion
-        _requestSQL = request.requestSQL
-        _preparedRequest = request.makePreparedRequest
-        _fetchCount = request.fetchCount
+    /// Creates a request bound to type RowDecoder.
+    ///
+    /// - parameter type: The fetched type RowDecoder
+    /// - returns: A request bound to type RowDecoder.
+    public func asRequest<RowDecoder>(of type: RowDecoder.Type) -> AnyFetchRequest<RowDecoder> {
+        AnyFetchRequest<RowDecoder>(
+            _databaseRegion: _databaseRegion,
+            _requestSQL: _requestSQL,
+            _makePreparedRequest: _makePreparedRequest,
+            _fetchCount: _fetchCount)
     }
     
     /// :nodoc:
@@ -241,11 +244,24 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
     
     /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        try _preparedRequest(db, singleResult)
+        try _makePreparedRequest(db, singleResult)
     }
     
     /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         try _fetchCount(db)
+    }
+}
+
+extension AnyFetchRequest {
+    /// Creates a request that wraps and forwards operations to `request`.
+    public init<Request: FetchRequest>(_ request: Request)
+        where Request.RowDecoder == RowDecoder
+    {
+        self.init(
+            _databaseRegion: request.databaseRegion,
+            _requestSQL: request.requestSQL,
+            _makePreparedRequest: request.makePreparedRequest,
+            _fetchCount: request.fetchCount)
     }
 }

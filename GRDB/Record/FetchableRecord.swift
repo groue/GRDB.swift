@@ -497,7 +497,7 @@ public enum DatabaseDateDecodingStrategy {
     case millisecondsSince1970
     
     /// Decodes dates according to the ISO 8601 standards
-    @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     case iso8601
     
     /// Decodes a String, according to the provided formatter

@@ -16,7 +16,7 @@
 
 ## Features
 
-- [ ] DatabaseMigrator.hasBeenSuperseded(): https://forums.swift.org/t/detect-future-database-migrations/36315/4
+- [ ] Access the database label from the tracing function
 - [ ] Subqueries: request.isEmpty / request.exists
 - [ ] Subqueries: request.count
 - [ ] Extract one row from a hasMany association (the one with the maximum date, the one with a flag set, etc.) https://stackoverflow.com/questions/43188771/sqlite-join-query-most-recent-posts-by-each-user (failed PR: https://github.com/groue/GRDB.swift/pull/767)
@@ -42,7 +42,6 @@
 - [ ] Decode NSDecimalNumber from text database values
 - [ ] Check https://sqlite.org/sqlar.html
 - [ ] FTS: prefix queries
-- [ ] A way to stop a ValueObservation observer without waiting for deinit
 - [ ] More schema alterations
 - [ ] DatabasePool.databaseSchemaIsLocked = true (should forbid schema changes, and never reset dbPool readers' caches). Or can we invalidate reader's cache automatically from the writer connection?
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?

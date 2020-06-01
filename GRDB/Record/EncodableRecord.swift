@@ -348,7 +348,7 @@ public enum DatabaseDateEncodingStrategy {
     case millisecondsSince1970
     
     /// Encodes dates according to the ISO 8601 and RFC 3339 standards
-    @available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     case iso8601
     
     /// Encodes a String, according to the provided formatter

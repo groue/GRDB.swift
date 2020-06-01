@@ -412,7 +412,7 @@ private struct MissingColumnError: Error {
     var column: String
 }
 
-@available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *)
+@available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
 private var iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = .withInternetDateTime
@@ -461,7 +461,7 @@ extension DatabaseDateDecodingStrategy {
             let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
             return Date(timeIntervalSince1970: timeInterval / 1000.0)
         case .iso8601:
-            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
                 let string = String(sqliteStatement: sqliteStatement, index: index)
                 guard let date = iso8601Formatter.date(from: string) else {
                     fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
@@ -540,7 +540,7 @@ extension DatabaseDateDecodingStrategy {
                 .fromDatabaseValue(dbValue)
                 .map { Date(timeIntervalSince1970: $0 / 1000.0) }
         case .iso8601:
-            if #available(macOS 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
+            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
                 return String
                     .fromDatabaseValue(dbValue)
                     .flatMap { iso8601Formatter.date(from: $0) }

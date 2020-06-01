@@ -6,6 +6,8 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
+    // For database region
+    private let prefetchedAssociations: [SQLAssociation]
     
     /// Creates an SQL query generator.
     ///
@@ -57,6 +59,7 @@ struct SQLQueryGenerator: Refinable {
         limit = query.limit
         isDistinct = query.isDistinct
         self.singleResult = singleResult
+        prefetchedAssociations = query.relation.prefetchedAssociations
     }
     
     func requestSQL(_ context: SQLGenerationContext) throws -> String {
@@ -153,8 +156,18 @@ struct SQLQueryGenerator: Refinable {
         let statement = try db.makeSelectStatement(sql: sql)
         statement.arguments = context.arguments
         
-        // Optimize databaseRegion
-        statement.selectedRegion = try optimizedSelectedRegion(db, statement.selectedRegion)
+        // Optimize statement region. This allows us to track individual rowids.
+        statement.databaseRegion = try optimizedSelectedRegion(db, statement.databaseRegion)
+        
+        // Also append the prefetched region. This makes sure we observe the
+        // correct database region when the statement is executed, even if we
+        // don't execute all request statements due to lacking database content.
+        // For example, fetching `parent.including(all: children)` will select
+        // parents, but won't attempt to select any children if there is no
+        // parent in the database. And yet we need to observe the table for
+        // children. This is why we include the prefetched region.
+        try statement.databaseRegion.formUnion(prefetchedRegion(db, associations: prefetchedAssociations))
+        
         return statement
     }
     
@@ -209,18 +222,18 @@ struct SQLQueryGenerator: Refinable {
                 }
                 
                 if equalExpression.lhs is DatabaseValue,
-                    let qualifiedColumn = equalExpression.rhs as? QualifiedColumn
+                    let qualifiedColumn = equalExpression.rhs as? QualifiedColumn,
+                    qualifiedColumn.alias == sourceAlias
                 {
                     // value == Column("foo")
-                    assert(qualifiedColumn.alias == sourceAlias)
                     return qualifiedColumn.name
                 }
                 
                 if equalExpression.rhs is DatabaseValue,
-                    let qualifiedColumn = equalExpression.lhs as? QualifiedColumn
+                    let qualifiedColumn = equalExpression.lhs as? QualifiedColumn,
+                    qualifiedColumn.alias == sourceAlias
                 {
                     // Column("foo") == value
-                    assert(qualifiedColumn.alias == sourceAlias)
                     return qualifiedColumn.name
                 }
                 
@@ -250,6 +263,7 @@ struct SQLQueryGenerator: Refinable {
                     let functionName = expression.functionName.sql.uppercased()
                     guard aggregateFunctionNames.contains(functionName) else {
                         // Not an aggregate function.
+                        // (We miss custom aggregates)
                         continue
                     }
                     guard expression.arguments.allSatisfy({ $0 is QualifiedColumn }) else {
