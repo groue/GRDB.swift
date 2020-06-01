@@ -95,7 +95,7 @@ class DatabaseTraceTests : GRDBTestCase {
             XCTAssertEqual(lastSQL, "SELECT wait(?)")
             XCTAssertEqual(lastExpandedSQL, "SELECT wait(0.5)")
             XCTAssertGreaterThan(lastDuration!, 0.4)
-            XCTAssertLessThan(lastDuration!, 0.6)
+            XCTAssertLessThan(lastDuration!, 2) // Travis can be so slow
             XCTAssert(lastDescription!.hasSuffix("s SELECT wait(0.5)"))
         }
     }
