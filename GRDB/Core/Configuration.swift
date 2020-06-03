@@ -16,7 +16,7 @@ public struct Configuration {
     /// Default: false
     public var readonly: Bool = false
     
-    /// The database label.
+    /// The configuration label.
     ///
     /// You can query this label at runtime:
     ///
@@ -28,7 +28,7 @@ public struct Configuration {
     ///         print(db.configuration.label) // Prints "MyDatabase"
     ///     }
     ///
-    /// The database label is also used to name Database connections (the
+    /// The configuration label is also used to name Database connections (the
     /// `Database.description` property), and the various dispatch queues
     /// created by GRDB, visible in debugging sessions and crash logs.
     ///
@@ -37,8 +37,8 @@ public struct Configuration {
     /// Applications should not depend on connection names and dispatch
     /// queue labels.
     ///
-    /// If the database label is nil, the current GRDB implementation uses the
-    /// following names:
+    /// If the configuration label is nil, the current GRDB implementation uses
+    /// the following names:
     ///
     /// - `GRDB.DatabaseQueue`: the (unique) connection of a DatabaseQueue
     /// - `GRDB.DatabasePool.writer`: the (unique) writer connection of
@@ -50,8 +50,8 @@ public struct Configuration {
     /// - `GRDB.DatabasePool.snapshot.N`: the connection of a DatabaseSnapshot.
     ///   N grows with the number of snapshots.
     ///
-    /// If the database label is not nil, for example "MyDatabase", the current
-    /// GRDB implementation uses the following names:
+    /// If the configuration label is not nil, for example "MyDatabase", the
+    /// current GRDB implementation uses the following names:
     ///
     /// - `MyDatabase`: the (unique) connection of a DatabaseQueue
     /// - `MyDatabase.writer`: the (unique) writer connection of a DatabasePool
@@ -62,7 +62,7 @@ public struct Configuration {
     /// - `MyDatabase.snapshot.N`: the connection of a DatabaseSnapshot. N grows
     ///   with the number of snapshots.
     ///
-    /// The default label is nil.
+    /// The default configuration label is nil.
     public var label: String? = nil
     
     /// If false, SQLite from version 3.29.0 will not interpret a double-quoted
