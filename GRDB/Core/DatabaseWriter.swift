@@ -318,12 +318,15 @@ extension DatabaseWriter {
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         
+        let reduceQueueLabel = configuration.identifier(
+            defaultLabel: "GRDB",
+            purpose: "ValueObservation")
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: self,
             reducer: observation.makeReducer(),
             scheduling: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
+            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
             onError: onError,
             onChange: onChange)
         
