@@ -166,7 +166,7 @@ do {
 }
 ```
 
-> :bulb: **Tip**: In order to be nice to other processes, measure the duration of your longest writes, and attempt at optimizing the ones that last for too long.
+> :bulb: **Tip**: In order to be nice to other processes, measure the duration of your longest writes, and attempt at optimizing the ones that last for too long. See the [How do I monitor the duration of database statements execution?] FAQ.
 
 
 ## How to limit the `0xDEAD10CC` exception
@@ -286,3 +286,4 @@ let observer = try observation.start(in: dbPool) { (db: Database) in
 [CFNotificationCenterGetDarwinNotifyCenter]: https://developer.apple.com/documentation/corefoundation/1542572-cfnotificationcentergetdarwinnot
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [WAL mode]: https://www.sqlite.org/wal.html
+[How do I monitor the duration of database statements execution?]: ../README.md#how-do-i-monitor-the-duration-of-database-statements-execution
