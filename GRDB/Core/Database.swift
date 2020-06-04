@@ -19,7 +19,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 ///     try dbQueue.write { db in
 ///         try Player(...).insert(db)
 ///     }
-public final class Database: CustomStringConvertible {
+public final class Database: CustomStringConvertible, CustomDebugStringConvertible {
     // The Database class is not thread-safe. An instance should always be
     // used through a SerializedDatabase.
     
@@ -61,6 +61,8 @@ public final class Database: CustomStringConvertible {
     
     /// See `Configuration.label`
     public let description: String
+    
+    public var debugDescription: String { "<Database: \(description)>" }
     
     // MARK: - Database Information
     
