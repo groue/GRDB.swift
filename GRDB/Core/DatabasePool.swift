@@ -372,8 +372,11 @@ extension DatabasePool: DatabaseReader {
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         // First async jump in order to grab a reader connection.
         // Honor configuration dispatching (qos/targetQueue).
+        let label = configuration.identifier(
+            defaultLabel: "GRDB.DatabasePool",
+            purpose: "asyncRead")
         configuration
-            .makeDispatchQueue(defaultLabel: "GRDB.DatabasePool", purpose: "asyncRead")
+            .makeDispatchQueue(label: label)
             .async {
                 do {
                     let (reader, releaseReader) = try self.readerPool.get()
@@ -406,8 +409,11 @@ extension DatabasePool: DatabaseReader {
     public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
         // First async jump in order to grab a reader connection.
         // Honor configuration dispatching (qos/targetQueue).
+        let label = configuration.identifier(
+            defaultLabel: "GRDB.DatabasePool",
+            purpose: "asyncRead")
         configuration
-            .makeDispatchQueue(defaultLabel: "GRDB.DatabasePool", purpose: "asyncRead")
+            .makeDispatchQueue(label: label)
             .async { [weak self] in
                 guard let self = self else {
                     block(nil)
@@ -866,12 +872,15 @@ extension DatabasePool: DatabaseReader {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
         
+        let reduceQueueLabel = configuration.identifier(
+            defaultLabel: "GRDB",
+            purpose: "ValueObservation")
         let observer = ValueObserver<Reducer>(
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: self,
             reducer: observation.makeReducer(),
             scheduling: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(defaultLabel: "GRDB", purpose: "ValueObservation.reducer"),
+            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
             onError: onError,
             onChange: onChange)
         

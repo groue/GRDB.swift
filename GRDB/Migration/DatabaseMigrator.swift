@@ -140,6 +140,7 @@ public struct DatabaseMigrator {
                         // migrations would involve a lot of data).
                         var witnessConfiguration = writer.configuration
                         witnessConfiguration.targetQueue = nil // Avoid deadlocks
+                        witnessConfiguration.label = "GRDB.DatabaseMigrator.temporary"
                         let witness = try DatabaseQueue(path: "", configuration: witnessConfiguration)
                         
                         // Grab schema of migrated witness database

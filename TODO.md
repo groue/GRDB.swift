@@ -16,8 +16,6 @@
 
 ## Features
 
-- [ ] Access the database label
-- [ ] Label the Migrator witness dbQueue
 - [ ] Subqueries: request.isEmpty / request.exists
 - [ ] Subqueries: request.count
 - [ ] Extract one row from a hasMany association (the one with the maximum date, the one with a flag set, etc.) https://stackoverflow.com/questions/43188771/sqlite-join-query-most-recent-posts-by-each-user (failed PR: https://github.com/groue/GRDB.swift/pull/767)

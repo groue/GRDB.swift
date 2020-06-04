@@ -201,6 +201,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let snapshot1 = try dbPool.makeSnapshot()
         snapshot1.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, nil)
+            XCTAssertEqual(db.description, "GRDB.DatabasePool.snapshot.1")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
@@ -211,6 +212,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let snapshot2 = try dbPool.makeSnapshot()
         snapshot2.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, nil)
+            XCTAssertEqual(db.description, "GRDB.DatabasePool.snapshot.2")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
@@ -226,6 +228,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let snapshot1 = try dbPool.makeSnapshot()
         snapshot1.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, "Toreador")
+            XCTAssertEqual(db.description, "Toreador.snapshot.1")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
@@ -236,6 +239,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let snapshot2 = try dbPool.makeSnapshot()
         snapshot2.unsafeRead { db in
             XCTAssertEqual(db.configuration.label, "Toreador")
+            XCTAssertEqual(db.description, "Toreador.snapshot.2")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.

@@ -43,8 +43,13 @@ final class SerializedDatabase {
         config.threadingMode = .multiThread
         
         self.path = path
-        self.db = try Database(path: path, configuration: config, schemaCache: schemaCache)
-        self.queue = configuration.makeDispatchQueue(defaultLabel: defaultLabel, purpose: purpose)
+        let identifier = configuration.identifier(defaultLabel: defaultLabel, purpose: purpose)
+        self.db = try Database(
+            path: path,
+            description: identifier,
+            configuration: config,
+            schemaCache: schemaCache)
+        self.queue = configuration.makeDispatchQueue(label: identifier)
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
             do {
