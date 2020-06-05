@@ -4431,7 +4431,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Player.select(count(distinct: nameColumn))
     
     // SELECT JULIANDAY(date, 'start of year') FROM game
-    Game.select(julianday(dateColumn, .startOfYear))
+    Game.select(julianDay(dateColumn, .startOfYear))
     ```
     
     For more information about the functions `dateTime` and `julianDay`, see [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html).
