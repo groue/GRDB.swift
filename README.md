@@ -4416,9 +4416,9 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 ### SQL Functions
 
-- `ABS`, `AVG`, `COUNT`, `LENGTH`, `MAX`, `MIN`, `SUM`:
+- `ABS`, `AVG`, `COUNT`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`:
     
-    Those are based on the `abs`, `average`, `count`, `length`, `max`, `min` and `sum` Swift functions:
+    Those are based on the `abs`, `average`, `count`, `julianDay`, `length`, `max`, `min` and `sum` Swift functions:
     
     ```swift
     // SELECT MIN(score), MAX(score) FROM player
