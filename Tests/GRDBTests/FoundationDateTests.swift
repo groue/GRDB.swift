@@ -256,4 +256,17 @@ class FoundationDateTests : GRDBTestCase {
             XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
         }
     }
+    
+    func testJulianDaySQLFunction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(
+                sql: "INSERT INTO dates (creationDate) VALUES (?)",
+                arguments: ["2013-01-01T00:29:59"])
+            let expression = julianDay(Column("creationDate"))
+            let request: SQLRequest<Double> = "SELECT \(expression) from dates"
+            let double = try request.fetchOne(db)!
+            XCTAssertEqual(double, 2456293.5208217595)
+        }
+    }
 }
