@@ -144,7 +144,7 @@ public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
 }
 
 
-// MARK: - Swift String functions
+// MARK: - String functions
 
 /// :nodoc:
 extension SQLSpecificExpressible {
@@ -213,4 +213,21 @@ extension SQLSpecificExpressible {
     public var localizedUppercased: SQLExpression {
         DatabaseFunction.localizedUppercase(sqlExpression)
     }
+}
+
+// MARK: - Date functions
+
+// MARK: JULIANDAY(...)
+
+extension SQLFunctionName {
+    /// The `JULIANDAY` function name
+    public static let julianDay = SQLFunctionName("JULIANDAY")
+}
+
+/// Returns an expression that evaluates the `JULIANDAY` SQL function.
+///
+///     // JULIANDAY(date)
+///     julianDay(Column("date"))
+public func julianDay(_ value: SQLSpecificExpressible) -> SQLExpression {
+    SQLExpressionFunction(.julianDay, arguments: value)
 }
