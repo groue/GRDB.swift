@@ -70,7 +70,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
+### Documentation Diff
+
+- The [SQL Functions](README.md#sql-functions) chapter was updated for the new `julianDay` and `dateTime` functions.
+
+### New
+
 - [#794](https://github.com/groue/GRDB.swift/pull/794): Name of Database Connections
+- Add the `julianDay` and `dateTime` functions
 
 
 ## 5.0.0-beta.3

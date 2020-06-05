@@ -4416,9 +4416,9 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 ### SQL Functions
 
-- `ABS`, `AVG`, `COUNT`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`:
+- `ABS`, `AVG`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`:
     
-    Those are based on the `abs`, `average`, `count`, `julianDay`, `length`, `max`, `min` and `sum` Swift functions:
+    Those are based on the `abs`, `average`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min` and `sum` Swift functions:
     
     ```swift
     // SELECT MIN(score), MAX(score) FROM player
@@ -4429,7 +4429,12 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     
     // SELECT COUNT(DISTINCT name) FROM player
     Player.select(count(distinct: nameColumn))
+    
+    // SELECT JULIANDAY(date, 'start of year') FROM game
+    Game.select(julianday(dateColumn, .startOfYear))
     ```
+    
+    For more information about the functions `dateTime` and `julianDay`, see [Date And Time Functions](https://www.sqlite.org/lang_datefunc.html).
 
 - `IFNULL`
     
