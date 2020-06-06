@@ -4,6 +4,12 @@ Here is a list of people who were happy to meet GRDB :-)
 
 ---
 
+https://twitter.com/stephencelis/status/1263518304980918274
+
+> GRDB.swift is great! (I say this as the person that started SQLite.swift long ago.) And @groue’s very helpful and friendly.
+
+---
+
 https://twitter.com/peres/status/1262682199482142720
 
 > GRDB in already in my top3 when it comes to documentation. Clearly and pragmatically explained.GRDB in already in my top3 when it comes to documentation. Clearly and pragmatically explained.
