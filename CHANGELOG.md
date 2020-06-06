@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+<!--
 [Next Release](#next-release)
+-->
 
 #### 5.x Releases
 
-- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4)
 
 
 #### 4.x Releases
@@ -68,10 +70,18 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
+<!--
 ## Next Release
+-->
+
+
+## 5.0.0-beta.4
+
+Released June 6, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.3...v5.0.0-beta.4)
 
 ### Documentation Diff
 
+- [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md) was updated for RxGRDB and GRDBCombine 1.0 beta 2, which haved change their way to configure how ValueObservation schedules fresh database values.
 - The [SQL Functions](README.md#sql-functions) chapter was updated for the new `julianDay` and `dateTime` functions.
 
 ### New
