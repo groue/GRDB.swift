@@ -144,7 +144,7 @@ public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
 }
 
 
-// MARK: - Swift String functions
+// MARK: - String functions
 
 /// :nodoc:
 extension SQLSpecificExpressible {
@@ -213,4 +213,108 @@ extension SQLSpecificExpressible {
     public var localizedUppercased: SQLExpression {
         DatabaseFunction.localizedUppercase(sqlExpression)
     }
+}
+
+// MARK: - Date functions
+
+/// A date modifier for SQLite date functions.
+///
+/// For more information, see https://www.sqlite.org/lang_datefunc.html
+public enum SQLDateModifier: SQLExpression {
+    case day(Int)
+    case hour(Int)
+    case minute(Int)
+    case second(Double)
+    case month(Int)
+    case year(Int)
+    case startOfMonth
+    case startOfYear
+    case startOfDay
+    case weekday(Int)
+    case unixEpoch
+    case localTime
+    case utc
+    
+    var rawValue: String {
+        switch self {
+        case let .day(value):
+            return "\(value) days"
+        case let .hour(value):
+            return "\(value) hours"
+        case let .minute(value):
+            return "\(value) minutes"
+        case let .second(value):
+            return "\(value) seconds"
+        case let .month(value):
+            return "\(value) months"
+        case let .year(value):
+            return "\(value) years"
+        case .startOfMonth:
+            return "start of month"
+        case .startOfYear:
+            return "start of year"
+        case .startOfDay:
+            return "start of day"
+        case let .weekday(value):
+            return "weekday \(value)"
+        case .unixEpoch:
+            return "unixepoch"
+        case .localTime:
+            return "localtime"
+        case .utc:
+            return "utc"
+        }
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try rawValue.databaseValue.expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
+    }
+    
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// :nodoc:
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        self
+    }
+}
+
+// MARK: JULIANDAY(...)
+
+extension SQLFunctionName {
+    /// The `JULIANDAY` function name
+    public static let julianDay = SQLFunctionName("JULIANDAY")
+}
+
+/// Returns an expression that evaluates the `JULIANDAY` SQL function.
+///
+///     // JULIANDAY(date)
+///     julianDay(Column("date"))
+///
+///     // JULIANDAY(date, '1 days')
+///     julianDay(Column("date"), .day(1))
+///
+/// For more information, see https://www.sqlite.org/lang_datefunc.html
+public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
+    SQLExpressionFunction(.julianDay, arguments: [value.sqlExpression] + modifiers)
+}
+
+// MARK: DATETIME(...)
+
+extension SQLFunctionName {
+    /// The `DATETIME` function name
+    public static let dateTime = SQLFunctionName("DATETIME")
+}
+
+/// Returns an expression that evaluates the `DATETIME` SQL function.
+///
+///     // DATETIME(date)
+///     dateTime(Column("date"))
+///
+///     // DATETIME(date, '1 days')
+///     dateTime(Column("date"), .day(1))
+///
+/// For more information, see https://www.sqlite.org/lang_datefunc.html
+public func dateTime(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
+    SQLExpressionFunction(.dateTime, arguments: [value.sqlExpression] + modifiers)
 }

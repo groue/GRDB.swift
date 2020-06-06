@@ -256,4 +256,100 @@ class FoundationDateTests : GRDBTestCase {
             XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
         }
     }
+    
+    func testJulianDaySQLFunction() throws {
+        // 00:30:00.0 UT January 1, 2013 according to https://en.wikipedia.org/wiki/Julian_day
+        let jdn = 2_456_293.520833
+        guard let date = Date(julianDay: jdn) else {
+            XCTFail()
+            return
+        }
+        
+        func assert(
+            _ db: Database,
+            _ expression: SQLExpression,
+            equal expectedDate: Date,
+            file: StaticString = #file,
+            line: UInt = #line) throws
+        {
+            let request: SQLRequest<Double> = "SELECT \(expression)"
+            guard let shiftedDate = try request.fetchOne(db).flatMap(Date.init(julianDay:)) else {
+                XCTFail(file: file, line: line)
+                return
+            }
+            let shiftedInterval = shiftedDate.timeIntervalSince(date)
+            let expectedInterval = expectedDate.timeIntervalSince(date)
+            XCTAssertEqual(shiftedInterval, expectedInterval, accuracy: 0.1, file: file, line: line)
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let dbDate = date.databaseValue
+            try assert(db, julianDay(dbDate), equal: date)
+            try assert(db, julianDay(dbDate, .day(1)), equal: date.addingTimeInterval(86400))
+            try assert(db, julianDay(dbDate, .day(-1)), equal: date.addingTimeInterval(-86400))
+            try assert(db, julianDay(dbDate, .hour(1)), equal: date.addingTimeInterval(3600))
+            try assert(db, julianDay(dbDate, .hour(-1)), equal: date.addingTimeInterval(-3600))
+            try assert(db, julianDay(dbDate, .minute(1)), equal: date.addingTimeInterval(60))
+            try assert(db, julianDay(dbDate, .minute(-1)), equal: date.addingTimeInterval(-60))
+            try assert(db, julianDay(dbDate, .second(1)), equal: date.addingTimeInterval(1))
+            try assert(db, julianDay(dbDate, .second(-1)), equal: date.addingTimeInterval(-1))
+            try assert(db, julianDay(dbDate, .second(1.5)), equal: date.addingTimeInterval(1.5))
+            try assert(db, julianDay(dbDate, .month(1)), equal: date.addingTimeInterval(2678400))
+            try assert(db, julianDay(dbDate, .month(-1)), equal: date.addingTimeInterval(-2678400))
+            try assert(db, julianDay(dbDate, .year(1)), equal: date.addingTimeInterval(31536000))
+            try assert(db, julianDay(dbDate, .year(-1)), equal: date.addingTimeInterval(-31622400))
+            try assert(db, julianDay(dbDate, .startOfDay), equal: date.addingTimeInterval(-1800))
+            try assert(db, julianDay(dbDate, .startOfMonth), equal: date.addingTimeInterval(-1800))
+            try assert(db, julianDay(dbDate, .startOfYear), equal: date.addingTimeInterval(-1800))
+            try assert(db, julianDay(dbDate, .startOfMonth, .month(+1), .day(-1)), equal: date.addingTimeInterval(2590200))
+        }
+    }
+    
+    func testDateTimeSQLFunction() throws {
+        // 00:30:00.0 UT January 1, 2013 according to https://en.wikipedia.org/wiki/Julian_day
+        let jdn = 2_456_293.520833
+        guard let date = Date(julianDay: jdn) else {
+            XCTFail()
+            return
+        }
+        
+        func assert(
+            _ db: Database,
+            _ expression: SQLExpression,
+            equal expectedDate: String,
+            file: StaticString = #file,
+            line: UInt = #line) throws
+        {
+            let request: SQLRequest<String> = "SELECT \(expression)"
+            guard let shiftedDate = try request.fetchOne(db) else {
+                XCTFail(file: file, line: line)
+                return
+            }
+            XCTAssertEqual(shiftedDate, expectedDate, file: file, line: line)
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let dbDate = date.databaseValue
+            try assert(db, dateTime(dbDate), equal: "2013-01-01 00:29:59")
+            try assert(db, dateTime(dbDate, .day(1)), equal: "2013-01-02 00:29:59")
+            try assert(db, dateTime(dbDate, .day(-1)), equal: "2012-12-31 00:29:59")
+            try assert(db, dateTime(dbDate, .hour(1)), equal: "2013-01-01 01:29:59")
+            try assert(db, dateTime(dbDate, .hour(-1)), equal: "2012-12-31 23:29:59")
+            try assert(db, dateTime(dbDate, .minute(1)), equal: "2013-01-01 00:30:59")
+            try assert(db, dateTime(dbDate, .minute(-1)), equal: "2013-01-01 00:28:59")
+            try assert(db, dateTime(dbDate, .second(1)), equal: "2013-01-01 00:30:00")
+            try assert(db, dateTime(dbDate, .second(-1)), equal: "2013-01-01 00:29:58")
+            try assert(db, dateTime(dbDate, .second(1.5)), equal: "2013-01-01 00:30:01")
+            try assert(db, dateTime(dbDate, .month(1)), equal: "2013-02-01 00:29:59")
+            try assert(db, dateTime(dbDate, .month(-1)), equal: "2012-12-01 00:29:59")
+            try assert(db, dateTime(dbDate, .year(1)), equal: "2014-01-01 00:29:59")
+            try assert(db, dateTime(dbDate, .year(-1)), equal: "2012-01-01 00:29:59")
+            try assert(db, dateTime(dbDate, .startOfDay), equal: "2013-01-01 00:00:00")
+            try assert(db, dateTime(dbDate, .startOfMonth), equal: "2013-01-01 00:00:00")
+            try assert(db, dateTime(dbDate, .startOfYear), equal: "2013-01-01 00:00:00")
+            try assert(db, dateTime(dbDate, .startOfMonth, .month(+1), .day(-1)), equal: "2013-01-31 00:00:00")
+        }
+    }
 }

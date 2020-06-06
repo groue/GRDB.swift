@@ -1,3 +1,21 @@
+/// SQLExpressible is free for RawRepresentable types whose raw value
+/// is itself SQLExpressible.
+///
+///     // If the RawValue adopts SQLExpressible...
+///     enum Color : Int {
+///         case red
+///         case white
+///         case rose
+///     }
+///
+///     // ... then the RawRepresentable type can freely adopt SQLExpressible:
+///     extension Color : SQLExpressible { /* empty */ }
+extension SQLExpressible where Self: RawRepresentable, Self.RawValue: SQLExpressible {
+    public var sqlExpression: SQLExpression {
+        rawValue.sqlExpression
+    }
+}
+
 /// DatabaseValueConvertible is free for RawRepresentable types whose raw value
 /// is itself DatabaseValueConvertible.
 ///

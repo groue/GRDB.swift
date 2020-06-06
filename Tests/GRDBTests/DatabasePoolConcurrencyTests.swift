@@ -872,6 +872,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         dbPool.writeWithoutTransaction { db in
             XCTAssertEqual(db.configuration.label, nil)
+            XCTAssertEqual(db.description, "GRDB.DatabasePool.writer")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
@@ -884,6 +885,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block1 = { () in
             try! dbPool.read { db in
                 XCTAssertEqual(db.configuration.label, nil)
+                XCTAssertEqual(db.description, "GRDB.DatabasePool.reader.1")
                 
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
@@ -899,6 +901,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try! dbPool.read { db in
                 _ = s2.signal()
                 XCTAssertEqual(db.configuration.label, nil)
+                XCTAssertEqual(db.description, "GRDB.DatabasePool.reader.2")
                 
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
@@ -917,6 +920,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let dbPool = try makeDatabasePool()
         dbPool.writeWithoutTransaction { db in
             XCTAssertEqual(db.configuration.label, "Toreador")
+            XCTAssertEqual(db.description, "Toreador.writer")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
@@ -929,6 +933,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         let block1 = { () in
             try! dbPool.read { db in
                 XCTAssertEqual(db.configuration.label, "Toreador")
+                XCTAssertEqual(db.description, "Toreador.reader.1")
                 
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
@@ -944,6 +949,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try! dbPool.read { db in
                 _ = s2.signal()
                 XCTAssertEqual(db.configuration.label, "Toreador")
+                XCTAssertEqual(db.description, "Toreador.reader.2")
                 
                 // This test CAN break in future releases: the dispatch queue labels
                 // are documented to be a debug-only tool.
@@ -1319,7 +1325,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         return dbPool!
     }
-
+    
     // Test for sample code in Documentation/SharingADatabase.md.
     // This test passes if this method compiles
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
@@ -1348,7 +1354,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
         }
         return dbPool
     }
-
+    
     // Test for sample code in Documentation/SharingADatabase.md.
     // This test passes if this method compiles
     private func openReadOnlyDatabase(at databaseURL: URL) throws -> DatabasePool? {

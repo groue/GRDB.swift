@@ -54,7 +54,7 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssertEqual(error.description.lowercased(), "sqlite error 1 with statement `select succ(1)`: no such function: succ")
         }
     }
-
+    
     func testAddRemoveCollation() throws {
         // Adding a collation and then removing it should succeed
         let dbQueue = try makeDatabaseQueue()
@@ -100,6 +100,7 @@ class DatabaseQueueTests: GRDBTestCase {
         XCTAssertEqual(dbQueue.configuration.label, nil)
         dbQueue.inDatabase { db in
             XCTAssertEqual(db.configuration.label, nil)
+            XCTAssertEqual(db.description, "GRDB.DatabaseQueue")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.
@@ -114,6 +115,7 @@ class DatabaseQueueTests: GRDBTestCase {
         XCTAssertEqual(dbQueue.configuration.label, "Toreador")
         dbQueue.inDatabase { db in
             XCTAssertEqual(db.configuration.label, "Toreador")
+            XCTAssertEqual(db.description, "Toreador")
             
             // This test CAN break in future releases: the dispatch queue labels
             // are documented to be a debug-only tool.

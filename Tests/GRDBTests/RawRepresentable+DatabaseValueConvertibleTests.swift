@@ -1,34 +1,45 @@
 import XCTest
 import GRDB
 
-enum Color32 : Int32 {
+private enum Color32 : Int32 {
     case red
     case white
     case rose
 }
 
-enum Color64 : Int64 {
+private enum Color64 : Int64 {
     case red
     case white
     case rose
 }
 
-enum Color : Int {
+private enum Color : Int {
     case red
     case white
     case rose
 }
 
-enum Grape : String {
+private enum Grape : String {
     case chardonnay
     case merlot
     case riesling
 }
 
+private struct Wrapper<RawValue>: RawRepresentable {
+    var rawValue: RawValue
+}
+
+extension Color32 : SQLExpressible { }
+extension Color64 : SQLExpressible { }
+extension Color : SQLExpressible { }
+extension Grape : SQLExpressible { }
+extension Wrapper: SQLExpressible where RawValue: SQLExpressible { }
+
 extension Color32 : DatabaseValueConvertible { }
 extension Color64 : DatabaseValueConvertible { }
 extension Color : DatabaseValueConvertible { }
 extension Grape : DatabaseValueConvertible { }
+extension Wrapper: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
 
 class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
     
