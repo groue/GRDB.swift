@@ -193,9 +193,10 @@ The changes can quite impact your application. We'll describe them below, as wel
     ```swift
     let observation = ValueObservation.tracking(Player.fetchAll)
     let cancellable = observation
-        .publisher(in: dbQueue)
-        // Opt in for immediate notification of the initial value
-        .scheduling(.immediate)
+        .publisher(
+            in: dbQueue, 
+            // Opt in for immediate notification of the initial value
+            scheduling: .immediate)
         .sink(...)
     ```
     
@@ -207,9 +208,10 @@ The changes can quite impact your application. We'll describe them below, as wel
     ```swift
     let observation = ValueObservation.tracking(Player.fetchAll)
     let disposable = observation
-        .rx.observe(in: dbQueue)
-        // Opt in for immediate notification of the initial value
-        .scheduling(.immediate)
+        .rx.observe(
+            in: dbQueue, 
+            // Opt in for immediate notification of the initial value
+            scheduling: .immediate)
         .subscribe(...)
     ```
     
