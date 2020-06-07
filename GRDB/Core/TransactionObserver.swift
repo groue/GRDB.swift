@@ -283,6 +283,17 @@ class DatabaseObservationBroker {
             }
         }
         
+        switch transactionState {
+        case .none:
+            break
+        default:
+            // May happen after "PRAGMA journal_mode = WAL" executed with a
+            // SelectStatement.
+            // TODO: Maybe this state machine should be run for *all* statements,
+            // not ony update statements.
+            transactionState = .none
+        }
+
         if observesRowDeletion {
             return TruncateOptimizationBlocker()
         } else {
