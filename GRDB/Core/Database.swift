@@ -621,11 +621,34 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    // MARK: - Checkpoints
+    // MARK: - WAL Checkpoints
     
-    func checkpoint(_ kind: Database.CheckpointMode) throws {
-        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
-        guard code == SQLITE_OK else {
+    /// Runs a WAL checkpoint.
+    ///
+    /// See https://www.sqlite.org/wal.html and
+    /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html for
+    /// more information.
+    ///
+    /// - parameter kind: The checkpoint mode (default passive)
+    /// - parameter dbName: The database name (default "main")
+    /// - returns: A tuple:
+    ///     - `logCount`: the total number of frames in the log file
+    ///     - `checkpointCount`: the total number of checkpointed frames in the
+    ///       log file
+    @discardableResult
+    public func checkpoint(_ kind: Database.CheckpointMode = .passive, on dbName: String? = "main") throws
+        -> (logCount: Int, checkpointCount: Int)
+    {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        var logCount: CInt = -1
+        var checkpointCount: CInt = -1
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, dbName, kind.rawValue, &logCount, &checkpointCount)
+        switch code {
+        case SQLITE_OK:
+            return (logCount: Int(logCount), checkpointCount: Int(checkpointCount))
+        case SQLITE_MISUSE:
+            throw DatabaseError(resultCode: code)
+        default:
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
     }
