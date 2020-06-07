@@ -642,7 +642,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         SchedulingWatchdog.preconditionValidQueue(self)
         var walFrameCount: CInt = -1
         var checkpointedFrameCount: CInt = -1
-        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, dbName, kind.rawValue, &walFrameCount, &checkpointedFrameCount)
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, dbName, kind.rawValue,
+                                             &walFrameCount, &checkpointedFrameCount)
         switch code {
         case SQLITE_OK:
             return (walFrameCount: Int(walFrameCount), checkpointedFrameCount: Int(checkpointedFrameCount))
