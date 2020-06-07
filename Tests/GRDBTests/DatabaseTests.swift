@@ -345,4 +345,34 @@ class DatabaseTests : GRDBTestCase {
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
     }
+    
+    func testCheckpoint() throws {
+        do {
+            // Not a WAL database
+            let dbQueue = try makeDatabaseQueue()
+            let result = try dbQueue.inDatabase {
+                try $0.checkpoint()
+            }
+            XCTAssertEqual(result.logCount, -1)
+            XCTAssertEqual(result.checkpointCount, -1)
+        }
+        do {
+            // WAL database
+            let dbPool = try makeDatabasePool()
+            let result = try dbPool.writeWithoutTransaction {
+                try $0.checkpoint()
+            }
+            XCTAssertGreaterThanOrEqual(result.logCount, 0)
+            XCTAssertGreaterThanOrEqual(result.checkpointCount, 0)
+        }
+        do {
+            // WAL database + TRUNCATE
+            let dbPool = try makeDatabasePool()
+            let result = try dbPool.writeWithoutTransaction {
+                try $0.checkpoint(.truncate)
+            }
+            XCTAssertEqual(result.logCount, 0)
+            XCTAssertEqual(result.checkpointCount, 0)
+        }
+    }
 }
