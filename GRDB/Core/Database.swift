@@ -211,9 +211,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// This method must be called after database initialization
     func setup() throws {
+        setupBusyMode()
         setupDoubleQuotedStringLiterals()
         try setupForeignKeys()
-        setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
         setupAuthorizer()
