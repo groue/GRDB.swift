@@ -632,20 +632,20 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// - parameter kind: The checkpoint mode (default passive)
     /// - parameter dbName: The database name (default "main")
     /// - returns: A tuple:
-    ///     - `logCount`: the total number of frames in the log file
-    ///     - `checkpointCount`: the total number of checkpointed frames in the
-    ///       log file
+    ///     - `walFrameCount`: the total number of frames in the log file
+    ///     - `checkpointedFrameCount`: the total number of checkpointed frames
+    ///       in the log file
     @discardableResult
     public func checkpoint(_ kind: Database.CheckpointMode = .passive, on dbName: String? = "main") throws
-        -> (logCount: Int, checkpointCount: Int)
+        -> (walFrameCount: Int, checkpointedFrameCount: Int)
     {
         SchedulingWatchdog.preconditionValidQueue(self)
-        var logCount: CInt = -1
-        var checkpointCount: CInt = -1
-        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, dbName, kind.rawValue, &logCount, &checkpointCount)
+        var walFrameCount: CInt = -1
+        var checkpointedFrameCount: CInt = -1
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, dbName, kind.rawValue, &walFrameCount, &checkpointedFrameCount)
         switch code {
         case SQLITE_OK:
-            return (logCount: Int(logCount), checkpointCount: Int(checkpointCount))
+            return (walFrameCount: Int(walFrameCount), checkpointedFrameCount: Int(checkpointedFrameCount))
         case SQLITE_MISUSE:
             throw DatabaseError(resultCode: code)
         default:

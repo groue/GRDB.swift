@@ -353,8 +353,8 @@ class DatabaseTests : GRDBTestCase {
             let result = try dbQueue.inDatabase {
                 try $0.checkpoint()
             }
-            XCTAssertEqual(result.logCount, -1)
-            XCTAssertEqual(result.checkpointCount, -1)
+            XCTAssertEqual(result.walFrameCount, -1)
+            XCTAssertEqual(result.checkpointedFrameCount, -1)
         }
         do {
             // WAL database
@@ -362,8 +362,8 @@ class DatabaseTests : GRDBTestCase {
             let result = try dbPool.writeWithoutTransaction {
                 try $0.checkpoint()
             }
-            XCTAssertGreaterThanOrEqual(result.logCount, 0)
-            XCTAssertGreaterThanOrEqual(result.checkpointCount, 0)
+            XCTAssertGreaterThanOrEqual(result.walFrameCount, 0)
+            XCTAssertGreaterThanOrEqual(result.checkpointedFrameCount, 0)
         }
         do {
             // WAL database + TRUNCATE
@@ -371,8 +371,8 @@ class DatabaseTests : GRDBTestCase {
             let result = try dbPool.writeWithoutTransaction {
                 try $0.checkpoint(.truncate)
             }
-            XCTAssertEqual(result.logCount, 0)
-            XCTAssertEqual(result.checkpointCount, 0)
+            XCTAssertEqual(result.walFrameCount, 0)
+            XCTAssertEqual(result.checkpointedFrameCount, 0)
         }
     }
 }
