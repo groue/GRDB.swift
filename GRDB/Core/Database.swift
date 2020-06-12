@@ -389,7 +389,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// elements:
     ///
     ///     let ids: [Int] = ...
-    ///     Player.deleteAll(keys: ids)
+    ///     try dbQueue.write { db in
+    ///         try Player.deleteAll(db, keys: ids)
+    ///     }
     ///
     /// See https://www.sqlite.org/limits.html
     /// and `SQLITE_LIMIT_VARIABLE_NUMBER`.
