@@ -375,4 +375,11 @@ class DatabaseTests : GRDBTestCase {
             XCTAssertEqual(result.checkpointedFrameCount, 0)
         }
     }
+    
+    func testMaximumStatementArgumentCount() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let count = dbQueue.read { $0.maximumStatementArgumentCount }
+        // 999 should be safe: https://www.sqlite.org/limits.html
+        XCTAssertGreaterThanOrEqual(count, 999)
+    }
 }

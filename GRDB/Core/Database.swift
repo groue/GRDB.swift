@@ -380,6 +380,23 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
+    // MARK: - Limits
+    
+    /// The maximum number of arguments accepted by an SQLite statement.
+    ///
+    /// For example, requests such as the one below must make sure the `ids`
+    /// array does not contain more than `maximumStatementArgumentCount`
+    /// elements:
+    ///
+    ///     let ids: [Int] = ...
+    ///     Player.deleteAll(keys: ids)
+    ///
+    /// See https://www.sqlite.org/limits.html
+    /// and `SQLITE_LIMIT_VARIABLE_NUMBER`.
+    public var maximumStatementArgumentCount: Int {
+        Int(sqlite3_limit(sqliteConnection, SQLITE_LIMIT_VARIABLE_NUMBER, -1))
+    }
+
     // MARK: - Functions
     
     /// Add or redefine an SQL function.
