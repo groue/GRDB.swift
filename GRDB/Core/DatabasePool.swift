@@ -169,24 +169,6 @@ public final class DatabasePool: DatabaseWriter {
 
 extension DatabasePool {
     
-    // MARK: - WAL Checkpoints
-    
-    /// Runs a WAL checkpoint
-    ///
-    /// See https://www.sqlite.org/wal.html and
-    /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html) for
-    /// more information.
-    ///
-    /// - parameter kind: The checkpoint mode (default passive)
-    public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
-        try writer.sync { db in
-            try db.checkpoint(kind)
-        }
-    }
-}
-
-extension DatabasePool {
-    
     // MARK: - Memory management
     
     /// Free as much memory as possible.

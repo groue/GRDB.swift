@@ -211,9 +211,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// This method must be called after database initialization
     func setup() throws {
+        setupBusyMode()
         setupDoubleQuotedStringLiterals()
         try setupForeignKeys()
-        setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
         setupAuthorizer()
@@ -621,11 +621,35 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    // MARK: - Checkpoints
+    // MARK: - WAL Checkpoints
     
-    func checkpoint(_ kind: Database.CheckpointMode) throws {
-        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
-        guard code == SQLITE_OK else {
+    /// Runs a WAL checkpoint.
+    ///
+    /// See https://www.sqlite.org/wal.html and
+    /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html for
+    /// more information.
+    ///
+    /// - parameter kind: The checkpoint mode (default passive)
+    /// - parameter dbName: The database name (default "main")
+    /// - returns: A tuple:
+    ///     - `walFrameCount`: the total number of frames in the log file
+    ///     - `checkpointedFrameCount`: the total number of checkpointed frames
+    ///       in the log file
+    @discardableResult
+    public func checkpoint(_ kind: Database.CheckpointMode = .passive, on dbName: String? = "main") throws
+        -> (walFrameCount: Int, checkpointedFrameCount: Int)
+    {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        var walFrameCount: CInt = -1
+        var checkpointedFrameCount: CInt = -1
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, dbName, kind.rawValue,
+                                             &walFrameCount, &checkpointedFrameCount)
+        switch code {
+        case SQLITE_OK:
+            return (walFrameCount: Int(walFrameCount), checkpointedFrameCount: Int(checkpointedFrameCount))
+        case SQLITE_MISUSE:
+            throw DatabaseError(resultCode: code)
+        default:
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
     }

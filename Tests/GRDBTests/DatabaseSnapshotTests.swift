@@ -270,7 +270,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSnapshot()
-        try? dbPool.checkpoint(.passive) // ignore if error or not, that's not the point
+        try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.passive) } // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
         try XCTAssertEqual(snapshot.read(counter.value), 1)
@@ -281,7 +281,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSnapshot()
-        try? dbPool.checkpoint(.full) // ignore if error or not, that's not the point
+        try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.full) } // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
         try XCTAssertEqual(snapshot.read(counter.value), 1)
@@ -292,7 +292,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSnapshot()
-        try? dbPool.checkpoint(.restart) // ignore if error or not, that's not the point
+        try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.restart) } // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
         try XCTAssertEqual(snapshot.read(counter.value), 1)
@@ -303,7 +303,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let counter = try Counter(dbPool: dbPool)
         try dbPool.write(counter.increment)
         let snapshot = try dbPool.makeSnapshot()
-        try? dbPool.checkpoint(.truncate) // ignore if error or not, that's not the point
+        try? dbPool.writeWithoutTransaction { _ = try $0.checkpoint(.truncate) } // ignore if error or not, that's not the point
         try XCTAssertEqual(snapshot.read(counter.value), 1)
         try dbPool.write(counter.increment)
         try XCTAssertEqual(snapshot.read(counter.value), 1)
