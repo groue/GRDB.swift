@@ -72,6 +72,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [#795](https://github.com/groue/GRDB.swift/pull/795): **Breaking Change** Enhanced support for WAL Checkpoints
 - New: `Database.maximumStatementArgumentCount` returns the maximum number of arguments accepted by an SQLite statement.
+- Optimize DatabasePool handling of ValueObservation when SQLite is compiled with the SQLITE_ENABLE_SNAPSHOT option.
 
 
 ## 5.0.0-beta.4
