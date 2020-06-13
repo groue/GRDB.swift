@@ -900,23 +900,60 @@ extension DatabasePool: DatabaseReader {
                 guard let self = self else { return }
                 if observer.isCompleted { return }
                 do {
-                    let initialValue = try observer.fetchInitialValue(dbResult.get())
+                    let db = try dbResult.get()
+                    
+                    // Grab a snaphot of the state of the database when we
+                    // perform the initial fetch.
+                    //
+                    // Since not all SQLite version support snapshotting,
+                    // ignore errors.
+                    var initialSnapshot = try? db.makeSnapshot()
+                    
+                    let initialValue = try observer.fetchInitialValue(db)
                     observer.notifyChange(initialValue)
                     
                     // Now wait for the writer
                     self._weakAsyncWriteWithoutTransaction { db in
+                        defer {
+                            if let initialSnapshot = initialSnapshot {
+                                sqlite3_snapshot_free(initialSnapshot)
+                            }
+                        }
+                        
                         guard let db = db else { return }
                         if observer.isCompleted { return }
+                        
                         do {
-                            #warning("TODO: can we use snapshots in order to avoid this safety fetch, if we can prove database was not changed since initial fetch?")
-                            // Don't miss eventual changes between the
-                            // initial fetch and the writer access.
-                            if let value = try observer.fetchValue(db) {
-                                observer.notifyChange(value)
+                            // Transaction is needed for snapshotting
+                            try db.inTransaction(.deferred) {
+                                var fetchNeeded = true
+                                if initialSnapshot != nil {
+                                    // Grab a snaphot of the current state of the
+                                    // database. If it did not change since
+                                    // initial snapshot, then we do not need to
+                                    // perform a second fetch.
+                                    if let secondSnapshot = try? db.makeSnapshot() {
+                                        // Compare snapshots
+                                        let cmp = sqlite3_snapshot_cmp(initialSnapshot, secondSnapshot)
+                                        assert(cmp <= 0, "Unexpected snapshot ordering")
+                                        fetchNeeded = cmp < 0
+                                        sqlite3_snapshot_free(secondSnapshot)
+                                    }
+                                    
+                                    // Early free before the above defer { }
+                                    sqlite3_free(initialSnapshot)
+                                    initialSnapshot = nil
+                                }
+                                
+                                if fetchNeeded, let value = try observer.fetchValue(db) {
+                                    observer.notifyChange(value)
+                                }
+                                
+                                // Now we can start observation
+                                db.add(transactionObserver: observer, extent: .observerLifetime)
+                                
+                                return .commit
                             }
-                            
-                            // Now we can start observation
-                            db.add(transactionObserver: observer, extent: .observerLifetime)
                         } catch {
                             observer.notifyErrorAndComplete(error)
                         }

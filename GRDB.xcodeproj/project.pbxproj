@@ -2331,10 +2331,10 @@
 				567DAF141EAB61ED00FC0928 /* grdb_config.h */,
 				DC2393C61ABE35F8003FF113 /* GRDB-Bridging.h */,
 				DC3773F819C8CBB3004FCF85 /* GRDB.h */,
+				56C48E731C9A9923005DF1D9 /* module.modulemap */,
+				DC3773F719C8CBB3004FCF85 /* Info.plist */,
 				56B8F49A1B4E2F3600C24296 /* GRDB.xcconfig */,
 				56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */,
-				DC3773F719C8CBB3004FCF85 /* Info.plist */,
-				56C48E731C9A9923005DF1D9 /* module.modulemap */,
 			);
 			name = "Supporting Files";
 			path = ../Support;

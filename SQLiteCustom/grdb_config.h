@@ -1,4 +1,5 @@
-#include <sqlite3.h>
+#ifndef grdb_config_h
+#define grdb_config_h
 
 typedef void(*errorLogCallback)(void *pArg, int iErrCode, const char *zMsg);
 
@@ -29,24 +30,20 @@ static inline void enableDoubleQuotedStringLiterals(sqlite3 *db) { }
 
 /* Expose missing APIs for easier GRDB development*/
 #ifndef SQLITE_ENABLE_SNAPSHOT
-/* Expose APIs that are missing from system <sqlite3.h> */
-typedef struct sqlite3_snapshot {
-  unsigned char hidden[48];
-} sqlite3_snapshot;
 SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_get(
   sqlite3 *db,
   const char *zSchema,
-  sqlite3_snapshot **ppSnapshot
-);
-SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_open(
-  sqlite3 *db,
-  const char *zSchema,
-  sqlite3_snapshot *pSnapshot
-);
-SQLITE_API SQLITE_EXPERIMENTAL void sqlite3_snapshot_free(sqlite3_snapshot*);
+  sqlite3_snapshot **ppSnapshot)
+{
+    return SQLITE_MISUSE;
+}
+SQLITE_API SQLITE_EXPERIMENTAL void sqlite3_snapshot_free(sqlite3_snapshot* ppSnapshot) { }
 SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_cmp(
   sqlite3_snapshot *p1,
-  sqlite3_snapshot *p2
-);
-SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_recover(sqlite3 *db, const char *zDb);
+  sqlite3_snapshot *p2)
+{
+    return 0;
+}
 #endif /* SQLITE_ENABLE_SNAPSHOT */
+
+#endif /* grdb_config_h */

@@ -485,6 +485,26 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             finally: endReadOnly)
     }
     
+    // MARK: - Snapshots
+    
+    /// Exposes sqlite3_snapshot_get.
+    ///
+    /// Returns a snapshot that must be freed with `sqlite3_snapshot_free`.
+    func makeSnapshot() throws -> UnsafeMutablePointer<sqlite3_snapshot> {
+        var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
+        let code = withUnsafeMutablePointer(to: &snapshot) {
+            sqlite3_snapshot_get(sqliteConnection, "main", $0)
+        }
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code)
+        }
+        if let snapshot = snapshot {
+            return snapshot
+        } else {
+            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
+        }
+    }
+    
     // MARK: - Authorizer
     
     func withAuthorizer<T>(_ authorizer: StatementAuthorizer?, _ block: () throws -> T) rethrows -> T {
