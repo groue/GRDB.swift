@@ -908,6 +908,7 @@ extension DatabasePool: DatabaseReader {
                         guard let db = db else { return }
                         if observer.isCompleted { return }
                         do {
+                            #warning("TODO: can we use snapshots in order to avoid this safety fetch, if we can prove database was not changed since initial fetch?")
                             // Don't miss eventual changes between the
                             // initial fetch and the writer access.
                             if let value = try observer.fetchValue(db) {
