@@ -7486,7 +7486,7 @@ struct Author: TableRecord {
 }
 ```
 
-And then we can write our request and only fetch anonymous books that have an author:
+And then we can write our request and only fetch anonymous books that don't have any author:
 
 ```swift
 let books: [Book] = try dbQueue.read { db in
