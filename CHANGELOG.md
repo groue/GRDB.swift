@@ -83,6 +83,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     - [How do I filter records and only keep those that are NOT associated to another record?](README.md#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
     - [How do I select only one column of an associated record?](README.md#how-do-i-select-only-one-column-of-an-associated-record)
 
+- The guide for [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) now recommends enabling the `SQLITE_ENABLE_SNAPSHOT` option.
 
 
 ## 5.0.0-beta.4

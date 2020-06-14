@@ -19,7 +19,9 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
     git submodule update --init SQLiteCustom/src
     ```
     
-2. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5` and `SQLITE_ENABLE_PREUPDATE_HOOK`.
+2. Choose your [extra compilation options](https://www.sqlite.org/compile.html). For example, `SQLITE_ENABLE_FTS5`, `SQLITE_ENABLE_PREUPDATE_HOOK`.
+    
+    It is recommended that you enable the `SQLITE_ENABLE_SNAPSHOT` option. It allows GRDB to optimize [ValueObservation](../README.md#valueobservation) when you use a [Database Pool](../README.md#database-pools).
 
 3. Create a folder named `GRDBCustomSQLite` somewhere in your project directory.
 
@@ -30,7 +32,7 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         ```xcconfig
         // As many -D options as there are custom SQLite compilation options
         // Note: there is no space between -D and the option name.
-        CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_FTS5 -DSQLITE_ENABLE_PREUPDATE_HOOK
+        CUSTOM_SQLLIBRARY_CFLAGS = -DSQLITE_ENABLE_SNAPSHOT -DSQLITE_ENABLE_FTS5
         ```
     
     - `GRDBCustomSQLite-USER.xcconfig`: this file lets GRDB know about extra compilation flags, and enables extra GRDB APIs.
@@ -38,15 +40,15 @@ GRDB builds SQLite with [swiftlyfalling/SQLiteLib](https://github.com/swiftlyfal
         ```xcconfig
         // As many -D options as there are custom SQLite compilation options
         // Note: there is one space between -D and the option name.
-        CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK
+        CUSTOM_OTHER_SWIFT_FLAGS = -D SQLITE_ENABLE_SNAPSHOT -D SQLITE_ENABLE_FTS5
         ```
     
     - `GRDBCustomSQLite-USER.h`: this file lets your application know about extra compilation flags.
         
         ```c
         // As many #define as there are custom SQLite compilation options
+        #define SQLITE_ENABLE_SNAPSHOT
         #define SQLITE_ENABLE_FTS5
-        #define SQLITE_ENABLE_PREUPDATE_HOOK
         ```
     
     - `GRDBCustomSQLite-INSTALL.sh`: this file installs the three other files.
