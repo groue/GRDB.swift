@@ -101,6 +101,23 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Snapshot Optimization
     
+    private func isSnapshotEnabled(_ dbPool: DatabasePool) throws -> Bool {
+        // Testing Database.sqliteCompileOptions.contains("ENABLE_SNAPSHOT")
+        // is... not enough: on iOS 10.3.1, SQLITE_ENABLE_SNAPSHOT is not
+        // exposed, and yet, sqlite3_snaphost_get() works :shrug:
+        //
+        // So let's perform a runtime check:
+        try dbPool.read { db in
+            do {
+                let version = try db.takeVersionSnapshot()
+                grdb_snapshot_free(version)
+                return true
+            } catch {
+                return false
+            }
+        }
+    }
+    
     func testDisallowedSnapshotOptimizationWithAsyncScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
@@ -182,8 +199,6 @@ class ValueObservationTests: GRDBTestCase {
     }
     
     func testAllowedSnapshotOptimizationWithAsyncScheduler() throws {
-        try XCTSkipUnless(Database.sqliteCompileOptions.contains("ENABLE_SNAPSHOT"), "Snapshots not enabled")
-        
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -207,26 +222,42 @@ class ValueObservationTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
         }
         
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .async(onQueue: .main),
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-        })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 1])
+        if try isSnapshotEnabled(dbPool) {
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 2
+            var observedCounts: [Int] = []
+            let cancellable = observation.start(
+                in: dbPool,
+                scheduling: .async(onQueue: .main),
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    observedCounts.append(count)
+                    expectation.fulfill()
+            })
+            withExtendedLifetime(cancellable) {
+                waitForExpectations(timeout: 2, handler: nil)
+                XCTAssertEqual(observedCounts, [0, 1])
+            }
+        } else {
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 3
+            var observedCounts: [Int] = []
+            let cancellable = observation.start(
+                in: dbPool,
+                scheduling: .async(onQueue: .main),
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    observedCounts.append(count)
+                    expectation.fulfill()
+            })
+            withExtendedLifetime(cancellable) {
+                waitForExpectations(timeout: 2, handler: nil)
+                XCTAssertEqual(observedCounts, [0, 0, 1])
+            }
         }
     }
     
     func testAllowedSnapshotOptimizationWithImmediateScheduler() throws {
-        try XCTSkipUnless(Database.sqliteCompileOptions.contains("ENABLE_SNAPSHOT"), "Snapshots not enabled")
-        
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -250,20 +281,38 @@ class ValueObservationTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
         }
         
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .immediate,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-        })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 1])
+        if try isSnapshotEnabled(dbPool) {
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 2
+            var observedCounts: [Int] = []
+            let cancellable = observation.start(
+                in: dbPool,
+                scheduling: .immediate,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    observedCounts.append(count)
+                    expectation.fulfill()
+            })
+            withExtendedLifetime(cancellable) {
+                waitForExpectations(timeout: 2, handler: nil)
+                XCTAssertEqual(observedCounts, [0, 1])
+            }
+        } else {
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 3
+            var observedCounts: [Int] = []
+            let cancellable = observation.start(
+                in: dbPool,
+                scheduling: .immediate,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { count in
+                    observedCounts.append(count)
+                    expectation.fulfill()
+            })
+            withExtendedLifetime(cancellable) {
+                waitForExpectations(timeout: 2, handler: nil)
+                XCTAssertEqual(observedCounts, [0, 0, 1])
+            }
         }
     }
     

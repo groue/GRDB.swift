@@ -44,7 +44,7 @@ public class DatabaseSnapshot: DatabaseReader {
         // Leave snapshot isolation
         serializedDatabase.reentrantSync { db in
             if let version = version {
-                sqlite3_snapshot_free(version)
+                grdb_snapshot_free(version)
             }
             try? db.commit()
         }

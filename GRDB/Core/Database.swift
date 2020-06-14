@@ -487,33 +487,17 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Snapshots
     
-    /// Returns a snapshot that must be freed with `sqlite3_snapshot_free`.
+    /// Returns a snapshot that must be freed with `grdb_snapshot_free`.
     /// 
     /// See https://www.sqlite.org/c3ref/snapshot.html
     func takeVersionSnapshot() throws -> UnsafeMutablePointer<sqlite3_snapshot> {
-        // We have a linker/C-interop difficulty here:
-        //
-        // - Not all SQLite versions ship with the sqlite3_snapshot_get function.
-        // - Not all iOS/macOS versions ship a <sqlite3.h> header that contains
-        //   the declaration for sqlite3_snapshot_get(), even when SQLite is
-        //   actually compiled with SQLITE_ENABLE_SNAPSHOT.
-        //
-        // This makes it really difficult to deal with system SQLite, custom
-        // SQLite builds, SQLCipher, and SPM.
-        //
-        // To avoid those problems, we add missing declarations, and sometimes
-        // shim implementations, in the following header files:
-        //
-        // - SQLiteCustom/grdb_config.h
-        // - Sources/CSQLite/shim.h
-        // - Support/grdb_config.h
         var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
         let code = withUnsafeMutablePointer(to: &snapshot) {
-            sqlite3_snapshot_get(sqliteConnection, "main", $0)
+            grdb_snapshot_get(sqliteConnection, "main", $0)
         }
         guard code == SQLITE_OK else {
-            // Don't grab `lastErrorMessage`, because sqlite3_snapshot_get
-            // may be a shim (see above).
+            // Don't grab `lastErrorMessage`, because grdb_snapshot_get may be a
+            // shim that does not call the missing sqlite3_snapshot_get.
             throw DatabaseError(resultCode: code)
         }
         if let snapshot = snapshot {
@@ -526,9 +510,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     func wasChanged(since initialSnapshot: UnsafeMutablePointer<sqlite3_snapshot>) throws -> Bool {
         let secondSnapshot = try takeVersionSnapshot()
         defer {
-            sqlite3_snapshot_free(secondSnapshot)
+            grdb_snapshot_free(secondSnapshot)
         }
-        let cmp = sqlite3_snapshot_cmp(initialSnapshot, secondSnapshot)
+        let cmp = grdb_snapshot_cmp(initialSnapshot, secondSnapshot)
         assert(cmp <= 0, "Unexpected snapshot ordering")
         return cmp < 0
     }
