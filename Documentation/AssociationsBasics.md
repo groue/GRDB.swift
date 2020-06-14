@@ -39,6 +39,7 @@ GRDB Associations
     - [Aggregate Operations]
     - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
+- **[FAQ]**
 - [Known Issues]
 
 
@@ -2468,3 +2469,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [persistence methods]: ../README.md#persistence-methods
 [database observation tools]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation
+[FAQ]: ../README.md#faq-associations
