@@ -76,7 +76,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ### Documentation Diff
 
-The [Demo Application](Documentation/DemoApps/GRDBDemoiOS) was updated for better conformance with the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
+- The [Demo Application](Documentation/DemoApps/GRDBDemoiOS) was updated for better conformance with the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
+
+- A new [FAQ: Associations](README.md#faq-associations) addresses three frequent questions:
+    - [How do I filter records and only keep those that are associated to another record?](README.md#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record)
+    - [How do I filter records and only keep those that are NOT associated to another record?](README.md#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
+    - [How do I select only one column of an associated record?](README.md#how-do-i-select-only-one-column-of-an-associated-record)
+
 
 
 ## 5.0.0-beta.4
