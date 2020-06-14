@@ -262,7 +262,10 @@ Documentation
 
 **GRDB runs on top of SQLite**: you should get familiar with the [SQLite FAQ](http://www.sqlite.org/faq.html). For general and detailed information, jump to the [SQLite Documentation](http://www.sqlite.org/docs.html).
 
-#### [FAQ]
+
+#### Frequently Asked Questions
+
+- [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
 
 #### Reference
 
