@@ -947,14 +947,23 @@ extension DatabasePool: DatabaseReader {
             do {
                 // Transaction is needed for version snapshotting
                 try db.inTransaction(.deferred) {
-                    var fetchNeeded = true
-                    withExtendedLifetime(initialSnapshot) {
-                        if let initialVersion = initialSnapshot.version {
-                            do {
-                                fetchNeeded = try db.wasChanged(since: initialVersion)
-                            } catch {
-                                // ignore: we'll just re-fetch
-                            }
+                    // Keep DatabaseSnaphot alive until we have compared
+                    // database versions. It prevents database checkpointing,
+                    // and keeps versions (`sqlite3_snapshot`) valid
+                    // and comparable.
+                    let fetchNeeded: Bool = withExtendedLifetime(initialSnapshot) {
+                        // Version is nil if SQLite is not compiled with
+                        // SQLITE_ENABLE_SNAPSHOT, or if the DatabaseSnaphot
+                        // could not grab its version. In this case, we don't
+                        // care, and just fetch a fresh value.
+                        guard let initialVersion = initialSnapshot.version else {
+                            return true
+                        }
+                        do {
+                            return try db.wasChanged(since: initialVersion)
+                        } catch {
+                            // ignore: we'll just re-fetch
+                            return true
                         }
                     }
                     
