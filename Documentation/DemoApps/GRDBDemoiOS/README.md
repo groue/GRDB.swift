@@ -8,6 +8,7 @@ Demo Application
 - how to setup a database in an iOS app
 - how to define a simple [Codable Record](../../../README.md#codable-records)
 - how to track database changes and animate a table view with [ValueObservation](../../../README.md#valueobservation).
+- how to apply the recommendedations of [Good Practices for Designing Record Types](../../GoodPracticesForDesigningRecordTypes.md).
 
 **Files of interest:**
 
@@ -17,15 +18,15 @@ Demo Application
 
 - [AppDatabase.swift](GRDBDemoiOS/AppDatabase.swift)
     
-    `AppDatabase` defines the database for the whole application. It uses [DatabaseMigrator](../../Migrations.md) in order to setup the database schema.
+    `AppDatabase` grants database access for the whole application. It uses [DatabaseMigrator](../../Migrations.md) in order to setup the database schema, and [ValueObservation](../../../README.md#valueobservation) in order to let the application observe database changes.
 
 - [Player.swift](GRDBDemoiOS/Player.swift)
     
-    `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../../README.md#codable-records).
+    `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../../README.md#codable-records). It defines the database requests used by the application.
 
 - [PlayersViewController.swift](GRDBDemoiOS/PlayersViewController.swift)
     
-    `PlayersViewController` displays a list of players. It keeps its view up-to-date with [ValueObservation](../../../README.md#valueobservation).
+    `PlayersViewController` displays a list of players.
 
 - [PlayerEditionViewController.swift](GRDBDemoiOS/PlayerEditionViewController.swift)
     

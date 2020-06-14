@@ -74,6 +74,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - New: `Database.maximumStatementArgumentCount` returns the maximum number of arguments accepted by an SQLite statement.
 - New: Optimize DatabasePool handling of ValueObservation when SQLite is compiled with the SQLITE_ENABLE_SNAPSHOT option. We are now able to avoid fetching the observed value when we can prove that the database wasn't changed between the initial fetch and the beginning of transaction tracking. This optimization avoids duplicate notifications.
 
+### Documentation Diff
+
+The [Demo Application](Documentation/DemoApps/GRDBDemoiOS) was updated for better conformance with the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
+
 
 ## 5.0.0-beta.4
 

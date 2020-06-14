@@ -18,14 +18,6 @@ class PlayersViewController: UITableViewController {
             configureTableView()
         }
     }
-    private var playersRequest: QueryInterfaceRequest<Player> {
-        switch playerOrdering {
-        case .byName:
-            return Player.orderedByName()
-        case .byScore:
-            return Player.orderedByScore()
-        }
-    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -71,13 +63,7 @@ class PlayersViewController: UITableViewController {
     }
     
     private func configureTitle() {
-        // Track changes in the number of players
-        let observation = ValueObservation.tracking { db in
-            try Player.fetchCount(db)
-        }
-        playerCountCancellable = observation.start(
-            in: dbQueue,
-            scheduling: .immediate,
+        playerCountCancellable = appDatabase.observePlayerCount(
             onError: { error in fatalError("Unexpected error: \(error)") },
             onChange: { [weak self] count in
                 guard let self = self else { return }
@@ -90,19 +76,22 @@ class PlayersViewController: UITableViewController {
     }
     
     private func configureTableView() {
-        // Track changes in the list of players
-        let request = self.playersRequest
-        let observation = ValueObservation.tracking { db in
-            try request.fetchAll(db)
+        switch playerOrdering {
+        case .byName:
+            playersCancellable = appDatabase.observePlayersOrderedByName(
+                onError: { error in fatalError("Unexpected error: \(error)") },
+                onChange: { [weak self] players in
+                        guard let self = self else { return }
+                        self.updateTableView(players)
+                })
+        case .byScore:
+            playersCancellable = appDatabase.observePlayersOrderedByScore(
+                onError: { error in fatalError("Unexpected error: \(error)") },
+                onChange: { [weak self] players in
+                        guard let self = self else { return }
+                        self.updateTableView(players)
+                })
         }
-        playersCancellable = observation.start(
-            in: dbQueue,
-            scheduling: .immediate,
-            onError: { error in fatalError("Unexpected error: \(error)") },
-            onChange: { [weak self] players in
-                guard let self = self else { return }
-                self.updateTableView(players)
-        })
     }
     
     private func updateTableView(_ players: [Player]) {
@@ -187,9 +176,7 @@ extension PlayersViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         // Delete the player
         let player = players[indexPath.row]
-        try! dbQueue.write { db in
-            _ = try player.delete(db)
-        }
+        try! appDatabase.deletePlayer(player)
     }
     
     private func configure(_ cell: UITableViewCell, at indexPath: IndexPath) {
@@ -219,48 +206,19 @@ extension PlayersViewController {
     
     @IBAction func deletePlayers() {
         setEditing(false, animated: true)
-        try! dbQueue.write { db in
-            _ = try Player.deleteAll(db)
-        }
+        try! appDatabase.deleteAllPlayers()
     }
     
     @IBAction func refresh() {
         setEditing(false, animated: true)
-        refreshPlayers()
+        try! appDatabase.refreshPlayers()
     }
     
     @IBAction func stressTest() {
         setEditing(false, animated: true)
         for _ in 0..<50 {
             DispatchQueue.global().async {
-                self.refreshPlayers()
-            }
-        }
-    }
-    
-    private func refreshPlayers() {
-        try! dbQueue.write { db in
-            if try Player.fetchCount(db) == 0 {
-                // Insert new random players
-                for _ in 0..<8 {
-                    var player = Player(id: nil, name: Player.randomName(), score: Player.randomScore())
-                    try player.insert(db)
-                }
-            } else {
-                // Insert a player
-                if Bool.random() {
-                    var player = Player(id: nil, name: Player.randomName(), score: Player.randomScore())
-                    try player.insert(db)
-                }
-                // Delete a random player
-                if Bool.random() {
-                    try Player.order(sql: "RANDOM()").limit(1).deleteAll(db)
-                }
-                // Update some players
-                for var player in try Player.fetchAll(db) where Bool.random() {
-                    player.score = Player.randomScore()
-                    try player.update(db)
-                }
+                try! appDatabase.refreshPlayers()
             }
         }
     }

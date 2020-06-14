@@ -112,10 +112,7 @@ extension PlayerEditionViewController: UITextFieldDelegate {
         }
         player.name = nameTextField.text ?? ""
         player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
+        try! appDatabase.savePlayer(&player)
         self.player = player
-        
-        try! dbQueue.inDatabase { db in
-            try player.save(db)
-        }
     }
 }
