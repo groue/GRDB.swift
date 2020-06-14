@@ -7300,9 +7300,9 @@ FAQ
 
 **[FAQ: Associations](#faq-associations)**
 
-- [How to I filter records and only keep those that are associated to another record?](#how-to-i-filter-records-and-only-keep-those-that-are-associated-to-another-record)
-- [How to I filter records and only keep those that are NOT associated to another record?](#how-to-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
-- [How to I select only one column of an associated record?](#how-to-i-select-only-one-column-of-an-associated-record)
+- [How do I filter records and only keep those that are associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record)
+- [How do I filter records and only keep those that are NOT associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
+- [How do I select only one column of an associated record?](#how-do-i-select-only-one-column-of-an-associated-record)
 
 **[FAQ: Errors](#faq-errors)**
 
@@ -7438,7 +7438,7 @@ try dbQueue.read { db in
 
 ## FAQ: Associations
 
-### How to I filter records and only keep those that are associated to another record?
+### How do I filter records and only keep those that are associated to another record?
 
 Let's say you have two record types, `Book` and `Author`, and you want to only fetch books that have an author, and discard anonymous books.
 
@@ -7467,10 +7467,10 @@ let books: [Book] = try dbQueue.read { db in
 
 Note how this request does not use the `filter` method. Indeed, we don't have any condition to express on book columns. Instead, we just need to express that it is "required that a book can be joined to its author".
 
-See [How to I filter records and only keep those that are NOT associated to another record?](#how-to-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record) below for the opposite question.
+See [How do I filter records and only keep those that are NOT associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record) below for the opposite question.
 
 
-### How to I filter records and only keep those that are NOT associated to another record?
+### How do I filter records and only keep those that are NOT associated to another record?
 
 Let's say you have two record types, `Book` and `Author`, and you want to only fetch anonymous books that do not have any author.
 
@@ -7503,10 +7503,10 @@ let books: [Book] = try dbQueue.read { db in
 
 This request uses a TableAlias in order to be able to filter on the eventual associated author. We make sure that their `Column.rowID` (another name for their primary key) is nil, which is another way to say it does not exist: the book has no author.
 
-See [How to I filter records and only keep those that are associated to another record?](#how-to-i-filter-records-and-only-keep-those-that-are-associated-to-another-record) above for the opposite question.
+See [How do I filter records and only keep those that are associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record) above for the opposite question.
 
 
-### How to I select only one column of an associated record?
+### How do I select only one column of an associated record?
 
 Let's say you have two record types, `Book` and `Author`, and you want to fetch all books with their author name, but not the full author records:
 
