@@ -14,7 +14,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     private func setupDatabase(_ application: UIApplication) throws {
-        // AppDelegate is responsible for chosing the location of the database file.
+        // AppDelegate is responsible for choosing the location of the database file.
         // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
         let databaseURL = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
