@@ -866,6 +866,7 @@ extension DatabasePool: DatabaseReader {
             onError: onError,
             onChange: onChange)
         
+        // TODO: what about checkpoints that invalidate snapshots???
         if scheduler.immediateInitialValue() {
             do {
                 // Grab a snapshot of the state of the database and perform
