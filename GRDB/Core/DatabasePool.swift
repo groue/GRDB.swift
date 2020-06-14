@@ -868,7 +868,7 @@ extension DatabasePool: DatabaseReader {
         
         if scheduler.immediateInitialValue() {
             do {
-                // Fetch the initial value without waiting for the writer.
+                // Fetch the initial value
                 let initialValue = try unsafeReentrantRead(observer.fetchInitialValue)
                 onChange(initialValue)
                 
@@ -894,7 +894,6 @@ extension DatabasePool: DatabaseReader {
                 onError(error)
             }
         } else {
-            // Fetch the initial value without waiting for the writer.
             _weakAsyncRead { [weak self] dbResult in
                 guard let dbResult = dbResult else { return }
                 guard let self = self else { return }
@@ -905,10 +904,11 @@ extension DatabasePool: DatabaseReader {
                     // Grab a snaphot of the state of the database when we
                     // perform the initial fetch.
                     //
-                    // Since not all SQLite version support snapshotting,
+                    // Since not all SQLite versions support snapshotting,
                     // ignore errors.
-                    var initialSnapshot = try? db.makeSnapshot()
+                    var initialSnapshot = try? db.takeVersionSnapshot()
                     
+                    // Fetch the initial value
                     let initialValue = try observer.fetchInitialValue(db)
                     observer.notifyChange(initialValue)
                     
@@ -932,7 +932,7 @@ extension DatabasePool: DatabaseReader {
                                     // database. If it did not change since
                                     // initial snapshot, then we do not need to
                                     // perform a second fetch.
-                                    if let secondSnapshot = try? db.makeSnapshot() {
+                                    if let secondSnapshot = try? db.takeVersionSnapshot() {
                                         // Compare snapshots
                                         let cmp = sqlite3_snapshot_cmp(initialSnapshot, secondSnapshot)
                                         assert(cmp <= 0, "Unexpected snapshot ordering")
