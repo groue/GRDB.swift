@@ -5,10 +5,10 @@ Demo Application
 
 **This demo application shows you:**
 
-- how to setup a database in an iOS app
-- how to define a simple [Codable Record](../../../README.md#codable-records)
-- how to track database changes and animate a table view with [ValueObservation](../../../README.md#valueobservation).
-- how to apply the recommendedations of [Good Practices for Designing Record Types](../../GoodPracticesForDesigningRecordTypes.md).
+- How to setup a database in an iOS app.
+- How to define a simple [Codable Record](../../../README.md#codable-records).
+- How to track database changes and animate a table view with [ValueObservation](../../../README.md#valueobservation).
+- How to apply the recommendations of [Good Practices for Designing Record Types](../../GoodPracticesForDesigningRecordTypes.md).
 
 **Files of interest:**
 
