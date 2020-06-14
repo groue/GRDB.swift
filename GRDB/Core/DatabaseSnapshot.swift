@@ -14,6 +14,9 @@ public class DatabaseSnapshot: DatabaseReader {
         serializedDatabase.configuration
     }
     
+    /// Not nil iff SQLite was compiled with `SQLITE_ENABLE_SNAPSHOT`.
+    private(set) var version: UnsafeMutablePointer<sqlite3_snapshot>?
+    
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
         var configuration = configuration
         configuration.readonly = true
@@ -33,12 +36,16 @@ public class DatabaseSnapshot: DatabaseReader {
                 throw DatabaseError(message: "WAL mode is not activated at path: \(path)")
             }
             try db.beginSnapshotTransaction()
+            version = try? db.takeVersionSnapshot()
         }
     }
     
     deinit {
         // Leave snapshot isolation
-        serializedDatabase.sync { db in
+        serializedDatabase.reentrantSync { db in
+            if let version = version {
+                sqlite3_snapshot_free(version)
+            }
             try? db.commit()
         }
     }
