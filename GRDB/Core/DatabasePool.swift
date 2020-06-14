@@ -868,19 +868,55 @@ extension DatabasePool: DatabaseReader {
         
         if scheduler.immediateInitialValue() {
             do {
-                // Fetch the initial value
-                let initialValue = try unsafeReentrantRead(observer.fetchInitialValue)
+                // Grab a snapshot of the state of the database and perform
+                // the initial fetch.
+                var initialValue: Reducer.Value!
+                var initialSnapshot: UnsafeMutablePointer<sqlite3_snapshot>?
+                
+                try unsafeReentrantRead { db in
+                    // Transaction is needed for snapshotting
+                    if db.isInsideTransaction {
+                        initialSnapshot = try? db.takeVersionSnapshot()
+                        initialValue = try observer.fetchInitialValue(db)
+                    } else {
+                        try db.inTransaction(.deferred) {
+                            initialSnapshot = try? db.takeVersionSnapshot()
+                            initialValue = try observer.fetchInitialValue(db)
+                            return .commit
+                        }
+                    }
+                }
+                
                 onChange(initialValue)
                 
                 // Now wait for the writer
                 _weakAsyncWriteWithoutTransaction { db in
+                    defer {
+                        if let initialSnapshot = initialSnapshot {
+                            sqlite3_snapshot_free(initialSnapshot)
+                        }
+                    }
+                    
                     guard let db = db else { return }
                     if observer.isCompleted { return }
+                    
                     do {
-                        // Don't miss eventual changes between the
-                        // initial fetch and the writer access.
-                        if let value = try observer.fetchValue(db) {
-                            observer.notifyChange(value)
+                        // Transaction is needed for snapshotting
+                        try db.inTransaction(.deferred) {
+                            var fetchNeeded = true
+                            if let initialSnapshot = initialSnapshot {
+                                do {
+                                    fetchNeeded = try db.wasChanged(since: initialSnapshot)
+                                } catch {
+                                }
+                            }
+                            
+                            // Don't miss eventual changes between the
+                            // initial fetch and the writer access.
+                            if fetchNeeded, let value = try observer.fetchValue(db) {
+                                observer.notifyChange(value)
+                            }
+                            return .commit
                         }
                         
                         // Now we can start observation
@@ -898,18 +934,15 @@ extension DatabasePool: DatabaseReader {
                 guard let dbResult = dbResult else { return }
                 guard let self = self else { return }
                 if observer.isCompleted { return }
+                
                 do {
                     let db = try dbResult.get()
                     
-                    // Grab a snaphot of the state of the database when we
-                    // perform the initial fetch.
-                    //
-                    // Since not all SQLite versions support snapshotting,
-                    // ignore errors.
+                    // Grab a snapshot of the state of the database and perform
+                    // the initial fetch.
                     var initialSnapshot = try? db.takeVersionSnapshot()
-                    
-                    // Fetch the initial value
                     let initialValue = try observer.fetchInitialValue(db)
+                    
                     observer.notifyChange(initialValue)
                     
                     // Now wait for the writer
@@ -927,33 +960,23 @@ extension DatabasePool: DatabaseReader {
                             // Transaction is needed for snapshotting
                             try db.inTransaction(.deferred) {
                                 var fetchNeeded = true
-                                if initialSnapshot != nil {
-                                    // Grab a snaphot of the current state of the
-                                    // database. If it did not change since
-                                    // initial snapshot, then we do not need to
-                                    // perform a second fetch.
-                                    if let secondSnapshot = try? db.takeVersionSnapshot() {
-                                        // Compare snapshots
-                                        let cmp = sqlite3_snapshot_cmp(initialSnapshot, secondSnapshot)
-                                        assert(cmp <= 0, "Unexpected snapshot ordering")
-                                        fetchNeeded = cmp < 0
-                                        sqlite3_snapshot_free(secondSnapshot)
+                                if let initialSnapshot = initialSnapshot {
+                                    do {
+                                        fetchNeeded = try db.wasChanged(since: initialSnapshot)
+                                    } catch {
                                     }
-                                    
-                                    // Early free before the above defer { }
-                                    sqlite3_snapshot_free(initialSnapshot)
-                                    initialSnapshot = nil
                                 }
                                 
+                                // Don't miss eventual changes between the
+                                // initial fetch and the writer access.
                                 if fetchNeeded, let value = try observer.fetchValue(db) {
                                     observer.notifyChange(value)
                                 }
-                                
-                                // Now we can start observation
-                                db.add(transactionObserver: observer, extent: .observerLifetime)
-                                
                                 return .commit
                             }
+                            
+                            // Now we can start observation
+                            db.add(transactionObserver: observer, extent: .observerLifetime)
                         } catch {
                             observer.notifyErrorAndComplete(error)
                         }

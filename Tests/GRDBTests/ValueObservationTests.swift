@@ -99,7 +99,9 @@ class ValueObservationTests: GRDBTestCase {
         XCTAssertEqual(observer.observedRegion!.description, "t(id,name)") // view is NOT tracked
     }
     
-    func testDisallowedSnapshotOptimization() throws {
+    // MARK: - Snapshot Optimization
+    
+    func testDisallowedSnapshotOptimizationWithAsyncScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -127,6 +129,7 @@ class ValueObservationTests: GRDBTestCase {
         var observedCounts: [Int] = []
         let cancellable = observation.start(
             in: dbPool,
+            scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 observedCounts.append(count)
@@ -138,7 +141,47 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
-    func testAllowedSnapshotOptimization() throws {
+    func testDisallowedSnapshotOptimizationWithImmediateScheduler() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        }
+        
+        // Force DatabasePool to perform two initial fetches, because between
+        // its first read access, and its write access that installs the
+        // transaction observer, some write did happen.
+        var needsChange = true
+        let observation = ValueObservation.tracking { db -> Int in
+            if needsChange {
+                needsChange = false
+                try dbPool.write { db in
+                    try db.execute(sql: """
+                    INSERT INTO t DEFAULT VALUES;
+                    DELETE FROM t;
+                    """)
+                }
+            }
+            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
+        }
+        
+        let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = 2
+        var observedCounts: [Int] = []
+        let cancellable = observation.start(
+            in: dbPool,
+            scheduling: .immediate,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                observedCounts.append(count)
+                expectation.fulfill()
+        })
+        withExtendedLifetime(cancellable) {
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(observedCounts, [0, 0])
+        }
+    }
+    
+    func testAllowedSnapshotOptimizationWithAsyncScheduler() throws {
         try XCTSkipUnless(Database.sqliteCompileOptions.contains("ENABLE_SNAPSHOT"), "Snapshots not enabled")
         
         let dbPool = try makeDatabasePool()
@@ -169,6 +212,50 @@ class ValueObservationTests: GRDBTestCase {
         var observedCounts: [Int] = []
         let cancellable = observation.start(
             in: dbPool,
+            scheduling: .async(onQueue: .main),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                observedCounts.append(count)
+                expectation.fulfill()
+        })
+        withExtendedLifetime(cancellable) {
+            waitForExpectations(timeout: 2, handler: nil)
+            XCTAssertEqual(observedCounts, [0, 1])
+        }
+    }
+    
+    func testAllowedSnapshotOptimizationWithImmediateScheduler() throws {
+        try XCTSkipUnless(Database.sqliteCompileOptions.contains("ENABLE_SNAPSHOT"), "Snapshots not enabled")
+        
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        }
+        
+        // Allow pool to perform a single initial fetch, because between
+        // its first read access, and its write access that installs the
+        // transaction observer, no write did happen.
+        var needsChange = true
+        let observation = ValueObservation.tracking { db -> Int in
+            if needsChange {
+                needsChange = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    try! dbPool.write { db in
+                        try db.execute(sql: """
+                        INSERT INTO t DEFAULT VALUES;
+                        """)
+                    }
+                }
+            }
+            return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
+        }
+        
+        let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = 2
+        var observedCounts: [Int] = []
+        let cancellable = observation.start(
+            in: dbPool,
+            scheduling: .immediate,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 observedCounts.append(count)

@@ -523,6 +523,16 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
+    func wasChanged(since initialSnapshot: UnsafeMutablePointer<sqlite3_snapshot>) throws -> Bool {
+        let secondSnapshot = try takeVersionSnapshot()
+        defer {
+            sqlite3_snapshot_free(secondSnapshot)
+        }
+        let cmp = sqlite3_snapshot_cmp(initialSnapshot, secondSnapshot)
+        assert(cmp <= 0, "Unexpected snapshot ordering")
+        return cmp < 0
+    }
+    
     // MARK: - Authorizer
     
     func withAuthorizer<T>(_ authorizer: StatementAuthorizer?, _ block: () throws -> T) rethrows -> T {
