@@ -7466,7 +7466,7 @@ let books: [Book] = try dbQueue.read { db in
 }
 ```
 
-Note how this request does not use the `filter` method. Indeed, we don't have any condition to express on any column. Instead, we just need to express that it is "required that a book can be joined to its author".
+Note how this request does not use the `filter` method. Indeed, we don't have any condition to express on any column. Instead, we just need to "require that a book can be joined to its author".
 
 See [How do I filter records and only keep those that are NOT associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record) below for the opposite question.
 
