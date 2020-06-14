@@ -7449,6 +7449,7 @@ struct Book: TableRecord {
     ...
     let author = belongsTo(Author.self)
 }
+
 struct Author: TableRecord {
     ...
 }
@@ -7481,6 +7482,7 @@ struct Book: TableRecord {
     ...
     let author = belongsTo(Author.self)
 }
+
 struct Author: TableRecord {
     ...
 }
@@ -7517,7 +7519,8 @@ struct Book: Decodable, TableRecord {
     ...
     let author = belongsTo(Author.self)
 }
-struct Author: TableRecord {
+
+struct Author: Decodable, TableRecord {
     ...
     enum Columns {
         static let name = Column(CodingKeys.name)
