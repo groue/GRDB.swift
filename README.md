@@ -7508,7 +7508,7 @@ See [How do I filter records and only keep those that are associated to another 
 
 ### How do I select only one column of an associated record?
 
-Let's say you have two record types, `Book` and `Author`, and you want to fetch all books with their author name, but not the full author records:
+Let's say you have two record types, `Book` and `Author`, and you want to fetch all books with their author name, but not the full author records.
 
 We start by defining the association between books and authors:
 
