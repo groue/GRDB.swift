@@ -81,16 +81,16 @@ class PlayersViewController: UITableViewController {
             playersCancellable = appDatabase.observePlayersOrderedByName(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
-                        guard let self = self else { return }
-                        self.updateTableView(players)
-                })
+                    guard let self = self else { return }
+                    self.updateTableView(players)
+            })
         case .byScore:
             playersCancellable = appDatabase.observePlayersOrderedByScore(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
-                        guard let self = self else { return }
-                        self.updateTableView(players)
-                })
+                    guard let self = self else { return }
+                    self.updateTableView(players)
+            })
         }
     }
     
