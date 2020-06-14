@@ -941,7 +941,7 @@ extension DatabasePool: DatabaseReader {
                                     }
                                     
                                     // Early free before the above defer { }
-                                    sqlite3_free(initialSnapshot)
+                                    sqlite3_snapshot_free(initialSnapshot)
                                     initialSnapshot = nil
                                 }
                                 
