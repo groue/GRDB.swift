@@ -7447,7 +7447,7 @@ We start by defining the association between books and authors:
 ```swift
 struct Book: TableRecord {
     ...
-    let author = belongsTo(Author.self)
+    static let author = belongsTo(Author.self)
 }
 
 struct Author: TableRecord {
@@ -7480,7 +7480,7 @@ We start by defining the association between books and authors:
 ```swift
 struct Book: TableRecord {
     ...
-    let author = belongsTo(Author.self)
+    static let author = belongsTo(Author.self)
 }
 
 struct Author: TableRecord {
@@ -7494,11 +7494,11 @@ And then we can write our request and only fetch anonymous books that don't have
 let books: [Book] = try dbQueue.read { db in
     // SELECT book.* FROM book
     // LEFT JOIN author ON author.id = book.authorID
-    // WHERE author.rowid IS NULL
+    // WHERE author.id IS NULL
     let authorAlias = TableAlias()
     let request = Book
         .joining(optional: Book.author.aliased(authorAlias))
-        .filter(authorAlias[Column.rowID] == nil)
+        .filter(authorAlias[Author.primaryKey] == nil)
     return try request.fetchAll(db)
 }
 ```
@@ -7517,7 +7517,7 @@ We start by defining the association between books and authors:
 ```swift
 struct Book: Decodable, TableRecord {
     ...
-    let author = belongsTo(Author.self)
+    static let author = belongsTo(Author.self)
 }
 
 struct Author: Decodable, TableRecord {
