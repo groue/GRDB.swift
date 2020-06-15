@@ -102,6 +102,13 @@ extension PlayerEditionViewController: UITextFieldDelegate {
         return false
     }
     
+    @IBAction func textFieldDidChange(_ textField: UITextField) {
+        // User has edited the player: prevent interactive dismissal
+        if case .modal = presentation {
+            isModalInPresentation = true
+        }
+    }
+    
     private func configureForm() {
         guard isViewLoaded else { return }
         

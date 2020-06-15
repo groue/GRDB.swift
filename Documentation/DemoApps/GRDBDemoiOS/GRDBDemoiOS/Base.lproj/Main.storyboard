@@ -28,6 +28,7 @@
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <textInputTraits key="textInputTraits" autocapitalizationType="words" autocorrectionType="no" spellCheckingType="no" returnKeyType="next"/>
                                                     <connections>
+                                                        <action selector="textFieldDidChange:" destination="iNr-Oe-muq" eventType="editingChanged" id="EmC-Rp-f6S"/>
                                                         <outlet property="delegate" destination="iNr-Oe-muq" id="K2p-7d-teD"/>
                                                     </connections>
                                                 </textField>
@@ -54,6 +55,9 @@
                                                     <rect key="frame" x="20" y="11" width="334" height="22"/>
                                                     <fontDescription key="fontDescription" style="UICTFontTextStyleBody"/>
                                                     <textInputTraits key="textInputTraits" autocorrectionType="no" spellCheckingType="no" keyboardType="numberPad" returnKeyType="done"/>
+                                                    <connections>
+                                                        <action selector="textFieldDidChange:" destination="iNr-Oe-muq" eventType="editingChanged" id="ebo-2z-Z9P"/>
+                                                    </connections>
                                                 </textField>
                                             </subviews>
                                             <constraints>
