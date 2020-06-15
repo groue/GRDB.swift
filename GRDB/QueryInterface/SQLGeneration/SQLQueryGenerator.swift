@@ -347,7 +347,7 @@ struct SQLQueryGenerator: Refinable {
         }
         
         let context = SQLGenerationContext(db)
-        let primaryKey = try db.primaryKeyExpression(tableName)
+        let primaryKey = SQLPrimaryKeyExpression(tableName: tableName)
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
         sql += try primaryKey.expressionSQL(context, wrappedInParenthesis: false)
@@ -451,7 +451,7 @@ struct SQLQueryGenerator: Refinable {
         }
         
         let context = SQLGenerationContext(db)
-        let primaryKey = try db.primaryKeyExpression(tableName)
+        let primaryKey = SQLPrimaryKeyExpression(tableName: tableName)
         
         // UPDATE table...
         var sql = "UPDATE "

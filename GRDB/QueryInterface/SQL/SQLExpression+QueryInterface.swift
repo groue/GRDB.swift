@@ -779,3 +779,68 @@ struct SQLExpressionCollate: SQLExpression {
         SQLExpressionCollate(expression.qualifiedExpression(with: alias), collationName: collationName)
     }
 }
+
+// MARK: - SQLPrimaryKeyExpression
+
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// SQLPrimaryKeyExpression is the primary key of a table.
+///
+/// For tables that have no explicit primary key, SQLPrimaryKeyExpression is the
+/// `rowid` column.
+///
+/// For tables whose primary key spans several columns, the current
+/// implementation of SQLPrimaryKeyExpression also is the `rowid` column. Future
+/// GRDB versions may return a [row value](https://www.sqlite.org/rowvalue.html).
+///
+/// For example:
+///
+///     struct Player: TableRecord { ... }
+///
+///     let player = dbQueue.read { db in
+///         try Player.filter(Player.primaryKey == 12).fetchOne(db)
+///     }
+public struct SQLPrimaryKeyExpression: SQLExpression {
+    let tableName: String
+    
+    /// Support for SQLPrimaryKeyExpression and SQLQualifiedPrimaryKeyExpression
+    fileprivate static func primaryKeyColumn(_ db: Database, tableName: String) throws -> Column {
+        let columns = try db.primaryKey(tableName).columns
+        if columns.count == 1 {
+            return Column(columns[0])
+        } else {
+            return Column.rowID
+        }
+    }
+    
+    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try SQLPrimaryKeyExpression
+            .primaryKeyColumn(context.db, tableName: tableName)
+            .expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
+    }
+    
+    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLQualifiedPrimaryKeyExpression(tableName: tableName, alias: alias)
+    }
+}
+
+struct SQLQualifiedPrimaryKeyExpression: SQLExpression {
+    let tableName: String
+    let alias: TableAlias
+    
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        GRDBPrecondition(
+            tableName.lowercased() == alias.tableName.lowercased(),
+            "Table names don't match: \(tableName) and \(alias.tableName)")
+        
+        return try SQLPrimaryKeyExpression
+            .primaryKeyColumn(context.db, tableName: tableName)
+            .qualifiedExpression(with: alias)
+            .expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
+    }
+    
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        // Never requalify
+        self
+    }
+}
