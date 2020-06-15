@@ -147,16 +147,21 @@ extension PlayerListViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Edit" {
-            let player = players[tableView.indexPathForSelectedRow!.row]
-            let controller = segue.destination as! PlayerEditionViewController
+            guard
+                let controller = segue.destination as? PlayerEditionViewController,
+                let indexPath = tableView.indexPathForSelectedRow
+                else { return }
+            let player = players[indexPath.row]
             controller.title = player.name
             controller.player = player
             controller.presentation = .push
         }
         else if segue.identifier == "New" {
+            guard
+                let navigationController = segue.destination as? UINavigationController,
+                let controller = navigationController.viewControllers.first as? PlayerEditionViewController
+                else { return }
             setEditing(false, animated: true)
-            let navigationController = segue.destination as! UINavigationController
-            let controller = navigationController.viewControllers.first as! PlayerEditionViewController
             controller.title = "New Player"
             controller.player = Player(id: nil, name: "", score: 0)
             controller.presentation = .modal

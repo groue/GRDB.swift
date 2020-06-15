@@ -22,7 +22,7 @@ class PlayerEditionViewController: UITableViewController {
             configureNavigationItem()
         }
     }
-
+    
     @IBOutlet private weak var cancelBarButtonItem: UIBarButtonItem!
     @IBOutlet private weak var commitBarButtonItem: UIBarButtonItem!
     @IBOutlet private weak var nameCell: UITableViewCell!
@@ -64,13 +64,15 @@ extension PlayerEditionViewController {
     private func configureNavigationItem() {
         guard isViewLoaded else { return }
         
-        switch presentation! {
-        case .modal:
-            navigationItem.leftBarButtonItem = cancelBarButtonItem
-            navigationItem.rightBarButtonItem = commitBarButtonItem
-        case .push:
-            navigationItem.leftBarButtonItem = nil
-            navigationItem.rightBarButtonItem = nil
+        if let presentation = presentation {
+            switch presentation {
+            case .modal:
+                navigationItem.leftBarButtonItem = cancelBarButtonItem
+                navigationItem.rightBarButtonItem = commitBarButtonItem
+            case .push:
+                navigationItem.leftBarButtonItem = nil
+                navigationItem.rightBarButtonItem = nil
+            }
         }
     }
 }
