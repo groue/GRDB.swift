@@ -25,7 +25,7 @@
 		56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036191E8D9F38003B6DA4 /* AppDatabase.swift */; };
 		56B0361C1E8D9F38003B6DA4 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361A1E8D9F38003B6DA4 /* Player.swift */; };
 		56B036231E8D9F4C003B6DA4 /* PlayerEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */; };
-		56B036241E8D9F4C003B6DA4 /* PlayersViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036201E8D9F4C003B6DA4 /* PlayersViewController.swift */; };
+		56B036241E8D9F4C003B6DA4 /* PlayerListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -181,7 +181,7 @@
 		56B036191E8D9F38003B6DA4 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 		56B0361A1E8D9F38003B6DA4 /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerEditionViewController.swift; sourceTree = "<group>"; };
-		56B036201E8D9F4C003B6DA4 /* PlayersViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayersViewController.swift; sourceTree = "<group>"; };
+		56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerListViewController.swift; sourceTree = "<group>"; };
 		56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -273,15 +273,15 @@
 		56B036051E8D9EBE003B6DA4 /* GRDBDemoiOS */ = {
 			isa = PBXGroup;
 			children = (
-				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
+				56B036121E8D9EBE003B6DA4 /* Info.plist */,
 				56B036191E8D9F38003B6DA4 /* AppDatabase.swift */,
+				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
 				56B0361A1E8D9F38003B6DA4 /* Player.swift */,
 				56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */,
-				56B036201E8D9F4C003B6DA4 /* PlayersViewController.swift */,
-				56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */,
+				56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */,
 				56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */,
 				56B0360F1E8D9EBE003B6DA4 /* LaunchScreen.storyboard */,
-				56B036121E8D9EBE003B6DA4 /* Info.plist */,
+				56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */,
 			);
 			path = GRDBDemoiOS;
 			sourceTree = "<group>";
@@ -507,7 +507,7 @@
 				56B0361C1E8D9F38003B6DA4 /* Player.swift in Sources */,
 				56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */,
 				56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */,
-				56B036241E8D9F4C003B6DA4 /* PlayersViewController.swift in Sources */,
+				56B036241E8D9F4C003B6DA4 /* PlayerListViewController.swift in Sources */,
 				56B036231E8D9F4C003B6DA4 /* PlayerEditionViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

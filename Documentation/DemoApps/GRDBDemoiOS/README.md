@@ -24,9 +24,9 @@ Demo Application
     
     `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../../README.md#codable-records). It defines the database requests used by the application.
 
-- [PlayersViewController.swift](GRDBDemoiOS/PlayersViewController.swift)
+- [PlayerListViewController.swift](GRDBDemoiOS/PlayerListViewController.swift)
     
-    `PlayersViewController` displays a list of players.
+    `PlayerListViewController` displays the list of players.
 
 - [PlayerEditionViewController.swift](GRDBDemoiOS/PlayerEditionViewController.swift)
     

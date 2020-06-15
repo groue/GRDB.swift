@@ -2,55 +2,44 @@ import UIKit
 
 class PlayerEditionViewController: UITableViewController {
     enum Presentation {
-        /// Modal presentation: edition ends with the "Commit" segue.
+        /// Modal presentation: edition ends with the "Commit" unwind segue.
         case modal
         
         /// Push presentation: edition ends when user hits the back button.
         case push
     }
     
-    var player: Player! { didSet { configureView() } }
-    var presentation: Presentation! { didSet { configureView() } }
+    /// The edited player
+    var player: Player! {
+        didSet {
+            configureForm()
+        }
+    }
+    
+    /// The presentation mode
+    var presentation: Presentation! {
+        didSet {
+            configureNavigationItem()
+        }
+    }
 
-    @IBOutlet fileprivate weak var cancelBarButtonItem: UIBarButtonItem!
-    @IBOutlet fileprivate weak var commitBarButtonItem: UIBarButtonItem!
-    @IBOutlet fileprivate weak var nameCell: UITableViewCell!
-    @IBOutlet fileprivate weak var nameTextField: UITextField!
-    @IBOutlet fileprivate weak var scoreCell: UITableViewCell!
-    @IBOutlet fileprivate weak var scoreTextField: UITextField!
+    @IBOutlet private weak var cancelBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var commitBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var nameCell: UITableViewCell!
+    @IBOutlet private weak var nameTextField: UITextField!
+    @IBOutlet private weak var scoreCell: UITableViewCell!
+    @IBOutlet private weak var scoreTextField: UITextField!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureView()
-    }
-    
-    fileprivate func configureView() {
-        guard isViewLoaded else { return }
-        
-        nameTextField.text = player.name
-        
-        if player.score == 0 && player.id == nil {
-            scoreTextField.text = ""
-        } else {
-            scoreTextField.text = "\(player.score)"
-        }
-        
-        switch presentation! {
-        case .modal:
-            navigationItem.leftBarButtonItem = cancelBarButtonItem
-            navigationItem.rightBarButtonItem = commitBarButtonItem
-        case .push:
-            navigationItem.leftBarButtonItem = nil
-            navigationItem.rightBarButtonItem = nil
-        }
+        configureForm()
+        configureNavigationItem()
     }
 }
-
 
 // MARK: - Navigation
 
 extension PlayerEditionViewController {
-    
     override func shouldPerformSegue(withIdentifier identifier: String, sender: Any?) -> Bool {
         // Force keyboard to dismiss early
         view.endEditing(true)
@@ -66,24 +55,29 @@ extension PlayerEditionViewController {
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
         
-        switch presentation! {
-        case .modal:
-            break
-        case .push:
-            if parent == nil {
-                // Self is popping from its navigation controller
-                saveChanges()
-            }
+        if case .push = presentation, parent == nil {
+            // Self is popping from its navigation controller
+            saveChanges()
         }
     }
     
+    private func configureNavigationItem() {
+        guard isViewLoaded else { return }
+        
+        switch presentation! {
+        case .modal:
+            navigationItem.leftBarButtonItem = cancelBarButtonItem
+            navigationItem.rightBarButtonItem = commitBarButtonItem
+        case .push:
+            navigationItem.leftBarButtonItem = nil
+            navigationItem.rightBarButtonItem = nil
+        }
+    }
 }
-
 
 // MARK: - Form
 
 extension PlayerEditionViewController: UITextFieldDelegate {
-    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         nameTextField.becomeFirstResponder()
@@ -104,6 +98,18 @@ extension PlayerEditionViewController: UITextFieldDelegate {
             scoreTextField.becomeFirstResponder()
         }
         return false
+    }
+    
+    private func configureForm() {
+        guard isViewLoaded else { return }
+        
+        nameTextField.text = player.name
+        
+        if player.score == 0 && player.id == nil {
+            scoreTextField.text = ""
+        } else {
+            scoreTextField.text = "\(player.score)"
+        }
     }
     
     private func saveChanges() {
