@@ -7503,7 +7503,7 @@ let books: [Book] = try dbQueue.read { db in
 }
 ```
 
-This request uses a TableAlias in order to be able to filter on the eventual associated author. We make sure that their `Column.rowID` (another name for their primary key) is nil, which is another way to say it does not exist: the book has no author.
+This request uses a TableAlias in order to be able to filter on the eventual associated author. We make sure that the `Author.primaryKey` is nil, which is another way to say it does not exist: the book has no author.
 
 See [How do I filter records and only keep those that are associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record) above for the opposite question.
 
