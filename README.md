@@ -7337,6 +7337,11 @@ FAQ
 
 ## FAQ: Opening Connections
 
+- :arrow_up: [FAQ]
+- [How do I create a database in my application?](#how-do-i-create-a-database-in-my-application)
+- [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application)
+- [How do I close a database connection?](#how-do-i-close-a-database-connection)
+
 ### How do I create a database in my application?
 
 This question assumes that your application has to create a new database from scratch. If your app has to open an existing database that is embedded inside your application as a resource, see [How do I open a database stored as a resource of my application?](#how-do-i-open-a-database-stored-as-a-resource-of-my-application) instead.
@@ -7387,6 +7392,9 @@ Database accesses that run in background threads postpone the closing of connect
 
 ## FAQ: SQL
 
+- :arrow_up: [FAQ]
+- [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql)
+
 ### How do I print a request as SQL?
 
 When you want to debug a request that does not deliver the expected results, you may want to print the SQL that is actually executed.
@@ -7434,6 +7442,10 @@ db.trace { event in
 
 ## FAQ: General
 
+- :arrow_up: [FAQ]
+- [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
+- [What Are Experimental Features?](#what-are-experimental-features)
+
 ### How do I monitor the duration of database statements execution?
 
 Use the `trace(options:_:)` method, with the `.profile` option:
@@ -7461,6 +7473,11 @@ try dbQueue.read { db in
 
 
 ## FAQ: Associations
+
+- :arrow_up: [FAQ]
+- [How do I filter records and only keep those that are associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record)
+- [How do I filter records and only keep those that are NOT associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
+- [How do I select only one column of an associated record?](#how-do-i-select-only-one-column-of-an-associated-record)
 
 ### How do I filter records and only keep those that are associated to another record?
 
@@ -7589,6 +7606,11 @@ By using `asRequest(of:)`, you enhance the type-safety of your request.
 
 
 ## FAQ: Errors
+
+- :arrow_up: [FAQ]
+- [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
+- [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
 
 ### Generic parameter 'T' could not be inferred
     
