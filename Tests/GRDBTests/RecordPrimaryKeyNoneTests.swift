@@ -67,10 +67,10 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }
-
-
+    
+    
     // MARK: - Save
-
+    
     func testSaveInsertsARow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -82,8 +82,8 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             XCTAssertEqual(names, ["Table", "Table"])
         }
     }
-
-
+    
+    
     // MARK: - Fetch With Key
     
     func testFetchOneWithKey() throws {
@@ -97,7 +97,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"items\" WHERE \"email\" = 'item@example.com'")
         }
     }
-
+    
     
     // MARK: - Fetch With Key Request
     
@@ -121,6 +121,17 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let request = Item.orderByPrimaryKey()
             try assertEqualSQL(db, request, "SELECT * FROM \"items\" ORDER BY \"rowid\"")
+        }
+    }
+    
+    
+    // MARK: - Select Primary Key
+    
+    func testSelectPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request: QueryInterfaceRequest<Int64> = Item.selectPrimaryKey()
+            try assertEqualSQL(db, request, "SELECT \"rowid\" FROM \"items\"")
         }
     }
     
@@ -154,7 +165,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testFetchAllWithPrimaryKeys() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -181,7 +192,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testFetchOneWithPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -202,7 +213,7 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
             }
         }
     }
-
+    
     
     // MARK: - Fetch With Primary Key Request
     

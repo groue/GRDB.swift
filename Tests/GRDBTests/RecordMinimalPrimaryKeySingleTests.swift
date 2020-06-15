@@ -55,7 +55,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testInsertWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -67,7 +67,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             assert(record, isEncodedIn: row)
         }
     }
-
+    
     func testInsertWithNotNilPrimaryKeyThatMatchesARowThrowsDatabaseError() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -82,7 +82,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testInsertAfterDeleteInsertsARow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -96,10 +96,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             assert(record, isEncodedIn: row)
         }
     }
-
-
+    
+    
     // MARK: - Update
-
+    
     func testUpdateWithNotNilPrimaryKeyThatDoesNotMatchAnyRowThrowsRecordNotFound() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -115,7 +115,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testUpdateWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -128,7 +128,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             assert(record, isEncodedIn: row)
         }
     }
-
+    
     func testUpdateAfterDeleteThrowsRecordNotFound() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -146,10 +146,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
-
+    
+    
     // MARK: - Save
-
+    
     func testSaveWithNilPrimaryKeyThrowsDatabaseError() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -163,7 +163,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testSaveWithNotNilPrimaryKeyThatDoesNotMatchAnyRowInsertsARow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -175,7 +175,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             assert(record, isEncodedIn: row)
         }
     }
-
+    
     func testSaveWithNotNilPrimaryKeyThatMatchesARowUpdatesThatRow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -188,7 +188,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             assert(record, isEncodedIn: row)
         }
     }
-
+    
     func testSaveAfterDeleteInsertsARow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -202,10 +202,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             assert(record, isEncodedIn: row)
         }
     }
-
-
+    
+    
     // MARK: - Delete
-
+    
     func testDeleteWithNotNilPrimaryKeyThatDoesNotMatchAnyRowDoesNothing() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -215,7 +215,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertFalse(deleted)
         }
     }
-
+    
     func testDeleteWithNotNilPrimaryKeyThatMatchesARowDeletesThatRow() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -229,7 +229,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertTrue(row == nil)
         }
     }
-
+    
     func testDeleteAfterDeleteDoesNothing() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -242,8 +242,8 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertFalse(deleted)
         }
     }
-
-
+    
+    
     // MARK: - Fetch With Key
     
     func testFetchCursorWithKeys() throws {
@@ -276,7 +276,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testFetchAllWithKeys() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -305,7 +305,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testFetchOneWithKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -318,7 +318,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
         }
     }
-
+    
     
     // MARK: - Fetch With Key Request
     
@@ -407,6 +407,17 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
     }
     
     
+    // MARK: - Select Primary Key
+    
+    func testSelectPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request: QueryInterfaceRequest<UUID> = MinimalSingle.selectPrimaryKey()
+            try assertEqualSQL(db, request, "SELECT \"UUID\" FROM \"minimalSingles\"")
+        }
+    }
+    
+    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {
@@ -434,7 +445,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testFetchAllWithPrimaryKeys() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -459,7 +470,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testFetchOneWithPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -480,7 +491,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
+    
     
     // MARK: - Fetch With Primary Key Request
     
@@ -555,10 +566,10 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             }
         }
     }
-
-
+    
+    
     // MARK: - Exists
-
+    
     func testExistsWithNotNilPrimaryKeyThatDoesNotMatchAnyRowReturnsFalse() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -567,7 +578,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertFalse(try record.exists(db))
         }
     }
-
+    
     func testExistsWithNotNilPrimaryKeyThatMatchesARowReturnsTrue() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -577,7 +588,7 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertTrue(try record.exists(db))
         }
     }
-
+    
     func testExistsAfterDeleteReturnsTrue() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

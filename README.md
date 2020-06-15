@@ -3633,6 +3633,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.selectPrimaryKey(as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.matching(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -3641,9 +3642,11 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.including(required:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.joining(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.joining(required:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.group(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.groupByPrimaryKey()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.having(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.order(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.orderByPrimaryKey()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.having(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.limit(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Record Comparison]** | | |
 | `record.databaseEquals(...)` | [EncodableRecord] | |
@@ -4117,19 +4120,6 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.order(scoreColumn).order(nameColumn)
     ```
 
-- `orderByPrimaryKey()` sorts by primary key:
-    
-    ```swift
-    // SELECT * FROM player ORDER BY id
-    Player.orderByPrimaryKey()
-    
-    // SELECT * FROM country ORDER BY code
-    Country.orderByPrimaryKey()
-    
-    // SELECT * FROM citizenship ORDER BY citizenId, countryCode
-    Citizenship.orderByPrimaryKey()
-    ```
-
 - `reversed()` reverses the eventual orderings.
     
     ```swift
@@ -4162,6 +4152,40 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // JOIN team ON team.id = player.teamId
     Player.including(required: Player.team)
     ```
+
+- Other requests that involve the primary key:
+    
+    - `selectPrimaryKey(as:)` selects the primary key.
+        
+        ```swift
+        // SELECT id FROM player
+        Player.selectPrimaryKey(as: Int64.self)
+        ```
+        
+        It is equivalent to:
+        
+        ```swift
+        // SELECT id FROM player
+        Player.select(Player.primaryKey, as: Int64.self)
+        ```
+        
+        > :point_up: **Note**: `selectPrimaryKey` and `primaryKey` are [experimental](#what-are-experimental-features) and currently pick the `rowid` column for tables that have a composite primary key that spans several columns. Future GRDB version may change this behavior.
+    
+    - `orderByPrimaryKey()` sorts by primary key.
+        
+        ```swift
+        // SELECT * FROM player ORDER BY id
+        Player.orderByPrimaryKey()
+        
+        // SELECT * FROM country ORDER BY code
+        Country.orderByPrimaryKey()
+        
+        // SELECT * FROM citizenship ORDER BY citizenId, countryCode
+        Citizenship.orderByPrimaryKey()
+        ```
+    
+    - `groupByPrimaryKey()` groups rows by primary key.
+
 
 You can refine requests by chaining those methods:
 
