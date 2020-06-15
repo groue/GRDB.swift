@@ -1127,4 +1127,64 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             }
         }
     }
+    
+    // Test for the "How do I filter records and only keep those that are
+    // associated to another record?" FAQ
+    func testRecordsFilteredByExistingAssociatedRecord() throws {
+        struct Book: TableRecord {
+            static let author = belongsTo(Author.self)
+        }
+
+        struct Author: TableRecord {
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "author") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "book") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("authorID", .integer).references("author")
+            }
+            
+            let request = Book.joining(required: Book.author)
+            try assertEqualSQL(db, request, """
+                SELECT "book".* FROM "book" \
+                JOIN "author" ON "author"."id" = "book"."authorID"
+                """)
+        }
+    }
+    
+    // Test for the "How do I filter records and only keep those that are NOT
+    // associated to another record?" FAQ
+    func testRecordsFilteredByNonExistingAssociatedRecord() throws {
+        struct Book: TableRecord {
+            static let author = belongsTo(Author.self)
+        }
+
+        struct Author: TableRecord {
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "author") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "book") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("authorID", .integer).references("author")
+            }
+            
+            let authorAlias = TableAlias()
+            let request = Book
+                .joining(optional: Book.author.aliased(authorAlias))
+                .filter(authorAlias[Author.primaryKey] == nil)
+            try assertEqualSQL(db, request, """
+                SELECT "book".* FROM "book" \
+                LEFT JOIN "author" ON "author"."id" = "book"."authorID" \
+                WHERE "author"."id" IS NULL
+                """)
+        }
+    }
 }

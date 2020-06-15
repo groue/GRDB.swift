@@ -1,23 +1,23 @@
 import GRDB
 
-// A plain Player struct
+/// The Player struct
 struct Player {
-    // Prefer Int64 for auto-incremented database ids
-    var id: Int64?
+    var id: Int64? // Use Int64 for auto-incremented database ids
     var name: String
     var score: Int
 }
 
-// Hashable conformance supports tableView diffing
+/// Hashable conformance supports tableView diffing
 extension Player: Hashable { }
 
 // MARK: - Persistence
 
-// Turn Player into a Codable Record.
-// See https://github.com/groue/GRDB.swift/blob/master/README.md#records
+/// Make Player a Codable Record.
+///
+/// See https://github.com/groue/GRDB.swift/blob/master/README.md#records
 extension Player: Codable, FetchableRecord, MutablePersistableRecord {
     // Define database columns from CodingKeys
-    private enum Columns {
+    fileprivate enum Columns {
         static let id = Column(CodingKeys.id)
         static let name = Column(CodingKeys.name)
         static let score = Column(CodingKeys.score)
@@ -29,17 +29,33 @@ extension Player: Codable, FetchableRecord, MutablePersistableRecord {
     }
 }
 
-// MARK: - Database access
+// MARK: - Player Requests
 
-// Define some useful player requests.
-// See https://github.com/groue/GRDB.swift/blob/master/README.md#requests
-extension Player {
-    static func orderedByName() -> QueryInterfaceRequest<Player> {
-        Player.order(Columns.name)
+/// Define some player requests used by the application.
+///
+/// See https://github.com/groue/GRDB.swift/blob/master/README.md#requests
+/// See https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md
+extension DerivableRequest where RowDecoder == Player {
+    /// A request of players ordered by name
+    ///
+    /// For example:
+    ///
+    ///     let players = try dbQueue.read { db in
+    ///         try Player.all().orderedByName().fetchAll(db)
+    ///     }
+    func orderedByName() -> Self {
+        order(Player.Columns.name)
     }
     
-    static func orderedByScore() -> QueryInterfaceRequest<Player> {
-        Player.order(Columns.score.desc, Columns.name)
+    /// A request of players ordered by score
+    ///
+    /// For example:
+    ///
+    ///     let players = try dbQueue.read { db in
+    ///         try Player.all().orderedByScore().fetchAll(db)
+    ///     }
+    func orderedByScore() -> Self {
+        order(Player.Columns.score.desc, Player.Columns.name)
     }
 }
 

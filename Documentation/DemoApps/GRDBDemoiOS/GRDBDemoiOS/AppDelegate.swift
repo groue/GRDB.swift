@@ -1,8 +1,8 @@
 import UIKit
 import GRDB
 
-// The shared database queue
-var dbQueue: DatabaseQueue!
+// The shared application database
+var appDatabase: AppDatabase!
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -14,9 +14,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
     
     private func setupDatabase(_ application: UIApplication) throws {
+        // AppDelegate is responsible for choosing the location of the database file.
+        // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
         let databaseURL = try FileManager.default
             .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
             .appendingPathComponent("db.sqlite")
-        dbQueue = try AppDatabase.openDatabase(atPath: databaseURL.path)
+        let dbQueue = try DatabaseQueue(path: databaseURL.path)
+        
+        // Create the shared application database
+        appDatabase = try AppDatabase(dbQueue)
     }
 }

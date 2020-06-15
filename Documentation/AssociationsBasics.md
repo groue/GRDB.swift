@@ -39,7 +39,14 @@ GRDB Associations
     - [Aggregate Operations]
     - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
-- [Known Issues]
+
+**[FAQ]**
+
+- [How do I filter records and only keep those that are associated to another record?](../README.md#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record)
+- [How do I filter records and only keep those that are NOT associated to another record?](../README.md#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
+- [How do I select only one column of an associated record?](../README.md#how-do-i-select-only-one-column-of-an-associated-record)
+
+**[Known Issues]**
 
 
 ## Associations Benefits
@@ -2468,3 +2475,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [persistence methods]: ../README.md#persistence-methods
 [database observation tools]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation
+[FAQ]: ../README.md#faq-associations

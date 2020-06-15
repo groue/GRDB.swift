@@ -115,7 +115,7 @@ test_framework_GRDBOSX_maxSwift:
 	  -scheme GRDBOSX \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -126,7 +126,7 @@ ifdef MIN_SWIFT_VERSION
 	  -scheme GRDBOSX \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -150,7 +150,7 @@ test_framework_GRDBiOS_maxTarget_maxSwift:
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -162,7 +162,7 @@ ifdef MIN_SWIFT_VERSION
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -186,7 +186,7 @@ test_framework_GRDBtvOS_maxTarget_maxSwift:
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 
@@ -198,7 +198,7 @@ ifdef MIN_SWIFT_VERSION
 	  -destination $(MAX_TVOS_DESTINATION) \
 	  SWIFT_VERSION=$(MIN_SWIFT_VERSION) \
 	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
-	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1 GRDB_SQLITE_ENABLE_SNAPSHOT=1' \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
 endif
@@ -394,10 +394,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.0.0-beta.4 \
-	  --module-version 5.0.0-beta.4 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.0.0-beta.5 \
+	  --module-version 5.0.0-beta.5 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/5.0.0-beta.4/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/5.0.0-beta.5/ \
 	  --output Documentation/Reference \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else

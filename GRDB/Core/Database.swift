@@ -211,9 +211,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// This method must be called after database initialization
     func setup() throws {
+        setupBusyMode()
         setupDoubleQuotedStringLiterals()
         try setupForeignKeys()
-        setupBusyMode()
         setupDefaultFunctions()
         setupDefaultCollations()
         setupAuthorizer()
@@ -380,6 +380,25 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
+    // MARK: - Limits
+    
+    /// The maximum number of arguments accepted by an SQLite statement.
+    ///
+    /// For example, requests such as the one below must make sure the `ids`
+    /// array does not contain more than `maximumStatementArgumentCount`
+    /// elements:
+    ///
+    ///     let ids: [Int] = ...
+    ///     try dbQueue.write { db in
+    ///         try Player.deleteAll(db, keys: ids)
+    ///     }
+    ///
+    /// See https://www.sqlite.org/limits.html
+    /// and `SQLITE_LIMIT_VARIABLE_NUMBER`.
+    public var maximumStatementArgumentCount: Int {
+        Int(sqlite3_limit(sqliteConnection, SQLITE_LIMIT_VARIABLE_NUMBER, -1))
+    }
+
     // MARK: - Functions
     
     /// Add or redefine an SQL function.
@@ -464,6 +483,38 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         return try throwingFirstError(
             execute: block,
             finally: endReadOnly)
+    }
+    
+    // MARK: - Snapshots
+    
+    /// Returns a snapshot that must be freed with `grdb_snapshot_free`.
+    /// 
+    /// See https://www.sqlite.org/c3ref/snapshot.html
+    func takeVersionSnapshot() throws -> UnsafeMutablePointer<sqlite3_snapshot> {
+        var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
+        let code = withUnsafeMutablePointer(to: &snapshot) {
+            grdb_snapshot_get(sqliteConnection, "main", $0)
+        }
+        guard code == SQLITE_OK else {
+            // Don't grab `lastErrorMessage`, because grdb_snapshot_get may be a
+            // shim that does not call the missing sqlite3_snapshot_get.
+            throw DatabaseError(resultCode: code)
+        }
+        if let snapshot = snapshot {
+            return snapshot
+        } else {
+            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
+        }
+    }
+    
+    func wasChanged(since initialSnapshot: UnsafeMutablePointer<sqlite3_snapshot>) throws -> Bool {
+        let secondSnapshot = try takeVersionSnapshot()
+        defer {
+            grdb_snapshot_free(secondSnapshot)
+        }
+        let cmp = grdb_snapshot_cmp(initialSnapshot, secondSnapshot)
+        assert(cmp <= 0, "Unexpected snapshot ordering")
+        return cmp < 0
     }
     
     // MARK: - Authorizer
@@ -621,11 +672,35 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
-    // MARK: - Checkpoints
+    // MARK: - WAL Checkpoints
     
-    func checkpoint(_ kind: Database.CheckpointMode) throws {
-        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, nil, kind.rawValue, nil, nil)
-        guard code == SQLITE_OK else {
+    /// Runs a WAL checkpoint.
+    ///
+    /// See https://www.sqlite.org/wal.html and
+    /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html for
+    /// more information.
+    ///
+    /// - parameter kind: The checkpoint mode (default passive)
+    /// - parameter dbName: The database name (default "main")
+    /// - returns: A tuple:
+    ///     - `walFrameCount`: the total number of frames in the log file
+    ///     - `checkpointedFrameCount`: the total number of checkpointed frames
+    ///       in the log file
+    @discardableResult
+    public func checkpoint(_ kind: Database.CheckpointMode = .passive, on dbName: String? = "main") throws
+        -> (walFrameCount: Int, checkpointedFrameCount: Int)
+    {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        var walFrameCount: CInt = -1
+        var checkpointedFrameCount: CInt = -1
+        let code = sqlite3_wal_checkpoint_v2(sqliteConnection, dbName, kind.rawValue,
+                                             &walFrameCount, &checkpointedFrameCount)
+        switch code {
+        case SQLITE_OK:
+            return (walFrameCount: Int(walFrameCount), checkpointedFrameCount: Int(checkpointedFrameCount))
+        case SQLITE_MISUSE:
+            throw DatabaseError(resultCode: code)
+        default:
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
         }
     }

@@ -9,6 +9,7 @@ class PlayerListViewController: UITableViewController {
     }
     
     @IBOutlet private weak var newPlayerButtonItem: UIBarButtonItem!
+    private var animatesPlayersChange = false // Don't animate first update
     private var players: [Player] = []
     private var playersCancellable: DatabaseCancellable?
     private var playerCountCancellable: DatabaseCancellable?
@@ -42,6 +43,9 @@ class PlayerListViewController: UITableViewController {
     }
     
     private func configureNavigationItem() {
+        navigationItem.backBarButtonItem = UIBarButtonItem(
+            title: "Players", style: .plain,
+            target: nil, action: nil)
         navigationItem.leftBarButtonItems = [editButtonItem, newPlayerButtonItem]
         configureOrderingBarButtonItem()
         configureTitle()
@@ -82,19 +86,28 @@ class PlayerListViewController: UITableViewController {
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
-                    self.updateTableView(players)
+                    self.updateTableView(with: players)
             })
         case .byScore:
             playersCancellable = appDatabase.observePlayersOrderedByScore(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
-                    self.updateTableView(players)
+                    self.updateTableView(with: players)
             })
         }
     }
     
-    private func updateTableView(_ players: [Player]) {
+    private func updateTableView(with players: [Player]) {
+        if animatesPlayersChange == false {
+            self.players = players
+            tableView.reloadData()
+            
+            // Future updates will be animated
+            animatesPlayersChange = true
+            return
+        }
+        
         // Compute difference between current and new list of players
         let difference = players
             .difference(from: self.players)
@@ -134,16 +147,21 @@ extension PlayerListViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Edit" {
-            let player = players[tableView.indexPathForSelectedRow!.row]
-            let controller = segue.destination as! PlayerEditionViewController
+            guard
+                let controller = segue.destination as? PlayerEditionViewController,
+                let indexPath = tableView.indexPathForSelectedRow
+                else { return }
+            let player = players[indexPath.row]
             controller.title = player.name
             controller.player = player
             controller.presentation = .push
         }
         else if segue.identifier == "New" {
+            guard
+                let navigationController = segue.destination as? UINavigationController,
+                let controller = navigationController.viewControllers.first as? PlayerEditionViewController
+                else { return }
             setEditing(false, animated: true)
-            let navigationController = segue.destination as! UINavigationController
-            let controller = navigationController.viewControllers.first as! PlayerEditionViewController
             controller.title = "New Player"
             controller.player = Player(id: nil, name: "", score: 0)
             controller.presentation = .modal
@@ -182,7 +200,7 @@ extension PlayerListViewController {
     private func configure(_ cell: UITableViewCell, at indexPath: IndexPath) {
         let player = players[indexPath.row]
         if player.name.isEmpty {
-            cell.textLabel?.text = "-"
+            cell.textLabel?.text = "(anonymous)"
         } else {
             cell.textLabel?.text = player.name
         }

@@ -38,10 +38,9 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
-        let expression = DatabasePromise<SQLExpression> { db in
-            let primaryKey = try db.primaryKeyExpression(self.databaseTableName)
-            return SQLExpressionCountDistinct(primaryKey)
-        }
+        let expression = SQLExpressionCountDistinct(
+            SQLPrimaryKeyExpression(
+                tableName: self.databaseTableName))
         return makeAggregate(expression).forKey("\(key.singularizedName)Count")
     }
     
@@ -61,10 +60,10 @@ extension AssociationToMany {
     ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
-        let expression = DatabasePromise<SQLExpression> { db in
-            let primaryKey = try db.primaryKeyExpression(self.databaseTableName)
-            return SQLExpressionIsEmpty(SQLExpressionCountDistinct(primaryKey))
-        }
+        let expression = SQLExpressionIsEmpty(
+            SQLExpressionCountDistinct(
+                SQLPrimaryKeyExpression(
+                    tableName: self.databaseTableName)))
         return makeAggregate(expression).forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     

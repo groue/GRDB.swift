@@ -86,6 +86,9 @@ extension DatabaseMigrator {
 }
 
 extension DatabasePool {
+    @available(*, unavailable, message: "Use pool.writeWithoutTransaction { $0.checkpoint() } instead")
+    public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws { preconditionFailure() }
+
     #if os(iOS)
     @available(*, unavailable, message: "Memory management is now enabled by default. This method does nothing.")
     public func setupMemoryManagement(in application: UIApplication) { preconditionFailure() }

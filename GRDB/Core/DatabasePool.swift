@@ -169,24 +169,6 @@ public final class DatabasePool: DatabaseWriter {
 
 extension DatabasePool {
     
-    // MARK: - WAL Checkpoints
-    
-    /// Runs a WAL checkpoint
-    ///
-    /// See https://www.sqlite.org/wal.html and
-    /// https://www.sqlite.org/c3ref/wal_checkpoint_v2.html) for
-    /// more information.
-    ///
-    /// - parameter kind: The checkpoint mode (default passive)
-    public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws {
-        try writer.sync { db in
-            try db.checkpoint(kind)
-        }
-    }
-}
-
-extension DatabasePool {
-    
     // MARK: - Memory management
     
     /// Free as much memory as possible.
@@ -884,67 +866,119 @@ extension DatabasePool: DatabaseReader {
             onError: onError,
             onChange: onChange)
         
+        // Starting a concurrent observation means that we'll fetch the initial
+        // value right away, without waiting for an access to the writer queue,
+        // and the opportunity to install a transaction observer.
+        //
+        // This is how DatabasePool can start an observation and promptly notify
+        // an initial value, even when there is a long-running write transaction
+        // in the background.
+        //
+        // We thus have to deal with the fact that between this initial fetch,
+        // and the beginning of transaction tracking, any number of untracked
+        // writes may occur.
+        //
+        // We must notify changes that happen during this untracked window. But
+        // how do we spot them, since we're not tracking database changes yet?
+        //
+        // A safe solution is to always perform a second fetch. We may fetch the
+        // same initial value, if no change did happen. But we don't miss
+        // possible changes.
+        //
+        // We can avoid this second fetch when SQLite is compiled with the
+        // SQLITE_ENABLE_SNAPSHOT option:
+        //
+        // 1. Perform the initial fetch in a DatabaseSnapshot. The snapshot
+        // acquires a lock that will prevent checkpointing until we get a writer
+        // access, so that we can reliably compare database versions with
+        // `sqlite3_snapshot`: https://www.sqlite.org/c3ref/snapshot.html.
+        //
+        // 2. Get a writer access, and compare the versions of the initial
+        // snapshot, and the current state of the database: if versions are
+        // identical, we can avoid the second fetch. If they are not, we perform
+        // the second fetch, even if the actual changes are unrelated to the
+        // tracked database region (we have no way to know).
+        //
+        // 3. Install the transaction observer.
+        
         if scheduler.immediateInitialValue() {
             do {
-                // Fetch the initial value without waiting for the writer.
-                let initialValue = try unsafeReentrantRead(observer.fetchInitialValue)
+                let initialSnapshot = try makeSnapshot()
+                let initialValue = try initialSnapshot.read(observer.fetchInitialValue)
                 onChange(initialValue)
-                
-                // Now wait for the writer
-                _weakAsyncWriteWithoutTransaction { db in
-                    guard let db = db else { return }
-                    if observer.isCompleted { return }
-                    do {
-                        // Don't miss eventual changes between the
-                        // initial fetch and the writer access.
-                        if let value = try observer.fetchValue(db) {
-                            observer.notifyChange(value)
-                        }
-                        
-                        // Now we can start observation
-                        db.add(transactionObserver: observer, extent: .observerLifetime)
-                    } catch {
-                        observer.notifyErrorAndComplete(error)
-                    }
-                }
+                add(observer: observer, from: initialSnapshot)
             } catch {
                 observer.cancel()
                 onError(error)
             }
         } else {
-            // Fetch the initial value without waiting for the writer.
-            _weakAsyncRead { [weak self] dbResult in
-                guard let dbResult = dbResult else { return }
-                guard let self = self else { return }
-                if observer.isCompleted { return }
-                do {
-                    let initialValue = try observer.fetchInitialValue(dbResult.get())
-                    observer.notifyChange(initialValue)
+            let label = configuration.identifier(
+                defaultLabel: "GRDB.DatabasePool",
+                purpose: "ValueObservation")
+            configuration
+                .makeDispatchQueue(label: label)
+                .async { [weak self] in
+                    guard let self = self else { return }
+                    if observer.isCompleted { return }
                     
-                    // Now wait for the writer
-                    self._weakAsyncWriteWithoutTransaction { db in
-                        guard let db = db else { return }
-                        if observer.isCompleted { return }
-                        do {
-                            // Don't miss eventual changes between the
-                            // initial fetch and the writer access.
-                            if let value = try observer.fetchValue(db) {
-                                observer.notifyChange(value)
-                            }
-                            
-                            // Now we can start observation
-                            db.add(transactionObserver: observer, extent: .observerLifetime)
-                        } catch {
-                            observer.notifyErrorAndComplete(error)
-                        }
+                    do {
+                        let initialSnapshot = try self.makeSnapshot()
+                        let initialValue = try initialSnapshot.read(observer.fetchInitialValue)
+                        observer.notifyChange(initialValue)
+                        self.add(observer: observer, from: initialSnapshot)
+                    } catch {
+                        observer.notifyErrorAndComplete(error)
                     }
-                } catch {
-                    observer.notifyErrorAndComplete(error)
-                }
             }
         }
         
         return observer
+    }
+    
+    // Support for _addConcurrent(observation:)
+    private func add<Reducer: _ValueReducer>(
+        observer: ValueObserver<Reducer>,
+        from initialSnapshot: DatabaseSnapshot)
+    {
+        _weakAsyncWriteWithoutTransaction { db in
+            guard let db = db else { return }
+            if observer.isCompleted { return }
+            
+            do {
+                // Transaction is needed for version snapshotting
+                try db.inTransaction(.deferred) {
+                    // Keep DatabaseSnaphot alive until we have compared
+                    // database versions. It prevents database checkpointing,
+                    // and keeps versions (`sqlite3_snapshot`) valid
+                    // and comparable.
+                    let fetchNeeded: Bool = withExtendedLifetime(initialSnapshot) {
+                        // Version is nil if SQLite is not compiled with
+                        // SQLITE_ENABLE_SNAPSHOT, or if the DatabaseSnaphot
+                        // could not grab its version. In this case, we don't
+                        // care, and just fetch a fresh value.
+                        guard let initialVersion = initialSnapshot.version else {
+                            return true
+                        }
+                        do {
+                            return try db.wasChanged(since: initialVersion)
+                        } catch {
+                            // ignore: we'll just re-fetch
+                            return true
+                        }
+                    }
+                    
+                    if fetchNeeded, let value = try observer.fetchValue(db) {
+                        observer.notifyChange(value)
+                    }
+                    return .commit
+                }
+                
+                // Now we can start observation
+                db.add(transactionObserver: observer, extent: .observerLifetime)
+            } catch {
+                observer.notifyErrorAndComplete(error)
+            }
+        }
     }
     
     // MARK: - Custom FTS5 Tokenizers

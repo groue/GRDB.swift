@@ -1,4 +1,7 @@
-#include <sqlite3.h>
+#ifndef grdb_config_h
+#define grdb_config_h
+
+#include <SQLCipher/sqlite3.h>
 
 typedef void(*errorLogCallback)(void *pArg, int iErrCode, const char *zMsg);
 
@@ -68,40 +71,23 @@ static inline int grdb_snapshot_cmp(
     return sqlite3_snapshot_cmp(p1, p2);
 }
 #else
-// Assume snapshot apis *are* defined, but not exposed.
-typedef struct sqlite3_snapshot {
-  unsigned char hidden[48];
-} sqlite3_snapshot;
-
-SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_get(
-  sqlite3 *db,
-  const char *zSchema,
-  sqlite3_snapshot **ppSnapshot
-);
-
-SQLITE_API SQLITE_EXPERIMENTAL void sqlite3_snapshot_free(sqlite3_snapshot*);
-
-SQLITE_API SQLITE_EXPERIMENTAL int sqlite3_snapshot_cmp(
-  sqlite3_snapshot *p1,
-  sqlite3_snapshot *p2
-);
-
 static inline int grdb_snapshot_get(
   sqlite3 *db,
   const char *zSchema,
   sqlite3_snapshot **ppSnapshot)
 {
-    return sqlite3_snapshot_get(db, zSchema, ppSnapshot);
+    return SQLITE_MISUSE;
 }
 
 static inline void grdb_snapshot_free(sqlite3_snapshot* ppSnapshot) {
-    sqlite3_snapshot_free(ppSnapshot);
 }
 
 static inline int grdb_snapshot_cmp(
   sqlite3_snapshot *p1,
   sqlite3_snapshot *p2)
 {
-    return sqlite3_snapshot_cmp(p1, p2);
+    return 0;
 }
 #endif /* SQLITE_ENABLE_SNAPSHOT */
+
+#endif /* grdb_config_h */

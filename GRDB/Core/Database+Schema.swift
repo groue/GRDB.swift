@@ -344,14 +344,18 @@ extension Database {
         throws -> [String]?
         where T.Iterator.Element == String
     {
-        // Check primaryKey first, so that we fail early if the table does not exist
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
+        if lowercasedColumns.isEmpty {
+            // Don't hit the database for trivial case
+            return nil
+        }
         
         // Assume "rowid" is a primary key
         if lowercasedColumns == ["rowid"] {
             return ["rowid"]
         }
         
+        // Check primaryKey.
         let primaryKey = try self.primaryKey(tableName)
         if Set(primaryKey.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns) {
             return primaryKey.columns

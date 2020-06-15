@@ -11,7 +11,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5)
 
 
 #### 4.x Releases
@@ -73,6 +73,26 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+## 5.0.0-beta.5
+
+Released June 15, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.4...v5.0.0-beta.5)
+
+- **Breaking Change** [#795](https://github.com/groue/GRDB.swift/pull/795): Enhanced support for WAL Checkpoints
+- **New**: `Database.maximumStatementArgumentCount` returns the maximum number of arguments accepted by an SQLite statement.
+- **New**: Optimize DatabasePool handling of ValueObservation when SQLite is compiled with the SQLITE_ENABLE_SNAPSHOT option. We are now able to avoid fetching the observed value when we can prove that the database wasn't changed between the initial fetch and the beginning of transaction tracking. This optimization avoids duplicate notifications.
+- **New**: The query interface now exposes the primary key through `TableRecord.primaryKey`, as well as the `selectPrimaryKey(as:)` method.
+
+### Documentation Diff
+
+- The [Demo Application](Documentation/DemoApps/GRDBDemoiOS) was updated for better conformance with the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
+
+- A new [FAQ: Associations](README.md#faq-associations) addresses three frequent questions:
+    - [How do I filter records and only keep those that are associated to another record?](README.md#how-do-i-filter-records-and-only-keep-those-that-are-associated-to-another-record)
+    - [How do I filter records and only keep those that are NOT associated to another record?](README.md#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
+    - [How do I select only one column of an associated record?](README.md#how-do-i-select-only-one-column-of-an-associated-record)
+
+- The guide for [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) now recommends enabling the `SQLITE_ENABLE_SNAPSHOT` option.
 
 
 ## 5.0.0-beta.4

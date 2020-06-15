@@ -442,8 +442,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 defer { s2.signal() }
                 try dbPool.writeWithoutTransaction { db in
                     try db.execute(sql: "DELETE FROM items")
+                    try db.checkpoint()
                 }
-                try dbPool.checkpoint()
             } catch {
                 XCTFail("error: \(error)")
             }
@@ -538,8 +538,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 defer { s2.signal() }
                 try dbPool.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+                    try db.checkpoint()
                 }
-                try dbPool.checkpoint()
             } catch {
                 XCTFail("error: \(error)")
             }
@@ -759,8 +759,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 defer { s2.signal() }
                 try dbPool.writeWithoutTransaction { db in
                     try db.execute(sql: "DELETE FROM items")
+                    try db.checkpoint()
                 }
-                try dbPool.checkpoint()
             } catch {
                 XCTFail("error: \(error)")
             }
@@ -803,8 +803,8 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 defer { s2.signal() }
                 try dbPool.writeWithoutTransaction { db in
                     try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+                    try db.checkpoint()
                 }
-                try dbPool.checkpoint()
             } catch {
                 XCTFail("error: \(error)")
             }

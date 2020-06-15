@@ -345,4 +345,41 @@ class DatabaseTests : GRDBTestCase {
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
         }
     }
+    
+    func testCheckpoint() throws {
+        do {
+            // Not a WAL database
+            let dbQueue = try makeDatabaseQueue()
+            let result = try dbQueue.inDatabase {
+                try $0.checkpoint()
+            }
+            XCTAssertEqual(result.walFrameCount, -1)
+            XCTAssertEqual(result.checkpointedFrameCount, -1)
+        }
+        do {
+            // WAL database
+            let dbPool = try makeDatabasePool()
+            let result = try dbPool.writeWithoutTransaction {
+                try $0.checkpoint()
+            }
+            XCTAssertGreaterThanOrEqual(result.walFrameCount, 0)
+            XCTAssertGreaterThanOrEqual(result.checkpointedFrameCount, 0)
+        }
+        do {
+            // WAL database + TRUNCATE
+            let dbPool = try makeDatabasePool()
+            let result = try dbPool.writeWithoutTransaction {
+                try $0.checkpoint(.truncate)
+            }
+            XCTAssertEqual(result.walFrameCount, 0)
+            XCTAssertEqual(result.checkpointedFrameCount, 0)
+        }
+    }
+    
+    func testMaximumStatementArgumentCount() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let count = dbQueue.read { $0.maximumStatementArgumentCount }
+        // 999 should be safe: https://www.sqlite.org/limits.html
+        XCTAssertGreaterThanOrEqual(count, 999)
+    }
 }
