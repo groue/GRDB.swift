@@ -70,9 +70,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
-- [#795](https://github.com/groue/GRDB.swift/pull/795): **Breaking Change** Enhanced support for WAL Checkpoints
-- New: `Database.maximumStatementArgumentCount` returns the maximum number of arguments accepted by an SQLite statement.
-- New: Optimize DatabasePool handling of ValueObservation when SQLite is compiled with the SQLITE_ENABLE_SNAPSHOT option. We are now able to avoid fetching the observed value when we can prove that the database wasn't changed between the initial fetch and the beginning of transaction tracking. This optimization avoids duplicate notifications.
+- **Breaking Change** [#795](https://github.com/groue/GRDB.swift/pull/795): Enhanced support for WAL Checkpoints
+- **New**: `Database.maximumStatementArgumentCount` returns the maximum number of arguments accepted by an SQLite statement.
+- **New**: Optimize DatabasePool handling of ValueObservation when SQLite is compiled with the SQLITE_ENABLE_SNAPSHOT option. We are now able to avoid fetching the observed value when we can prove that the database wasn't changed between the initial fetch and the beginning of transaction tracking. This optimization avoids duplicate notifications.
+- **New**: The query interface now exposes the primary key through `TableRecord.primaryKey`, as well as the `selectPrimaryKey(as:)` method.
 
 ### Documentation Diff
 
