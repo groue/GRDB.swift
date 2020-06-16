@@ -4160,13 +4160,16 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
         ```swift
         // SELECT id FROM player
         Player.selectPrimaryKey(as: Int64.self)
+        
+        // SELECT code FROM country
+        Country.selectPrimaryKey(as: String.self)
         ```
         
         It is equivalent to:
         
         ```swift
-        // SELECT id FROM player
         Player.select(Player.primaryKey, as: Int64.self)
+        Country.select(Country.primaryKey, as: Int64.self)
         ```
         
         > :point_up: **Note**: `selectPrimaryKey` and `primaryKey` are [experimental](#what-are-experimental-features) and currently pick the `rowid` column for tables that have a composite primary key that spans several columns. Future GRDB version may change this behavior.
