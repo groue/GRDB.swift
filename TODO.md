@@ -50,6 +50,8 @@
 
 ## Unsure if necessary
 
+- [ ] Have TableAlias embed the record type
+- [ ] Have SQLPrimaryKeyExpression embed the record type
 - [ ] Remove support for suspended databases - https://inessential.com/2020/02/13/how_we_fixed_the_dreaded_0xdead10cc_cras
 - [ ] https://sqlite.org/pragma.html#pragma_index_xinfo
 - [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
