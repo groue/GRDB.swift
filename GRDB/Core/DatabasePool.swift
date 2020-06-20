@@ -188,10 +188,6 @@ extension DatabasePool {
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
-    ///
-    /// - param application: The UIApplication that will start a background
-    ///   task to let the database pool release its memory when the application
-    ///   enters background.
     private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
