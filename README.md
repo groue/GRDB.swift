@@ -5612,7 +5612,7 @@ The `print` operator logs messages for all ValueObservation events.
 
 ```swift
 let observation = ValueObservation
-    .tracking(Player.fetchAll)
+    .tracking { db in ... }
     .print()
 ```
 
