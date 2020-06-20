@@ -808,33 +808,19 @@ extension DatabasePool: DatabaseReader {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void)
+        scheduling scheduler: ValueObservationScheduler)
         -> DatabaseCancellable
     {
         if configuration.readonly {
-            return _addReadOnly(
-                observation: observation,
-                scheduling: scheduler,
-                onError: onError,
-                onChange: onChange)
+            return _addReadOnly(observation: observation, scheduling: scheduler)
         }
         
         if observation.requiresWriteAccess {
-            let observer = _addWriteOnly(
-                observation: observation,
-                scheduling: scheduler,
-                onError: onError,
-                onChange: onChange)
+            let observer = _addWriteOnly( observation: observation, scheduling: scheduler)
             return AnyDatabaseCancellable(cancel: observer.cancel)
         }
         
-        let observer = _addConcurrent(
-            observation: observation,
-            scheduling: scheduler,
-            onError: onError,
-            onChange: onChange)
+        let observer = _addConcurrent( observation: observation, scheduling: scheduler)
         return AnyDatabaseCancellable(cancel: observer.cancel)
     }
     
@@ -842,9 +828,7 @@ extension DatabasePool: DatabaseReader {
     /// the writer.
     private func _addConcurrent<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void)
+        scheduling scheduler: ValueObservationScheduler)
         -> ValueObserver<Reducer> // For testability
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
@@ -853,14 +837,11 @@ extension DatabasePool: DatabaseReader {
         let reduceQueueLabel = configuration.identifier(
             defaultLabel: "GRDB",
             purpose: "ValueObservation")
-        let observer = ValueObserver<Reducer>(
-            requiresWriteAccess: observation.requiresWriteAccess,
+        let observer = ValueObserver(
+            observation: observation,
             writer: self,
-            reducer: observation.makeReducer(),
-            scheduling: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
-            onError: onError,
-            onChange: onChange)
+            scheduler: scheduler,
+            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel))
         
         // Starting a concurrent observation means that we'll fetch the initial
         // value right away, without waiting for an access to the writer queue,
@@ -901,11 +882,11 @@ extension DatabasePool: DatabaseReader {
             do {
                 let initialSnapshot = try makeSnapshot()
                 let initialValue = try initialSnapshot.read(observer.fetchInitialValue)
-                onChange(initialValue)
+                observation.events.onValue?(initialValue)
                 add(observer: observer, from: initialSnapshot)
             } catch {
-                observer.cancel()
-                onError(error)
+                observer.complete()
+                observation.events.onError?(error)
             }
         } else {
             let label = configuration.identifier(
@@ -963,8 +944,11 @@ extension DatabasePool: DatabaseReader {
                         }
                     }
                     
-                    if fetchNeeded, let value = try observer.fetchValue(db) {
-                        observer.notifyChange(value)
+                    if fetchNeeded {
+                        observer.events.onDatabaseChange?()
+                        if let value = try observer.fetchValue(db) {
+                            observer.notifyChange(value)
+                        }
                     }
                     return .commit
                 }

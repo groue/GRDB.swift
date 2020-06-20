@@ -16,6 +16,8 @@ import Dispatch
 ///             print("Players have changed.")
 ///         })
 public struct ValueObservation<Reducer: _ValueReducer> {
+    var events = ValueObservationEvents<Reducer.Value>()
+    
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change.
     var makeReducer: () -> Reducer
@@ -37,7 +39,16 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     }
 }
 
-extension ValueObservation {
+struct ValueObservationEvents<Value>: Refinable {
+    var onStart: (() -> Void)?
+    var onTrackedRegion: ((DatabaseRegion) -> Void)?
+    var onDatabaseChange: (() -> Void)?
+    var onValue: ((Value) -> Void)?
+    var onError: ((Error) -> Void)?
+    var onCancel: (() -> Void)?
+}
+
+extension ValueObservation: Refinable {
     
     // MARK: - Starting Observation
     
@@ -88,7 +99,75 @@ extension ValueObservation {
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        reader._add(observation: self, scheduling: scheduler, onError: onError, onChange: onChange)
+        let observation = map(\.events) { eventHandler in
+            eventHandler
+                .map(\.onValue, appendHandler(onChange))
+                .map(\.onError, appendHandler(onError))
+        }
+        observation.events.onStart?()
+        return reader._add(observation: observation, scheduling: scheduler)
+    }
+    
+    // MARK: - Debugging
+    
+    /// Performs the specified closures when ValueObservation events occur.
+    ///
+    /// - parameters:
+    ///     - onStart: A closure that executes when the observation starts.
+    ///       Defaults to `nil`.
+    ///     - onTrackedRegion: A closure that executes when the observation
+    ///       start tracking a database region. Defaults to `nil`.
+    ///     - onDatabaseChange: A closure that executes after the observation
+    ///       was impacted by a database change. Defaults to `nil`.
+    ///     - onFetch: A closure that executes when the observed value is
+    ///       fetched. Defaults to `nil`.
+    ///     - onValue: A closure that executes when the observation notifies a
+    ///       fresh value. Defaults to `nil`.
+    ///     - onError: A closure that executes when the observation fails.
+    ///       Defaults to `nil`.
+    ///     - onCancel: A closure that executes when the observation is
+    ///       cancelled. Defaults to `nil`.
+    /// - returns: A `ValueObservation` that performs the specified closures
+    ///   when ValueObservation events occur.
+    public func handleEvents(
+        onStart: (() -> Void)? = nil,
+        onTrackedRegion: ((DatabaseRegion) -> Void)? = nil,
+        onDatabaseChange: (() -> Void)? = nil,
+        onFetch: (() -> Void)? = nil,
+        onValue: ((Reducer.Value) -> Void)? = nil,
+        onError: ((Error) -> Void)? = nil,
+        onCancel: (() -> Void)? = nil)
+        -> ValueObservation<ValueReducers.Trace<Reducer>>
+    {
+        self
+            .mapReducer { ValueReducers.Trace(base: $0, onFetch: onFetch ?? { }) }
+            .map(\.events) { eventHandler in
+                eventHandler
+                    .map(\.onStart, appendHandler(onStart))
+                    .map(\.onTrackedRegion, appendHandler(onTrackedRegion))
+                    .map(\.onDatabaseChange, appendHandler(onDatabaseChange))
+                    .map(\.onValue, appendHandler(onValue))
+                    .map(\.onError, appendHandler(onError))
+                    .map(\.onCancel, appendHandler(onCancel))
+        }
+    }
+    
+    /// Prints log messages for all ValueObservation events.
+    public func print(
+        _ prefix: String = "",
+        to stream: TextOutputStream? = nil)
+        -> ValueObservation<ValueReducers.Trace<Reducer>>
+    {
+        let prefix = prefix.isEmpty ? "" : "\(prefix): "
+        var stream = stream ?? PrintOutputStream()
+        return handleEvents(
+            onStart: { stream.write("\(prefix)start") },
+            onTrackedRegion: { stream.write("\(prefix)tracked region: \($0)") },
+            onDatabaseChange: { stream.write("\(prefix)database did change") },
+            onFetch: { stream.write("\(prefix)fetch") },
+            onValue: { stream.write("\(prefix)value: \($0)") },
+            onError: { stream.write("\(prefix)error: \($0)") },
+            onCancel: { stream.write("\(prefix)cancel") })
     }
     
     // MARK: - Fetching Values

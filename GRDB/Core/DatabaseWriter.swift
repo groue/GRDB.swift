@@ -311,9 +311,7 @@ extension DatabaseWriter {
     /// A write-only observation only uses the serialized writer
     func _addWriteOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void)
+        scheduling scheduler: ValueObservationScheduler)
         -> ValueObserver<Reducer> // For testability
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
@@ -321,14 +319,11 @@ extension DatabaseWriter {
         let reduceQueueLabel = configuration.identifier(
             defaultLabel: "GRDB",
             purpose: "ValueObservation")
-        let observer = ValueObserver<Reducer>(
-            requiresWriteAccess: observation.requiresWriteAccess,
+        let observer = ValueObserver(
+            observation: observation,
             writer: self,
-            reducer: observation.makeReducer(),
-            scheduling: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
-            onError: onError,
-            onChange: onChange)
+            scheduler: scheduler,
+            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel))
         
         if scheduler.immediateInitialValue() {
             do {
@@ -337,10 +332,10 @@ extension DatabaseWriter {
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     return initialValue
                 }
-                onChange(initialValue)
+                observation.events.onValue?(initialValue)
             } catch {
-                observer.cancel()
-                onError(error)
+                observer.complete()
+                observation.events.onError?(error)
             }
         } else {
             _weakAsyncWriteWithoutTransaction { db in
@@ -529,15 +524,9 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Reducer.Value) -> Void)
+        scheduling scheduler: ValueObservationScheduler)
         -> DatabaseCancellable
     {
-        base._add(
-            observation: observation,
-            scheduling: scheduler,
-            onError: onError,
-            onChange: onChange)
+        base._add(observation: observation, scheduling: scheduler)
     }
 }

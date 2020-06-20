@@ -134,3 +134,39 @@ func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) 
     }
     return result!
 }
+
+struct PrintOutputStream: TextOutputStream {
+    func write(_ string: String) {
+        Swift.print(string)
+    }
+}
+
+func appendHandler(_ rhs: (() -> Void)?) -> ((() -> Void)?) -> (() -> Void)? {
+    guard let rhs = rhs else {
+        return { $0 }
+    }
+    return { lhs in
+        guard let lhs = lhs else {
+            return rhs
+        }
+        return {
+            lhs()
+            rhs()
+        }
+    }
+}
+
+func appendHandler<T>(_ rhs: ((T) -> Void)?) -> (((T) -> Void)?) -> ((T) -> Void)? {
+    guard let rhs = rhs else {
+        return { $0 }
+    }
+    return { lhs in
+        guard let lhs = lhs else {
+            return rhs
+        }
+        return {
+            lhs($0)
+            rhs($0)
+        }
+    }
+}
