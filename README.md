@@ -5494,6 +5494,11 @@ let cancellable = observation.start(
 - [ValueObservation.removeDuplicates](#valueobservationremoveduplicates)
 - [ValueObservation.requiresWriteAccess](#valueobservationrequireswriteaccess)
 
+**Debugging Operators**
+
+- [ValueObservation.handleEvents](#valueobservationhandleevents)
+- [ValueObservation.print](#valueobservationprint)
+
 
 #### ValueObservation.map
 
@@ -5565,6 +5570,53 @@ observation.requiresWriteAccess = true
 ```
 
 When you use a [database pool](#database-pools), this flag has a performance hit.
+
+
+#### ValueObservation.handleEvents
+
+The `handleEvents` operator lets your application observe the lifetime of a ValueObseration:
+
+```swift
+let observation = ValueObservation
+    .tracking { db in ... }
+    .handleEvents(
+        onStart: { 
+            // The observation starts
+        },
+        onTrackedRegion: { databaseRegion in
+            // The observation starts tracking a database region
+        },
+        onDatabaseChange: { 
+            // The observation was impacted by a database change.
+        },
+        onFetch: { 
+            // The observation performs a database fetch.
+        },
+        onValue: { value in
+            // The observation notifies a fresh value.
+        },
+        onError: { error in
+            // The observation completes with an error.
+        },
+        onCancel: {
+            // The observation is cancelled.
+        })
+```
+
+See also [ValueObservation.print](#valueobservationprint).
+
+
+#### ValueObservation.print
+
+The `print` operator logs messages for all ValueObservation events.
+
+```swift
+let observation = ValueObservation
+    .tracking(Player.fetchAll)
+    .print()
+```
+
+See also [ValueObservation.handleEvents](#valueobservationhandleevents).
 
 
 ### ValueObservation Performance

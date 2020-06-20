@@ -116,7 +116,7 @@ extension ValueObservation: Refinable {
     ///     - onStart: A closure that executes when the observation starts.
     ///       Defaults to `nil`.
     ///     - onTrackedRegion: A closure that executes when the observation
-    ///       start tracking a database region. Defaults to `nil`.
+    ///       starts tracking a database region. Defaults to `nil`.
     ///     - onDatabaseChange: A closure that executes after the observation
     ///       was impacted by a database change. Defaults to `nil`.
     ///     - onFetch: A closure that executes when the observed value is
