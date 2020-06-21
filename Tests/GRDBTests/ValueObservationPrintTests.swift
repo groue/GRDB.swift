@@ -240,7 +240,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func test_writeonlyLate_immediateFailure_asynchronousScheduling() throws {
+    func test_writeonly_immediateFailure_asynchronousScheduling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
@@ -267,7 +267,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func test_writeonlyLate_immediateFailure_immediateScheduling() throws {
+    func test_writeonly_immediateFailure_immediateScheduling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
@@ -294,7 +294,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func test_writeonlyLate_lateFailure_asynchronousScheduling() throws {
+    func test_writeonly_lateFailure_asynchronousScheduling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             try dbWriter.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
@@ -337,7 +337,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func test_writeonlyLate_lateFailure_immediateScheduling() throws {
+    func test_writeonly_lateFailure_immediateScheduling() throws {
         func test(_ dbWriter: DatabaseWriter) throws {
             try dbWriter.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
@@ -532,9 +532,9 @@ class ValueObservationPrintTests: GRDBTestCase {
         }
     }
     
-    // MARK: - Chains
+    // MARK: - Variations
     
-    func test_chain() throws {
+    func test_prefix() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
@@ -544,10 +544,8 @@ class ValueObservationPrintTests: GRDBTestCase {
         let logger2 = TestStream()
         let observation = ValueObservation
             .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
-            .print(to: logger1)
-            .removeDuplicates()
-            .map { _ in "foo" }
-            .print("prefix", to: logger2)
+            .print("", to: logger1)
+            .print("log", to: logger2)
         
         let expectation = self.expectation(description: "")
         let cancellable = observation.start(
@@ -562,9 +560,153 @@ class ValueObservationPrintTests: GRDBTestCase {
                 "fetch",
                 "value: nil"])
             XCTAssertEqual(logger2.strings.prefix(3), [
-                "prefix: start",
-                "prefix: fetch",
-                "prefix: value: foo"])
+                "log: start",
+                "log: fetch",
+                "log: value: foo"])
         }
     }
+
+    func test_chain() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
+        }
+        
+        let logger1 = TestStream()
+        let logger2 = TestStream()
+        let observation = ValueObservation
+            .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+            .print(to: logger1)
+            .removeDuplicates()
+            .map { _ in "foo" }
+            .print(to: logger2)
+        
+        let expectation = self.expectation(description: "")
+        let cancellable = observation.start(
+            in: dbQueue,
+            scheduling: .async(onQueue: .main),
+            onError: { _ in },
+            onChange: { _ in expectation.fulfill() })
+        withExtendedLifetime(cancellable) {
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(logger1.strings.prefix(3), [
+                "start",
+                "fetch",
+                "value: nil"])
+            XCTAssertEqual(logger2.strings.prefix(3), [
+                "start",
+                "fetch",
+                "value: foo"])
+        }
+    }
+    
+    func test_handleEvents() throws {
+        func waitFor<R: _ValueReducer>(_ observation: ValueObservation<R>) throws {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
+            }
+            
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 2
+            let cancellable = observation.start(
+                in: dbQueue,
+                scheduling: .async(onQueue: .main),
+                onError: { _ in },
+                onChange: { _ in
+                    try! dbQueue.write { db in
+                        try db.execute(sql: "INSERT INTO player DEFAULT VALUES")
+                    }
+                    expectation.fulfill()
+            })
+            withExtendedLifetime(cancellable) {
+                waitForExpectations(timeout: 1, handler: nil)
+            }
+        }
+        
+        func waitForError<R: _ValueReducer>(_ observation: ValueObservation<R>) throws {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
+            }
+            
+            let expectation = self.expectation(description: "")
+            let cancellable = observation.start(
+                in: dbQueue,
+                scheduling: .async(onQueue: .main),
+                onError: { _ in expectation.fulfill() },
+                onChange: { _ in
+                    try! dbQueue.write { db in
+                        try db.execute(sql: """
+                            INSERT INTO player DEFAULT VALUES;
+                            DROP TABLE player;
+                            """)
+                    }
+            })
+            withExtendedLifetime(cancellable) {
+                waitForExpectations(timeout: 1, handler: nil)
+            }
+        }
+        
+        func waitForCancel<R: _ValueReducer>(_ observation: ValueObservation<R>) throws {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
+            }
+            
+            let expectation = self.expectation(description: "")
+            let cancellable = observation.start(
+                in: dbQueue,
+                scheduling: .async(onQueue: .main),
+                onError: { _ in },
+                onChange: { _ in
+                    expectation.fulfill()
+            })
+            withExtendedLifetime(cancellable) {
+                waitForExpectations(timeout: 1, handler: nil)
+                cancellable.cancel()
+            }
+        }
+        
+        let observation = ValueObservation.tracking {
+            try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player")
+        }
+        
+        do {
+            let logger = TestStream()
+            try waitFor(observation.handleEvents(onStart: { logger.write("start") }))
+            XCTAssertEqual(logger.strings, ["start"])
+        }
+        do {
+            let logger = TestStream()
+            try waitFor(observation.handleEvents(onTrackedRegion: { _ in logger.write("region") }))
+            XCTAssertEqual(logger.strings, ["region"])
+        }
+        do {
+            let logger = TestStream()
+            try waitFor(observation.handleEvents(onDatabaseChange: { logger.write("change") }))
+            XCTAssertEqual(logger.strings.prefix(1), ["change"])
+        }
+        do {
+            let logger = TestStream()
+            try waitFor(observation.handleEvents(onFetch: { logger.write("fetch") }))
+            XCTAssertEqual(logger.strings.prefix(2), ["fetch", "fetch"])
+        }
+        do {
+            let logger = TestStream()
+            try waitFor(observation.handleEvents(onValue: { _ in logger.write("value") }))
+            XCTAssertEqual(logger.strings.prefix(2), ["value", "value"])
+        }
+        do {
+            let logger = TestStream()
+            try waitForError(observation.handleEvents(onError: { _ in logger.write("error") }))
+            XCTAssertEqual(logger.strings, ["error"])
+        }
+        do {
+            let logger = TestStream()
+            try waitFor(observation.handleEvents(onCancel: { logger.write("cancel") }))
+            XCTAssertEqual(logger.strings, ["cancel"])
+        }
+    }
+
 }
