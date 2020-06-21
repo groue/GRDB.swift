@@ -704,7 +704,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         }
         do {
             let logger = TestStream()
-            try waitFor(observation.handleEvents(onCancel: { logger.write("cancel") }))
+            try waitForCancel(observation.handleEvents(onCancel: { logger.write("cancel") }))
             XCTAssertEqual(logger.strings, ["cancel"])
         }
     }
