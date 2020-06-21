@@ -251,7 +251,8 @@ public protocol DatabaseReader: AnyObject {
     /// :nodoc:
     func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
 }
 
@@ -295,13 +296,14 @@ extension DatabaseReader {
     /// initial value.
     func _addReadOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         if scheduler.immediateInitialValue() {
             do {
                 let value = try unsafeReentrantRead(observation.fetchValue)
-                observation.events.onValue?(value)
+                onChange(value)
             } catch {
                 observation.events.onError?(error)
             }
@@ -321,7 +323,7 @@ extension DatabaseReader {
                 scheduler.schedule {
                     guard !isCancelled else { return }
                     do {
-                        try observation.events.onValue?(result.get())
+                        try onChange(result.get())
                     } catch {
                         observation.events.onError?(error)
                     }
@@ -412,9 +414,13 @@ public final class AnyDatabaseReader: DatabaseReader {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
-        base._add(observation: observation, scheduling: scheduler)
+        base._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
     }
 }

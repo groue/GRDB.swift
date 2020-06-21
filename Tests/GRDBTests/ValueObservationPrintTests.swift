@@ -10,6 +10,16 @@ class ValueObservationPrintTests: GRDBTestCase {
         }
     }
     
+    /// Helps dealing with various SQLite versions
+    private func region(sql: String, in dbReader: DatabaseReader) throws -> String {
+        try dbReader.read { db in
+            try db
+                .makeSelectStatement(sql: sql)
+                .databaseRegion
+                .description
+        }
+    }
+    
     // MARK: - Readonly
     
     func test_readonly_success_asynchronousScheduling() throws {
@@ -21,7 +31,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbReader: DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             
             let expectation = self.expectation(description: "")
@@ -35,7 +45,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "value: 0"])
+                    "value: nil"])
             }
         }
         
@@ -55,7 +65,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbReader: DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             
             let expectation = self.expectation(description: "")
@@ -69,7 +79,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "value: 0"])
+                    "value: nil"])
             }
         }
         
@@ -154,10 +164,11 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
+            let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbWriter)
             let expectation = self.expectation(description: "")
             expectation.expectedFulfillmentCount = 2
             let cancellable = observation.start(
@@ -175,11 +186,11 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings.prefix(7), [
                     "start",
                     "fetch",
-                    "tracked region: player(*)",
-                    "value: 0",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
                     "fetch",
-                    "value: 1"])
+                    "value: Optional(1)"])
             }
         }
         
@@ -195,10 +206,11 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
+            let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbWriter)
             let expectation = self.expectation(description: "")
             expectation.expectedFulfillmentCount = 2
             let cancellable = observation.start(
@@ -216,11 +228,11 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings.prefix(7), [
                     "start",
                     "fetch",
-                    "tracked region: player(*)",
-                    "value: 0",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
                     "fetch",
-                    "value: 1"])
+                    "value: Optional(1)"])
             }
         }
         
@@ -232,7 +244,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbWriter: DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -247,7 +259,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "error: SQLite error 1 with statement `SELECT COUNT(*) FROM player`: no such table: player"])
+                    "error: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -259,7 +271,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbWriter: DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -274,7 +286,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "error: SQLite error 1 with statement `SELECT COUNT(*) FROM player`: no such table: player"])
+                    "error: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -290,10 +302,11 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
+            let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbWriter)
             let expectation = self.expectation(description: "")
             let cancellable = observation.start(
                 in: dbWriter,
@@ -312,11 +325,11 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "tracked region: player(*)",
-                    "value: 0",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
                     "fetch",
-                    "error: SQLite error 1 with statement `SELECT COUNT(*) FROM player`: no such table: player"])
+                    "error: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -332,10 +345,11 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM player")! }
+                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
+            let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbWriter)
             let expectation = self.expectation(description: "")
             let cancellable = observation.start(
                 in: dbWriter,
@@ -354,11 +368,11 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "tracked region: player(*)",
-                    "value: 0",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
                     "fetch",
-                    "error: SQLite error 1 with statement `SELECT COUNT(*) FROM player`: no such table: player"])
+                    "error: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -380,7 +394,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         // transaction observer, some write did happen.
         var needsChange = true
         let observation = ValueObservation
-            .tracking({ db -> Int in
+            .tracking({ db -> Int? in
                 if needsChange {
                     needsChange = false
                     try dbPool.write { db in
@@ -390,10 +404,11 @@ class ValueObservationPrintTests: GRDBTestCase {
                         """)
                     }
                 }
-                return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")!
+                return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM player")
             })
             .print(to: logger)
         
+        let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbPool)
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
         let cancellable = observation.start(
@@ -406,11 +421,11 @@ class ValueObservationPrintTests: GRDBTestCase {
             XCTAssertEqual(logger.strings, [
                 "start",
                 "fetch",
-                "tracked region: player(*)",
-                "value: 0",
+                "value: nil",
+                "tracked region: \(expectedRegion)",
                 "database did change",
                 "fetch",
-                "value: 0"])
+                "value: nil"])
         }
     }
     
@@ -426,7 +441,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         // transaction observer, some write did happen.
         var needsChange = true
         let observation = ValueObservation
-            .tracking({ db -> Int in
+            .tracking({ db -> Int? in
                 if needsChange {
                     needsChange = false
                     try dbPool.write { db in
@@ -436,10 +451,11 @@ class ValueObservationPrintTests: GRDBTestCase {
                         """)
                     }
                 }
-                return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")!
+                return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM player")
             })
             .print(to: logger)
         
+        let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbPool)
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
         let cancellable = observation.start(
@@ -452,11 +468,11 @@ class ValueObservationPrintTests: GRDBTestCase {
             XCTAssertEqual(logger.strings, [
                 "start",
                 "fetch",
-                "tracked region: player(*)",
-                "value: 0",
+                "value: nil",
+                "tracked region: \(expectedRegion)",
                 "database did change",
                 "fetch",
-                "value: 0"])
+                "value: nil"])
         }
     }
     
@@ -475,12 +491,14 @@ class ValueObservationPrintTests: GRDBTestCase {
         
         let logger = TestStream()
         let observation = ValueObservation
-            .trackingVaryingRegion({ db -> Int in
+            .trackingVaryingRegion({ db -> Int? in
                 let table = try String.fetchOne(db, sql: "SELECT t FROM choice")!
-                return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM \(table)")!
+                return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM \(table)")
             })
             .print(to: logger)
         
+        let expectedRegionA = try region(sql: "SELECT MAX(id) FROM a", in: dbQueue)
+        let expectedRegionB = try region(sql: "SELECT MAX(id) FROM b", in: dbQueue)
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 3
         let cancellable = observation.start(
@@ -502,15 +520,51 @@ class ValueObservationPrintTests: GRDBTestCase {
             XCTAssertEqual(logger.strings.prefix(11), [
                 "start",
                 "fetch",
-                "tracked region: a(*),choice(t)",
-                "value: 0",
+                "value: nil",
+                "tracked region: \(expectedRegionA),choice(t)",
                 "database did change",
                 "fetch",
-                "tracked region: b(*),choice(t)",
-                "value: 1",
+                "tracked region: \(expectedRegionB),choice(t)",
+                "value: Optional(1)",
                 "database did change",
                 "fetch",
-                "value: 2"])
+                "value: Optional(2)"])
+        }
+    }
+    
+    // MARK: - Chains
+    
+    func test_chain() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
+        }
+        
+        let logger1 = TestStream()
+        let logger2 = TestStream()
+        let observation = ValueObservation
+            .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+            .print(to: logger1)
+            .removeDuplicates()
+            .map { _ in "foo" }
+            .print("prefix", to: logger2)
+        
+        let expectation = self.expectation(description: "")
+        let cancellable = observation.start(
+            in: dbQueue,
+            scheduling: .async(onQueue: .main),
+            onError: { _ in },
+            onChange: { _ in expectation.fulfill() })
+        withExtendedLifetime(cancellable) {
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(logger1.strings.prefix(3), [
+                "start",
+                "fetch",
+                "value: nil"])
+            XCTAssertEqual(logger2.strings.prefix(3), [
+                "prefix: start",
+                "prefix: fetch",
+                "prefix: value: foo"])
         }
     }
 }

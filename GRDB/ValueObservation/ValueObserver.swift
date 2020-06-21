@@ -15,7 +15,7 @@ final class ValueObserver<Reducer: _ValueReducer> {
         }
     }
     var isCompleted: Bool { synchronized { _isCompleted } }
-    let events: ValueObservationEvents<Reducer.Value>
+    let events: ValueObservationEvents
     private var _isCompleted = false
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
@@ -23,15 +23,17 @@ final class ValueObserver<Reducer: _ValueReducer> {
     private let scheduler: ValueObservationScheduler
     private let reduceQueue: DispatchQueue
     private var isChanged = false
+    private let onChange: (Reducer.Value) -> Void
     private var lock = NSRecursiveLock() // protects _isCompleted
     
     init(
-        events: ValueObservationEvents<Reducer.Value>,
+        events: ValueObservationEvents,
         reducer: Reducer,
         requiresWriteAccess: Bool,
         writer: DatabaseWriter,
         scheduler: ValueObservationScheduler,
-        reduceQueue: DispatchQueue)
+        reduceQueue: DispatchQueue,
+        onChange: @escaping (Reducer.Value) -> Void)
     {
         self.events = events
         self.reducer = reducer
@@ -39,13 +41,15 @@ final class ValueObserver<Reducer: _ValueReducer> {
         self.writer = writer
         self.scheduler = scheduler
         self.reduceQueue = reduceQueue
+        self.onChange = onChange
     }
     
     convenience init(
         observation: ValueObservation<Reducer>,
         writer: DatabaseWriter,
         scheduler: ValueObservationScheduler,
-        reduceQueue: DispatchQueue)
+        reduceQueue: DispatchQueue,
+        onChange: @escaping (Reducer.Value) -> Void)
     {
         self.init(
             events: observation.events,
@@ -53,7 +57,8 @@ final class ValueObserver<Reducer: _ValueReducer> {
             requiresWriteAccess: observation.requiresWriteAccess,
             writer: writer,
             scheduler: scheduler,
-            reduceQueue: reduceQueue)
+            reduceQueue: reduceQueue,
+            onChange: onChange)
     }
 }
 
@@ -162,7 +167,7 @@ extension ValueObserver {
         if isCompleted { return }
         scheduler.schedule {
             if self.isCompleted { return }
-            self.events.onValue?(value)
+            self.onChange(value)
         }
     }
     

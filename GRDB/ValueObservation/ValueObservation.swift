@@ -16,7 +16,7 @@ import Dispatch
 ///             print("Players have changed.")
 ///         })
 public struct ValueObservation<Reducer: _ValueReducer> {
-    var events = ValueObservationEvents<Reducer.Value>()
+    var events = ValueObservationEvents()
     
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change.
@@ -34,16 +34,16 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
+            events: events,
             makeReducer: { transform(makeReducer()) },
             requiresWriteAccess: requiresWriteAccess)
     }
 }
 
-struct ValueObservationEvents<Value>: Refinable {
+struct ValueObservationEvents: Refinable {
     var onStart: (() -> Void)?
     var onTrackedRegion: ((DatabaseRegion) -> Void)?
     var onDatabaseChange: (() -> Void)?
-    var onValue: ((Value) -> Void)?
     var onError: ((Error) -> Void)?
     var onCancel: (() -> Void)?
 }
@@ -99,13 +99,14 @@ extension ValueObservation: Refinable {
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        let observation = map(\.events) { eventHandler in
-            eventHandler
-                .map(\.onValue, appendHandler(onChange))
-                .map(\.onError, appendHandler(onError))
+        let observation = map(\.events) { events in
+            events.map(\.onError) { concat($0, onError) }
         }
         observation.events.onStart?()
-        return reader._add(observation: observation, scheduling: scheduler)
+        return reader._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
     }
     
     // MARK: - Debugging
@@ -121,8 +122,10 @@ extension ValueObservation: Refinable {
     ///       was impacted by a database change. Defaults to `nil`.
     ///     - onFetch: A closure that executes when the observed value is
     ///       fetched. Defaults to `nil`.
-    ///     - onValue: A closure that executes when the observation notifies a
-    ///       fresh value. Defaults to `nil`.
+    ///     - onValue: A closure that executes on fresh values. Defaults
+    ///       to `nil`.
+    ///
+    ///       NOTE: This closure runs on an unspecified DispatchQueue.
     ///     - onError: A closure that executes when the observation fails.
     ///       Defaults to `nil`.
     ///     - onCancel: A closure that executes when the observation is
@@ -140,16 +143,24 @@ extension ValueObservation: Refinable {
         -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
-            .mapReducer { ValueReducers.Trace(base: $0, onFetch: onFetch ?? { }) }
-            .map(\.events) { eventHandler in
-                eventHandler
-                    .map(\.onStart, appendHandler(onStart))
-                    .map(\.onTrackedRegion, appendHandler(onTrackedRegion))
-                    .map(\.onDatabaseChange, appendHandler(onDatabaseChange))
-                    .map(\.onValue, appendHandler(onValue))
-                    .map(\.onError, appendHandler(onError))
-                    .map(\.onCancel, appendHandler(onCancel))
-        }
+            .mapReducer({ reducer in
+                ValueReducers.Trace(
+                    base: reducer,
+                    // Adding the onFetch handler to the reducer is handy: we
+                    // are sure not to miss any fetch.
+                    onFetch: onFetch ?? { },
+                    // Adding the onValue handler to the reducer is necessary:
+                    // the type of the value may change with the `map` operator.
+                    onValue: onValue ?? { _ in })
+            })
+            .map(\.events, { events in
+                events
+                    .map(\.onStart) { concat($0, onStart) }
+                    .map(\.onTrackedRegion) { concat($0, onTrackedRegion) }
+                    .map(\.onDatabaseChange) { concat($0, onDatabaseChange) }
+                    .map(\.onError) { concat($0, onError) }
+                    .map(\.onCancel) { concat($0, onCancel) }
+            })
     }
     
     /// Prints log messages for all ValueObservation events.

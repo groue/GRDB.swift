@@ -808,19 +808,29 @@ extension DatabasePool: DatabaseReader {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         if configuration.readonly {
-            return _addReadOnly(observation: observation, scheduling: scheduler)
+            return _addReadOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
         }
         
         if observation.requiresWriteAccess {
-            let observer = _addWriteOnly( observation: observation, scheduling: scheduler)
+            let observer = _addWriteOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
             return AnyDatabaseCancellable(cancel: observer.cancel)
         }
         
-        let observer = _addConcurrent( observation: observation, scheduling: scheduler)
+        let observer = _addConcurrent(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
         return AnyDatabaseCancellable(cancel: observer.cancel)
     }
     
@@ -828,7 +838,8 @@ extension DatabasePool: DatabaseReader {
     /// the writer.
     private func _addConcurrent<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> ValueObserver<Reducer> // For testability
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
@@ -841,7 +852,8 @@ extension DatabasePool: DatabaseReader {
             observation: observation,
             writer: self,
             scheduler: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel))
+            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
+            onChange: onChange)
         
         // Starting a concurrent observation means that we'll fetch the initial
         // value right away, without waiting for an access to the writer queue,
@@ -882,7 +894,7 @@ extension DatabasePool: DatabaseReader {
             do {
                 let initialSnapshot = try makeSnapshot()
                 let initialValue = try initialSnapshot.read(observer.fetchInitialValue)
-                observation.events.onValue?(initialValue)
+                onChange(initialValue)
                 add(observer: observer, from: initialSnapshot)
             } catch {
                 observer.complete()

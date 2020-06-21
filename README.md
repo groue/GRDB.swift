@@ -5593,7 +5593,8 @@ let observation = ValueObservation
             // The observation performs a database fetch.
         },
         onValue: { value in
-            // The observation notifies a fresh value.
+            // A fresh value was observed.
+            // NOTE: This closure runs on an unspecified DispatchQueue.
         },
         onError: { error in
             // The observation completes with an error.

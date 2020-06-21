@@ -5,6 +5,7 @@ extension ValueReducers {
     public struct Trace<Base: _ValueReducer>: _ValueReducer {
         var base: Base
         let onFetch: () -> Void
+        let onValue: (Base.Value) -> Void
         public var isSelectedRegionDeterministic: Bool { base.isSelectedRegionDeterministic }
         
         public func fetch(_ db: Database) throws -> Base.Fetched {
@@ -13,7 +14,11 @@ extension ValueReducers {
         }
         
         public mutating func value(_ fetched: Base.Fetched) -> Base.Value? {
-            base.value(fetched)
+            guard let value = base.value(fetched) else {
+                return nil
+            }
+            onValue(value)
+            return value
         }
     }
 }

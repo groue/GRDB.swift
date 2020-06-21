@@ -311,7 +311,8 @@ extension DatabaseWriter {
     /// A write-only observation only uses the serialized writer
     func _addWriteOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> ValueObserver<Reducer> // For testability
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
@@ -323,7 +324,8 @@ extension DatabaseWriter {
             observation: observation,
             writer: self,
             scheduler: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel))
+            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
+            onChange: onChange)
         
         if scheduler.immediateInitialValue() {
             do {
@@ -332,7 +334,7 @@ extension DatabaseWriter {
                     db.add(transactionObserver: observer, extent: .observerLifetime)
                     return initialValue
                 }
-                observation.events.onValue?(initialValue)
+                onChange(initialValue)
             } catch {
                 observer.complete()
                 observation.events.onError?(error)
@@ -524,9 +526,13 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
-        base._add(observation: observation, scheduling: scheduler)
+        base._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
     }
 }

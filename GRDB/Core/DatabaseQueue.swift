@@ -475,14 +475,21 @@ extension DatabaseQueue {
     /// :nodoc:
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
-        scheduling scheduler: ValueObservationScheduler)
+        scheduling scheduler: ValueObservationScheduler,
+        onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         if configuration.readonly {
-            return _addReadOnly(observation: observation, scheduling: scheduler)
+            return _addReadOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
         }
         
-        let observer = _addWriteOnly(observation: observation, scheduling: scheduler)
+        let observer = _addWriteOnly(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
         return AnyDatabaseCancellable(cancel: observer.cancel)
     }
 }

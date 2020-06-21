@@ -141,32 +141,32 @@ struct PrintOutputStream: TextOutputStream {
     }
 }
 
-func appendHandler(_ rhs: (() -> Void)?) -> ((() -> Void)?) -> (() -> Void)? {
-    guard let rhs = rhs else {
-        return { $0 }
-    }
-    return { lhs in
-        guard let lhs = lhs else {
-            return rhs
-        }
+/// Concatenates two functions
+func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
         return {
-            lhs()
             rhs()
+            lhs()
         }
     }
 }
 
-func appendHandler<T>(_ rhs: ((T) -> Void)?) -> (((T) -> Void)?) -> ((T) -> Void)? {
-    guard let rhs = rhs else {
-        return { $0 }
-    }
-    return { lhs in
-        guard let lhs = lhs else {
-            return rhs
-        }
+/// Concatenates two functions
+func concat<T>(_ rhs: ((T) -> Void)?, _ lhs: ((T) -> Void)?) -> ((T) -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
         return {
-            lhs($0)
             rhs($0)
+            lhs($0)
         }
     }
 }
