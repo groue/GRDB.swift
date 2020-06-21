@@ -3,7 +3,9 @@ import Foundation
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
 final class ValueObserver<Reducer: _ValueReducer> {
-    private(set) var observedRegion: DatabaseRegion? { // internal for testability
+    var isCompleted: Bool { synchronized { _isCompleted } }
+    let events: ValueObservationEvents
+    private var observedRegion: DatabaseRegion? {
         didSet {
             if
                 let onTrackedRegion = events.onTrackedRegion,
@@ -14,8 +16,6 @@ final class ValueObserver<Reducer: _ValueReducer> {
             }
         }
     }
-    var isCompleted: Bool { synchronized { _isCompleted } }
-    let events: ValueObservationEvents
     private var _isCompleted = false
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
