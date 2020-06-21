@@ -562,7 +562,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             XCTAssertEqual(logger2.strings.prefix(3), [
                 "log: start",
                 "log: fetch",
-                "log: value: foo"])
+                "log: value: nil"])
         }
     }
 
