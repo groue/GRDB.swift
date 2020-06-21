@@ -5574,7 +5574,7 @@ When you use a [database pool](#database-pools), this flag has a performance hit
 
 #### ValueObservation.handleEvents
 
-The `handleEvents` operator lets your application observe the lifetime of a ValueObseration:
+The `handleEvents` operator lets your application observe the lifetime of a ValueObservation:
 
 ```swift
 let observation = ValueObservation
