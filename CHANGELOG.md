@@ -74,7 +74,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ### Documentation Diff
 
-[ValueObservation Operators](README.md#valueobservation-operators) was extended with the documentation of the two new operators `handleEvents` and `print`.
+[ValueObservation Operators](README.md#valueobservation-operators) was extended with the documentation for the two new operators `handleEvents` and `print`.
 
 
 ## 5.0.0-beta.5
