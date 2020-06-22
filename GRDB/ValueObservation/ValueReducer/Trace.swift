@@ -4,12 +4,12 @@ extension ValueReducers {
     /// :nodoc:
     public struct Trace<Base: _ValueReducer>: _ValueReducer {
         var base: Base
-        let onFetch: () -> Void
-        let onValue: (Base.Value) -> Void
+        let willFetch: () -> Void
+        let didReceiveValue: (Base.Value) -> Void
         public var isSelectedRegionDeterministic: Bool { base.isSelectedRegionDeterministic }
         
         public func fetch(_ db: Database) throws -> Base.Fetched {
-            onFetch()
+            willFetch()
             return try base.fetch(db)
         }
         
@@ -17,7 +17,7 @@ extension ValueReducers {
             guard let value = base.value(fetched) else {
                 return nil
             }
-            onValue(value)
+            didReceiveValue(value)
             return value
         }
     }

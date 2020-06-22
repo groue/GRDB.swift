@@ -305,7 +305,7 @@ extension DatabaseReader {
                 let value = try unsafeReentrantRead(observation.fetchValue)
                 onChange(value)
             } catch {
-                observation.events.onError?(error)
+                observation.events.didFail?(error)
             }
             return AnyDatabaseCancellable(cancel: { })
         } else {
@@ -325,7 +325,7 @@ extension DatabaseReader {
                     do {
                         try onChange(result.get())
                     } catch {
-                        observation.events.onError?(error)
+                        observation.events.didFail?(error)
                     }
                 }
             }

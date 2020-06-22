@@ -94,7 +94,7 @@ class ValueObservationTests: GRDBTestCase {
         let expectation = self.expectation(description: "")
         let observation = ValueObservation
             .tracking(request.fetchAll)
-            .handleEvents(onTrackedRegion: {
+            .handleEvents(willTrackRegion: {
                 region = $0
                 expectation.fulfill()
             })

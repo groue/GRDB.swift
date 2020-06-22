@@ -41,11 +41,11 @@ public struct ValueObservation<Reducer: _ValueReducer> {
 }
 
 struct ValueObservationEvents: Refinable {
-    var onStart: (() -> Void)?
-    var onTrackedRegion: ((DatabaseRegion) -> Void)?
-    var onDatabaseChange: (() -> Void)?
-    var onError: ((Error) -> Void)?
-    var onCancel: (() -> Void)?
+    var willStart: (() -> Void)?
+    var willTrackRegion: ((DatabaseRegion) -> Void)?
+    var databaseDidChange: (() -> Void)?
+    var didFail: ((Error) -> Void)?
+    var didCancel: (() -> Void)?
 }
 
 extension ValueObservation: Refinable {
@@ -100,9 +100,9 @@ extension ValueObservation: Refinable {
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
         let observation = map(\.events) { events in
-            events.map(\.onError) { concat($0, onError) }
+            events.map(\.didFail) { concat($0, onError) }
         }
-        observation.events.onStart?()
+        observation.events.willStart?()
         return reader._add(
             observation: observation,
             scheduling: scheduler,
@@ -114,52 +114,52 @@ extension ValueObservation: Refinable {
     /// Performs the specified closures when ValueObservation events occur.
     ///
     /// - parameters:
-    ///     - onStart: A closure that executes when the observation starts.
+    ///     - willStart: A closure that executes when the observation starts.
     ///       Defaults to `nil`.
-    ///     - onTrackedRegion: A closure that executes when the observation
+    ///     - willFetch: A closure that executes when the observed value is
+    ///       about to be fetched. Defaults to `nil`.
+    ///     - willTrackRegion: A closure that executes when the observation
     ///       starts tracking a database region. Defaults to `nil`.
-    ///     - onDatabaseChange: A closure that executes after the observation
+    ///     - databaseDidChange: A closure that executes after the observation
     ///       was impacted by a database change. Defaults to `nil`.
-    ///     - onFetch: A closure that executes when the observed value is
-    ///       fetched. Defaults to `nil`.
-    ///     - onValue: A closure that executes on fresh values. Defaults
+    ///     - didReceiveValue: A closure that executes on fresh values. Defaults
     ///       to `nil`.
     ///
     ///       NOTE: This closure runs on an unspecified DispatchQueue.
-    ///     - onError: A closure that executes when the observation fails.
+    ///     - didFail: A closure that executes when the observation fails.
     ///       Defaults to `nil`.
-    ///     - onCancel: A closure that executes when the observation is
+    ///     - didCancel: A closure that executes when the observation is
     ///       cancelled. Defaults to `nil`.
     /// - returns: A `ValueObservation` that performs the specified closures
     ///   when ValueObservation events occur.
     public func handleEvents(
-        onStart: (() -> Void)? = nil,
-        onTrackedRegion: ((DatabaseRegion) -> Void)? = nil,
-        onDatabaseChange: (() -> Void)? = nil,
-        onFetch: (() -> Void)? = nil,
-        onValue: ((Reducer.Value) -> Void)? = nil,
-        onError: ((Error) -> Void)? = nil,
-        onCancel: (() -> Void)? = nil)
+        willStart: (() -> Void)? = nil,
+        willFetch: (() -> Void)? = nil,
+        willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
+        databaseDidChange: (() -> Void)? = nil,
+        didReceiveValue: ((Reducer.Value) -> Void)? = nil,
+        didFail: ((Error) -> Void)? = nil,
+        didCancel: (() -> Void)? = nil)
         -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
             .mapReducer({ reducer in
                 ValueReducers.Trace(
                     base: reducer,
-                    // Adding the onFetch handler to the reducer is handy: we
+                    // Adding the willFetch handler to the reducer is handy: we
                     // are sure not to miss any fetch.
-                    onFetch: onFetch ?? { },
-                    // Adding the onValue handler to the reducer is necessary:
+                    willFetch: willFetch ?? { },
+                    // Adding the didReceiveValue handler to the reducer is necessary:
                     // the type of the value may change with the `map` operator.
-                    onValue: onValue ?? { _ in })
+                    didReceiveValue: didReceiveValue ?? { _ in })
             })
             .map(\.events, { events in
                 events
-                    .map(\.onStart) { concat($0, onStart) }
-                    .map(\.onTrackedRegion) { concat($0, onTrackedRegion) }
-                    .map(\.onDatabaseChange) { concat($0, onDatabaseChange) }
-                    .map(\.onError) { concat($0, onError) }
-                    .map(\.onCancel) { concat($0, onCancel) }
+                    .map(\.willStart) { concat($0, willStart) }
+                    .map(\.willTrackRegion) { concat($0, willTrackRegion) }
+                    .map(\.databaseDidChange) { concat($0, databaseDidChange) }
+                    .map(\.didFail) { concat($0, didFail) }
+                    .map(\.didCancel) { concat($0, didCancel) }
             })
     }
     
@@ -172,13 +172,13 @@ extension ValueObservation: Refinable {
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         var stream = stream ?? PrintOutputStream()
         return handleEvents(
-            onStart: { stream.write("\(prefix)start") },
-            onTrackedRegion: { stream.write("\(prefix)tracked region: \($0)") },
-            onDatabaseChange: { stream.write("\(prefix)database did change") },
-            onFetch: { stream.write("\(prefix)fetch") },
-            onValue: { stream.write("\(prefix)value: \($0)") },
-            onError: { stream.write("\(prefix)error: \($0)") },
-            onCancel: { stream.write("\(prefix)cancel") })
+            willStart: { stream.write("\(prefix)will start") },
+            willFetch: { stream.write("\(prefix)will fetch") },
+            willTrackRegion: { stream.write("\(prefix)will track region: \($0)") },
+            databaseDidChange: { stream.write("\(prefix)database did change") },
+            didReceiveValue: { stream.write("\(prefix)did receive value: \($0)") },
+            didFail: { stream.write("\(prefix)did fail: \($0)") },
+            didCancel: { stream.write("\(prefix)did cancel") })
     }
     
     // MARK: - Fetching Values

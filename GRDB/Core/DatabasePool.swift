@@ -898,7 +898,7 @@ extension DatabasePool: DatabaseReader {
                 add(observer: observer, from: initialSnapshot)
             } catch {
                 observer.complete()
-                observation.events.onError?(error)
+                observation.events.didFail?(error)
             }
         } else {
             let label = configuration.identifier(
@@ -957,7 +957,7 @@ extension DatabasePool: DatabaseReader {
                     }
                     
                     if fetchNeeded {
-                        observer.events.onDatabaseChange?()
+                        observer.events.databaseDidChange?()
                         if let value = try observer.fetchValue(db) {
                             observer.notifyChange(value)
                         }

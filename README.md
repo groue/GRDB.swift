@@ -5580,27 +5580,27 @@ The `handleEvents` operator lets your application observe the lifetime of a Valu
 let observation = ValueObservation
     .tracking { db in ... }
     .handleEvents(
-        onStart: {
-            // The observation starts
+        willStart: {
+            // The observation starts.
         },
-        onTrackedRegion: { databaseRegion in
-            // The observation starts tracking a database region
+        willFetch: {
+            // The observation will perform a database fetch.
         },
-        onDatabaseChange: {
+        willTrackRegion: { databaseRegion in
+            // The observation starts tracking a database region.
+        },
+        databaseDidChange: {
             // The observation was impacted by a database change.
         },
-        onFetch: {
-            // The observation performs a database fetch.
-        },
-        onValue: { value in
+        didReceiveValue: { value in
             // A fresh value was observed.
             // NOTE: This closure runs on an unspecified DispatchQueue.
         },
-        onError: { error in
+        didFail: { error in
             // The observation completes with an error.
         },
-        onCancel: {
-            // The observation is cancelled.
+        didCancel: {
+            // The observation was cancelled.
         })
 ```
 

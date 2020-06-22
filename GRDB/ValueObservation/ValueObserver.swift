@@ -8,11 +8,11 @@ final class ValueObserver<Reducer: _ValueReducer> {
     private var observedRegion: DatabaseRegion? {
         didSet {
             if
-                let onTrackedRegion = events.onTrackedRegion,
+                let willTrackRegion = events.willTrackRegion,
                 let region = observedRegion,
                 region != oldValue
             {
-                onTrackedRegion(region)
+                willTrackRegion(region)
             }
         }
     }
@@ -87,7 +87,7 @@ extension ValueObserver: TransactionObserver {
         isChanged = false
         if isCompleted { return }
         
-        events.onDatabaseChange?()
+        events.databaseDidChange?()
         
         // 1. Fetch
         let fetchedValue: DatabaseFuture<Reducer.Fetched>
@@ -158,8 +158,8 @@ extension ValueObserver {
     func cancel() {
         synchronized {
             if _isCompleted { return }
-            events.onCancel?()
             complete()
+            events.didCancel?()
         }
     }
     
@@ -183,7 +183,7 @@ extension ValueObserver {
                 }
             }
             if shouldNotify {
-                self.events.onError?(error)
+                self.events.didFail?(error)
             }
         }
     }

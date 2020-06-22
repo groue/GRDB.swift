@@ -337,7 +337,7 @@ extension DatabaseWriter {
                 onChange(initialValue)
             } catch {
                 observer.complete()
-                observation.events.onError?(error)
+                observation.events.didFail?(error)
             }
         } else {
             _weakAsyncWriteWithoutTransaction { db in
