@@ -90,13 +90,22 @@ class ValueObservationTests: GRDBTestCase {
         // Test that view v is not included in the observed region.
         // This optimization helps observation of views that feed from a
         // single table.
-        let observation = ValueObservation.tracking(request.fetchAll)
-        let observer = dbQueue._addWriteOnly(
-            observation: observation,
-            scheduling: .immediate, // So that we can test the observedRegion
+        var region: DatabaseRegion?
+        let expectation = self.expectation(description: "")
+        let observation = ValueObservation
+            .tracking(request.fetchAll)
+            .handleEvents(willTrackRegion: {
+                region = $0
+                expectation.fulfill()
+            })
+        let observer = observation.start(
+            in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { _ in })
-        XCTAssertEqual(observer.observedRegion!.description, "t(id,name)") // view is NOT tracked
+        withExtendedLifetime(observer) {
+            waitForExpectations(timeout: 1, handler: nil)
+            XCTAssertEqual(region!.description, "t(id,name)") // view is NOT tracked
+        }
     }
     
     // MARK: - Snapshot Optimization

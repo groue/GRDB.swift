@@ -246,16 +246,12 @@ public protocol DatabaseReader: AnyObject {
     /// method instead.
     ///
     /// - parameter observation: the stared observation
-    /// - parameter onError: a closure that is provided by eventual errors that happen
-    /// during observation
-    /// - parameter onChange: a closure that is provided fresh values
     /// - returns: a TransactionObserver
     ///
     /// :nodoc:
     func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
 }
@@ -301,15 +297,15 @@ extension DatabaseReader {
     func _addReadOnly<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         if scheduler.immediateInitialValue() {
             do {
-                try onChange(unsafeReentrantRead(observation.fetchValue))
+                let value = try unsafeReentrantRead(observation.fetchValue)
+                onChange(value)
             } catch {
-                onError(error)
+                observation.events.didFail?(error)
             }
             return AnyDatabaseCancellable(cancel: { })
         } else {
@@ -329,7 +325,7 @@ extension DatabaseReader {
                     do {
                         try onChange(result.get())
                     } catch {
-                        onError(error)
+                        observation.events.didFail?(error)
                     }
                 }
             }
@@ -419,14 +415,12 @@ public final class AnyDatabaseReader: DatabaseReader {
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         base._add(
             observation: observation,
             scheduling: scheduler,
-            onError: onError,
             onChange: onChange)
     }
 }

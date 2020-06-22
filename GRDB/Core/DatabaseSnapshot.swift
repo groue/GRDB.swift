@@ -132,14 +132,12 @@ extension DatabaseSnapshot {
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
         _addReadOnly(
             observation: observation,
             scheduling: scheduler,
-            onError: onError,
             onChange: onChange)
     }
 }

@@ -16,6 +16,8 @@ import Dispatch
 ///             print("Players have changed.")
 ///         })
 public struct ValueObservation<Reducer: _ValueReducer> {
+    var events = ValueObservationEvents()
+    
     /// The reducer is created when observation starts, and is triggered upon
     /// each database change.
     var makeReducer: () -> Reducer
@@ -32,12 +34,21 @@ public struct ValueObservation<Reducer: _ValueReducer> {
     func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
+            events: events,
             makeReducer: { transform(makeReducer()) },
             requiresWriteAccess: requiresWriteAccess)
     }
 }
 
-extension ValueObservation {
+struct ValueObservationEvents: Refinable {
+    var willStart: (() -> Void)?
+    var willTrackRegion: ((DatabaseRegion) -> Void)?
+    var databaseDidChange: (() -> Void)?
+    var didFail: ((Error) -> Void)?
+    var didCancel: (() -> Void)?
+}
+
+extension ValueObservation: Refinable {
     
     // MARK: - Starting Observation
     
@@ -88,7 +99,86 @@ extension ValueObservation {
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        reader._add(observation: self, scheduling: scheduler, onError: onError, onChange: onChange)
+        let observation = map(\.events) { events in
+            events.map(\.didFail) { concat($0, onError) }
+        }
+        observation.events.willStart?()
+        return reader._add(
+            observation: observation,
+            scheduling: scheduler,
+            onChange: onChange)
+    }
+    
+    // MARK: - Debugging
+    
+    /// Performs the specified closures when ValueObservation events occur.
+    ///
+    /// - parameters:
+    ///     - willStart: A closure that executes when the observation starts.
+    ///       Defaults to `nil`.
+    ///     - willFetch: A closure that executes when the observed value is
+    ///       about to be fetched. Defaults to `nil`.
+    ///     - willTrackRegion: A closure that executes when the observation
+    ///       starts tracking a database region. Defaults to `nil`.
+    ///     - databaseDidChange: A closure that executes after the observation
+    ///       was impacted by a database change. Defaults to `nil`.
+    ///     - didReceiveValue: A closure that executes on fresh values. Defaults
+    ///       to `nil`.
+    ///
+    ///       NOTE: This closure runs on an unspecified DispatchQueue.
+    ///     - didFail: A closure that executes when the observation fails.
+    ///       Defaults to `nil`.
+    ///     - didCancel: A closure that executes when the observation is
+    ///       cancelled. Defaults to `nil`.
+    /// - returns: A `ValueObservation` that performs the specified closures
+    ///   when ValueObservation events occur.
+    public func handleEvents(
+        willStart: (() -> Void)? = nil,
+        willFetch: (() -> Void)? = nil,
+        willTrackRegion: ((DatabaseRegion) -> Void)? = nil,
+        databaseDidChange: (() -> Void)? = nil,
+        didReceiveValue: ((Reducer.Value) -> Void)? = nil,
+        didFail: ((Error) -> Void)? = nil,
+        didCancel: (() -> Void)? = nil)
+        -> ValueObservation<ValueReducers.Trace<Reducer>>
+    {
+        self
+            .mapReducer({ reducer in
+                ValueReducers.Trace(
+                    base: reducer,
+                    // Adding the willFetch handler to the reducer is handy: we
+                    // are sure not to miss any fetch.
+                    willFetch: willFetch ?? { },
+                    // Adding the didReceiveValue handler to the reducer is necessary:
+                    // the type of the value may change with the `map` operator.
+                    didReceiveValue: didReceiveValue ?? { _ in })
+            })
+            .map(\.events, { events in
+                events
+                    .map(\.willStart) { concat($0, willStart) }
+                    .map(\.willTrackRegion) { concat($0, willTrackRegion) }
+                    .map(\.databaseDidChange) { concat($0, databaseDidChange) }
+                    .map(\.didFail) { concat($0, didFail) }
+                    .map(\.didCancel) { concat($0, didCancel) }
+            })
+    }
+    
+    /// Prints log messages for all ValueObservation events.
+    public func print(
+        _ prefix: String = "",
+        to stream: TextOutputStream? = nil)
+        -> ValueObservation<ValueReducers.Trace<Reducer>>
+    {
+        let prefix = prefix.isEmpty ? "" : "\(prefix): "
+        var stream = stream ?? PrintOutputStream()
+        return handleEvents(
+            willStart: { stream.write("\(prefix)will start") },
+            willFetch: { stream.write("\(prefix)will fetch") },
+            willTrackRegion: { stream.write("\(prefix)will track region: \($0)") },
+            databaseDidChange: { stream.write("\(prefix)database did change") },
+            didReceiveValue: { stream.write("\(prefix)did receive value: \($0)") },
+            didFail: { stream.write("\(prefix)did fail: \($0)") },
+            didCancel: { stream.write("\(prefix)did cancel") })
     }
     
     // MARK: - Fetching Values

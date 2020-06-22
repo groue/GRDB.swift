@@ -3,35 +3,62 @@ import Foundation
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
 final class ValueObserver<Reducer: _ValueReducer> {
-    private(set) var observedRegion: DatabaseRegion? // internal for testability
     var isCompleted: Bool { synchronized { _isCompleted } }
+    let events: ValueObservationEvents
+    private var observedRegion: DatabaseRegion? {
+        didSet {
+            if
+                let willTrackRegion = events.willTrackRegion,
+                let region = observedRegion,
+                region != oldValue
+            {
+                willTrackRegion(region)
+            }
+        }
+    }
     private var _isCompleted = false
     private var reducer: Reducer
     private let requiresWriteAccess: Bool
     private weak var writer: DatabaseWriter?
     private let scheduler: ValueObservationScheduler
     private let reduceQueue: DispatchQueue
-    private let onError: (Error) -> Void
-    private let onChange: (Reducer.Value) -> Void
     private var isChanged = false
+    private let onChange: (Reducer.Value) -> Void
     private var lock = NSRecursiveLock() // protects _isCompleted
     
     init(
+        events: ValueObservationEvents,
+        reducer: Reducer,
         requiresWriteAccess: Bool,
         writer: DatabaseWriter,
-        reducer: Reducer,
-        scheduling scheduler: ValueObservationScheduler,
+        scheduler: ValueObservationScheduler,
         reduceQueue: DispatchQueue,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
     {
-        self.writer = writer
+        self.events = events
         self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
+        self.writer = writer
         self.scheduler = scheduler
         self.reduceQueue = reduceQueue
-        self.onError = onError
         self.onChange = onChange
+    }
+    
+    convenience init(
+        observation: ValueObservation<Reducer>,
+        writer: DatabaseWriter,
+        scheduler: ValueObservationScheduler,
+        reduceQueue: DispatchQueue,
+        onChange: @escaping (Reducer.Value) -> Void)
+    {
+        self.init(
+            events: observation.events,
+            reducer: observation.makeReducer(),
+            requiresWriteAccess: observation.requiresWriteAccess,
+            writer: writer,
+            scheduler: scheduler,
+            reduceQueue: reduceQueue,
+            onChange: onChange)
     }
 }
 
@@ -59,6 +86,8 @@ extension ValueObserver: TransactionObserver {
         guard isChanged else { return }
         isChanged = false
         if isCompleted { return }
+        
+        events.databaseDidChange?()
         
         // 1. Fetch
         let fetchedValue: DatabaseFuture<Reducer.Fetched>
@@ -119,11 +148,18 @@ extension ValueObserver {
         }
     }
     
-    func cancel() {
+    func complete() {
         synchronized {
-            // no harm if already completed
             _isCompleted = true
             writer?.remove(transactionObserver: self)
+        }
+    }
+    
+    func cancel() {
+        synchronized {
+            if _isCompleted { return }
+            complete()
+            events.didCancel?()
         }
     }
     
@@ -142,12 +178,12 @@ extension ValueObserver {
                 if self._isCompleted {
                     return false
                 } else {
-                    self._isCompleted = true
+                    self.complete()
                     return true
                 }
             }
             if shouldNotify {
-                self.onError(error)
+                self.events.didFail?(error)
             }
         }
     }

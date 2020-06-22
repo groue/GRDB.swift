@@ -134,3 +134,39 @@ func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) 
     }
     return result!
 }
+
+struct PrintOutputStream: TextOutputStream {
+    func write(_ string: String) {
+        Swift.print(string)
+    }
+}
+
+/// Concatenates two functions
+func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
+        return {
+            rhs()
+            lhs()
+        }
+    }
+}
+
+/// Concatenates two functions
+func concat<T>(_ rhs: ((T) -> Void)?, _ lhs: ((T) -> Void)?) -> ((T) -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
+        return {
+            rhs($0)
+            lhs($0)
+        }
+    }
+}
