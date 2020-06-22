@@ -43,9 +43,9 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did receive value: nil"])
+                    "start",
+                    "fetch",
+                    "value: nil"])
             }
         }
         
@@ -77,9 +77,9 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did receive value: nil"])
+                    "start",
+                    "fetch",
+                    "value: nil"])
             }
         }
         
@@ -109,9 +109,9 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did fail: TestError()"])
+                    "start",
+                    "fetch",
+                    "failure: TestError()"])
             }
         }
         
@@ -141,9 +141,9 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did fail: TestError()"])
+                    "start",
+                    "fetch",
+                    "failure: TestError()"])
             }
         }
         
@@ -184,13 +184,13 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings.prefix(7), [
-                    "will start",
-                    "will fetch",
-                    "did receive value: nil",
-                    "will track region: \(expectedRegion)",
+                    "start",
+                    "fetch",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
-                    "will fetch",
-                    "did receive value: Optional(1)"])
+                    "fetch",
+                    "value: Optional(1)"])
             }
         }
         
@@ -226,13 +226,13 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings.prefix(7), [
-                    "will start",
-                    "will fetch",
-                    "did receive value: nil",
-                    "will track region: \(expectedRegion)",
+                    "start",
+                    "fetch",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
-                    "will fetch",
-                    "did receive value: Optional(1)"])
+                    "fetch",
+                    "value: Optional(1)"])
             }
         }
         
@@ -257,9 +257,9 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did fail: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "start",
+                    "fetch",
+                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -284,9 +284,9 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did fail: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "start",
+                    "fetch",
+                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -323,13 +323,13 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did receive value: nil",
-                    "will track region: \(expectedRegion)",
+                    "start",
+                    "fetch",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
-                    "will fetch",
-                    "did fail: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "fetch",
+                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -366,13 +366,13 @@ class ValueObservationPrintTests: GRDBTestCase {
             withExtendedLifetime(cancellable) {
                 waitForExpectations(timeout: 1, handler: nil)
                 XCTAssertEqual(logger.strings, [
-                    "will start",
-                    "will fetch",
-                    "did receive value: nil",
-                    "will track region: \(expectedRegion)",
+                    "start",
+                    "fetch",
+                    "value: nil",
+                    "tracked region: \(expectedRegion)",
                     "database did change",
-                    "will fetch",
-                    "did fail: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "fetch",
+                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
             }
         }
         
@@ -419,13 +419,13 @@ class ValueObservationPrintTests: GRDBTestCase {
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(logger.strings, [
-                "will start",
-                "will fetch",
-                "did receive value: nil",
-                "will track region: \(expectedRegion)",
+                "start",
+                "fetch",
+                "value: nil",
+                "tracked region: \(expectedRegion)",
                 "database did change",
-                "will fetch",
-                "did receive value: nil"])
+                "fetch",
+                "value: nil"])
         }
     }
     
@@ -466,13 +466,13 @@ class ValueObservationPrintTests: GRDBTestCase {
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(logger.strings, [
-                "will start",
-                "will fetch",
-                "did receive value: nil",
-                "will track region: \(expectedRegion)",
+                "start",
+                "fetch",
+                "value: nil",
+                "tracked region: \(expectedRegion)",
                 "database did change",
-                "will fetch",
-                "did receive value: nil"])
+                "fetch",
+                "value: nil"])
         }
     }
     
@@ -518,17 +518,17 @@ class ValueObservationPrintTests: GRDBTestCase {
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(logger.strings.prefix(11), [
-                "will start",
-                "will fetch",
-                "did receive value: nil",
-                "will track region: \(expectedRegionA),choice(t)",
+                "start",
+                "fetch",
+                "value: nil",
+                "tracked region: \(expectedRegionA),choice(t)",
                 "database did change",
-                "will fetch",
-                "will track region: \(expectedRegionB),choice(t)",
-                "did receive value: Optional(1)",
+                "fetch",
+                "tracked region: \(expectedRegionB),choice(t)",
+                "value: Optional(1)",
                 "database did change",
-                "will fetch",
-                "did receive value: Optional(2)"])
+                "fetch",
+                "value: Optional(2)"])
         }
     }
     
@@ -556,13 +556,13 @@ class ValueObservationPrintTests: GRDBTestCase {
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(logger1.strings.prefix(3), [
-                "will start",
-                "will fetch",
-                "did receive value: nil"])
+                "start",
+                "fetch",
+                "value: nil"])
             XCTAssertEqual(logger2.strings.prefix(3), [
-                "log: will start",
-                "log: will fetch",
-                "log: did receive value: nil"])
+                "log: start",
+                "log: fetch",
+                "log: value: nil"])
         }
     }
 
@@ -590,13 +590,13 @@ class ValueObservationPrintTests: GRDBTestCase {
         withExtendedLifetime(cancellable) {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(logger1.strings.prefix(3), [
-                "will start",
-                "will fetch",
-                "did receive value: nil"])
+                "start",
+                "fetch",
+                "value: nil"])
             XCTAssertEqual(logger2.strings.prefix(3), [
-                "will start",
-                "will fetch",
-                "did receive value: foo"])
+                "start",
+                "fetch",
+                "value: foo"])
         }
     }
     

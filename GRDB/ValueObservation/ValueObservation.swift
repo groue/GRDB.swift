@@ -172,13 +172,13 @@ extension ValueObservation: Refinable {
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         var stream = stream ?? PrintOutputStream()
         return handleEvents(
-            willStart: { stream.write("\(prefix)will start") },
-            willFetch: { stream.write("\(prefix)will fetch") },
-            willTrackRegion: { stream.write("\(prefix)will track region: \($0)") },
+            willStart: { stream.write("\(prefix)start") },
+            willFetch: { stream.write("\(prefix)fetch") },
+            willTrackRegion: { stream.write("\(prefix)tracked region: \($0)") },
             databaseDidChange: { stream.write("\(prefix)database did change") },
-            didReceiveValue: { stream.write("\(prefix)did receive value: \($0)") },
-            didFail: { stream.write("\(prefix)did fail: \($0)") },
-            didCancel: { stream.write("\(prefix)did cancel") })
+            didReceiveValue: { stream.write("\(prefix)value: \($0)") },
+            didFail: { stream.write("\(prefix)failure: \($0)") },
+            didCancel: { stream.write("\(prefix)cancel") })
     }
     
     // MARK: - Fetching Values
