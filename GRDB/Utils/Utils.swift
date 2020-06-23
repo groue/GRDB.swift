@@ -170,3 +170,13 @@ func concat<T>(_ rhs: ((T) -> Void)?, _ lhs: ((T) -> Void)?) -> ((T) -> Void)? {
         }
     }
 }
+
+extension NSRecursiveLock {
+    @inlinable
+    @inline(__always)
+    func synchronized<T>(_ block: () throws -> T) rethrows -> T {
+        lock()
+        defer { unlock() }
+        return try block()
+    }
+}

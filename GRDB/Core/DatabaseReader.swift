@@ -1,3 +1,6 @@
+#if canImport(Combine)
+import Combine
+#endif
 import Dispatch
 
 /// The protocol for all types that can fetch values from a database.
@@ -288,6 +291,87 @@ extension DatabaseReader {
         }
     }
 }
+
+#if canImport(Combine)
+extension DatabaseReader {
+    // MARK: - Publishing Database Values
+    
+    /// Returns a Publisher that asynchronously completes with a fetched value.
+    ///
+    ///     // DatabasePublishers.Read<[Player]>
+    ///     let players = dbQueue.readPublisher { db in
+    ///         try Player.fetchAll(db)
+    ///     }
+    ///
+    /// Its value and completion are emitted on the main dispatch queue.
+    ///
+    /// - parameter value: A closure which accesses the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func readPublisher<Output>(
+        value: @escaping (Database) throws -> Output)
+        -> DatabasePublishers.Read<Output>
+    {
+        readPublisher(receiveOn: DispatchQueue.main, value: value)
+    }
+    
+    /// Returns a Publisher that asynchronously completes with a fetched value.
+    ///
+    ///     // DatabasePublishers.Read<[Player]>
+    ///     let players = dbQueue.readPublisher(
+    ///         receiveOn: DispatchQueue.global(),
+    ///         value: { db in try Player.fetchAll(db) })
+    ///
+    /// Its value and completion are emitted on `scheduler`.
+    ///
+    /// - parameter scheduler: A Combine Scheduler.
+    /// - parameter value: A closure which accesses the database.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func readPublisher<S, Output>(
+        receiveOn scheduler: S,
+        value: @escaping (Database) throws -> Output)
+        -> DatabasePublishers.Read<Output>
+        where S: Scheduler
+    {
+        Deferred {
+            Future { fulfill in
+                self.asyncRead { dbResult in
+                    fulfill(dbResult.flatMap { db in Result { try value(db) } })
+                }
+            }
+        }
+        .receiveValues(on: scheduler)
+        .eraseToReadPublisher()
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension DatabasePublishers {
+    /// A publisher that reads a value from the database. It publishes exactly
+    /// one element, or an error.
+    ///
+    /// See:
+    ///
+    /// - `DatabaseReader.readPublisher(receiveOn:value:)`.
+    /// - `DatabaseReader.readPublisher(value:)`.
+    public struct Read<Output>: Publisher {
+        public typealias Output = Output
+        public typealias Failure = Error
+        
+        fileprivate let upstream: AnyPublisher<Output, Error>
+        
+        public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
+            upstream.receive(subscriber: subscriber)
+        }
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension Publisher where Failure == Error {
+    fileprivate func eraseToReadPublisher() -> DatabasePublishers.Read<Output> {
+        .init(upstream: eraseToAnyPublisher())
+    }
+}
+#endif
 
 extension DatabaseReader {
     // MARK: - Value Observation Support
