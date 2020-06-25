@@ -71,6 +71,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#798](https://github.com/groue/GRDB.swift/pull/798): Debugging operators for ValueObservation
+- **New**: [#800](https://github.com/groue/GRDB.swift/pull/800): Xcode 12 support
 
 ### Documentation Diff
 

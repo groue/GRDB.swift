@@ -12,19 +12,19 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             
             do {
                 var region = DatabaseRegion()
-                _ = db.recordingSelection(&region) { }
+                db.recordingSelection(&region) { }
                 XCTAssertTrue(region.isEmpty)
             }
             
             do {
                 var region = DatabaseRegion.fullDatabase
-                _ = db.recordingSelection(&region) { }
+                db.recordingSelection(&region) { }
                 XCTAssertTrue(region.isFullDatabase)
             }
             
             do {
                 var region = DatabaseRegion(table: "player")
-                _ = db.recordingSelection(&region) { }
+                db.recordingSelection(&region) { }
                 XCTAssertEqual(region.description, "player(*)")
             }
             
@@ -88,9 +88,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 _ = try db.recordingSelection(&region1) {
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
                     _ = try db.recordingSelection(&region2) {
-                        _ = db.recordingSelection(&region3) { }
+                        db.recordingSelection(&region3) { }
                         _ = try Row.fetchAll(db, sql: "SELECT name FROM player")
-                        _ = db.recordingSelection(&region4) { }
+                        db.recordingSelection(&region4) { }
                     }
                     _ = try db.recordingSelection(&region5) {
                         _ = try Row.fetchAll(db, sql: "SELECT * FROM player")

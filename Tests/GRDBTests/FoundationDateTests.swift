@@ -265,12 +265,12 @@ class FoundationDateTests : GRDBTestCase {
             return
         }
         
-        func assert(
+        func _assert(
             _ db: Database,
             _ expression: SQLExpression,
             equal expectedDate: Date,
-            file: StaticString = #file,
-            line: UInt = #line) throws
+            file: StaticString,
+            line: UInt) throws
         {
             let request: SQLRequest<Double> = "SELECT \(expression)"
             guard let shiftedDate = try request.fetchOne(db).flatMap(Date.init(julianDay:)) else {
@@ -281,6 +281,29 @@ class FoundationDateTests : GRDBTestCase {
             let expectedInterval = expectedDate.timeIntervalSince(date)
             XCTAssertEqual(shiftedInterval, expectedInterval, accuracy: 0.1, file: file, line: line)
         }
+        
+        // #file vs. #filePath dance
+        #if compiler(>=5.3)
+        func assert(
+            _ db: Database,
+            _ expression: SQLExpression,
+            equal expectedDate: Date,
+            file: StaticString = #filePath,
+            line: UInt = #line) throws
+        {
+            try _assert(db, expression, equal: expectedDate, file: file, line: line)
+        }
+        #else
+        func assert(
+            _ db: Database,
+            _ expression: SQLExpression,
+            equal expectedDate: Date,
+            file: StaticString = #file,
+            line: UInt = #line) throws
+        {
+            try _assert(db, expression, equal: expectedDate, file: file, line: line)
+        }
+        #endif
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -314,12 +337,12 @@ class FoundationDateTests : GRDBTestCase {
             return
         }
         
-        func assert(
+        func _assert(
             _ db: Database,
             _ expression: SQLExpression,
             equal expectedDate: String,
-            file: StaticString = #file,
-            line: UInt = #line) throws
+            file: StaticString,
+            line: UInt) throws
         {
             let request: SQLRequest<String> = "SELECT \(expression)"
             guard let shiftedDate = try request.fetchOne(db) else {
@@ -328,6 +351,29 @@ class FoundationDateTests : GRDBTestCase {
             }
             XCTAssertEqual(shiftedDate, expectedDate, file: file, line: line)
         }
+        
+        // #file vs. #filePath dance
+        #if compiler(>=5.3)
+        func assert(
+            _ db: Database,
+            _ expression: SQLExpression,
+            equal expectedDate: String,
+            file: StaticString = #filePath,
+            line: UInt = #line) throws
+        {
+            try _assert(db, expression, equal: expectedDate, file: file, line: line)
+        }
+        #else
+        func assert(
+            _ db: Database,
+            _ expression: SQLExpression,
+            equal expectedDate: String,
+            file: StaticString = #file,
+            line: UInt = #line) throws
+        {
+            try _assert(db, expression, equal: expectedDate, file: file, line: line)
+        }
+        #endif
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
