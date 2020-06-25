@@ -1,6 +1,8 @@
+#if canImport(Combine)
 import Combine
 import XCTest
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension PublisherExpectations {
     /// A publisher expectation which waits for the recorded publisher
     /// to complete.
@@ -57,3 +59,4 @@ extension PublisherExpectations {
         }
     }
 }
+#endif

@@ -1,7 +1,9 @@
+#if canImport(Combine)
 import Combine
 import Foundation
 import XCTest
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 final class Test<Context> {
     // Raise the repeatCount in order to help spotting flaky tests.
     private let repeatCount = 1
@@ -44,6 +46,7 @@ final class Test<Context> {
     }
 }
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public func assertNoFailure<Failure>(
     _ completion: Subscribers.Completion<Failure>,
     file: StaticString = #file,
@@ -54,6 +57,7 @@ public func assertNoFailure<Failure>(
     }
 }
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public func assertFailure<Failure, ExpectedFailure>(
     _ completion: Subscribers.Completion<Failure>,
     file: StaticString = #file,
@@ -66,3 +70,5 @@ public func assertFailure<Failure, ExpectedFailure>(
         XCTFail("Expected \(ExpectedFailure.self), got \(completion)", file: file, line: line)
     }
 }
+#endif
+

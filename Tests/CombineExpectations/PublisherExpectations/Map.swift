@@ -1,5 +1,7 @@
+#if canImport(Combine)
 import XCTest
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension PublisherExpectations {
     /// A publisher expectation that transforms the value of a base expectation.
     ///
@@ -18,6 +20,7 @@ extension PublisherExpectations {
     }
 }
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension PublisherExpectation {
     /// Returns a publisher expectation that transforms the value of the
     /// base expectation.
@@ -25,3 +28,4 @@ extension PublisherExpectation {
         PublisherExpectations.Map(base: self, transform: transform)
     }
 }
+#endif

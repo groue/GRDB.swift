@@ -1,3 +1,4 @@
+#if canImport(Combine)
 import Foundation
 
 /// An error that may be thrown when waiting for publisher expectations.
@@ -26,3 +27,4 @@ extension RecordingError: LocalizedError {
         }
     }
 }
+#endif

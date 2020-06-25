@@ -1,3 +1,4 @@
+#if canImport(Combine)
 import XCTest
 
 /// A name space for publisher expectations
@@ -97,3 +98,4 @@ extension XCTestCase {
         return try publisherExpectation.get()
     }
 }
+#endif

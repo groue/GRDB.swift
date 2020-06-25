@@ -1,7 +1,6 @@
+#if canImport(Combine)
 import Combine
-import CombineExpectations
 import GRDB
-import GRDBCombine
 import XCTest
 
 private struct Player: Codable, FetchableRecord, PersistableRecord {
@@ -18,6 +17,7 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
     }
 }
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 class DatabaseWriterWritePublisherTests : XCTestCase {
     
     // MARK: -
@@ -346,3 +346,5 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
 }
+#endif
+

@@ -1,5 +1,7 @@
+#if canImport(Combine)
 import XCTest
 
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension PublisherExpectations {
     /// A publisher expectation that fails if the base expectation is fulfilled.
     ///
@@ -27,3 +29,4 @@ extension PublisherExpectations {
         }
     }
 }
+#endif
