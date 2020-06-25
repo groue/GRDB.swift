@@ -8,7 +8,7 @@ import Foundation
 /// Unlike Combine's Publishers.ReceiveOn, ReceiveValuesOn only re-schedule
 /// values and completion. It does not re-schedule subscription.
 ///
-/// This scheduling guarantee is used by GRDBCombine in order to be able
+/// This scheduling guarantee is used by GRDB in order to be able
 /// to make promises on the scheduling of database values without surprising
 /// the users as in https://forums.swift.org/t/28631.
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)

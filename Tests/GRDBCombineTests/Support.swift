@@ -25,7 +25,7 @@ final class Test<Context> {
     func runInTemporaryDirectory(context: (_ directoryURL: URL) throws -> Context) throws -> Self {
         for _ in 1...repeatCount {
             let directoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                .appendingPathComponent("GRDBCombine", isDirectory: true)
+                .appendingPathComponent("GRDB", isDirectory: true)
                 .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: true)
             
             try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)

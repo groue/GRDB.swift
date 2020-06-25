@@ -341,7 +341,5 @@ try controller.performFetch()
 
 
 [ValueObservation]: ../README.md#valueobservation
-[GRDBCombine]: http://github.com/groue/GRDBCombine
-[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
 [FetchableRecord]: ../README.md#fetchablerecord-protocol
 [TableRecord]: ../README.md#tablerecord-protocol

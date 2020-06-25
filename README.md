@@ -72,13 +72,13 @@ GRDB ships with:
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
 - [Database Observation](#database-changes-observation): Observe database changes and transactions.
+- [Combine Support]: Access and observe the database with Combine publishers.
 - [Full-Text Search]
 - [Encryption](#encryption)
 - [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
 
 Companion libraries that enhance and extend GRDB:
 
-- [GRDBCombine]: track database changes in a reactive way, with [Combine](https://developer.apple.com/documentation/combine).
 - [RxGRDB]: track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 - [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
 
@@ -5178,7 +5178,7 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 - [ValueObservation]: Track changes of database values.
 - [DatabaseRegionObservation]: Tracking transactions that impact a database region.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
-- [GRDBCombine]: Automated tracking of database changes, with [Combine](https://developer.apple.com/documentation/combine).
+- [Combine Support]: Automated tracking of database changes, with [Combine].
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
@@ -5334,15 +5334,14 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     cancellable.cancel()
     ```
 
-**As a convenience**, the two companion libraries [GRDBCombine] and [RxGRDB] bring Combine and RxSwift support to ValueObservation:
+**As a convenience**, ValueObservation can be turned into a Combine publisher, or a RxSwift Observable (see [Combine Support] and the companion library [RxGRDB]):
 
 <details>
-    <summary>GRDBCombine example</summary>
+    <summary>Combine example</summary>
     
 ```swift
 import Combine
 import GRDB
-import GRDBCombine
 
 let observation = ValueObservation.tracking(Player.fetchAll)
 
@@ -5895,7 +5894,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[DatabaseRegionObservation], [ValueObservation], [GRDBCombine], and [RxGRDB] are all based on the TransactionObserver protocol.
+[DatabaseRegionObservation], [ValueObservation], [Combine Support], and [RxGRDB] are all based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -7134,7 +7133,7 @@ These protocols provide a unified API that let you write generic code that targe
 - [Migrations]
 - [DatabaseRegionObservation]
 - [ValueObservation]
-- [GRDBCombine]
+- [Combine Support]
 - [RxGRDB]
 
 Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
@@ -7847,12 +7846,12 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [ValueObservation]: #valueobservation
 [DatabaseRegionObservation]: #databaseregionobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[GRDBCombine]: http://github.com/groue/GRDBCombine
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [DatabaseRegion]: #databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
+[Combine Support]: Documentation/Combine.md
 [Demo Application]: Documentation/DemoApps/GRDBDemoiOS/README.md
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq
