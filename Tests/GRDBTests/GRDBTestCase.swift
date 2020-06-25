@@ -1,3 +1,4 @@
+import Foundation
 import XCTest
 @testable import GRDB
 
@@ -5,7 +6,10 @@ import XCTest
 var lastResultCode: ResultCode? = nil
 var lastMessage: String? = nil
 var logErrorSetup: Void = {
+    let lock = NSLock()
     Database.logError = { (resultCode, message) in
+        lock.lock()
+        defer { lock.unlock() }
         lastResultCode = resultCode
         lastMessage = message
     }
