@@ -7,11 +7,11 @@ private struct C: TableRecord { }
 private struct D: TableRecord { }
 
 class AssociationPrefetchingObservationTests: GRDBTestCase {
-    private func assertRequestRegionEqual<T>(
+    private func _assertRequestRegionEqual<T>(
         _ db: Database,
         _ request: QueryInterfaceRequest<T>,
-        _ expectedDescriptions: String...,
-        file: StaticString = #file, line: UInt = #line) throws
+        _ expectedDescriptions: [String],
+        file: StaticString, line: UInt) throws
     {
         // Test DatabaseRegionConvertible
         let region1 = try request.databaseRegion(db)
@@ -24,6 +24,27 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
             .databaseRegion
         XCTAssertTrue(expectedDescriptions.contains(region2.description), description, file: file, line: line)
     }
+    
+    // #file vs. #filePath dance
+    #if compiler(>=5.3)
+    private func assertRequestRegionEqual<T>(
+        _ db: Database,
+        _ request: QueryInterfaceRequest<T>,
+        _ expectedDescriptions: String...,
+        file: StaticString = #filePath, line: UInt = #line) throws
+    {
+        try _assertRequestRegionEqual(db, request, expectedDescriptions, file: file, line: line)
+    }
+    #else
+    private func assertRequestRegionEqual<T>(
+        _ db: Database,
+        _ request: QueryInterfaceRequest<T>,
+        _ expectedDescriptions: String...,
+        file: StaticString = #file, line: UInt = #line) throws
+    {
+        try _assertRequestRegionEqual(db, request, expectedDescriptions, file: file, line: line)
+    }
+    #endif
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
