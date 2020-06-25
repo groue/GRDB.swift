@@ -24,7 +24,7 @@ class DatabaseTraceTests : GRDBTestCase {
     
     func testTraceStatementSQL() throws {
         guard #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) else {
-            return
+            throw XCTSkip("sqlite3_trace_v2 is not available")
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -52,7 +52,7 @@ class DatabaseTraceTests : GRDBTestCase {
     
     func testTraceProfile() throws {
         guard #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) else {
-            return
+            throw XCTSkip("sqlite3_trace_v2 is not available")
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -102,7 +102,7 @@ class DatabaseTraceTests : GRDBTestCase {
     
     func testTraceMultiple() throws {
         guard #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) else {
-            return
+            throw XCTSkip("sqlite3_trace_v2 is not available")
         }
         
         let dbQueue = try makeDatabaseQueue()

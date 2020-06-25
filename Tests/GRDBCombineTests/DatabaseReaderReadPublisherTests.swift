@@ -17,12 +17,15 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
     }
 }
 
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 class DatabaseReaderReadPublisherTests : XCTestCase {
     
     // MARK: -
     
     func testReadPublisher() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -47,6 +50,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherError() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         func test(reader: DatabaseReader) throws {
             let publisher = reader.readPublisher(value: { db in
                 try Row.fetchAll(db, sql: "THIS IS NOT SQL")
@@ -70,6 +77,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherIsAsynchronous() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -104,6 +115,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherDefaultScheduler() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -138,6 +153,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherCustomScheduler() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
             try writer.write(Player.createTable)
             return writer
@@ -173,6 +192,10 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     // MARK: -
     
     func testReadPublisherIsReadonly() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         func test(reader: DatabaseReader) throws {
             let publisher = reader.readPublisher(value: { db in
                 try Player.createTable(db)
