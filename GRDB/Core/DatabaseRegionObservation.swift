@@ -1,6 +1,7 @@
 #if canImport(Combine)
 import Combine
 #endif
+import Foundation
 
 /// DatabaseRegionObservation tracks changes in the results of database
 /// requests, and notifies each database transaction whenever the

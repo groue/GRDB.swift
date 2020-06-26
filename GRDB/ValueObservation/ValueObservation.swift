@@ -2,6 +2,7 @@
 import Combine
 #endif
 import Dispatch
+import Foundation
 
 /// ValueObservation tracks changes in the results of database requests, and
 /// notifies fresh values whenever the database changes.
