@@ -28,12 +28,18 @@ class SQLiteDateParser {
         
         // "YYYY-..." -> datetime
         if cString[4] == UInt8(ascii: "-") {
-            return datetimeComponents(cString: cString, length: length)
+            var components = DateComponents()
+            return parseDatetimeFormat(cString: cString, length: length, into: &components)
+                .map { DatabaseDateComponents(components, format: $0)
+            }
         }
         
         // "HH-:..." -> time
         if cString[2] == UInt8(ascii: ":") {
-            return timeComponents(cString: cString, length: length)
+            var components = DateComponents()
+            return parseTimeFormat(cString: cString, length: length, into: &components)
+                .map { DatabaseDateComponents(components, format: $0)
+            }
         }
         
         // Invalid
@@ -47,99 +53,135 @@ class SQLiteDateParser {
     // - YYYY-MM-DDTHH:MM
     // - YYYY-MM-DDTHH:MM:SS
     // - YYYY-MM-DDTHH:MM:SS.SSS
-    private func datetimeComponents(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
-        var parserComponents = ParserComponents()
+    private func parseDatetimeFormat(
+        cString: UnsafePointer<CChar>,
+        length: Int,
+        into components: inout DateComponents)
+        -> DatabaseDateComponents.Format?
+    {
+        var cString = cString
+        var remainingLength = length
         
-        // TODO: Get rid of this pyramid when SE-0210 has shipped
-        let parseCount = withUnsafeMutablePointer(to: &parserComponents.year) { yearP in
-            withUnsafeMutablePointer(to: &parserComponents.month) { monthP in
-                withUnsafeMutablePointer(to: &parserComponents.day) { dayP in
-                    withUnsafeMutablePointer(to: &parserComponents.hour) { hourP in
-                        withUnsafeMutablePointer(to: &parserComponents.minute) { minuteP in
-                            withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
-                                parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
-                                    // swiftlint:disable:next line_length
-                                    withVaList([yearP, monthP, dayP, hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                                        vsscanf(cString, "%4d-%2d-%2d%*1[ T]%2d:%2d:%2d.%9s", pointer)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if remainingLength < 10 { return nil }
+        remainingLength -= 10
+        guard
+            let year = parseNNNN(cString: &cString),
+            parse("-", cString: &cString),
+            let month = parseNN(cString: &cString),
+            parse("-", cString: &cString),
+            let day = parseNN(cString: &cString)
+            else { return nil }
+        
+        components.year = year
+        components.month = month
+        components.day = day
+        if remainingLength == 0 { return .YMD }
+        
+        remainingLength -= 1
+        guard parse(" ", cString: &cString) || parse("T", cString: &cString) else {
+            return nil
         }
         
-        guard parseCount >= 3 else { return nil }
-        
-        var components = DateComponents()
-        components.year = Int(parserComponents.year)
-        components.month = Int(parserComponents.month)
-        components.day = Int(parserComponents.day)
-        
-        guard parseCount >= 5 else { return DatabaseDateComponents(components, format: .YMD) }
-        
-        components.hour = Int(parserComponents.hour)
-        components.minute = Int(parserComponents.minute)
-        
-        guard parseCount >= 6 else { return DatabaseDateComponents(components, format: .YMD_HM) }
-        
-        components.second = Int(parserComponents.second)
-        
-        guard parseCount >= 7 else { return DatabaseDateComponents(components, format: .YMD_HMS) }
-        
-        components.nanosecond = nanosecondsInt(for: parserComponents.nanosecond)
-        
-        return DatabaseDateComponents(components, format: .YMD_HMSS)
+        switch parseTimeFormat(cString: cString, length: remainingLength, into: &components) {
+        case .HM: return .YMD_HM
+        case .HMS: return .YMD_HMS
+        case .HMSS: return .YMD_HMSS
+        default: return nil
+        }
     }
     
     // - HH:MM
     // - HH:MM:SS
     // - HH:MM:SS.SSS
-    private func timeComponents(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
-        var parserComponents = ParserComponents()
+    private func parseTimeFormat(
+        cString: UnsafePointer<CChar>,
+        length: Int,
+        into components: inout DateComponents)
+        -> DatabaseDateComponents.Format?
+    {
+        var cString = cString
+        var remainingLength = length
         
-        // TODO: Get rid of this pyramid when SE-0210 has shipped
-        let parseCount = withUnsafeMutablePointer(to: &parserComponents.hour) { hourP in
-            withUnsafeMutablePointer(to: &parserComponents.minute) { minuteP in
-                withUnsafeMutablePointer(to: &parserComponents.second) { secondP in
-                    parserComponents.nanosecond.withUnsafeMutableBufferPointer { nanosecondBuffer in
-                        withVaList([hourP, minuteP, secondP, nanosecondBuffer.baseAddress!]) { pointer in
-                            vsscanf(cString, "%2d:%2d:%2d.%9s", pointer)
-                        }
-                    }
-                }
-            }
+        if remainingLength < 5 { return nil }
+        remainingLength -= 5
+        guard
+            let hour = parseNN(cString: &cString),
+            parse(":", cString: &cString),
+            let minute = parseNN(cString: &cString)
+            else { return nil }
+        
+        components.hour = hour
+        components.minute = minute
+        if remainingLength == 0 { return .HM }
+        
+        if remainingLength < 3 { return nil }
+        remainingLength -= 3
+        guard
+            parse(":", cString: &cString),
+            let second = parseNN(cString: &cString)
+            else { return nil }
+        
+        components.second = second
+        if remainingLength == 0 { return .HMS }
+        
+        if remainingLength < 1 { return nil }
+        remainingLength -= 1
+        guard parse(".", cString: &cString) else { return nil }
+        
+        // Parse three digits
+        // Rationale: https://github.com/groue/GRDB.swift/pull/362
+        remainingLength = min(remainingLength, 3)
+        var nanosecond = 0
+        for _ in 0..<remainingLength {
+            guard parseDigit(cString: &cString, into: &nanosecond) else { return nil }
         }
-        
-        guard parseCount >= 2 else { return nil }
-        
-        var components = DateComponents()
-        components.hour = Int(parserComponents.hour)
-        components.minute = Int(parserComponents.minute)
-        
-        guard parseCount >= 3 else { return DatabaseDateComponents(components, format: .HM) }
-        
-        components.second = Int(parserComponents.second)
-        
-        guard parseCount >= 4 else { return DatabaseDateComponents(components, format: .HMS) }
-        
-        guard let nanoseconds = nanosecondsInt(for: parserComponents.nanosecond) else { return nil }
-        components.nanosecond = nanoseconds
-        
-        return DatabaseDateComponents(components, format: .HMSS)
+        nanosecond *= [1_000_000_000, 100_000_000, 10_000_000, 1_000_000][remainingLength]
+        components.nanosecond = nanosecond
+        return .HMSS
     }
     
-    private func nanosecondsInt(for nanosecond: ContiguousArray<CChar>) -> Int? {
-        // truncate after the third digit
-        var result = 0
-        let multipliers = [100_000_000, 10_000_000, 1_000_000, 100_000, 10_000, 1_000, 100, 10, 1]
-        for (char, multiplier) in zip(nanosecond.prefix(3), multipliers) {
-            if char == 0 { return result }
-            let digit = Int(char) - 48 /* '0' */
-            guard (0...9).contains(digit) else { return nil }
-            result += multiplier * digit
+    @inline(__always)
+    private func parseNNNN(cString: inout UnsafePointer<CChar>) -> Int? {
+        var number = 0
+        guard parseDigit(cString: &cString, into: &number)
+            && parseDigit(cString: &cString, into: &number)
+            && parseDigit(cString: &cString, into: &number)
+            && parseDigit(cString: &cString, into: &number)
+        else {
+            return nil
         }
-        return result
+        return number
+    }
+    
+    @inline(__always)
+    private func parseNN(cString: inout UnsafePointer<CChar>) -> Int? {
+        var number = 0
+        guard parseDigit(cString: &cString, into: &number)
+            && parseDigit(cString: &cString, into: &number)
+        else {
+            return nil
+        }
+        return number
+    }
+    
+    @inline(__always)
+    private func parse(_ scalar: Unicode.Scalar, cString: inout UnsafePointer<CChar>) -> Bool {
+        guard cString[0] == UInt8(ascii: scalar) else {
+            return false
+        }
+        cString += 1
+        return true
+    }
+    
+    @inline(__always)
+    private func parseDigit(cString: inout UnsafePointer<CChar>, into number: inout Int) -> Bool {
+        let char = cString[0]
+        let digit = char - CChar(bitPattern: UInt8(ascii: "0"))
+        guard digit >= 0 && digit <= 9 else {
+            return false
+        }
+        cString += 1
+        number = number * 10 + Int(digit)
+        return true
     }
 }
