@@ -2,8 +2,8 @@ import GRDB
 
 /// The Player struct.
 ///
-/// Hashable conformance supports table view updates
-struct Player: Hashable {
+/// Identifiable conformance supports SwiftUI list animations
+struct Player: Identifiable {
     /// The player id.
     ///
     /// Int64 is the recommended type for auto-incremented database ids.

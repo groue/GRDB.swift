@@ -54,7 +54,6 @@ See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your
     <a href="#usage">Usage</a> &bull;
     <a href="#installation">Installation</a> &bull;
     <a href="#documentation">Documentation</a> &bull;
-    <a href="#demo-application">Demo Application</a> &bull;
     <a href="#faq">FAQ</a>
 </p>
 
@@ -263,8 +262,9 @@ Documentation
 **GRDB runs on top of SQLite**: you should get familiar with the [SQLite FAQ](http://www.sqlite.org/faq.html). For general and detailed information, jump to the [SQLite Documentation](http://www.sqlite.org/docs.html).
 
 
-#### Frequently Asked Questions
+#### Demo Applications & Frequently Asked Questions
 
+- [Demo Applications]: Two flavors: vanilla UIKit, and Combine + SwiftUI
 - [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
 
 #### Reference
@@ -274,7 +274,6 @@ Documentation
 #### Getting Started
 
 - [Installation](#installation)
-- [Demo Application](#demo-application)
 - [Database Connections](#database-connections): Connect to SQLite databases
 
 #### SQLite and SQL
@@ -376,17 +375,7 @@ let package = Package(
 
 4. Add the `GRDB.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
-> :bulb: **Tip**: see the [Demo Application] for an example of such integration.
-
-
-Demo Application
-================
-
-The repository comes with a [Demo Application] that shows you:
-
-- how to setup a database in an iOS app
-- how to define a simple [Codable Record](#codable-records)
-- how to track database changes with [ValueObservation].
+> :bulb: **Tip**: see the [Demo Applications] for examples of such integration.
 
 
 Database Connections
@@ -466,7 +455,7 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
-> :bulb: **Tip**: see the [Demo Application] for a sample code that sets up a database queue on iOS.
+> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS.
 
 
 ### DatabaseQueue Configuration
@@ -545,7 +534,7 @@ let newPlaceCount = try dbPool.write { db -> Int in
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
 
-> :bulb: **Tip**: see the [Demo Application] for a sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
+> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
 
 
 ### DatabasePool Configuration
@@ -2124,7 +2113,7 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 >
 > :bulb: **Tip**: after you have read this chapter, check the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
 >
-> :bulb: **Tip**: see the [Demo Application] for a sample app that uses records.
+> :bulb: **Tip**: see the [Demo Applications] for sample apps that uses records.
 
 **Overview**
 
@@ -2728,7 +2717,7 @@ For more information about Codable records, see:
 - [The userInfo Dictionary]
 - [Tip: Derive Columns from Coding Keys](#tip-derive-columns-from-coding-keys)
 
-> :bulb: **Tip**: see the [Demo Application] for a sample app that uses Codable records.
+> :bulb: **Tip**: see the [Demo Applications] for sample code that uses Codable records.
 
 
 ### JSON Columns
@@ -5249,12 +5238,13 @@ try dbQueue.write { db in
 
 Tracked changes include changes performed by the [query interface](#the-query-interface) as well as [raw SQL](#sqlite-api), including indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
-**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
+**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Applications] for sample code.
 
 - [ValueObservation Usage](#valueobservation-usage)
 - [ValueObservation Scheduling](#valueobservation-scheduling)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Performance](#valueobservation-performance)
+- [Combine Publisher](Documentation/Combine.md#database-observation)
 
 ### ValueObservation Usage
 
@@ -6861,7 +6851,7 @@ Those guarantees hold as long as you follow three rules:
     
     This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.
     
-    See the [Demo Application] for a sample app that sets up a single database queue that is available throughout the application.
+    See the [Demo Applications] for sample code that sets up a single database queue that is available throughout the application.
     
     See [Sharing a Database] for the specific setup required by applications that share their database files.
     
@@ -7760,10 +7750,9 @@ Sample Code
 ===========
 
 - The [Documentation](#documentation) is full of GRDB snippets.
-- [Demo Application]: A sample iOS application.
-- [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
-- Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
-- How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Documentation/Playgrounds/JSONSynchronization.playground/Contents.swift)
+- [Demo Applications]
+- Open `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
+- [groue/SortedDifference](https://github.com/groue/SortedDifference): How to synchronize a database table with a JSON payload
 
 
 ---
@@ -7852,6 +7841,6 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
-[Demo Application]: Documentation/DemoApps/GRDBDemoiOS/README.md
+[Demo Applications]: Documentation/DemoApps/README.md
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq

@@ -1,3 +1,4 @@
+import Combine
 import GRDB
 
 /// AppDatabase lets the application access the database.
@@ -120,56 +121,43 @@ extension AppDatabase {
     
     // MARK: Reads
     
-    /// Tracks changes in the number of players
-    func observePlayerCount(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Int) -> Void)
-        -> DatabaseCancellable
-    {
-        ValueObservation
-            .tracking(Player.fetchCount)
-            .start(
-                in: dbQueue,
-                onError: onError,
-                onChange: onChange)
-    }
-    
-    /// Tracks changes in players ordered by name
-    func observePlayersOrderedByName(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping ([Player]) -> Void)
-        -> DatabaseCancellable
-    {
+    /// Returns a publisher that tracks changes in players ordered by name
+    func playersOrderedByNamePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByName().fetchAll)
-            .start(
-                in: dbQueue,
-                onError: onError,
-                onChange: onChange)
+            // Use the .immediate scheduling so that views do not have to wait
+            // until the players are loaded.
+            .publisher(in: dbQueue, scheduling: .immediate)
+            .eraseToAnyPublisher()
     }
     
-    /// Tracks changes in players ordered by score
-    func observePlayersOrderedByScore(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping ([Player]) -> Void)
-        -> DatabaseCancellable
-    {
+    /// Returns a publisher that tracks changes in players ordered by score
+    func playersOrderedByScorePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByScore().fetchAll)
-            .start(
-                in: dbQueue,
-                onError: onError,
-                onChange: onChange)
+            // Use the .immediate scheduling so that views do not have to wait
+            // until the players are loaded.
+            .publisher(in: dbQueue, scheduling: .immediate)
+            .eraseToAnyPublisher()
     }
 }
 
-// MARK: - Support for Tests
+// MARK: - Support for Tests and Previews
 
 #if DEBUG
 extension AppDatabase {
-    /// Returns an empty, in-memory database, suitable for testing.
+    /// Returns an empty, in-memory database, suitable for testing and previews.
     static func empty() throws -> AppDatabase {
         try AppDatabase(DatabaseQueue())
     }
+    
+    /// Returns an in-memory database populated with a few random
+    /// players, suitable for previews.
+    static func random() throws -> AppDatabase {
+        let database = try AppDatabase.empty()
+        try database.createRandomPlayersIfEmpty()
+        return database
+    }
 }
 #endif
+

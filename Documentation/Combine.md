@@ -301,7 +301,7 @@ See [DatabaseRegionObservation] for more information.
 [Database Changes Observation]: ../README.md#database-changes-observation
 [Database Observation]: #database-observation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
-[Demo Application]: Documentation/Demo/README.md
+[Demo Application]: DemoApps/GRDBCombineDemo/README.md
 [SQLite]: http://sqlite.org
 [ValueObservation]: ../README.md#valueobservation
 [`DatabaseRegionObservation.publisher(in:)`]: #databaseregionobservationpublisherin
