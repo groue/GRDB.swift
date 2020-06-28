@@ -392,6 +392,44 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
+    
+    // MARK: - Regression tests
+    
+    // Regression test against deadlocks created by concurrent completion
+    // and cancellations trigerred by .switchToLatest().prefix(1)
+    func testDeadlockPrevention() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        func setUp<Writer: DatabaseWriter>(_ writer: Writer) throws -> Writer {
+            try writer.write(Player.createTable)
+            return writer
+        }
+        
+        func test(writer: DatabaseWriter, iteration: Int) throws {
+            // print(iteration)
+            let scoreSubject = PassthroughSubject<Int, Error>()
+            let publisher = scoreSubject
+                .map({ score in
+                    writer.writePublisher { db -> Int in
+                        try Player(id: 1, name: "Arthur", score: score).insert(db)
+                        return try Player.fetchCount(db)
+                    }
+                })
+                .switchToLatest()
+                .prefix(1)
+            let recorder = publisher.record()
+            scoreSubject.send(0)
+            let count = try wait(for: recorder.single, timeout: 1)
+            XCTAssertEqual(count, 1)
+        }
+        
+        try Test(repeatCount: 100, test)
+            .run { try setUp(DatabaseQueue()) }
+            .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
+            .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
+    }
 }
 #endif
 

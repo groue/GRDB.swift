@@ -5,24 +5,30 @@ import XCTest
 
 final class Test<Context> {
     // Raise the repeatCount in order to help spotting flaky tests.
-    private let repeatCount = 1
-    private let test: (Context) throws -> ()
+    private let repeatCount: Int
+    private let test: (Context, Int) throws -> ()
     
-    init(_ test: @escaping (Context) throws -> ()) {
+    init(repeatCount: Int = 1, _ test: @escaping (Context) throws -> ()) {
+        self.repeatCount = repeatCount
+        self.test = { context, _ in try test(context) }
+    }
+    
+    init(repeatCount: Int, _ test: @escaping (Context, Int) throws -> ()) {
+        self.repeatCount = repeatCount
         self.test = test
     }
     
     @discardableResult
     func run(context: () throws -> Context) throws -> Self {
-        for _ in 1...repeatCount {
-            try test(context())
+        for i in 1...repeatCount {
+            try test(context(), i)
         }
         return self
     }
     
     @discardableResult
     func runInTemporaryDirectory(context: (_ directoryURL: URL) throws -> Context) throws -> Self {
-        for _ in 1...repeatCount {
+        for i in 1...repeatCount {
             let directoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
                 .appendingPathComponent("GRDB", isDirectory: true)
                 .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: true)
@@ -32,7 +38,7 @@ final class Test<Context> {
                 try! FileManager.default.removeItem(at: directoryURL)
             }
             
-            try test(context(directoryURL))
+            try test(context(directoryURL), i)
         }
         return self
     }
