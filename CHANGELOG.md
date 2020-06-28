@@ -76,7 +76,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ### Documentation Diff
 
-[ValueObservation Operators](README.md#valueobservation-operators) was extended with the documentation for the two new operators `handleEvents` and `print`.
+- The [ValueObservation Operators](README.md#valueobservation-operators) chapter was extended with a description of the two new debugging operators `handleEvents` and `print`.
+
+- A new [GRDB ❤️ Combine](Documentation/Combine.md) guide describes the various Combine publishers that read, write, and observe the database.
+
+- [GRDBCombineDemo](Documentation/DemoApps/GRDBCombineDemo/README.md) is a new Combine + SwiftUI demo application.
 
 
 ## 5.0.0-beta.5
