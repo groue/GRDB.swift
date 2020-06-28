@@ -75,13 +75,13 @@ class DatabaseTraceTests : GRDBTestCase {
             try db.execute(sql: "CREATE table t(a);")
             XCTAssertEqual(lastSQL, "CREATE table t(a)")
             XCTAssertEqual(lastExpandedSQL, "CREATE table t(a)")
-            XCTAssertTrue(lastDuration! > 0)
+            XCTAssertTrue(lastDuration! >= 0)
             XCTAssert(lastDescription!.hasSuffix("s CREATE table t(a)"))
             
             try db.execute(sql: "INSERT INTO t (a) VALUES (?)", arguments: [1])
             XCTAssertEqual(lastSQL, "INSERT INTO t (a) VALUES (?)")
             XCTAssertEqual(lastExpandedSQL, "INSERT INTO t (a) VALUES (1)")
-            XCTAssertTrue(lastDuration! > 0)
+            XCTAssertTrue(lastDuration! >= 0)
             XCTAssert(lastDescription!.hasSuffix("s INSERT INTO t (a) VALUES (1)"))
             
             db.add(function: DatabaseFunction("wait", argumentCount: 1, pure: true, function: { dbValues in
