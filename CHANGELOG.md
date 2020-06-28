@@ -73,6 +73,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#798](https://github.com/groue/GRDB.swift/pull/798): Debugging operators for ValueObservation
 - **New**: [#800](https://github.com/groue/GRDB.swift/pull/800): Xcode 12 support
 - **New**: [#801](https://github.com/groue/GRDB.swift/pull/801): Combine support
+- **New**: 2x faster decoding of Date and DateComponents
 
 ### Documentation Diff
 
