@@ -4,6 +4,18 @@ Here is a list of people who were happy to meet GRDB :-)
 
 ---
 
+https://twitter.com/steipete/status/1275305583718129664
+
+> This is the future of Core Data
+
+---
+
+https://twitter.com/_maxheld/status/1266509824994553860
+
+> I tried out GRDB since I saw you mention it a few days ago and absolutely love it. It’s so nice and testing the database logic is so much nicer than CoreData
+
+---
+
 https://twitter.com/stephencelis/status/1263518304980918274
 
 > GRDB.swift is great! (I say this as the person that started SQLite.swift long ago.) And @groue’s very helpful and friendly.
@@ -12,7 +24,7 @@ https://twitter.com/stephencelis/status/1263518304980918274
 
 https://twitter.com/peres/status/1262682199482142720
 
-> GRDB in already in my top3 when it comes to documentation. Clearly and pragmatically explained.GRDB in already in my top3 when it comes to documentation. Clearly and pragmatically explained.
+> GRDB in already in my top3 when it comes to documentation. Clearly and pragmatically explained.
 
 ---
 
