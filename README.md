@@ -7788,7 +7788,7 @@ This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
 
 FetchedRecordsController has been removed in GRDB 5.
 
-The [Database Observation] chapter describes the other ways to observe the databasee.
+The [Database Observation] chapter describes the other ways to observe the database.
 
 #### Full-Text Search
 
