@@ -485,11 +485,11 @@ class TableDefinitionTests: GRDBTestCase {
     
     func testAlterTableRenameColumn() throws {
         guard sqlite3_libversion_number() >= 3025000 else {
-            return
+            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
         guard #available(iOS 13.0, tvOS 13.0, watchOS 6.0, *) else {
-            return
+            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
         }
         #endif
         let dbQueue = try makeDatabaseQueue()

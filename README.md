@@ -54,7 +54,6 @@ See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your
     <a href="#usage">Usage</a> &bull;
     <a href="#installation">Installation</a> &bull;
     <a href="#documentation">Documentation</a> &bull;
-    <a href="#demo-application">Demo Application</a> &bull;
     <a href="#faq">FAQ</a>
 </p>
 
@@ -72,13 +71,13 @@ GRDB ships with:
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
 - [Database Observation](#database-changes-observation): Observe database changes and transactions.
+- [Combine Support]: Access and observe the database with Combine publishers.
 - [Full-Text Search]
 - [Encryption](#encryption)
 - [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
 
 Companion libraries that enhance and extend GRDB:
 
-- [GRDBCombine]: track database changes in a reactive way, with [Combine](https://developer.apple.com/documentation/combine).
 - [RxGRDB]: track database changes in a reactive way, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 - [GRDBObjc](https://github.com/groue/GRDBObjc): FMDB-compatible bindings to GRDB.
 
@@ -263,8 +262,9 @@ Documentation
 **GRDB runs on top of SQLite**: you should get familiar with the [SQLite FAQ](http://www.sqlite.org/faq.html). For general and detailed information, jump to the [SQLite Documentation](http://www.sqlite.org/docs.html).
 
 
-#### Frequently Asked Questions
+#### Demo Applications & Frequently Asked Questions
 
+- [Demo Applications]: Two flavors: vanilla UIKit, and Combine + SwiftUI
 - [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
 
 #### Reference
@@ -274,7 +274,6 @@ Documentation
 #### Getting Started
 
 - [Installation](#installation)
-- [Demo Application](#demo-application)
 - [Database Connections](#database-connections): Connect to SQLite databases
 
 #### SQLite and SQL
@@ -376,17 +375,7 @@ let package = Package(
 
 4. Add the `GRDB.framework` from the targeted platform to the **Embedded Binaries** section of the **General**  tab of your application target (extension target for WatchOS).
 
-> :bulb: **Tip**: see the [Demo Application] for an example of such integration.
-
-
-Demo Application
-================
-
-The repository comes with a [Demo Application] that shows you:
-
-- how to setup a database in an iOS app
-- how to define a simple [Codable Record](#codable-records)
-- how to track database changes with [ValueObservation].
+> :bulb: **Tip**: see the [Demo Applications] for examples of such integration.
 
 
 Database Connections
@@ -466,7 +455,7 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
 
-> :bulb: **Tip**: see the [Demo Application] for a sample code that sets up a database queue on iOS.
+> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS.
 
 
 ### DatabaseQueue Configuration
@@ -545,7 +534,7 @@ let newPlaceCount = try dbPool.write { db -> Int in
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
 
-> :bulb: **Tip**: see the [Demo Application] for a sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
+> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
 
 
 ### DatabasePool Configuration
@@ -2124,7 +2113,7 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 >
 > :bulb: **Tip**: after you have read this chapter, check the [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) Guide.
 >
-> :bulb: **Tip**: see the [Demo Application] for a sample app that uses records.
+> :bulb: **Tip**: see the [Demo Applications] for sample apps that uses records.
 
 **Overview**
 
@@ -2728,7 +2717,7 @@ For more information about Codable records, see:
 - [The userInfo Dictionary]
 - [Tip: Derive Columns from Coding Keys](#tip-derive-columns-from-coding-keys)
 
-> :bulb: **Tip**: see the [Demo Application] for a sample app that uses Codable records.
+> :bulb: **Tip**: see the [Demo Applications] for sample code that uses Codable records.
 
 
 ### JSON Columns
@@ -5178,7 +5167,7 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 - [ValueObservation]: Track changes of database values.
 - [DatabaseRegionObservation]: Tracking transactions that impact a database region.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
-- [GRDBCombine]: Automated tracking of database changes, with [Combine](https://developer.apple.com/documentation/combine).
+- [Combine Support]: Automated tracking of database changes, with [Combine].
 - [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
@@ -5249,12 +5238,13 @@ try dbQueue.write { db in
 
 Tracked changes include changes performed by the [query interface](#the-query-interface) as well as [raw SQL](#sqlite-api), including indirect changes triggered by [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
-**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Application](#demo-application) for a sample code.
+**ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Applications] for sample code.
 
 - [ValueObservation Usage](#valueobservation-usage)
 - [ValueObservation Scheduling](#valueobservation-scheduling)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Performance](#valueobservation-performance)
+- [Combine Publisher](Documentation/Combine.md#database-observation)
 
 ### ValueObservation Usage
 
@@ -5334,15 +5324,14 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     cancellable.cancel()
     ```
 
-**As a convenience**, the two companion libraries [GRDBCombine] and [RxGRDB] bring Combine and RxSwift support to ValueObservation:
+**As a convenience**, ValueObservation can be turned into a Combine publisher, or a RxSwift Observable (see [Combine Support] and the companion library [RxGRDB]):
 
 <details>
-    <summary>GRDBCombine example</summary>
+    <summary>Combine example</summary>
     
 ```swift
 import Combine
 import GRDB
-import GRDBCombine
 
 let observation = ValueObservation.tracking(Player.fetchAll)
 
@@ -5895,7 +5884,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[DatabaseRegionObservation], [ValueObservation], [GRDBCombine], and [RxGRDB] are all based on the TransactionObserver protocol.
+[DatabaseRegionObservation], [ValueObservation], [Combine Support], and [RxGRDB] are all based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -6862,7 +6851,7 @@ Those guarantees hold as long as you follow three rules:
     
     This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.
     
-    See the [Demo Application] for a sample app that sets up a single database queue that is available throughout the application.
+    See the [Demo Applications] for sample code that sets up a single database queue that is available throughout the application.
     
     See [Sharing a Database] for the specific setup required by applications that share their database files.
     
@@ -7134,7 +7123,7 @@ These protocols provide a unified API that let you write generic code that targe
 - [Migrations]
 - [DatabaseRegionObservation]
 - [ValueObservation]
-- [GRDBCombine]
+- [Combine Support]
 - [RxGRDB]
 
 Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
@@ -7761,10 +7750,9 @@ Sample Code
 ===========
 
 - The [Documentation](#documentation) is full of GRDB snippets.
-- [Demo Application]: A sample iOS application.
-- [WWDC Companion](https://github.com/groue/WWDCCompanion): A sample iOS application.
-- Check `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
-- How to synchronize a database table with a JSON payload: [JSONSynchronization.playground](Documentation/Playgrounds/JSONSynchronization.playground/Contents.swift)
+- [Demo Applications]
+- Open `GRDB.xcworkspace`: it contains GRDB-enabled playgrounds to play with.
+- [groue/SortedDifference](https://github.com/groue/SortedDifference): How to synchronize a database table with a JSON payload
 
 
 ---
@@ -7847,12 +7835,12 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [ValueObservation]: #valueobservation
 [DatabaseRegionObservation]: #databaseregionobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[GRDBCombine]: http://github.com/groue/GRDBCombine
 [DatabaseRegionConvertible]: #the-databaseregionconvertible-protocol
 [DatabaseRegion]: #databaseregion
 [SQL Interpolation]: Documentation/SQLInterpolation.md
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
-[Demo Application]: Documentation/DemoApps/GRDBDemoiOS/README.md
+[Combine Support]: Documentation/Combine.md
+[Demo Applications]: Documentation/DemoApps/README.md
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq

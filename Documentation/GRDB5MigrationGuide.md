@@ -6,6 +6,7 @@ Migrating From GRDB 4 to GRDB 5
 - [Preparing the Migration to GRDB 5](#preparing-the-migration-to-grdb-5)
 - [New requirements](#new-requirements)
 - [ValueObservation](#valueobservation)
+- [Combine Integration](#combine-integration)
 - [Other Changes](#other-changes)
 
 
@@ -34,7 +35,7 @@ GRDB requirements have been bumped:
 
 [ValueObservation] is the database observation tool that tracks changes in database values. It has quite changed in GRDB 5.
 
-Those changes have the vanilla GRDB, [GRDBCombine], and [RxGRDB], offer a common API, and a common behavior. This greatly helps choosing or switching your preferred database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle differences that were just opportunities for bugs.
+Those changes have the vanilla GRDB, its [Combine publishers], and [RxGRDB] offer a common API, and a common behavior. This greatly helps choosing or switching your preferred database observation technique. In previous versions of GRDB, the three companion libraries used to have subtle differences that were just opportunities for bugs.
 
 In the end, this migration step might require some work. But it's for the benefit of all!
 
@@ -188,7 +189,7 @@ The changes can quite impact your application. We'll describe them below, as wel
     Note that the `.immediate` scheduling requires that the observation starts from the main thread. A fatal error is raised otherwise.
     
     <details>
-        <summary>GRDBCombine impact</summary>
+        <summary>Combine impact</summary>
     
     ```swift
     let observation = ValueObservation.tracking(Player.fetchAll)
@@ -262,7 +263,7 @@ The changes can quite impact your application. We'll describe them below, as wel
 
 1. ValueObservation used to have a `compactMap` method. This method has been removed without any replacement.
     
-    If your application uses GRDBCombine or RxGRDB, then use the `compactMap` method from Combine or RxSwift instead.
+    If your application uses Combine publishers or RxGRDB, then use the `compactMap` method from Combine or RxSwift instead.
 
 2. ValueObservation used to have a `combine` method. This method has been removed without any replacement.
     
@@ -291,6 +292,26 @@ The changes can quite impact your application. We'll describe them below, as wel
     ```
     
     As is previous versions of GRDB, do not use the `combineLatest` operators of Combine or RxSwift in order to combine several ValueObservation. You would lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
+
+
+## Combine Integration
+
+GRDB 4 had a companion library named GRDBCombine. Combine support is now embedded right into GRDB, and you have to remove any dependency on GRDBCombine.
+
+GRDBCombine used to define a `fetchOnSubscription()` method of the ValueObservation subscriber. It has been removed. Replace it with `scheduling: .immediate` for the same effect (an initial value is notified immediately, synchronously, when the publisher is subscribed):
+    
+```swift
+// BEFORE: GRDB 4 + GRDBCombine
+let observation = ValueObservation.tracking { db in ... }
+let publisher = observation
+    .publisher(in: dbQueue)
+    .fetchOnSubscription()
+
+// NEW: GRDB 5
+let observation = ValueObservation.tracking { db in ... }
+let publisher = observation
+    .publisher(in: dbQueue, scheduling: .immediate)
+```
 
 
 ## Other Changes
@@ -429,7 +450,6 @@ The changes can quite impact your application. We'll describe them below, as wel
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[GRDBCombine]: http://github.com/groue/GRDBCombine
 [Observing a Varying Database Region]: ../README.md#observing-a-varying-database-region
 [removeDuplicates]: ../README.md#valueobservationremoveduplicates
 [Custom SQL functions]: ../README.md#custom-sql-functions
@@ -438,3 +458,4 @@ The changes can quite impact your application. We'll describe them below, as wel
 [SQLLiteral]: SQLInterpolation.md#sqlliteral
 [SQLRequest]: ../README.md#custom-requests
 [QueryInterfaceRequest]: ../README.md#requests
+[Combine publishers]: Combine.md

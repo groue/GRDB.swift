@@ -679,7 +679,7 @@ Instead, have a look at [Database Observation]:
 
 > :bulb: **Tip**: [ValueObservation] performs automated tracking of database changes.
 >
-> :bulb: **Tip**: [GRDBCombine] performs automated tracking of database changes, in the [Combine](https://developer.apple.com/documentation/combine) way.
+> :bulb: **Tip**: [Combine Support] allows automated tracking of database changes, in the [Combine](https://developer.apple.com/documentation/combine) way.
 >
 > :bulb: **Tip**: [RxGRDB] performs automated tracking of database changes, in the [RxSwift](https://github.com/ReactiveX/RxSwift) way.
 >
@@ -710,7 +710,6 @@ Instead, have a look at [Database Observation]:
 [Database Observation]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[GRDBCombine]: http://github.com/groue/GRDBCombine
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
@@ -727,3 +726,4 @@ Instead, have a look at [Database Observation]:
 [Association Aggregates]: AssociationsBasics.md#association-aggregates
 [Codable Record]: ../README.md#codable-records
 [CodingKeys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
+[Combine Support]: Combine.md

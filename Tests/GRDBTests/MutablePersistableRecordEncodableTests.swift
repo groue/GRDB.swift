@@ -681,120 +681,123 @@ extension MutablePersistableRecordEncodableTests {
     
     // Used as a reference
     func testFoundationBehavior() throws {
-        // This test relies on .sortedKeys option
-        if #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) {
-            do {
-                let record = Record(
-                    nestedKeyed: NestedKeyed(name: "foo"),
-                    nestedSingle: NestedSingle(name: "bar"),
-                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
-                
-                let encoder = JSONEncoder()
-                encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-                let json = try String(data: encoder.encode(record), encoding: .utf8)!
-                XCTAssertEqual(json, """
-                    {
-                      "nestedKeyed" : {
-                        "key" : "nestedKeyed",
-                        "name" : "foo"
-                      },
-                      "nestedSingle" : "bar,key:nestedSingle,context:nil",
-                      "nestedUnkeyed" : [
-                        "baz",
-                        "nestedUnkeyed",
-                        null
-                      ]
-                    }
-                    """)
-            }
+        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
+            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
+        }
+        
+        do {
+            let record = Record(
+                nestedKeyed: NestedKeyed(name: "foo"),
+                nestedSingle: NestedSingle(name: "bar"),
+                nestedUnkeyed: NestedUnkeyed(name: "baz"))
             
-            do {
-                let record = Record(
-                    nestedKeyed: NestedKeyed(name: "foo"),
-                    nestedSingle: NestedSingle(name: "bar"),
-                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
-                
-                let encoder = JSONEncoder()
-                encoder.userInfo = [testKeyRoot: "root", testKeyNested: "nested"]
-                encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-                let json = try String(data: encoder.encode(record), encoding: .utf8)
-                XCTAssertEqual(json, """
-                    {
-                      "context" : "root",
-                      "nestedKeyed" : {
-                        "context" : "nested",
-                        "key" : "nestedKeyed",
-                        "name" : "foo"
-                      },
-                      "nestedSingle" : "bar,key:nestedSingle,context:nested",
-                      "nestedUnkeyed" : [
-                        "baz",
-                        "nestedUnkeyed",
-                        "nested"
-                      ]
-                    }
-                    """)
-            }
+            let encoder = JSONEncoder()
+            encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+            let json = try String(data: encoder.encode(record), encoding: .utf8)!
+            XCTAssertEqual(json, """
+                {
+                  "nestedKeyed" : {
+                    "key" : "nestedKeyed",
+                    "name" : "foo"
+                  },
+                  "nestedSingle" : "bar,key:nestedSingle,context:nil",
+                  "nestedUnkeyed" : [
+                    "baz",
+                    "nestedUnkeyed",
+                    null
+                  ]
+                }
+                """)
+        }
+        
+        do {
+            let record = Record(
+                nestedKeyed: NestedKeyed(name: "foo"),
+                nestedSingle: NestedSingle(name: "bar"),
+                nestedUnkeyed: NestedUnkeyed(name: "baz"))
+            
+            let encoder = JSONEncoder()
+            encoder.userInfo = [testKeyRoot: "root", testKeyNested: "nested"]
+            encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+            let json = try String(data: encoder.encode(record), encoding: .utf8)
+            XCTAssertEqual(json, """
+                {
+                  "context" : "root",
+                  "nestedKeyed" : {
+                    "context" : "nested",
+                    "key" : "nestedKeyed",
+                    "name" : "foo"
+                  },
+                  "nestedSingle" : "bar,key:nestedSingle,context:nested",
+                  "nestedUnkeyed" : [
+                    "baz",
+                    "nestedUnkeyed",
+                    "nested"
+                  ]
+                }
+                """)
         }
     }
     
     func testRecord() throws {
-        // This test relies on .sortedKeys option
-        if #available(OSX 10.13, iOS 11.0, *) {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.write { db in
-                try db.create(table: "record") { t in
-                    t.column("context")
-                    t.column("key")
-                    t.column("nestedKeyed")
-                    t.column("nestedSingle")
-                    t.column("nestedUnkeyed")
-                }
-                
-                var record = Record(
-                    nestedKeyed: NestedKeyed(name: "foo"),
-                    nestedSingle: NestedSingle(name: "bar"),
-                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
-                try record.insert(db)
-                
-                let row = try Row.fetchOne(db, Record.all())!
-                XCTAssertEqual(row, [
-                    "context": nil,
-                    "key": nil,
-                    "nestedKeyed": "{\"name\":\"foo\"}",
-                    "nestedSingle": "bar,key:nestedSingle,context:nil",
-                    "nestedUnkeyed": "[\"baz\",null,null]"])
+        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
+            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "record") { t in
+                t.column("context")
+                t.column("key")
+                t.column("nestedKeyed")
+                t.column("nestedSingle")
+                t.column("nestedUnkeyed")
             }
+            
+            var record = Record(
+                nestedKeyed: NestedKeyed(name: "foo"),
+                nestedSingle: NestedSingle(name: "bar"),
+                nestedUnkeyed: NestedUnkeyed(name: "baz"))
+            try record.insert(db)
+            
+            let row = try Row.fetchOne(db, Record.all())!
+            XCTAssertEqual(row, [
+                "context": nil,
+                "key": nil,
+                "nestedKeyed": "{\"name\":\"foo\"}",
+                "nestedSingle": "bar,key:nestedSingle,context:nil",
+                "nestedUnkeyed": "[\"baz\",null,null]"])
         }
     }
     
     func testCustomizedRecord() throws {
-        // This test relies on .sortedKeys option
-        if #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) {
-            let dbQueue = try makeDatabaseQueue()
-            try dbQueue.write { db in
-                try db.create(table: "customizedRecord") { t in
-                    t.column("context")
-                    t.column("key")
-                    t.column("nestedKeyed")
-                    t.column("nestedSingle")
-                    t.column("nestedUnkeyed")
-                }
-                
-                var record = CustomizedRecord(
-                    nestedKeyed: NestedKeyed(name: "foo"),
-                    nestedSingle: NestedSingle(name: "bar"),
-                    nestedUnkeyed: NestedUnkeyed(name: "baz"))
-                try record.insert(db)
-                
-                let row = try Row.fetchOne(db, CustomizedRecord.all())!
-                XCTAssertEqual(row, [
-                    "context": "GRDB root",
-                    "key": nil,
-                    "nestedKeyed": "{\"context\":\"JSON nested: nestedKeyed\",\"name\":\"foo\"}",
-                    "nestedSingle": "bar,key:nestedSingle,context:GRDB nested",
-                    "nestedUnkeyed": "[\"baz\",null,\"JSON nested: nestedUnkeyed\"]"])
+        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
+            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "customizedRecord") { t in
+                t.column("context")
+                t.column("key")
+                t.column("nestedKeyed")
+                t.column("nestedSingle")
+                t.column("nestedUnkeyed")
             }
+            
+            var record = CustomizedRecord(
+                nestedKeyed: NestedKeyed(name: "foo"),
+                nestedSingle: NestedSingle(name: "bar"),
+                nestedUnkeyed: NestedUnkeyed(name: "baz"))
+            try record.insert(db)
+            
+            let row = try Row.fetchOne(db, CustomizedRecord.all())!
+            XCTAssertEqual(row, [
+                "context": "GRDB root",
+                "key": nil,
+                "nestedKeyed": "{\"context\":\"JSON nested: nestedKeyed\",\"name\":\"foo\"}",
+                "nestedSingle": "bar,key:nestedSingle,context:GRDB nested",
+                "nestedUnkeyed": "[\"baz\",null,\"JSON nested: nestedUnkeyed\"]"])
         }
     }
 }
