@@ -349,7 +349,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
     }
 
     func testDatabaseDateComponentsParsing() {
-        func assertParse(_ string: String, _ dateComponent: DatabaseDateComponents, file: StaticString = #file, line: UInt = #line) {
+        func _assertParse(_ string: String, _ dateComponent: DatabaseDateComponents, file: StaticString, line: UInt) {
             do {
                 // Test DatabaseValueConvertible adoption
                 let parsed = DatabaseDateComponents.fromDatabaseValue(string.databaseValue)!
@@ -365,6 +365,17 @@ class FoundationDateComponentsTests : GRDBTestCase {
                 XCTAssertEqual(parsed.dateComponents, dateComponent.dateComponents, file: file, line: line)
             }
         }
+        
+        // #file vs. #filePath dance
+        #if compiler(>=5.3)
+        func assertParse(_ string: String, _ dateComponent: DatabaseDateComponents, file: StaticString = #filePath, line: UInt = #line) {
+            _assertParse(string, dateComponent, file: file, line: line)
+        }
+        #else
+        func assertParse(_ string: String, _ dateComponent: DatabaseDateComponents, file: StaticString = #file, line: UInt = #line) {
+            _assertParse(string, dateComponent, file: file, line: line)
+        }
+        #endif
         
         assertParse(
             "0000-01-01",

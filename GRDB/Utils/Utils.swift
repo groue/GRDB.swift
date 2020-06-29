@@ -134,3 +134,80 @@ func throwingFirstError<T>(execute: () throws -> T, finally: () throws -> Void) 
     }
     return result!
 }
+
+struct PrintOutputStream: TextOutputStream {
+    func write(_ string: String) {
+        Swift.print(string)
+    }
+}
+
+/// Concatenates two functions
+func concat(_ rhs: (() -> Void)?, _ lhs: (() -> Void)?) -> (() -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
+        return {
+            rhs()
+            lhs()
+        }
+    }
+}
+
+/// Concatenates two functions
+func concat<T>(_ rhs: ((T) -> Void)?, _ lhs: ((T) -> Void)?) -> ((T) -> Void)? {
+    switch (rhs, lhs) {
+    case let (rhs, nil):
+        return rhs
+    case let (nil, lhs):
+        return lhs
+    case let (rhs?, lhs?):
+        return {
+            rhs($0)
+            lhs($0)
+        }
+    }
+}
+
+extension NSRecursiveLock {
+    @inlinable
+    @inline(__always)
+    func synchronized<T>(
+        _ message: @autoclosure () -> String = #function,
+        _ block: () throws -> T)
+        rethrows -> T
+    {
+        lock()
+        defer { unlock() }
+        return try block()
+    }
+    
+//    // Verbose version which helps understanding locking bugs
+//    func synchronized<T>(_ message: @autoclosure () -> String = "", _ block: () throws -> T) rethrows -> T {
+//        let queueName = String(validatingUTF8: __dispatch_queue_get_label(nil))
+//        print("\(queueName ?? "n/d"): \(message()) acquiring \(self)")
+//        lock()
+//        print("\(queueName ?? "n/d"): \(message()) acquired \(self)")
+//        defer {
+//            print("\(queueName ?? "n/d"): \(message()) releasing \(self)")
+//            unlock()
+//            print("\(queueName ?? "n/d"): \(message()) released \(self)")
+//        }
+//        return try block()
+//    }
+    
+    /// Performs the side effect outside of the synchronized block. This allows
+    /// avoiding deadlocks, when the side effect feedbacks.
+    @inlinable
+    @inline(__always)
+    func synchronized(
+        _ message: @autoclosure () -> String = #function,
+        _ block: (inout (() -> Void)?) -> Void)
+    {
+        var sideEffect: (() -> Void)?
+        synchronized(message()) { block(&sideEffect) }
+        sideEffect?()
+    }
+}

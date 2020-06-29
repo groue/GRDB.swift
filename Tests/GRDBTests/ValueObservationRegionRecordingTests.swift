@@ -12,19 +12,19 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             
             do {
                 var region = DatabaseRegion()
-                _ = db.recordingSelection(&region) { }
+                db.recordingSelection(&region) { }
                 XCTAssertTrue(region.isEmpty)
             }
             
             do {
                 var region = DatabaseRegion.fullDatabase
-                _ = db.recordingSelection(&region) { }
+                db.recordingSelection(&region) { }
                 XCTAssertTrue(region.isFullDatabase)
             }
             
             do {
                 var region = DatabaseRegion(table: "player")
-                _ = db.recordingSelection(&region) { }
+                db.recordingSelection(&region) { }
                 XCTAssertEqual(region.description, "player(*)")
             }
             
@@ -88,9 +88,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
                 _ = try db.recordingSelection(&region1) {
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
                     _ = try db.recordingSelection(&region2) {
-                        _ = db.recordingSelection(&region3) { }
+                        db.recordingSelection(&region3) { }
                         _ = try Row.fetchAll(db, sql: "SELECT name FROM player")
-                        _ = db.recordingSelection(&region4) { }
+                        db.recordingSelection(&region4) { }
                     }
                     _ = try db.recordingSelection(&region5) {
                         _ = try Row.fetchAll(db, sql: "SELECT * FROM player")
@@ -135,20 +135,21 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        let observation = ValueObservation.trackingVaryingRegion { db -> Int in
-            let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-        }
+        var regions: [DatabaseRegion] = []
+        let observation = ValueObservation
+            .trackingVaryingRegion({ db -> Int in
+                let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
+                return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
+            })
+            .handleEvents(willTrackRegion: { regions.append($0) })
         
-        let observer = dbQueue._addWriteOnly(
-            observation: observation,
-            scheduling: .immediate,
+        let observer = observation.start(
+            in: dbQueue,
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
-                    results.append(count)
-                    notificationExpectation.fulfill()
-            })
-        XCTAssertEqual(observer.observedRegion!.description, "a(value),source(name)")
+                results.append(count)
+                notificationExpectation.fulfill()
+        })
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
@@ -163,7 +164,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(results, [0, 1, 2, 3])
             
-            XCTAssertEqual(observer.observedRegion!.description, "b(value),source(name)")
+            XCTAssertEqual(regions.map(\.description), [
+                "a(value),source(name)",
+                "b(value),source(name)"])
         }
     }
     
@@ -183,21 +186,22 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         notificationExpectation.assertForOverFulfill = true
         notificationExpectation.expectedFulfillmentCount = 4
         
-        let observation = ValueObservation.trackingVaryingRegion { db -> Int in
-            let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
-            return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-        }
+        var regions: [DatabaseRegion] = []
+        let observation = ValueObservation
+            .trackingVaryingRegion({ db -> Int in
+                let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
+                return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
+            })
+            .handleEvents(willTrackRegion: { regions.append($0) })
         
-        let observer = dbQueue._addWriteOnly(
-            observation: observation,
+        let observer = observation.start(
+            in: dbQueue,
             scheduling: .async(onQueue: .main),
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { count in
                 results.append(count)
                 notificationExpectation.fulfill()
         })
-        
-        // Can't test observedRegion because it is defined asynchronously
         
         try withExtendedLifetime(observer) {
             try dbQueue.inDatabase { db in
@@ -212,7 +216,9 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             waitForExpectations(timeout: 1, handler: nil)
             XCTAssertEqual(results, [0, 1, 2, 3])
             
-            XCTAssertEqual(observer.observedRegion!.description, "b(value),source(name)")
+            XCTAssertEqual(regions.map(\.description), [
+                "a(value),source(name)",
+                "b(value),source(name)"])
         }
     }
 }

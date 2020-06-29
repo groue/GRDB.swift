@@ -165,18 +165,19 @@ extension DatabaseDateEncodingStrategyTests {
 // MARK: - iso8601(ISO8601DateFormatter)
 
 extension DatabaseDateEncodingStrategyTests {
-    func testIso8601() {
-        // check ISO8601DateFormatter availabiliity
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            testNullEncoding(strategy: StrategyIso8601.self)
-            
-            for (date, value) in zip(testedDates, [
-                "1969-12-20T13:39:05Z",
-                "1970-01-02T10:17:36Z",
-                "2001-01-01T00:00:00Z",
-                "2001-01-02T10:17:36Z",
-                ]) { test(strategy: StrategyIso8601.self, encodesDate: date, as: value) }
+    func testIso8601() throws {
+        guard #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) else {
+            throw XCTSkip("ISO8601DateFormatter is not available")
         }
+        
+        testNullEncoding(strategy: StrategyIso8601.self)
+        
+        for (date, value) in zip(testedDates, [
+            "1969-12-20T13:39:05Z",
+            "1970-01-02T10:17:36Z",
+            "2001-01-01T00:00:00Z",
+            "2001-01-02T10:17:36Z",
+        ]) { test(strategy: StrategyIso8601.self, encodesDate: date, as: value) }
     }
 }
 

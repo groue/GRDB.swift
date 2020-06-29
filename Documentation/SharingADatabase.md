@@ -254,7 +254,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
 
 ## How to perform cross-process database observation
 
-GRDB [Database Observation] features, as well as [GRDBCombine] and [RxGRDB], are not able to notify database changes performed by other processes.
+GRDB [Database Observation] features, as well as its [Combine publishers] and [RxGRDB], are not able to notify database changes performed by other processes.
 
 Whenever you need to notify other processes that the database has been changed, you will have to use a cross-process notification mechanism such as [NSFileCoordinator] or [CFNotificationCenterGetDarwinNotifyCenter].
 
@@ -280,10 +280,10 @@ let observer = try observation.start(in: dbPool) { (db: Database) in
 [How to perform cross-process database observation]: #how-to-perform-cross-process-database-observation
 [Database Pool]: ../README.md#database-pools
 [Database Observation]: ../README.md#database-changes-observation
-[GRDBCombine]: http://github.com/groue/GRDBCombine
 [RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
 [NSFileCoordinator]: https://developer.apple.com/documentation/foundation/nsfilecoordinator
 [CFNotificationCenterGetDarwinNotifyCenter]: https://developer.apple.com/documentation/corefoundation/1542572-cfnotificationcentergetdarwinnot
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [WAL mode]: https://www.sqlite.org/wal.html
 [How do I monitor the duration of database statements execution?]: ../README.md#how-do-i-monitor-the-duration-of-database-statements-execution
+[Combine publishers]: Combine.md

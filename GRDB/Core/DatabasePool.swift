@@ -188,10 +188,6 @@ extension DatabasePool {
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
-    ///
-    /// - param application: The UIApplication that will start a background
-    ///   task to let the database pool release its memory when the application
-    ///   enters background.
     private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
@@ -813,7 +809,6 @@ extension DatabasePool: DatabaseReader {
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
@@ -821,7 +816,6 @@ extension DatabasePool: DatabaseReader {
             return _addReadOnly(
                 observation: observation,
                 scheduling: scheduler,
-                onError: onError,
                 onChange: onChange)
         }
         
@@ -829,7 +823,6 @@ extension DatabasePool: DatabaseReader {
             let observer = _addWriteOnly(
                 observation: observation,
                 scheduling: scheduler,
-                onError: onError,
                 onChange: onChange)
             return AnyDatabaseCancellable(cancel: observer.cancel)
         }
@@ -837,7 +830,6 @@ extension DatabasePool: DatabaseReader {
         let observer = _addConcurrent(
             observation: observation,
             scheduling: scheduler,
-            onError: onError,
             onChange: onChange)
         return AnyDatabaseCancellable(cancel: observer.cancel)
     }
@@ -847,7 +839,6 @@ extension DatabasePool: DatabaseReader {
     private func _addConcurrent<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> ValueObserver<Reducer> // For testability
     {
@@ -857,13 +848,11 @@ extension DatabasePool: DatabaseReader {
         let reduceQueueLabel = configuration.identifier(
             defaultLabel: "GRDB",
             purpose: "ValueObservation")
-        let observer = ValueObserver<Reducer>(
-            requiresWriteAccess: observation.requiresWriteAccess,
+        let observer = ValueObserver(
+            observation: observation,
             writer: self,
-            reducer: observation.makeReducer(),
-            scheduling: scheduler,
+            scheduler: scheduler,
             reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
-            onError: onError,
             onChange: onChange)
         
         // Starting a concurrent observation means that we'll fetch the initial
@@ -908,8 +897,8 @@ extension DatabasePool: DatabaseReader {
                 onChange(initialValue)
                 add(observer: observer, from: initialSnapshot)
             } catch {
-                observer.cancel()
-                onError(error)
+                observer.complete()
+                observation.events.didFail?(error)
             }
         } else {
             let label = configuration.identifier(
@@ -967,8 +956,11 @@ extension DatabasePool: DatabaseReader {
                         }
                     }
                     
-                    if fetchNeeded, let value = try observer.fetchValue(db) {
-                        observer.notifyChange(value)
+                    if fetchNeeded {
+                        observer.events.databaseDidChange?()
+                        if let value = try observer.fetchValue(db) {
+                            observer.notifyChange(value)
+                        }
                     }
                     return .commit
                 }

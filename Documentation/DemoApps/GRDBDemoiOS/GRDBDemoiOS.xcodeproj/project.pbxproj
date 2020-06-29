@@ -26,6 +26,8 @@
 		56B0361C1E8D9F38003B6DA4 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361A1E8D9F38003B6DA4 /* Player.swift */; };
 		56B036231E8D9F4C003B6DA4 /* PlayerEditionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */; };
 		56B036241E8D9F4C003B6DA4 /* PlayerListViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */; };
+		56FE6F1E24A90CC500711EDF /* World.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FE6F1D24A90CC500711EDF /* World.swift */; };
+		56FE6F2624A90CE400711EDF /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FE6F2524A90CE400711EDF /* SceneDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -183,6 +185,8 @@
 		56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerEditionViewController.swift; sourceTree = "<group>"; };
 		56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerListViewController.swift; sourceTree = "<group>"; };
 		56B036261E8D9F79003B6DA4 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
+		56FE6F1D24A90CC500711EDF /* World.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = World.swift; sourceTree = "<group>"; };
+		56FE6F2524A90CE400711EDF /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -273,17 +277,43 @@
 		56B036051E8D9EBE003B6DA4 /* GRDBDemoiOS */ = {
 			isa = PBXGroup;
 			children = (
-				56B036121E8D9EBE003B6DA4 /* Info.plist */,
-				56B036191E8D9F38003B6DA4 /* AppDatabase.swift */,
 				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
+				56FE6F2524A90CE400711EDF /* SceneDelegate.swift */,
+				56B036191E8D9F38003B6DA4 /* AppDatabase.swift */,
 				56B0361A1E8D9F38003B6DA4 /* Player.swift */,
-				56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */,
-				56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */,
+				56FE6F1D24A90CC500711EDF /* World.swift */,
+				56FE6F4F24A9114200711EDF /* ViewControllers */,
+				56FE6F4E24A9112900711EDF /* Resources */,
+				56FE6F5124A9118000711EDF /* Support */,
+			);
+			path = GRDBDemoiOS;
+			sourceTree = "<group>";
+		};
+		56FE6F4E24A9112900711EDF /* Resources */ = {
+			isa = PBXGroup;
+			children = (
 				56B0360D1E8D9EBE003B6DA4 /* Assets.xcassets */,
 				56B0360F1E8D9EBE003B6DA4 /* LaunchScreen.storyboard */,
 				56B0360A1E8D9EBE003B6DA4 /* Main.storyboard */,
 			);
-			path = GRDBDemoiOS;
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		56FE6F4F24A9114200711EDF /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				56B0361F1E8D9F4C003B6DA4 /* PlayerEditionViewController.swift */,
+				56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */,
+			);
+			path = ViewControllers;
+			sourceTree = "<group>";
+		};
+		56FE6F5124A9118000711EDF /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				56B036121E8D9EBE003B6DA4 /* Info.plist */,
+			);
+			name = Support;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -353,7 +383,7 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0830;
-				LastUpgradeCheck = 1020;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "Gwendal Roué";
 				TargetAttributes = {
 					568E5FBE1E926430002582E0 = {
@@ -504,6 +534,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56FE6F1E24A90CC500711EDF /* World.swift in Sources */,
+				56FE6F2624A90CE400711EDF /* SceneDelegate.swift in Sources */,
 				56B0361C1E8D9F38003B6DA4 /* Player.swift in Sources */,
 				56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */,
 				56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */,
@@ -657,6 +689,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -718,6 +751,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;

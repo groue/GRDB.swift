@@ -1,9 +1,11 @@
-Demo Application
-================
+UIKit Demo Application
+======================
 
-<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/GRDBDemoScreenshot.png" width="50%">
+<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
-**This demo application shows you:**
+**This demo application is a storyboard-based UIKit application, based on the MVC design pattern.** For a demo application that uses Combine and SwiftUI, see [GRDBCombineDemo](../GRDBCombineDemo/README.md).
+
+The topics covered in this demo are:
 
 - How to setup a database in an iOS app.
 - How to define a simple [Codable Record](../../../README.md#codable-records).
@@ -24,10 +26,10 @@ Demo Application
     
     `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../../README.md#codable-records). It defines the database requests used by the application.
 
-- [PlayerListViewController.swift](GRDBDemoiOS/PlayerListViewController.swift)
+- [PlayerListViewController.swift](GRDBDemoiOS/ViewControllers/PlayerListViewController.swift)
     
     `PlayerListViewController` displays the list of players.
 
-- [PlayerEditionViewController.swift](GRDBDemoiOS/PlayerEditionViewController.swift)
+- [PlayerEditionViewController.swift](GRDBDemoiOS/ViewControllers/PlayerEditionViewController.swift)
     
     `PlayerEditionViewController` can create or edit a player, and save it in the database.

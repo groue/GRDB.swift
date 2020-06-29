@@ -117,7 +117,7 @@ let players = try Player.fetchAll(db)
 
 **Fetched records behave just like an in-memory cache of the database content.** Your application is free to decide, on its own, how it should handle the lifetime of those cached values: by ignoring future database changes, or by observing database changes and react accordingly.
 
-In order to keep your views synchronized with the database content, you can use [ValueObservation]. It notifies fresh values after each database change. The [GRDBCombine] and [RxGRDB] companion libraries provide support for [Combine] and [RxSwift].
+In order to keep your views synchronized with the database content, you can use [ValueObservation]. It notifies fresh values after each database change, with convenient support for [Combine](Combine.md) and [RxSwift](https://github.com/RxSwiftCommunity/RxGRDB).
 
 ```swift
 /// An observation of [Player]
@@ -130,7 +130,7 @@ let cancellable = observation.start(in: dbQueue,
     onError: { error in ... },
     onChange: { (players: [Player]) in print("Fresh players") })
 
-// GRDBCombine
+// GRDB + Combine
 let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
     receiveValue: { (players: [Player]) in print("Fresh players") })
@@ -254,14 +254,14 @@ extension Player {
 let player = try Player.filter(name: "Arthur O'Brien").fetchOne(db)
 ```
 
-Custom SQL requests as the one above are welcome in database observation tools like the built-in [ValueObservation], or the companion libraries [GRDBCombine] and [RxGRDB]:
+Custom SQL requests as the one above are welcome in database observation tools like the built-in [ValueObservation] and its [Combine](Combine.md) and [RxSwift](https://github.com/RxSwiftCommunity/RxGRDB) flavors:
 
 ```swift
 let playerObservation = ValueObservation.tracking { db in
     try Player.filter(name: "Arthur O'Brien").fetchOne(db)
 }
 
-// Observe the SQL request with GRDBCombine
+// Observe the SQL request with Combine
 let cancellable = playerObservation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
     receiveValue: { (player: Player?) in print("Player has changed") })
@@ -300,10 +300,6 @@ Happy GRDB! :gift:
 [PersistableRecord]: ../README.md#records
 [Realm]: http://realm.io
 [FetchableRecord]: ../README.md#records
-[RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
-[RxSwift]: https://github.com/ReactiveX/RxSwift
-[GRDBCombine]: http://github.com/groue/GRDBCombine
-[Combine]: https://developer.apple.com/documentation/combine
 [SQLite.swift]: http://github.com/stephencelis/SQLite.swift
 [StORM]: https://www.perfect.org/docs/StORM.html
 [Swift-Kuery]: http://github.com/IBM-Swift/Swift-Kuery

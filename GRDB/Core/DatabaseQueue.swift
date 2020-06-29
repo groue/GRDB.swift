@@ -88,10 +88,6 @@ extension DatabaseQueue {
     /// Listens to UIApplicationDidEnterBackgroundNotification and
     /// UIApplicationDidReceiveMemoryWarningNotification in order to release
     /// as much memory as possible.
-    ///
-    /// - param application: The UIApplication that will start a background
-    ///   task to let the database queue release its memory when the application
-    ///   enters background.
     private func setupMemoryManagement() {
         let center = NotificationCenter.default
         center.addObserver(
@@ -480,7 +476,6 @@ extension DatabaseQueue {
     public func _add<Reducer: _ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
-        onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void)
         -> DatabaseCancellable
     {
@@ -488,14 +483,12 @@ extension DatabaseQueue {
             return _addReadOnly(
                 observation: observation,
                 scheduling: scheduler,
-                onError: onError,
                 onChange: onChange)
         }
         
         let observer = _addWriteOnly(
             observation: observation,
             scheduling: scheduler,
-            onError: onError,
             onChange: onChange)
         return AnyDatabaseCancellable(cancel: observer.cancel)
     }

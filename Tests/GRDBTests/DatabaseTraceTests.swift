@@ -24,7 +24,7 @@ class DatabaseTraceTests : GRDBTestCase {
     
     func testTraceStatementSQL() throws {
         guard #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) else {
-            return
+            throw XCTSkip("sqlite3_trace_v2 is not available")
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -52,7 +52,7 @@ class DatabaseTraceTests : GRDBTestCase {
     
     func testTraceProfile() throws {
         guard #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) else {
-            return
+            throw XCTSkip("sqlite3_trace_v2 is not available")
         }
         
         let dbQueue = try makeDatabaseQueue()
@@ -75,13 +75,13 @@ class DatabaseTraceTests : GRDBTestCase {
             try db.execute(sql: "CREATE table t(a);")
             XCTAssertEqual(lastSQL, "CREATE table t(a)")
             XCTAssertEqual(lastExpandedSQL, "CREATE table t(a)")
-            XCTAssertTrue(lastDuration! > 0)
+            XCTAssertTrue(lastDuration! >= 0)
             XCTAssert(lastDescription!.hasSuffix("s CREATE table t(a)"))
             
             try db.execute(sql: "INSERT INTO t (a) VALUES (?)", arguments: [1])
             XCTAssertEqual(lastSQL, "INSERT INTO t (a) VALUES (?)")
             XCTAssertEqual(lastExpandedSQL, "INSERT INTO t (a) VALUES (1)")
-            XCTAssertTrue(lastDuration! > 0)
+            XCTAssertTrue(lastDuration! >= 0)
             XCTAssert(lastDescription!.hasSuffix("s INSERT INTO t (a) VALUES (1)"))
             
             db.add(function: DatabaseFunction("wait", argumentCount: 1, pure: true, function: { dbValues in
@@ -102,7 +102,7 @@ class DatabaseTraceTests : GRDBTestCase {
     
     func testTraceMultiple() throws {
         guard #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) else {
-            return
+            throw XCTSkip("sqlite3_trace_v2 is not available")
         }
         
         let dbQueue = try makeDatabaseQueue()

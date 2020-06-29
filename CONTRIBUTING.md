@@ -82,7 +82,6 @@ The ideas, in alphabetical order:
 - [JSON]
 - [Linux]
 - [More SQL Generation]
-- [Reactive Database Observation]
 - [SQL Console in the Debugger]
 - [SQLCipher in a Shared App Container]
 - [Typed Expressions]
@@ -247,15 +246,6 @@ There are several SQLite features that GRDB could natively support:
 See [issue #575](https://github.com/groue/GRDB.swift/issues/575) for more information and guidance about the implementation of extra table alterations.
 
 
-### Reactive Database Observation
-
-:baby: Starter Task
-
-We already have the [GRDBCombine](http://github.com/groue/GRDBCombine) and [RxGRDB] companion libraries.
-
-More choices of reactive engines would help more developers enjoy GRDB.
-
-
 ### SQL Console in the Debugger
 
 :question: Unknown Difficulty :hammer: Tooling
@@ -319,7 +309,6 @@ Features that blur this focus are non-goals:
 [JSON]: #json
 [Linux]: #linux
 [More SQL Generation]: #more-sql-generation
-[Reactive Database Observation]: #reactive-database-observation
 [Records: Splitting Database Encoding from Ability to Write in the Database]: #records-splitting-database-encoding-from-ability-to-write-in-the-database
 [Non-Goals]: #non-goals
 [Report Bugs]: #report-bugs

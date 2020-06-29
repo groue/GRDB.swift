@@ -11,7 +11,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6)
 
 
 #### 4.x Releases
@@ -73,6 +73,25 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+
+## 5.0.0-beta.6
+
+Released June 29, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.5...v5.0.0-beta.6)
+
+- **New**: [#798](https://github.com/groue/GRDB.swift/pull/798): Debugging operators for ValueObservation
+- **New**: [#800](https://github.com/groue/GRDB.swift/pull/800): Xcode 12 support
+- **New**: [#801](https://github.com/groue/GRDB.swift/pull/801): Combine support
+- **New**: Faster decoding of Date and DateComponents
+
+### Documentation Diff
+
+- The [ValueObservation Operators](README.md#valueobservation-operators) chapter was extended with a description of the two new debugging operators `handleEvents` and `print`.
+
+- A new [GRDB ❤️ Combine](Documentation/Combine.md) guide describes the various Combine publishers that read, write, and observe the database.
+
+- [GRDBCombineDemo](Documentation/DemoApps/GRDBCombineDemo/README.md) is a new Combine + SwiftUI demo application.
+
 
 ## 5.0.0-beta.5
 
