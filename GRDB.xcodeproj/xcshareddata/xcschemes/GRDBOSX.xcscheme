@@ -52,29 +52,6 @@
                BlueprintName = "GRDBOSXTests"
                ReferencedContainer = "container:GRDB.xcodeproj">
             </BuildableReference>
-            <SkippedTests>
-               <Test
-                  Identifier = "FetchedRecordsControllerTests/testEmptyFetchedRecordsAfterPerformFetch()">
-               </Test>
-               <Test
-                  Identifier = "FetchedRecordsControllerTests/testNoFetchedRecordsBeforeFetch()">
-               </Test>
-               <Test
-                  Identifier = "FetchedRecordsControllerTests/testNotEmptyFetchedRecordsAfterPerformFetch()">
-               </Test>
-               <Test
-                  Identifier = "FetchedRecordsControllerTests/testNotificationsOnInsertion()">
-               </Test>
-               <Test
-                  Identifier = "FetchedRecordsControllerTests/testRecordDeleted()">
-               </Test>
-               <Test
-                  Identifier = "FetchedRecordsControllerTests/testRecordInserted()">
-               </Test>
-               <Test
-                  Identifier = "FetchedRecordsControllerTests/testRecordUpdated()">
-               </Test>
-            </SkippedTests>
          </TestableReference>
       </Testables>
    </TestAction>

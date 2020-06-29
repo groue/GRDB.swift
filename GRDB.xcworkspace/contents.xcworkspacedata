@@ -14,9 +14,6 @@
          location = "group:TransactionObserver.playground">
       </FileRef>
       <FileRef
-         location = "group:Issue156.playground">
-      </FileRef>
-      <FileRef
          location = "group:CustomizedDecodingOfDatabaseRows.playground">
       </FileRef>
       <FileRef
