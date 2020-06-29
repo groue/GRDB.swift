@@ -457,6 +457,7 @@ let publisher = observation
     let sqliteVersion = String(cString: sqlite3_libversion())
     ```
 
+11. `FetchedRecordsController` was removed from GRDB 5. The [Database Observation] chapter describes the other ways to observe the database.
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
@@ -470,3 +471,4 @@ let publisher = observation
 [SQLRequest]: ../README.md#custom-requests
 [QueryInterfaceRequest]: ../README.md#requests
 [Combine publishers]: Combine.md
+[Database Observation]: ../README.md#database-changes-observation
