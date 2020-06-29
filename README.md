@@ -70,7 +70,7 @@ GRDB ships with:
 - [Associations]: Relations and joins between record types.
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
-- [Database Observation](#database-changes-observation): Observe database changes and transactions.
+- [Database Observation]: Observe database changes and transactions.
 - [Combine Support]: Access and observe the database with Combine publishers.
 - [Full-Text Search]
 - [Encryption](#encryption)
@@ -251,7 +251,7 @@ observation.start(
     })
 ```
 
-See [Database Changes Observation](#database-changes-observation)
+See [Database Observation].
 
 </details>
 
@@ -290,7 +290,7 @@ Documentation
 - [Migrations]: Transform your database as your application evolves.
 - [Full-Text Search]: Perform efficient and customizable full-text searches.
 - [Joined Queries Support](#joined-queries-support): Consume complex joined queries.
-- [Database Changes Observation](#database-changes-observation): Observe database changes and transactions.
+- [Database Observation]: Observe database changes and transactions.
 - [Encryption](#encryption): Encrypt your database with SQLCipher.
 - [Backup](#backup): Dump the content of a database to another.
 - [Interrupt a Database](#interrupt-a-database): Abort any pending database operation.
@@ -6958,7 +6958,7 @@ Despite the common [guarantees and rules](#guarantees-and-rules) shared by [data
 
 See how, with database pools, two reads can see different database states at the same time.
 
-For more information about database pools, grab information about SQLite [WAL mode](https://www.sqlite.org/wal.html) and [snapshot isolation](https://sqlite.org/isolation.html). See [Database Observation](#database-changes-observation) when you look after automatic notifications of database changes.
+For more information about database pools, grab information about SQLite [WAL mode](https://www.sqlite.org/wal.html) and [snapshot isolation](https://sqlite.org/isolation.html). See [Database Observation] when you look after automatic notifications of database changes.
 
 
 ### Advanced DatabasePool
@@ -7786,7 +7786,9 @@ This chapter has [moved](Documentation/FullTextSearch.md#enabling-fts5-support).
 
 #### FetchedRecordsController
 
-This chapter has [moved](Documentation/FetchedRecordsController.md).
+FetchedRecordsController has been removed in GRDB 5.
+
+The [Database Observation] chapter describes the other ways to observe the databasee.
 
 #### Full-Text Search
 
@@ -7844,3 +7846,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Demo Applications]: Documentation/DemoApps/README.md
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq
+[Database Observation]: #database-changes-observation

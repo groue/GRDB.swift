@@ -701,32 +701,4 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             XCTAssertTrue(try Person.limit(1).fetchOne(db)!.id != nil)
         }
     }
-    
-    
-    // MARK: - FetchedRecordsController
-    
-    func testFetchedRecordsController() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let person = Person(name: "Arthur")
-        try dbQueue.inDatabase { db in
-            try person.insert(db)
-        }
-        
-        let expectation = self.expectation(description: "expectation")
-        let controller =
-            try FetchedRecordsController<Person>(dbQueue, request: Person.all())
-        var update = false
-        controller.trackChanges(
-            onChange: { (_, _, change) in if case .update = change { update = true /* identification by hidden rowid primary key has succeeded */ } },
-            didChange: { _ in expectation.fulfill()
-        })
-        try controller.performFetch()
-        try dbQueue.inDatabase { db in
-            person.name = "Barbara"
-            try person.update(db)
-        }
-        waitForExpectations(timeout: 1, handler: nil)
-        
-        XCTAssertTrue(update)
-    }
 }
