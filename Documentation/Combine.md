@@ -238,15 +238,27 @@ See [ValueObservation Scheduling](../README.md#valueobservation-scheduling) for 
 
 When you compose ValueObservation publishers together with the [combineLatest](https://developer.apple.com/documentation/combine/publisher/3333677-combinelatest) operator, you lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
 
-Instead, compose requests together into **one single** ValueObservation, as below (this is the technique used in the [Demo Application]):
+Instead, compose requests together into **one single** ValueObservation, as below:
 
 ```swift
+struct HallOfFame {
+    var totalPlayerCount: Int
+    var bestPlayers: [Player]
+}
+
 // DATA CONSISTENCY GUARANTEED
 let hallOfFamePublisher = ValueObservation
     .tracking { db -> HallOfFame in
-        let playerCount = try Player.fetchCount(db)
-        let bestPlayers = try Player.limit(10).orderedByScore().fetchAll(db)
-        return HallOfFame(playerCount:playerCount, bestPlayers:bestPlayers)
+        let totalPlayerCount = try Player.fetchCount(db)
+        
+        let bestPlayers = try Player
+            .order(Column("score").desc)
+            .limit(10)
+            .fetchAll(db)
+        
+        return HallOfFame(
+            totalPlayerCount: totalPlayerCount,
+            bestPlayers: bestPlayers)
     }
     .publisher(in: dbQueue)
 ```

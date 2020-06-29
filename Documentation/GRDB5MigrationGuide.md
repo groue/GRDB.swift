@@ -270,24 +270,35 @@ The changes can quite impact your application. We'll describe them below, as wel
     In your application, replace combined observations with a single observation:
     
     ```swift
+    struct HallOfFame {
+        var totalPlayerCount: Int
+        var bestPlayers: [Player]
+    }
+    
     // BEFORE: GRDB 4
-    let playerCountObservation = ValueObservation.tracking(Player.fetchCount)
+    let totalPlayerCountObservation = ValueObservation.tracking(Player.fetchCount)
+    
     let bestPlayersObservation = ValueObservation.tracking(Player
             .limit(10)
             .order(Column("score").desc)
             .fetchAll)
+    
     let observation = ValueObservation
-        .combine(playerCountObservation, bestPlayersObservation)
+        .combine(totalPlayerCountObservation, bestPlayersObservation)
         .map(HallOfFame.init)
     
     // NEW: GRDB 5
     let observation = ValueObservation.tracking { db -> HallOfFame in
-        let playerCount = try Player.fetchCount(db)
+        let totalPlayerCount = try Player.fetchCount(db)
+        
         let bestPlayers = try Player
-            .limit(10)
             .order(Column("score").desc)
+            .limit(10)
             .fetchAll(db)
-        return HallOfFame(playerCount: playerCount, bestPlayers: bestPlayers)
+        
+        return HallOfFame(
+            totalPlayerCount: totalPlayerCount,
+            bestPlayers: bestPlayers)
     }
     ```
     
@@ -296,7 +307,7 @@ The changes can quite impact your application. We'll describe them below, as wel
 
 ## Combine Integration
 
-GRDB 4 had a companion library named GRDBCombine. Combine support is now embedded right into GRDB, and you have to remove any dependency on GRDBCombine.
+GRDB 4 had a companion library named GRDBCombine. Combine support is now embedded right into GRDB 5, and you have to remove any dependency on GRDBCombine.
 
 GRDBCombine used to define a `fetchOnSubscription()` method of the ValueObservation subscriber. It has been removed. Replace it with `scheduling: .immediate` for the same effect (an initial value is notified immediately, synchronously, when the publisher is subscribed):
     
