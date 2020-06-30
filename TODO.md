@@ -16,6 +16,8 @@
 
 ## Features
 
+- [ ] DatabaseMigrator.publisher(in:)
+- [ ] Look at [@FetchRequest](https://developer.apple.com/documentation/swiftui/fetchrequest): managed object context is stored in the environment, and error processing happens somewhere else (where?).
 - [ ] Handle SQLITE_LIMIT_VARIABLE_NUMBER in deleteAll(_:keys:) and similar APIs. https://www.sqlite.org/limits.html
 - [ ] Concurrent migrator / or not
 - [ ] Subqueries: request.isEmpty / request.exists
