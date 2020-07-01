@@ -500,16 +500,25 @@ struct SQLQueryGenerator: Refinable {
             return .none
         }
         
+        // Grouping something which is not a table: assume non unique grouping.
+        guard case let .table(tableName: tableName, alias: alias) = relation.source else {
+            return .nonUnique
+        }
+        
+        // FastPrimaryKeyExpression?
+        for expression in groupExpressions {
+            if
+                let column = expression as? QualifiedFastPrimaryKeyExpression,
+                column.alias == alias {
+                return .unique
+            }
+        }
+        
         // Grouping by something which is not a column: assume non
         // unique grouping.
         // SELECT * FROM player GROUP BY (score + bonus)
         let qualifiedColumns = groupExpressions.compactMap { $0 as? QualifiedColumn }
         if qualifiedColumns.count != groupExpressions.count {
-            return .nonUnique
-        }
-        
-        // Grouping something which is not a table: assume non unique grouping.
-        guard case let .table(tableName: tableName, alias: alias) = relation.source else {
             return .nonUnique
         }
         
