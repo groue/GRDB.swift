@@ -330,7 +330,17 @@ extension TableRequest where Self: AggregatingRequest {
     public func groupByPrimaryKey() -> Self {
         let tableName = self.databaseTableName
         return group { db in
-            try db.primaryKey(tableName).columns.map { Column($0) }
+            let primaryKey = try db.primaryKey(tableName)
+            if let rowIDColumn = primaryKey.rowIDColumn {
+                // Prefer the user-provided name of the row id
+                return [Column(rowIDColumn)]
+            } else if primaryKey.tableHasRowID {
+                // Prefer the row id
+                return [Column.rowID]
+            } else {
+                // WITHOUT ROWID table: group by primary key columns
+                return primaryKey.columns.map { Column($0) }
+            }
         }
     }
 }

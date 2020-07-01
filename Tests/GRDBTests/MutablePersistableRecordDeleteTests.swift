@@ -282,7 +282,7 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
                     DELETE FROM "passport" WHERE "rowid" IN (\
                     SELECT "rowid" \
                     FROM "passport" \
-                    GROUP BY "countryCode", "citizenId")
+                    GROUP BY "rowid")
                     """)
             }
             do {
