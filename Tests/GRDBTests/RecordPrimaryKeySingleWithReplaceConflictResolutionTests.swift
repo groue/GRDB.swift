@@ -414,17 +414,6 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select Primary Key
-    
-    func testSelectPrimaryKey() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let request: QueryInterfaceRequest<String> = Email.selectPrimaryKey()
-            try assertEqualSQL(db, request, "SELECT \"email\" FROM \"emails\"")
-        }
-    }
-    
-    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

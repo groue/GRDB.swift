@@ -346,13 +346,15 @@ struct SQLQueryGenerator: Refinable {
             fatalError("Can't delete without any database table")
         }
         
-        let context = SQLGenerationContext(db)
-        let primaryKey = SQLPrimaryKeyExpression(tableName: tableName)
+        let alias = TableAlias(tableName: tableName)
+        let context = SQLGenerationContext(db, aliases: [alias])
+        let subqueryContext = SQLGenerationContext(parent: context, aliases: relation.allAliases)
+        let primaryKey = FastPrimaryKeyExpression()
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
-        sql += try primaryKey.expressionSQL(context, wrappedInParenthesis: false)
+        sql += try alias[primaryKey].expressionSQL(context, wrappedInParenthesis: false)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(context)
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(subqueryContext)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
@@ -450,8 +452,10 @@ struct SQLQueryGenerator: Refinable {
             return nil
         }
         
-        let context = SQLGenerationContext(db)
-        let primaryKey = SQLPrimaryKeyExpression(tableName: tableName)
+        let alias = TableAlias(tableName: tableName)
+        let context = SQLGenerationContext(db, aliases: [alias])
+        let subqueryContext = SQLGenerationContext(parent: context, aliases: relation.allAliases)
+        let primaryKey = FastPrimaryKeyExpression()
         
         // UPDATE table...
         var sql = "UPDATE "
@@ -468,9 +472,9 @@ struct SQLQueryGenerator: Refinable {
         
         // WHERE id IN (SELECT id FROM ...)
         sql += " WHERE "
-        sql += try primaryKey.expressionSQL(context, wrappedInParenthesis: false)
+        sql += try alias[primaryKey].expressionSQL(context, wrappedInParenthesis: false)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(context)
+        sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(subqueryContext)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)

@@ -192,30 +192,6 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
         map(\.query) { $0.annotated(with: selection) }
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates a request which selects the primary key of the table.
-    ///
-    /// For example:
-    ///
-    ///     struct Player: TableRecord { ... }
-    ///
-    ///     let playerIds = dbQueue.read { db in
-    ///         try Player.all().selectPrimaryKey(as: Int64.self).fetchAll(db)
-    ///     }
-    ///
-    /// For tables that have no explicit primary key, the request selects the
-    /// `rowid` column.
-    ///
-    /// For tables whose primary key spans several columns, the current
-    /// implementation also returns a request that selects the `rowid` column.
-    /// Future GRDB versions may return a [row value](https://www.sqlite.org/rowvalue.html).
-    public func selectPrimaryKey<RowDecoder>(as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
-    {
-        select(SQLPrimaryKeyExpression(tableName: databaseTableName), as: RowDecoder.self)
-    }
 }
 
 extension QueryInterfaceRequest: FilteredRequest {

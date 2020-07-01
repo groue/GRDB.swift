@@ -780,61 +780,46 @@ struct SQLExpressionCollate: SQLExpression {
     }
 }
 
-// MARK: - SQLPrimaryKeyExpression
+// MARK: - FastPrimaryKeyExpression
 
 /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
 ///
-/// SQLPrimaryKeyExpression is the primary key of a table.
+/// FastPrimaryKeyExpression is an expression that picks the fastest available
+/// primary key.
 ///
-/// For tables that have no explicit primary key, SQLPrimaryKeyExpression is the
-/// `rowid` column.
-///
-/// For tables whose primary key spans several columns, the current
-/// implementation of SQLPrimaryKeyExpression also is the `rowid` column. Future
-/// GRDB versions may return a [row value](https://www.sqlite.org/rowvalue.html).
-///
-/// For example:
-///
-///     struct Player: TableRecord { ... }
-///
-///     let player = dbQueue.read { db in
-///         try Player.filter(Player.primaryKey == 12).fetchOne(db)
-///     }
-public struct SQLPrimaryKeyExpression: SQLExpression {
-    let tableName: String
-    
-    /// Support for SQLPrimaryKeyExpression and SQLQualifiedPrimaryKeyExpression
-    fileprivate static func primaryKeyColumn(_ db: Database, tableName: String) throws -> Column {
-        let columns = try db.primaryKey(tableName).columns
-        if columns.count == 1 {
-            return Column(columns[0])
-        } else {
-            return Column.rowID
-        }
+/// It crashes for WITHOUT ROWID table with a multi-columns primary key.
+/// Future versions of GRDB may use [row values](https://www.sqlite.org/rowvalue.html).
+struct FastPrimaryKeyExpression: SQLExpression {
+    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        // Likely a GRDB bug: how comes this expression is used before it
+        // has been qualified?
+        fatalError("FastPrimaryKeyExpression was not qualified.")
     }
     
-    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        try SQLPrimaryKeyExpression
-            .primaryKeyColumn(context.db, tableName: tableName)
-            .expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
-    }
-    
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        SQLQualifiedPrimaryKeyExpression(tableName: tableName, alias: alias)
+    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        QualifiedFastPrimaryKeyExpression(alias: alias)
     }
 }
 
-struct SQLQualifiedPrimaryKeyExpression: SQLExpression {
-    let tableName: String
+struct QualifiedFastPrimaryKeyExpression: SQLExpression {
     let alias: TableAlias
     
     func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        GRDBPrecondition(
-            tableName.lowercased() == alias.tableName.lowercased(),
-            "Table names don't match: \(tableName) and \(alias.tableName)")
-        
-        return try SQLPrimaryKeyExpression
-            .primaryKeyColumn(context.db, tableName: tableName)
+        let column: Column
+        let primaryKey = try context.db.primaryKey(alias.tableName)
+        if let rowIDColumn = primaryKey.rowIDColumn {
+            // Prefer the user-provided name of the row id
+            column = Column(rowIDColumn)
+        } else if primaryKey.tableHasRowID {
+            // Prefer the row id
+            column = .rowID
+        } else if primaryKey.columns.count == 1 {
+            // WITHOUT ROWID table: use primary key column
+            column = Column(primaryKey.columns[0])
+        } else {
+            fatalError("Not implemented: WITHOUT ROWID table with a multi-columns primary key")
+        }
+        return try column
             .qualifiedExpression(with: alias)
             .expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
     }

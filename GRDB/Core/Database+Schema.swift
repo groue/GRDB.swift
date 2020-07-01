@@ -140,17 +140,28 @@ extension Database {
             if pkColumn.type.uppercased() == "INTEGER" {
                 primaryKey = .rowID(pkColumn.name)
             } else {
-                primaryKey = .regular([pkColumn.name])
+                primaryKey = try .regular([pkColumn.name], tableHasRowID: tableHasRowID(tableName))
             }
         default:
             // Multi-columns primary key
-            primaryKey = .regular(pkColumns.map(\.name))
+            primaryKey = try .regular(pkColumns.map(\.name), tableHasRowID: tableHasRowID(tableName))
         }
         
         schemaCache.set(primaryKey: primaryKey, forTable: tableName)
         return primaryKey
     }
     
+    /// Returns whether the table has a rowid column.
+    private func tableHasRowID(_ tableName: String) throws -> Bool {
+        // Not need to cache the result, because this information feeds
+        // `PrimaryKeyInfo`, which is cached.
+        do {
+            _ = try makeSelectStatement(sql: "SELECT rowID FROM \(tableName.quotedDatabaseIdentifier)")
+            return true
+        } catch DatabaseError.SQLITE_ERROR {
+            return false
+        }
+    }
     /// The indexes on table named `tableName`; returns the empty array if the
     /// table does not exist.
     ///
@@ -521,7 +532,7 @@ public struct PrimaryKeyInfo {
         
         /// Any primary key, but INTEGER PRIMARY KEY.
         /// Associated strings are column names.
-        case regular([String])
+        case regular(columns: [String], tableHasRowID: Bool)
     }
     
     private let impl: Impl
@@ -530,9 +541,9 @@ public struct PrimaryKeyInfo {
         PrimaryKeyInfo(impl: .rowID(column))
     }
     
-    static func regular(_ columns: [String]) -> PrimaryKeyInfo {
+    static func regular(_ columns: [String], tableHasRowID: Bool) -> PrimaryKeyInfo {
         assert(!columns.isEmpty)
-        return PrimaryKeyInfo(impl: .regular(columns))
+        return PrimaryKeyInfo(impl: .regular(columns: columns, tableHasRowID: tableHasRowID))
     }
     
     static let hiddenRowID = PrimaryKeyInfo(impl: .hiddenRowID)
@@ -542,9 +553,9 @@ public struct PrimaryKeyInfo {
         switch impl {
         case .hiddenRowID:
             return [Column.rowID.name]
-        case .rowID(let column):
+        case let .rowID(column):
             return [column]
-        case .regular(let columns):
+        case let .regular(columns: columns, tableHasRowID: _):
             return columns
         }
     }
@@ -570,6 +581,18 @@ public struct PrimaryKeyInfo {
             return true
         case .regular:
             return false
+        }
+    }
+    
+    /// When false, the table is a WITHOUT ROWID table
+    var tableHasRowID: Bool {
+        switch impl {
+        case .hiddenRowID:
+            return true
+        case .rowID:
+            return true
+        case let .regular(columns: _, tableHasRowID: tableHasRowID):
+            return tableHasRowID
         }
     }
 }

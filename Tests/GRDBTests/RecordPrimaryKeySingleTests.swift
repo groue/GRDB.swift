@@ -421,17 +421,6 @@ class RecordPrimaryKeySingleTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select Primary Key
-    
-    func testSelectPrimaryKey() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let request: QueryInterfaceRequest<UUID> = Pet.selectPrimaryKey()
-            try assertEqualSQL(db, request, "SELECT \"UUID\" FROM \"pets\"")
-        }
-    }
-    
-    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

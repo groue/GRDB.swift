@@ -1179,7 +1179,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             let authorAlias = TableAlias()
             let request = Book
                 .joining(optional: Book.author.aliased(authorAlias))
-                .filter(authorAlias[Author.primaryKey] == nil)
+                .filter(!authorAlias.exists)
             try assertEqualSQL(db, request, """
                 SELECT "book".* FROM "book" \
                 LEFT JOIN "author" ON "author"."id" = "book"."authorID" \

@@ -430,18 +430,6 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select Primary Key
-    
-    func testSelectPrimaryKey() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let request: QueryInterfaceRequest<Int64> = Citizenship.selectPrimaryKey()
-            // May change in a future release, when we support SQLite row values.
-            try assertEqualSQL(db, request, "SELECT \"rowid\" FROM \"citizenships\"")
-        }
-    }
-    
-    
     // MARK: - Exists
     
     func testExistsWithNilPrimaryKeyReturnsFalse() throws {

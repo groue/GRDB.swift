@@ -140,32 +140,6 @@ extension TableRecord {
     }
 }
 
-extension TableRecord {
-    // MARK: - Primary Key
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The primary key of the table.
-    ///
-    /// For example:
-    ///
-    ///     struct Player: TableRecord { ... }
-    ///
-    ///     let player = dbQueue.read { db in
-    ///         try Player.filter(Player.primaryKey == 12).fetchOne(db)
-    ///     }
-    ///
-    /// For tables that have no explicit primary key, this property returns the
-    /// `rowid` column.
-    ///
-    /// For tables whose primary key spans several columns, the current
-    /// implementation also returns the `rowid` column. Future GRDB versions
-    /// may return a [row value](https://www.sqlite.org/rowvalue.html).
-    public static var primaryKey: SQLPrimaryKeyExpression {
-        SQLPrimaryKeyExpression(tableName: databaseTableName)
-    }
-}
-
 /// Calculating `defaultDatabaseTableName` is somewhat expensive due to the regular expression evaluation
 ///
 /// This cache mitigates the cost of the calculation by storing the name for later retrieval

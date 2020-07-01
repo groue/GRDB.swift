@@ -125,17 +125,6 @@ class RecordPrimaryKeyNoneTests: GRDBTestCase {
     }
     
     
-    // MARK: - Select Primary Key
-    
-    func testSelectPrimaryKey() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let request: QueryInterfaceRequest<Int64> = Item.selectPrimaryKey()
-            try assertEqualSQL(db, request, "SELECT \"rowid\" FROM \"items\"")
-        }
-    }
-    
-    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

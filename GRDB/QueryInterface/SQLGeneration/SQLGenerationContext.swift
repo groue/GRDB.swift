@@ -357,6 +357,14 @@ public class TableAlias: Hashable {
         ordering.qualifiedOrdering(with: self)
     }
     
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// An expression that evaluates to true if the record refered by this
+    /// `TableAlias` exists.
+    public var exists: SQLExpression {
+        QualifiedFastPrimaryKeyExpression(alias: self) != nil
+    }
+    
     /// :nodoc:
     public func hash(into hasher: inout Hasher) {
         hasher.combine(ObjectIdentifier(root))

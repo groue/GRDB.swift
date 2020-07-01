@@ -391,17 +391,6 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
     }
     
     
-    // MARK: - Select Primary Key
-    
-    func testSelectPrimaryKey() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let request: QueryInterfaceRequest<Int64> = MinimalRowID.selectPrimaryKey()
-            try assertEqualSQL(db, request, "SELECT \"id\" FROM \"minimalRowIDs\"")
-        }
-    }
-    
-    
     // MARK: - Fetch With Primary Key
     
     func testFetchCursorWithPrimaryKeys() throws {

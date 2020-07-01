@@ -3622,7 +3622,6 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.selectPrimaryKey(as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.matching(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -4143,25 +4142,6 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     ```
 
 - Other requests that involve the primary key:
-    
-    - `selectPrimaryKey(as:)` selects the primary key.
-        
-        ```swift
-        // SELECT id FROM player
-        Player.selectPrimaryKey(as: Int64.self)
-        
-        // SELECT code FROM country
-        Country.selectPrimaryKey(as: String.self)
-        ```
-        
-        It is equivalent to:
-        
-        ```swift
-        Player.select(Player.primaryKey, as: Int64.self)
-        Country.select(Country.primaryKey, as: Int64.self)
-        ```
-        
-        > :point_up: **Note**: `selectPrimaryKey` and `primaryKey` are [experimental](#what-are-experimental-features) and currently pick the `rowid` column for tables that have a composite primary key that spans several columns. Future GRDB version may change this behavior.
     
     - `orderByPrimaryKey()` sorts by primary key.
         
@@ -7584,7 +7564,7 @@ let books: [Book] = try dbQueue.read { db in
     let authorAlias = TableAlias()
     let request = Book
         .joining(optional: Book.author.aliased(authorAlias))
-        .filter(authorAlias[Author.primaryKey] == nil)
+        .filter(!authorAlias.exists)
     return try request.fetchAll(db)
 }
 ```

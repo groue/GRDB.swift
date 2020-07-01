@@ -125,34 +125,4 @@ class TableRecordTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT \"a\", \"b\" FROM \"t1\"")
         }
     }
-    
-    func testPrimaryKey() throws {
-        struct IntegerPrimaryKeyRecord: TableRecord { }
-        struct UUIDRecord: TableRecord { }
-        struct RowIDRecord: TableRecord { }
-        struct CompoundPrimaryKeyRecord: TableRecord { }
-        
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { db in
-            try db.execute(sql: """
-                CREATE TABLE integerPrimaryKeyRecord (id INTEGER PRIMARY KEY);
-                CREATE TABLE uuidRecord (uuid TEXT PRIMARY KEY);
-                CREATE TABLE rowIDRecord (name TEXT);
-                CREATE TABLE compoundPrimaryKeyRecord (a INTEGER, b INTEGER, PRIMARY KEY (a, b));
-                """)
-            
-            try assertEqualSQL(db, IntegerPrimaryKeyRecord.order(IntegerPrimaryKeyRecord.primaryKey), """
-                SELECT * FROM "integerPrimaryKeyRecord" ORDER BY "id"
-                """)
-            try assertEqualSQL(db, UUIDRecord.order(UUIDRecord.primaryKey), """
-                SELECT * FROM "uuidRecord" ORDER BY "uuid"
-                """)
-            try assertEqualSQL(db, RowIDRecord.order(RowIDRecord.primaryKey), """
-                SELECT * FROM "rowIDRecord" ORDER BY "rowid"
-                """)
-            try assertEqualSQL(db, CompoundPrimaryKeyRecord.order(CompoundPrimaryKeyRecord.primaryKey), """
-                SELECT * FROM "compoundPrimaryKeyRecord" ORDER BY "rowid"
-                """)
-        }
-    }
 }
