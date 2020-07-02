@@ -82,8 +82,8 @@ public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord
             destinationTable: Destination.databaseTableName,
             foreignKey: foreignKey)
         
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
+        let condition = SQLAssociationCondition.foreignKey(
+            request: foreignKeyRequest,
             originIsLeft: true)
         
         let associationKey: SQLAssociationKey

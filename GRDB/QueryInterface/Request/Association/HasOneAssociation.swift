@@ -84,8 +84,8 @@ public struct HasOneAssociation<Origin: TableRecord, Destination: TableRecord>: 
             destinationTable: Origin.databaseTableName,
             foreignKey: foreignKey)
         
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
+        let condition = SQLAssociationCondition.foreignKey(
+            request: foreignKeyRequest,
             originIsLeft: false)
         
         let associationKey: SQLAssociationKey

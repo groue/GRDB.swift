@@ -865,14 +865,21 @@ private struct SQLQualifiedJoin: Refinable {
         }
         
         // ... ON <join conditions> AND <other filters>
-        var filters = try condition.expressions(context.db, leftAlias: leftAlias)
-        filters += try relation.filtersPromise.resolve(context.db)
-        if filters.isEmpty == false {
-            let filterSQL = try filters
+        var joinExpressions: [SQLExpression]
+        switch condition {
+        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
+            joinExpressions = try foreignKeyRequest
+                .fetchForeignKeyMapping(context.db)
+                .joinMapping(originIsLeft: originIsLeft)
+                .joinExpressions(leftAlias: leftAlias)
+        }
+        joinExpressions += try relation.filtersPromise.resolve(context.db)
+        if joinExpressions.isEmpty == false {
+            let joiningSQL = try joinExpressions
                 .joined(operator: .and)
                 .qualifiedExpression(with: rightAlias)
                 .expressionSQL(context, wrappedInParenthesis: false)
-            sql += " ON \(filterSQL)"
+            sql += " ON \(joiningSQL)"
         }
         
         for (_, join) in relation.joins {

@@ -523,12 +523,11 @@ extension SQLRelation {
 ///     let request4 = Book
 ///         .joining(required: Book.author.filter(condition1))
 ///         .including(optional: Book.author.filter(condition2))
-struct SQLAssociationCondition: Equatable {
-    /// Definition of a foreign key
-    var foreignKeyRequest: SQLForeignKeyRequest
-    
-    /// True if the table at the origin of the foreign key is on the left of
-    /// the sql JOIN operator.
+enum SQLAssociationCondition: Equatable {
+    /// Condition based on a foreign key
+    ///
+    /// originIsLeft is true if the table at the origin of the foreign key is on
+    /// the left of the sql JOIN operator.
     ///
     /// Let's consider the `book.authorId -> author.id` foreign key.
     /// Its origin table is `book`.
@@ -544,60 +543,33 @@ struct SQLAssociationCondition: Equatable {
     ///
     ///     -- Author.including(required: Author.books)
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
-    var originIsLeft: Bool
+    case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
     var reversed: SQLAssociationCondition {
-        SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
-            originIsLeft: !originIsLeft)
-    }
-    
-    /// Orient foreignKey according to the originIsLeft flag
-    func columnMappings(_ db: Database) throws -> [(left: String, right: String)] {
-        let foreignKeyMapping = try foreignKeyRequest.fetchMapping(db)
-        if originIsLeft {
-            return foreignKeyMapping.map { (left: $0.origin, right: $0.destination) }
-        } else {
-            return foreignKeyMapping.map { (left: $0.destination, right: $0.origin) }
+        switch self {
+        case let .foreignKey(request: request, originIsLeft: originIsLeft):
+            return .foreignKey(request: request, originIsLeft: !originIsLeft)
         }
     }
-    
-    /// Resolves the condition into SQL expressions which involve both left
-    /// and right tables.
-    ///
-    ///     SELECT * FROM left JOIN right ON (right.a = left.b)
-    ///                                      <---------------->
-    ///
-    /// - parameter db: A database connection.
-    /// - parameter leftAlias: A TableAlias for the table on the left of the
-    ///   JOIN operator.
-    /// - Returns: An array of SQL expression that should be joined with
-    ///   the AND operator and qualified with the right table.
-    func expressions(_ db: Database, leftAlias: TableAlias) throws -> [SQLExpression] {
-        try columnMappings(db).map {
-            Column($0.right) == QualifiedColumn($0.left, alias: leftAlias)
-        }
-    }
-    
+}
+
+extension JoinMapping {
     /// Resolves the condition into an SQL expression which involves only the
-    /// right table.
+    /// right table, and feeds left columns from `leftRows`.
     ///
-    /// Given `right.a = left.b`, returns `right.a = 1` or
+    /// For example, given `[(left: "a", right: "b")]`, returns `right.a = 1` or
     /// `right.a IN (1, 2, 3)`.
-    func filteringExpression<Row: ColumnAddressable>(_ db: Database, leftRows: [Row]) throws -> SQLExpression {
+    func joinExpression<Row: ColumnAddressable>(leftRows: [Row]) -> SQLExpression {
         guard let firstLeftRow = leftRows.first else {
             // Degenerate case: there is no row to attach
             return false.sqlExpression
         }
         
-        // The (left, right) column mapping pairs
-        let columnMappings = try self.columnMappings(db)
-        
         // We assume that all rows have the same layout, and that addressing
         // rows by index is faster than addressing them by column name.
         // So we use the first left row in order to convert left column names
         // into row indexes.
-        let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = columnMappings.map { mapping in
+        let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = map { mapping in
             guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
                 fatalError("Missing column: \(mapping.left)")
             }
@@ -637,6 +609,22 @@ struct SQLAssociationCondition: Equatable {
                         .joined(operator: .and)
                 })
                 .joined(operator: .or)
+        }
+    }
+    
+    /// Resolves the condition into SQL expressions which involve both left
+    /// and right tables.
+    ///
+    ///     SELECT * FROM left JOIN right ON (right.a = left.b)
+    ///                                      <---------------->
+    ///
+    /// - parameter leftAlias: A TableAlias for the table on the left of the
+    ///   JOIN operator.
+    /// - Returns: An array of SQL expression that should be joined with
+    ///   the AND operator and qualified with the right table.
+    func joinExpressions(leftAlias: TableAlias) -> [SQLExpression] {
+        map {
+            Column($0.right) == QualifiedColumn($0.left, alias: leftAlias)
         }
     }
 }

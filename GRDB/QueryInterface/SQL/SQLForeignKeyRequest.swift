@@ -1,10 +1,11 @@
 /// SQLForeignKeyRequest looks for the foreign keys associations need to
 /// join tables.
 ///
-/// Mappings come from foreign keys, when they exist in the database schema.
+/// Columns mapping come from foreign keys, when they exist in the
+/// database schema.
 ///
 /// When the schema does not define any foreign key, we can still infer complete
-/// mappings from partial information and primary keys.
+/// mapping from partial information and primary keys.
 struct SQLForeignKeyRequest: Equatable {
     let originTable: String
     let destinationTable: String
@@ -20,7 +21,7 @@ struct SQLForeignKeyRequest: Equatable {
     }
     
     /// The (origin, destination) column pairs that join a left table to a right table.
-    func fetchMapping(_ db: Database) throws -> [(origin: String, destination: String)] {
+    func fetchForeignKeyMapping(_ db: Database) throws -> ForeignKeyMapping {
         if let originColumns = originColumns, let destinationColumns = destinationColumns {
             // Total information: no need to query the database schema.
             GRDBPrecondition(originColumns.count == destinationColumns.count, "Number of columns don't match")
@@ -76,5 +77,22 @@ struct SQLForeignKeyRequest: Equatable {
         }
         
         fatalError("Could not infer foreign key from \(originTable) to \(destinationTable)")
+    }
+}
+
+// Foreign key columns mapping
+typealias ForeignKeyMapping = [(origin: String, destination: String)]
+
+// Join columns mapping
+typealias JoinMapping = [(left: String, right: String)]
+
+extension ForeignKeyMapping {
+    /// Orient the foreign key mapping for a SQL join.
+    func joinMapping(originIsLeft: Bool) -> JoinMapping {
+        if originIsLeft {
+            return map { (left: $0.origin, right: $0.destination) }
+        } else {
+            return map { (left: $0.destination, right: $0.origin) }
+        }
     }
 }
