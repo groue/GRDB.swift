@@ -5,6 +5,8 @@ private struct A: TableRecord { }
 private struct B: TableRecord { }
 private struct C: TableRecord { }
 private struct D: TableRecord { }
+private struct CompoundPrimaryKey: TableRecord { }
+private struct CompoundPrimaryKeyChild: TableRecord { }
 
 class AssociationPrefetchingObservationTests: GRDBTestCase {
     private func _assertRequestRegionEqual<T>(
@@ -14,15 +16,19 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
         file: StaticString, line: UInt) throws
     {
         // Test DatabaseRegionConvertible
-        let region1 = try request.databaseRegion(db)
-        XCTAssertTrue(expectedDescriptions.contains(region1.description), description, file: file, line: line)
+        do {
+            let region = try request.databaseRegion(db)
+            XCTAssertTrue(expectedDescriptions.contains(region.description), region.description, file: file, line: line)
+        }
         
         // Test raw statement region, as support for Database.recordingSelection
-        let region2 = try request
-            .makePreparedRequest(db, forSingleResult: false)
-            .statement
-            .databaseRegion
-        XCTAssertTrue(expectedDescriptions.contains(region2.description), description, file: file, line: line)
+        do {
+            let region = try request
+                .makePreparedRequest(db, forSingleResult: false)
+                .statement
+                .databaseRegion
+            XCTAssertTrue(expectedDescriptions.contains(region.description), region.description, file: file, line: line)
+        }
     }
     
     // #file vs. #filePath dance
@@ -66,6 +72,19 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                 t.column("cold2", .integer).references("c")
                 t.column("cold3", .text)
             }
+            try db.create(table: "compoundPrimaryKey") { t in
+                t.column("pk1", .text)
+                t.column("pk2", .text)
+                t.column("name", .text)
+                t.primaryKey(["pk1", "pk2"])
+            }
+            try db.create(table: "compoundPrimaryKeyChild") { t in
+                t.column("pk1", .text)
+                t.column("pk2", .text)
+                t.column("firstName", .text)
+                t.column("lastName", .text)
+                t.foreignKey(["pk1", "pk2"], references: "compoundPrimaryKey")
+            }
         }
     }
     
@@ -105,6 +124,36 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .select(Column("colb1")))
                 
                 try assertRequestRegionEqual(db, request, "a(cola1,cola2),b(colb1,colb2)")
+            }
+        }
+    }
+    
+    func testIncludingAllHasManyWithCompoundPrimaryKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = CompoundPrimaryKey
+                    .including(all: CompoundPrimaryKey
+                        .hasMany(CompoundPrimaryKeyChild.self))
+                
+                try assertRequestRegionEqual(db, request, """
+                    compoundPrimaryKey(name,pk1,pk2),\
+                    compoundPrimaryKeyChild(firstName,lastName,pk1,pk2)
+                    """)
+            }
+            
+            // Request with altered selection
+            do {
+                let request = CompoundPrimaryKey
+                    .including(all: CompoundPrimaryKey
+                        .hasMany(CompoundPrimaryKeyChild.self)
+                        .select(Column("firstName")))
+                
+                try assertRequestRegionEqual(db, request, """
+                    compoundPrimaryKey(name,pk1,pk2),\
+                    compoundPrimaryKeyChild(firstName,pk1,pk2)
+                    """)
             }
         }
     }

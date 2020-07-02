@@ -560,12 +560,17 @@ extension JoinMapping {
     /// For example, given `[(left: "id", right: "authorID")]`,
     /// returns `right.authorID = 1` or `right.authorID IN (1, 2, 3)`.
     ///
+    /// - precondition: leftRows is not empty.
+    /// - precondition: leftRows contains all mapping left columns.
     /// - precondition: All rows have the same layout: a column index returned
     ///   by `index(forColumn:)` refers to the same column in all rows.
     func joinExpression<Row: ColumnAddressable>(leftRows: [Row]) -> SQLExpression {
         guard let firstLeftRow = leftRows.first else {
-            // Degenerate case: there is no row to attach
-            return false.sqlExpression
+            // We could return `false.sqlExpression`.
+            //
+            // But we need to take care of database observation, and generate
+            // SQL that involves all used columns. Consider using a `NullRow`.
+            fatalError("Provide at least one left row, or this method can't generate SQL that can be observed.")
         }
         
         let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = map { mapping in
@@ -588,10 +593,8 @@ extension JoinMapping {
             dbValues.remove(.null)
             
             if dbValues.isEmpty {
-                // We need to return false. And we also need to mention the
-                // right column, so that it is registered is DatabaseRegion, and
-                // can be tracked.
-                return false.databaseValue && mapping.rightColumn
+                // null was removed from dbValues
+                return mapping.rightColumn == nil
             } else {
                 // table.a IN (1, 2, 3, ...)
                 // Sort database values for nicer output.
@@ -600,25 +603,17 @@ extension JoinMapping {
         } else {
             // Join on a multiple columns.
             // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4)) ...
-            if leftRows.isEmpty {
-                // We need to return false. And we also need to mention the
-                // right columns, so that they are registered is DatabaseRegion,
-                // and can be tracked.
-                #warning("TODO: mention right columns")
-                return false.databaseValue
-            } else {
-                return leftRows
-                    .map({ leftRow in
-                        // (table.a = 1) AND (table.b = 2)
-                        mappings
-                            .map({ mapping -> SQLExpression in
-                                let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
-                                return mapping.rightColumn == leftValue
-                            })
-                            .joined(operator: .and)
-                    })
-                    .joined(operator: .or)
-            }
+            return leftRows
+                .map({ leftRow in
+                    // (table.a = 1) AND (table.b = 2)
+                    mappings
+                        .map({ mapping -> SQLExpression in
+                            let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
+                            return mapping.rightColumn == leftValue
+                        })
+                        .joined(operator: .and)
+                })
+                .joined(operator: .or)
         }
     }
     
