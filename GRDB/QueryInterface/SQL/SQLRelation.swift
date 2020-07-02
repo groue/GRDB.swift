@@ -554,21 +554,20 @@ enum SQLAssociationCondition: Equatable {
 }
 
 extension JoinMapping {
-    /// Resolves the condition into an SQL expression which involves only the
+    /// Resolves the mapping into an SQL expression which involves only the
     /// right table, and feeds left columns from `leftRows`.
     ///
-    /// For example, given `[(left: "a", right: "b")]`, returns `right.a = 1` or
-    /// `right.a IN (1, 2, 3)`.
+    /// For example, given `[(left: "id", right: "authorID")]`,
+    /// returns `right.authorID = 1` or `right.authorID IN (1, 2, 3)`.
+    ///
+    /// - precondition: All rows have the same layout: a column index returned
+    ///   by `index(forColumn:)` refers to the same column in all rows.
     func joinExpression<Row: ColumnAddressable>(leftRows: [Row]) -> SQLExpression {
         guard let firstLeftRow = leftRows.first else {
             // Degenerate case: there is no row to attach
             return false.sqlExpression
         }
         
-        // We assume that all rows have the same layout, and that addressing
-        // rows by index is faster than addressing them by column name.
-        // So we use the first left row in order to convert left column names
-        // into row indexes.
         let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = map { mapping in
             guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
                 fatalError("Missing column: \(mapping.left)")
@@ -589,7 +588,10 @@ extension JoinMapping {
             dbValues.remove(.null)
             
             if dbValues.isEmpty {
-                return mapping.rightColumn == nil
+                // We need to return false. And we also need to mention the
+                // right column, so that it is registered is DatabaseRegion, and
+                // can be tracked.
+                return false.databaseValue && mapping.rightColumn
             } else {
                 // table.a IN (1, 2, 3, ...)
                 // Sort database values for nicer output.
@@ -598,17 +600,25 @@ extension JoinMapping {
         } else {
             // Join on a multiple columns.
             // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4)) ...
-            return leftRows
-                .map({ leftRow in
-                    // (table.a = 1) AND (table.b = 2)
-                    mappings
-                        .map({ mapping -> SQLExpression in
-                            let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
-                            return mapping.rightColumn == leftValue
-                        })
-                        .joined(operator: .and)
-                })
-                .joined(operator: .or)
+            if leftRows.isEmpty {
+                // We need to return false. And we also need to mention the
+                // right columns, so that they are registered is DatabaseRegion,
+                // and can be tracked.
+                #warning("TODO: mention right columns")
+                return false.databaseValue
+            } else {
+                return leftRows
+                    .map({ leftRow in
+                        // (table.a = 1) AND (table.b = 2)
+                        mappings
+                            .map({ mapping -> SQLExpression in
+                                let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
+                                return mapping.rightColumn == leftValue
+                            })
+                            .joined(operator: .and)
+                    })
+                    .joined(operator: .or)
+            }
         }
     }
     
