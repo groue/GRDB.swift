@@ -405,7 +405,6 @@ class ValueObservationPublisherTests : XCTestCase {
             ValueObservation
                 .tracking(Player.fetchCount)
                 .publisher(in: writer, scheduling: .immediate /* make sure we get two db states */)
-                .print()
                 .subscribe(subscriber)
             
             subscriber.request(.max(2))
