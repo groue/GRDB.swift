@@ -29,10 +29,10 @@ public struct HasOneThroughAssociation<Origin: TableRecord, Destination: TableRe
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var _sqlAssociation: SQLAssociation
+    public var _sqlAssociation: _SQLAssociation
     
     /// :nodoc:
-    public init(sqlAssociation: SQLAssociation) {
+    public init(sqlAssociation: _SQLAssociation) {
         self._sqlAssociation = sqlAssociation
     }
 }

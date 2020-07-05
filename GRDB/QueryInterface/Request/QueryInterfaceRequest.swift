@@ -264,27 +264,27 @@ extension QueryInterfaceRequest: AggregatingRequest {
 
 extension QueryInterfaceRequest: _JoinableRequest {
     /// :nodoc:
-    public func _including(all association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _including(all association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._including(all: association) }
     }
     
     /// :nodoc:
-    public func _including(optional association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _including(optional association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._including(optional: association) }
     }
     
     /// :nodoc:
-    public func _including(required association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _including(required association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._including(required: association) }
     }
     
     /// :nodoc:
-    public func _joining(optional association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _joining(optional association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._joining(optional: association) }
     }
     
     /// :nodoc:
-    public func _joining(required association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _joining(required association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._joining(required: association) }
     }
 }
@@ -467,7 +467,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
 // MARK: - Eager loading of hasMany associations
 
 /// Append rows from prefetched associations into the argument rows.
-private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
+private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: [Row]) throws {
     guard let firstRow = rows.first else {
         // No rows -> no prefetch
         return
@@ -536,7 +536,7 @@ private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [
 }
 
 // Returns the region of prefetched associations
-func prefetchedRegion(_ db: Database, associations: [SQLAssociation]) throws -> DatabaseRegion {
+func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws -> DatabaseRegion {
     try associations.reduce(into: DatabaseRegion()) { (region, association) in
         // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
         let prefetchedRegion: DatabaseRegion

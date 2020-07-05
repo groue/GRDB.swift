@@ -68,10 +68,10 @@ public struct HasOneAssociation<Origin: TableRecord, Destination: TableRecord>: 
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var _sqlAssociation: SQLAssociation
+    public var _sqlAssociation: _SQLAssociation
     
     /// :nodoc:
-    public init(sqlAssociation: SQLAssociation) {
+    public init(sqlAssociation: _SQLAssociation) {
         self._sqlAssociation = sqlAssociation
     }
     
@@ -95,7 +95,7 @@ public struct HasOneAssociation<Origin: TableRecord, Destination: TableRecord>: 
             associationKey = .inflected(Destination.databaseTableName)
         }
         
-        _sqlAssociation = SQLAssociation(
+        _sqlAssociation = _SQLAssociation(
             key: associationKey,
             condition: condition,
             relation: Destination.relationForAll,

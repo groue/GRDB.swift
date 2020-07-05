@@ -4,8 +4,8 @@ import Foundation
 ///
 /// :nodoc:
 public protocol _Association {
-    init(sqlAssociation: SQLAssociation)
-    var _sqlAssociation: SQLAssociation { get }
+    init(sqlAssociation: _SQLAssociation)
+    var _sqlAssociation: _SQLAssociation { get }
 }
 
 /// The base protocol for all associations that define a connection between two
@@ -46,27 +46,27 @@ public protocol Association: _Association, DerivableRequest {
 
 extension Association {
     /// :nodoc:
-    public func _including(all association: SQLAssociation) -> Self {
+    public func _including(all association: _SQLAssociation) -> Self {
         mapDestinationRelation { $0._including(all: association) }
     }
     
     /// :nodoc:
-    public func _including(optional association: SQLAssociation) -> Self {
+    public func _including(optional association: _SQLAssociation) -> Self {
         mapDestinationRelation { $0._including(optional: association) }
     }
     
     /// :nodoc:
-    public func _including(required association: SQLAssociation) -> Self {
+    public func _including(required association: _SQLAssociation) -> Self {
         mapDestinationRelation { $0._including(required: association) }
     }
     
     /// :nodoc:
-    public func _joining(optional association: SQLAssociation) -> Self {
+    public func _joining(optional association: _SQLAssociation) -> Self {
         mapDestinationRelation { $0._joining(optional: association) }
     }
     
     /// :nodoc:
-    public func _joining(required association: SQLAssociation) -> Self {
+    public func _joining(required association: _SQLAssociation) -> Self {
         mapDestinationRelation { $0._joining(required: association) }
     }
 }

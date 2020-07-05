@@ -1,4 +1,4 @@
-// MARK: - SQLAssociation
+// MARK: - _SQLAssociation
 
 /// An SQL association is a non-empty chain of steps which starts at the
 /// "pivot" and ends on the "destination":
@@ -51,7 +51,7 @@
 ///     Origin.including(required: association)
 ///
 /// :nodoc:
-public /* TODO: internal */ struct SQLAssociation {
+public struct _SQLAssociation {
     // All steps, from pivot to destination. Never empty.
     private(set) var steps: [SQLAssociationStep]
     var keyPath: [String] { steps.map(\.keyName) }
@@ -91,8 +91,8 @@ public /* TODO: internal */ struct SQLAssociation {
     }
     
     /// Returns a new association
-    func through(_ other: SQLAssociation) -> Self {
-        SQLAssociation(steps: other.steps + steps)
+    func through(_ other: _SQLAssociation) -> Self {
+        _SQLAssociation(steps: other.steps + steps)
     }
     
     /// Returns the destination of the association, reversing the association
@@ -140,12 +140,12 @@ public /* TODO: internal */ struct SQLAssociation {
                     cardinality: .toOne)
             })
             .reversed()
-        let reversedAssociation = SQLAssociation(steps: Array(reversedSteps))
+        let reversedAssociation = _SQLAssociation(steps: Array(reversedSteps))
         return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)
     }
 }
 
-extension SQLAssociation: Refinable { }
+extension _SQLAssociation: Refinable { }
 
 struct SQLAssociationStep: Refinable {
     var key: SQLAssociationKey

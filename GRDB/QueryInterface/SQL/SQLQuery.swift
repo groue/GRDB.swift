@@ -73,23 +73,23 @@ extension SQLQuery: AggregatingRequest {
 }
 
 extension SQLQuery: _JoinableRequest {
-    func _including(all association: SQLAssociation) -> Self {
+    func _including(all association: _SQLAssociation) -> Self {
         map(\.relation) { $0._including(all: association) }
     }
     
-    func _including(optional association: SQLAssociation) -> Self {
+    func _including(optional association: _SQLAssociation) -> Self {
         map(\.relation) { $0._including(optional: association) }
     }
     
-    func _including(required association: SQLAssociation) -> Self {
+    func _including(required association: _SQLAssociation) -> Self {
         map(\.relation) { $0._including(required: association) }
     }
     
-    func _joining(optional association: SQLAssociation) -> Self {
+    func _joining(optional association: _SQLAssociation) -> Self {
         map(\.relation) { $0._joining(optional: association) }
     }
     
-    func _joining(required association: SQLAssociation) -> Self {
+    func _joining(required association: _SQLAssociation) -> Self {
         map(\.relation) { $0._joining(required: association) }
     }
 }

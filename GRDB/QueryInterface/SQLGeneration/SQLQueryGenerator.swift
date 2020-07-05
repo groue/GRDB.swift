@@ -7,7 +7,7 @@ struct SQLQueryGenerator: Refinable {
     private let limit: SQLLimit?
     private let singleResult: Bool
     // For database region
-    private let prefetchedAssociations: [SQLAssociation]
+    private let prefetchedAssociations: [_SQLAssociation]
     
     /// Creates an SQL query generator.
     ///

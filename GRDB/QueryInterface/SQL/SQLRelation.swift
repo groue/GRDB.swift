@@ -138,7 +138,7 @@ struct SQLRelation {
             }
         }
         
-        fileprivate func makeAssociationForKey(_ key: String) -> SQLAssociation {
+        fileprivate func makeAssociationForKey(_ key: String) -> _SQLAssociation {
             let key = SQLAssociationKey.fixed(key)
             
             let cardinality: SQLAssociationCardinality
@@ -149,7 +149,7 @@ struct SQLRelation {
                 cardinality = .toMany
             }
             
-            return SQLAssociation(
+            return _SQLAssociation(
                 key: key,
                 condition: condition,
                 relation: relation,
@@ -166,8 +166,8 @@ struct SQLRelation {
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     var children: OrderedDictionary<String, Child> = [:]
     
-    var prefetchedAssociations: [SQLAssociation] {
-        children.flatMap { key, child -> [SQLAssociation] in
+    var prefetchedAssociations: [_SQLAssociation] {
+        children.flatMap { key, child -> [_SQLAssociation] in
             switch child.kind {
             case .allPrefetched:
                 return [child.makeAssociationForKey(key)]
@@ -273,7 +273,7 @@ extension SQLRelation {
     /// HasMany in the above examples, but also for indirect associations such
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
-    func appendingChild(for association: SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
+    func appendingChild(for association: _SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
         let isSingular = (kind == .allNotPrefetched)
@@ -315,7 +315,7 @@ extension SQLRelation {
         //
         // Let's recurse toward a direct join, by making a new association which
         // ends on the last pivot, to which we join our destination:
-        var reducedAssociation = SQLAssociation(steps: Array(initialSteps))
+        var reducedAssociation = _SQLAssociation(steps: Array(initialSteps))
         
         reducedAssociation.destination.relation = reducedAssociation.destination.relation
             .select([]) // Intermediate steps are not prefetched
@@ -366,23 +366,23 @@ extension SQLRelation {
 }
 
 extension SQLRelation: _JoinableRequest {
-    func _including(all association: SQLAssociation) -> Self {
+    func _including(all association: _SQLAssociation) -> Self {
         appendingChild(for: association, kind: .allPrefetched)
     }
     
-    func _including(optional association: SQLAssociation) -> Self {
+    func _including(optional association: _SQLAssociation) -> Self {
         appendingChild(for: association, kind: .oneOptional)
     }
     
-    func _including(required association: SQLAssociation) -> Self {
+    func _including(required association: _SQLAssociation) -> Self {
         appendingChild(for: association, kind: .oneRequired)
     }
     
-    func _joining(optional association: SQLAssociation) -> Self {
+    func _joining(optional association: _SQLAssociation) -> Self {
         appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneOptional)
     }
     
-    func _joining(required association: SQLAssociation) -> Self {
+    func _joining(required association: _SQLAssociation) -> Self {
         appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
     }
 }

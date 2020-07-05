@@ -86,7 +86,7 @@ public final class DatabasePool: DatabaseWriter {
         
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
-            readerCount += 1 // protected by pool (TODO: documented this protection behavior)
+            readerCount += 1 // protected by pool (TODO: document this protection behavior)
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: readerConfiguration,

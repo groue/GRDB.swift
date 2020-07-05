@@ -498,27 +498,27 @@ extension OrderedRequest {
 /// :nodoc:
 public protocol _JoinableRequest {
     /// Creates a request that prefetches an association.
-    func _including(all association: SQLAssociation) -> Self
+    func _including(all association: _SQLAssociation) -> Self
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request does not
     /// require that the associated database table contains a matching row.
-    func _including(optional association: SQLAssociation) -> Self
+    func _including(optional association: _SQLAssociation) -> Self
     
     /// Creates a request that includes an association. The columns of the
     /// associated record are selected. The returned request requires
     /// that the associated database table contains a matching row.
-    func _including(required association: SQLAssociation) -> Self
+    func _including(required association: _SQLAssociation) -> Self
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request does not
     /// require that the associated database table contains a matching row.
-    func _joining(optional association: SQLAssociation) -> Self
+    func _joining(optional association: _SQLAssociation) -> Self
     
     /// Creates a request that joins an association. The columns of the
     /// associated record are not selected. The returned request requires
     /// that the associated database table contains a matching row.
-    func _joining(required association: SQLAssociation) -> Self
+    func _joining(required association: _SQLAssociation) -> Self
 }
 
 /// The protocol for all requests that can be associated.
