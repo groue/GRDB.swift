@@ -910,16 +910,16 @@ class QueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"id\") FROM \"readers\"")
             }
             do {
-                _ = try Row.fetchOne(db, tableRequest.select(min(Column("score")).forKey("minScore"), max(Column("score")).forKey("maxScore")))
-                XCTAssertEqual(lastSQLQuery, "SELECT MIN(\"score\") AS \"minScore\", MAX(\"score\") AS \"maxScore\" FROM \"readers\"")
+                _ = try Row.fetchOne(db, tableRequest.select(min(Column("age")).forKey("minAge"), max(Column("age")).forKey("maxAge")))
+                XCTAssertEqual(lastSQLQuery, "SELECT MIN(\"age\") AS \"minAge\", MAX(\"age\") AS \"maxAge\" FROM \"readers\"")
             }
             do {
-                _ = try Row.fetchOne(db, tableRequest.select(max(Column("score") + 1)))
-                XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"score\" + 1) FROM \"readers\"")
+                _ = try Row.fetchOne(db, tableRequest.select(max(Column("age") + 1)))
+                XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"age\" + 1) FROM \"readers\"")
             }
             do {
-                _ = try Row.fetchOne(db, tableRequest.select(max(Column("score")) + 1))
-                XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"score\") + 1 FROM \"readers\"")
+                _ = try Row.fetchOne(db, tableRequest.select(max(Column("age")) + 1))
+                XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"age\") + 1 FROM \"readers\"")
             }
         }
     }
