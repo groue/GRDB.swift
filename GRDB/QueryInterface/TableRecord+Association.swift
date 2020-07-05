@@ -202,7 +202,7 @@ extension TableRecord {
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -349,7 +349,7 @@ extension TableRecord {
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -486,10 +486,10 @@ extension TableRecord where Self: EncodableRecord {
         -> QueryInterfaceRequest<A.RowDecoder>
         where A.OriginRowDecoder == Self
     {
-        switch association.sqlAssociation.pivot.condition {
+        switch association._sqlAssociation.pivot.condition {
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             let destinationRelation = association
-                .sqlAssociation
+                ._sqlAssociation
                 .map(\.pivot.relation, { pivotRelation in
                     pivotRelation.filter { db in
                         // Filter the pivot on self

@@ -151,12 +151,18 @@ extension Database {
         return primaryKey
     }
     
+    /// Returns whether the column identifies the rowid column
+    func columnIsRowID(_ column: String, of tableName: String) throws -> Bool {
+        let pk = try primaryKey(tableName)
+        return pk.rowIDColumn == column || (pk.tableHasRowID && column.uppercased() == "ROWID")
+    }
+    
     /// Returns whether the table has a rowid column.
     private func tableHasRowID(_ tableName: String) throws -> Bool {
         // Not need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
         do {
-            _ = try makeSelectStatement(sql: "SELECT rowID FROM \(tableName.quotedDatabaseIdentifier)")
+            _ = try makeSelectStatement(sql: "SELECT rowid FROM \(tableName.quotedDatabaseIdentifier)")
             return true
         } catch DatabaseError.SQLITE_ERROR {
             return false

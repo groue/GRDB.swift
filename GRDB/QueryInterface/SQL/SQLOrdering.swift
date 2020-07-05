@@ -1,29 +1,28 @@
 // MARK: - SQLOrderingTerm
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// Implementation details of SQLOrderingTerm.
 ///
+/// :nodoc:
+public protocol _SQLOrderingTerm {
+    /// The ordering term, reversed
+    var _reversed: SQLOrderingTerm { get }
+    
+    /// Returns a qualified ordering
+    func _qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm
+    
+    /// Accepts a visitor
+    func _accept<Visitor: _SQLOrderingVisitor>(_ visitor: inout Visitor) throws
+}
+
 /// The protocol for all types that can be used as an SQL ordering term, as
 /// described at https://www.sqlite.org/syntax/ordering-term.html
 ///
+public protocol SQLOrderingTerm: _SQLOrderingTerm { }
+
+// MARK: - _SQLOrdering
+
 /// :nodoc:
-public protocol SQLOrderingTerm {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The ordering term, reversed
-    var reversed: SQLOrderingTerm { get }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns an SQL string that represents the ordering term.
-    func orderingTermSQL(_ context: SQLGenerationContext) throws -> String
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm
-}
-
-// MARK: - SQLOrdering
-
-enum SQLOrdering: SQLOrderingTerm {
+public enum _SQLOrdering: SQLOrderingTerm {
     case asc(SQLExpression)
     case desc(SQLExpression)
     #if GRDBCUSTOMSQLITE
@@ -31,48 +30,40 @@ enum SQLOrdering: SQLOrderingTerm {
     case descNullsFirst(SQLExpression)
     #endif
     
-    var reversed: SQLOrderingTerm {
+    /// :nodoc:
+    public var _reversed: SQLOrderingTerm {
         switch self {
         case .asc(let expression):
-            return SQLOrdering.desc(expression)
+            return _SQLOrdering.desc(expression)
         case .desc(let expression):
-            return SQLOrdering.asc(expression)
+            return _SQLOrdering.asc(expression)
             #if GRDBCUSTOMSQLITE
         case .ascNullsLast(let expression):
-            return SQLOrdering.descNullsFirst(expression)
+            return _SQLOrdering.descNullsFirst(expression)
         case .descNullsFirst(let expression):
-            return SQLOrdering.ascNullsLast(expression)
+            return _SQLOrdering.ascNullsLast(expression)
             #endif
         }
     }
     
-    func orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
+    /// :nodoc:
+    public func _qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
         switch self {
         case .asc(let expression):
-            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " ASC"
+            return _SQLOrdering.asc(expression._qualifiedExpression(with: alias))
         case .desc(let expression):
-            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " DESC"
+            return _SQLOrdering.desc(expression._qualifiedExpression(with: alias))
             #if GRDBCUSTOMSQLITE
         case .ascNullsLast(let expression):
-            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " ASC NULLS LAST"
+            return _SQLOrdering.ascNullsLast(expression._qualifiedExpression(with: alias))
         case .descNullsFirst(let expression):
-            return try expression.expressionSQL(context, wrappedInParenthesis: false) + " DESC NULLS FIRST"
+            return _SQLOrdering.descNullsFirst(expression._qualifiedExpression(with: alias))
             #endif
         }
     }
     
-    func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        switch self {
-        case .asc(let expression):
-            return SQLOrdering.asc(expression.qualifiedExpression(with: alias))
-        case .desc(let expression):
-            return SQLOrdering.desc(expression.qualifiedExpression(with: alias))
-            #if GRDBCUSTOMSQLITE
-        case .ascNullsLast(let expression):
-            return SQLOrdering.ascNullsLast(expression.qualifiedExpression(with: alias))
-        case .descNullsFirst(let expression):
-            return SQLOrdering.descNullsFirst(expression.qualifiedExpression(with: alias))
-            #endif
-        }
+    /// :nodoc:
+    public func _accept<Visitor: _SQLOrderingVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }

@@ -9,9 +9,7 @@ extension ValueObservation where Reducer.Value: Equatable {
 }
 
 extension ValueReducers {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// See _ValueReducer.removeDuplicates()
+    /// See `ValueObservation.removeDuplicates()`
     ///
     /// :nodoc:
     public struct RemoveDuplicates<Base: _ValueReducer>: _ValueReducer where Base.Value: Equatable {

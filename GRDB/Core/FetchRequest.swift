@@ -180,7 +180,6 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         try base.requestSQL(context, forSingleResult: singleResult)
     }
     
-    /// :nodoc:
     public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         var request = try base.makePreparedRequest(db, forSingleResult: singleResult)
         if let baseAdapter = request.adapter {
@@ -191,12 +190,10 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         return request
     }
     
-    /// :nodoc:
     public func fetchCount(_ db: Database) throws -> Int {
         try base.fetchCount(db)
     }
     
-    /// :nodoc:
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         try base.databaseRegion(db)
     }

@@ -1,5 +1,8 @@
-/// The protocol that can generate SQL requests and subqueries.
-public protocol SQLRequestProtocol: SQLExpression, SQLCollection {
+/// Implementation details of SQLRequestProtocol.
+///
+/// :nodoc:
+public protocol _SQLRequestProtocol {
+    // TODO: rename to _requestSQL when FetchRequest is a closed protocol.
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Returns the request SQL.
@@ -12,35 +15,33 @@ public protocol SQLRequestProtocol: SQLExpression, SQLCollection {
     func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String
 }
 
+/// The protocol that can generate SQL requests and subqueries.
+public protocol SQLRequestProtocol: _SQLRequestProtocol, SQLExpression, SQLCollection { }
+
 // MARK: - SQLExpression
 
 extension SQLRequestProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        let sql = try requestSQL(context, forSingleResult: false)
-        return "(\(sql))"
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        self
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        self
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
 // MARK: - SQLCollection
 
 extension SQLRequestProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func collectionSQL(_ context: SQLGenerationContext) throws -> String {
-        try requestSQL(context, forSingleResult: false)
+    public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        self
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedCollection(with alias: TableAlias) -> SQLCollection {
-        self
+    public func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }

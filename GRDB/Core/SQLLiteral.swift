@@ -49,11 +49,11 @@ public struct SQLLiteral {
                 // Subqueries don't need table alias
                 return self
             case let .expression(expression):
-                return .expression(expression.qualifiedExpression(with: alias))
+                return .expression(expression._qualifiedExpression(with: alias))
             case let .selectable(selectable):
-                return .selectable(selectable.qualifiedSelectable(with: alias))
+                return .selectable(selectable._qualifiedSelectable(with: alias))
             case let .orderingTerm(orderingTerm):
-                return .orderingTerm(orderingTerm.qualifiedOrdering(with: alias))
+                return .orderingTerm(orderingTerm._qualifiedOrdering(with: alias))
             }
         }
     }
@@ -243,57 +243,43 @@ extension SQLLiteral: ExpressibleByStringInterpolation {
 ///
 ///     SQLExpressionLiteral(sql: "? + ?", arguments: [1, 2])
 ///     SQLExpressionLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2])
-private struct _SQLExpressionLiteral: SQLExpression {
-    private let sqlLiteral: SQLLiteral
+///
+/// :nodoc:
+public struct _SQLExpressionLiteral: SQLExpression {
+    let sqlLiteral: SQLLiteral
     
     // Prefer SQLLiteral.sqlExpression
-    init(sqlLiteral: SQLLiteral) {
+    fileprivate init(sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }
     
-    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        if wrappedInParenthesis {
-            return try "(\(expressionSQL(context, wrappedInParenthesis: false)))"
-        }
-        return try sqlLiteral.sql(context)
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        sqlLiteral.qualified(with: alias).sqlExpression
     }
     
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        sqlLiteral.qualified(with: alias).sqlExpression
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
 // MARK: - _SQLSelectionLiteral
 
-private struct _SQLSelectionLiteral: SQLSelectable {
-    private let sqlLiteral: SQLLiteral
+/// :nodoc:
+public struct _SQLSelectionLiteral: SQLSelectable {
+    let sqlLiteral: SQLLiteral
     
     // Prefer SQLLiteral.sqlSelectable
     fileprivate init(sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }
     
-    func resultColumnSQL(_ context: SQLGenerationContext) throws -> String {
-        try sqlLiteral.sql(context)
-    }
+    /// :nodoc:
+    public func _count(distinct: Bool) -> _SQLCount? { nil }
     
-    func countedSQL(_ context: SQLGenerationContext) throws -> String {
-        fatalError("""
-            Selection literals can't be counted. \
-            To resolve this error, select one or several literal expressions instead. \
-            See SQLLiteral.sqlExpression.
-            """)
-    }
-    
-    func count(distinct: Bool) -> SQLCount? {
-        fatalError("""
-            Selection literals can't be counted. \
-            To resolve this error, select one or several literal expressions instead. \
-            See SQLLiteral.sqlExpression.
-            """)
-    }
-    
-    func columnCount(_ db: Database) throws -> Int {
+    /// :nodoc:
+    public func _columnCount(_ db: Database) throws -> Int {
         fatalError("""
             Selection literals don't known how many columns they contain. \
             To resolve this error, select one or several literal expressions instead. \
@@ -301,33 +287,43 @@ private struct _SQLSelectionLiteral: SQLSelectable {
             """)
     }
     
-    func qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
+    /// :nodoc:
+    public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
         sqlLiteral.qualified(with: alias).sqlSelectable
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLSelectableVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
 // MARK: - _SQLOrderingLiteral
 
-private struct _SQLOrderingLiteral: SQLOrderingTerm {
-    private let sqlLiteral: SQLLiteral
+/// :nodoc:
+public struct _SQLOrderingLiteral: SQLOrderingTerm {
+    let sqlLiteral: SQLLiteral
     
     // Prefer SQLLiteral.sqlOrderingTerm
     fileprivate init(sqlLiteral: SQLLiteral) {
         self.sqlLiteral = sqlLiteral
     }
     
-    var reversed: SQLOrderingTerm {
+    /// :nodoc:
+    public var _reversed: SQLOrderingTerm {
         fatalError("""
             Ordering literals can't be reversed. \
             To resolve this error, order by expression literals instead.
             """)
     }
     
-    func orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
-        try sqlLiteral.sql(context)
+    /// :nodoc:
+    public func _qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
+        sqlLiteral.qualified(with: alias).sqlOrderingTerm
     }
     
-    func qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        sqlLiteral.qualified(with: alias).sqlOrderingTerm
+    /// :nodoc:
+    public func _accept<Visitor: _SQLOrderingVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }

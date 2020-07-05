@@ -23,7 +23,6 @@ public protocol DatabaseValueConvertible: SQLExpressible {
 }
 
 extension DatabaseValueConvertible {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
         databaseValue

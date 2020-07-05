@@ -10,12 +10,10 @@ extension ValueObservation {
 }
 
 extension ValueReducers {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// A reducer whose values consist of those in a `Base` reducer
+    /// passed through a transform function.
     ///
-    /// A _ValueReducer whose values consist of those in a Base _ValueReducer passed
-    /// through a transform function.
-    ///
-    /// See _ValueReducer.map(_:)
+    /// See `ValueObservation.map(_:)`
     ///
     /// :nodoc:
     public struct Map<Base: _ValueReducer, Value>: _ValueReducer {

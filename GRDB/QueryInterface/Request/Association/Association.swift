@@ -1,11 +1,18 @@
 import Foundation
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// Implementation details of Association.
 ///
+/// :nodoc:
+public protocol _Association {
+    init(sqlAssociation: SQLAssociation)
+    var _sqlAssociation: SQLAssociation { get }
+}
+
 /// The base protocol for all associations that define a connection between two
 /// record types.
-public protocol Association: DerivableRequest {
-    // OriginRowDecoder and RowDecoder provide type safety:
+public protocol Association: _Association, DerivableRequest {
+    // OriginRowDecoder and RowDecoder inherited from DerivableRequest provide
+    // type safety:
     //
     //      Book.including(required: Book.author)  // compiles
     //      Fruit.including(required: Book.author) // does not compile
@@ -19,9 +26,6 @@ public protocol Association: DerivableRequest {
     ///         static let author = belongsTo(Author.self)
     ///     }
     associatedtype OriginRowDecoder: TableRecord
-    
-    /// :nodoc:
-    var sqlAssociation: SQLAssociation { get }
     
     /// Creates an association with the given key.
     ///
@@ -38,9 +42,6 @@ public protocol Association: DerivableRequest {
     ///         let team: Team = row["custom"]
     ///     }
     func forKey(_ key: String) -> Self
-    
-    /// :nodoc:
-    init(sqlAssociation: SQLAssociation)
 }
 
 extension Association {
@@ -72,7 +73,7 @@ extension Association {
 
 extension Association {
     private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
-        .init(sqlAssociation: sqlAssociation.map(\.destination.relation, transform))
+        .init(sqlAssociation: _sqlAssociation.map(\.destination.relation, transform))
     }
 }
 
@@ -102,7 +103,7 @@ extension Association {
     ///     for row in Row.fetchAll(db, request) {
     ///         let team: Team = row["custom"]
     ///     }
-    var key: SQLAssociationKey { sqlAssociation.destination.key }
+    var key: SQLAssociationKey { _sqlAssociation.destination.key }
     
     /// Creates an association which selects *selection*.
     ///
@@ -296,28 +297,24 @@ extension Association {
 
 // MARK: - AssociationToOne
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The base protocol for all associations that define a one-to-one connection.
 public protocol AssociationToOne: Association { }
 
 extension AssociationToOne {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedSingular(key)
-        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
     }
 }
 
 // MARK: - AssociationToMany
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The base protocol for all associations that define a one-to-many connection.
 public protocol AssociationToMany: Association { }
 
 extension AssociationToMany {
     public func forKey(_ key: String) -> Self {
         let associationKey = SQLAssociationKey.fixedPlural(key)
-        return .init(sqlAssociation: sqlAssociation.forDestinationKey(associationKey))
+        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
     }
 }

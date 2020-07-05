@@ -119,16 +119,16 @@ extension SQLQuery {
         let selection = try relation.selectionPromise.resolve(db)
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
         if selection.count == 1 {
-            guard let count = selection[0].count(distinct: isDistinct) else {
+            guard let count = selection[0]._count(distinct: isDistinct) else {
                 return trivialCountQuery
             }
             var countQuery = self.unordered()
             countQuery.isDistinct = false
             switch count {
             case .all:
-                countQuery = countQuery.select(SQLExpressionCount(AllColumns()))
+                countQuery = countQuery.select(_SQLExpressionCount(AllColumns()))
             case .distinct(let expression):
-                countQuery = countQuery.select(SQLExpressionCountDistinct(expression))
+                countQuery = countQuery.select(_SQLExpressionCountDistinct(expression))
             }
             return countQuery
         } else {
@@ -141,7 +141,7 @@ extension SQLQuery {
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
-            return self.unordered().select(SQLExpressionCount(AllColumns()))
+            return self.unordered().select(_SQLExpressionCount(AllColumns()))
         }
     }
     
@@ -149,7 +149,7 @@ extension SQLQuery {
     private var trivialCountQuery: SQLQuery {
         let relation = SQLRelation(
             source: .subquery(unordered()),
-            selectionPromise: DatabasePromise(value: [SQLExpressionCount(AllColumns())]))
+            selectionPromise: DatabasePromise(value: [_SQLExpressionCount(AllColumns())]))
         return SQLQuery(relation: relation)
     }
 }

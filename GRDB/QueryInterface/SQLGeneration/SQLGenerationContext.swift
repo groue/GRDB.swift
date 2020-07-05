@@ -342,27 +342,39 @@ public class TableAlias: Hashable {
     /// Returns a qualified value that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ selectable: SQLSelectable) -> SQLSelectable {
-        selectable.qualifiedSelectable(with: self)
+        selectable._qualifiedSelectable(with: self)
     }
     
     /// Returns a qualified expression that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ expression: SQLExpression) -> SQLExpression {
-        expression.qualifiedExpression(with: self)
+        expression._qualifiedExpression(with: self)
     }
     
     /// Returns a qualified ordering that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
-        ordering.qualifiedOrdering(with: self)
+        ordering._qualifiedOrdering(with: self)
     }
     
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// An expression that evaluates to true if the record refered by this
     /// `TableAlias` exists.
+    ///
+    /// For example, here is how filter books and only keep those that are not
+    /// associated to any author:
+    ///
+    ///     let books: [Book] = try dbQueue.read { db in
+    ///         let authorAlias = TableAlias()
+    ///         let request = Book
+    ///             .joining(optional: Book.author.aliased(authorAlias))
+    ///             .filter(!authorAlias.exists)
+    ///         return try request.fetchAll(db)
+    ///     }
+
     public var exists: SQLExpression {
-        QualifiedFastPrimaryKeyExpression(alias: self) != nil
+        _SQLExpressionQualifiedFastPrimaryKey(alias: self) != nil
     }
     
     /// :nodoc:

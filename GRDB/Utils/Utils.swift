@@ -21,19 +21,13 @@ public func databaseQuestionMarks(count: Int) -> String {
     repeatElement("?", count: count).joined(separator: ",")
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// This protocol is an implementation detail of GRDB. Don't use it.
 ///
 /// :nodoc:
 public protocol _OptionalProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
     associatedtype Wrapped
 }
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// This conformance is an implementation detail of GRDB. Don't rely on it.
 ///
 /// :nodoc:

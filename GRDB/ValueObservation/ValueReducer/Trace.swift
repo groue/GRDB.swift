@@ -1,6 +1,4 @@
 extension ValueReducers {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// :nodoc:
     public struct Trace<Base: _ValueReducer>: _ValueReducer {
         var base: Base

@@ -294,7 +294,6 @@ class DatabaseRegionTests : GRDBTestCase {
                 let request = Record.filter(Column("id") >= 1)
                 try XCTAssertEqual(request.databaseRegion(db).description, "foo(a,id)")
             }
-            
             do {
                 let request = Record.filter((Column("id") == 1) || (Column("a") == "foo"))
                 try XCTAssertEqual(request.databaseRegion(db).description, "foo(a,id)")
@@ -306,22 +305,18 @@ class DatabaseRegionTests : GRDBTestCase {
                 let request = Record.filter(Column("id") == nil)
                 try XCTAssertEqual(request.databaseRegion(db).description, "empty")
             }
-
             do {
                 let request = Record.filter(Column("id") === nil)
                 try XCTAssertEqual(request.databaseRegion(db).description, "empty")
             }
-            
             do {
                 let request = Record.filter(nil == Column("id"))
                 try XCTAssertEqual(request.databaseRegion(db).description, "empty")
             }
-            
             do {
                 let request = Record.filter(nil === Column("id"))
                 try XCTAssertEqual(request.databaseRegion(db).description, "empty")
             }
-            
             do {
                 let request = Record.filter((Column("id") == 1) && (Column("id") == 2))
                 try XCTAssertEqual(request.databaseRegion(db).description, "empty")
@@ -391,6 +386,14 @@ class DatabaseRegionTests : GRDBTestCase {
             do {
                 let request = Record.filter([1, 2, 3].contains(Column.rowID))
                 try XCTAssertEqual(request.databaseRegion(db).description, "foo(a,id)[1,2,3]")
+            }
+            do {
+                let request = Record.filter([1, 2, 3].contains(Column("id")) || [2, 3, 4].contains(Column.rowID))
+                try XCTAssertEqual(request.databaseRegion(db).description, "foo(a,id)[1,2,3,4]")
+            }
+            do {
+                let request = Record.filter([1, 2, 3].contains(Column("id")) && [2, 3, 4].contains(Column.rowID))
+                try XCTAssertEqual(request.databaseRegion(db).description, "foo(a,id)[2,3]")
             }
             do {
                 let request = Record.filter(keys: [1, 2, 3])

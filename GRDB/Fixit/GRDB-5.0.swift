@@ -180,10 +180,10 @@ public struct SQLExpressionLiteral: SQLExpression {
     public init(literal sqlLiteral: SQLLiteral)
     { preconditionFailure() }
     
-    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression
     { preconditionFailure() }
     
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor)
     { preconditionFailure() }
 }
 

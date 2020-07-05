@@ -1,6 +1,4 @@
 extension ValueReducers {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// A reducer which passes raw fetched values through.
     ///
     /// :nodoc:
@@ -8,8 +6,7 @@ extension ValueReducers {
         private let _fetch: (Database) throws -> Value
         public let isSelectedRegionDeterministic: Bool
         
-        /// Creates a ValueReducers.Fetch reducer, which passes raw fetched
-        /// values through.
+        /// Creates a reducer, which passes raw fetched values through.
         ///
         /// - parameter isSelectedRegionDeterministic: When true, the fetching
         ///   function is assumed to always fetch from the same database region.

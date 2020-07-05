@@ -258,7 +258,7 @@ extension SQLRelation {
     ///
     /// At low-level, this gives:
     ///
-    ///     let sqlAssociation = Origin.destination.sqlAssociation
+    ///     let sqlAssociation = Origin.destination._sqlAssociation
     ///     let origin = Origin.all().query.relation
     ///     let relation = origin.appending(sqlAssociation, kind: .oneRequired)
     ///     let query = SQLQuery(relation: relation)
@@ -421,7 +421,7 @@ extension SQLRelation {
             var reversed: Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { $0.map(\.reversed) })
+                    return .terms(terms.map { $0.map(\._reversed) })
                 case .ordering(let ordering):
                     return .ordering(ordering.reversed)
                 }
@@ -430,7 +430,7 @@ extension SQLRelation {
             func qualified(with alias: TableAlias) -> Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { $0.map { $0.qualifiedOrdering(with: alias) } })
+                    return .terms(terms.map { $0.map { $0._qualifiedOrdering(with: alias) } })
                 case .ordering(let ordering):
                     return .ordering(ordering.qualified(with: alias))
                 }
@@ -629,7 +629,7 @@ extension JoinMapping {
     ///   the AND operator and qualified with the right table.
     func joinExpressions(leftAlias: TableAlias) -> [SQLExpression] {
         map {
-            Column($0.right) == QualifiedColumn($0.left, alias: leftAlias)
+            Column($0.right) == _SQLQualifiedColumn($0.left, alias: leftAlias)
         }
     }
 }

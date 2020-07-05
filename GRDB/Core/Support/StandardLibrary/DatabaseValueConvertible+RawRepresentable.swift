@@ -11,6 +11,7 @@
 ///     // ... then the RawRepresentable type can freely adopt SQLExpressible:
 ///     extension Color : SQLExpressible { /* empty */ }
 extension SQLExpressible where Self: RawRepresentable, Self.RawValue: SQLExpressible {
+    /// Returns the raw value as an SQL expression.
     public var sqlExpression: SQLExpression {
         rawValue.sqlExpression
     }

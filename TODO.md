@@ -2,7 +2,6 @@
 
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Write regression tests for #156 and #157
-- [ ] Fix matchingRowIds (todo: what is the problem, already?)
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods

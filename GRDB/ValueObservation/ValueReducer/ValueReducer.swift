@@ -1,5 +1,3 @@
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// The _ValueReducer protocol supports ValueObservation.
 public protocol _ValueReducer {
     /// The type of fetched database values

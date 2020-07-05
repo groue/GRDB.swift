@@ -57,7 +57,7 @@ extension SQLInterpolation {
     {
         let alias = TableAlias(name: tableAlias ?? T.databaseTableName)
         elements.append(contentsOf: T.databaseSelection
-            .map { CollectionOfOne(.selectable($0.qualifiedSelectable(with: alias))) }
+            .map { CollectionOfOne(.selectable($0._qualifiedSelectable(with: alias))) }
             .joined(separator: CollectionOfOne(.sql(", "))))
     }
     
