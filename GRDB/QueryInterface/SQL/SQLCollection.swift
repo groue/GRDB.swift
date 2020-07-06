@@ -19,17 +19,6 @@ public protocol SQLCollection: _SQLCollection {
 }
 
 
-// MARK: Default Implementations
-
-/// :nodoc:
-extension SQLCollection {
-    /// Returns an expression which applies the `IN` SQL operator.
-    public func contains(_ value: SQLExpressible) -> SQLExpression {
-        _SQLExpressionContains(value, self)
-    }
-}
-
-
 // MARK: - _SQLExpressionsArray
 
 /// _SQLExpressionsArray wraps an array of expressions
@@ -46,6 +35,7 @@ public struct _SQLExpressionsArray: SQLCollection {
             return false.databaseValue
         }
         if expressions.count == 1 {
+            #warning("TODO: make sure we do not produce 'column IS NULL'")
             // ["foo"].contains(Column("name")) => name = 'foo'
             return value == expression
         }

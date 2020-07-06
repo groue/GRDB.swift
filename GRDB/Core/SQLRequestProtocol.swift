@@ -35,6 +35,11 @@ extension SQLRequestProtocol {
 // MARK: - SQLCollection
 
 extension SQLRequestProtocol {
+    /// Returns an expression which applies the `IN` SQL operator.
+    public func contains(_ value: SQLExpressible) -> SQLExpression {
+        _SQLExpressionContains(value, self)
+    }
+    
     /// :nodoc:
     public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
         self
