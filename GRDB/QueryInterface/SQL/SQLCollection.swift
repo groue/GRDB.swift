@@ -30,15 +30,20 @@ public struct _SQLExpressionsArray: SQLCollection {
     
     public func contains(_ value: SQLExpressible) -> SQLExpression {
         guard let expression = expressions.first else {
-            // [].contains(Column("name")) => 0
             return false.databaseValue
         }
+        
+        // With SQLite, `expr IN (NULL)` never succeeds.
+        //
+        // We must not provide special handling of NULL, because we can not
+        // guess if our `expressions` array contains a value evaluates to NULL.
+        
         if expressions.count == 1 {
-            #warning("TODO: make sure we do not produce 'column IS NULL'")
-            // ["foo"].contains(Column("name")) => name = 'foo'
-            return value == expression
+            // Output `expr = value` instead of `expr IN (value)`, because it
+            // looks nicer. And make sure we do not produce 'expr IS NULL'.
+            return _SQLExpressionEqual(.equal, value.sqlExpression, expression)
         }
-        // ["foo", "bar"].contains(Column("name")) => name IN ('foo', 'bar')
+        
         return _SQLExpressionContains(value, self)
     }
     

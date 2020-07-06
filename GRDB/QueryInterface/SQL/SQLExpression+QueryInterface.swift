@@ -376,9 +376,11 @@ public struct _SQLExpressionContains: SQLExpression {
     let collection: SQLCollection
     let isNegated: Bool
     
-    /// - precondition: collection.expressions.count > 1
+    /// - precondition: !collection.expressions.isEmpty
     init(_ value: SQLExpressible, _ collection: _SQLExpressionsArray, negated: Bool = false) {
-        assert(collection.expressions.count > 1)
+        // Make it easier for _SQLExpressionVisitor
+        assert(!collection.expressions.isEmpty)
+        
         self.init(
             expression: value.sqlExpression,
             collection: collection,
