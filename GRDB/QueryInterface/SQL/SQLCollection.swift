@@ -18,7 +18,6 @@ public protocol SQLCollection: _SQLCollection {
     func contains(_ value: SQLExpressible) -> SQLExpression
 }
 
-
 // MARK: - _SQLExpressionsArray
 
 /// _SQLExpressionsArray wraps an array of expressions
@@ -52,4 +51,25 @@ public struct _SQLExpressionsArray: SQLCollection {
     public func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws {
         try visitor.visit(self)
     }
+}
+
+// MARK: - SQLCollectionExpressions
+
+extension SQLCollection {
+    func expressions() -> [SQLExpression]? {
+        var visitor = SQLCollectionExpressions()
+        try! _accept(&visitor)
+        return visitor.expressions
+    }
+}
+
+/// Support for SQLCollection.expressions
+private struct SQLCollectionExpressions: _SQLCollectionVisitor {
+    var expressions: [SQLExpression]?
+    
+    mutating func visit(_ collection: _SQLExpressionsArray) throws {
+        expressions = collection.expressions
+    }
+    
+    mutating func visit<Request: SQLRequestProtocol>(_ request: Request) throws { }
 }

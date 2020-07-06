@@ -873,8 +873,13 @@ private struct SQLExpressionIsConstantInRequest: _SQLExpressionVisitor {
     }
     
     mutating func visit(_ expr: _SQLExpressionContains) throws {
-        // TODO: visit the collection
-        try setNotConstant() // Don't know - assume not constant
+        guard let expressions = expr.collection.expressions() else {
+            try setNotConstant() // Don't know - assume not constant
+        }
+        try expr.expression._accept(&self)
+        for expression in expressions {
+            try expression._accept(&self)
+        }
     }
     
     mutating func visit(_ expr: _SQLExpressionCount) throws {
@@ -1225,11 +1230,11 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     
     mutating func visit(_ expr: _SQLExpressionContains) throws {
         if
-            let array = expr.collection as? _SQLExpressionsArray, // TODO: implement as a visitor
+            let expressions = expr.collection.expressions(),
             let column = try expr.expression.column(db, for: alias),
             try db.columnIsRowID(column, of: alias.tableName)
         {
-            rowIDs = Set(array.expressions.compactMap {
+            rowIDs = Set(expressions.compactMap {
                 ($0 as? DatabaseValue).flatMap { Int64.fromDatabaseValue($0) }
             })
         }
@@ -1364,7 +1369,16 @@ private struct SQLSelectableIsAggregate: _SQLSelectableVisitor {
     }
     
     mutating func visit(_ expr: _SQLExpressionContains) throws {
+        // SELECT aggregate IN (...)
         try expr.expression._accept(&self)
+        
+        // SELECT expr IN (aggregate, ...)
+        if
+            let expressions = expr.collection.expressions(),
+            expressions.contains(where: { $0.isAggregate() })
+        {
+            try setAggregate()
+        }
     }
     
     mutating func visit(_ expr: _SQLExpressionCount) throws {

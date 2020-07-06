@@ -376,23 +376,42 @@ public struct _SQLExpressionContains: SQLExpression {
     let collection: SQLCollection
     let isNegated: Bool
     
-    init(_ value: SQLExpressible, _ collection: SQLCollection, negated: Bool = false) {
-        self.expression = value.sqlExpression
+    /// - precondition: collection.expressions.count > 1
+    init(_ value: SQLExpressible, _ collection: _SQLExpressionsArray, negated: Bool = false) {
+        assert(collection.expressions.count > 1)
+        self.init(
+            expression: value.sqlExpression,
+            collection: collection,
+            isNegated: negated)
+    }
+    
+    init(_ value: SQLExpressible, _ collection: SQLRequestProtocol, negated: Bool = false) {
+        self.init(
+            expression: value.sqlExpression,
+            collection: collection,
+            isNegated: negated)
+    }
+    
+    private init(expression: SQLExpression, collection: SQLCollection, isNegated: Bool) {
+        self.expression = expression
         self.collection = collection
-        self.isNegated = negated
+        self.isNegated = isNegated
     }
     
     /// :nodoc:
     public var _negated: SQLExpression {
-        _SQLExpressionContains(expression, collection, negated: !isNegated)
+        _SQLExpressionContains(
+            expression: expression,
+            collection: collection,
+            isNegated: !isNegated)
     }
     
     /// :nodoc:
     public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        return _SQLExpressionContains(
-            expression._qualifiedExpression(with: alias),
-            collection._qualifiedCollection(with: alias),
-            negated: isNegated)
+        _SQLExpressionContains(
+            expression: expression._qualifiedExpression(with: alias),
+            collection: collection._qualifiedCollection(with: alias),
+            isNegated: isNegated)
     }
     
     /// :nodoc:
