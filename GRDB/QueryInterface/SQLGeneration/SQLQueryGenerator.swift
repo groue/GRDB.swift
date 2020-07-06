@@ -1157,6 +1157,7 @@ extension SQLExpression {
     ///
     ///     WHERE 1                               -- nil
     ///     WHERE 0                               -- []
+    ///     WHERE NULL                            -- []
     ///     WHERE id IS NULL                      -- []
     ///     WHERE id = 1                          -- [1]
     ///     WHERE id = 1 AND b = 2                -- [1]
@@ -1180,7 +1181,7 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     var rowIDs: Set<Int64>? = nil
     
     mutating func visit(_ dbValue: DatabaseValue) throws {
-        if dbValue == false.databaseValue {
+        if dbValue.isNull || dbValue == false.databaseValue {
             rowIDs = []
         }
     }
