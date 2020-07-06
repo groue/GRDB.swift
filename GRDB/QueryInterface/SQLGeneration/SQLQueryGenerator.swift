@@ -1155,14 +1155,15 @@ extension SQLExpression {
     ///
     /// When in doubt, returns nil.
     ///
-    ///     WHERE 0                 -- nil
-    ///     WHERE id IS NULL        -- []
-    ///     WHERE id = 1            -- [1]
-    ///     WHERE id = 1 AND b = 2  -- [1]
-    ///     WHERE id = 1 AND b = 2  -- [1]
-    ///     WHERE id = 1 OR id = 2  -- [1, 2]
-    ///     WHERE id = IN (1, 2, 3) -- [1, 2, 3]
-    ///     WHERE id > 1            -- nil
+    ///     WHERE 1                               -- nil
+    ///     WHERE 0                               -- []
+    ///     WHERE id IS NULL                      -- []
+    ///     WHERE id = 1                          -- [1]
+    ///     WHERE id = 1 AND b = 2                -- [1]
+    ///     WHERE id = 1 OR id = 2                -- [1, 2]
+    ///     WHERE id IN (1, 2, 3)                 -- [1, 2, 3]
+    ///     WHERE id IN (1, 2) OR rowid IN (2, 3) -- [1, 2, 3]
+    ///     WHERE id > 1                          -- nil
     ///
     /// Support for `SQLQueryGenerator.optimizedSelectedRegion()`
     func identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
@@ -1178,7 +1179,11 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     let alias: TableAlias
     var rowIDs: Set<Int64>? = nil
     
-    mutating func visit(_ dbValue: DatabaseValue) throws { }
+    mutating func visit(_ dbValue: DatabaseValue) throws {
+        if dbValue == false.databaseValue {
+            rowIDs = []
+        }
+    }
     
     mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression { }
     
@@ -1219,7 +1224,7 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     
     mutating func visit(_ expr: _SQLExpressionContains) throws {
         if
-            let array = expr.collection as? _SQLExpressionsArray,
+            let array = expr.collection as? _SQLExpressionsArray, // TODO: implement as a visitor
             let column = try expr.expression.column(db, for: alias),
             try db.columnIsRowID(column, of: alias.tableName)
         {
@@ -1244,6 +1249,7 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
                 if let rowID = Int64.fromDatabaseValue(dbValue) {
                     rowIDs = [rowID]
                 } else {
+                    // We miss `rowid = '1'` here, because SQLite would interpret the '1' string as a number
                     rowIDs = []
                 }
             } else if
@@ -1254,6 +1260,7 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
                 if let rowID = Int64.fromDatabaseValue(dbValue) {
                     rowIDs = [rowID]
                 } else {
+                    // We miss `rowid = '1'` here, because SQLite would interpret the '1' string as a number
                     rowIDs = []
                 }
             }
