@@ -21,7 +21,29 @@ public class DatabaseSnapshot: DatabaseReader {
         var configuration = configuration
         configuration.readonly = true
         configuration.allowsUnsafeTransactions = true // Snaphost keeps a long-lived transaction
-        
+
+        // https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode
+        // > But there are some obscure cases where a query against a WAL-mode
+        // > database can return SQLITE_BUSY, so applications should be prepared
+        // > for that happenstance.
+        // >
+        // > - If another database connection has the database mode open in
+        // >   exclusive locking mode [...]
+        // > - When the last connection to a particular database is closing,
+        // >   that connection will acquire an exclusive lock for a short time
+        // >   while it cleans up the WAL and shared-memory files [...]
+        // > - If the last connection to a database crashed, then the first new
+        // >   connection to open the database will start a recovery process. An
+        // >   exclusive lock is held during recovery. [...]
+        //
+        // The whole point of WAL readers is to avoid SQLITE_BUSY, so let's
+        // setup a busy handler for pool readers, in order to workaround those
+        // "obscure cases" that may happen when the database is shared between
+        // multiple processes.
+        if configuration.readonlyBusyMode == nil {
+            configuration.readonlyBusyMode = .timeout(10)
+        }
+
         serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,

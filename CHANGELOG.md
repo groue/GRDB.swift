@@ -72,6 +72,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **Breaking Change**: [#803](https://github.com/groue/GRDB.swift/pull/803): Remove FetchedRecordsController
 - **Breaking Change**: Removed `TableRecord.primaryKey` and `selectPrimaryKey(as:)` introduced in 5.0.0-beta.5
+- **Fixed**: Avoid `SQLITE_BUSY` when opening a DatabaseSnapshot.
 - The [How do I filter records and only keep those that are NOT associated to another record?](README.md#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record) FAQ has been updated.
 
 ## 5.0.0-beta.6
