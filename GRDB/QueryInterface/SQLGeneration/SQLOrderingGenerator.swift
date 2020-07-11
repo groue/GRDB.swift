@@ -10,11 +10,11 @@ extension SQLOrderingTerm {
     }
 }
 
-private struct SQLOrderingGenerator: _SQLOrderingVisitor {
+private struct SQLOrderingGenerator: _SQLOrderingTermVisitor {
     let context: SQLGenerationContext
     var resultSQL = ""
     
-    // MARK: - _SQLOrderingVisitor
+    // MARK: - _SQLOrderingTermVisitor
     
     mutating func visit(_ ordering: SQLCollatedExpression) throws {
         resultSQL = try ordering.sqlExpression.orderingTermSQL(context)

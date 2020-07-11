@@ -11,7 +11,7 @@ public protocol _SQLOrderingTerm {
     func _qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm
     
     /// Accepts a visitor
-    func _accept<Visitor: _SQLOrderingVisitor>(_ visitor: inout Visitor) throws
+    func _accept<Visitor: _SQLOrderingTermVisitor>(_ visitor: inout Visitor) throws
 }
 
 /// The protocol for all types that can be used as an SQL ordering term, as
@@ -83,7 +83,7 @@ public enum _SQLOrdering: SQLOrderingTerm, Refinable {
     }
     
     /// :nodoc:
-    public func _accept<Visitor: _SQLOrderingVisitor>(_ visitor: inout Visitor) throws {
+    public func _accept<Visitor: _SQLOrderingTermVisitor>(_ visitor: inout Visitor) throws {
         try visitor.visit(self)
     }
 }

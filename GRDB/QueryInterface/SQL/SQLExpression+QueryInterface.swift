@@ -10,6 +10,39 @@ extension SQLExpression {
     }
 }
 
+// MARK: - _SQLExpressionNot
+
+extension SQLExpression {
+    /// The default implementation returns the expression prefixed by `NOT`.
+    ///
+    ///     let column = Column("favorite")
+    ///     column.negated  // NOT favorite
+    ///
+    /// :nodoc:
+    public var _negated: SQLExpression {
+        _SQLExpressionNot(self)
+    }
+}
+
+/// :nodoc:
+public struct _SQLExpressionNot: SQLExpression {
+    let expression: SQLExpression
+    
+    init(_ expression: SQLExpression) {
+        self.expression = expression
+    }
+    
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLExpressionNot(expression._qualifiedExpression(with: alias))
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
+    }
+}
+
 // MARK: - _SQLExpressionUnary
 
 /// SQLUnaryOperator is a SQLite unary operator.
@@ -371,7 +404,6 @@ public struct _SQLExpressionEqual: SQLExpression {
 ///     _SQLExpressionContains(Column("id"), _SQLExpressionsArray([1,2,3]))
 ///
 /// :nodoc:
-#warning("TODO: distinguish request / array contains")
 public struct _SQLExpressionContains: SQLExpression {
     let expression: SQLExpression
     let collection: SQLCollection

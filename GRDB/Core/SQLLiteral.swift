@@ -320,7 +320,7 @@ public struct _SQLOrderingLiteral: SQLOrderingTerm {
     }
     
     /// :nodoc:
-    public func _accept<Visitor: _SQLOrderingVisitor>(_ visitor: inout Visitor) throws {
+    public func _accept<Visitor: _SQLOrderingTermVisitor>(_ visitor: inout Visitor) throws {
         try visitor.visit(self)
     }
 }

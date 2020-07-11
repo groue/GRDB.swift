@@ -30,16 +30,6 @@ public protocol _SQLExpression {
 public protocol SQLExpression: _SQLExpression, SQLSpecificExpressible, SQLSelectable, SQLOrderingTerm { }
 
 extension SQLExpression {
-    /// The default implementation returns the expression prefixed by `NOT`.
-    ///
-    ///     let column = Column("favorite")
-    ///     column.negated  // NOT favorite
-    ///
-    /// :nodoc:
-    public var _negated: SQLExpression {
-        _SQLExpressionNot(self)
-    }
-    
     /// :nodoc:
     public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
         _qualifiedExpression(with: alias)
@@ -76,26 +66,5 @@ extension SQLExpression {
             // SELECT COUNT(*) FROM tableName ...
             return .all
         }
-    }
-}
-
-// MARK: - _SQLExpressionNot
-
-/// :nodoc:
-public struct _SQLExpressionNot: SQLExpression {
-    let expression: SQLExpression
-    
-    init(_ expression: SQLExpression) {
-        self.expression = expression
-    }
-    
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionNot(expression._qualifiedExpression(with: alias))
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
     }
 }
