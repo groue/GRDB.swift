@@ -19,7 +19,9 @@ import CoreLocation
 
 // Open an in-memory database that logs all SQL statements
 var configuration = Configuration()
-configuration.trace = { print($0) }
+configuration.prepareDatabase = { db in
+    db.trace { print("SQL> \($0)") }
+}
 let dbQueue = DatabaseQueue(configuration: configuration)
 
 

@@ -3061,7 +3061,7 @@ player.hasDatabaseChanges // true
 player.databaseChanges    // ["score": 750]
 ```
 
-For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [JSONSynchronization.playground](Documentation/Playgrounds/JSONSynchronization.playground/Contents.swift).
+For an efficient algorithm which synchronizes the content of a database table with a JSON payload, check [groue/SortedDifference](https://github.com/groue/SortedDifference).
 
 
 ## Record Customization Options
