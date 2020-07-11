@@ -72,7 +72,7 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
 
 /// A type-erased FetchRequest.
 ///
-/// An AnyFetchRequest forwards its operations to an underlying request,
+/// An `AnyFetchRequest` forwards its operations to an underlying request,
 /// hiding its specifics.
 public struct AnyFetchRequest<RowDecoder>: FetchRequest {
     private let request: FetchRequestEraser
@@ -110,7 +110,7 @@ private class FetchRequestEraser: FetchRequest {
     }
 }
 
-private class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser {
+private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequestEraser {
     let request: Request
     
     init(request: Request) {
