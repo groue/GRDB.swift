@@ -1,3 +1,29 @@
+// MARK: - PreparedRequest
+
+/// A PreparedRequest is a request that is ready to be executed.
+public struct PreparedRequest {
+    /// A prepared statement
+    public var statement: SelectStatement
+    
+    /// An eventual adapter for rows fetched by the select statement
+    public var adapter: RowAdapter?
+    
+    /// Support for eager loading of hasMany associations.
+    var supplementaryFetch: ((Database, [Row]) throws -> Void)?
+    
+    init(
+        statement: SelectStatement,
+        adapter: RowAdapter?,
+        supplementaryFetch: ((Database, [Row]) throws -> Void)? = nil)
+    {
+        self.statement = statement
+        self.adapter = adapter
+        self.supplementaryFetch = supplementaryFetch
+    }
+}
+
+extension PreparedRequest: Refinable { }
+
 extension FetchRequest {
     /// Returns a PreparedRequest that is ready to be executed.
     ///
