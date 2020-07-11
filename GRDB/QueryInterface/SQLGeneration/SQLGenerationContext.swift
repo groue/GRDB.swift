@@ -357,6 +357,12 @@ public class TableAlias: Hashable {
         ordering._qualifiedOrdering(with: self)
     }
     
+    /// Returns a qualified columnn that is able to resolve ambiguities in
+    /// joined queries.
+    public subscript(_ column: String) -> SQLExpression {
+        Column(column)._qualifiedExpression(with: self)
+    }
+
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// An expression that evaluates to true if the record refered by this

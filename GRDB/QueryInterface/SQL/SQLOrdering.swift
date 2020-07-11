@@ -22,13 +22,44 @@ public protocol SQLOrderingTerm: _SQLOrderingTerm { }
 // MARK: - _SQLOrdering
 
 /// :nodoc:
-public enum _SQLOrdering: SQLOrderingTerm {
+public enum _SQLOrdering: SQLOrderingTerm, Refinable {
     case asc(SQLExpression)
     case desc(SQLExpression)
     #if GRDBCUSTOMSQLITE
     case ascNullsLast(SQLExpression)
     case descNullsFirst(SQLExpression)
     #endif
+    
+    var expression: SQLExpression {
+        get {
+            switch self {
+            case .asc(let expression):
+                return expression
+            case .desc(let expression):
+                return expression
+                #if GRDBCUSTOMSQLITE
+            case .ascNullsLast(let expression):
+                return expression
+            case .descNullsFirst(let expression):
+                return expression
+                #endif
+            }
+        }
+        set {
+            switch self {
+            case .asc:
+                self = .asc(newValue)
+            case .desc:
+                self = .desc(newValue)
+                #if GRDBCUSTOMSQLITE
+            case .ascNullsLast:
+                self = .ascNullsLast(newValue)
+            case .descNullsFirst:
+                self = .descNullsFirst(newValue)
+                #endif
+            }
+        }
+    }
     
     /// :nodoc:
     public var _reversed: SQLOrderingTerm {
@@ -48,18 +79,7 @@ public enum _SQLOrdering: SQLOrderingTerm {
     
     /// :nodoc:
     public func _qualifiedOrdering(with alias: TableAlias) -> SQLOrderingTerm {
-        switch self {
-        case .asc(let expression):
-            return _SQLOrdering.asc(expression._qualifiedExpression(with: alias))
-        case .desc(let expression):
-            return _SQLOrdering.desc(expression._qualifiedExpression(with: alias))
-            #if GRDBCUSTOMSQLITE
-        case .ascNullsLast(let expression):
-            return _SQLOrdering.ascNullsLast(expression._qualifiedExpression(with: alias))
-        case .descNullsFirst(let expression):
-            return _SQLOrdering.descNullsFirst(expression._qualifiedExpression(with: alias))
-            #endif
-        }
+        map(\.expression) { $0._qualifiedExpression(with: alias) }
     }
     
     /// :nodoc:

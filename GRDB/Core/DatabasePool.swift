@@ -877,10 +877,11 @@ extension DatabasePool: DatabaseReader {
         // We can avoid this second fetch when SQLite is compiled with the
         // SQLITE_ENABLE_SNAPSHOT option:
         //
-        // 1. Perform the initial fetch in a DatabaseSnapshot. The snapshot
-        // acquires a lock that will prevent checkpointing until we get a writer
-        // access, so that we can reliably compare database versions with
-        // `sqlite3_snapshot`: https://www.sqlite.org/c3ref/snapshot.html.
+        // 1. Perform the initial fetch in a DatabaseSnapshot. Its long running
+        // transaction acquires a lock that will prevent checkpointing until we
+        // get a writer access, so that we can reliably compare database
+        // versions with `sqlite3_snapshot`:
+        // https://www.sqlite.org/c3ref/snapshot.html.
         //
         // 2. Get a writer access, and compare the versions of the initial
         // snapshot, and the current state of the database: if versions are

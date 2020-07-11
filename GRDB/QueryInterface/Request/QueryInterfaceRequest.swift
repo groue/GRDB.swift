@@ -475,9 +475,6 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
     
     // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
     for association in associations {
-        let prefetchedGroups: [[DatabaseValue] : [Row]]
-        let groupingIndexes: [Int]
-        
         switch association.pivot.condition {
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             // Annotate prefetched rows with pivot columns, so that we can
@@ -516,21 +513,21 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
                 })
                 .destinationRelation()
                 // Annotate with the pivot columns that allow grouping
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
+                .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
             
-            prefetchedGroups = try QueryInterfaceRequest<Row>(relation: prefetchedRelation)
+            let prefetchedGroups = try QueryInterfaceRequest<Row>(relation: prefetchedRelation)
                 .fetchAll(db)
                 .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
             // TODO: can we remove those grdb_ columns from user's sight,
             // now that grouping has been done?
             
-            groupingIndexes = firstRow.indexes(forColumns: pivotMapping.map(\.left))
-        }
-        
-        for row in rows {
-            let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-            let prefetchedRows = prefetchedGroups[groupingKey, default: []]
-            row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
+            let groupingIndexes = firstRow.indexes(forColumns: pivotMapping.map(\.left))
+            
+            for row in rows {
+                let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+                let prefetchedRows = prefetchedGroups[groupingKey, default: []]
+                row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
+            }
         }
     }
 }
@@ -539,8 +536,6 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
 func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws -> DatabaseRegion {
     try associations.reduce(into: DatabaseRegion()) { (region, association) in
         // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
-        let prefetchedRegion: DatabaseRegion
-        
         switch association.pivot.condition {
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             // Filter the pivot on a `NullRow` in order to make sure all join
@@ -561,12 +556,12 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
             
             let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
             
-            // Union prefetched region
-            prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
+            let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
                 .makeSelectStatement(db)
                 .databaseRegion // contains region of nested associations
+            
+            region.formUnion(prefetchedRegion)
         }
-        region.formUnion(prefetchedRegion)
     }
 }
 
