@@ -427,11 +427,9 @@ let publisher = observation
     Player.select(myFunction(Column("name")))
     ```
 
-8. Defining custom `FetchRequest` types is now **discouraged**.
+8. Defining custom `FetchRequest` types is no longer supported.
     
-    A future GRDB version will remove the ability to define custom `FetchRequest` types.
-    
-    Our suggestion is to refactor your app so that your custom request type is no longer needed: [SQLRequest] and [QueryInterfaceRequest] are now supposed to fully address your needs. If it is not possible, then please [open an issue](https://github.com/groue/GRDB.swift/issues) and describe your particular use case.
+    Refactor your app around [SQLRequest] and [QueryInterfaceRequest], which are supposed to fully address your needs.
     
 9. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
