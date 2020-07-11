@@ -563,26 +563,22 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         self.base = base
     }
     
-    /// :nodoc:
     public var configuration: Configuration {
         base.configuration
     }
     
     // MARK: - Interrupting Database Operations
     
-    /// :nodoc:
     public func interrupt() {
         base.interrupt()
     }
     
     // MARK: - Reading from Database
     
-    /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         try base.read(block)
     }
     
-    /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
     }
@@ -592,17 +588,14 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         base._weakAsyncRead(block)
     }
     
-    /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         try base.unsafeRead(block)
     }
     
-    /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         try base.unsafeReentrantRead(block)
     }
     
-    /// :nodoc:
     public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         base.concurrentRead(block)
     }
@@ -614,22 +607,18 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     
     // MARK: - Writing in Database
     
-    /// :nodoc:
     public func write<T>(_ updates: (Database) throws -> T) throws -> T {
         try base.write(updates)
     }
     
-    /// :nodoc:
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.writeWithoutTransaction(updates)
     }
     
-    /// :nodoc:
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.barrierWriteWithoutTransaction(updates)
     }
     
-    /// :nodoc:
     public func asyncWrite<T>(
         _ updates: @escaping (Database) throws -> T,
         completion: @escaping (Database, Result<T, Error>) -> Void)
@@ -637,7 +626,6 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         base.asyncWrite(updates, completion: completion)
     }
     
-    /// :nodoc:
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         base.asyncWriteWithoutTransaction(updates)
     }
@@ -647,31 +635,26 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         base._weakAsyncWriteWithoutTransaction(updates)
     }
     
-    /// :nodoc:
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.unsafeReentrantWrite(updates)
     }
     
     // MARK: - Functions
     
-    /// :nodoc:
     public func add(function: DatabaseFunction) {
         base.add(function: function)
     }
     
-    /// :nodoc:
     public func remove(function: DatabaseFunction) {
         base.remove(function: function)
     }
     
     // MARK: - Collations
     
-    /// :nodoc:
     public func add(collation: DatabaseCollation) {
         base.add(collation: collation)
     }
     
-    /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
     }

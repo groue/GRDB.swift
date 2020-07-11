@@ -774,7 +774,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    // Defines the default column collation.
+    /// Defines the default column collation.
     ///
     ///     try db.create(table: "player") { t in
     ///         t.column("email", .text).collate(.nocase)
@@ -790,7 +790,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    // Defines the default column collation.
+    /// Defines the default column collation.
     ///
     ///     try db.create(table: "player") { t in
     ///         t.column("name", .text).collate(.localizedCaseInsensitiveCompare)

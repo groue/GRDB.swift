@@ -116,18 +116,18 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         return sqlite3_get_autocommit(sqliteConnection) == 0
     }
     
+    /// The last error code
+    public var lastErrorCode: ResultCode { ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
+    
+    /// The last error message
+    public var lastErrorMessage: String? { String(cString: sqlite3_errmsg(sqliteConnection)) }
+    
     // MARK: - Internal properties
     
     // Caches
     var schemaCache: DatabaseSchemaCache    // internal so that it can be tested
     lazy var internalStatementCache = StatementCache(database: self)
     lazy var publicStatementCache = StatementCache(database: self)
-    
-    /// The last error code
-    public var lastErrorCode: ResultCode { ResultCode(rawValue: sqlite3_errcode(sqliteConnection)) }
-    
-    /// The last error message
-    public var lastErrorMessage: String? { String(cString: sqlite3_errmsg(sqliteConnection)) }
     
     /// Statement authorizer. Use withAuthorizer(_:_:).
     fileprivate var _authorizer: StatementAuthorizer?
