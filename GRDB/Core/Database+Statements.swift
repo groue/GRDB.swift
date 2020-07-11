@@ -18,6 +18,7 @@ extension Database {
     }
     
     // TODO: remove when FetchRequest is a closed protocol.
+    // TODO: why?
     /// Returns a new prepared statement.
     ///
     ///     let id = 1

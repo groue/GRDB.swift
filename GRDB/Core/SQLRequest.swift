@@ -16,7 +16,7 @@ public struct SQLRequest<RowDecoder> {
     public var adapter: RowAdapter?
     
     private(set) var sqlLiteral: SQLLiteral
-    private let cache: Cache?
+    let cache: Cache?
     
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
@@ -101,35 +101,10 @@ public struct SQLRequest<RowDecoder> {
     }
 }
 
-extension SQLRequest: SQLRequestProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
-        try sqlLiteral.sql(context)
-    }
-}
-
-extension SQLRequest: DatabaseRegionConvertible {
-    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        try makePreparedRequest(db, forSingleResult: false).statement.databaseRegion
-    }
-}
-
 extension SQLRequest: FetchRequest {
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let context = SQLGenerationContext(db)
-        let sql = try sqlLiteral.sql(context)
-        let statement: SelectStatement
-        switch cache {
-        case .none:
-            statement = try db.makeSelectStatement(sql: sql)
-        case .public?:
-            statement = try db.cachedSelectStatement(sql: sql)
-        case .internal?:
-            statement = try db.internalCachedSelectStatement(sql: sql)
-        }
-        try statement.setArguments(context.arguments)
-        return PreparedRequest(statement: statement, adapter: adapter)
+    /// :nodoc:
+    public func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 

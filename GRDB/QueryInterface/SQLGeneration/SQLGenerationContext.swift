@@ -17,9 +17,8 @@ public final class SQLGenerationContext {
         case context(SQLGenerationContext)
     }
     
-    // TODO: make internal when FetchRequest is a closed protocol.
     /// A database connection.
-    public var db: Database {
+    var db: Database {
         switch parent {
         case let .none(db: db, argumentsSink: _): return db
         case let .context(context): return context.db

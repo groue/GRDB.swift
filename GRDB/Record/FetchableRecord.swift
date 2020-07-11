@@ -321,7 +321,7 @@ extension FetchableRecord {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
-            try supplementaryFetch(rows)
+            try supplementaryFetch(db, rows)
             return rows.map(Self.init(row:))
         } else {
             return try fetchAll(request.statement, adapter: request.adapter)
@@ -344,7 +344,7 @@ extension FetchableRecord {
             guard let row = try Row.fetchOne(request.statement, adapter: request.adapter) else {
                 return nil
             }
-            try supplementaryFetch([row])
+            try supplementaryFetch(db, [row])
             return .init(row: row)
         } else {
             return try fetchOne(request.statement, adapter: request.adapter)

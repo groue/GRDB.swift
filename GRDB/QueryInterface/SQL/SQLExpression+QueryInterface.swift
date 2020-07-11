@@ -371,6 +371,7 @@ public struct _SQLExpressionEqual: SQLExpression {
 ///     _SQLExpressionContains(Column("id"), _SQLExpressionsArray([1,2,3]))
 ///
 /// :nodoc:
+#warning("TODO: distinguish request / array contains")
 public struct _SQLExpressionContains: SQLExpression {
     let expression: SQLExpression
     let collection: SQLCollection

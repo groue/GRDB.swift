@@ -950,7 +950,17 @@ private struct SQLExpressionIsConstantInRequest: _SQLExpressionVisitor {
         try expr.expression._accept(&self)
     }
     
-    mutating func visit<Request>(_ request: Request) throws where Request: SQLRequestProtocol {
+    // MARK: - _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws {
+        try setNotConstant() // Don't know - assume not constant
+    }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws {
+        try setNotConstant() // Don't know - assume not constant
+    }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws {
         try setNotConstant() // Don't know - assume not constant
     }
 }
@@ -1055,7 +1065,13 @@ private struct SQLTableColumnVisitor: _SQLExpressionVisitor {
         }
     }
     
-    mutating func visit<Request>(_ request: Request) throws where Request: SQLRequestProtocol { }
+    // MARK: - _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
 }
 
 // MARK: - SQLIdentifyingColumns
@@ -1161,7 +1177,13 @@ private struct SQLIdentifyingColumns: _SQLExpressionVisitor {
     
     mutating func visit(_ expr: _SQLExpressionUnary) throws { }
     
-    mutating func visit<Request>(_ request: Request) throws where Request: SQLRequestProtocol { }
+    // MARK: - _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
 }
 
 // MARK: - SQLIdentifyingRowIDs
@@ -1308,7 +1330,13 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     
     mutating func visit(_ expr: _SQLExpressionUnary) throws { }
     
-    mutating func visit<Request>(_ request: Request) throws where Request: SQLRequestProtocol { }
+    // MARK: - _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
 }
 
 // MARK: - SQLSelectableIsAggregate
@@ -1447,5 +1475,11 @@ private struct SQLSelectableIsAggregate: _SQLSelectableVisitor {
         try expr.expression._accept(&self)
     }
     
-    mutating func visit<Request: SQLRequestProtocol>(_ request: Request) throws { }
+    // MARK: _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
 }

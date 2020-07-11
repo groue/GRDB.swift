@@ -123,7 +123,17 @@ private struct SQLSelectableResultColumnGenerator: _SQLSelectableVisitor {
         resultSQL = try expr.expressionSQL(context, wrappedInParenthesis: false)
     }
     
-    mutating func visit<Request: SQLRequestProtocol>(_ expr: Request) throws {
-        resultSQL = try expr.expressionSQL(context, wrappedInParenthesis: false)
+    // MARK: - _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws {
+        resultSQL = try request.expressionSQL(context, wrappedInParenthesis: false)
+    }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws {
+        resultSQL = try request.expressionSQL(context, wrappedInParenthesis: false)
+    }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws {
+        resultSQL = try request.expressionSQL(context, wrappedInParenthesis: false)
     }
 }

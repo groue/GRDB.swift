@@ -1,5 +1,4 @@
 /// :nodoc:
-public protocol _SQLCollectionVisitor {
+public protocol _SQLCollectionVisitor: _FetchRequestVisitor {
     mutating func visit(_ collection: _SQLExpressionsArray) throws
-    mutating func visit<Request: SQLRequestProtocol>(_ request: Request) throws
 }

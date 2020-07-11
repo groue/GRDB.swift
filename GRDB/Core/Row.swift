@@ -1030,7 +1030,7 @@ extension Row {
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         let rows = try fetchAll(request.statement, adapter: request.adapter)
-        try request.supplementaryFetch?(rows)
+        try request.supplementaryFetch?(db, rows)
         return rows
     }
     
@@ -1049,7 +1049,7 @@ extension Row {
         guard let row = try fetchOne(request.statement, adapter: request.adapter) else {
             return nil
         }
-        try request.supplementaryFetch?([row])
+        try request.supplementaryFetch?(db, [row])
         return row
     }
 }

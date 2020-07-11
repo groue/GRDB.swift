@@ -40,46 +40,15 @@ extension QueryInterfaceRequest {
 
 extension QueryInterfaceRequest: Refinable { }
 
-// MARK: - DatabaseRegionConvertible
-
-extension QueryInterfaceRequest: DatabaseRegionConvertible {
-    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        try SQLQueryGenerator(query: query)
-            .makeSelectStatement(db)
-            .databaseRegion
-    }
-}
-
-// MARK: - SQLRequestProtocol
-
-extension QueryInterfaceRequest: SQLRequestProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
-        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
-        return try generator.requestSQL(context)
-    }
-}
-
-// MARK: - FetchRequest
-
 extension QueryInterfaceRequest: FetchRequest {
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
-        let preparedRequest = try generator.makePreparedRequest(db)
-        let associations = query.relation.prefetchedAssociations
-        if associations.isEmpty {
-            return preparedRequest
-        } else {
-            // Eager loading of prefetched associations
-            return preparedRequest.with(\.supplementaryFetch) { rows in
-                try prefetch(db, associations: associations, in: rows)
-            }
-        }
+    /// :nodoc:
+    public func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
     
-    public func fetchCount(_ db: Database) throws -> Int {
-        try query.fetchCount(db)
+    /// :nodoc:
+    public func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
@@ -461,133 +430,6 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
         throws -> Int
     {
         try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
-    }
-}
-
-// MARK: - Eager loading of hasMany associations
-
-/// Append rows from prefetched associations into the argument rows.
-private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: [Row]) throws {
-    guard let firstRow = rows.first else {
-        // No rows -> no prefetch
-        return
-    }
-    
-    // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
-    for association in associations {
-        switch association.pivot.condition {
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            // Annotate prefetched rows with pivot columns, so that we can
-            // group them.
-            //
-            // Those pivot columns are necessary when we prefetch
-            // indirect associations:
-            //
-            //      // SELECT country.*, passport.citizenId AS grdb_citizenId
-            //      // --                ^ the necessary pivot column
-            //      // FROM country
-            //      // JOIN passport ON passport.countryCode = country.code
-            //      //               AND passport.citizenId IN (1, 2, 3)
-            //      Citizen.including(all: Citizen.countries)
-            //
-            // Those pivot columns are redundant when we prefetch direct
-            // associations (maybe we'll remove this redundancy later):
-            //
-            //      // SELECT *, authorId AS grdb_authorId
-            //      // --        ^ the redundant pivot column
-            //      // FROM book
-            //      // WHERE authorId IN (1, 2, 3)
-            //      Author.including(all: Author.books)
-            let pivotMapping = try foreignKeyRequest
-                .fetchForeignKeyMapping(db)
-                .joinMapping(originIsLeft: originIsLeft)
-            let pivotFilter = pivotMapping.joinExpression(leftRows: rows)
-            let pivotColumns = pivotMapping.map(\.right)
-            let pivotAlias = TableAlias()
-            
-            let prefetchedRelation = association
-                .map(\.pivot.relation, { pivotRelation in
-                    pivotRelation
-                        .qualified(with: pivotAlias)
-                        .filter { _ in pivotFilter }
-                })
-                .destinationRelation()
-                // Annotate with the pivot columns that allow grouping
-                .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
-            
-            let prefetchedGroups = try QueryInterfaceRequest<Row>(relation: prefetchedRelation)
-                .fetchAll(db)
-                .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
-            // TODO: can we remove those grdb_ columns from user's sight,
-            // now that grouping has been done?
-            
-            let groupingIndexes = firstRow.indexes(forColumns: pivotMapping.map(\.left))
-            
-            for row in rows {
-                let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-                let prefetchedRows = prefetchedGroups[groupingKey, default: []]
-                row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
-            }
-        }
-    }
-}
-
-// Returns the region of prefetched associations
-func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws -> DatabaseRegion {
-    try associations.reduce(into: DatabaseRegion()) { (region, association) in
-        // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
-        switch association.pivot.condition {
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            // Filter the pivot on a `NullRow` in order to make sure all join
-            // condition columns are made visible to SQLite, and present in the
-            // selected region:
-            //  ... JOIN right ON right.leftId IS NULL
-            //                                    ^ content of the NullRow
-            let pivotFilter = try foreignKeyRequest
-                .fetchForeignKeyMapping(db)
-                .joinMapping(originIsLeft: originIsLeft)
-                .joinExpression(leftRows: [NullRow()])
-            
-            let prefetchedRelation = association
-                .map(\.pivot.relation, { pivotRelation in
-                    pivotRelation.filter { _ in pivotFilter }
-                })
-                .destinationRelation()
-            
-            let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
-            
-            let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
-                .makeSelectStatement(db)
-                .databaseRegion // contains region of nested associations
-            
-            region.formUnion(prefetchedRegion)
-        }
-    }
-}
-
-extension Array where Element == Row {
-    /// - precondition: Columns all exist in all rows. All rows have the same
-    ///   columnns, in the same order.
-    fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {
-        guard let firstRow = first else {
-            return [:]
-        }
-        let indexes = firstRow.indexes(forColumns: columns)
-        return Dictionary(grouping: self, by: { row in
-            indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-        })
-    }
-}
-
-extension Row {
-    /// - precondition: Columns all exist in the row.
-    fileprivate func indexes(forColumns columns: [String]) -> [Int] {
-        columns.map { column -> Int in
-            guard let index = index(forColumn: column) else {
-                fatalError("Column \(column) is not selected")
-            }
-            return index
-        }
     }
 }
 

@@ -20,7 +20,17 @@ private struct SQLCollectionGenerator: _SQLCollectionVisitor {
             .joined(separator: ", ")
     }
     
-    mutating func visit<Request: SQLRequestProtocol>(_ request: Request) throws {
+    // MARK: _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws {
+        resultSQL = try request.requestSQL(context, forSingleResult: false)
+    }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws {
+        resultSQL = try request.requestSQL(context, forSingleResult: false)
+    }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws {
         resultSQL = try request.requestSQL(context, forSingleResult: false)
     }
 }

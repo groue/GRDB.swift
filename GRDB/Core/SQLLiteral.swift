@@ -14,7 +14,7 @@ public struct SQLLiteral {
     /// table aliases.
     enum Element {
         case sql(String, StatementArguments = StatementArguments())
-        case subquery(SQLRequestProtocol)
+        case subquery(_FetchRequest)
         // Cases below can be qualified with a table alias
         case expression(SQLExpression)
         case selectable(SQLSelectable)
@@ -98,11 +98,8 @@ public struct SQLLiteral {
         return (sql: sql, arguments: context.arguments)
     }
     
-    // TODO: make internal when FetchRequest is a closed protocol.
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// Returns the literal SQL string given an SQL generation context.
-    public func sql(_ context: SQLGenerationContext) throws -> String {
+    func sql(_ context: SQLGenerationContext) throws -> String {
         try elements.map { try $0.sql(context) }.joined()
     }
     
