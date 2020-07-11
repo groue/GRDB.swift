@@ -644,10 +644,10 @@ public struct _SQLExpressionQualifiedFastPrimaryKey: SQLExpression {
     func columnName(_ db: Database) throws -> String {
         let primaryKey = try db.primaryKey(alias.tableName)
         if let rowIDColumn = primaryKey.rowIDColumn {
-            // Prefer the user-provided name of the row id
+            // Prefer the user-provided name of the rowid
             return rowIDColumn
         } else if primaryKey.tableHasRowID {
-            // Prefer the row id
+            // Prefer the rowid
             return Column.rowID.name
         } else if primaryKey.columns.count == 1 {
             // WITHOUT ROWID table: use primary key column

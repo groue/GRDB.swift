@@ -315,10 +315,10 @@ extension TableRequest where Self: AggregatingRequest {
         return group { db in
             let primaryKey = try db.primaryKey(tableName)
             if let rowIDColumn = primaryKey.rowIDColumn {
-                // Prefer the user-provided name of the row id
+                // Prefer the user-provided name of the rowid
                 return [Column(rowIDColumn)]
             } else if primaryKey.tableHasRowID {
-                // Prefer the row id
+                // Prefer the rowid
                 return [Column.rowID]
             } else {
                 // WITHOUT ROWID table: group by primary key columns
