@@ -459,6 +459,9 @@ let publisher = observation
 
 11. `FetchedRecordsController` was removed from GRDB 5. The [Database Observation] chapter describes the other ways to observe the database.
 
+12. Many types and methods that support the query builder used to be publicly exposed and flagged as experimental. They are now private, or renamed with an underscore prefix, which means they are not for public use.
+
+
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
