@@ -872,6 +872,10 @@ private struct SQLExpressionIsConstantInRequest: _SQLExpressionVisitor {
         }
     }
     
+    mutating func visit(_ expr: _SQLExpressionCollate) throws {
+        try expr.expression._accept(&self)
+    }
+    
     mutating func visit(_ expr: _SQLExpressionContains) throws {
         guard let expressions = expr.collection.expressions() else {
             try setNotConstant() // Don't know - assume not constant
@@ -1006,6 +1010,10 @@ private struct SQLTableColumnVisitor: _SQLExpressionVisitor {
         }
     }
     
+    mutating func visit(_ expr: _SQLExpressionCollate) throws {
+        try expr.expression._accept(&self)
+    }
+    
     mutating func visit(_ expr: _SQLExpressionContains) throws { }
     
     mutating func visit(_ expr: _SQLExpressionCount) throws { }
@@ -1105,6 +1113,10 @@ private struct SQLIdentifyingColumns: _SQLExpressionVisitor {
             columns = []
             throw BreakError()
         }
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionCollate) throws {
+        try expr.expression._accept(&self)
     }
     
     mutating func visit(_ expr: _SQLExpressionContains) throws { }
@@ -1226,6 +1238,10 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
             }
             self.rowIDs = rowIDs
         }
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionCollate) throws {
+        try expr.expression._accept(&self)
     }
     
     mutating func visit(_ expr: _SQLExpressionContains) throws {
@@ -1366,6 +1382,10 @@ private struct SQLSelectableIsAggregate: _SQLSelectableVisitor {
         for expression in expr.expressions {
             try expression._accept(&self)
         }
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionCollate) throws {
+        try expr.expression._accept(&self)
     }
     
     mutating func visit(_ expr: _SQLExpressionContains) throws {
