@@ -963,14 +963,27 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///   either .commit or .rollback.
     /// - throws: The error thrown by the block.
     public func inSavepoint(_ block: () throws -> TransactionCompletion) throws {
-        // By default, top level SQLite savepoints open a deferred transaction.
-        //
-        // But GRDB database configuration mandates a default transaction kind
-        // that we have to honor.
-        //
-        // So when the default GRDB transaction kind is not deferred, we open a
-        // transaction instead
-        if !isInsideTransaction && configuration.defaultTransactionKind != .deferred {
+        if !isInsideTransaction {
+            // By default, top level SQLite savepoints open a
+            // deferred transaction.
+            //
+            // But GRDB database configuration mandates a default transaction
+            // kind that we have to honor.
+            //
+            // Besides, starting some (?) SQLCipher/SQLite version, SQLite has a
+            // bug. Returning 1 from `sqlite3_commit_hook` does not leave the
+            // database in the autocommit mode, as expected after a rollback.
+            // This bug only happens, as far as we know, when a transaction is
+            // started with a savepoint:
+            //
+            //      SAVEPOINT test;
+            //      CREATE TABLE t(a);
+            //      -- Rollbacked with sqlite3_commit_hook:
+            //      RELEASE SAVEPOINT test;
+            //      -- Not in the autocommit mode here!
+            //
+            // For those two reasons, we open a transaction instead of a
+            // top-level savepoint.
             try inTransaction(configuration.defaultTransactionKind, block)
             return
         }
