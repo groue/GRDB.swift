@@ -65,7 +65,6 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor 
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Value? {
         if _done {
@@ -121,7 +120,6 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible>:
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Value?? {
         if _done {

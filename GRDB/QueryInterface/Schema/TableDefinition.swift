@@ -149,7 +149,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func reindex(collation: DatabaseCollation) throws {
-        try reindex(collation: Database.CollationName(collation.name))
+        try reindex(collation: Database.CollationName(rawValue: collation.name))
     }
 }
 

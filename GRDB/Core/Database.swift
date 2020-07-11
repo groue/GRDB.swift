@@ -1315,6 +1315,8 @@ extension Database {
 
 extension Database {
     
+    // MARK: - Database-Related Types
+    
     /// See BusyMode and https://www.sqlite.org/c3ref/busy_handler.html
     public typealias BusyCallback = (_ numberOfTries: Int) -> Bool
     
@@ -1360,10 +1362,17 @@ extension Database {
     
     /// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
     public enum CheckpointMode: Int32 {
-        case passive = 0    // SQLITE_CHECKPOINT_PASSIVE
-        case full = 1       // SQLITE_CHECKPOINT_FULL
-        case restart = 2    // SQLITE_CHECKPOINT_RESTART
-        case truncate = 3   // SQLITE_CHECKPOINT_TRUNCATE
+        /// The `SQLITE_CHECKPOINT_PASSIVE` mode
+        case passive = 0
+        
+        /// The `SQLITE_CHECKPOINT_FULL` mode
+        case full = 1
+        
+        /// The `SQLITE_CHECKPOINT_RESTART` mode
+        case restart = 2
+        
+        /// The `SQLITE_CHECKPOINT_TRUNCATE` mode
+        case truncate = 3
     }
     
     /// A built-in SQLite collation.
@@ -1373,23 +1382,19 @@ extension Database {
         /// :nodoc:
         public let rawValue: String
         
-        /// :nodoc:
+        /// Creates a built-in collation name.
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
         
-        public init(_ rawValue: String) {
-            self.rawValue = rawValue
-        }
-        
         /// The `BINARY` built-in SQL collation
-        public static let binary = CollationName("BINARY")
+        public static let binary = CollationName(rawValue: "BINARY")
         
         /// The `NOCASE` built-in SQL collation
-        public static let nocase = CollationName("NOCASE")
+        public static let nocase = CollationName(rawValue: "NOCASE")
         
         /// The `RTRIM` built-in SQL collation
-        public static let rtrim = CollationName("RTRIM")
+        public static let rtrim = CollationName(rawValue: "RTRIM")
     }
     
     /// An SQL column type.
@@ -1404,48 +1409,53 @@ extension Database {
         /// :nodoc:
         public let rawValue: String
         
-        /// :nodoc:
+        /// Creates an SQL column type.
         public init(rawValue: String) {
             self.rawValue = rawValue
         }
         
-        public init(_ rawValue: String) {
-            self.rawValue = rawValue
-        }
-        
         /// The `TEXT` SQL column type
-        public static let text = ColumnType("TEXT")
+        public static let text = ColumnType(rawValue: "TEXT")
         
         /// The `INTEGER` SQL column type
-        public static let integer = ColumnType("INTEGER")
+        public static let integer = ColumnType(rawValue: "INTEGER")
         
         /// The `DOUBLE` SQL column type
-        public static let double = ColumnType("DOUBLE")
+        public static let double = ColumnType(rawValue: "DOUBLE")
         
         /// The `NUMERIC` SQL column type
-        public static let numeric = ColumnType("NUMERIC")
+        public static let numeric = ColumnType(rawValue: "NUMERIC")
         
         /// The `BOOLEAN` SQL column type
-        public static let boolean = ColumnType("BOOLEAN")
+        public static let boolean = ColumnType(rawValue: "BOOLEAN")
         
         /// The `BLOB` SQL column type
-        public static let blob = ColumnType("BLOB")
+        public static let blob = ColumnType(rawValue: "BLOB")
         
         /// The `DATE` SQL column type
-        public static let date = ColumnType("DATE")
+        public static let date = ColumnType(rawValue: "DATE")
         
         /// The `DATETIME` SQL column type
-        public static let datetime = ColumnType("DATETIME")
+        public static let datetime = ColumnType(rawValue: "DATETIME")
     }
     
     /// An SQLite conflict resolution.
     ///
     /// See https://www.sqlite.org/lang_conflict.html.
     public enum ConflictResolution: String {
+        /// The `ROLLBACK` conflict resolution
         case rollback = "ROLLBACK"
+        
+        /// The `ABORT` conflict resolution
         case abort = "ABORT"
+        
+        /// The `FAIL` conflict resolution
         case fail = "FAIL"
+        
+        /// The `IGNORE` conflict resolution
         case ignore = "IGNORE"
+        
+        /// The `REPLACE` conflict resolution
         case replace = "REPLACE"
     }
     
@@ -1453,34 +1463,55 @@ extension Database {
     ///
     /// See https://www.sqlite.org/foreignkeys.html
     public enum ForeignKeyAction: String {
+        /// The `CASCADE` foreign key action
         case cascade = "CASCADE"
+        
+        /// The `RESTRICT` foreign key action
         case restrict = "RESTRICT"
+        
+        /// The `SET NULL` foreign key action
         case setNull = "SET NULL"
+        
+        /// The `SET DEFAULT` foreign key action
         case setDefault = "SET DEFAULT"
     }
     
-    /// log function that takes an error message.
+    /// An error log function that takes an error code and message.
     public typealias LogErrorFunction = (_ resultCode: ResultCode, _ message: String) -> Void
     
     /// An option for `Database.trace(options:_:)`
     public struct TracingOptions: OptionSet {
+        /// The raw "Trace Event Code".
+        ///
+        /// See https://www.sqlite.org/c3ref/c_trace.html
         public let rawValue: CInt
         
+        /// Creates a `TracingOptions` from a raw "Trace Event Code".
+        ///
+        /// See:
+        /// - https://www.sqlite.org/c3ref/c_trace.html
+        /// - `Database.trace(options:_:)`
         public init(rawValue: CInt) {
             self.rawValue = rawValue
         }
         
-        /// Reports executed statements
+        /// Reports executed statements.
+        ///
+        /// See `Database.trace(options:_:)`
         public static let statement = TracingOptions(rawValue: SQLITE_TRACE_STMT)
         
         #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
         /// Reports executed statements and the estimated duration that the
         /// statement took to run.
+        ///
+        /// See `Database.trace(options:_:)`
         public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
         #elseif os(Linux)
         #else
         /// Reports executed statements and the estimated duration that the
         /// statement took to run.
+        ///
+        /// See `Database.trace(options:_:)`
         @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
         public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
         #endif
@@ -1501,11 +1532,19 @@ extension Database {
             let impl: Impl
             
             #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
-            /// The executed SQL.
+            /// The executed SQL, where bound parameters are not expanded.
+            ///
+            /// For example:
+            ///
+            ///     UPDATE player SET score = ? WHERE id = ?
             public var sql: String { _sql }
             #elseif os(Linux)
             #else
-            /// The executed SQL.
+            /// The executed SQL, where bound parameters are not expanded.
+            ///
+            /// For example:
+            ///
+            ///     UPDATE player SET score = ? WHERE id = ?
             @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
             public var sql: String { _sql }
             #endif
@@ -1527,7 +1566,11 @@ extension Database {
                 }
             }
             
-            /// The executed SQL, with bound parameters expanded.
+            /// The executed SQL, where bound parameters are expanded.
+            ///
+            /// For example:
+            ///
+            ///     UPDATE player SET score = 1000 WHERE id = 1
             public var expandedSQL: String {
                 switch impl {
                 case let .trace_v1(expandedSQL):
@@ -1568,21 +1611,27 @@ extension Database {
         }
     }
     
-    /// The end of a transaction: Commit, or Rollback
+    /// Confirms or cancels the changes performed by a transaction or savepoint.
     public enum TransactionCompletion {
+        /// Confirms changes
         case commit
+        
+        /// Cancel changes
         case rollback
     }
     
     /// An SQLite transaction kind. See https://www.sqlite.org/lang_transaction.html
     public enum TransactionKind: String {
+        /// The `DEFERRED` transaction kind
         case deferred = "DEFERRED"
+        
+        /// The `IMMEDIATE` transaction kind
         case immediate = "IMMEDIATE"
+        
+        /// The `EXCLUSIVE` transaction kind
         case exclusive = "EXCLUSIVE"
     }
-}
-
-extension Database {
+    
     /// An SQLite threading mode. See https://www.sqlite.org/threadsafe.html.
     enum ThreadingMode {
         case `default`

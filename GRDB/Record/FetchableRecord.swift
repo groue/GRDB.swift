@@ -433,7 +433,6 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Record? {
         if _done {

@@ -779,7 +779,6 @@ public final class RowCursor: Cursor {
         try? statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Row? {
         if _done {

@@ -97,6 +97,6 @@ extension SQLSpecificExpressible {
     ///
     ///     Player.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
     public func collating(_ collation: DatabaseCollation) -> SQLCollatedExpression {
-        SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(collation.name))
+        SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(rawValue: collation.name))
     }
 }

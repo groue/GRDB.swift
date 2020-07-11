@@ -80,7 +80,6 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Value? {
         if _done {
@@ -139,7 +138,6 @@ public final class FastNullableDatabaseValueCursor<Value>: Cursor
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Value?? {
         if _done {
