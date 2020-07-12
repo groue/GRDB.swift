@@ -254,6 +254,32 @@ public class TableAlias: Hashable {
         }
     }
     
+    /// Creates a TableAlias, suitable for qualifying requests or associations.
+    ///
+    /// For example:
+    ///
+    ///     // The request for all books published after their author has died
+    ///     //
+    ///     // SELECT book.*
+    ///     // FROM book
+    ///     // JOIN author ON author.id = book.authorId
+    ///     // WHERE book.publishDate >= author.deathDate
+    ///     let authorAlias = TableAlias()
+    ///     let request = Book
+    ///         .joining(required: Book.author.aliased(authorAlias))
+    ///         .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    ///
+    /// When the alias is given a name, this name is guaranteed to be used as
+    /// the table alias in the SQL query:
+    ///
+    ///     // SELECT book.*
+    ///     // FROM book
+    ///     // JOIN author a ON a.id = book.authorId
+    ///     // WHERE book.publishDate >= a.deathDate
+    ///     let authorAlias = TableAlias(name: "a")
+    ///     let request = Book
+    ///         .joining(required: Book.author.aliased(authorAlias))
+    ///         .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
     public init(name: String? = nil) {
         self.impl = .undefined(userName: name)
     }

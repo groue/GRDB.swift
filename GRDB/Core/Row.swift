@@ -65,6 +65,17 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
         self.init(initDictionary)
     }
     
+    // ExpressibleByDictionaryLiteral
+    /// Creates a row initialized with elements. Column order is preserved, and
+    /// duplicated columns names are allowed.
+    ///
+    ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
+    ///     print(row)
+    ///     // Prints [foo:1 foo:"bar" baz:NULL]
+    public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
+        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
+    }
+    
     /// Returns an immutable copy of the row.
     ///
     /// For performance reasons, rows fetched from a cursor are reused during
@@ -758,6 +769,7 @@ extension Row {
 ///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RowCursor: Cursor {
+    /// The statement iterated by this cursor
     public let statement: SelectStatement
     @usableFromInline let _sqliteStatement: SQLiteStatement
     @usableFromInline let _row: Row // Reused for performance
@@ -1187,20 +1199,6 @@ extension FetchRequest where RowDecoder == Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> Row? {
         try Row.fetchOne(db, self)
-    }
-}
-
-// ExpressibleByDictionaryLiteral
-extension Row {
-    
-    /// Creates a row initialized with elements. Column order is preserved, and
-    /// duplicated columns names are allowed.
-    ///
-    ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
-    ///     print(row)
-    ///     // Prints [foo:1 foo:"bar" baz:NULL]
-    public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
-        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
 }
 
