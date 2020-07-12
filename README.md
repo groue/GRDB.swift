@@ -1963,9 +1963,7 @@ row["consumed"] // "Hello"
 row["produced"] // nil
 ```
 
-Row adapters are values that adopt the [RowAdapter](http://groue.github.io/GRDB.swift/docs/5.0.0-beta.6/Protocols/RowAdapter.html) protocol. You can implement your own custom adapters ([**:fire: EXPERIMENTAL**](#what-are-experimental-features)), or use one of the four built-in adapters, described below.
-
-To see how row adapters can be used, see [Joined Queries Support](#joined-queries-support).
+Available row adapters are described below.
 
 
 ### ColumnMapping
@@ -2064,6 +2062,8 @@ let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c, 3 AS d", ada
 row // [a:0 b:1]
 row.scopes["remainder"] // [c:2 d:3]
 ```
+
+To see how `ScopeAdapter` can be used, see [Joined Queries Support](#joined-queries-support).
 
 
 ## Raw SQLite Pointers

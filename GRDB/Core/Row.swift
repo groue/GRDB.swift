@@ -1395,13 +1395,13 @@ extension Row {
     ///     row.scopes["bar"] // [bar:2]
     ///     row.scopes["baz"] // nil
     public struct ScopesView: Collection {
-        public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
+        public typealias Index = Dictionary<String, _LayoutedRowAdapter>.Index
         private let row: Row
-        private let scopes: [String: LayoutedRowAdapter]
+        private let scopes: [String: _LayoutedRowAdapter]
         private let prefetchedRows: Row.PrefetchedRowsView
         
         /// The scopes defined on this row.
-        public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
+        public var names: Dictionary<String, _LayoutedRowAdapter>.Keys {
             scopes.keys
         }
         
@@ -1409,7 +1409,7 @@ extension Row {
             self.init(row: Row(), scopes: [:], prefetchedRows: Row.PrefetchedRowsView())
         }
         
-        init(row: Row, scopes: [String: LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
+        init(row: Row, scopes: [String: _LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
             self.row = row
             self.scopes = scopes
             self.prefetchedRows = prefetchedRows
