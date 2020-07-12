@@ -1,6 +1,6 @@
 import Foundation
 
-/// Types that adopt FetchableRecord can be initialized from a database Row.
+/// Types that adopt `FetchableRecord` can be initialized from a database Row.
 ///
 ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
 ///     let player = Player(row)
@@ -16,8 +16,6 @@ import Foundation
 ///     try Player.fetchCursor(statement, arguments:...) // Cursor of Player
 ///     try Player.fetchAll(statement, arguments:...)    // [Player]
 ///     try Player.fetchOne(statement, arguments:...)    // Player?
-///
-/// FetchableRecord is adopted by Record.
 public protocol FetchableRecord {
     
     // MARK: - Row Decoding

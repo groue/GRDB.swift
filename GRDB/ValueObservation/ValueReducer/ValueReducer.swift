@@ -1,4 +1,6 @@
 /// Implementation details of `ValueReducer`.
+///
+/// :nodoc:
 public protocol _ValueReducer {
     /// The type of fetched database values
     associatedtype Fetched

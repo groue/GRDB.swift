@@ -1,10 +1,10 @@
-/// The StatementColumnConvertible protocol grants access to the low-level C
+/// The `StatementColumnConvertible` protocol grants access to the low-level C
 /// interface that extracts values from query results:
 /// https://www.sqlite.org/c3ref/column_blob.html. It can bring performance
 /// improvements.
 ///
-/// To use it, have a value type adopt both StatementColumnConvertible and
-/// DatabaseValueConvertible. GRDB will then automatically apply the
+/// To use it, have a value type adopt both `StatementColumnConvertible` and
+/// `DatabaseValueConvertible`. GRDB will then automatically apply the
 /// optimization whenever direct access to SQLite is possible:
 ///
 ///     let rows = Row.fetchCursor(db, sql: "SELECT ...")
@@ -19,8 +19,8 @@
 ///         }
 ///     }
 ///
-/// StatementColumnConvertible is already adopted by all Swift integer types,
-/// Float, Double, String, and Bool.
+/// `StatementColumnConvertible` is already adopted by all Swift integer types,
+/// `Float`, `Double`, `String`, and `Bool`.
 public protocol StatementColumnConvertible {
     
     /// Initializes a value from a raw SQLite statement pointer.

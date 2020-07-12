@@ -10,7 +10,7 @@ extension Database.ConflictResolution {
     }
 }
 
-/// An error thrown by a type that adopts PersistableRecord.
+/// An error thrown by a type that adopts `MutablePersistableRecord`.
 public enum PersistenceError: Error, CustomStringConvertible {
     
     /// Thrown by `MutablePersistableRecord.update(_:)` methods when no matching
@@ -33,8 +33,8 @@ extension PersistenceError {
     }
 }
 
-/// The MutablePersistableRecord protocol uses this type in order to handle SQLite
-/// conflicts when records are inserted or updated.
+/// The `MutablePersistableRecord` protocol uses this type in order to handle
+/// SQLite conflicts when records are inserted or updated.
 ///
 /// See `MutablePersistableRecord.persistenceConflictPolicy`.
 ///
@@ -53,7 +53,8 @@ public struct PersistenceConflictPolicy {
     }
 }
 
-/// Types that adopt MutablePersistableRecord can be inserted, updated, and deleted.
+/// Types that adopt `MutablePersistableRecord` can be inserted, updated,
+/// and deleted.
 public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// The policy that handles SQLite conflicts when records are inserted
     /// or updated.
@@ -680,12 +681,10 @@ extension MutablePersistableRecord {
 
 // MARK: - PersistableRecord
 
-/// Types that adopt PersistableRecord can be inserted, updated, and deleted.
+/// Types that adopt `PersistableRecord` can be inserted, updated, and deleted.
 ///
-/// This protocol is intented for types that don't have an INTEGER PRIMARY KEY.
-///
-/// Unlike MutablePersistableRecord, the insert() and save() methods are not
-/// mutating methods.
+/// Unlike `MutablePersistableRecord`, the `insert(_:)` and `save(_:)` methods
+/// are not mutating methods.
 public protocol PersistableRecord: MutablePersistableRecord {
     
     /// Notifies the record that it was succesfully inserted.

@@ -231,6 +231,7 @@ extension QueryInterfaceRequest: AggregatingRequest {
     }
 }
 
+/// :nodoc:
 extension QueryInterfaceRequest: _JoinableRequest {
     /// :nodoc:
     public func _including(all association: _SQLAssociation) -> QueryInterfaceRequest {

@@ -1,15 +1,13 @@
 import Foundation
 
-/// Types that adopt TableRecord declare a particular relationship with
+/// Types that adopt `TableRecord` declare a particular relationship with
 /// a database table.
 ///
-/// Types that adopt both TableRecord and FetchableRecord are granted with
+/// Types that adopt both `TableRecord` and `FetchableRecord` are granted with
 /// built-in methods that allow to fetch instances identified by key:
 ///
 ///     try Player.fetchOne(db, key: 123)  // Player?
 ///     try Citizenship.fetchOne(db, key: ["citizenId": 12, "countryId": 45]) // Citizenship?
-///
-/// TableRecord is adopted by Record.
 public protocol TableRecord {
     /// The name of the database table used to build requests.
     ///

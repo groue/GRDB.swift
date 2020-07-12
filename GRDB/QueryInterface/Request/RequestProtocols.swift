@@ -191,7 +191,7 @@ extension FilteredRequest {
     }
 }
 
-// MARK: - TableRequest {
+// MARK: - TableRequest
 
 /// The protocol for all requests that feed from a database table
 public protocol TableRequest {

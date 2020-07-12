@@ -1,6 +1,7 @@
 // MARK: - SQLExpressible
 
-/// The protocol for all types that can be used as SQL expression.
+/// `SQLExpressible` is the protocol for all types that can be used as an
+/// SQL expression.
 ///
 /// It is adopted by protocols like `DatabaseValueConvertible`, and types
 /// like `Column`.
