@@ -806,7 +806,7 @@ extension DatabasePool: DatabaseReader {
     // MARK: - Database Observation
     
     /// :nodoc:
-    public func _add<Reducer: _ValueReducer>(
+    public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -836,7 +836,7 @@ extension DatabasePool: DatabaseReader {
     
     /// A concurrent observation fetches the initial value without waiting for
     /// the writer.
-    private func _addConcurrent<Reducer: _ValueReducer>(
+    private func _addConcurrent<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -926,7 +926,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     // Support for _addConcurrent(observation:)
-    private func add<Reducer: _ValueReducer>(
+    private func add<Reducer: ValueReducer>(
         observer: ValueObserver<Reducer>,
         from initialSnapshot: DatabaseSnapshot)
     {

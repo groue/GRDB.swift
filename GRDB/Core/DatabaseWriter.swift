@@ -3,16 +3,17 @@ import Combine
 #endif
 import Dispatch
 
-/// The protocol for all types that can update a database.
+/// `DatabaseWriter` is the protocol for all types that can write into an
+/// SQLite database.
 ///
-/// It is adopted by DatabaseQueue and DatabasePool.
+/// It is adopted by `DatabaseQueue` and `DatabasePool`.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// adopting types in a multithreaded application.
 ///
 /// Types that adopt the protocol can in practice provide stronger guarantees.
-/// For example, DatabaseQueue provides a stronger isolation level
-/// than DatabasePool.
+/// For example, `DatabaseQueue` provides a stronger isolation level
+/// than `DatabasePool`.
 ///
 /// **Warning**: Isolation guarantees stand as long as there is no external
 /// connection to the database. Should you have to cope with external
@@ -312,7 +313,7 @@ extension DatabaseWriter {
     // MARK: - Database Observation
     
     /// A write-only observation only uses the serialized writer
-    func _addWriteOnly<Reducer: _ValueReducer>(
+    func _addWriteOnly<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -488,10 +489,10 @@ extension DatabasePublishers {
     ///
     /// See:
     ///
-    /// - `DatabaseReader.writePublisher(updates:)`.
-    /// - `DatabaseReader.writePublisher(updates:thenRead:)`.
-    /// - `DatabaseReader.writePublisher(receiveOn:updates:)`.
-    /// - `DatabaseReader.writePublisher(receiveOn:updates:thenRead:)`.
+    /// - `DatabaseWriter.writePublisher(updates:)`.
+    /// - `DatabaseWriter.writePublisher(updates:thenRead:)`.
+    /// - `DatabaseWriter.writePublisher(receiveOn:updates:)`.
+    /// - `DatabaseWriter.writePublisher(receiveOn:updates:thenRead:)`.
     public struct Write<Output>: Publisher {
         public typealias Output = Output
         public typealias Failure = Error
@@ -662,7 +663,7 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     // MARK: - Database Observation
     
     /// :nodoc:
-    public func _add<Reducer: _ValueReducer>(
+    public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)

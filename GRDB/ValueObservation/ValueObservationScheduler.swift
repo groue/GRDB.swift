@@ -1,7 +1,7 @@
 import Dispatch
 import Foundation
 
-/// ValueObservationScheduler determines how ValueObservation notifies its
+/// ValueObservationScheduler determines how `ValueObservation` notifies its
 /// fresh values.
 public class ValueObservationScheduler {
     private let impl: ValueObservationSchedulerImpl

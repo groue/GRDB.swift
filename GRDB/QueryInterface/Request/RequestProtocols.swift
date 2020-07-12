@@ -493,7 +493,7 @@ extension OrderedRequest {
 
 // MARK: - JoinableRequest
 
-/// Implementation details of the JoinableRequest protocol.
+/// Implementation details of `JoinableRequest`.
 ///
 /// :nodoc:
 public protocol _JoinableRequest {

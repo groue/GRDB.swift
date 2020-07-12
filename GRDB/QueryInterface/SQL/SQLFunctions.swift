@@ -182,22 +182,48 @@ extension SQLSpecificExpressible {
 
 // MARK: - Date functions
 
-/// A date modifier for SQLite date functions.
+/// A date modifier for SQLite date functions such as `julianDay(_:_:)` and
+/// `dateTime(_:_:)`.
 ///
 /// For more information, see https://www.sqlite.org/lang_datefunc.html
 public enum SQLDateModifier: SQLExpression {
-    case day(Int)
-    case hour(Int)
-    case minute(Int)
+    /// Adds the specified amount of seconds
     case second(Double)
+    
+    /// Adds the specified amount of minutes
+    case minute(Int)
+    
+    /// Adds the specified amount of hours
+    case hour(Int)
+    
+    /// Adds the specified amount of days
+    case day(Int)
+    
+    /// Adds the specified amount of months
     case month(Int)
+    
+    /// Adds the specified amount of years
     case year(Int)
-    case startOfMonth
-    case startOfYear
+    
+    /// Shifts the date backwards to the beginning of the current day
     case startOfDay
+    
+    /// Shifts the date backwards to the beginning of the current month
+    case startOfMonth
+    
+    /// Shifts the date backwards to the beginning of the current year
+    case startOfYear
+    
+    /// See https://www.sqlite.org/lang_datefunc.html
     case weekday(Int)
+    
+    /// See https://www.sqlite.org/lang_datefunc.html
     case unixEpoch
+    
+    /// See https://www.sqlite.org/lang_datefunc.html
     case localTime
+    
+    /// See https://www.sqlite.org/lang_datefunc.html
     case utc
     
     var rawValue: String {

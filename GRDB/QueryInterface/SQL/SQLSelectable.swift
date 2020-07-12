@@ -1,6 +1,6 @@
 // MARK: - SQLSelectable
 
-/// Implementation details of SQLSelectable.
+/// Implementation details of `SQLSelectable`.
 ///
 /// :nodoc:
 public protocol _SQLSelectable {

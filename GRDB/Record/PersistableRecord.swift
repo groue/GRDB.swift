@@ -13,11 +13,11 @@ extension Database.ConflictResolution {
 /// An error thrown by a type that adopts PersistableRecord.
 public enum PersistenceError: Error, CustomStringConvertible {
     
-    /// Thrown by MutablePersistableRecord.update() when no matching row could be
-    /// found in the database.
+    /// Thrown by `MutablePersistableRecord.update(_:)` methods when no matching
+    /// row could be found in the database.
     ///
-    /// - databaseTableName: the table of the unfound record
-    /// - key: the key of the unfound record (column and values)
+    /// - `databaseTableName`: the table of the unfound record
+    /// - `key`: the key of the unfound record (column and values)
     case recordNotFound(databaseTableName: String, key: [String: DatabaseValue])
 }
 

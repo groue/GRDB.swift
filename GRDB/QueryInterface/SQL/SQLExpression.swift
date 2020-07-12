@@ -1,6 +1,6 @@
 // MARK: - SQLExpression
 
-/// Implementation details of SQLExpression.
+/// Implementation details of `SQLExpression`.
 ///
 /// :nodoc:
 public protocol _SQLExpression {

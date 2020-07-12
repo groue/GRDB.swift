@@ -412,7 +412,7 @@ extension XCTestCase {
 // MARK: - GRDBTestCase + ValueObservationExpectation
 
 extension GRDBTestCase {
-    func _assertValueObservation<Reducer: _ValueReducer>(
+    func _assertValueObservation<Reducer: ValueReducer>(
         _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
@@ -631,7 +631,7 @@ extension GRDBTestCase {
         }
     }
     
-    func _assertValueObservation<Reducer: _ValueReducer, Failure: Error>(
+    func _assertValueObservation<Reducer: ValueReducer, Failure: Error>(
         _ observation: ValueObservation<Reducer>,
         fails testFailure: (Failure, DatabaseWriter) throws -> Void,
         setup: (Database) throws -> Void,
@@ -735,7 +735,7 @@ extension GRDBTestCase {
         try _assertValueObservation(observation, fails: testFailure, setup: setup, file: file, line: line)
     }
     #else
-    func assertValueObservation<Reducer: _ValueReducer>(
+    func assertValueObservation<Reducer: ValueReducer>(
         _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
@@ -753,7 +753,7 @@ extension GRDBTestCase {
             file: file, line: line)
     }
     
-    func assertValueObservation<Reducer: _ValueReducer, Failure: Error>(
+    func assertValueObservation<Reducer: ValueReducer, Failure: Error>(
         _ observation: ValueObservation<Reducer>,
         fails testFailure: (Failure, DatabaseWriter) throws -> Void,
         setup: (Database) throws -> Void,

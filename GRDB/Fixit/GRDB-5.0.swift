@@ -20,8 +20,8 @@ extension AnyFetchRequest {
 }
 
 @available(*, unavailable, message: "Custom reducers are no longer supported. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
-    public var isSelectedRegionDeterministic: Bool
+public struct AnyValueReducer<Fetched, Value>: ValueReducer {
+    public var _isSelectedRegionDeterministic: Bool
     { preconditionFailure() }
     
     public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
@@ -30,10 +30,10 @@ public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
     public init<Base: _ValueReducer>(_ reducer: Base) where Base.Fetched == Fetched, Base.Value == Value
     { preconditionFailure() }
     
-    public func fetch(_ db: Database) throws -> Fetched
+    public func _fetch(_ db: Database) throws -> Fetched
     { preconditionFailure() }
     
-    public func value(_ fetched: Fetched) -> Value?
+    public func _value(_ fetched: Fetched) -> Value?
     { preconditionFailure() }
 }
 
@@ -522,19 +522,16 @@ extension ValueObservation where Reducer.Value: Equatable {
 
 extension ValueReducers {
     @available(*, unavailable)
-    public enum Unavailable<T>: _ValueReducer {
-        public var isSelectedRegionDeterministic: Bool
+    public enum Unavailable<T>: ValueReducer {
+        public var _isSelectedRegionDeterministic: Bool
         { preconditionFailure() }
         
-        public func fetch(_ db: Database) throws -> Never
+        public func _fetch(_ db: Database) throws -> Never
         { preconditionFailure() }
         
-        public mutating func value(_ fetched: Never) -> T? { }
+        public mutating func _value(_ fetched: Never) -> T? { }
     }
 }
-
-@available(*, unavailable, message: "Custom reducers are no longer supported. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-typealias ValueReducer = _ValueReducer
 
 @available(*, unavailable, message: "ValueObservation now schedules its values asynchronously on the main queue by default. See ValueObservation.start() for possible configuration")
 enum ValueScheduling {

@@ -1,6 +1,6 @@
 // MARK: - SQLOrderingTerm
 
-/// Implementation details of SQLOrderingTerm.
+/// Implementation details of `SQLOrderingTerm`.
 ///
 /// :nodoc:
 public protocol _SQLOrderingTerm {
@@ -16,7 +16,6 @@ public protocol _SQLOrderingTerm {
 
 /// The protocol for all types that can be used as an SQL ordering term, as
 /// described at https://www.sqlite.org/syntax/ordering-term.html
-///
 public protocol SQLOrderingTerm: _SQLOrderingTerm { }
 
 // MARK: - _SQLOrdering

@@ -877,7 +877,7 @@ typealias StatementObservation = (TransactionObservation, DatabaseEventPredicate
 
 // MARK: - Database events
 
-/// A kind of database event. See the TransactionObserver protocol for
+/// A kind of database event. See the `TransactionObserver` protocol for
 /// more information.
 public enum DatabaseEventKind {
     /// The insertion of a row in a database table

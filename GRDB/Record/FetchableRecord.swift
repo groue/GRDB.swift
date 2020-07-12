@@ -537,13 +537,14 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
 
 // MARK: - DatabaseDateDecodingStrategy
 
-/// DatabaseDateDecodingStrategy specifies how FetchableRecord types that also
-/// adopt the standard Decodable protocol decode their date properties.
+/// `DatabaseDateDecodingStrategy` specifies how `FetchableRecord` types that
+/// also  adopt the standard `Decodable` protocol decode their
+/// `Date` properties.
 ///
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
-///         static let databaseDateDecodingStrategy: DatabaseDateDecodingStrategy = .timeIntervalSince1970
+///         static let databaseDateDecodingStrategy = DatabaseDateDecodingStrategy.timeIntervalSince1970
 ///
 ///         var name: String
 ///         var registrationDate: Date // decoded from epoch timestamp

@@ -1,6 +1,6 @@
 import Foundation
 
-/// Implementation details of Association.
+/// Implementation details of `Association`.
 ///
 /// :nodoc:
 public protocol _Association {

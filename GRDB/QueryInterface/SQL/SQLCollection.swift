@@ -1,6 +1,6 @@
 // MARK: - SQLCollection
 
-/// Implementation details of SQLCollection.
+/// Implementation details of `SQLCollection`.
 ///
 /// :nodoc:
 public protocol _SQLCollection {

@@ -1,6 +1,6 @@
 // MARK: - FetchRequest
 
-/// Implementation details of FetchRequest.
+/// Implementation details of `FetchRequest`.
 ///
 /// :nodoc:
 public protocol _FetchRequest {
@@ -15,6 +15,7 @@ public protocol _FetchRequest {
 ///     let request: ... // Some FetchRequest that fetches Player
 ///     try request.fetchCursor(db) // Cursor of Player
 ///     try request.fetchAll(db)    // [Player]
+///     try request.fetchSet(db)    // Set<Player>
 ///     try request.fetchOne(db)    // Player?
 ///     try request.fetchCount(db)  // Int
 public protocol FetchRequest: _FetchRequest, DatabaseRegionConvertible, SQLExpression, SQLCollection {

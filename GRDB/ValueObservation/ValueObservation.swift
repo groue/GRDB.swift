@@ -19,7 +19,7 @@ import Foundation
 ///         onChange: { players: [Player] in
 ///             print("Players have changed.")
 ///         })
-public struct ValueObservation<Reducer: _ValueReducer> {
+public struct ValueObservation<Reducer: ValueReducer> {
     var events = ValueObservationEvents()
     
     /// The reducer is created when observation starts, and is triggered upon

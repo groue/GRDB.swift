@@ -2,7 +2,7 @@ import Foundation
 
 /// Support for ValueObservation.
 /// See DatabaseWriter.add(observation:onError:onChange:)
-final class ValueObserver<Reducer: _ValueReducer> {
+final class ValueObserver<Reducer: ValueReducer> {
     var isCompleted: Bool { synchronized { _isCompleted } }
     let events: ValueObservationEvents
     private var observedRegion: DatabaseRegion? {
@@ -90,10 +90,10 @@ extension ValueObserver: TransactionObserver {
         events.databaseDidChange?()
         
         // 1. Fetch
-        let fetchedValue: DatabaseFuture<Reducer.Fetched>
+        let fetchedFuture: DatabaseFuture<Reducer.Fetched>
         if requiresWriteAccess || needsRecordingSelectedRegion {
             // Synchronously
-            fetchedValue = DatabaseFuture(Result {
+            fetchedFuture = DatabaseFuture(Result {
                 try recordingSelectedRegionIfNeeded(db) {
                     try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                 }
@@ -101,7 +101,7 @@ extension ValueObserver: TransactionObserver {
         } else {
             // Concurrently
             guard let writer = writer else { return }
-            fetchedValue = writer.concurrentRead(reducer.fetch)
+            fetchedFuture = writer.concurrentRead(reducer._fetch)
         }
         
         // 2. Reduce
@@ -113,7 +113,8 @@ extension ValueObserver: TransactionObserver {
         reduceQueue.async {
             if self.isCompleted { return }
             do {
-                if let value = try self.reducer.value(fetchedValue.wait()) {
+                let fetchedValue = try fetchedFuture.wait()
+                if let value = self.reducer._value(fetchedValue) {
                     self.notifyChange(value)
                 }
             } catch {
@@ -199,7 +200,7 @@ extension ValueObserver {
     }
     
     private var needsRecordingSelectedRegion: Bool {
-        observedRegion == nil || !reducer.isSelectedRegionDeterministic
+        observedRegion == nil || !reducer._isSelectedRegionDeterministic
     }
     
     private func recordingSelectedRegionIfNeeded<T>(
