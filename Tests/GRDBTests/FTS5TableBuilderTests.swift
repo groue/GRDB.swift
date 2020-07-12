@@ -40,6 +40,28 @@ class FTS5TableBuilderTests: GRDBTestCase {
         }
     }
 
+    func testAsciiTokenizerSeparators() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .ascii(separators: ["X"])
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='ascii separators ''X''')")
+        }
+    }
+
+    func testAsciiTokenizerTokenCharacters() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .ascii(tokenCharacters: Set(".-"))
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='ascii tokenchars ''-.''')")
+        }
+    }
+
     func testDefaultPorterTokenizer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

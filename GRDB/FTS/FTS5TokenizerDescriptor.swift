@@ -58,12 +58,12 @@ public struct FTS5TokenizerDescriptor {
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
         -> FTS5TokenizerDescriptor {
-        let components: [String] = ["ascii"]
+        var components: [String] = ["ascii"]
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            separatorComponents = DatabaseQueue().inDatabase { db in
+            let separatorComponents = DatabaseQueue().inDatabase { db in
                 // Assume quoting a string never fails
                 try! [
                     "separators",
