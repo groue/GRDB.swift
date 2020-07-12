@@ -521,7 +521,7 @@ public final class TableAlteration {
         return column
     }
     
-    #if GRDBCUSTOMSQLITE || GRDBCipher
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
