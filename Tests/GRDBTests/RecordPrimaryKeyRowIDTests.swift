@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // Person has a RowID primary key, and a overriden insert() method.
-private class Person : Record {
+private class Person : Record, Hashable {
     var id: Int64!
     var name: String!
     var age: Int?
@@ -58,6 +58,20 @@ private class Person : Record {
     
     override func didInsert(with rowID: Int64, for column: String?) {
         self.id = rowID
+    }
+    
+    static func == (lhs: Person, rhs: Person) -> Bool {
+        lhs.id == rhs.id
+            && lhs.name == rhs.name
+            && lhs.age == rhs.age
+            && lhs.creationDate == rhs.creationDate
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(name)
+        hasher.combine(age)
+        hasher.combine(creationDate)
     }
 }
 
@@ -372,6 +386,33 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
         }
     }
     
+    func testFetchSetWithKeys() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Person.fetchSet(db, keys: [])
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Person.fetchSet(db, keys: [["id": record1.id], ["id": record2.id]])
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
+            }
+            
+            do {
+                let fetchedRecords = try Person.fetchSet(db, keys: [["id": record1.id], ["id": nil]])
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
+            }
+        }
+    }
+    
     func testFetchOneWithKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -440,6 +481,33 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             
             do {
                 let fetchedRecords = try Person.filter(keys: [["id": record1.id], ["id": nil]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
+            }
+        }
+    }
+    
+    func testFetchSetWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Person.filter(keys: []).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Person.filter(keys: [["id": record1.id], ["id": record2.id]]).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set([record1.id, record2.id]))
+            }
+            
+            do {
+                let fetchedRecords = try Person.filter(keys: [["id": record1.id], ["id": nil]]).fetchSet(db)
                 XCTAssertEqual(fetchedRecords.count, 1)
                 XCTAssertEqual(fetchedRecords.first!.id, record1.id!)
             }
@@ -522,6 +590,29 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
         }
     }
     
+    func testFetchSetWithPrimaryKeys() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Person.fetchSet(db, keys: ids)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let fetchedRecords = try Person.fetchSet(db, keys: ids)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+            }
+        }
+    }
+    
     func testFetchOneWithPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -589,6 +680,29 @@ class RecordPrimaryKeyRowIDTests: GRDBTestCase {
             do {
                 let ids = [record1.id!, record2.id!]
                 let fetchedRecords = try Person.filter(keys: ids).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+            }
+        }
+    }
+    
+    func testFetchSetWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Person(name: "Arthur")
+            try record1.insert(db)
+            let record2 = Person(name: "Barbara")
+            try record2.insert(db)
+            
+            do {
+                let ids: [Int64] = []
+                let fetchedRecords = try Person.filter(keys: ids).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let ids = [record1.id!, record2.id!]
+                let fetchedRecords = try Person.filter(keys: ids).fetchSet(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }

@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // Citizenship has a multiple-column primary key.
-private class Citizenship : Record {
+private class Citizenship : Record, Hashable {
     var personName: String!
     var countryName: String!
     var native: Bool!
@@ -41,6 +41,18 @@ private class Citizenship : Record {
         container["personName"] = personName
         container["countryName"] = countryName
         container["native"] = native
+    }
+    
+    static func == (lhs: Citizenship, rhs: Citizenship) -> Bool {
+        lhs.personName == rhs.personName
+            && lhs.countryName == rhs.countryName
+            && lhs.native == rhs.native
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(personName)
+        hasher.combine(countryName)
+        hasher.combine(native)
     }
 }
 
@@ -331,6 +343,33 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
         }
     }
     
+    func testFetchSetWithKeys() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record1.insert(db)
+            let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Citizenship.fetchSet(db, keys: [])
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.fetchSet(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]])
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.personName)), Set([record1.personName, record2.personName]))
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.fetchSet(db, keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]])
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
+            }
+        }
+    }
+    
     func testFetchOneWithKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -398,6 +437,33 @@ class RecordPrimaryKeyMultipleTests: GRDBTestCase {
             
             do {
                 let fetchedRecords = try Citizenship.filter(keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]]).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
+            }
+        }
+    }
+    
+    func testFetchSetWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Citizenship(personName: "Arthur", countryName: "France", native: true)
+            try record1.insert(db)
+            let record2 = Citizenship(personName: "Barbara", countryName: "France", native: false)
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Citizenship.filter(keys: []).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.filter(keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": record2.personName, "countryName": record2.countryName]]).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.personName)), Set([record1.personName, record2.personName]))
+            }
+            
+            do {
+                let fetchedRecords = try Citizenship.filter(keys: [["personName": record1.personName, "countryName": record1.countryName], ["personName": nil, "countryName": nil]]).fetchSet(db)
                 XCTAssertEqual(fetchedRecords.count, 1)
                 XCTAssertEqual(fetchedRecords.first!.personName, record1.personName!)
             }

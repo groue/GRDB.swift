@@ -726,11 +726,12 @@ let wines = try dbQueue.read { db in
 
 ### Fetching Methods
 
-**Throughout GRDB**, you can always fetch *cursors*, *arrays*, or *single values* of any fetchable type (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
+**Throughout GRDB**, you can always fetch *cursors*, *arrays*, *sets*, or *single values* of any fetchable type (database [row](#row-queries), simple [value](#value-queries), or custom [record](#records)):
 
 ```swift
 try Row.fetchCursor(...) // A Cursor of Row
 try Row.fetchAll(...)    // [Row]
+try Row.fetchSet(...)    // Set<Row>
 try Row.fetchOne(...)    // Row?
 ```
 
@@ -746,6 +747,12 @@ try Row.fetchOne(...)    // Row?
     let players = try Player.fetchAll(db, sql: "SELECT ...") // [Player]
     ```
 
+- `fetchSet` returns a **set**:
+    
+    ```swift
+    let names = try String.fetchSet(db, sql: "SELECT ...") // Set<String>
+    ```
+
 - `fetchOne` returns a **single optional value**, and consumes a single database row (if any).
     
     ```swift
@@ -755,9 +762,9 @@ try Row.fetchOne(...)    // Row?
 
 ### Cursors
 
-**Whenever you consume several rows from the database, you can fetch an Array, or a Cursor**.
+**Whenever you consume several rows from the database, you can fetch an Array, a Set, or a Cursor**.
 
-The `fetchAll()` method returns a regular Swift array, that you iterate like all other arrays:
+The `fetchAll()` and `fetchSet()` methods return regular Swift array and sets, that you iterate like all other arrays and sets:
 
 ```swift
 try dbQueue.read { db in
@@ -769,7 +776,7 @@ try dbQueue.read { db in
 }
 ```
 
-Unlike arrays, cursors returned by `fetchCursor()` load their results step after step:
+Unlike arrays and sets, cursors returned by `fetchCursor()` load their results step after step:
 
 ```swift
 try dbQueue.read { db in
@@ -781,8 +788,6 @@ try dbQueue.read { db in
 }
 ```
 
-Both arrays and cursors can iterate over database results. How do you choose one or the other? Look at the differences:
-
 - **Cursors can not be used on any thread**: you must consume a cursor on the dispatch queue it was created in. Particularly, don't extract a cursor out of a database access method:
     
     ```swift
@@ -793,7 +798,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
     while let player = try cursor.next() { ... }
     ```
     
-    Conversely, arrays may be consumed on any thread:
+    Conversely, arrays and sets may be consumed on any thread:
     
     ```swift
     // OK
@@ -803,11 +808,11 @@ Both arrays and cursors can iterate over database results. How do you choose one
     for player in array { ... }
     ```
     
-- **Cursors can be iterated only one time.** Arrays can be iterated many times.
+- **Cursors can be iterated only one time.** Arrays and sets can be iterated many times.
 
-- **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays contain copies of database values, and may take a lot of memory when there are many fetched results.
+- **Cursors iterate database results in a lazy fashion**, and don't consume much memory. Arrays and sets contain copies of database values, and may take a lot of memory when there are many fetched results.
 
-- **Cursors are granted with direct access to SQLite,** unlike arrays that have to take the time to copy database values. If you look after extra performance, you may prefer cursors over arrays.
+- **Cursors are granted with direct access to SQLite,** unlike arrays and sets that have to take the time to copy database values. If you look after extra performance, you may prefer cursors.
 
 - **Cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/5.0.0-beta.6/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
     
@@ -830,7 +835,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
     let set = try Set(cursor)
     ```
     
-- **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time. SQL functions may throw errors. On iOS, [data protection](#data-protection) may block access to the database file in the background. On macOS, your application users may mess with the file system.
+- **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time.
 
 - **Cursors require a little care**:
     
@@ -843,7 +848,7 @@ Both arrays and cursors can iterate over database results. How do you choose one
         }
         ```
     
-    - Don't turn a cursor of `Row` into an array. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
+    - Don't turn a cursor of `Row` into an array or a set. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. To get a set of rows, use `Row.fetchSet(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 If you don't see, or don't care about the difference, use arrays. If you care about memory and performance, use cursors when appropriate.
 
@@ -858,12 +863,13 @@ If you don't see, or don't care about the difference, use arrays. If you care ab
 
 #### Fetching Rows
 
-Fetch **cursors** of rows, **arrays**, or **single** rows (see [fetching methods](#fetching-methods)):
+Fetch **cursors** of rows, **arrays**, **sets**, or **single** rows (see [fetching methods](#fetching-methods)):
 
 ```swift
 try dbQueue.read { db in
     try Row.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Row
     try Row.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Row]
+    try Row.fetchSet(db, sql: "SELECT ...", arguments: ...)    // Set<Row>
     try Row.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Row?
     
     let rows = try Row.fetchCursor(db, sql: "SELECT * FROM wine")
@@ -895,7 +901,7 @@ See [Values](#values) for more information on supported arguments types (Bool, I
 
 Unlike row arrays that contain copies of the database rows, row cursors are close to the SQLite metal, and require a little care:
 
-> :point_up: **Don't turn a cursor of `Row` into an array**. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
+> :point_up: **Don't turn a cursor of `Row` into an array or a set**. You would not get the distinct rows you expect. To get a array of rows, use `Row.fetchAll(...)`. To get a set of rows, use `Row.fetchSet(...)`. Generally speaking, make sure you copy a row whenever you extract it from a cursor for later use: `row.copy()`.
 
 
 #### Column Values
@@ -1130,17 +1136,19 @@ See the documentation of [`Dictionary.init(_:uniquingKeysWith:)`](https://develo
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
+Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, **sets**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 try dbQueue.read { db in
     try Int.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Int
     try Int.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int]
+    try Int.fetchSet(db, sql: "SELECT ...", arguments: ...)    // Set<Int>
     try Int.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Int?
     
     // When database may contain NULL:
     try Optional<Int>.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Int?
     try Optional<Int>.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int?]
+    try Optional<Int>.fetchSet(db, sql: "SELECT ...", arguments: ...)    // Set<Int?>
 }
 
 let playerCount = try dbQueue.read { db in
@@ -1713,6 +1721,7 @@ Select statements can be used wherever a raw SQL query string would fit (see [fe
 ```swift
 let rows = try Row.fetchCursor(selectStatement)    // A Cursor of Row
 let players = try Player.fetchAll(selectStatement) // [Player]
+let players = try Player.fetchSet(selectStatement) // Set<Player>
 let player = try Player.fetchOne(selectStatement)  // Player?
 ```
 
@@ -2406,10 +2415,11 @@ FetchableRecord allows adopting types to be fetched from SQL queries:
 ```swift
 try Place.fetchCursor(db, sql: "SELECT ...", arguments:...) // A Cursor of Place
 try Place.fetchAll(db, sql: "SELECT ...", arguments:...)    // [Place]
+try Place.fetchSet(db, sql: "SELECT ...", arguments:...)    // Set<Place>
 try Place.fetchOne(db, sql: "SELECT ...", arguments:...)    // Place?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/5.0.0-beta.6/Structs/StatementArguments.html) for more information about the query arguments.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods. See [StatementArguments](http://groue.github.io/GRDB.swift/docs/5.0.0-beta.6/Structs/StatementArguments.html) for more information about the query arguments.
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
@@ -2474,9 +2484,11 @@ TableRecord can also fetch records by primary key:
 ```swift
 try Player.fetchOne(db, key: 1)              // Player?
 try Player.fetchAll(db, keys: [1, 2, 3])     // [Player]
+try Player.fetchSet(db, keys: [1, 2, 3])     // Set<Player>
 
 try Country.fetchOne(db, key: "FR")          // Country?
 try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
+try Country.fetchSet(db, keys: ["FR", "US"]) // Set<Country>
 ```
 
 When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
@@ -3596,6 +3608,12 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchAll(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchAll(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchAll(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| **Fetch Record Sets** | | |
+| `Type.fetchSet(db)` | [FetchableRecord] & [TableRecord] | |
+| `Type.fetchSet(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchSet(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchSet(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchSet(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Individual Records** | | |
 | `Type.fetchOne(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchOne(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
@@ -4494,6 +4512,7 @@ let request = Player.filter(...)... // QueryInterfaceRequest<Player>
 // Fetch players:
 try request.fetchCursor(db) // A Cursor of Player
 try request.fetchAll(db)    // [Player]
+try request.fetchSet(db)    // Set<Player>
 try request.fetchOne(db)    // Player?
 ```
 
@@ -4504,7 +4523,7 @@ let allPlayers = try Player.fetchAll(db)                            // [Player]
 let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db) // Player?
 ```
 
-See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll` and `fetchOne` methods.
+See [fetching methods](#fetching-methods) for information about the `fetchCursor`, `fetchAll`, `fetchSet` and `fetchOne` methods.
 
 **You sometimes want to fetch other values**.
 
@@ -4766,6 +4785,7 @@ Those requests of type `QueryInterfaceRequest` can fetch and count:
 ```swift
 try request.fetchCursor(db) // A Cursor of Player
 try request.fetchAll(db)    // [Player]
+try request.fetchSet(db)    // Set<Player>
 try request.fetchOne(db)    // Player?
 try request.fetchCount(db)  // Int
 ```
