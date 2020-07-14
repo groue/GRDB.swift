@@ -52,6 +52,8 @@ public struct FTS5TokenizerDescriptor {
     /// - parameters:
     ///     - separators: Unless empty (the default), SQLite will consider
     ///       these characters as token separators.
+    ///     - tokenCharacters: Unless empty (the default), SQLite will
+    ///       consider these characters as token characters.
     ///
     /// See https://www.sqlite.org/fts5.html#ascii_tokenizer
     public static func ascii(
