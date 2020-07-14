@@ -17,6 +17,8 @@ public class AnyDatabaseCancellable: DatabaseCancellable {
         _cancel = cancel
     }
     
+    /// Initializes a cancellable object that forwards cancellation to the
+    /// provided cancellable.
     public convenience init(_ cancellable: DatabaseCancellable) {
         self.init(cancel: cancellable.cancel)
     }

@@ -223,6 +223,108 @@ class RowFetchTests: GRDBTestCase {
             }
         }
     }
+    
+    func testFetchSet() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            func test(_ set: Set<Row>) {
+                XCTAssertEqual(Set(set.map { $0["firstName"] as String }), ["Arthur", "Barbara"])
+                XCTAssertEqual(Set(set.map { $0["lastName"] as String }), ["Martin", "Gourde"])
+            }
+            do {
+                let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
+                let statement = try db.makeSelectStatement(sql: sql)
+                try test(Row.fetchSet(db, sql: sql))
+                try test(Row.fetchSet(statement))
+                try test(Row.fetchSet(db, SQLRequest<Void>(sql: sql)))
+                try test(SQLRequest<Row>(sql: sql).fetchSet(db))
+            }
+            do {
+                let sql = "SELECT 0 AS firstName, 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 0, 'Barbara', 'Gourde'"
+                let statement = try db.makeSelectStatement(sql: sql)
+                let adapter = SuffixRowAdapter(fromIndex: 1)
+                try test(Row.fetchSet(db, sql: sql, adapter: adapter))
+                try test(Row.fetchSet(statement, adapter: adapter))
+                try test(Row.fetchSet(db, SQLRequest<Void>(sql: sql, adapter: adapter)))
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchSet(db))
+            }
+        }
+    }
+    
+    func testFetchSetWithInterpolation() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let request: SQLRequest<Row> = "SELECT \("O'Brien")"
+            let rows = try request.fetchSet(db)
+            XCTAssertEqual(rows.first![0], "O'Brien")
+        }
+    }
+    
+    func testFetchSetStepFailure() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let customError = NSError(domain: "Custom", code: 0xDEAD)
+        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+        try dbQueue.inDatabase { db in
+            func test(_ set: @autoclosure () throws -> Set<Row>, sql: String) throws {
+                do {
+                    _ = try set()
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                    XCTAssertEqual(error.message, "\(customError)")
+                    XCTAssertEqual(error.sql!, sql)
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                }
+            }
+            do {
+                let sql = "SELECT throw()"
+                try test(Row.fetchSet(db, sql: sql), sql: sql)
+                try test(Row.fetchSet(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchSet(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchSet(db), sql: sql)
+            }
+            do {
+                let sql = "SELECT 0, throw()"
+                let adapter = SuffixRowAdapter(fromIndex: 1)
+                try test(Row.fetchSet(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchSet(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchSet(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchSet(db), sql: sql)
+            }
+        }
+    }
+
+    func testFetchSetCompilationFailure() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            func test(_ set: @autoclosure () throws -> Set<Row>, sql: String) throws {
+                do {
+                    _ = try set()
+                    XCTFail()
+                } catch let error as DatabaseError {
+                    XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                    XCTAssertEqual(error.message, "no such table: nonExistingTable")
+                    XCTAssertEqual(error.sql!, sql)
+                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: no such table: nonExistingTable")
+                }
+            }
+            do {
+                let sql = "SELECT * FROM nonExistingTable"
+                try test(Row.fetchSet(db, sql: sql), sql: sql)
+                try test(Row.fetchSet(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Row.fetchSet(db, SQLRequest<Void>(sql: sql)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql).fetchSet(db), sql: sql)
+            }
+            do {
+                let sql = "SELECT * FROM nonExistingTable"
+                let adapter = SuffixRowAdapter(fromIndex: 1)
+                try test(Row.fetchSet(db, sql: sql, adapter: adapter), sql: sql)
+                try test(Row.fetchSet(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Row.fetchSet(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
+                try test(SQLRequest<Row>(sql: sql, adapter: adapter).fetchSet(db), sql: sql)
+            }
+        }
+    }
 
     func testFetchOne() throws {
         let dbQueue = try makeDatabaseQueue()

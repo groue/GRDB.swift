@@ -2,6 +2,7 @@ import Foundation
 
 /// A Collation is a string comparison function used by SQLite.
 public final class DatabaseCollation {
+    /// The name of the collation
     public let name: String
     let function: (Int32, UnsafeRawPointer?, Int32, UnsafeRawPointer?) -> ComparisonResult
     

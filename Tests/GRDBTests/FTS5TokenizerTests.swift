@@ -34,6 +34,35 @@ class FTS5TokenizerTests: GRDBTestCase {
         }
     }
 
+    func testAsciiTokenizerSeparators() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .ascii(separators: ["X"])
+                t.column("content")
+            }
+
+            XCTAssertTrue(match(db, "abcXdef", "abcXdef"))
+            XCTAssertFalse(match(db, "abcXdef", "defXabc")) // likely a bug in FTS5. FTS3 handles that well.
+            XCTAssertTrue(match(db, "abcXdef", "abc"))
+            XCTAssertTrue(match(db, "abcXdef", "def"))
+        }
+    }
+
+    func testAsciiTokenizerTokenCharacters() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .ascii(tokenCharacters: Set(".-"))
+                t.column("content")
+            }
+
+            XCTAssertTrue(match(db, "2016-10-04.txt", "\"2016-10-04.txt\""))
+            XCTAssertFalse(match(db, "2016-10-04.txt", "2016"))
+            XCTAssertFalse(match(db, "2016-10-04.txt", "txt"))
+        }
+    }
+
     func testDefaultPorterTokenizer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

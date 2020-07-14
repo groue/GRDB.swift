@@ -149,7 +149,7 @@ extension Database {
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func reindex(collation: DatabaseCollation) throws {
-        try reindex(collation: Database.CollationName(collation.name))
+        try reindex(collation: Database.CollationName(rawValue: collation.name))
     }
 }
 
@@ -521,7 +521,7 @@ public final class TableAlteration {
         return column
     }
     
-    #if GRDBCUSTOMSQLITE || GRDBCipher
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Renames a column in a table.
     ///
     ///     try db.alter(table: "player") { t in
@@ -774,7 +774,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    // Defines the default column collation.
+    /// Defines the default column collation.
     ///
     ///     try db.create(table: "player") { t in
     ///         t.column("email", .text).collate(.nocase)
@@ -790,7 +790,7 @@ public final class ColumnDefinition {
         return self
     }
     
-    // Defines the default column collation.
+    /// Defines the default column collation.
     ///
     ///     try db.create(table: "player") { t in
     ///         t.column("name", .text).collate(.localizedCaseInsensitiveCompare)

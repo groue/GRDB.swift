@@ -213,7 +213,6 @@ extension DatabaseValue {
 
 // SQLExpressible
 extension DatabaseValue {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
         self
@@ -222,24 +221,8 @@ extension DatabaseValue {
 
 // SQLExpression
 extension DatabaseValue {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        if isNull {
-            // fast path for NULL
-            return "NULL"
-        } else if context.append(arguments: [self]) {
-            // Use statement arguments
-            return "?"
-        } else {
-            // Quoting needed: just use SQLite, which knows better.
-            return try String.fetchOne(context.db, sql: "SELECT QUOTE(?)", arguments: [self])!
-        }
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public var negated: SQLExpression {
+    public var _negated: SQLExpression {
         switch storage {
         case .null:
             // SELECT NOT NULL -- NULL
@@ -253,7 +236,7 @@ extension DatabaseValue {
             //
             // SELECT NOT '1' -- 0 (because '1' is turned into the integer 1, which is negated into 0)
             // SELECT NOT '0' -- 1 (because '0' is turned into the integer 0, which is negated into 1)
-            return SQLExpressionNot(self)
+            return _SQLExpressionNot(self)
         case .blob:
             // We can't assume all blobs are true, and return false:
             //
@@ -261,14 +244,18 @@ extension DatabaseValue {
             //  then into integer 1, which is negated into 0)
             // SELECT NOT X'30' -- 1 (because X'30' is turned into the string '0',
             //  then into integer 0, which is negated into 1)
-            return SQLExpressionNot(self)
+            return _SQLExpressionNot(self)
         }
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         self
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 

@@ -2,20 +2,22 @@
 
 import GRDB
 
-
 var configuration = Configuration()
-configuration.trace = { print($0) }
+configuration.prepareDatabase = { db in
+    db.trace { print("SQL> \($0)") }
+}
 let dbQueue = DatabaseQueue(configuration: configuration)
 
 try! dbQueue.inDatabase { db in
-    try db.create(table: "persons") { t in
-        t.column("id", .integer).primaryKey()
-        t.column("name", .text)
+    try db.create(table: "player") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("name", .text).notNull()
+        t.column("score", .integer).notNull()
     }
     
-    try db.execute(sql: "INSERT INTO persons (name) VALUES (?)", arguments: ["Arthur"])
-    try db.execute(sql: "INSERT INTO persons (name) VALUES (?)", arguments: ["Barbara"])
+    try db.execute(sql: "INSERT INTO player (name, score) VALUES (?, ?)", arguments: ["Arthur", 1000])
+    try db.execute(sql: "INSERT INTO player (name, score) VALUES (?, ?)", arguments: ["Barbara", 1000])
     
-    let names = try String.fetchAll(db, sql: "SELECT name FROM persons")
+    let names = try String.fetchAll(db, sql: "SELECT name FROM player")
     print(names)
 }

@@ -315,6 +315,10 @@ private struct TableRegion: Equatable {
 
 // MARK: - DatabaseRegionConvertible
 
+/// `DatabaseRegionConvertible` is the protocol for values that can be turned
+/// into a `DatabaseRegion`.
+///
+/// Such values specify the region obserbed by `DatabaseRegionObservation`.
 public protocol DatabaseRegionConvertible {
     /// Returns a database region.
     ///

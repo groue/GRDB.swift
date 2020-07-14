@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Reader {
+private struct Reader: Hashable {
     var id: Int64?
     let name: String
     let age: Int?
@@ -122,6 +122,15 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
                 XCTAssertEqual(readers[1].id!, barbara.id!)
                 XCTAssertEqual(readers[1].name, barbara.name)
                 XCTAssertEqual(readers[1].age, barbara.age)
+            }
+            
+            do {
+                let readers = try Reader.fetchSet(db)
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\"")
+                XCTAssertEqual(readers.count, 2)
+                XCTAssertEqual(Set(readers.map(\.id)), [arthur.id!, barbara.id!])
+                XCTAssertEqual(Set(readers.map(\.name)), [arthur.name, barbara.name])
+                XCTAssertEqual(Set(readers.map(\.age)), [arthur.age, barbara.age])
             }
             
             do {

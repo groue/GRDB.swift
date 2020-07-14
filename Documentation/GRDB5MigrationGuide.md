@@ -427,11 +427,9 @@ let publisher = observation
     Player.select(myFunction(Column("name")))
     ```
 
-8. Defining custom `FetchRequest` types is now **discouraged**.
+8. Defining custom `FetchRequest` types is no longer supported.
     
-    A future GRDB version will remove the ability to define custom `FetchRequest` types.
-    
-    Our suggestion is to refactor your app so that your custom request type is no longer needed: [SQLRequest] and [QueryInterfaceRequest] are now supposed to fully address your needs. If it is not possible, then please [open an issue](https://github.com/groue/GRDB.swift/issues) and describe your particular use case.
+    Refactor your app around [SQLRequest] and [QueryInterfaceRequest], which are supposed to fully address your needs.
     
 9. The module name for [custom SQLite builds](CustomSQLiteBuilds.md) is now the plain `GRDB`:
     
@@ -457,6 +455,12 @@ let publisher = observation
     let sqliteVersion = String(cString: sqlite3_libversion())
     ```
 
+11. `FetchedRecordsController` was removed from GRDB 5. The [Database Observation] chapter describes the other ways to observe the database.
+
+12. Defining custom `RowAdapter` types is no longer supported.
+
+13. Many types and methods that support the query builder used to be publicly exposed and flagged as experimental. They are now private, or renamed with an underscore prefix, which means they are not for public use.
+
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
@@ -470,3 +474,4 @@ let publisher = observation
 [SQLRequest]: ../README.md#custom-requests
 [QueryInterfaceRequest]: ../README.md#requests
 [Combine publishers]: Combine.md
+[Database Observation]: ../README.md#database-changes-observation

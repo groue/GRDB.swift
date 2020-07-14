@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-class Email : Record {
+class Email : Record, Hashable {
     var email: String!
     var label: String?
     
@@ -34,6 +34,15 @@ class Email : Record {
     override func encode(to container: inout PersistenceContainer) {
         container["email"] = email
         container["label"] = label
+    }
+    
+    static func == (lhs: Email, rhs: Email) -> Bool {
+        lhs.label == rhs.label && lhs.email == rhs.email
+    }
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(label)
+        hasher.combine(email)
     }
 }
 
@@ -313,6 +322,35 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         }
     }
     
+    func testFetchSetWithKeys() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Email.fetchSet(db, keys: [])
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Email.fetchSet(db, keys: [["email": record1.email], ["email": record2.email]])
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.email)), Set([record1.email, record2.email]))
+            }
+            
+            do {
+                let fetchedRecords = try Email.fetchSet(db, keys: [["email": record1.email], ["email": nil]])
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.email, record1.email!)
+            }
+        }
+    }
+    
     func testFetchOneWithKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -389,6 +427,35 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         }
     }
     
+    func testFetchSetWithKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let fetchedRecords = try Email.filter(keys: []).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let fetchedRecords = try Email.filter(keys: [["email": record1.email], ["email": record2.email]]).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.email)), Set([record1.email, record2.email]))
+            }
+            
+            do {
+                let fetchedRecords = try Email.filter(keys: [["email": record1.email], ["email": nil]]).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 1)
+                XCTAssertEqual(fetchedRecords.first!.email, record1.email!)
+            }
+        }
+    }
+    
     func testFetchOneWithKeyRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -410,17 +477,6 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let request = Email.orderByPrimaryKey()
             try assertEqualSQL(db, request, "SELECT * FROM \"emails\" ORDER BY \"email\"")
-        }
-    }
-    
-    
-    // MARK: - Select Primary Key
-    
-    func testSelectPrimaryKey() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let request: QueryInterfaceRequest<String> = Email.selectPrimaryKey()
-            try assertEqualSQL(db, request, "SELECT \"email\" FROM \"emails\"")
         }
     }
     
@@ -472,6 +528,31 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 let emails = [record1.email!, record2.email!]
                 let fetchedRecords = try Email.fetchAll(db, keys: emails)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.email)), Set(emails))
+            }
+        }
+    }
+    
+    func testFetchSetWithPrimaryKeys() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let emails: [String] = []
+                let fetchedRecords = try Email.fetchSet(db, keys: emails)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let emails = [record1.email!, record2.email!]
+                let fetchedRecords = try Email.fetchSet(db, keys: emails)
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map(\.email)), Set(emails))
             }
@@ -547,6 +628,31 @@ class RecordPrimaryKeySingleWithReplaceConflictResolutionTests: GRDBTestCase {
             do {
                 let emails = [record1.email!, record2.email!]
                 let fetchedRecords = try Email.filter(keys: emails).fetchAll(db)
+                XCTAssertEqual(fetchedRecords.count, 2)
+                XCTAssertEqual(Set(fetchedRecords.map(\.email)), Set(emails))
+            }
+        }
+    }
+    
+    func testFetchSetWithPrimaryKeysRequest() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record1 = Email()
+            record1.email = "me@domain.com"
+            try record1.insert(db)
+            let record2 = Email()
+            record2.email = "you@domain.com"
+            try record2.insert(db)
+            
+            do {
+                let emails: [String] = []
+                let fetchedRecords = try Email.filter(keys: emails).fetchSet(db)
+                XCTAssertEqual(fetchedRecords.count, 0)
+            }
+            
+            do {
+                let emails = [record1.email!, record2.email!]
+                let fetchedRecords = try Email.filter(keys: emails).fetchSet(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map(\.email)), Set(emails))
             }

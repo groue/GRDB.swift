@@ -988,7 +988,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             try! test(targetQueue: .main)
             expectation.fulfill()
         }
-        waitForExpectations(timeout: 1, handler: nil)
+        waitForExpectations(timeout: 2, handler: nil)
     }
     
     func testQoS() throws {

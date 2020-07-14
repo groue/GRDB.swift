@@ -6,13 +6,16 @@ public final class DatabaseFunction: Hashable {
         let nArg: Int32 // -1 for variadic functions
     }
     
+    /// The name of the SQL function
     public var name: String { identity.name }
     private let identity: Identity
     let pure: Bool
     private let kind: Kind
     private var eTextRep: Int32 { (SQLITE_UTF8 | (pure ? SQLITE_DETERMINISTIC : 0)) }
     
-    /// Returns an SQL function.
+    /// Creates an SQL function.
+    ///
+    /// For example:
     ///
     ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
     ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
@@ -52,9 +55,11 @@ public final class DatabaseFunction: Hashable {
         }
     }
     
-    /// Returns an SQL aggregate function.
+    /// Creates an SQL aggregate function.
     ///
-    ///     struct MySum : DatabaseAggregate {
+    /// For example:
+    ///
+    ///     struct MySum: DatabaseAggregate {
     ///         var sum: Int = 0
     ///
     ///         mutating func step(_ dbValues: [DatabaseValue]) {

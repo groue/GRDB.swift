@@ -1,5 +1,5 @@
 import XCTest
-import GRDB
+@testable import GRDB
 
 private struct Col {
     static let id = Column("id")
@@ -809,6 +809,10 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(!Col.age)),
             "SELECT * FROM \"readers\" WHERE NOT \"age\"")
+        // Make sure NOT NOT "hack" is available in order to produce 0 or 1
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!(!Col.age))),
+            "SELECT * FROM \"readers\" WHERE NOT (NOT \"age\")")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age && true)),
             "SELECT * FROM \"readers\" WHERE \"age\" AND 1")
@@ -1259,5 +1263,42 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(customFunction(Col.age, 1, 2))),
             "SELECT avgOf(\"age\", 1, 2) FROM \"readers\"")
+    }
+    
+    // MARK: - _SQLExpressionFastPrimaryKey
+    
+    func testFastPrimaryKeyExpression() throws {
+        struct IntegerPrimaryKeyRecord: TableRecord { }
+        struct UUIDRecord: TableRecord { }
+        struct UUIDRecordWithoutRowID: TableRecord { }
+        struct RowIDRecord: TableRecord { }
+        struct CompoundPrimaryKeyRecord: TableRecord { }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TABLE integerPrimaryKeyRecord (id INTEGER PRIMARY KEY);
+                CREATE TABLE uuidRecord (uuid TEXT PRIMARY KEY);
+                CREATE TABLE uuidRecordWithoutRowID (uuid TEXT PRIMARY KEY) WITHOUT ROWID;
+                CREATE TABLE rowIDRecord (name TEXT);
+                CREATE TABLE compoundPrimaryKeyRecord (a INTEGER, b INTEGER, PRIMARY KEY (a, b));
+                """)
+            
+            try assertEqualSQL(db, IntegerPrimaryKeyRecord.select(_SQLExpressionFastPrimaryKey()), """
+                SELECT "id" FROM "integerPrimaryKeyRecord"
+                """)
+            try assertEqualSQL(db, UUIDRecord.select(_SQLExpressionFastPrimaryKey()), """
+                SELECT "rowid" FROM "uuidRecord"
+                """)
+            try assertEqualSQL(db, UUIDRecordWithoutRowID.select(_SQLExpressionFastPrimaryKey()), """
+                SELECT "uuid" FROM "uuidRecordWithoutRowID"
+                """)
+            try assertEqualSQL(db, RowIDRecord.select(_SQLExpressionFastPrimaryKey()), """
+                SELECT "rowid" FROM "rowIDRecord"
+                """)
+            try assertEqualSQL(db, CompoundPrimaryKeyRecord.select(_SQLExpressionFastPrimaryKey()), """
+                SELECT "rowid" FROM "compoundPrimaryKeyRecord"
+                """)
+        }
     }
 }

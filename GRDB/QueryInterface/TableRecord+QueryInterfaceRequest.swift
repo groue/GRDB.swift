@@ -126,31 +126,6 @@ extension TableRecord {
         all().select(literal: sqlLiteral, as: type)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates a request which selects the primary key of the table.
-    ///
-    /// For example:
-    ///
-    ///     struct Player: TableRecord { ... }
-    ///
-    ///     let playerIds = dbQueue.read { db in
-    ///         try Player.selectPrimaryKey(as: Int64.self).fetchAll(db)
-    ///     }
-    ///
-    /// For tables that have no explicit primary key, the request selects the
-    /// `rowid` column.
-    ///
-    /// For tables whose primary key spans several columns, the current
-    /// implementation also returns a request that selects the `rowid` column.
-    /// Future GRDB versions may return a [row value](https://www.sqlite.org/rowvalue.html).
-    public static func selectPrimaryKey<RowDecoder>(
-        as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
-    {
-        all().selectPrimaryKey(as: type)
-    }
-    
     /// Creates a request which appends *selection*.
     ///
     ///     // SELECT id, email, name FROM player

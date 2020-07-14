@@ -66,11 +66,11 @@ public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var sqlAssociation: SQLAssociation
+    public var _sqlAssociation: _SQLAssociation
     
     /// :nodoc:
-    public init(sqlAssociation: SQLAssociation) {
-        self.sqlAssociation = sqlAssociation
+    public init(sqlAssociation: _SQLAssociation) {
+        self._sqlAssociation = sqlAssociation
     }
     
     init(
@@ -82,8 +82,8 @@ public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord
             destinationTable: Destination.databaseTableName,
             foreignKey: foreignKey)
         
-        let condition = SQLAssociationCondition(
-            foreignKeyRequest: foreignKeyRequest,
+        let condition = SQLAssociationCondition.foreignKey(
+            request: foreignKeyRequest,
             originIsLeft: true)
         
         let associationKey: SQLAssociationKey
@@ -93,7 +93,7 @@ public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord
             associationKey = .inflected(Destination.databaseTableName)
         }
         
-        sqlAssociation = SQLAssociation(
+        _sqlAssociation = _SQLAssociation(
             key: associationKey,
             condition: condition,
             relation: Destination.relationForAll,

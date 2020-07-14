@@ -2,7 +2,6 @@
 
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Write regression tests for #156 and #157
-- [ ] Fix matchingRowIds (todo: what is the problem, already?)
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
@@ -16,6 +15,8 @@
 
 ## Features
 
+- [ ] DatabaseMigrator.publisher(in:)
+- [ ] Look at [@FetchRequest](https://developer.apple.com/documentation/swiftui/fetchrequest): managed object context is stored in the environment, and error processing happens somewhere else (where?).
 - [ ] Handle SQLITE_LIMIT_VARIABLE_NUMBER in deleteAll(_:keys:) and similar APIs. https://www.sqlite.org/limits.html
 - [ ] Concurrent migrator / or not
 - [ ] Subqueries: request.isEmpty / request.exists

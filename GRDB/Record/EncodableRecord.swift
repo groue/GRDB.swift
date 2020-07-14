@@ -1,6 +1,6 @@
 import Foundation // For JSONEncoder
 
-/// Types that adopt EncodableRecord can be encoded into the database.
+/// Types that adopt `EncodableRecord` can be encoded into the database.
 public protocol EncodableRecord {
     /// Encodes the record into database values.
     ///
@@ -313,13 +313,13 @@ extension Row {
 
 // MARK: - DatabaseDateEncodingStrategy
 
-/// DatabaseDateEncodingStrategy specifies how EncodableRecord types that also
-/// adopt the standard Encodable protocol encode their date properties.
+/// `DatabaseDateEncodingStrategy` specifies how `EncodableRecord` types that
+/// also adopt the standard `Encodable` protocol encode their `Date` properties.
 ///
 /// For example:
 ///
 ///     struct Player: EncodableRecord, Encodable {
-///         static let databaseDateEncodingStrategy: DatabaseDateEncodingStrategy = .timeIntervalSince1970
+///         static let databaseDateEncodingStrategy = DatabaseDateEncodingStrategy.timeIntervalSince1970
 ///
 ///         var name: String
 ///         var registrationDate: Date // encoded as an epoch timestamp
@@ -360,13 +360,13 @@ public enum DatabaseDateEncodingStrategy {
 
 // MARK: - DatabaseUUIDEncodingStrategy
 
-/// DatabaseUUIDEncodingStrategy specifies how EncodableRecord types that also
-/// adopt the standard Encodable protocol encode their UUID properties.
+/// `DatabaseUUIDEncodingStrategy` specifies how `EncodableRecord` types that
+/// also adopt the standard `Encodable` protocol encode their `UUID` properties.
 ///
 /// For example:
 ///
 ///     struct Player: EncodableProtocol, Encodable {
-///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .string
+///         static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
 ///
 ///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
 ///         var uuid: UUID

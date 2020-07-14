@@ -65,6 +65,17 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
         self.init(initDictionary)
     }
     
+    // ExpressibleByDictionaryLiteral
+    /// Creates a row initialized with elements. Column order is preserved, and
+    /// duplicated columns names are allowed.
+    ///
+    ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
+    ///     print(row)
+    ///     // Prints [foo:1 foo:"bar" baz:NULL]
+    public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
+        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
+    }
+    
     /// Returns an immutable copy of the row.
     ///
     /// For performance reasons, rows fetched from a cursor are reused during
@@ -758,6 +769,7 @@ extension Row {
 ///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RowCursor: Cursor {
+    /// The statement iterated by this cursor
     public let statement: SelectStatement
     @usableFromInline let _sqliteStatement: SQLiteStatement
     @usableFromInline let _row: Row // Reused for performance
@@ -779,7 +791,6 @@ public final class RowCursor: Cursor {
         try? statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Row? {
         if _done {
@@ -823,7 +834,7 @@ extension Row {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -860,6 +871,27 @@ extension Row {
     {
         // The cursor reuses a single mutable row. Return immutable copies.
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
+    }
+    
+    /// Returns a set of rows fetched from a prepared statement.
+    ///
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT ...")
+    ///     let rows = try Row.fetchSet(statement)
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set of rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> Set<Row>
+    {
+        // The cursor reuses a single mutable row. Return immutable copies.
+        return try Set(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
     }
     
     /// Returns a single row fetched from a prepared statement.
@@ -910,7 +942,7 @@ extension Row {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -952,6 +984,31 @@ extension Row {
         throws -> [Row]
     {
         try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+    }
+    
+    /// Returns a set of rows fetched from an SQL query.
+    ///
+    ///     let rows = try Row.fetchSet(db, sql: "SELECT id, name FROM player") // Set<Row>
+    ///     for row in rows {
+    ///         let id: Int64 = row[0]
+    ///         let name: String = row[1]
+    ///     }
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set of rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> Set<Row>
+    {
+        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -1004,7 +1061,7 @@ extension Row {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1030,8 +1087,29 @@ extension Row {
     public static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [Row] {
         let request = try request.makePreparedRequest(db, forSingleResult: false)
         let rows = try fetchAll(request.statement, adapter: request.adapter)
-        try request.supplementaryFetch?(rows)
+        try request.supplementaryFetch?(db, rows)
         return rows
+    }
+    
+    /// Returns a set of rows fetched from a fetch request.
+    ///
+    ///     let request = Player.all()
+    ///     let rows = try Row.fetchSet(db, request)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: A set of rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet<R: FetchRequest>(_ db: Database, _ request: R) throws -> Set<Row> {
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
+        if let supplementaryFetch = request.supplementaryFetch {
+            let rows = try fetchAll(request.statement, adapter: request.adapter)
+            try supplementaryFetch(db, rows)
+            return Set(rows)
+        } else {
+            return try fetchSet(request.statement, adapter: request.adapter)
+        }
     }
     
     /// Returns a single row fetched from a fetch request.
@@ -1049,7 +1127,7 @@ extension Row {
         guard let row = try fetchOne(request.statement, adapter: request.adapter) else {
             return nil
         }
-        try request.supplementaryFetch?([row])
+        try request.supplementaryFetch?(db, [row])
         return row
     }
 }
@@ -1078,7 +1156,7 @@ extension FetchRequest where RowDecoder == Row {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched rows.
@@ -1099,6 +1177,18 @@ extension FetchRequest where RowDecoder == Row {
         try Row.fetchAll(db, self)
     }
     
+    /// A set of fetched rows.
+    ///
+    ///     let request: ... // Some FetchRequest that fetches Row
+    ///     let rows = try request.fetchSet(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of fetched rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<Row> {
+        try Row.fetchSet(db, self)
+    }
+    
     /// The first fetched row.
     ///
     ///     let request: ... // Some FetchRequest that fetches Row
@@ -1109,20 +1199,6 @@ extension FetchRequest where RowDecoder == Row {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> Row? {
         try Row.fetchOne(db, self)
-    }
-}
-
-// ExpressibleByDictionaryLiteral
-extension Row {
-    
-    /// Creates a row initialized with elements. Column order is preserved, and
-    /// duplicated columns names are allowed.
-    ///
-    ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
-    ///     print(row)
-    ///     // Prints [foo:1 foo:"bar" baz:NULL]
-    public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
-        self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
 }
 
@@ -1319,13 +1395,13 @@ extension Row {
     ///     row.scopes["bar"] // [bar:2]
     ///     row.scopes["baz"] // nil
     public struct ScopesView: Collection {
-        public typealias Index = Dictionary<String, LayoutedRowAdapter>.Index
+        public typealias Index = Dictionary<String, _LayoutedRowAdapter>.Index
         private let row: Row
-        private let scopes: [String: LayoutedRowAdapter]
+        private let scopes: [String: _LayoutedRowAdapter]
         private let prefetchedRows: Row.PrefetchedRowsView
         
         /// The scopes defined on this row.
-        public var names: Dictionary<String, LayoutedRowAdapter>.Keys {
+        public var names: Dictionary<String, _LayoutedRowAdapter>.Keys {
             scopes.keys
         }
         
@@ -1333,7 +1409,7 @@ extension Row {
             self.init(row: Row(), scopes: [:], prefetchedRows: Row.PrefetchedRowsView())
         }
         
-        init(row: Row, scopes: [String: LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
+        init(row: Row, scopes: [String: _LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
             self.row = row
             self.scopes = scopes
             self.prefetchedRows = prefetchedRows

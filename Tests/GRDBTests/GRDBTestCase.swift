@@ -215,7 +215,7 @@ class GRDBTestCase: XCTestCase {
         try _assertEqualSQL(databaseReader, request, sql, file: file, line: line)
     }
     #endif
-
+    
     func sql<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request) -> String {
         try! databaseReader.unsafeRead { db in
             try request.makeStatement(db).makeCursor().next()
@@ -238,25 +238,25 @@ extension FetchRequest {
 }
 
 /// A type-erased ValueReducer.
-public struct AnyValueReducer<Fetched, Value>: _ValueReducer {
-    private var _fetch: (Database) throws -> Fetched
-    private var _value: (Fetched) -> Value?
+public struct AnyValueReducer<Fetched, Value>: ValueReducer {
+    private var __fetch: (Database) throws -> Fetched
+    private var __value: (Fetched) -> Value?
     
-    public var isSelectedRegionDeterministic: Bool { false }
+    public var _isSelectedRegionDeterministic: Bool { false }
     
     public init(
         fetch: @escaping (Database) throws -> Fetched,
         value: @escaping (Fetched) -> Value?)
     {
-        self._fetch = fetch
-        self._value = value
+        self.__fetch = fetch
+        self.__value = value
     }
     
-    public func fetch(_ db: Database) throws -> Fetched {
-        try _fetch(db)
+    public func _fetch(_ db: Database) throws -> Fetched {
+        try __fetch(db)
     }
     
-    public func value(_ fetched: Fetched) -> Value? {
-        _value(fetched)
+    public func _value(_ fetched: Fetched) -> Value? {
+        __value(fetched)
     }
 }

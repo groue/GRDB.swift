@@ -265,18 +265,20 @@ extension MyDatabaseDecoder {
     // MARK: - Fetch from FetchRequest
     
     static func fetchCursor<R: FetchRequest>(_ db: Database, _ request: R) throws -> MapCursor<RowCursor, DecodedType> {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchCursor(statement, adapter: adapter)
+        let preparedRequest = try request.makePreparedRequest(db, forSingleResult: false)
+        return try fetchCursor(preparedRequest.statement, adapter: preparedRequest.adapter)
     }
     
     static func fetchAll<R: FetchRequest>(_ db: Database, _ request: R) throws -> [DecodedType] {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchAll(statement, adapter: adapter)
+        let preparedRequest = try request.makePreparedRequest(db, forSingleResult: false)
+        return try fetchAll(preparedRequest.statement, adapter: preparedRequest.adapter)
     }
     
     static func fetchOne<R: FetchRequest>(_ db: Database, _ request: R) throws -> DecodedType? {
-        let (statement, adapter) = try request.prepare(db)
-        return try fetchOne(statement, adapter: adapter)
+        // The `forSingleResult: true` argument hints the request that a single
+        // row will be consumed. Some requests will add a LIMIT SQL clause.
+        let preparedRequest = try request.makePreparedRequest(db, forSingleResult: true)
+        return try fetchOne(preparedRequest.statement, adapter: preparedRequest.adapter)
     }
 }
 

@@ -62,7 +62,7 @@ class ValueObservationTests: GRDBTestCase {
             })
             
             withExtendedLifetime(cancellable) {
-                waitForExpectations(timeout: 1, handler: nil)
+                waitForExpectations(timeout: 2, handler: nil)
                 XCTAssertTrue(errorCaught)
             }
         }
@@ -103,7 +103,7 @@ class ValueObservationTests: GRDBTestCase {
             onError: { error in XCTFail("Unexpected error: \(error)") },
             onChange: { _ in })
         withExtendedLifetime(observer) {
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
             XCTAssertEqual(region!.description, "t(id,name)") // view is NOT tracked
         }
     }
@@ -162,7 +162,7 @@ class ValueObservationTests: GRDBTestCase {
                 expectation.fulfill()
         })
         withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
             XCTAssertEqual(observedCounts, [0, 0])
         }
     }
@@ -202,7 +202,7 @@ class ValueObservationTests: GRDBTestCase {
                 expectation.fulfill()
         })
         withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
             XCTAssertEqual(observedCounts, [0, 0])
         }
     }
@@ -369,7 +369,7 @@ class ValueObservationTests: GRDBTestCase {
         // Avoid "Variable 'cancellable' was written to, but never read" warning
         _ = cancellable
         
-        waitForExpectations(timeout: 1, handler: nil)
+        waitForExpectations(timeout: 2, handler: nil)
         XCTAssertEqual(changesCount, 2)
     }
     
@@ -413,7 +413,7 @@ class ValueObservationTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
             
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
             XCTAssertEqual(changesCount, 2)
         }
     }
@@ -453,7 +453,7 @@ class ValueObservationTests: GRDBTestCase {
             try dbWriter.write { db in
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
         }
 
         try test(makeDatabaseQueue())
@@ -496,7 +496,7 @@ class ValueObservationTests: GRDBTestCase {
             try dbWriter.write { db in
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
         }
         
         try test(makeDatabaseQueue())

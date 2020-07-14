@@ -11,7 +11,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6) | [5.0.0-beta.7](#500-beta7)
 
 
 #### 4.x Releases
@@ -73,6 +73,22 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 <!--
 ## Next Release
 -->
+
+
+## 5.0.0-beta.7
+
+Released July 14, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.6...v5.0.0-beta.7)
+
+- **New**: [#802](https://github.com/groue/GRDB.swift/pull/802) by [@GetToSet](https://github.com/GetToSet): Add tokenchars support for ascii tokenizer in FTS5
+- **New**: `fetchSet` has joined `fetchCursor`, `fetchAll` and `fetchOne` in the group of universal fetching methods.
+- **Breaking Change**: [#803](https://github.com/groue/GRDB.swift/pull/803): Remove FetchedRecordsController
+- **Breaking Change**: Removed `TableRecord.primaryKey` and `selectPrimaryKey(as:)` introduced in 5.0.0-beta.5
+- **Breaking Change**: Many types and methods that support the query builder used to be publicly exposed and flagged as experimental. They are now private, or renamed with an underscore prefix, which means they are not for public use.
+- **Breaking Change**: Defining custom `FetchRequest` types is no longer supported.
+- **Breaking Change**: Defining custom `RowAdapter` types is no longer supported.
+- **Fixed**: Fix rare occurences of an `SQLITE_BUSY` error when opening a DatabaseSnapshot.
+- **Fixed**: Work around an SQLite bug which prevents rollbacking a transaction with `sqlite3_commit_hook`.
+- The [How do I filter records and only keep those that are NOT associated to another record?](README.md#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record) FAQ has been updated.
 
 
 ## 5.0.0-beta.6

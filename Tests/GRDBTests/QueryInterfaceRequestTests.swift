@@ -858,4 +858,69 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             sql(dbQueue, tableRequest.limit(1, offset: 2).limit(3)),
             "SELECT * FROM \"readers\" LIMIT 3")
     }
+    
+    // MARK: - FetchOne Optimization
+    
+    func testFetchOneLimitOptimization() throws {
+        // Test that we avoid emitting "LIMIT 1" when possible
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(key: 1))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE \"id\" = 1")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id") == 1))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE \"id\" = 1")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id") == nil))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE \"id\" IS NULL")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("name") == "Arthur"))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE \"name\" = \'Arthur\' LIMIT 1")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id") == 1 && Column("name") == "Arthur"))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE (\"id\" = 1) AND (\"name\" = \'Arthur\')")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id") == 1).filter(Column("name") == "Arthur"))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE (\"id\" = 1) AND (\"name\" = \'Arthur\')")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id")))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE \"id\" LIMIT 1")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id") != 1))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE \"id\" <> 1 LIMIT 1")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id") == 1 && Column("id") == 2))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE (\"id\" = 1) AND (\"id\" = 2)")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.filter(Column("id") == 1 || Column("id") == 2))
+                XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"readers\" WHERE (\"id\" = 1) OR (\"id\" = 2) LIMIT 1")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.select(max(Column("id"))))
+                XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"id\") FROM \"readers\"")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.select(min(Column("age")).forKey("minAge"), max(Column("age")).forKey("maxAge")))
+                XCTAssertEqual(lastSQLQuery, "SELECT MIN(\"age\") AS \"minAge\", MAX(\"age\") AS \"maxAge\" FROM \"readers\"")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.select(max(Column("age") + 1)))
+                XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"age\" + 1) FROM \"readers\"")
+            }
+            do {
+                _ = try Row.fetchOne(db, tableRequest.select(max(Column("age")) + 1))
+                XCTAssertEqual(lastSQLQuery, "SELECT MAX(\"age\") + 1 FROM \"readers\"")
+            }
+        }
+    }
 }

@@ -877,7 +877,7 @@ typealias StatementObservation = (TransactionObservation, DatabaseEventPredicate
 
 // MARK: - Database events
 
-/// A kind of database event. See the TransactionObserver protocol for
+/// A kind of database event. See the `TransactionObserver` protocol for
 /// more information.
 public enum DatabaseEventKind {
     /// The insertion of a row in a database table
@@ -1049,7 +1049,7 @@ public struct DatabasePreUpdateEvent {
     public var tableName: String { impl.tableName }
     
     /// The number of columns in the row that is being inserted, updated, or deleted.
-    public var count: Int { Int(impl.columnsCount) }
+    public var count: Int { Int(impl.columnCount) }
     
     /// The triggering depth of the row update
     /// Returns:
@@ -1174,7 +1174,7 @@ private protocol DatabasePreUpdateEventImpl {
     var databaseName: String { get }
     var tableName: String { get }
     
-    var columnsCount: CInt { get }
+    var columnCount: CInt { get }
     var depth: CInt { get }
     var initialDatabaseValues: [DatabaseValue]? { get }
     var finalDatabaseValues: [DatabaseValue]? { get }
@@ -1199,7 +1199,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     var databaseName: String { String(cString: databaseNameCString!) }
     var tableName: String { String(cString: tableNameCString!) }
     
-    var columnsCount: CInt { sqlite3_preupdate_count(connection) }
+    var columnCount: CInt { sqlite3_preupdate_count(connection) }
     var depth: CInt { sqlite3_preupdate_depth(connection) }
     var initialDatabaseValues: [DatabaseValue]? {
         guard kind == .update || kind == .delete else { return nil }
@@ -1212,7 +1212,6 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     }
     
     func initialDatabaseValue(atIndex index: Int) -> DatabaseValue? {
-        let columnCount = columnsCount
         precondition(index >= 0 && index < Int(columnCount), "row index out of range")
         return getValue(
             connection,
@@ -1223,7 +1222,6 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     }
     
     func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? {
-        let columnCount = columnsCount
         precondition(index >= 0 && index < Int(columnCount), "row index out of range")
         return getValue(
             connection,
@@ -1241,7 +1239,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
             impl: CopiedDatabasePreUpdateEventImpl(
                 databaseName: databaseName,
                 tableName: tableName,
-                columnsCount: columnsCount,
+                columnCount: columnCount,
                 depth: depth,
                 initialDatabaseValues: initialDatabaseValues,
                 finalDatabaseValues: finalDatabaseValues))
@@ -1252,7 +1250,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
         sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt)
         -> [DatabaseValue]?
     {
-        let columnCount = sqlite3_preupdate_count(connection)
+        let columnCount = self.columnCount
         guard columnCount > 0 else { return nil }
         
         var columnValues = [DatabaseValue]()
@@ -1300,7 +1298,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
 private struct CopiedDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     let databaseName: String
     let tableName: String
-    let columnsCount: CInt
+    let columnCount: CInt
     let depth: CInt
     let initialDatabaseValues: [DatabaseValue]?
     let finalDatabaseValues: [DatabaseValue]?

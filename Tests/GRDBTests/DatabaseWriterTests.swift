@@ -55,7 +55,7 @@ class DatabaseWriterTests : GRDBTestCase {
             }
             semaphore.signal()
 
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
             let tableExists = try dbWriter.read { try $0.tableExists("testAsyncWriteWithoutTransaction") }
             XCTAssertTrue(tableExists)
         }
@@ -82,7 +82,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 expectation.fulfill()
             }
             semaphore.signal()
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
         }
         
         try test(makeDatabaseQueue())
@@ -109,7 +109,7 @@ class DatabaseWriterTests : GRDBTestCase {
             })
             semaphore.signal()
             
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
             let tableExists = try dbWriter.read { try $0.tableExists("testAsyncWrite") }
             XCTAssertTrue(tableExists)
         }
@@ -141,7 +141,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 expectation.fulfill()
             })
             semaphore.signal()
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 2, handler: nil)
         }
         
         try test(makeDatabaseQueue())

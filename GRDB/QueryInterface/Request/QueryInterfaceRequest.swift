@@ -40,46 +40,15 @@ extension QueryInterfaceRequest {
 
 extension QueryInterfaceRequest: Refinable { }
 
-// MARK: - DatabaseRegionConvertible
-
-extension QueryInterfaceRequest: DatabaseRegionConvertible {
-    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        try SQLQueryGenerator(query: query)
-            .makeSelectStatement(db)
-            .databaseRegion
-    }
-}
-
-// MARK: - SQLRequestProtocol
-
-extension QueryInterfaceRequest: SQLRequestProtocol {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
-        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
-        return try generator.requestSQL(context)
-    }
-}
-
-// MARK: - FetchRequest
-
 extension QueryInterfaceRequest: FetchRequest {
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
-        let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
-        let preparedRequest = try generator.makePreparedRequest(db)
-        let associations = query.relation.prefetchedAssociations
-        if associations.isEmpty {
-            return preparedRequest
-        } else {
-            // Eager loading of prefetched associations
-            return preparedRequest.with(\.supplementaryFetch) { rows in
-                try prefetch(db, associations: associations, in: rows)
-            }
-        }
+    /// :nodoc:
+    public func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
     
-    public func fetchCount(_ db: Database) throws -> Int {
-        try query.fetchCount(db)
+    /// :nodoc:
+    public func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
@@ -192,30 +161,6 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
         map(\.query) { $0.annotated(with: selection) }
     }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Creates a request which selects the primary key of the table.
-    ///
-    /// For example:
-    ///
-    ///     struct Player: TableRecord { ... }
-    ///
-    ///     let playerIds = dbQueue.read { db in
-    ///         try Player.all().selectPrimaryKey(as: Int64.self).fetchAll(db)
-    ///     }
-    ///
-    /// For tables that have no explicit primary key, the request selects the
-    /// `rowid` column.
-    ///
-    /// For tables whose primary key spans several columns, the current
-    /// implementation also returns a request that selects the `rowid` column.
-    /// Future GRDB versions may return a [row value](https://www.sqlite.org/rowvalue.html).
-    public func selectPrimaryKey<RowDecoder>(as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
-    {
-        select(SQLPrimaryKeyExpression(tableName: databaseTableName), as: RowDecoder.self)
-    }
 }
 
 extension QueryInterfaceRequest: FilteredRequest {
@@ -286,29 +231,30 @@ extension QueryInterfaceRequest: AggregatingRequest {
     }
 }
 
+/// :nodoc:
 extension QueryInterfaceRequest: _JoinableRequest {
     /// :nodoc:
-    public func _including(all association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _including(all association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._including(all: association) }
     }
     
     /// :nodoc:
-    public func _including(optional association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _including(optional association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._including(optional: association) }
     }
     
     /// :nodoc:
-    public func _including(required association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _including(required association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._including(required: association) }
     }
     
     /// :nodoc:
-    public func _joining(optional association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _joining(optional association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._joining(optional: association) }
     }
     
     /// :nodoc:
-    public func _joining(required association: SQLAssociation) -> QueryInterfaceRequest {
+    public func _joining(required association: _SQLAssociation) -> QueryInterfaceRequest {
         map(\.query) { $0._joining(required: association) }
     }
 }
@@ -485,115 +431,6 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
         throws -> Int
     {
         try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
-    }
-}
-
-// MARK: - Eager loading of hasMany associations
-
-/// Append rows from prefetched associations into the argument rows.
-private func prefetch(_ db: Database, associations: [SQLAssociation], in rows: [Row]) throws {
-    guard let firstRow = rows.first else {
-        // No rows -> no prefetch
-        return
-    }
-    
-    // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
-    for association in associations {
-        let pivotMappings = try association.pivot.condition.columnMappings(db)
-        
-        let prefetchedRows: [[DatabaseValue] : [Row]]
-        do {
-            // Annotate prefetched rows with pivot columns, so that we can
-            // group them.
-            //
-            // Those pivot columns are necessary when we prefetch
-            // indirect associations:
-            //
-            //      // SELECT country.*, passport.citizenId AS grdb_citizenId
-            //      // --                ^ the necessary pivot column
-            //      // FROM country
-            //      // JOIN passport ON passport.countryCode = country.code
-            //      //               AND passport.citizenId IN (1, 2, 3)
-            //      Citizen.including(all: Citizen.countries)
-            //
-            // Those pivot columns are redundant when we prefetch direct
-            // associations (maybe we'll remove this redundancy later):
-            //
-            //      // SELECT *, authorId AS grdb_authorId
-            //      // --        ^ the redundant pivot column
-            //      // FROM book
-            //      // WHERE authorId IN (1, 2, 3)
-            //      Author.including(all: Author.books)
-            let pivotColumns = pivotMappings.map(\.right)
-            let pivotAlias = TableAlias()
-            let prefetchedRelation = association
-                .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
-                .destinationRelation(fromOriginRows: { _ in rows })
-                .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
-            prefetchedRows = try QueryInterfaceRequest(relation: prefetchedRelation)
-                .fetchAll(db)
-                .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
-            // TODO: can we remove those grdb_ columns now that grouping has been done?
-        }
-        
-        let groupingIndexes = firstRow.indexes(forColumns: pivotMappings.map(\.left))
-        for row in rows {
-            let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-            let prefetchedRows = prefetchedRows[groupingKey, default: []]
-            row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
-        }
-    }
-}
-
-// Returns the region of prefetched associations
-func prefetchedRegion(_ db: Database, associations: [SQLAssociation]) throws -> DatabaseRegion {
-    try associations.reduce(into: DatabaseRegion()) { (region, association) in
-        // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
-        let pivotMappings = try association.pivot.condition.columnMappings(db)
-        let pivotColumns = pivotMappings.map(\.right)
-        let pivotAlias = TableAlias()
-        let prefetchedRelation = association
-            .map(\.pivot.relation, { $0.qualified(with: pivotAlias) })
-            // Use a `NullRow` in order to make sure all join condition
-            // columns are made visible to SQLite, and present in the
-            // selected region:
-            //  ... JOIN right ON right.leftId IS NULL
-            //                                    ^ content of the NullRow
-            .destinationRelation(fromOriginRows: { _ in [NullRow()] })
-            .annotated(with: pivotColumns.map { pivotAlias[Column($0)].forKey("grdb_\($0)") })
-        let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
-        
-        // Union prefetched region
-        let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
-            .makeSelectStatement(db)
-            .databaseRegion // contains region of nested associations
-        region.formUnion(prefetchedRegion)
-    }
-}
-
-extension Array where Element == Row {
-    /// - precondition: Columns all exist in all rows. All rows have the same
-    ///   columnns, in the same order.
-    fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {
-        guard let firstRow = first else {
-            return [:]
-        }
-        let indexes = firstRow.indexes(forColumns: columns)
-        return Dictionary(grouping: self, by: { row in
-            indexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-        })
-    }
-}
-
-extension Row {
-    /// - precondition: Columns all exist in the row.
-    fileprivate func indexes(forColumns columns: [String]) -> [Int] {
-        columns.map { column -> Int in
-            guard let index = index(forColumn: column) else {
-                fatalError("Column \(column) is not selected")
-            }
-            return index
-        }
     }
 }
 

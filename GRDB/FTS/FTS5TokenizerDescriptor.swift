@@ -52,17 +52,22 @@ public struct FTS5TokenizerDescriptor {
     /// - parameters:
     ///     - separators: Unless empty (the default), SQLite will consider
     ///       these characters as token separators.
+    ///     - tokenCharacters: Unless empty (the default), SQLite will
+    ///       consider these characters as token characters.
     ///
     /// See https://www.sqlite.org/fts5.html#ascii_tokenizer
-    public static func ascii(separators: Set<Character> = []) -> FTS5TokenizerDescriptor {
-        let components: [String]
-        if separators.isEmpty {
-            components = ["ascii"]
-        } else {
-            components = DatabaseQueue().inDatabase { db in
+    public static func ascii(
+        separators: Set<Character> = [],
+        tokenCharacters: Set<Character> = [])
+        -> FTS5TokenizerDescriptor {
+        var components: [String] = ["ascii"]
+        if !separators.isEmpty {
+            // TODO: test "=" and "\"", "(" and ")" as separators, with
+            // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
+            // and Database.create(virtualTable:using:)
+            let separatorComponents = DatabaseQueue().inDatabase { db in
                 // Assume quoting a string never fails
                 try! [
-                    "ascii",
                     "separators",
                     separators
                         .map { String($0) }
@@ -70,6 +75,25 @@ public struct FTS5TokenizerDescriptor {
                         .sqlExpression
                         .quotedSQL(db)]
             }
+            components.append(contentsOf: separatorComponents)
+        }
+        if !tokenCharacters.isEmpty {
+            // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
+            // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
+            // and Database.create(virtualTable:using:)
+            let tokenCharactersComponents = DatabaseQueue().inDatabase { db in
+                // Assume quoting a string never fails
+                try! [
+                    "tokenchars",
+                    tokenCharacters
+                        .sorted()
+                        .map { String($0) }
+                        .joined()
+                        .sqlExpression
+                        .quotedSQL(db)
+                ]
+            }
+            components.append(contentsOf: tokenCharactersComponents)
         }
         return FTS5TokenizerDescriptor(components: components)
     }

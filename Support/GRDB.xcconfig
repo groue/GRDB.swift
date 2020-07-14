@@ -7,6 +7,3 @@ MODULEMAP_FILE = $(SRCROOT)/Support/module.modulemap
 // Slow compilation hunt:
 // OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100
 
-//// Compile with all opt-in APIs
-//GCC_PREPROCESSOR_DEFINITIONS = $(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1
-//OTHER_SWIFT_FLAGS = $(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK

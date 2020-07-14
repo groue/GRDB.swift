@@ -601,7 +601,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     }
     
     func test_handleEvents() throws {
-        func waitFor<R: _ValueReducer>(_ observation: ValueObservation<R>) throws {
+        func waitFor<R: ValueReducer>(_ observation: ValueObservation<R>) throws {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
@@ -624,7 +624,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             }
         }
         
-        func waitForError<R: _ValueReducer>(_ observation: ValueObservation<R>) throws {
+        func waitForError<R: ValueReducer>(_ observation: ValueObservation<R>) throws {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")
@@ -648,7 +648,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             }
         }
         
-        func waitForCancel<R: _ValueReducer>(_ observation: ValueObservation<R>) throws {
+        func waitForCancel<R: ValueReducer>(_ observation: ValueObservation<R>) throws {
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.write { db in
                 try db.execute(sql: "CREATE TABLE player(id INTEGER PRIMARY KEY)")

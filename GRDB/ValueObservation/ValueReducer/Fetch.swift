@@ -1,15 +1,11 @@
 extension ValueReducers {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
     /// A reducer which passes raw fetched values through.
-    ///
-    /// :nodoc:
-    public struct Fetch<Value>: _ValueReducer {
-        private let _fetch: (Database) throws -> Value
-        public let isSelectedRegionDeterministic: Bool
+    public struct Fetch<Value>: ValueReducer {
+        private let __fetch: (Database) throws -> Value
+        /// :nodoc:
+        public let _isSelectedRegionDeterministic: Bool
         
-        /// Creates a ValueReducers.Fetch reducer, which passes raw fetched
-        /// values through.
+        /// Creates a reducer, which passes raw fetched values through.
         ///
         /// - parameter isSelectedRegionDeterministic: When true, the fetching
         ///   function is assumed to always fetch from the same database region.
@@ -22,16 +18,18 @@ extension ValueReducers {
         ///   each fetch.
         ///
         /// - parameter fetch: A function that fetches the observed value.
-        public init(isSelectedRegionDeterministic: Bool, fetch: @escaping (Database) throws -> Value) {
-            self.isSelectedRegionDeterministic = isSelectedRegionDeterministic
-            self._fetch = fetch
+        init(isSelectedRegionDeterministic: Bool, fetch: @escaping (Database) throws -> Value) {
+            self._isSelectedRegionDeterministic = isSelectedRegionDeterministic
+            self.__fetch = fetch
         }
         
-        public func fetch(_ db: Database) throws -> Value {
-            try _fetch(db)
+        /// :nodoc:
+        public func _fetch(_ db: Database) throws -> Value {
+            try __fetch(db)
         }
         
-        public func value(_ fetched: Value) -> Value? {
+        /// :nodoc:
+        public func _value(_ fetched: Value) -> Value? {
             fetched
         }
     }

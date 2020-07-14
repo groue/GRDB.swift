@@ -10,30 +10,29 @@ extension ValueObservation {
 }
 
 extension ValueReducers {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// A reducer whose values consist of those in a `Base` reducer
+    /// passed through a transform function.
     ///
-    /// A _ValueReducer whose values consist of those in a Base _ValueReducer passed
-    /// through a transform function.
-    ///
-    /// See _ValueReducer.map(_:)
-    ///
-    /// :nodoc:
-    public struct Map<Base: _ValueReducer, Value>: _ValueReducer {
+    /// See `ValueObservation.map(_:)`
+    public struct Map<Base: ValueReducer, Value>: ValueReducer {
         private var base: Base
         private let transform: (Base.Value) -> Value
-        public var isSelectedRegionDeterministic: Bool { base.isSelectedRegionDeterministic }
+        /// :nodoc:
+        public var _isSelectedRegionDeterministic: Bool { base._isSelectedRegionDeterministic }
         
         init(_ base: Base, _ transform: @escaping (Base.Value) -> Value) {
             self.base = base
             self.transform = transform
         }
         
-        public func fetch(_ db: Database) throws -> Base.Fetched {
-            try base.fetch(db)
+        /// :nodoc:
+        public func _fetch(_ db: Database) throws -> Base.Fetched {
+            try base._fetch(db)
         }
         
-        public mutating func value(_ fetched: Base.Fetched) -> Value? {
-            guard let value = base.value(fetched) else { return nil }
+        /// :nodoc:
+        public mutating func _value(_ fetched: Base.Fetched) -> Value? {
+            guard let value = base._value(fetched) else { return nil }
             return transform(value)
         }
     }

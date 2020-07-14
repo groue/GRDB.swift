@@ -57,7 +57,7 @@ extension SQLInterpolation {
     {
         let alias = TableAlias(name: tableAlias ?? T.databaseTableName)
         elements.append(contentsOf: T.databaseSelection
-            .map { CollectionOfOne(.selectable($0.qualifiedSelectable(with: alias))) }
+            .map { CollectionOfOne(.selectable($0._qualifiedSelectable(with: alias))) }
             .joined(separator: CollectionOfOne(.sql(", "))))
     }
     
@@ -206,23 +206,8 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = (\(subquery))
     ///         """
     public mutating func appendInterpolation<T>(_ request: T)
-        where T: SQLRequestProtocol
+        where T: _FetchRequest & SQLExpression
     {
-        elements.append(.subquery(request))
-    }
-    
-    /// Appends the request SQL (not wrapped inside parentheses).
-    ///
-    ///     let subquery = Player.select(max(Column("score")))
-    ///     // or
-    ///     let subQuery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
-    ///
-    ///     // SELECT name FROM player WHERE score = (SELECT MAX(score) FROM player)
-    ///     let request: SQLRequest<Player> = """
-    ///         SELECT * FROM player WHERE score = (\(subquery))
-    ///         """
-    @_disfavoredOverload
-    public mutating func appendInterpolation(_ request: SQLRequestProtocol) {
         elements.append(.subquery(request))
     }
     

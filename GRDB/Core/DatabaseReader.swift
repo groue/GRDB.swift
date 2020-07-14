@@ -3,16 +3,17 @@ import Combine
 #endif
 import Dispatch
 
-/// The protocol for all types that can fetch values from a database.
+/// `DatabaseReader` is the protocol for all types that can fetch values from
+/// an SQLite database.
 ///
-/// It is adopted by DatabaseQueue and DatabasePool.
+/// It is adopted by `DatabaseQueue`, `DatabasePool`, and `DatabaseSnapshot`.
 ///
 /// The protocol comes with isolation guarantees that describe the behavior of
 /// adopting types in a multithreaded application.
 ///
 /// Types that adopt the protocol can provide in practice stronger guarantees.
-/// For example, DatabaseQueue provides a stronger isolation level
-/// than DatabasePool.
+/// For example, `DatabaseQueue` provides a stronger isolation level
+/// than `DatabasePool`.
 ///
 /// **Warning**: Isolation guarantees stand as long as there is no external
 /// connection to the database. Should you have to cope with external
@@ -252,7 +253,7 @@ public protocol DatabaseReader: AnyObject {
     /// - returns: a TransactionObserver
     ///
     /// :nodoc:
-    func _add<Reducer: _ValueReducer>(
+    func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -378,7 +379,7 @@ extension DatabaseReader {
     
     /// Adding an observation in a read-only database emits only the
     /// initial value.
-    func _addReadOnly<Reducer: _ValueReducer>(
+    func _addReadOnly<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -430,26 +431,22 @@ public final class AnyDatabaseReader: DatabaseReader {
         self.base = base
     }
     
-    /// :nodoc:
     public var configuration: Configuration {
         base.configuration
     }
     
     // MARK: - Interrupting Database Operations
     
-    /// :nodoc:
     public func interrupt() {
         base.interrupt()
     }
     
     // MARK: - Reading from Database
     
-    /// :nodoc:
     public func read<T>(_ block: (Database) throws -> T) throws -> T {
         try base.read(block)
     }
     
-    /// :nodoc:
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(block)
     }
@@ -459,36 +456,30 @@ public final class AnyDatabaseReader: DatabaseReader {
         base._weakAsyncRead(block)
     }
     
-    /// :nodoc:
     public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
         try base.unsafeRead(block)
     }
     
-    /// :nodoc:
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         try base.unsafeReentrantRead(block)
     }
     
     // MARK: - Functions
     
-    /// :nodoc:
     public func add(function: DatabaseFunction) {
         base.add(function: function)
     }
     
-    /// :nodoc:
     public func remove(function: DatabaseFunction) {
         base.remove(function: function)
     }
     
     // MARK: - Collations
     
-    /// :nodoc:
     public func add(collation: DatabaseCollation) {
         base.add(collation: collation)
     }
     
-    /// :nodoc:
     public func remove(collation: DatabaseCollation) {
         base.remove(collation: collation)
     }
@@ -496,7 +487,7 @@ public final class AnyDatabaseReader: DatabaseReader {
     // MARK: - Value Observation
     
     /// :nodoc:
-    public func _add<Reducer: _ValueReducer>(
+    public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)

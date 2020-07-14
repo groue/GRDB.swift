@@ -86,7 +86,7 @@ public final class DatabasePool: DatabaseWriter {
         
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
-            readerCount += 1 // protected by pool (TODO: documented this protection behavior)
+            readerCount += 1 // protected by pool (TODO: document this protection behavior)
             let reader = try SerializedDatabase(
                 path: path,
                 configuration: readerConfiguration,
@@ -806,7 +806,7 @@ extension DatabasePool: DatabaseReader {
     // MARK: - Database Observation
     
     /// :nodoc:
-    public func _add<Reducer: _ValueReducer>(
+    public func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -836,7 +836,7 @@ extension DatabasePool: DatabaseReader {
     
     /// A concurrent observation fetches the initial value without waiting for
     /// the writer.
-    private func _addConcurrent<Reducer: _ValueReducer>(
+    private func _addConcurrent<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
@@ -877,10 +877,11 @@ extension DatabasePool: DatabaseReader {
         // We can avoid this second fetch when SQLite is compiled with the
         // SQLITE_ENABLE_SNAPSHOT option:
         //
-        // 1. Perform the initial fetch in a DatabaseSnapshot. The snapshot
-        // acquires a lock that will prevent checkpointing until we get a writer
-        // access, so that we can reliably compare database versions with
-        // `sqlite3_snapshot`: https://www.sqlite.org/c3ref/snapshot.html.
+        // 1. Perform the initial fetch in a DatabaseSnapshot. Its long running
+        // transaction acquires a lock that will prevent checkpointing until we
+        // get a writer access, so that we can reliably compare database
+        // versions with `sqlite3_snapshot`:
+        // https://www.sqlite.org/c3ref/snapshot.html.
         //
         // 2. Get a writer access, and compare the versions of the initial
         // snapshot, and the current state of the database: if versions are
@@ -925,7 +926,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     // Support for _addConcurrent(observation:)
-    private func add<Reducer: _ValueReducer>(
+    private func add<Reducer: ValueReducer>(
         observer: ValueObserver<Reducer>,
         from initialSnapshot: DatabaseSnapshot)
     {

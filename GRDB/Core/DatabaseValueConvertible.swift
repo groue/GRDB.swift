@@ -23,7 +23,6 @@ public protocol DatabaseValueConvertible: SQLExpressible {
 }
 
 extension DatabaseValueConvertible {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
     public var sqlExpression: SQLExpression {
         databaseValue
@@ -66,7 +65,6 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor 
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Value? {
         if _done {
@@ -122,7 +120,6 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible>:
         try? _statement.reset()
     }
     
-    /// :nodoc:
     @inlinable
     public func next() throws -> Value?? {
         if _done {
@@ -170,7 +167,7 @@ extension DatabaseValueConvertible {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -233,6 +230,28 @@ extension DatabaseValueConvertible {
     }
 }
 
+extension DatabaseValueConvertible where Self: Hashable {
+    /// Returns a set of values fetched from a prepared statement.
+    ///
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
+    ///     let names = try String.fetchSet(statement)  // Set<String>
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> Set<Self>
+    {
+        try Set(fetchCursor(statement, arguments: arguments, adapter: adapter))
+    }
+}
+
 extension DatabaseValueConvertible {
     
     // MARK: Fetching From SQL
@@ -247,7 +266,7 @@ extension DatabaseValueConvertible {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -312,6 +331,29 @@ extension DatabaseValueConvertible {
     }
 }
 
+extension DatabaseValueConvertible where Self: Hashable {
+    /// Returns a set of values fetched from an SQL query.
+    ///
+    ///     let names = try String.fetchSet(db, sql: "SELECT name FROM ...") // Set<String>
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> Set<Self>
+    {
+        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+    }
+}
+
 extension DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
@@ -327,7 +369,7 @@ extension DatabaseValueConvertible {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -373,6 +415,23 @@ extension DatabaseValueConvertible {
     }
 }
 
+extension DatabaseValueConvertible where Self: Hashable {
+    /// Returns a set of values fetched from a fetch request.
+    ///
+    ///     let request = Player.select(Column("name"))
+    ///     let names = try String.fetchSet(db, request) // Set<String>
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: A set.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet<R: FetchRequest>(_ db: Database, _ request: R) throws -> Set<Self> {
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
+        return try fetchSet(request.statement, adapter: request.adapter)
+    }
+}
+
 extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     
     // MARK: Fetching Values
@@ -388,7 +447,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
@@ -425,6 +484,20 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     }
 }
 
+extension FetchRequest where RowDecoder: DatabaseValueConvertible & Hashable {
+    /// A set of fetched values.
+    ///
+    ///     let request: ... // Some FetchRequest that fetches String
+    ///     let strings = try request.fetchSet(db) // Set<String>
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+        try RowDecoder.fetchSet(db, self)
+    }
+}
+
 /// Swift's Optional comes with built-in methods that allow to fetch cursors
 /// and arrays of optional DatabaseValueConvertible:
 ///
@@ -451,7 +524,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - statement: The statement to run.
@@ -489,6 +562,28 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     }
 }
 
+extension Optional where Wrapped: DatabaseValueConvertible & Hashable {
+    /// Returns a set of optional values fetched from a prepared statement.
+    ///
+    ///     let statement = try db.makeSelectStatement(sql: "SELECT name FROM ...")
+    ///     let names = try Optional<String>.fetchSet(statement)  // Set<String?>
+    ///
+    /// - parameters:
+    ///     - statement: The statement to run.
+    ///     - arguments: Optional statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set of optional values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ statement: SelectStatement,
+        arguments: StatementArguments? = nil,
+        adapter: RowAdapter? = nil)
+        throws -> Set<Wrapped?>
+    {
+        try Set(fetchCursor(statement, arguments: arguments, adapter: adapter))
+    }
+}
+
 extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From SQL
@@ -503,7 +598,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -544,6 +639,29 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     }
 }
 
+extension Optional where Wrapped: DatabaseValueConvertible & Hashable {
+    /// Returns a set of optional values fetched from an SQL query.
+    ///
+    ///     let names = try String.fetchSet(db, sql: "SELECT name FROM ...") // Set<String?>
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    ///     - adapter: Optional RowAdapter
+    /// - returns: A set of optional values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet(
+        _ db: Database,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil)
+        throws -> Set<Wrapped?>
+    {
+        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+    }
+}
+
 extension Optional where Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching From FetchRequest
@@ -559,7 +677,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -589,6 +707,23 @@ extension Optional where Wrapped: DatabaseValueConvertible {
     }
 }
 
+extension Optional where Wrapped: DatabaseValueConvertible & Hashable {
+    /// Returns a set of optional values fetched from a fetch request.
+    ///
+    ///     let request = Player.select(Column("name"))
+    ///     let names = try Optional<String>.fetchSet(db, request) // Set<String?>
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - request: A FetchRequest.
+    /// - returns: A set of optional values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public static func fetchSet<R: FetchRequest>(_ db: Database, _ request: R) throws -> Set<Wrapped?> {
+        let request = try request.makePreparedRequest(db, forSingleResult: false)
+        return try fetchSet(request.statement, adapter: request.adapter)
+    }
+}
+
 extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible {
     
     // MARK: Fetching Optional values
@@ -604,7 +739,7 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: 
     /// If the database is modified during the cursor iteration, the remaining
     /// elements are undefined.
     ///
-    /// The cursor must be iterated in a protected dispath queue.
+    /// The cursor must be iterated in a protected dispatch queue.
     ///
     /// - parameter db: A database connection.
     /// - returns: A cursor over fetched values.
@@ -638,5 +773,19 @@ extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: 
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public func fetchOne(_ db: Database) throws -> RowDecoder.Wrapped? {
         try RowDecoder.Wrapped.fetchOne(db, self)
+    }
+}
+
+extension FetchRequest where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible & Hashable {
+    /// A set of fetched optional values.
+    ///
+    ///     let request: ... // Some FetchRequest that fetches Optional<String>
+    ///     let strings = try request.fetchSet(db) // Set<String?>
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A set of values.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder.Wrapped?> {
+        try Optional<RowDecoder.Wrapped>.fetchSet(db, self)
     }
 }

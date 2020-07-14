@@ -17,9 +17,8 @@ public final class SQLGenerationContext {
         case context(SQLGenerationContext)
     }
     
-    // TODO: make internal when FetchRequest is a closed protocol.
     /// A database connection.
-    public var db: Database {
+    var db: Database {
         switch parent {
         case let .none(db: db, argumentsSink: _): return db
         case let .context(context): return context.db
@@ -255,6 +254,32 @@ public class TableAlias: Hashable {
         }
     }
     
+    /// Creates a TableAlias, suitable for qualifying requests or associations.
+    ///
+    /// For example:
+    ///
+    ///     // The request for all books published after their author has died
+    ///     //
+    ///     // SELECT book.*
+    ///     // FROM book
+    ///     // JOIN author ON author.id = book.authorId
+    ///     // WHERE book.publishDate >= author.deathDate
+    ///     let authorAlias = TableAlias()
+    ///     let request = Book
+    ///         .joining(required: Book.author.aliased(authorAlias))
+    ///         .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
+    ///
+    /// When the alias is given a name, this name is guaranteed to be used as
+    /// the table alias in the SQL query:
+    ///
+    ///     // SELECT book.*
+    ///     // FROM book
+    ///     // JOIN author a ON a.id = book.authorId
+    ///     // WHERE book.publishDate >= a.deathDate
+    ///     let authorAlias = TableAlias(name: "a")
+    ///     let request = Book
+    ///         .joining(required: Book.author.aliased(authorAlias))
+    ///         .filter(Column("publishDate") >= authorAlias[Column("deathDate")])
     public init(name: String? = nil) {
         self.impl = .undefined(userName: name)
     }
@@ -342,19 +367,45 @@ public class TableAlias: Hashable {
     /// Returns a qualified value that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ selectable: SQLSelectable) -> SQLSelectable {
-        selectable.qualifiedSelectable(with: self)
+        selectable._qualifiedSelectable(with: self)
     }
     
     /// Returns a qualified expression that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ expression: SQLExpression) -> SQLExpression {
-        expression.qualifiedExpression(with: self)
+        expression._qualifiedExpression(with: self)
     }
     
     /// Returns a qualified ordering that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
-        ordering.qualifiedOrdering(with: self)
+        ordering._qualifiedOrdering(with: self)
+    }
+    
+    /// Returns a qualified columnn that is able to resolve ambiguities in
+    /// joined queries.
+    public subscript(_ column: String) -> SQLExpression {
+        Column(column)._qualifiedExpression(with: self)
+    }
+
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// An expression that evaluates to true if the record refered by this
+    /// `TableAlias` exists.
+    ///
+    /// For example, here is how filter books and only keep those that are not
+    /// associated to any author:
+    ///
+    ///     let books: [Book] = try dbQueue.read { db in
+    ///         let authorAlias = TableAlias()
+    ///         let request = Book
+    ///             .joining(optional: Book.author.aliased(authorAlias))
+    ///             .filter(!authorAlias.exists)
+    ///         return try request.fetchAll(db)
+    ///     }
+
+    public var exists: SQLExpression {
+        _SQLExpressionQualifiedFastPrimaryKey(alias: self) != nil
     }
     
     /// :nodoc:

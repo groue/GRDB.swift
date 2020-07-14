@@ -510,7 +510,7 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                     UPDATE "passport" SET "active" = 1 WHERE "rowid" IN (\
                     SELECT "rowid" \
                     FROM "passport" \
-                    GROUP BY "countryCode", "citizenId")
+                    GROUP BY "rowid")
                     """)
             }
             do {

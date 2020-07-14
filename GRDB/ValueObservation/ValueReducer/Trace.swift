@@ -1,20 +1,21 @@
 extension ValueReducers {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// :nodoc:
-    public struct Trace<Base: _ValueReducer>: _ValueReducer {
+    /// See `ValueObservation.handleEvents()`
+    public struct Trace<Base: ValueReducer>: ValueReducer {
         var base: Base
         let willFetch: () -> Void
         let didReceiveValue: (Base.Value) -> Void
-        public var isSelectedRegionDeterministic: Bool { base.isSelectedRegionDeterministic }
+        /// :nodoc:
+        public var _isSelectedRegionDeterministic: Bool { base._isSelectedRegionDeterministic }
         
-        public func fetch(_ db: Database) throws -> Base.Fetched {
+        /// :nodoc:
+        public func _fetch(_ db: Database) throws -> Base.Fetched {
             willFetch()
-            return try base.fetch(db)
+            return try base._fetch(db)
         }
         
-        public mutating func value(_ fetched: Base.Fetched) -> Base.Value? {
-            guard let value = base.value(fetched) else {
+        /// :nodoc:
+        public mutating func _value(_ fetched: Base.Fetched) -> Base.Value? {
+            guard let value = base._value(fetched) else {
                 return nil
             }
             didReceiveValue(value)

@@ -25,16 +25,14 @@ public protocol ColumnExpression: SQLExpression {
 }
 
 extension ColumnExpression {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        name.quotedDatabaseIdentifier
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        _SQLQualifiedColumn(name, alias: alias)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        QualifiedColumn(name, alias: alias)
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 
@@ -63,8 +61,10 @@ public struct Column: ColumnExpression {
 }
 
 /// A qualified column in the database, as in `SELECT t.a FROM t`
-struct QualifiedColumn: ColumnExpression {
-    var name: String
+/// 
+/// :nodoc:
+public struct _SQLQualifiedColumn: ColumnExpression {
+    public var name: String
     let alias: TableAlias
     
     /// Creates a column given its name.
@@ -73,16 +73,15 @@ struct QualifiedColumn: ColumnExpression {
         self.alias = alias
     }
     
-    func expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) -> String {
-        if let qualifier = context.qualifier(for: alias) {
-            return qualifier.quotedDatabaseIdentifier + "." + name.quotedDatabaseIdentifier
-        }
-        return name.quotedDatabaseIdentifier
-    }
-    
-    func qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+    /// :nodoc:
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         // Never requalify
         self
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+        try visitor.visit(self)
     }
 }
 

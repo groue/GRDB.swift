@@ -1,26 +1,19 @@
 // MARK: - SQLExpressible
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+/// `SQLExpressible` is the protocol for all types that can be used as an
+/// SQL expression.
 ///
-/// The protocol for all types that can be turned into an SQL expression.
-///
-/// It is adopted by protocols like DatabaseValueConvertible, and types
-/// like Column.
+/// It is adopted by protocols like `DatabaseValueConvertible`, and types
+/// like `Column`.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-///
-/// :nodoc:
 public protocol SQLExpressible {
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// Returns an SQLExpression
+    /// Returns an SQL expression.
     var sqlExpression: SQLExpression { get }
 }
 
 // MARK: - SQLSpecificExpressible
 
-/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-///
 /// SQLSpecificExpressible is a protocol for all database-specific types that can
 /// be turned into an SQL expression. Types whose existence is not purely
 /// dedicated to the database should adopt the SQLExpressible protocol instead.
@@ -55,45 +48,22 @@ public protocol SQLSpecificExpressible: SQLExpressible {
 // MARK: - SQLExpressible & SQLOrderingTerm
 
 extension SQLExpressible where Self: SQLOrderingTerm {
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public var reversed: SQLOrderingTerm {
-        SQLOrdering.desc(sqlExpression)
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
-        try sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
+    public var _reversed: SQLOrderingTerm {
+        _SQLOrdering.desc(sqlExpression)
     }
 }
 
 // MARK: - SQLExpressible & SQLSelectable
 
 extension SQLExpressible where Self: SQLSelectable {
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func resultColumnSQL(_ context: SQLGenerationContext) throws -> String {
-        try sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
+    public func _count(distinct: Bool) -> _SQLCount? {
+        sqlExpression._count(distinct: distinct)
     }
     
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     /// :nodoc:
-    public func countedSQL(_ context: SQLGenerationContext) throws -> String {
-        try sqlExpression.expressionSQL(context, wrappedInParenthesis: false)
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func count(distinct: Bool) -> SQLCount? {
-        sqlExpression.count(distinct: distinct)
-    }
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    /// :nodoc:
-    public func columnCount(_ db: Database) throws -> Int {
+    public func _columnCount(_ db: Database) throws -> Int {
         1
     }
 }

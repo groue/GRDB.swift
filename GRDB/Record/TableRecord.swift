@@ -1,15 +1,13 @@
 import Foundation
 
-/// Types that adopt TableRecord declare a particular relationship with
+/// Types that adopt `TableRecord` declare a particular relationship with
 /// a database table.
 ///
-/// Types that adopt both TableRecord and FetchableRecord are granted with
+/// Types that adopt both `TableRecord` and `FetchableRecord` are granted with
 /// built-in methods that allow to fetch instances identified by key:
 ///
 ///     try Player.fetchOne(db, key: 123)  // Player?
 ///     try Citizenship.fetchOne(db, key: ["citizenId": 12, "countryId": 45]) // Citizenship?
-///
-/// TableRecord is adopted by Record.
 public protocol TableRecord {
     /// The name of the database table used to build requests.
     ///
@@ -135,34 +133,8 @@ extension TableRecord {
     public static func numberOfSelectedColumns(_ db: Database) throws -> Int {
         let alias = TableAlias(tableName: databaseTableName)
         return try databaseSelection
-            .map { try $0.qualifiedSelectable(with: alias).columnCount(db) }
+            .map { try $0._qualifiedSelectable(with: alias)._columnCount(db) }
             .reduce(0, +)
-    }
-}
-
-extension TableRecord {
-    // MARK: - Primary Key
-    
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// The primary key of the table.
-    ///
-    /// For example:
-    ///
-    ///     struct Player: TableRecord { ... }
-    ///
-    ///     let player = dbQueue.read { db in
-    ///         try Player.filter(Player.primaryKey == 12).fetchOne(db)
-    ///     }
-    ///
-    /// For tables that have no explicit primary key, this property returns the
-    /// `rowid` column.
-    ///
-    /// For tables whose primary key spans several columns, the current
-    /// implementation also returns the `rowid` column. Future GRDB versions
-    /// may return a [row value](https://www.sqlite.org/rowvalue.html).
-    public static var primaryKey: SQLPrimaryKeyExpression {
-        SQLPrimaryKeyExpression(tableName: databaseTableName)
     }
 }
 

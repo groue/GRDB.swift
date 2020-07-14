@@ -49,10 +49,10 @@ public struct HasManyThroughAssociation<Origin: TableRecord, Destination: TableR
     public typealias RowDecoder = Destination
     
     /// :nodoc:
-    public var sqlAssociation: SQLAssociation
+    public var _sqlAssociation: _SQLAssociation
     
     /// :nodoc:
-    public init(sqlAssociation: SQLAssociation) {
-        self.sqlAssociation = sqlAssociation
+    public init(sqlAssociation: _SQLAssociation) {
+        self._sqlAssociation = sqlAssociation
     }
 }

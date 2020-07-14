@@ -1,6 +1,6 @@
 extension TableRecord {
-    /// Creates a "Belongs To" association between Self and the
-    /// destination type.
+    /// Creates a "Belongs To" association between Self and the destination
+    /// type, based on a database foreign key.
     ///
     ///     struct Author: TableRecord { ... }
     ///     struct Book: TableRecord {
@@ -64,8 +64,8 @@ extension TableRecord {
         BelongsToAssociation(key: key, using: foreignKey)
     }
     
-    /// Creates a "Has many" association between Self and the
-    /// destination type.
+    /// Creates a "Has many" association between Self and the destination type,
+    /// based on a database foreign key.
     ///
     ///     struct Book: TableRecord { ... }
     ///     struct Author: TableRecord {
@@ -202,7 +202,7 @@ extension TableRecord {
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -211,8 +211,8 @@ extension TableRecord {
         }
     }
     
-    /// Creates a "Has one" association between Self and the
-    /// destination type.
+    /// Creates a "Has one" association between Self and the destination type,
+    /// based on a database foreign key.
     ///
     ///     struct Demographics: TableRecord { ... }
     ///     struct Country: TableRecord {
@@ -349,7 +349,7 @@ extension TableRecord {
         Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target.sqlAssociation.through(pivot.sqlAssociation))
+            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -486,10 +486,22 @@ extension TableRecord where Self: EncodableRecord {
         -> QueryInterfaceRequest<A.RowDecoder>
         where A.OriginRowDecoder == Self
     {
-        let destinationRelation = association.sqlAssociation.destinationRelation(fromOriginRows: { db in
-            try [PersistenceContainer(db, self)]
-        })
-        return QueryInterfaceRequest(relation: destinationRelation)
+        switch association._sqlAssociation.pivot.condition {
+        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
+            let destinationRelation = association
+                ._sqlAssociation
+                .map(\.pivot.relation, { pivotRelation in
+                    pivotRelation.filter { db in
+                        // Filter the pivot on self
+                        try foreignKeyRequest
+                            .fetchForeignKeyMapping(db)
+                            .joinMapping(originIsLeft: originIsLeft)
+                            .joinExpression(leftRows: [PersistenceContainer(db, self)])
+                    }
+                })
+                .destinationRelation()
+            return QueryInterfaceRequest(relation: destinationRelation)
+        }
     }
 }
 
