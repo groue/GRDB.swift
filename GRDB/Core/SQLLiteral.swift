@@ -20,6 +20,15 @@ public struct SQLLiteral {
         case selectable(SQLSelectable)
         case orderingTerm(SQLOrderingTerm)
         
+        var isEmpty: Bool {
+            switch self {
+            case let .sql(sql, _):
+                return sql.isEmpty
+            default:
+                return false
+            }
+        }
+        
         fileprivate func sql(_ context: SQLGenerationContext) throws -> String {
             switch self {
             case let .sql(sql, arguments):
@@ -86,6 +95,11 @@ public struct SQLLiteral {
     ///     let emails = try String.fetchAll(db, request)
     public init(_ expression: SQLExpression) {
         self.init(elements: [.expression(expression)])
+    }
+    
+    /// Returns true if this literal generates an empty SQL string
+    public var isEmpty: Bool {
+        elements.allSatisfy(\.isEmpty)
     }
     
     /// Turn a SQLLiteral into raw SQL and arguments.
