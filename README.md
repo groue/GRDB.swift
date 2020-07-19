@@ -1968,8 +1968,19 @@ In this case, the `ColumnMapping` row adapter comes in handy:
 // Turn the 'produced' column into 'consumed':
 let adapter = ColumnMapping(["consumed": "produced"])
 let row = try Row.fetchOne(db, sql: "SELECT 'Hello' AS produced", adapter: adapter)!
-row // [consumed:"Hello"]
-row["consumed"] // "Hello"
+
+// [consumed:"Hello"]
+print(row)
+
+// "Hello"
+print(row["consumed"])
+
+// ▿ [consumed:"Hello"]
+//   unadapted: [produced:"Hello"]
+print(row.debugDescription)
+
+// [produced:"Hello"]
+print(row.unadapted)
 ```
 
 [Record types](#records) are typical row consumers that expect database rows to have a specific layout so that they can decode them:
