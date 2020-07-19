@@ -238,17 +238,26 @@ See the [Query Interface](#the-query-interface)
     <summary>Be notified of database changes</summary>
 
 ```swift
+// Define the observed value
 let observation = ValueObservation.tracking { db in
     try Place.fetchAll(db)
 }
-observation.start(
+
+// Start observation (Vanilla GRDB)
+let cancellable = observation.start(
     in: dbQueue,
-    onError: { error in
-        print("fresh places could not be fetched")
-    }
-    onChange: { (places: [Place]) in
-        print("Places have changed.")
-    })
+    onError: { error in ... }
+    onChange: { (places: [Place]) in print("Fresh places: \(places)") })
+
+// Start observation (Combine)
+let cancellable = observation.publisher(in: dbQueue).sink(
+    receiveCompletion: { completion in ... },
+    receiveValue: { (places: [Place]) in print("Fresh places: \(places)") })
+
+// Start observation (RxSwift)
+let disposable = observation.rx.observe(in: dbQueue).subscribe(
+    onNext: { (places: [Place]) in print("Fresh places: \(places)") },
+    onError: { error in ... })
 ```
 
 See [Database Observation].
