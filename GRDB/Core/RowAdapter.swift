@@ -325,7 +325,7 @@ public struct RangeRowAdapter: RowAdapter {
     }
 }
 
-/// ScopeAdapter is a row adapter that lets you define scopes on rows.
+/// `ScopeAdapter` is a row adapter that lets you define scopes on rows.
 ///
 ///     // Two adapters
 ///     let fooAdapter = ColumnMapping(["value": "foo"])
@@ -420,6 +420,31 @@ struct ChainedAdapter: RowAdapter {
     
     func _layoutedAdapter(from layout: _RowLayout) throws -> _LayoutedRowAdapter {
         try second._layoutedAdapter(from: first._layoutedAdapter(from: layout)._mapping)
+    }
+}
+
+/// `RenameColumnAdapter` is a row adapter that renames columns.
+///
+/// For example:
+///
+///     let adapter = RenameColumnAdapter { $0 + "rrr" }
+///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar, 'baz' AS baz"
+///
+///     // [foorrr:"foo", barrrr:"bar", bazrrr:"baz"]
+///     try Row.fetchOne(db, sql: sql, adapter: adapter)
+public struct RenameColumnAdapter: RowAdapter {
+    let transform: (String) -> String
+    
+    /// Creates a `RenameColumnAdapter` adapter that renames columns according to the
+    /// provided transform function.
+    public init(_ transform: @escaping (String) -> String) {
+        self.transform = transform
+    }
+    
+    /// :nodoc:
+    public func _layoutedAdapter(from layout: _RowLayout) throws -> _LayoutedRowAdapter {
+        let layoutColumns = layout._layoutColumns.map { (index, column) in (index, transform(column)) }
+        return _LayoutedColumnMapping(layoutColumns: layoutColumns)
     }
 }
 

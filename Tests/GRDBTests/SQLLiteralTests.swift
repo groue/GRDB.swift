@@ -738,4 +738,10 @@ extension SQLLiteralTests {
             }
         }
     }
+    
+    func testIsEmpty() {
+        XCTAssertTrue(SQLLiteral(elements: []).isEmpty)
+        XCTAssertTrue(SQLLiteral(sql: "").isEmpty)
+        XCTAssertTrue(SQLLiteral("").isEmpty)
+    }
 }

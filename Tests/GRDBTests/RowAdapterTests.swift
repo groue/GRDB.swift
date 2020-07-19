@@ -826,4 +826,26 @@ class AdapterRowTests : RowTestCase {
                 """)
         }
     }
+    
+    func testRenameColumnAdapter() throws {
+        // Test RenameColumn with the use case it was introduced for:
+        // columns that have a `:NNN` suffix.
+        // See https://github.com/groue/GRDB.swift/issues/810
+        let request: SQLRequest<Row> = #"SELECT 1 AS "id:1", 'foo' AS name, 2 AS "id:2""#
+        let adaptedRequest = request
+            .adapted { _ in RenameColumnAdapter { String($0.prefix(while: { $0 != ":" })) } }
+            .adapted { _ in
+                let adapters = splittingRowAdapters(columnCounts: [2, 1])
+                return ScopeAdapter([
+                    "a": adapters[0],
+                    "b": adapters[1],
+                ])
+        }
+        let row = try makeDatabaseQueue().read(adaptedRequest.fetchOne)!
+        
+        XCTAssertEqual(row.unscoped, ["id": 1, "name": "foo", "id": 2])
+        XCTAssertEqual(row.unadapted, ["id:1": 1, "name": "foo", "id:2": 2])
+        XCTAssertEqual(row.scopes["a"], ["id": 1, "name": "foo"])
+        XCTAssertEqual(row.scopes["b"], ["id": 2])
+    }
 }
