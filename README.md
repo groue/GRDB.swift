@@ -1977,14 +1977,14 @@ There are several situations where row adapters are useful:
 
 - They help disambiguate columns with identical names, which may happen when you select columns from several tables. See [Joined Queries Support](#joined-queries-support) for an example.
 
-- They help when SQLite outputs unexpected column names, which may happen with some subqueries. See [RenameColumAdapter](#renamecolumadapter) for an example.
+- They help when SQLite outputs unexpected column names, which may happen with some subqueries. See [RenameColumnAdapter](#renamecolumnadapter) for an example.
 
 Available row adapters are described below.
 
 - [ColumnMapping](#columnmapping)
 - [EmptyRowAdapter](#emptyrowadapter)
 - [RangeRowAdapter](#rangerowadapter)
-- [RenameColumAdapter](#renamecolumadapter)
+- [RenameColumnAdapter](#renamecolumnadapter)
 - [ScopeAdapter](#scopeadapter)
 - [SuffixRowAdapter](#suffixrowadapter)
 
@@ -2026,13 +2026,13 @@ let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: ad
 ```
 
 
-### RenameColumAdapter
+### RenameColumnAdapter
 
-`RenameColumAdapter` lets you transform column names with a function:
+`RenameColumnAdapter` lets you transform column names with a function:
 
 ```swift
 // [arrr:0, brrr:1, crrr:2]
-let adapter = RenameColumAdapter { column in column + "rrr" }
+let adapter = RenameColumnAdapter { column in column + "rrr" }
 let row = try Row.fetchOne(db, sql: "SELECT 0 AS a, 1 AS b, 2 AS c", adapter: adapter)!
 ```
 
@@ -2047,7 +2047,7 @@ let row = try Row.fetchOne(db, sql: sql)!
 print(Array(row.columnNames))
 
 // Drop the `:...` suffix, and prints ["id", "id"]
-let adapter = RenameColumAdapter { String($0.prefix(while: { $0 != ":" })) }
+let adapter = RenameColumnAdapter { String($0.prefix(while: { $0 != ":" })) }
 let adaptedRow = try Row.fetchOne(db, sql: sql, adapter: adapter)!
 print(Array(adaptedRow.columnNames))
 ```

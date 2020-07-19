@@ -423,19 +423,19 @@ struct ChainedAdapter: RowAdapter {
     }
 }
 
-/// `RenameColumAdapter` is a row adapter that renames columns.
+/// `RenameColumnAdapter` is a row adapter that renames columns.
 ///
 /// For example:
 ///
-///     let adapter = RenameColumAdapter { $0 + "rrr" }
+///     let adapter = RenameColumnAdapter { $0 + "rrr" }
 ///     let sql = "SELECT 'foo' AS foo, 'bar' AS bar, 'baz' AS baz"
 ///
 ///     // [foorrr:"foo", barrrr:"bar", bazrrr:"baz"]
 ///     try Row.fetchOne(db, sql: sql, adapter: adapter)
-public struct RenameColumAdapter: RowAdapter {
+public struct RenameColumnAdapter: RowAdapter {
     let transform: (String) -> String
     
-    /// Creates a `RenameColumAdapter` adapter that renames columns according to the
+    /// Creates a `RenameColumnAdapter` adapter that renames columns according to the
     /// provided transform function.
     public init(_ transform: @escaping (String) -> String) {
         self.transform = transform
