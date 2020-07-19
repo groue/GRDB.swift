@@ -260,7 +260,7 @@ let disposable = observation.rx.observe(in: dbQueue).subscribe(
     onError: { error in ... })
 ```
 
-See [Database Observation].
+See [Database Observation], [Combine Support], [RxGRDB].
 
 </details>
 
