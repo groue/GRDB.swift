@@ -2288,7 +2288,7 @@ For batch updates, execute an [SQL query](#executing-updates), or see the [query
 try db.execute(sql: "UPDATE player SET score = score + 1 WHERE team = 'red'")
 try Player
     .filter(Column("team") == "red")
-    .updateAll(db, scoreColumn += 1)
+    .updateAll(db, Column("score") += 1)
 ```
 
 :point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
@@ -4789,34 +4789,39 @@ Player.deleteOne(db, key: ["email": "arthur@example.com"])
 ```swift
 // UPDATE player SET score = 0, isHealthy = 1, bonus = NULL
 try Player.updateAll(db, 
-    scoreColumn.set(to: 0), 
-    isHealthyColumn.set(to: true), 
-    bonus.set(to: nil))
+    Column("score").set(to: 0), 
+    Column("isHealthy").set(to: true), 
+    Column("bonus").set(to: nil))
 
 // UPDATE player SET score = 0 WHERE team = 'red'
 try Player
-    .filter(teamColumn == "red")
-    .updateAll(db, scoreColumn.set(to: 0))
+    .filter(Column("team") == "red")
+    .updateAll(db, Column("score").set(to: 0))
 
 // UPDATE player SET top = 1 ORDER BY score DESC LIMIT 10
 try Player
-    .order(scoreColumn.desc)
+    .order(Column("score").desc)
     .limit(10)
-    .updateAll(db, topColumn.set(to: true))
+    .updateAll(db, Column("top").set(to: true))
+
+// UPDATE country SET population = 67848156 WHERE code = 'FR'
+try Country
+    .filter(key: "FR")
+    .updateAll(db, Column("population").set(to: 67_848_156))
 ```
 
 Column assignments accept any expression:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db, scoreColumn.set(to: scoreColumn + bonusColumn * 2))
+try Player.updateAll(db, Column("score").set(to: Column("score") + Column("bonus") * 2))
 ```
 
 As a convenience, you can also use the `+=`, `-=`, `*=`, or `/=` operators:
 
 ```swift
 // UPDATE player SET score = score + (bonus * 2)
-try Player.updateAll(db, scoreColumn += bonusColumn * 2)
+try Player.updateAll(db, Column("score") += Column("bonus") * 2)
 ```
 
 Default [Conflict Resolution] rules apply, and you may also provide a specific one:
