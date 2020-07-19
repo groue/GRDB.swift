@@ -2359,46 +2359,28 @@ Details follow:
 
 - [FetchableRecord] is able to **decode database rows**.
     
-    It is always possible to decode rows without this protocol:
-    
-    ```swift
-    struct Place { ... }
-    try dbQueue.read { db in
-        let rows = try Row.fetchAll(db, sql: "SELECT * FROM place")
-        let places: [Place] = rows.map { row in
-            return Place(
-                id: row["id"],
-                title: row["title"],
-                coordinate: CLLocationCoordinate2D(
-                    latitude: row["latitude"],
-                    longitude: row["longitude"]))
-            )
-        }
-    }
-    ```
-    
-    But FetchableRecord lets you write code that is easier to read, and more efficient as well, both in terms of performance and memory usage:
-    
     ```swift
     struct Place: FetchableRecord { ... }
-    try dbQueue.read { db in
-        let places = try Place.fetchAll(db, sql: "SELECT * FROM place")
+    let places = try dbQueue.read { db in
+        try Place.fetchAll(db, sql: "SELECT * FROM place")
     }
     ```
     
-    > :bulb: **Tip**: FetchableRecord can derive its implementation from the standard Decodable protocol. See [Codable Records] for more information.
+    > :bulb: **Tip**: `FetchableRecord` can derive its implementation from the standard `Decodable` protocol. See [Codable Records] for more information.
     
-    FetchableRecord can decode database rows, but it is not able to build SQL requests for you. For that, you also need TableRecord:
+    `FetchableRecord` can decode database rows, but it is not able to build SQL requests for you. For that, you also need `TableRecord`:
     
 - [TableRecord] is able to **generate SQL queries**:
     
     ```swift
     struct Place: TableRecord { ... }
-    // SELECT * FROM place ORDER BY title
-    let request = Place.order(Column("title"))
+    let placeCount = try dbQueue.read { db in
+        // Generates and runs `SELECT COUNT(*) FROM place`
+        try Place.fetchCount(db)
+    }
     ```
     
-    When a type adopts both TableRecord and FetchableRecord, it can load from those requests:
+    When a type adopts both `TableRecord` and `FetchableRecord`, it can load from those requests:
     
     ```swift
     struct Place: TableRecord, FetchableRecord { ... }
@@ -2420,7 +2402,7 @@ Details follow:
     
     A persistable record can also [compare](#record-comparison) itself against other records, and avoid useless database updates.
     
-    > :bulb: **Tip**: PersistableRecord can derive its implementation from the standard Encodable protocol. See [Codable Records] for more information.
+    > :bulb: **Tip**: `PersistableRecord` can derive its implementation from the standard `Encodable` protocol. See [Codable Records] for more information.
 
 
 ## FetchableRecord Protocol
