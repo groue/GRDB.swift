@@ -68,10 +68,13 @@ public struct FTS3TokenizerDescriptor {
             break
         case .keep:
             arguments.append("remove_diacritics=0")
-            #if GRDBCUSTOMSQLITE
+        #if GRDBCUSTOMSQLITE
         case .remove:
             arguments.append("remove_diacritics=2")
-            #endif
+        #elseif !GRDBCIPHER
+        case .remove:
+            arguments.append("remove_diacritics=2")
+        #endif
         }
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
