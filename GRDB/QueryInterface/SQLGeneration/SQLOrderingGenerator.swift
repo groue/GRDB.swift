@@ -26,12 +26,17 @@ private struct SQLOrderingGenerator: _SQLOrderingTermVisitor {
             resultSQL = try expression.expressionSQL(context, wrappedInParenthesis: false) + " ASC"
         case .desc(let expression):
             resultSQL = try expression.expressionSQL(context, wrappedInParenthesis: false) + " DESC"
-            #if GRDBCUSTOMSQLITE
+        #if GRDBCUSTOMSQLITE
         case .ascNullsLast(let expression):
             resultSQL = try expression.expressionSQL(context, wrappedInParenthesis: false) + " ASC NULLS LAST"
         case .descNullsFirst(let expression):
             resultSQL = try expression.expressionSQL(context, wrappedInParenthesis: false) + " DESC NULLS FIRST"
-            #endif
+        #elseif !GRDBCIPHER
+        case .ascNullsLast(let expression):
+            resultSQL = try expression.expressionSQL(context, wrappedInParenthesis: false) + " ASC NULLS LAST"
+        case .descNullsFirst(let expression):
+            resultSQL = try expression.expressionSQL(context, wrappedInParenthesis: false) + " DESC NULLS FIRST"
+        #endif
         }
     }
     
