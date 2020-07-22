@@ -71,7 +71,7 @@ public struct SQLCollatedExpression {
     ///     Player.order(email.ascNullsLast)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    @available(OSX 11, iOS 14, tvOS 14, watchOS 7, *)
+    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var ascNullsLast: SQLOrderingTerm {
         _SQLOrdering.ascNullsLast(sqlExpression)
     }
@@ -84,7 +84,7 @@ public struct SQLCollatedExpression {
     ///     Player.order(email.descNullsFirst)
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
-    @available(OSX 11, iOS 14, tvOS 14, watchOS 7, *)
+    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var descNullsFirst: SQLOrderingTerm {
         _SQLOrdering.descNullsFirst(sqlExpression)
     }

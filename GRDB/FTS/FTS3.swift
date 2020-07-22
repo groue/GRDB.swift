@@ -25,7 +25,7 @@ public struct FTS3: VirtualTableModule {
         /// Remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=2" tokenizer argument,
         /// available from SQLite 3.27.0
-        @available(OSX 11, iOS 14, tvOS 14, watchOS 7, *)
+        @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
         case remove
         #endif
     }
