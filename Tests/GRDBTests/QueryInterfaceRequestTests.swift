@@ -617,6 +617,21 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE 1 AND 0")
     }
     
+    // Regression test for https://github.com/groue/GRDB.swift/issues/812
+    func testFilterOnView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE VIEW v AS SELECT * FROM readers")
+            struct ViewRecord: TableRecord, FetchableRecord, Decodable {
+                static let databaseTableName = "v"
+            }
+            _ = try ViewRecord.filter(Column("id") == 1).fetchOne(db)
+            XCTAssertEqual(
+                lastSQLQuery,
+                "SELECT * FROM \"v\" WHERE \"id\" = 1 LIMIT 1")
+        }
+    }
+    
     
     // MARK: - Group
     

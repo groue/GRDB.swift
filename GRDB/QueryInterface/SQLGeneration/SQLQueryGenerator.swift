@@ -175,9 +175,12 @@ struct SQLQueryGenerator: Refinable {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
-        guard case let .table(tableName: tableName, alias: alias) = relation.source else {
-            // TODO: try harder
-            return selectedRegion
+        guard
+            case let .table(tableName: tableName, alias: alias) = relation.source,
+            try db.tableExists(tableName) // skip views
+            else {
+                // TODO: try harder
+                return selectedRegion
         }
         
         // The filter knows better
@@ -206,7 +209,10 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // Do we filter on a unique key?
-        if case let .table(tableName, sourceAlias) = relation.source {
+        if
+            case let .table(tableName: tableName, alias: sourceAlias) = relation.source,
+            try db.tableExists(tableName) // skip views
+        {
             let identifyingColums = try filters
                 .joined(operator: .and)
                 .identifyingColums(db, for: sourceAlias)
@@ -432,8 +438,11 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // Grouping something which is not a table: assume non unique grouping.
-        guard case let .table(tableName: tableName, alias: alias) = relation.source else {
-            return .nonUnique
+        guard
+            case let .table(tableName: tableName, alias: alias) = relation.source,
+            try db.tableExists(tableName) // skip views
+            else {
+                return .nonUnique
         }
         
         var groupingColumns: Set<String> = []
