@@ -56,6 +56,13 @@ ifeq ($(XCODEVERSION),12.0)
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=14.0"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
+else ifeq ($(XCODEVERSION),11.6)
+  MAX_SWIFT_VERSION = 5.2
+  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.6"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=13.4"
+  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
 else ifeq ($(XCODEVERSION),11.5)
   MAX_SWIFT_VERSION = 5.2
   MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
