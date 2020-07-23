@@ -259,6 +259,15 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.order(Col.age.descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #elseif !GRDBCIPHER
+        if #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) {
+            XCTAssertEqual(
+                sql(dbQueue, Reader.order(Col.age.ascNullsLast)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            XCTAssertEqual(
+                sql(dbQueue, Reader.order(Col.age.descNullsFirst)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        }
         #endif
     }
     
