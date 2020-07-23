@@ -395,7 +395,7 @@ enum SQLSource {
     
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
-        case let .table(tableName, sourceAlias):
+        case let .table(tableName: tableName, alias: sourceAlias):
             if let sourceAlias = sourceAlias {
                 alias.becomeProxy(of: sourceAlias)
                 return self
