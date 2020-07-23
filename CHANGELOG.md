@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+<!--
 [Next Release](#next-release)
+-->
 
 #### 5.x Releases
 
-- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6) | [5.0.0-beta.7](#500-beta7) | [5.0.0-beta.7](#500-beta8)
+- `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6) | [5.0.0-beta.7](#500-beta7) | [5.0.0-beta.8](#500-beta8) | [5.0.0-beta.9](#500-beta9)
 
 
 #### 4.x Releases
@@ -68,7 +70,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
+<!--
 ## Next Release
+-->
+
+
+## 5.0.0-beta.9
+
+Released July 23, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.8...v5.0.0-beta.9)
 
 - **New**: [#813](https://github.com/groue/GRDB.swift/pull/813): Expose SQLite 3.31.1 APIs to iOS, macOS, tvOS, watchOS
 - **Fixed**: [#814](https://github.com/groue/GRDB.swift/pull/814): Fix regression with views
