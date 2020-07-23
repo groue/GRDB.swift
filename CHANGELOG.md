@@ -71,6 +71,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#813](https://github.com/groue/GRDB.swift/pull/813): Expose SQLite 3.31.1 APIs to iOS, macOS, tvOS, watchOS
+- **Fixed**: [#814](https://github.com/groue/GRDB.swift/pull/814): Fix regression with views
 
 
 ## 5.0.0-beta.8
