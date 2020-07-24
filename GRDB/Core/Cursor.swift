@@ -9,7 +9,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// MARK: - Array, Sequence, Set extensions
+// MARK: - Array, Sequence, Dictionary, Set extensions
 
 extension Array {
     /// Creates an array containing the elements of a cursor.
@@ -21,6 +21,20 @@ extension Array {
         self.init()
         while let element = try cursor.next() {
             append(element)
+        }
+    }
+}
+
+extension Dictionary {
+    /// Creates a new dictionary whose keys are the groupings returned by the
+    /// given closure and whose values are arrays of the elements that returned
+    /// each key.
+    public init<C: Cursor>(grouping values: C, by keyForValue: (C.Element) throws -> Key)
+    throws where Value == [C.Element]
+    {
+        self.init()
+        while let value = try values.next() {
+            try self[keyForValue(value), default: []].append(value)
         }
     }
 }

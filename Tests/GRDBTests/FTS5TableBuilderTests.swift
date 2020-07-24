@@ -128,6 +128,21 @@ class FTS5TableBuilderTests: GRDBTestCase {
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 remove_diacritics 2')")
         }
     }
+    #elseif !GRDBCIPHER
+    func testUnicode61TokenizerDiacriticsRemove() throws {
+        guard #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip()
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = .unicode61(diacritics: .remove)
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts5(content, tokenize='unicode61 remove_diacritics 2')")
+        }
+    }
     #endif
 
     func testUnicode61TokenizerSeparators() throws {

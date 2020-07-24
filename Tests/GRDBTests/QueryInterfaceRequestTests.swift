@@ -617,6 +617,21 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE 1 AND 0")
     }
     
+    // Regression test for https://github.com/groue/GRDB.swift/issues/812
+    func testFilterOnView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE VIEW v AS SELECT * FROM readers")
+            struct ViewRecord: TableRecord, FetchableRecord, Decodable {
+                static let databaseTableName = "v"
+            }
+            _ = try ViewRecord.filter(Column("id") == 1).fetchOne(db)
+            XCTAssertEqual(
+                lastSQLQuery,
+                "SELECT * FROM \"v\" WHERE \"id\" = 1 LIMIT 1")
+        }
+    }
+    
     
     // MARK: - Group
     
@@ -744,6 +759,15 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.age.descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #elseif !GRDBCIPHER
+        if #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) {
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.age.ascNullsLast)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.age.descNullsFirst)),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        }
         #endif
     }
     
@@ -765,6 +789,15 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst)),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+        #elseif !GRDBCIPHER
+        if #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) {
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).ascNullsLast)),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst)),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+        }
         #endif
     }
     
@@ -805,6 +838,15 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.age.ascNullsLast).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        #elseif !GRDBCIPHER
+        if #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) {
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.age.descNullsFirst).reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" ASC NULLS LAST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.age.ascNullsLast).reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"age\" DESC NULLS FIRST")
+        }
         #endif
     }
     
@@ -826,6 +868,15 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst).reversed()),
             "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+        #elseif !GRDBCIPHER
+        if #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) {
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).ascNullsLast).reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE DESC NULLS FIRST")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.order(Col.name.collating(.nocase).descNullsFirst).reversed()),
+                "SELECT * FROM \"readers\" ORDER BY \"name\" COLLATE NOCASE ASC NULLS LAST")
+        }
         #endif
     }
     

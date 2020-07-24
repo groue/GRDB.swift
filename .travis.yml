@@ -28,17 +28,121 @@ jobs:
   include:
 
     ###########################################
-    ## Test GRDB Xcode 11.4
+    ## Test GRDB Xcode 11.6
     
-    - name: "Test GRDB Xcode 11.4 - GRDBOSX"
+    - name: "Test GRDB Xcode 11.6 - GRDBOSX"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
+      osx_image: xcode11.6
       script: make test_framework_GRDBOSX_maxSwift
     
-    - name: "Test GRDB Xcode 11.4 - GRDBWatchOS"
+    - name: "Test GRDB Xcode 11.6 - GRDBWatchOS"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
+      osx_image: xcode11.6
       script: make test_framework_GRDBWatchOS
+    
+    - name: "Test GRDB Xcode 11.6 - GRDBiOS iOS maxTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_GRDBiOS_maxTarget_maxSwift
+    
+    - name: "Test GRDB Xcode 11.6 - GRDBiOS iOS minTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_GRDBiOS_minTarget
+    
+    - name: "Test GRDB Xcode 11.6 - GRDBtvOS maxTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_GRDBtvOS_maxTarget_maxSwift
+    
+    - name: "Test GRDB Xcode 11.6 - GRDBtvOS minTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_GRDBtvOS_minTarget
+    
+    - name: "Test GRDB Xcode 11.6 - SPM"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_SPM
+    
+    ###########################################
+    ## Test GRDBCustom Xcode 11.6
+    
+    - name: "Test GRDBCustom Xcode 11.6 - GRDBOSX"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_GRDBCustomSQLiteOSX
+    
+    - name: "Test GRDBCustom Xcode 11.6 - GRDBiOS maxTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift
+    
+    - name: "Test GRDBCustom Xcode 11.6 - GRDBiOS minTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_GRDBCustomSQLiteiOS_minTarget
+    
+    ###########################################
+    ## Test SQLCipher Xcode 11.6
+    
+    - name: "Test SQLCipher Xcode 11.6 - SQLCipher 3"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_SQLCipher3
+    
+    - name: "Test SQLCipher Xcode 11.6 - SQLCipher 4"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_framework_SQLCipher4
+    
+    ###########################################
+    ## Test Installation Xcode 11.6
+    
+    # Manual Install
+    - name: "Test Installation Xcode 11.6 - Manual Install"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_install_manual
+    
+    # CocoaPods Lint
+    - name: "Test Installation Xcode 11.6 - CocoaPods Lint"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_CocoaPodsLint_GRDB
+    
+    # CocoaPods Install GRDB
+    - name: "Test Installation Xcode 11.6 - CocoaPods Framework"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_install_GRDB_CocoaPods_framework
+    
+    # CocoaPods Install GRDB
+    - name: "Test Installation Xcode 11.6 - CocoaPods Static"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_install_GRDB_CocoaPods_static
+    
+    # SPM Install
+    - name: "Test Installation Xcode 11.6 - SPM Package"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_install_SPM_Package
+    
+    # SPM Install
+    - name: "Test Installation Xcode 11.6 - SPM Package in Xcode Project"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_install_SPM_Project
+    
+    # Custom SQLite Install
+    - name: "Test Installation Xcode 11.6 - Custom SQLite"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.6
+      script: make test_install_customSQLite
+    
+    ###########################################
+    ## Test GRDB Xcode 11.4
     
     - name: "Test GRDB Xcode 11.4 - GRDBiOS iOS maxTarget"
       gemfile: .ci/gemfiles/Gemfile.travis
@@ -49,94 +153,3 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode11.4
       script: make test_framework_GRDBiOS_minTarget
-    
-    - name: "Test GRDB Xcode 11.4 - GRDBtvOS maxTarget"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_GRDBtvOS_maxTarget_maxSwift
-    
-    - name: "Test GRDB Xcode 11.4 - GRDBtvOS minTarget"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_GRDBtvOS_minTarget
-    
-    - name: "Test GRDB Xcode 11.4 - SPM"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_SPM
-    
-    ###########################################
-    ## Test GRDBCustom Xcode 11.4
-    
-    - name: "Test GRDBCustom Xcode 11.4 - GRDBOSX"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_GRDBCustomSQLiteOSX
-    
-    - name: "Test GRDBCustom Xcode 11.4 - GRDBiOS maxTarget"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift
-    
-    - name: "Test GRDBCustom Xcode 11.4 - GRDBiOS minTarget"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_GRDBCustomSQLiteiOS_minTarget
-    
-    ###########################################
-    ## Test SQLCipher Xcode 11.4
-    
-    - name: "Test SQLCipher Xcode 11.4 - SQLCipher 3"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_SQLCipher3
-    
-    - name: "Test SQLCipher Xcode 11.4 - SQLCipher 4"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_SQLCipher4
-    
-    ###########################################
-    ## Test Installation Xcode 11.4
-    
-    # Manual Install
-    - name: "Test Installation Xcode 11.4 - Manual Install"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_install_manual
-    
-    # CocoaPods Lint
-    - name: "Test Installation Xcode 11.4 - CocoaPods Lint"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_CocoaPodsLint_GRDB
-    
-    # CocoaPods Install GRDB
-    - name: "Test Installation Xcode 11.4 - CocoaPods Framework"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_install_GRDB_CocoaPods_framework
-    
-    # CocoaPods Install GRDB
-    - name: "Test Installation Xcode 11.4 - CocoaPods Static"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_install_GRDB_CocoaPods_static
-    
-    # SPM Install
-    - name: "Test Installation Xcode 11.4 - SPM Package"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_install_SPM_Package
-    
-    # SPM Install
-    - name: "Test Installation Xcode 11.4 - SPM Package in Xcode Project"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_install_SPM_Project
-    
-    # Custom SQLite Install
-    - name: "Test Installation Xcode 11.4 - Custom SQLite"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_install_customSQLite

@@ -24,10 +24,11 @@ public protocol SQLOrderingTerm: _SQLOrderingTerm { }
 public enum _SQLOrdering: SQLOrderingTerm, Refinable {
     case asc(SQLExpression)
     case desc(SQLExpression)
-    #if GRDBCUSTOMSQLITE
+    
+    // Only available from 3.30.0. This enum is not public, so those cases don't
+    // harm as long as we don't expose them through public APIs.
     case ascNullsLast(SQLExpression)
     case descNullsFirst(SQLExpression)
-    #endif
     
     var expression: SQLExpression {
         get {
@@ -36,12 +37,10 @@ public enum _SQLOrdering: SQLOrderingTerm, Refinable {
                 return expression
             case .desc(let expression):
                 return expression
-                #if GRDBCUSTOMSQLITE
             case .ascNullsLast(let expression):
                 return expression
             case .descNullsFirst(let expression):
                 return expression
-                #endif
             }
         }
         set {
@@ -50,12 +49,10 @@ public enum _SQLOrdering: SQLOrderingTerm, Refinable {
                 self = .asc(newValue)
             case .desc:
                 self = .desc(newValue)
-                #if GRDBCUSTOMSQLITE
             case .ascNullsLast:
                 self = .ascNullsLast(newValue)
             case .descNullsFirst:
                 self = .descNullsFirst(newValue)
-                #endif
             }
         }
     }
@@ -67,12 +64,10 @@ public enum _SQLOrdering: SQLOrderingTerm, Refinable {
             return _SQLOrdering.desc(expression)
         case .desc(let expression):
             return _SQLOrdering.asc(expression)
-            #if GRDBCUSTOMSQLITE
         case .ascNullsLast(let expression):
             return _SQLOrdering.descNullsFirst(expression)
         case .descNullsFirst(let expression):
             return _SQLOrdering.ascNullsLast(expression)
-            #endif
         }
     }
     

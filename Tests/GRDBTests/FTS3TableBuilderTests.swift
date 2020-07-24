@@ -74,6 +74,19 @@ class FTS3TableBuilderTests: GRDBTestCase {
             assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"remove_diacritics=2\")")
         }
     }
+    #elseif !GRDBCIPHER
+    func testUnicode61TokenizerDiacriticsRemove() throws {
+        guard #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip()
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(virtualTable: "documents", using: FTS3()) { t in
+                t.tokenizer = .unicode61(diacritics: .remove)
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE \"documents\" USING fts3(tokenize=unicode61 \"remove_diacritics=2\")")
+        }
+    }
     #endif
 
     func testUnicode61TokenizerSeparators() throws {
