@@ -125,6 +125,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - Internal properties
     
     // Caches
+    var _lastSchemaVersion: Int32? // Support for clearSchemaCacheIfNeeded()
     var schemaCache: DatabaseSchemaCache    // internal so that it can be tested
     lazy var internalStatementCache = StatementCache(database: self)
     lazy var publicStatementCache = StatementCache(database: self)
@@ -1070,55 +1071,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         let kind = kind ?? configuration.defaultTransactionKind
         try execute(sql: "BEGIN \(kind.rawValue) TRANSACTION")
         assert(isInsideTransaction)
-    }
-    
-    /// Begins a database transaction and take a snapshot of the last committed
-    /// database state.
-    func beginSnapshotTransaction() throws {
-        // https://www.sqlite.org/isolation.html
-        //
-        // > In WAL mode, SQLite exhibits "snapshot isolation". When a read
-        // > transaction starts, that reader continues to see an unchanging
-        // > "snapshot" of the database file as it existed at the moment in time
-        // > when the read transaction started. Any write transactions that
-        // > commit while the read transaction is active are still invisible to
-        // > the read transaction, because the reader is seeing a snapshot of
-        // > database file from a prior moment in time.
-        //
-        // That's exactly what we need. But what does "when read transaction
-        // starts" mean?
-        //
-        // http://www.sqlite.org/lang_transaction.html
-        //
-        // > Deferred [transaction] means that no locks are acquired on the
-        // > database until the database is first accessed. [...] Locks are not
-        // > acquired until the first read or write operation. [...] Because the
-        // > acquisition of locks is deferred until they are needed, it is
-        // > possible that another thread or process could create a separate
-        // > transaction and write to the database after the BEGIN on the
-        // > current thread has executed.
-        //
-        // Now that's precise enough: SQLite defers "snapshot isolation" until
-        // the first SELECT:
-        //
-        //     Reader                       Writer
-        //     BEGIN DEFERRED TRANSACTION
-        //                                  UPDATE ... (1)
-        //     Here the change (1) is visible
-        //     SELECT ...
-        //                                  UPDATE ... (2)
-        //     Here the change (2) is not visible
-        //
-        // We thus have to perform a select that establishes the
-        // snapshot isolation before we release the writer queue:
-        //
-        //     Reader                       Writer
-        //     BEGIN DEFERRED TRANSACTION
-        //     SELECT anything
-        //                                  UPDATE ...
-        //     Here the change is not visible by GRDB user
-        try beginTransaction(.deferred)
-        try internalCachedSelectStatement(sql: "SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
     }
     
     /// Rollbacks a database transaction.

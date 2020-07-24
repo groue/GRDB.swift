@@ -195,6 +195,61 @@ class DatabaseSnapshotTests: GRDBTestCase {
     
     // MARK: - Concurrency
     
+    func testReadBlockIsolationStartingWithRead() throws {
+        let dbPool = try makeDatabasePool()
+        try dbPool.write { db in
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+        }
+        
+        // Block 1                      Block 2
+        // dbSnapshot.read {
+        // >
+        let s1 = DispatchSemaphore(value: 0)
+        //                              INSERT INTO items (id) VALUES (NULL)
+        //                              <
+        let s2 = DispatchSemaphore(value: 0)
+        // SELECT COUNT(*) FROM items -> 0
+        // >
+        let s3 = DispatchSemaphore(value: 0)
+        //                              INSERT INTO items (id) VALUES (NULL)
+        //                              <
+        let s4 = DispatchSemaphore(value: 0)
+        // SELECT COUNT(*) FROM items -> 0
+        // }
+        
+        let block1 = { () in
+            let snapshot = try! dbPool.makeSnapshot()
+            try! snapshot.read { db in
+                s1.signal()
+                _ = s2.wait(timeout: .distantFuture)
+                // We read 0 due to snaphot isolation which was acquired before
+                // `s1` could let the writer insert an item.
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
+                s3.signal()
+                _ = s4.wait(timeout: .distantFuture)
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 0)
+            }
+        }
+        let block2 = { () in
+            do {
+                _ = s1.wait(timeout: .distantFuture)
+                try dbPool.writeWithoutTransaction { db in
+                    try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+                    s2.signal()
+                    _ = s3.wait(timeout: .distantFuture)
+                    try db.execute(sql: "INSERT INTO items (id) VALUES (NULL)")
+                    s4.signal()
+                }
+            } catch {
+                XCTFail("error: \(error)")
+            }
+        }
+        let blocks = [block1, block2]
+        DispatchQueue.concurrentPerform(iterations: blocks.count) { index in
+            blocks[index]()
+        }
+    }
+
     func testDefaultLabel() throws {
         let dbPool = try makeDatabasePool()
         

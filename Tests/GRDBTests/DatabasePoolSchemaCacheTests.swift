@@ -31,7 +31,14 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = try db.columns(in: "items")
             _ = try db.indexes(on: "items")
             
-            // Assert that reader cache is warmed
+            // Assert that reader cache is warm
+            XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
+            XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
+            XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
+        }
+        
+        try dbPool.read { db in
+            // Assert that reader cache is still warm
             XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
             XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
             XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
@@ -43,24 +50,31 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = try db.columns(in: "items")
             _ = try db.indexes(on: "items")
             
-            // Assert that writer cache is warmed
+            // Assert that writer cache is warm
             XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
             XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
             XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
         }
         
         try dbPool.write { db in
-            // Empty cache after schema change
+            // Assert that writer cache is still warm
+            XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
+            XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
+            XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
+        }
+        
+        try dbPool.write { db in
+            // Change schema
             try db.execute(sql: "DROP TABLE items")
             
-            // Assert that the writer cache is empty
+            // Assert that the writer cache is cleared
             XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
             XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
         }
         
         try dbPool.read { db in
-            // Assert that a reader cache is empty
+            // Assert that reader cache is cleared
             XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
             XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
             XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
