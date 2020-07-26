@@ -24,12 +24,11 @@ public struct _SQLExpressionNot: SQLExpression {
     public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            return self
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
             
         case .false:
-            // `(NOT expression) == 0` is equivalent to `expression`
-            return expression
-            
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+        
         case .falsey:
             // Support `NOT (NOT expression)` as a technique to build 0 or 1
             return _SQLExpressionNot(self)
@@ -103,17 +102,13 @@ struct SQLBinaryOperator: Hashable {
     /// The SQL for the negated operator, if any
     let negatedSQL: String?
     
-    /// Does the operator output a boolean value?
-    let isBoolean: Bool
-    
     /// Creates a binary operator
     ///
-    ///     SQLBinaryOperator("-", isBoolean: false)
-    ///     SQLBinaryOperator("LIKE", negated: "NOT LIKE", isBoolean: true)
-    init(_ sql: String, negated: String? = nil, isBoolean: Bool) {
+    ///     SQLBinaryOperator("-")
+    ///     SQLBinaryOperator("LIKE", negated: "NOT LIKE")
+    init(_ sql: String, negated: String? = nil) {
         self.sql = sql
         self.negatedSQL = negated
-        self.isBoolean = isBoolean
     }
     
     /// Returns the negated binary operator, if any
@@ -124,32 +119,32 @@ struct SQLBinaryOperator: Hashable {
         guard let negatedSQL = negatedSQL else {
             return nil
         }
-        return SQLBinaryOperator(negatedSQL, negated: sql, isBoolean: isBoolean)
+        return SQLBinaryOperator(negatedSQL, negated: sql)
     }
     
     /// The `<` binary operator
-    static let lessThan = SQLBinaryOperator("<", isBoolean: true)
+    static let lessThan = SQLBinaryOperator("<")
     
     /// The `<=` binary operator
-    static let lessThanOrEqual = SQLBinaryOperator("<=", isBoolean: true)
+    static let lessThanOrEqual = SQLBinaryOperator("<=")
     
     /// The `>` binary operator
-    static let greaterThan = SQLBinaryOperator(">", isBoolean: true)
+    static let greaterThan = SQLBinaryOperator(">")
     
     /// The `>=` binary operator
-    static let greaterThanOrEqual = SQLBinaryOperator(">=", isBoolean: true)
+    static let greaterThanOrEqual = SQLBinaryOperator(">=")
     
     /// The `-` binary operator
-    static let subtract = SQLBinaryOperator("-", isBoolean: false)
+    static let subtract = SQLBinaryOperator("-")
     
     /// The `/` binary operator
-    static let divide = SQLBinaryOperator("/", isBoolean: false)
+    static let divide = SQLBinaryOperator("/")
     
     /// The `LIKE` binary operator
-    static let like = SQLBinaryOperator("LIKE", negated: "NOT LIKE", isBoolean: true)
+    static let like = SQLBinaryOperator("LIKE", negated: "NOT LIKE")
     
     /// The `MATCH` binary operator
-    static let match = SQLBinaryOperator("MATCH", isBoolean: true)
+    static let match = SQLBinaryOperator("MATCH")
 }
 
 /// _SQLExpressionBinary is an expression made of two expressions joined with a
@@ -178,19 +173,11 @@ public struct _SQLExpressionBinary: SQLExpression {
     public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            if op.isBoolean {
-                return self
-            } else {
-                return _SQLExpressionEqual(.equal, self, true.sqlExpression)
-            }
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
         case .false:
-            if let negatedOp = op.negated {
-                return _SQLExpressionBinary(negatedOp, lhs, rhs)
-            } else if op.isBoolean {
-                return _SQLExpressionNot(self)
-            } else {
-                return _SQLExpressionEqual(.equal, self, false.sqlExpression)
-            }
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
         case .falsey:
             if let negatedOp = op.negated {
                 return _SQLExpressionBinary(negatedOp, lhs, rhs)
@@ -408,8 +395,12 @@ public struct _SQLExpressionEqual: SQLExpression {
     public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            return self
-        case .false, .falsey:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
             return _SQLExpressionEqual(op.negated, lhs, rhs)
         }
     }
@@ -449,8 +440,12 @@ public struct _SQLExpressionContains: SQLExpression {
     public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            return self
-        case .false, .falsey:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
             return _SQLExpressionContains(expression, collection, negated: !isNegated)
         }
     }
@@ -495,8 +490,12 @@ public struct _SQLExpressionBetween: SQLExpression {
     public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            return self
-        case .false, .falsey:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
             return _SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
         }
     }

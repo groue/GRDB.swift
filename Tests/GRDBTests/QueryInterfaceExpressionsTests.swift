@@ -1294,11 +1294,11 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.like("%foo") == true)),
-            "SELECT * FROM \"readers\" WHERE \"name\" LIKE '%foo'")
+            "SELECT * FROM \"readers\" WHERE (\"name\" LIKE '%foo') = 1")
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.like("%foo") == false)),
-            "SELECT * FROM \"readers\" WHERE \"name\" NOT LIKE '%foo'")
+            "SELECT * FROM \"readers\" WHERE (\"name\" LIKE '%foo') = 0")
     }
     
     
