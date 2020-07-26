@@ -463,16 +463,16 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age == true)),
-            "SELECT * FROM \"readers\" WHERE \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" = 1")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true == Col.age)),
-            "SELECT * FROM \"readers\" WHERE \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" = 1")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age == false)),
-            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" = 0")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(false == Col.age)),
-            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" = 0")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true == true)),
             "SELECT * FROM \"readers\" WHERE 1")
@@ -615,16 +615,16 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age != true)),
-            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" <> 1")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true != Col.age)),
-            "SELECT * FROM \"readers\" WHERE NOT \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" <> 1")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.age != false)),
-            "SELECT * FROM \"readers\" WHERE \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" <> 0")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(false != Col.age)),
-            "SELECT * FROM \"readers\" WHERE \"age\"")
+            "SELECT * FROM \"readers\" WHERE \"age\" <> 0")
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(true != true)),
             "SELECT * FROM \"readers\" WHERE 0")
