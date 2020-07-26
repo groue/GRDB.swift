@@ -59,9 +59,9 @@ public func == (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpressi
 ///     Column("validated") == false
 public func == (lhs: SQLSpecificExpressible, rhs: Bool) -> SQLExpression {
     if rhs {
-        return lhs.sqlExpression
+        return lhs.sqlExpression._is(.true)
     } else {
-        return lhs.sqlExpression._negated
+        return lhs.sqlExpression._is(.false)
     }
 }
 
@@ -102,9 +102,9 @@ public func == (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpressi
 ///     false == Column("validated")
 public func == (lhs: Bool, rhs: SQLSpecificExpressible) -> SQLExpression {
     if lhs {
-        return rhs.sqlExpression
+        return rhs.sqlExpression._is(.true)
     } else {
-        return rhs.sqlExpression._negated
+        return rhs.sqlExpression._is(.false)
     }
 }
 
@@ -126,7 +126,7 @@ public func == (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
 ///     // name IS NOT NULL
 ///     Column("name") != nil
 public func != (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpression {
-    isEqual(lhs.sqlExpression, rhs?.sqlExpression ?? DatabaseValue.null)._negated
+    !(lhs == rhs)
 }
 
 /// An SQL expression that compares two expressions with the `<>` SQL operator.
@@ -139,7 +139,7 @@ public func != (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpress
 ///     // name IS NOT NULL
 ///     Column("name").collating(.nocase) != nil
 public func != (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpression {
-    _SQLExpressionCollate(lhs.expression != rhs, collationName: lhs.collationName)
+    !(lhs == rhs)
 }
 
 /// An SQL expression that checks the boolean value of an expression.
@@ -152,11 +152,7 @@ public func != (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpressi
 ///     // validated
 ///     Column("validated") != false
 public func != (lhs: SQLSpecificExpressible, rhs: Bool) -> SQLExpression {
-    if rhs {
-        return lhs.sqlExpression._negated
-    } else {
-        return lhs.sqlExpression
-    }
+    !(lhs == rhs)
 }
 
 /// An SQL expression that compares two expressions with the `<>` SQL operator.
@@ -169,7 +165,7 @@ public func != (lhs: SQLSpecificExpressible, rhs: Bool) -> SQLExpression {
 ///     // name IS NOT NULL
 ///     nil != Column("name")
 public func != (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpression {
-    isEqual(lhs?.sqlExpression ?? DatabaseValue.null, rhs.sqlExpression)._negated
+    !(lhs == rhs)
 }
 
 /// An SQL expression that compares two expressions with the `<>` SQL operator.
@@ -182,7 +178,7 @@ public func != (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpress
 ///     // name IS NOT NULL
 ///     nil != Column("name").collating(.nocase)
 public func != (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpression {
-    _SQLExpressionCollate(lhs != rhs.expression, collationName: rhs.collationName)
+    !(lhs == rhs)
 }
 
 /// An SQL expression that checks the boolean value of an expression.
@@ -195,11 +191,7 @@ public func != (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpressi
 ///     // validated
 ///     false != Column("validated")
 public func != (lhs: Bool, rhs: SQLSpecificExpressible) -> SQLExpression {
-    if lhs {
-        return rhs.sqlExpression._negated
-    } else {
-        return rhs.sqlExpression
-    }
+    !(lhs == rhs)
 }
 
 /// An SQL expression that compares two expressions with the `<>` SQL operator.
@@ -207,7 +199,7 @@ public func != (lhs: Bool, rhs: SQLSpecificExpressible) -> SQLExpression {
 ///     // email <> login
 ///     Column("email") != Column("login")
 public func != (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    isEqual(lhs.sqlExpression, rhs.sqlExpression)._negated
+    !(lhs == rhs)
 }
 
 /// An SQL expression that compares two expressions with the `IS` SQL operator.
@@ -259,7 +251,7 @@ public func === (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQ
 ///     // name IS NOT 'Arthur'
 ///     Column("name") !== "Arthur"
 public func !== (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpression {
-    _SQLExpressionEqual(.isNot, lhs.sqlExpression, rhs?.sqlExpression ?? DatabaseValue.null)
+    !(lhs === rhs)
 }
 
 /// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
@@ -267,7 +259,7 @@ public func !== (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpres
 ///     // name IS NOT 'Arthur' COLLATE NOCASE
 ///     Column("name").collating(.nocase) !== "Arthur"
 public func !== (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpression {
-    _SQLExpressionCollate(lhs.expression !== rhs, collationName: lhs.collationName)
+    !(lhs === rhs)
 }
 
 /// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
@@ -275,11 +267,7 @@ public func !== (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpress
 ///     // name IS NOT 'Arthur'
 ///     "Arthur" !== Column("name")
 public func !== (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpression {
-    if let lhs = lhs {
-        return _SQLExpressionEqual(.isNot, lhs.sqlExpression, rhs.sqlExpression)
-    } else {
-        return _SQLExpressionEqual(.isNot, rhs.sqlExpression, DatabaseValue.null)
-    }
+    !(lhs === rhs)
 }
 
 /// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
@@ -287,7 +275,7 @@ public func !== (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpres
 ///     // name IS NOT 'Arthur' COLLATE NOCASE
 ///     "Arthur" !== Column("name").collating(.nocase)
 public func !== (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpression {
-    _SQLExpressionCollate(lhs !== rhs.expression, collationName: rhs.collationName)
+    !(lhs === rhs)
 }
 
 /// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
@@ -295,7 +283,7 @@ public func !== (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpress
 ///     // email IS NOT login
 ///     Column("email") !== Column("login")
 public func !== (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
-    _SQLExpressionEqual(.isNot, lhs.sqlExpression, rhs.sqlExpression)
+    !(lhs === rhs)
 }
 
 // MARK: - Comparison Operators (<, >, <=, >=)
@@ -726,7 +714,7 @@ public func || (lhs: SQLSpecificExpressible, rhs: SQLSpecificExpressible) -> SQL
 ///     // id NOT BETWEEN 1 AND 10
 ///     !((1...10).contains(Column("id")))
 public prefix func ! (value: SQLSpecificExpressible) -> SQLExpression {
-    value.sqlExpression._negated
+    value.sqlExpression._is(.falsey)
 }
 
 // MARK: - Like Operator
