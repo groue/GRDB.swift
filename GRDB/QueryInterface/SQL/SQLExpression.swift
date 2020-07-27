@@ -20,17 +20,26 @@ public protocol _SQLExpression {
     /// 3. true: `WHERE expression = 1`
     /// 4. false: `WHERE expression = 0`
     ///
-    /// The "true" and "false" tests allow the SQLite query planner to
-    /// optimize indexed boolean columns. This is why it is important that the
-    /// user can explicitly use them. See https://github.com/groue/GRDB.swift/issues/816
+    /// The `= 1` and `= 0` tests allow the SQLite query planner to
+    /// optimize queries with indices on boolean columns and expressions.
+    /// See https://github.com/groue/GRDB.swift/issues/816
     ///
     /// This method is a customization point, so that some specific expressions
-    /// can produce idiomatic SQL. For example:
+    /// can produce idiomatic SQL.
     ///
-    /// - `column.like(pattern` -> `column LIKE pattern`
-    /// - `!(column.like(pattern)` -> `column NOT LIKE pattern`
-    /// - `(column.like(pattern) == true` -> `column LIKE pattern`
-    /// - `(column.like(pattern) == false` -> `column NOT LIKE pattern`
+    /// For example, the `like(_)` expression:
+    ///
+    /// - `column.like(pattern)` -> `column LIKE pattern`
+    /// - `!(column.like(pattern))` -> `column NOT LIKE pattern`
+    /// - `column.like(pattern) == true` -> `(column LIKE pattern) = 1`
+    /// - `column.like(pattern) == false` -> `(column LIKE pattern) = 0`
+    ///
+    /// Another example, the `isEmpty` association aggregate:
+    ///
+    /// - `association.isEmpty` -> `COUNT(child.id) = 0`
+    /// - `!association.isEmpty` -> `COUNT(child.id) > 0`
+    /// - `association.isEmpty == true` -> `COUNT(child.id) = 0`
+    /// - `association.isEmpty == false` -> `COUNT(child.id) > 0`
     func _is(_ test: _SQLBooleanTest) -> SQLExpression
     
     /// Returns a qualified expression
