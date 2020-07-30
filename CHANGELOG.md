@@ -71,6 +71,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: DatabasePool readers don't invalidate their database schema cache until schema is actually changed.
+- **Breaking Change**: [#817](https://github.com/groue/GRDB.swift/pull/817): Allow query planner to optimize some boolean tests
+
 
 ## 5.0.0-beta.9
 
