@@ -18,6 +18,16 @@ extension Database {
         publicStatementCache.clear()
     }
     
+    /// Clears the database schema cache if the database schema has changed
+    /// since this method was last called.
+    func clearSchemaCacheIfNeeded() throws {
+        let schemaVersion = try Int32.fetchOne(internalCachedSelectStatement(sql: "PRAGMA schema_version"))
+        if _lastSchemaVersion != schemaVersion {
+            _lastSchemaVersion = schemaVersion
+            clearSchemaCache()
+        }
+    }
+    
     /// Returns whether a table exists.
     public func tableExists(_ name: String) throws -> Bool {
         try exists(type: .table, name: name)

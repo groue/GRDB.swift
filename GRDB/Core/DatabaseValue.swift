@@ -221,30 +221,30 @@ extension DatabaseValue {
 
 // SQLExpression
 extension DatabaseValue {
+    // Specific boolean checks for null, true, and false
     /// :nodoc:
-    public var _negated: SQLExpression {
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch storage {
         case .null:
-            // SELECT NOT NULL -- NULL
             return DatabaseValue.null
-        case .int64(let int64):
-            return (int64 == 0).sqlExpression
-        case .double(let double):
-            return (double == 0.0).sqlExpression
-        case .string:
-            // We can't assume all strings are true, and return false:
-            //
-            // SELECT NOT '1' -- 0 (because '1' is turned into the integer 1, which is negated into 0)
-            // SELECT NOT '0' -- 1 (because '0' is turned into the integer 0, which is negated into 1)
-            return _SQLExpressionNot(self)
-        case .blob:
-            // We can't assume all blobs are true, and return false:
-            //
-            // SELECT NOT X'31' -- 0 (because X'31' is turned into the string '1',
-            //  then into integer 1, which is negated into 0)
-            // SELECT NOT X'30' -- 1 (because X'30' is turned into the string '0',
-            //  then into integer 0, which is negated into 1)
-            return _SQLExpressionNot(self)
+            
+        case .int64(let int64) where int64 == 0 || int64 == 1:
+            switch test {
+            case .true:
+                return (int64 == 1).sqlExpression
+            case .false, .falsey:
+                return (int64 == 0).sqlExpression
+            }
+            
+        default:
+            switch test {
+            case .true:
+                return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            case .false:
+                return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            case .falsey:
+                return _SQLExpressionNot(self)
+            }
         }
     }
     

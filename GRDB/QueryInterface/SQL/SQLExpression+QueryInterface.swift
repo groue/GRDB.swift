@@ -12,24 +12,27 @@ extension SQLExpression {
 
 // MARK: - _SQLExpressionNot
 
-extension SQLExpression {
-    /// The default implementation returns the expression prefixed by `NOT`.
-    ///
-    ///     let column = Column("favorite")
-    ///     column.negated  // NOT favorite
-    ///
-    /// :nodoc:
-    public var _negated: SQLExpression {
-        _SQLExpressionNot(self)
-    }
-}
-
 /// :nodoc:
 public struct _SQLExpressionNot: SQLExpression {
     let expression: SQLExpression
     
     init(_ expression: SQLExpression) {
         self.expression = expression
+    }
+    
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+        
+        case .falsey:
+            // Support `NOT (NOT expression)` as a technique to build 0 or 1
+            return _SQLExpressionNot(self)
+        }
     }
     
     /// :nodoc:
@@ -102,7 +105,7 @@ struct SQLBinaryOperator: Hashable {
     /// Creates a binary operator
     ///
     ///     SQLBinaryOperator("-")
-    ///     SQLBinaryOperator("IS", negated: "IS NOT")
+    ///     SQLBinaryOperator("LIKE", negated: "NOT LIKE")
     init(_ sql: String, negated: String? = nil) {
         self.sql = sql
         self.negatedSQL = negated
@@ -138,7 +141,7 @@ struct SQLBinaryOperator: Hashable {
     static let divide = SQLBinaryOperator("/")
     
     /// The `LIKE` binary operator
-    static let like = SQLBinaryOperator("LIKE")
+    static let like = SQLBinaryOperator("LIKE", negated: "NOT LIKE")
     
     /// The `MATCH` binary operator
     static let match = SQLBinaryOperator("MATCH")
@@ -167,11 +170,20 @@ public struct _SQLExpressionBinary: SQLExpression {
     }
     
     /// :nodoc:
-    public var _negated: SQLExpression {
-        if let negatedOp = op.negated {
-            return _SQLExpressionBinary(negatedOp, lhs, rhs)
-        } else {
-            return _SQLExpressionNot(self)
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            if let negatedOp = op.negated {
+                return _SQLExpressionBinary(negatedOp, lhs, rhs)
+            } else {
+                return _SQLExpressionNot(self)
+            }
         }
     }
     
@@ -380,8 +392,17 @@ public struct _SQLExpressionEqual: SQLExpression {
     }
     
     /// :nodoc:
-    public var _negated: SQLExpression {
-        _SQLExpressionEqual(op.negated, lhs, rhs)
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return _SQLExpressionEqual(op.negated, lhs, rhs)
+        }
     }
     
     /// :nodoc:
@@ -416,8 +437,17 @@ public struct _SQLExpressionContains: SQLExpression {
     }
     
     /// :nodoc:
-    public var _negated: SQLExpression {
-        _SQLExpressionContains(expression, collection, negated: !isNegated)
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return _SQLExpressionContains(expression, collection, negated: !isNegated)
+        }
     }
     
     /// :nodoc:
@@ -457,8 +487,17 @@ public struct _SQLExpressionBetween: SQLExpression {
     }
     
     /// :nodoc:
-    public var _negated: SQLExpression {
-        _SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return _SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
+        }
     }
     
     /// :nodoc:
@@ -574,8 +613,13 @@ public struct _SQLExpressionIsEmpty: SQLExpression {
     }
     
     /// :nodoc:
-    public var _negated: SQLExpression {
-        _SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return self
+        case .false, .falsey:
+            return _SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
+        }
     }
     
     /// :nodoc:
@@ -624,6 +668,11 @@ public struct _SQLExpressionCollate: SQLExpression {
     init(_ expression: SQLExpression, collationName: Database.CollationName) {
         self.expression = expression
         self.collationName = collationName
+    }
+    
+    /// :nodoc:
+    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        _SQLExpressionCollate(expression._is(test), collationName: collationName)
     }
     
     /// :nodoc:

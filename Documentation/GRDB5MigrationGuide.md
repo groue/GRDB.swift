@@ -461,6 +461,26 @@ let publisher = observation
 
 13. Many types and methods that support the query builder used to be publicly exposed and flagged as experimental. They are now private, or renamed with an underscore prefix, which means they are not for public use.
 
+14. Explicit boolean tests `expression == true` and `expression == false` generate different SQL:
+    
+    ```swift
+    // GRDB 4: SELECT * FROM player WHERE isActive
+    // GRDB 5: SELECT * FROM player WHERE isActive = 1
+    Player.filter(Column("isActive") == true)
+
+    // GRDB 4: SELECT * FROM player WHERE NOT isActive
+    // GRDB 5: SELECT * FROM player WHERE isActive = 0
+    Player.filter(Column("isActive") == false)
+
+    // GRDB 4 & 5: SELECT * FROM player WHERE isActive
+    Player.filter(Column("isActive"))
+
+    // GRDB 4 & 5: SELECT * FROM player WHERE NOT isActive
+    Player.filter(!Column("isActive"))
+    ```
+    
+    This change is innocuous for database boolean values that are `0`, `1`, or `NULL`. However, it is a breaking change for all other database values.
+
 
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
