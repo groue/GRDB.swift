@@ -2861,6 +2861,56 @@ See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.0.0
 
 > :point_up: **Note**: there is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
 
+> :point_up: **Note**: Customized date and uuid handling only apply during the encoding and decoding of database rows to and from records. *They do not apply* when you define requests based on date or uuid values.
+
+So make sure that dates and uuids are properly encoded in your requests. For example:
+
+```swift
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    // UUIDs are stored as strings
+    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
+    var uuid: UUID
+    ...
+}
+
+try dbQueue.write { db in
+    let uuid = UUID()
+    let player = Player(uuid: uuid, ...)
+    
+    // Inserts a player in the database, with a string uuid
+    try player.insert(db)
+    
+    // BAD: performs a blob-based query, fails to find the inserted player
+    _ = try Player.filter(Column("uuid") == uuid).fetchOne(db)
+    _ = try Player.filter(key: uuid).fetchOne(db)
+    
+    // GOOD: performs a string-based query, finds the inserted player
+    _ = try Player.filter(Column("uuid") == uuid.uuidString).fetchOne(db)
+    _ = try Player.filter(key: uuid.uuidString).fetchOne(db)
+}
+```
+
+The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) suggest to define a specific method in such situation:
+
+```swift
+extension DerivableRequest where RowDecoder == Player {
+    func filter(uuid: UUID) -> Self {
+        filter(Column("uuid") == uuid.uuidString)
+    }
+}
+
+try dbQueue.write { db in
+    let uuid = UUID()
+    let player = Player(uuid: uuid, ...)
+    
+    // Inserts a player in the database, with a string uuid
+    try player.insert(db)
+    
+    // GOOD: performs a string-based query, finds the inserted player
+    _ = try Player.all().filter(uuid: uuid).fetchOne(db)
+}
+```
+
 
 ### The userInfo Dictionary
 
