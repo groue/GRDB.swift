@@ -27,7 +27,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
                 XCTAssertEqual(error.message, "attempt to write a readonly database")
                 XCTAssertEqual(error.sql!, "INSERT INTO t DEFAULT VALUES")
-                XCTAssertEqual(error.description, "SQLite error 8 with statement `INSERT INTO t DEFAULT VALUES`: attempt to write a readonly database")
+                XCTAssertEqual(error.description, "SQLite error 8: attempt to write a readonly database - while executing `INSERT INTO t DEFAULT VALUES`")
         },
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")

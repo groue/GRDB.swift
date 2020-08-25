@@ -52,7 +52,7 @@ class SelectStatementTests : GRDBTestCase {
                     XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                     XCTAssertEqual(error.message, "\(customError)")
                     XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    XCTAssertEqual(error.description, "SQLite error 1: \(customError) - while executing `\(sql)`")
                 }
                 do {
                     _ = try cursor.next()
@@ -127,7 +127,7 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "no such table: blah")
                 XCTAssertEqual(error.sql!, "SELECT * FROM blah")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM blah`: no such table: blah")
+                XCTAssertEqual(error.description, "SQLite error 1: no such table: blah - while executing `SELECT * FROM blah`")
             }
         }
     }
@@ -155,7 +155,7 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "boom")
                 XCTAssertEqual(error.sql!, sql)
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: boom")
+                XCTAssertEqual(error.description, "SQLite error 1: boom - while executing `\(sql)`")
             }
             
             needsThrow = false

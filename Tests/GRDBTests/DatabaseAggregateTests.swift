@@ -225,7 +225,7 @@ class DatabaseAggregateTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "wrong number of arguments to function f()")
                 XCTAssertEqual(error.sql!, "SELECT f(1)")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT f(1)`: wrong number of arguments to function f()")
+                XCTAssertEqual(error.description, "SQLite error 1: wrong number of arguments to function f() - while executing `SELECT f(1)`")
             }
         }
     }
@@ -252,7 +252,7 @@ class DatabaseAggregateTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "wrong number of arguments to function f()")
                 XCTAssertEqual(error.sql!, "SELECT f()")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT f()`: wrong number of arguments to function f()")
+                XCTAssertEqual(error.description, "SQLite error 1: wrong number of arguments to function f() - while executing `SELECT f()`")
             }
         }
     }
@@ -278,7 +278,7 @@ class DatabaseAggregateTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "wrong number of arguments to function f()")
                 XCTAssertEqual(error.sql!, "SELECT f()")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT f()`: wrong number of arguments to function f()")
+                XCTAssertEqual(error.description, "SQLite error 1: wrong number of arguments to function f() - while executing `SELECT f()`")
             }
         }
     }

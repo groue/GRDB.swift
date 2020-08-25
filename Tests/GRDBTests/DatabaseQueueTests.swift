@@ -51,7 +51,7 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
             XCTAssertEqual(error.message!.lowercased(), "no such function: succ") // lowercaseString: accept multiple SQLite version
             XCTAssertEqual(error.sql!, "SELECT succ(1)")
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 1 with statement `select succ(1)`: no such function: succ")
+            XCTAssertEqual(error.description.lowercased(), "sqlite error 1: no such function: succ - while executing `select succ(1)`")
         }
     }
     
@@ -78,7 +78,7 @@ class DatabaseQueueTests: GRDBTestCase {
             XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
             XCTAssertEqual(error.message!.lowercased(), "no such collation sequence: test_collation_foo") // lowercaseString: accept multiple SQLite version
             XCTAssertEqual(error.sql!, "CREATE TABLE files_fail (name TEXT COLLATE TEST_COLLATION_FOO)")
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 1 with statement `create table files_fail (name text collate test_collation_foo)`: no such collation sequence: test_collation_foo")
+            XCTAssertEqual(error.description.lowercased(), "sqlite error 1: no such collation sequence: test_collation_foo - while executing `create table files_fail (name text collate test_collation_foo)`")
         }
     }
     
