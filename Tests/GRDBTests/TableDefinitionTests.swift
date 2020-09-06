@@ -231,9 +231,9 @@ class TableDefinitionTests: GRDBTestCase {
             return .rollback
         }
         
-        let collation = DatabaseCollation("foo") { (lhs, rhs) in .orderedSame }
-        dbQueue.add(collation: collation)
         try dbQueue.inTransaction { db in
+            let collation = DatabaseCollation("foo") { (lhs, rhs) in .orderedSame }
+            db.add(collation: collation)
             try db.create(table: "test") { t in
                 t.column("name", .text).collate(collation)
             }

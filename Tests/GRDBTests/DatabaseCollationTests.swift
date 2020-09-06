@@ -54,9 +54,9 @@ class DatabaseCollationTests: GRDBTestCase {
                 return .orderedDescending
             }
         }
-        dbQueue.add(collation: collation)
         
         try dbQueue.inDatabase { db in
+            db.add(collation: collation)
             try db.execute(sql: "CREATE TABLE strings (id INTEGER PRIMARY KEY, name TEXT COLLATE LOCALIZED_STANDARD)")
             try db.execute(sql: "INSERT INTO strings VALUES (1, 'a')")
             try db.execute(sql: "INSERT INTO strings VALUES (2, 'aa')")

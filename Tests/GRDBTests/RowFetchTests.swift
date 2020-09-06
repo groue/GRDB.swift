@@ -51,9 +51,9 @@ class RowFetchTests: GRDBTestCase {
     
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ cursor: RowCursor, sql: String) throws {
                 do {
                     _ = try cursor.next()
@@ -160,9 +160,9 @@ class RowFetchTests: GRDBTestCase {
     
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ array: @autoclosure () throws -> [Row], sql: String) throws {
                 do {
                     _ = try array()
@@ -262,9 +262,9 @@ class RowFetchTests: GRDBTestCase {
     
     func testFetchSetStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ set: @autoclosure () throws -> Set<Row>, sql: String) throws {
                 do {
                     _ = try set()
@@ -388,9 +388,9 @@ class RowFetchTests: GRDBTestCase {
     
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ value: @autoclosure () throws -> Row?, sql: String) throws {
                 do {
                     _ = try value()

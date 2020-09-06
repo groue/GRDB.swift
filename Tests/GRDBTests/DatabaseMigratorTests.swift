@@ -486,7 +486,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         
         // Apply 1st migrator
-        dbConfiguration.prepareDatabase = { db in
+        dbConfiguration.prepareDatabase { db in
             let function = DatabaseFunction("testFunction", argumentCount: 0, pure: true) { _ in "Arthur" }
             db.add(function: function)
         }

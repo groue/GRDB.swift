@@ -265,11 +265,13 @@ class DatabaseSuspensionTests : GRDBTestCase {
         func test(_ dbQueue: DatabaseQueue) throws {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
-            dbQueue.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
+            dbQueue.inDatabase { db in
+                db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                    semaphore1.signal()
+                    semaphore2.wait()
+                    return nil
+                })
+            }
             
             let block1 = {
                 do {
@@ -306,11 +308,13 @@ class DatabaseSuspensionTests : GRDBTestCase {
         let semaphore1 = DispatchSemaphore(value: 0)
         let semaphore2 = DispatchSemaphore(value: 0)
         
-        dbQueue.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-            semaphore1.signal()
-            semaphore2.wait()
-            return nil
-        })
+        dbQueue.inDatabase { db in
+            db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                semaphore1.signal()
+                semaphore2.wait()
+                return nil
+            })
+        }
         let block1 = {
             do {
                 try dbQueue.inTransaction { db in
@@ -348,11 +352,13 @@ class DatabaseSuspensionTests : GRDBTestCase {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
-            dbQueue.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
+            dbQueue.inDatabase { db in
+                db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                    semaphore1.signal()
+                    semaphore2.wait()
+                    return nil
+                })
+            }
             let block1 = {
                 do {
                     try dbQueue.write { db in
@@ -391,11 +397,13 @@ class DatabaseSuspensionTests : GRDBTestCase {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
-            dbQueue.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
+            dbQueue.inDatabase { db in
+                db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                    semaphore1.signal()
+                    semaphore2.wait()
+                    return nil
+                })
+            }
             let block1 = {
                 do {
                     try dbQueue.write { db in
@@ -475,7 +483,7 @@ class DatabaseSuspensionTests : GRDBTestCase {
         }
         do {
             var configuration = Configuration()
-            configuration.prepareDatabase = { db in
+            configuration.prepareDatabase { db in
                 try db.execute(sql: "PRAGMA journal_mode=truncate")
             }
             let dbQueue = try makeDatabaseQueue(configuration: configuration)

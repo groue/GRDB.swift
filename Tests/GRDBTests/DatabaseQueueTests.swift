@@ -34,11 +34,11 @@ class DatabaseQueueTests: GRDBTestCase {
             }
             return int + 1
         }
-        dbQueue.add(function: fn)
         try dbQueue.inDatabase { db in
+            db.add(function: fn)
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT succ(1)"), 2) // 2
+            db.remove(function: fn)
         }
-        dbQueue.remove(function: fn)
         do {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "SELECT succ(1)")
@@ -61,11 +61,11 @@ class DatabaseQueueTests: GRDBTestCase {
         let collation = DatabaseCollation("test_collation_foo") { (string1, string2) in
             return (string1 as NSString).localizedStandardCompare(string2)
         }
-        dbQueue.add(collation: collation)
         try dbQueue.inDatabase { db in
+            db.add(collation: collation)
             try db.execute(sql: "CREATE TABLE files (name TEXT COLLATE TEST_COLLATION_FOO)")
+            db.remove(collation: collation)
         }
-        dbQueue.remove(collation: collation)
         do {
             try dbQueue.inDatabase { db in
                 try db.execute(sql: "CREATE TABLE files_fail (name TEXT COLLATE TEST_COLLATION_FOO)")
