@@ -53,7 +53,7 @@ final class SerializedDatabase {
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
             do {
-                try db.setup()
+                try db.setUp()
             } catch {
                 db.close()
                 throw error

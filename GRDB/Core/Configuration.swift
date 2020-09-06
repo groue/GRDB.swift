@@ -103,16 +103,23 @@ public struct Configuration {
     
     // MARK: - Managing SQLite Connections
     
-    /// A function that is run when an SQLite connection is opened, before the
-    /// connection is made available for database access methods.
+    private var setups: [(Database) throws -> Void] = []
+    
+    /// The function argument is run when an SQLite connection is opened,
+    /// before the connection is made available for database access methods.
     ///
     /// For example:
     ///
     ///     var config = Configuration()
-    ///     config.prepareDatabase = { db in
+    ///     config.prepareDatabase { db in
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
-    public var prepareDatabase: ((Database) throws -> Void)?
+    ///
+    /// This method can be called several times. The setup functions are run in
+    /// the same order.
+    public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
+        setups.append(setup)
+    }
     
     // MARK: - Transactions
     
@@ -205,6 +212,12 @@ public struct Configuration {
     var SQLiteOpenFlags: Int32 {
         let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         return threadingMode.SQLiteOpenFlags | readWriteFlags
+    }
+    
+    func setUp(_ db: Database) throws {
+        for f in setups {
+            try f(db)
+        }
     }
     
     func identifier(defaultLabel: String, purpose: String? = nil) -> String {

@@ -48,6 +48,12 @@ extension AssociationAggregate {
 }
 
 extension Configuration {
+    @available(*, unavailable, message: "Replace the assignment with a method call: prepareDatabase { db in ... }")
+    public var prepareDatabase: ((Database) throws -> Void)? {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+    
     @available(*, unavailable, message: "Use Database.trace(options:_:) in Configuration.prepareDatabase instead.")
     public var trace: TraceFunction? {
         get { preconditionFailure() }

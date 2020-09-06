@@ -211,7 +211,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - Database Setup
     
     /// This method must be called after database initialization
-    func setup() throws {
+    func setUp() throws {
         setupBusyMode()
         setupDoubleQuotedStringLiterals()
         try setupForeignKeys()
@@ -226,7 +226,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         #endif
         
         // Last step before we can start accessing the database.
-        try configuration.prepareDatabase?(self)
+        try configuration.setUp(self)
         
         try validateFormat()
         configuration.SQLiteConnectionDidOpen?()
