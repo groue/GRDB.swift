@@ -559,7 +559,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     ///     // Trace all SQL statements executed by the database
     ///     var configuration = Configuration()
-    ///     configuration.prepareDatabase = { db in
+    ///     configuration.prepareDatabase { db in
     ///         db.trace(options: .statement) { event in
     ///             print("SQL: \(event)")
     ///         }
@@ -1226,10 +1226,11 @@ extension Database {
     
     /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
     ///
-    /// Call this method from Configuration.prepareDatabase, as in the example below:
+    /// Call this method from `Configuration.prepareDatabase`,
+    /// as in the example below:
     ///
     ///     var config = Configuration()
-    ///     config.prepareDatabase = { db in
+    ///     config.prepareDatabase { db in
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {

@@ -337,7 +337,7 @@ let publisher = observation
      
     // NEW: GRDB 5
     var config = Configuration()
-    config.prepareDatabase = { db in
+    config.prepareDatabase { db in
         db.trace { print($0) }
     }
     let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)

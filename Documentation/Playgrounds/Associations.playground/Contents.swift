@@ -11,7 +11,7 @@ import GRDB
 //: Open a database connection
 
 var configuration = Configuration()
-configuration.prepareDatabase = { db in
+configuration.prepareDatabase { db in
     db.trace { print("SQL> \($0)") }
 }
 let dbQueue = DatabaseQueue(configuration: configuration)
