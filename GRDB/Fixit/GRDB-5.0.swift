@@ -108,6 +108,25 @@ extension DatabaseQueue {
     #endif
 }
 
+extension DatabaseReader {
+    @available(*, unavailable, message: "Use Database.add(collation:) in Configuration.prepareDatabase instead.")
+    public func add(collation: DatabaseCollation) { preconditionFailure() }
+    
+    @available(*, unavailable)
+    public func remove(collation: DatabaseCollation) { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use Database.add(function:) in Configuration.prepareDatabase instead.")
+    public func add(function: DatabaseFunction) { preconditionFailure() }
+    
+    @available(*, unavailable)
+    public func remove(function: DatabaseFunction) { preconditionFailure() }
+    
+    #if SQLITE_ENABLE_FTS5
+    @available(*, unavailable, message: "Use Database.add(tokenizer:) in Configuration.prepareDatabase instead.")
+    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) { preconditionFailure() }
+    #endif
+}
+
 extension FetchRequest {
     @available(*, unavailable, message: "Use makePreparedRequest(_:forSingleResult:) instead.")
     func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)

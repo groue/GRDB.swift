@@ -8,9 +8,6 @@ import UIKit
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
     private var readerPool: Pool<SerializedDatabase>!
-    private var functions = Set<DatabaseFunction>()
-    private var collations = Set<DatabaseCollation>()
-    private var tokenizerRegistrations: [(Database) -> Void] = []
     
     @LockedBox var databaseSnapshotCount = 0
     
@@ -50,51 +47,16 @@ public final class DatabasePool: DatabaseWriter {
             purpose: "writer")
         
         // Readers
-        var readerConfiguration = configuration
-        readerConfiguration.readonly = true
-        
-        // Readers use deferred transactions by default.
-        // Other transaction kinds are forbidden by SQLite in read-only connections.
-        readerConfiguration.defaultTransactionKind = .deferred
-        
-        // Readers can't allow dangling transactions because there's no
-        // guarantee that one can get the same reader later in order to close
-        // an opened transaction.
-        readerConfiguration.allowsUnsafeTransactions = false
-        
-        // https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode
-        // > But there are some obscure cases where a query against a WAL-mode
-        // > database can return SQLITE_BUSY, so applications should be prepared
-        // > for that happenstance.
-        // >
-        // > - If another database connection has the database mode open in
-        // >   exclusive locking mode [...]
-        // > - When the last connection to a particular database is closing,
-        // >   that connection will acquire an exclusive lock for a short time
-        // >   while it cleans up the WAL and shared-memory files [...]
-        // > - If the last connection to a database crashed, then the first new
-        // >   connection to open the database will start a recovery process. An
-        // >   exclusive lock is held during recovery. [...]
-        //
-        // The whole point of WAL readers is to avoid SQLITE_BUSY, so let's
-        // setup a busy handler for pool readers, in order to workaround those
-        // "obscure cases" that may happen when the database is shared between
-        // multiple processes.
-        if readerConfiguration.readonlyBusyMode == nil {
-            readerConfiguration.readonlyBusyMode = .timeout(10)
-        }
-        
+        let readerConfiguration = DatabasePool.readerConfiguration(configuration)
         var readerCount = 0
-        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: { [unowned self] in
-            readerCount += 1 // protected by pool (TODO: document this protection behavior)
-            let reader = try SerializedDatabase(
+        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: {
+            readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+            return try SerializedDatabase(
                 path: path,
                 configuration: readerConfiguration,
                 schemaCache: DatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
-            reader.sync { self.setupDatabase($0) }
-            return reader
         })
         
         // Activate WAL Mode unless readonly
@@ -147,16 +109,45 @@ public final class DatabasePool: DatabaseWriter {
         readerPool = nil
     }
     
-    private func setupDatabase(_ db: Database) {
-        for function in functions {
-            db.add(function: function)
+    /// Returns a Configuration suitable for readonly connections on a
+    /// WAL database.
+    static func readerConfiguration(_ configuration: Configuration) -> Configuration {
+        var configuration = configuration
+        
+        configuration.readonly = true
+        
+        // Readers use deferred transactions by default.
+        // Other transaction kinds are forbidden by SQLite in read-only connections.
+        configuration.defaultTransactionKind = .deferred
+        
+        // Readers can't allow dangling transactions because there's no
+        // guarantee that one can get the same reader later in order to close
+        // an opened transaction.
+        configuration.allowsUnsafeTransactions = false
+        
+        // https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode
+        // > But there are some obscure cases where a query against a WAL-mode
+        // > database can return SQLITE_BUSY, so applications should be prepared
+        // > for that happenstance.
+        // >
+        // > - If another database connection has the database mode open in
+        // >   exclusive locking mode [...]
+        // > - When the last connection to a particular database is closing,
+        // >   that connection will acquire an exclusive lock for a short time
+        // >   while it cleans up the WAL and shared-memory files [...]
+        // > - If the last connection to a database crashed, then the first new
+        // >   connection to open the database will start a recovery process. An
+        // >   exclusive lock is held during recovery. [...]
+        //
+        // The whole point of WAL readers is to avoid SQLITE_BUSY, so let's
+        // setup a busy handler for pool readers, in order to workaround those
+        // "obscure cases" that may happen when the database is shared between
+        // multiple processes.
+        if configuration.readonlyBusyMode == nil {
+            configuration.readonlyBusyMode = .timeout(10)
         }
-        for collation in collations {
-            db.add(collation: collation)
-        }
-        for registration in tokenizerRegistrations {
-            registration(db)
-        }
+        
+        return configuration
     }
     
     /// Blocks the current thread until all database connections have
@@ -794,53 +785,6 @@ extension DatabasePool: DatabaseReader {
         writer.weakAsync(updates)
     }
     
-    // MARK: - Functions
-    
-    /// Add or redefine an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     dbPool.add(function: fn)
-    ///     try dbPool.read { db in
-    ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
-    ///     }
-    public func add(function: DatabaseFunction) {
-        functions.update(with: function)
-        forEachConnection { $0.add(function: function) }
-    }
-    
-    /// Remove an SQL function.
-    public func remove(function: DatabaseFunction) {
-        functions.remove(function)
-        forEachConnection { $0.remove(function: function) }
-    }
-    
-    // MARK: - Collations
-    
-    /// Add or redefine a collation.
-    ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     dbPool.add(collation: collation)
-    ///     try dbPool.write { db in
-    ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
-    ///     }
-    public func add(collation: DatabaseCollation) {
-        collations.update(with: collation)
-        forEachConnection { $0.add(collation: collation) }
-    }
-    
-    /// Remove a collation.
-    public func remove(collation: DatabaseCollation) {
-        collations.remove(collation)
-        forEachConnection { $0.remove(collation: collation) }
-    }
-    
     // MARK: - Database Observation
     
     /// :nodoc:
@@ -1011,22 +955,6 @@ extension DatabasePool: DatabaseReader {
             }
         }
     }
-    
-    // MARK: - Custom FTS5 Tokenizers
-    
-    #if SQLITE_ENABLE_FTS5
-    /// Add a custom FTS5 tokenizer.
-    ///
-    ///     class MyTokenizer : FTS5CustomTokenizer { ... }
-    ///     dbPool.add(tokenizer: MyTokenizer.self)
-    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-        func registerTokenizer(db: Database) {
-            db.add(tokenizer: Tokenizer.self)
-        }
-        tokenizerRegistrations.append(registerTokenizer)
-        forEachConnection(registerTokenizer)
-    }
-    #endif
 }
 
 extension DatabasePool {
@@ -1101,12 +1029,10 @@ extension DatabasePool {
             }
         }
         
-        let snapshot = try DatabaseSnapshot(
+        return try DatabaseSnapshot(
             path: path,
             configuration: writer.configuration,
             defaultLabel: "GRDB.DatabasePool",
             purpose: "snapshot.\($databaseSnapshotCount.increment())")
-        snapshot.read { setupDatabase($0) }
-        return snapshot
     }
 }
