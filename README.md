@@ -1781,6 +1781,10 @@ SELECT maxLength(name) FROM player; -- custom aggregate
 
 ### Custom SQL Functions
 
+A *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, Date, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
+
+SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
+
 ```swift
 let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (values: [DatabaseValue]) in
     // Extract string value, if any...
@@ -1790,17 +1794,22 @@ let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (value
     // ... and return reversed string:
     return String(string.reversed())
 }
-dbQueue.add(function: reverse)   // Or dbPool.add(function: ...)
+```
+
+You make a function available to a database connection through its configuration:
+
+```swift
+var config = Configuration()
+config.prepareDatabase { db in
+    db.add(function: reverse)
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
     // "oof"
     try String.fetchOne(db, sql: "SELECT reverse('foo')")!
 }
 ```
-
-The *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, Date, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
-
-SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
 
 
 **Functions can take a variable number of arguments:**
@@ -1812,12 +1821,10 @@ let averageOf = DatabaseFunction("averageOf", pure: true) { (values: [DatabaseVa
     let doubles = values.compactMap { Double.fromDatabaseValue($0) }
     return doubles.reduce(0, +) / Double(doubles.count)
 }
-dbQueue.add(function: averageOf)
+db.add(function: averageOf)
 
-try dbQueue.read { db in
-    // 2.0
-    try Double.fetchOne(db, sql: "SELECT averageOf(1, 2, 3)")!
-}
+// 2.0
+try Double.fetchOne(db, sql: "SELECT averageOf(1, 2, 3)")!
 ```
 
 
@@ -1833,12 +1840,10 @@ let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (values: [Da
     }
     return sqrt(double)
 }
-dbQueue.add(function: sqrt)
+db.add(function: sqrt)
 
 // SQLite error 1 with statement `SELECT sqrt(-1)`: invalid negative number
-try dbQueue.read { db in
-    try Double.fetchOne(db, sql: "SELECT sqrt(-1)")!
-}
+try Double.fetchOne(db, sql: "SELECT sqrt(-1)")!
 ```
 
 
@@ -1898,8 +1903,16 @@ let maxLength = DatabaseFunction(
     argumentCount: 1,
     pure: true,
     aggregate: MaxLength.self)
+```
 
-dbQueue.add(function: maxLength)   // Or dbPool.add(function: ...)
+Like [custom SQL Functions](#custom-sql-functions), you make an aggregate function available to a database connection through its configuration:
+
+```swift
+var config = Configuration()
+config.prepareDatabase { db in
+    db.add(function: maxLength)
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
     // Some Int
@@ -6851,8 +6864,15 @@ let players = try Player.order(nameColumn.collating(collation)).fetchAll(db)
 let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> NSComparisonResult in
     // return the comparison of lhs and rhs strings.
 }
-dbQueue.add(collation: collation) // Or dbPool.add(collation: ...)
-```
+
+// Make the collation available to a database connection
+var config = Configuration()
+config.prepareDatabase { db in
+    db.add(collation: collation)
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+-```
+
 
 
 ## Memory Management
