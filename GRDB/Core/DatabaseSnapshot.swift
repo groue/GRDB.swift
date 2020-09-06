@@ -18,7 +18,9 @@ public class DatabaseSnapshot: DatabaseReader {
     private(set) var version: UnsafeMutablePointer<sqlite3_snapshot>?
     
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
-        let configuration = DatabasePool.readerConfiguration(configuration)
+        var configuration = DatabasePool.readerConfiguration(configuration)
+        configuration.allowsUnsafeTransactions = true // Snaphost keeps a long-lived transaction
+        
         serializedDatabase = try SerializedDatabase(
             path: path,
             configuration: configuration,

@@ -47,7 +47,13 @@ public final class DatabasePool: DatabaseWriter {
             purpose: "writer")
         
         // Readers
-        let readerConfiguration = DatabasePool.readerConfiguration(configuration)
+        var readerConfiguration = DatabasePool.readerConfiguration(configuration)
+        
+        // Readers can't allow dangling transactions because there's no
+        // guarantee that one can get the same reader later in order to close
+        // an opened transaction.
+        readerConfiguration.allowsUnsafeTransactions = false
+        
         var readerCount = 0
         readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: {
             readerCount += 1 // protected by Pool (TODO: document this protection behavior)
@@ -119,11 +125,6 @@ public final class DatabasePool: DatabaseWriter {
         // Readers use deferred transactions by default.
         // Other transaction kinds are forbidden by SQLite in read-only connections.
         configuration.defaultTransactionKind = .deferred
-        
-        // Readers can't allow dangling transactions because there's no
-        // guarantee that one can get the same reader later in order to close
-        // an opened transaction.
-        configuration.allowsUnsafeTransactions = false
         
         // https://www.sqlite.org/wal.html#sometimes_queries_return_sqlite_busy_in_wal_mode
         // > But there are some obscure cases where a query against a WAL-mode
