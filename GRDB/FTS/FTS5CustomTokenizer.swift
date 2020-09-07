@@ -165,19 +165,4 @@ extension Database {
         }
     }
 }
-
-extension DatabaseQueue {
-    
-    // MARK: - Custom FTS5 Tokenizers
-    
-    /// Add a custom FTS5 tokenizer.
-    ///
-    ///     class MyTokenizer : FTS5CustomTokenizer { ... }
-    ///     dbQueue.add(tokenizer: MyTokenizer.self)
-    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) {
-        inDatabase { db in
-            db.add(tokenizer: Tokenizer.self)
-        }
-    }
-}
 #endif

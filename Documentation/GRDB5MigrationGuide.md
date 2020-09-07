@@ -5,6 +5,7 @@ Migrating From GRDB 4 to GRDB 5
 
 - [Preparing the Migration to GRDB 5](#preparing-the-migration-to-grdb-5)
 - [New requirements](#new-requirements)
+- [Database Configuration](#database-configuration)
 - [ValueObservation](#valueobservation)
 - [Combine Integration](#combine-integration)
 - [Other Changes](#other-changes)
@@ -29,6 +30,35 @@ GRDB requirements have been bumped:
 - **macOS 10.10+** (was macOS 10.9+)
 - tvOS 9.0+ (unchanged)
 - watchOS 2.0+ (unchanged)
+
+
+## Database Configuration
+
+The way to configure a database relies much more on the `Configuration.prepareDatabase(_:)` method:
+
+```swift
+// BEFORE: GRDB 4
+var config = Configuration()
+config.trace = { ... }              // Tracing SQL statements
+config.prepareDatabase = { db in    // prepareDatabase was a property
+    ...                             // Custom setup
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+dbQueue.add(function: ...)          // Custom SQL function
+dbQueue.add(collation: ...)         // Custom collation
+dbQueue.add(tokenizer: ...)         // Custom FTS5 tokenizer
+
+// NEW: GRDB 5
+var config = Configuration()
+config.prepareDatabase { db in      // prepareDatabase is now a method
+    db.trace { ... }
+    db.add(function: ...)
+    db.add(collation: ...)
+    db.add(tokenizer: ...)
+    ...
+}
+let dbQueue = try DatabaseQueue(dbPath, configuration: config)
+```
 
 
 ## ValueObservation
@@ -337,7 +367,7 @@ let publisher = observation
      
     // NEW: GRDB 5
     var config = Configuration()
-    config.prepareDatabase = { db in
+    config.prepareDatabase { db in
         db.trace { print($0) }
     }
     let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)

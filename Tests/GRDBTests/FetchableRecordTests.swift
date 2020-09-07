@@ -70,8 +70,9 @@ class FetchableRecordTests: GRDBTestCase {
     func testFetchCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
+            
             func test(_ cursor: RecordCursor<Fetched>, sql: String) throws {
                 do {
                     _ = try cursor.next()
@@ -182,8 +183,8 @@ class FetchableRecordTests: GRDBTestCase {
     func testFetchAllStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ array: @autoclosure () throws -> [Fetched], sql: String) throws {
                 do {
                     _ = try array()
@@ -287,8 +288,8 @@ class FetchableRecordTests: GRDBTestCase {
     func testFetchSetStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ set: @autoclosure () throws -> Set<Fetched>, sql: String) throws {
                 do {
                     _ = try set()
@@ -416,8 +417,8 @@ class FetchableRecordTests: GRDBTestCase {
     func testFetchOneStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ value: @autoclosure () throws -> Fetched?, sql: String) throws {
                 do {
                     _ = try value()

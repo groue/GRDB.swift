@@ -196,9 +196,8 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
     
     func testStopWordsTokenizerDatabaseQueue() throws {
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: StopWordsTokenizer.self)
-        
         try dbQueue.inDatabase { db in
+            db.add(tokenizer: StopWordsTokenizer.self)
             try db.create(virtualTable: "documents", using: FTS5()) { t in
                 t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
                 t.column("content")
@@ -217,9 +216,10 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
     }
 
     func testStopWordsTokenizerDatabasePool() throws {
+        dbConfiguration.prepareDatabase { db in
+            db.add(tokenizer: StopWordsTokenizer.self)
+        }
         let dbPool = try makeDatabasePool()
-        dbPool.add(tokenizer: StopWordsTokenizer.self)
-        
         try dbPool.write { db in
             try db.create(virtualTable: "documents", using: FTS5()) { t in
                 t.tokenizer = StopWordsTokenizer.tokenizerDescriptor()
@@ -249,10 +249,10 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
 
     func testNFKCTokenizer() throws {
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: NFKCTokenizer.self)
         
         // Without NFKC conversion
         try dbQueue.inDatabase { db in
+            db.add(tokenizer: NFKCTokenizer.self)
             try db.create(virtualTable: "documents", using: FTS5()) { t in
                 t.tokenizer = .unicode61()
                 t.column("content")
@@ -306,9 +306,9 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
 
     func testSynonymTokenizer() throws {
         let dbQueue = try makeDatabaseQueue()
-        dbQueue.add(tokenizer: SynonymsTokenizer.self)
         
         try dbQueue.inDatabase { db in
+            db.add(tokenizer: SynonymsTokenizer.self)
             try db.create(virtualTable: "documents", using: FTS5()) { t in
                 t.tokenizer = SynonymsTokenizer.tokenizerDescriptor()
                 t.column("content")

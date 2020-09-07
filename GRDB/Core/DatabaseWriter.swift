@@ -640,26 +640,6 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         try base.unsafeReentrantWrite(updates)
     }
     
-    // MARK: - Functions
-    
-    public func add(function: DatabaseFunction) {
-        base.add(function: function)
-    }
-    
-    public func remove(function: DatabaseFunction) {
-        base.remove(function: function)
-    }
-    
-    // MARK: - Collations
-    
-    public func add(collation: DatabaseCollation) {
-        base.add(collation: collation)
-    }
-    
-    public func remove(collation: DatabaseCollation) {
-        base.remove(collation: collation)
-    }
-    
     // MARK: - Database Observation
     
     /// :nodoc:

@@ -50,7 +50,7 @@ Since several processes may open the database at the same time, protect the crea
     
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
         var configuration = Configuration()
-        configuration.prepareDatabase = { db in
+        configuration.prepareDatabase { db in
             // Activate the persistent WAL mode so that
             // readonly processes can access the database.
             //
@@ -179,7 +179,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     
     ```swift
     var configuration = Configuration()
-    configuration.prepareDatabase = { (db: Database) in
+    configuration.prepareDatabase { (db: Database) in
         try db.usePassphrase("secret")
         try db.execute(sql: "PRAGMA cipher_plaintext_header_size = 32")
     }

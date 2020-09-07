@@ -8,15 +8,15 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
-            dbReader.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
             let block1 = {
                 do {
-                    _ = try dbReader.read {
-                        try Row.fetchAll($0, sql: "SELECT wait()")
+                    try dbReader.read { db in
+                        db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                            semaphore1.signal()
+                            semaphore2.wait()
+                            return nil
+                        })
+                        _ = try Row.fetchAll(db, sql: "SELECT wait()")
                     }
                     XCTFail("Expected error")
                 } catch let error as DatabaseError {
@@ -47,13 +47,13 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
-            dbReader.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
             let block1 = {
                 try! dbReader.read { db in
+                    db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                        semaphore1.signal()
+                        semaphore2.wait()
+                        return nil
+                    })
                     let wasInTransaction = db.isInsideTransaction
                     do {
                         _ = try Row.fetchAll(db, sql: "SELECT wait()")
@@ -95,14 +95,14 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
-            dbWriter.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
             let block1 = {
                 do {
                     try dbWriter.write { db in
+                        db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                            semaphore1.signal()
+                            semaphore2.wait()
+                            return nil
+                        })
                         try db.execute(sql: "INSERT INTO t SELECT wait()")
                     }
                     XCTFail("Expected error")
@@ -142,15 +142,15 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
-            dbWriter.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
             let block1 = {
                 do {
                     try dbWriter.write { db in
                         do {
+                            db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                                semaphore1.signal()
+                                semaphore2.wait()
+                                return nil
+                            })
                             try db.execute(sql: "INSERT INTO t SELECT wait()")
                             XCTFail("Expected error")
                         } catch let error as DatabaseError {
@@ -220,13 +220,13 @@ class DatabaseAbortedTransactionTests : GRDBTestCase {
             let semaphore1 = DispatchSemaphore(value: 0)
             let semaphore2 = DispatchSemaphore(value: 0)
             
-            dbWriter.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
-                semaphore1.signal()
-                semaphore2.wait()
-                return nil
-            })
             let block1 = {
                 try! dbWriter.writeWithoutTransaction { db in
+                    db.add(function: DatabaseFunction("wait", argumentCount: 0, pure: true) { _ in
+                        semaphore1.signal()
+                        semaphore2.wait()
+                        return nil
+                    })
                     try db.inTransaction {
                         do {
                             try db.execute(sql: "INSERT INTO t SELECT wait()")

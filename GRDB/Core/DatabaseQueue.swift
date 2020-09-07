@@ -427,49 +427,6 @@ extension DatabaseQueue {
         writer.weakAsync(updates)
     }
     
-    // MARK: - Functions
-    
-    /// Add or redefine an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     dbQueue.add(function: fn)
-    ///     try dbQueue.read { db in
-    ///         try Int.fetchOne(db, sql: "SELECT succ(1)") // 2
-    ///     }
-    public func add(function: DatabaseFunction) {
-        writer.sync { $0.add(function: function) }
-    }
-    
-    /// Remove an SQL function.
-    public func remove(function: DatabaseFunction) {
-        writer.sync { $0.remove(function: function) }
-    }
-    
-    // MARK: - Collations
-    
-    /// Add or redefine a collation.
-    ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     dbQueue.add(collation: collation)
-    ///     try dbQueue.write { db in
-    ///         try db.execute(sql: "CREATE TABLE file (name TEXT COLLATE LOCALIZED_STANDARD")
-    ///     }
-    public func add(collation: DatabaseCollation) {
-        writer.sync { $0.add(collation: collation) }
-    }
-    
-    /// Remove a collation.
-    public func remove(collation: DatabaseCollation) {
-        writer.sync { $0.remove(collation: collation) }
-    }
-    
     // MARK: - Database Observation
     
     /// :nodoc:

@@ -103,7 +103,7 @@ class GRDBTestCase: XCTestCase {
             }
         }
         
-        dbConfiguration.prepareDatabase = { db in
+        dbConfiguration.prepareDatabase { db in
             db.trace { event in
                 self.sqlQueries.append(event.description)
             }

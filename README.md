@@ -1781,6 +1781,10 @@ SELECT maxLength(name) FROM player; -- custom aggregate
 
 ### Custom SQL Functions
 
+A *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, Date, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
+
+SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
+
 ```swift
 let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (values: [DatabaseValue]) in
     // Extract string value, if any...
@@ -1790,17 +1794,22 @@ let reverse = DatabaseFunction("reverse", argumentCount: 1, pure: true) { (value
     // ... and return reversed string:
     return String(string.reversed())
 }
-dbQueue.add(function: reverse)   // Or dbPool.add(function: ...)
+```
+
+You make a function available to a database connection through its configuration:
+
+```swift
+var config = Configuration()
+config.prepareDatabase { db in
+    db.add(function: reverse)
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
     // "oof"
     try String.fetchOne(db, sql: "SELECT reverse('foo')")!
 }
 ```
-
-The *function* argument takes an array of [DatabaseValue](#databasevalue), and returns any valid [value](#values) (Bool, Int, String, Date, Swift enums, etc.) The number of database values is guaranteed to be *argumentCount*.
-
-SQLite has the opportunity to perform additional optimizations when functions are "pure", which means that their result only depends on their arguments. So make sure to set the *pure* argument to true when possible.
 
 
 **Functions can take a variable number of arguments:**
@@ -1812,12 +1821,10 @@ let averageOf = DatabaseFunction("averageOf", pure: true) { (values: [DatabaseVa
     let doubles = values.compactMap { Double.fromDatabaseValue($0) }
     return doubles.reduce(0, +) / Double(doubles.count)
 }
-dbQueue.add(function: averageOf)
+db.add(function: averageOf)
 
-try dbQueue.read { db in
-    // 2.0
-    try Double.fetchOne(db, sql: "SELECT averageOf(1, 2, 3)")!
-}
+// 2.0
+try Double.fetchOne(db, sql: "SELECT averageOf(1, 2, 3)")!
 ```
 
 
@@ -1833,12 +1840,10 @@ let sqrt = DatabaseFunction("sqrt", argumentCount: 1, pure: true) { (values: [Da
     }
     return sqrt(double)
 }
-dbQueue.add(function: sqrt)
+db.add(function: sqrt)
 
 // SQLite error 1 with statement `SELECT sqrt(-1)`: invalid negative number
-try dbQueue.read { db in
-    try Double.fetchOne(db, sql: "SELECT sqrt(-1)")!
-}
+try Double.fetchOne(db, sql: "SELECT sqrt(-1)")!
 ```
 
 
@@ -1898,8 +1903,16 @@ let maxLength = DatabaseFunction(
     argumentCount: 1,
     pure: true,
     aggregate: MaxLength.self)
+```
 
-dbQueue.add(function: maxLength)   // Or dbPool.add(function: ...)
+Like [custom SQL Functions](#custom-sql-functions), you make an aggregate function available to a database connection through its configuration:
+
+```swift
+var config = Configuration()
+config.prepareDatabase { db in
+    db.add(function: maxLength)
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
     // Some Int
@@ -6221,7 +6234,7 @@ pod 'SQLCipher', '~> 3.4'
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     try db.usePassphrase("secret")
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
@@ -6231,7 +6244,7 @@ It is also in `prepareDatabase` that you perform other [SQLCipher configuration 
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     try db.usePassphrase("secret")
     try db.execute(sql: "PRAGMA cipher_page_size = ...")
     try db.execute(sql: "PRAGMA kdf_iter = ...")
@@ -6244,7 +6257,7 @@ When you want to open an existing SQLCipher 3 database with SQLCipher 4, you may
 ```swift
 // Open an SQLCipher 3 database with SQLCipher 4
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     try db.usePassphrase("secret")
     try db.execute(sql: "PRAGMA cipher_compatibility = 3")
 }
@@ -6281,13 +6294,13 @@ try dbPool.barrierWriteWithoutTransaction { db in
 > // WRONG: this won't work across a passphrase change
 > let passphrase = try getPassphrase()
 > var config = Configuration()
-> config.prepareDatabase = { db in
+> config.prepareDatabase { db in
 >     try db.usePassphrase(passphrase)
 > }
 >
 > // CORRECT: get the latest passphrase when it is needed
 > var config = Configuration()
-> config.prepareDatabase = { db in
+> config.prepareDatabase { db in
 >     let passphrase = try getPassphrase()
 >     try db.usePassphrase(passphrase)
 > }
@@ -6314,7 +6327,7 @@ let existingDBQueue = try DatabaseQueue(path: "/path/to/existing.db")
 
 // The new encrypted database, at some distinct location:
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     try db.usePassphrase("secret")
 }
 let newDBQueue = try DatabaseQueue(path: "/path/to/new.db", configuration: config)
@@ -6337,19 +6350,19 @@ try existingDBQueue.inDatabase { db in
 
 #### Managing the lifetime of the passphrase string
 
-It is recommended to avoid keeping the passphrase in memory longer than necessary. To do this, make sure you load the passphrase from inside the `prepareDatabase` function:
+It is recommended to avoid keeping the passphrase in memory longer than necessary. To do this, make sure you load the passphrase from the `prepareDatabase` method:
 
 ```swift
 // NOT RECOMMENDED: this keeps the passphrase in memory longer than necessary
 let passphrase = try getPassphrase()
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     try db.usePassphrase(passphrase)
 }
 
 // RECOMMENDED: only load the passphrase when it is needed
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     let passphrase = try getPassphrase()
     try db.usePassphrase(passphrase)
 }
@@ -6368,7 +6381,7 @@ For example:
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     ... // Carefully load passphrase bytes
     let code = sqlite3_key(db.sqliteConnection, /* passphrase bytes */)
     ... // Carefully dispose passphrase bytes
@@ -6389,7 +6402,7 @@ Such protection prevents GRDB from creating SQLite connections when the passphra
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     let passphrase = try loadPassphraseFromSystemKeychain()
     try db.usePassphrase(passphrase)
 }
@@ -6851,8 +6864,15 @@ let players = try Player.order(nameColumn.collating(collation)).fetchAll(db)
 let collation = DatabaseCollation("customCollation") { (lhs, rhs) -> NSComparisonResult in
     // return the comparison of lhs and rhs strings.
 }
-dbQueue.add(collation: collation) // Or dbPool.add(collation: ...)
-```
+
+// Make the collation available to a database connection
+var config = Configuration()
+config.prepareDatabase { db in
+    db.add(collation: collation)
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+-```
+
 
 
 ## Memory Management
@@ -7572,7 +7592,7 @@ Another option is to setup a tracing function that prints out the executed SQL r
 ```swift
 // Prints all SQL statements
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     db.trace { print($0) }
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
@@ -7609,7 +7629,7 @@ Use the `trace(options:_:)` method, with the `.profile` option:
 
 ```swift
 var config = Configuration()
-config.prepareDatabase = { db in
+config.prepareDatabase { db in
     db.trace(options: .profile) { event in
         // Prints all SQL statements with their duration
         print(event)

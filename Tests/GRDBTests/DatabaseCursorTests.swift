@@ -32,8 +32,8 @@ class DatabaseCursorTests: GRDBTestCase {
     func testStepError() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             let cursor = try Int.fetchCursor(db, sql: "SELECT throw()")
             do {
                 _ = try cursor.next()
@@ -51,8 +51,8 @@ class DatabaseCursorTests: GRDBTestCase {
     func testStepDatabaseError() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = DatabaseError(resultCode: ResultCode(rawValue: 0xDEAD), message: "custom error")
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             let cursor = try Int.fetchCursor(db, sql: "SELECT throw()")
             do {
                 _ = try cursor.next()

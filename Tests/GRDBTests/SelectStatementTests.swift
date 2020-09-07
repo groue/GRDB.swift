@@ -40,9 +40,9 @@ class SelectStatementTests : GRDBTestCase {
     
     func testStatementCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ cursor: StatementCursor) throws {
                 let sql = cursor._statement.sql
                 do {
@@ -134,14 +134,14 @@ class SelectStatementTests : GRDBTestCase {
 
     func testCachedSelectStatementStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        var needsThrow = false
-        dbQueue.add(function: DatabaseFunction("bomb", argumentCount: 0, pure: false) { _ in
-            if needsThrow {
-                throw DatabaseError(message: "boom")
-            }
-            return "success"
-        })
         try dbQueue.inDatabase { db in
+            var needsThrow = false
+            db.add(function: DatabaseFunction("bomb", argumentCount: 0, pure: false) { _ in
+                if needsThrow {
+                    throw DatabaseError(message: "boom")
+                }
+                return "success"
+            })
             let sql = "SELECT bomb()"
             
             needsThrow = false

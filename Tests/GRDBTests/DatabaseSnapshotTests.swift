@@ -132,21 +132,13 @@ class DatabaseSnapshotTests: GRDBTestCase {
     // MARK: - Functions
     
     func testSnapshotInheritPoolFunctions() throws {
+        dbConfiguration.prepareDatabase { db in
+            let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
+            db.add(function: function)
+        }
         let dbPool = try makeDatabasePool()
-        let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
-        dbPool.add(function: function)
         
         let snapshot = try dbPool.makeSnapshot()
-        try snapshot.read { db in
-            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT foo()")!, "foo")
-        }
-    }
-    
-    func testSnapshotFunctions() throws {
-        let dbPool = try makeDatabasePool()
-        let snapshot = try dbPool.makeSnapshot()
-        let function = DatabaseFunction("foo", argumentCount: 0, pure: true) { _ in return "foo" }
-        snapshot.add(function: function)
         try snapshot.read { db in
             try XCTAssertEqual(String.fetchOne(db, sql: "SELECT foo()")!, "foo")
         }
@@ -155,11 +147,13 @@ class DatabaseSnapshotTests: GRDBTestCase {
     // MARK: - Collations
     
     func testSnapshotInheritPoolCollations() throws {
-        let dbPool = try makeDatabasePool()
-        let collation = DatabaseCollation("reverse") { (string1, string2) in
-            return (string1 == string2) ? .orderedSame : ((string1 < string2) ? .orderedDescending : .orderedAscending)
+        dbConfiguration.prepareDatabase { db in
+            let collation = DatabaseCollation("reverse") { (string1, string2) in
+                return (string1 == string2) ? .orderedSame : ((string1 < string2) ? .orderedDescending : .orderedAscending)
+            }
+            db.add(collation: collation)
         }
-        dbPool.add(collation: collation)
+        let dbPool = try makeDatabasePool()
         
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE items (text TEXT)")
@@ -169,25 +163,6 @@ class DatabaseSnapshotTests: GRDBTestCase {
         }
         
         let snapshot = try dbPool.makeSnapshot()
-        try snapshot.read { db in
-            XCTAssertEqual(try String.fetchAll(db, sql: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
-        }
-    }
-    
-    func testSnapshotCollations() throws {
-        let dbPool = try makeDatabasePool()
-        try dbPool.write { db in
-            try db.execute(sql: "CREATE TABLE items (text TEXT)")
-            try db.execute(sql: "INSERT INTO items (text) VALUES ('a')")
-            try db.execute(sql: "INSERT INTO items (text) VALUES ('b')")
-            try db.execute(sql: "INSERT INTO items (text) VALUES ('c')")
-        }
-        
-        let snapshot = try dbPool.makeSnapshot()
-        let collation = DatabaseCollation("reverse") { (string1, string2) in
-            return (string1 == string2) ? .orderedSame : ((string1 < string2) ? .orderedDescending : .orderedAscending)
-        }
-        snapshot.add(collation: collation)
         try snapshot.read { db in
             XCTAssertEqual(try String.fetchAll(db, sql: "SELECT text FROM items ORDER BY text COLLATE reverse"), ["c", "b", "a"])
         }
