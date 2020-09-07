@@ -66,7 +66,11 @@ Once you have a custom tokenizer type that adopts [FTS5CustomTokenizer](#fts5cus
 ```swift
 class MyTokenizer : FTS5CustomTokenizer { ... }
 
-dbQueue.add(tokenizer: MyTokenizer.self) // or dbPool.add
+var config = Configuration()
+config.prepareDatabase { db in
+    db.add(tokenizer: MyTokenizer.self)
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
 **Create [full-text tables](../../../#create-fts5-virtual-tables) that use the custom tokenizer:**

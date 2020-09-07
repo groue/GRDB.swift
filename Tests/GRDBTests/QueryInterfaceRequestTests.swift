@@ -15,14 +15,18 @@ private let tableRequest = Reader.all()
 
 class QueryInterfaceRequestTests: GRDBTestCase {
     
-    var collation: DatabaseCollation!
+    let collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
+        return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
+    }
+    
+    override func setUp() {
+        super.setUp()
+        dbConfiguration.prepareDatabase { db in
+            db.add(collation: self.collation)
+        }
+    }
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
-        collation = DatabaseCollation("localized_case_insensitive") { (lhs, rhs) in
-            return (lhs as NSString).localizedCaseInsensitiveCompare(rhs)
-        }
-        dbWriter.add(collation: collation)
-        
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createReaders") { db in
             try db.execute(sql: """

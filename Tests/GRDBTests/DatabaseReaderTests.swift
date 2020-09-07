@@ -163,10 +163,10 @@ class DatabaseReaderTests : GRDBTestCase {
     
     func testAddFunction() throws {
         func test(_ dbReader: DatabaseReader) throws {
-            let f = DatabaseFunction("f", argumentCount: 0, pure: true) { _ in 0 }
-            dbReader.add(function: f)
-            let value = try dbReader.read { db in
-                try Int.fetchOne(db, sql: "SELECT f()")
+            let value = try dbReader.read { db -> Int? in
+                let f = DatabaseFunction("f", argumentCount: 0, pure: true) { _ in 0 }
+                db.add(function: f)
+                return try Int.fetchOne(db, sql: "SELECT f()")
             }
             XCTAssertEqual(value, 0)
         }
@@ -180,10 +180,10 @@ class DatabaseReaderTests : GRDBTestCase {
     
     func testAddCollation() throws {
         func test(_ dbReader: DatabaseReader) throws {
-            let collation = DatabaseCollation("c") { _, _ in .orderedSame }
-            dbReader.add(collation: collation)
-            let value = try dbReader.read { db in
-                try Int.fetchOne(db, sql: "SELECT 'foo' AS str ORDER BY str COLLATE c")
+            let value = try dbReader.read { db -> Int? in
+                let collation = DatabaseCollation("c") { _, _ in .orderedSame }
+                db.add(collation: collation)
+                return try Int.fetchOne(db, sql: "SELECT 'foo' AS str ORDER BY str COLLATE c")
             }
             XCTAssertEqual(value, 0)
         }

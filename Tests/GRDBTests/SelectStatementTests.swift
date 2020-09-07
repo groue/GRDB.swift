@@ -40,9 +40,9 @@ class SelectStatementTests : GRDBTestCase {
     
     func testStatementCursorStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        let customError = NSError(domain: "Custom", code: 0xDEAD)
-        dbQueue.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
         try dbQueue.inDatabase { db in
+            let customError = NSError(domain: "Custom", code: 0xDEAD)
+            db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ cursor: StatementCursor) throws {
                 let sql = cursor._statement.sql
                 do {
@@ -52,7 +52,7 @@ class SelectStatementTests : GRDBTestCase {
                     XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                     XCTAssertEqual(error.message, "\(customError)")
                     XCTAssertEqual(error.sql!, sql)
-                    XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: \(customError)")
+                    XCTAssertEqual(error.description, "SQLite error 1: \(customError) - while executing `\(sql)`")
                 }
                 do {
                     _ = try cursor.next()
@@ -127,21 +127,21 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "no such table: blah")
                 XCTAssertEqual(error.sql!, "SELECT * FROM blah")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `SELECT * FROM blah`: no such table: blah")
+                XCTAssertEqual(error.description, "SQLite error 1: no such table: blah - while executing `SELECT * FROM blah`")
             }
         }
     }
 
     func testCachedSelectStatementStepFailure() throws {
         let dbQueue = try makeDatabaseQueue()
-        var needsThrow = false
-        dbQueue.add(function: DatabaseFunction("bomb", argumentCount: 0, pure: false) { _ in
-            if needsThrow {
-                throw DatabaseError(message: "boom")
-            }
-            return "success"
-        })
         try dbQueue.inDatabase { db in
+            var needsThrow = false
+            db.add(function: DatabaseFunction("bomb", argumentCount: 0, pure: false) { _ in
+                if needsThrow {
+                    throw DatabaseError(message: "boom")
+                }
+                return "success"
+            })
             let sql = "SELECT bomb()"
             
             needsThrow = false
@@ -155,7 +155,7 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "boom")
                 XCTAssertEqual(error.sql!, sql)
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `\(sql)`: boom")
+                XCTAssertEqual(error.description, "SQLite error 1: boom - while executing `\(sql)`")
             }
             
             needsThrow = false

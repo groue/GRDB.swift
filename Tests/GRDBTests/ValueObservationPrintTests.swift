@@ -259,7 +259,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "failure: SQLite error 1: no such table: player - while executing `SELECT MAX(id) FROM player`"])
             }
         }
         
@@ -286,7 +286,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                 XCTAssertEqual(logger.strings, [
                     "start",
                     "fetch",
-                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "failure: SQLite error 1: no such table: player - while executing `SELECT MAX(id) FROM player`"])
             }
         }
         
@@ -329,7 +329,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                     "tracked region: \(expectedRegion)",
                     "database did change",
                     "fetch",
-                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "failure: SQLite error 1: no such table: player - while executing `SELECT MAX(id) FROM player`"])
             }
         }
         
@@ -372,7 +372,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                     "tracked region: \(expectedRegion)",
                     "database did change",
                     "fetch",
-                    "failure: SQLite error 1 with statement `SELECT MAX(id) FROM player`: no such table: player"])
+                    "failure: SQLite error 1: no such table: player - while executing `SELECT MAX(id) FROM player`"])
             }
         }
         

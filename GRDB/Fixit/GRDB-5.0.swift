@@ -48,6 +48,12 @@ extension AssociationAggregate {
 }
 
 extension Configuration {
+    @available(*, unavailable, message: "Replace the assignment with a method call: prepareDatabase { db in ... }")
+    public var prepareDatabase: ((Database) throws -> Void)? {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+    
     @available(*, unavailable, message: "Use Database.trace(options:_:) in Configuration.prepareDatabase instead.")
     public var trace: TraceFunction? {
         get { preconditionFailure() }
@@ -99,6 +105,25 @@ extension DatabaseQueue {
     #if os(iOS)
     @available(*, unavailable, message: "Memory management is now enabled by default. This method does nothing.")
     public func setupMemoryManagement(in application: UIApplication) { preconditionFailure() }
+    #endif
+}
+
+extension DatabaseReader {
+    @available(*, unavailable, message: "Use Database.add(collation:) in Configuration.prepareDatabase instead.")
+    public func add(collation: DatabaseCollation) { preconditionFailure() }
+    
+    @available(*, unavailable)
+    public func remove(collation: DatabaseCollation) { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Use Database.add(function:) in Configuration.prepareDatabase instead.")
+    public func add(function: DatabaseFunction) { preconditionFailure() }
+    
+    @available(*, unavailable)
+    public func remove(function: DatabaseFunction) { preconditionFailure() }
+    
+    #if SQLITE_ENABLE_FTS5
+    @available(*, unavailable, message: "Use Database.add(tokenizer:) in Configuration.prepareDatabase instead.")
+    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) { preconditionFailure() }
     #endif
 }
 

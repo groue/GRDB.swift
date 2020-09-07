@@ -50,7 +50,7 @@ Since several processes may open the database at the same time, protect the crea
     
     private func openDatabase(at databaseURL: URL) throws -> DatabasePool {
         var configuration = Configuration()
-        configuration.prepareDatabase = { db in
+        configuration.prepareDatabase { db in
             // Activate the persistent WAL mode so that
             // readonly processes can access the database.
             //
@@ -179,7 +179,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     
     ```swift
     var configuration = Configuration()
-    configuration.prepareDatabase = { (db: Database) in
+    configuration.prepareDatabase { (db: Database) in
         try db.usePassphrase("secret")
         try db.execute(sql: "PRAGMA cipher_plaintext_header_size = 32")
     }
@@ -236,7 +236,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     }
     ```
     
-    Suspended databases greatly reduce the odds of `0xDEAD10CC` exception are greatly reduced. If you see one in your crash logs, please open an issue!
+    Suspended databases greatly reduce the odds of `0xDEAD10CC` exception occurring. If you see one in your crash logs, please open an issue!
     
     In exchange, you will get `SQLITE_INTERRUPT` (9) or `SQLITE_ABORT` (4) errors, with messages "Database is suspended", "Transaction was aborted", or "interrupted", for any attempt at writing in the database when it is suspended.
     

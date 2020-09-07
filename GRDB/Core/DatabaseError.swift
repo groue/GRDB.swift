@@ -379,14 +379,14 @@ extension DatabaseError {
     /// :nodoc:
     public var description: String {
         var description = "SQLite error \(resultCode.rawValue)"
-        if let sql = sql {
-            description += " with statement `\(sql)`"
-        }
-        if let arguments = arguments, !arguments.isEmpty {
-            description += " arguments \(arguments)"
-        }
         if let message = message {
             description += ": \(message)"
+        }
+        if let sql = sql {
+            description += " - while executing `\(sql)`"
+        }
+        if let arguments = arguments, !arguments.isEmpty {
+            description += " with arguments \(arguments)"
         }
         return description
     }

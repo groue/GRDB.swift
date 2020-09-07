@@ -208,40 +208,6 @@ public protocol DatabaseReader: AnyObject {
     func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T
     
     
-    // MARK: - Functions
-    
-    /// Add or redefine an SQL function.
-    ///
-    ///     let fn = DatabaseFunction("succ", argumentCount: 1) { dbValues in
-    ///         guard let int = Int.fromDatabaseValue(dbValues[0]) else {
-    ///             return nil
-    ///         }
-    ///         return int + 1
-    ///     }
-    ///     reader.add(function: fn)
-    ///     try reader.read { db in
-    ///         try Int.fetchOne(db, sql: "SELECT succ(1)")! // 2
-    ///     }
-    func add(function: DatabaseFunction)
-    
-    /// Remove an SQL function.
-    func remove(function: DatabaseFunction)
-    
-    
-    // MARK: - Collations
-    
-    /// Add or redefine a collation.
-    ///
-    ///     let collation = DatabaseCollation("localized_standard") { (string1, string2) in
-    ///         return (string1 as NSString).localizedStandardCompare(string2)
-    ///     }
-    ///     reader.add(collation: collation)
-    ///     try reader.execute(sql: "SELECT * FROM file ORDER BY name COLLATE localized_standard")
-    func add(collation: DatabaseCollation)
-    
-    /// Remove a collation.
-    func remove(collation: DatabaseCollation)
-    
     // MARK: - Value Observation
     
     /// Starts a value observation.
@@ -462,26 +428,6 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
         try base.unsafeReentrantRead(block)
-    }
-    
-    // MARK: - Functions
-    
-    public func add(function: DatabaseFunction) {
-        base.add(function: function)
-    }
-    
-    public func remove(function: DatabaseFunction) {
-        base.remove(function: function)
-    }
-    
-    // MARK: - Collations
-    
-    public func add(collation: DatabaseCollation) {
-        base.add(collation: collation)
-    }
-    
-    public func remove(collation: DatabaseCollation) {
-        base.remove(collation: collation)
     }
     
     // MARK: - Value Observation

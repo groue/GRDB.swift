@@ -8,7 +8,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         // prepareDatabase is called when connection opens
         var connectionCount = 0
         var configuration = Configuration()
-        configuration.prepareDatabase = { db in
+        configuration.prepareDatabase { db in
             connectionCount += 1
         }
         
@@ -33,7 +33,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
         var error: TestError?
         
         var configuration = Configuration()
-        configuration.prepareDatabase = { db in
+        configuration.prepareDatabase { db in
             if let error = error {
                 throw error
             }

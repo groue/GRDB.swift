@@ -236,7 +236,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "cannot start a transaction within a transaction")
                 XCTAssertEqual(error.sql!, "BEGIN DEFERRED TRANSACTION")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `BEGIN DEFERRED TRANSACTION`: cannot start a transaction within a transaction")
+                XCTAssertEqual(error.description, "SQLite error 1: cannot start a transaction within a transaction - while executing `BEGIN DEFERRED TRANSACTION`")
             }
         }
     }
@@ -261,7 +261,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
                 XCTAssertEqual(error.message!, "cannot start a transaction within a transaction")
                 XCTAssertEqual(error.sql!, "BEGIN DEFERRED TRANSACTION")
-                XCTAssertEqual(error.description, "SQLite error 1 with statement `BEGIN DEFERRED TRANSACTION`: cannot start a transaction within a transaction")
+                XCTAssertEqual(error.description, "SQLite error 1: cannot start a transaction within a transaction - while executing `BEGIN DEFERRED TRANSACTION`")
             }
         }
     }

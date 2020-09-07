@@ -119,7 +119,7 @@ class DatabaseTraceTests : GRDBTestCase {
     func testTraceFromConfigurationWithDefaultOptions() throws {
         var events: [String] = []
         var configuration = Configuration()
-        configuration.prepareDatabase = { db in
+        configuration.prepareDatabase { db in
             db.trace { event in
                 events.append("SQL: \(event)")
             }

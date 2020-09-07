@@ -211,7 +211,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - Database Setup
     
     /// This method must be called after database initialization
-    func setup() throws {
+    func setUp() throws {
         setupBusyMode()
         setupDoubleQuotedStringLiterals()
         try setupForeignKeys()
@@ -226,7 +226,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         #endif
         
         // Last step before we can start accessing the database.
-        try configuration.prepareDatabase?(self)
+        try configuration.setUp(self)
         
         try validateFormat()
         configuration.SQLiteConnectionDidOpen?()
@@ -559,7 +559,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///
     ///     // Trace all SQL statements executed by the database
     ///     var configuration = Configuration()
-    ///     configuration.prepareDatabase = { db in
+    ///     configuration.prepareDatabase { db in
     ///         db.trace(options: .statement) { event in
     ///             print("SQL: \(event)")
     ///         }
@@ -1226,10 +1226,11 @@ extension Database {
     
     /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
     ///
-    /// Call this method from Configuration.prepareDatabase, as in the example below:
+    /// Call this method from `Configuration.prepareDatabase`,
+    /// as in the example below:
     ///
     ///     var config = Configuration()
-    ///     config.prepareDatabase = { db in
+    ///     config.prepareDatabase { db in
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {

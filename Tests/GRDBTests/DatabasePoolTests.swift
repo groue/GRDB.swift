@@ -14,7 +14,7 @@ class DatabasePoolTests: GRDBTestCase {
     func testPersistentWALModeEnabled() throws {
         let path: String
         do {
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.prepareDatabase { db in
                 var flag: CInt = 1
                 let code = withUnsafeMutablePointer(to: &flag) { flagP in
                     sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
@@ -35,7 +35,7 @@ class DatabasePoolTests: GRDBTestCase {
     func testPersistentWALModeDisabled() throws {
         let path: String
         do {
-            dbConfiguration.prepareDatabase = { db in
+            dbConfiguration.prepareDatabase { db in
                 var flag: CInt = 0
                 let code = withUnsafeMutablePointer(to: &flag) { flagP in
                     sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
