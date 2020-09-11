@@ -7827,17 +7827,17 @@ let string = try dbQueue.read { db in
 
 ### SQLite error 1 "no such column"
 
-This error message is self-explanatory: do check column names for any misspelling.
+This error message is self-explanatory: do check for misspelled or non-existing column names.
 
 However, sometimes this error only happens when an app runs on a recent operating system (iOS 14+, Big Sur+, etc.) The error does not happen with previous ones.
 
 When this is the case, there are two possible explanations:
 
-1. Maybe a column name was *really* misspelled.
+1. Maybe a column name is *really* misspelled or missing from the database schema.
     
     To find it, check the SQL statement that comes with the [DatabaseError](#databaseerror).
 
-1. Maybe the application is *misusing* SQLite, by using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to tell about this misuse, and this is why you are seeing this error. 
+2. Maybe the application is *misusing* SQLite, by using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to tell about this misuse, and this is why you are seeing this error. 
     
     For example: this is invalid SQL: `UPDATE player SET name = "Arthur"`.
     
