@@ -7829,11 +7829,11 @@ let string = try dbQueue.read { db in
 
 This error message is self-explanatory: do check column names for any misspelling.
 
-However, sometimes this error only happens when an app is built with Xcode 12, and runs on the latest operating systems (iOS 14, Big Sur, etc.). The error does not happen with previous Xcode versions and operating system.
+However, sometimes this error only happens when an app runs on a recent operating system (iOS 14+, Big Sur+, etc.) The error does not happen with previous ones.
 
 When this is the case, there are two possible explanations:
 
-1. Maybe a column name was misspelled.
+1. Maybe a column name was *really* misspelled.
     
     To find it, check the SQL statement that comes with the [DatabaseError](#databaseerror).
 
