@@ -7852,15 +7852,15 @@ When this is the case, there are two possible explanations:
     ```swift
     let name: String = ...
     
-    // MISUSE (double quote)
+    // NOT STANDARD (double quote)
     try db.execute(sql: """
         UPDATE player SET name = "\(name)"
         """)
     
-    // BETTER, BUT STILL NOT RECOMMENDED (single quote)
+    // STANDARD, BUT STILL NOT RECOMMENDED (single quote)
     try db.execute(sql: "UPDATE player SET name = '\(name)'")
     
-    // RECOMMENDED (statement arguments)
+    // STANDARD, AND RECOMMENDED (statement arguments)
     try db.execute(sql: "UPDATE player SET name = ?", arguments: [name])
     ```
     
