@@ -7508,6 +7508,7 @@ FAQ
 **[FAQ: Errors](#faq-errors)**
 
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
 
@@ -7786,6 +7787,7 @@ By using `asRequest(of:)`, you enhance the type-safety of your request.
 
 - :arrow_up: [FAQ]
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
 
@@ -7821,6 +7823,49 @@ let string = try dbQueue.read { db in
     try String.fetchOne(db, ...)
 }
 ```
+
+
+### SQLite error 1 "no such column"
+
+This error message is self-explanatory: do check column names for any misspelling.
+
+However, sometimes this error only happens when an app is built with Xcode 12, and runs on the latest operating systems (iOS 14, Big Sur, etc.). The error does not happen with previous Xcode versions and operating system.
+
+When this is the case, there are two possible explanations:
+
+1. Maybe a column name was misspelled.
+    
+    To find it, check the SQL statement that comes with the [DatabaseError](#databaseerror).
+
+1. Maybe the application is *misusing* SQLite, by using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to tell about this misuse, and this is why you are seeing this error. 
+    
+    For example: this is invalid SQL: `UPDATE player SET name = "Arthur"`.
+    
+    The correct version is: `UPDATE player SET name = 'Arthur'`.
+    
+    It just happens that old versions of SQLite used to accept the former, invalid version. Newer versions are able to reject it with an error.
+    
+    The fix is to change the SQL statements run by the application: replace `"` with `'` in your string literals.
+    
+    It may also be time to learn about statement arguments and [SQL injection](#avoiding-sql-injection):
+    
+    ```swift
+    let name: String = ...
+    
+    // MISUSE (double quote)
+    try db.execute(sql: """
+        UPDATE player SET name = "\(name)"
+        """)
+    
+    // BETTER, BUT STILL NOT RECOMMENDED (single quote)
+    try db.execute(sql: "UPDATE player SET name = '\(name)'")
+    
+    // RECOMMENDED (statement arguments)
+    try db.execute(sql: "UPDATE player SET name = ?", arguments: [name])
+    ```
+    
+    For more information, see [Double-quoted String Literals Are Accepted](https://sqlite.org/quirks.html#dblquote), and [Configuration.acceptsDoubleQuotedStringLiterals](http://groue.github.io/GRDB.swift/docs/5.0.0-beta.11/Structs/Configuration.html#/s:4GRDB13ConfigurationV33acceptsDoubleQuotedStringLiteralsSbvp).
+    
 
 
 ### SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"
