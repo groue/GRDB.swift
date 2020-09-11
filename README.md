@@ -6871,7 +6871,7 @@ config.prepareDatabase { db in
     db.add(collation: collation)
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
--```
+```
 
 
 
