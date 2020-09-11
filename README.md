@@ -7837,13 +7837,13 @@ When this is the case, there are two possible explanations:
     
     To find it, check the SQL statement that comes with the [DatabaseError](#databaseerror).
 
-2. Maybe the application is *misusing* SQLite, by using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to tell about this misuse, and this is why you are seeing this error. 
+2. Maybe the application is using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to tell about this deviation from the SQL standard, and this is why you are seeing this error. 
     
-    For example: this is invalid SQL: `UPDATE player SET name = "Arthur"`.
+    For example: this is not standard SQL: `UPDATE player SET name = "Arthur"`.
     
-    The correct version is: `UPDATE player SET name = 'Arthur'`.
+    The standard version is: `UPDATE player SET name = 'Arthur'`.
     
-    It just happens that old versions of SQLite used to accept the former, invalid version. Newer versions are able to reject it with an error.
+    It just happens that old versions of SQLite used to accept the former, non-standard version. Newer versions are able to reject it with an error.
     
     The fix is to change the SQL statements run by the application: replace `"` with `'` in your string literals.
     
