@@ -140,6 +140,21 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    // Regression test for https://github.com/groue/GRDB.swift/issues/838
+    func testColumnIndexedInheritsIfNotExistsFlag() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            sqlQueries.removeAll()
+            try db.create(table: "test", ifNotExists: true) { t in
+                t.column("a", .integer).indexed()
+                t.column("b", .integer).indexed()
+            }
+            assertEqualSQL(sqlQueries[0], "CREATE TABLE IF NOT EXISTS \"test\" (\"a\" INTEGER, \"b\" INTEGER)")
+            assertEqualSQL(sqlQueries[1], "CREATE INDEX IF NOT EXISTS \"test_on_a\" ON \"test\"(\"a\")")
+            assertEqualSQL(sqlQueries[2], "CREATE INDEX IF NOT EXISTS \"test_on_b\" ON \"test\"(\"b\")")
+        }
+    }
+    
     func testColumnUnique() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
