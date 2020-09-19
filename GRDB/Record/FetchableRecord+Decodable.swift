@@ -204,7 +204,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 let keys = [decodedRootKey.stringValue, key.stringValue].sorted()
                 throw DecodingError.keyNotFound(key, DecodingError.Context(
                                                     codingPath: codingPath,
-                                                    debugDescription: "Missing key: \(keys.joined(separator: " or "))"))
+                                                    debugDescription: "No such key: \(keys.joined(separator: " or "))"))
             } else {
                 decodedRootKey = key
                 return try decode(type, fromRow: row, codingPath: codingPath + [key])

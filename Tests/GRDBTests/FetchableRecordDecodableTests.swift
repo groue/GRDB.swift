@@ -1106,7 +1106,7 @@ extension FetchableRecordDecodableTests {
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["b", "c"].contains(key.stringValue))
-                XCTAssertEqual(context.debugDescription, "Missing key: b or c")
+                XCTAssertEqual(context.debugDescription, "No such key: b or c")
             }
             do {
                 // - b is present
@@ -1116,7 +1116,7 @@ extension FetchableRecordDecodableTests {
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["a", "c"].contains(key.stringValue))
-                XCTAssertEqual(context.debugDescription, "Missing key: a or c")
+                XCTAssertEqual(context.debugDescription, "No such key: a or c")
             }
             do {
                 // - c is present
@@ -1126,7 +1126,7 @@ extension FetchableRecordDecodableTests {
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["a", "b"].contains(key.stringValue))
-                XCTAssertEqual(context.debugDescription, "Missing key: a or b")
+                XCTAssertEqual(context.debugDescription, "No such key: a or b")
             }
         }
     }
