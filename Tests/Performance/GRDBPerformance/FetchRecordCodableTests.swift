@@ -10,8 +10,9 @@ private let expectedRowCount = 100_000
 class FetchRecordCodableTests: XCTestCase {
 
     func testGRDB() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = try DatabaseQueue(path: databasePath)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let dbQueue = try DatabaseQueue(path: url.path)
         
         measure {
             let items = try! dbQueue.inDatabase { db in
