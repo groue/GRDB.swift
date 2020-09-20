@@ -179,7 +179,6 @@ struct SQLQueryGenerator: Refinable {
             case let .table(tableName: tableName, alias: alias) = relation.source,
             try db.tableExists(tableName) // skip views
             else {
-                // TODO: try harder
                 return selectedRegion
         }
         
