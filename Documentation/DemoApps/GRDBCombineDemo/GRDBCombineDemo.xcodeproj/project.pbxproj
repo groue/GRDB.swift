@@ -12,11 +12,12 @@
 		563F3E7724A78BD700982CF8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 563F3E7624A78BD700982CF8 /* Assets.xcassets */; };
 		563F3E7A24A78BD700982CF8 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 563F3E7924A78BD700982CF8 /* Preview Assets.xcassets */; };
 		563F3E7D24A78BD700982CF8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 563F3E7B24A78BD700982CF8 /* LaunchScreen.storyboard */; };
-		5651F47D24A8837800727C9D /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5651F47124A8835B00727C9D /* GRDB.framework */; };
 		5651F48124A8856300727C9D /* PlayerList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F48024A8856300727C9D /* PlayerList.swift */; };
 		5651F48324A885AF00727C9D /* PlayerListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F48224A885AF00727C9D /* PlayerListViewModel.swift */; };
 		5651F48524A8905100727C9D /* PlayerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F48424A8905100727C9D /* PlayerEditor.swift */; };
 		5651F48724A8909F00727C9D /* PlayerFormViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F48624A8909F00727C9D /* PlayerFormViewModel.swift */; };
+		566148C9251791570083D8B8 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5651F47124A8835B00727C9D /* GRDB.framework */; };
+		566148CA251791570083D8B8 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5651F47124A8835B00727C9D /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		5678066124A8A4E400606BC6 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 5678066324A8A4E400606BC6 /* Localizable.stringsdict */; };
 		5678066524A8B7DD00606BC6 /* PlayerCreationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5678066424A8B7DD00606BC6 /* PlayerCreationSheet.swift */; };
 		56AAFD4724A78F9A0077EADB /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56AAFD4524A78F9A0077EADB /* AppDatabase.swift */; };
@@ -81,14 +82,21 @@
 			remoteGlobalIDString = AAA4DDD4230F262000C74B15;
 			remoteInfo = GRDBtvOSTests;
 		};
-		5651F47A24A8836B00727C9D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 5651F45F24A8835B00727C9D /* GRDB.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 56E5D7C91B4D3FED00430942;
-			remoteInfo = GRDBiOS;
-		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		566148CB251791570083D8B8 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				566148CA251791570083D8B8 /* GRDB.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		563F3E6D24A78BD400982CF8 /* GRDBCombineDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBCombineDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -115,7 +123,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5651F47D24A8837800727C9D /* GRDB.framework in Frameworks */,
+				566148C9251791570083D8B8 /* GRDB.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -234,11 +242,11 @@
 				563F3E6924A78BD400982CF8 /* Sources */,
 				563F3E6A24A78BD400982CF8 /* Frameworks */,
 				563F3E6B24A78BD400982CF8 /* Resources */,
+				566148CB251791570083D8B8 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				5651F47B24A8836B00727C9D /* PBXTargetDependency */,
 			);
 			name = GRDBCombineDemo;
 			productName = GRDBCombineDemo;
@@ -376,14 +384,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		5651F47B24A8836B00727C9D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = GRDBiOS;
-			targetProxy = 5651F47A24A8836B00727C9D /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		563F3E7B24A78BD700982CF8 /* LaunchScreen.storyboard */ = {
