@@ -127,7 +127,7 @@ extension AppDatabase {
     func observePlayerCount(
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Int) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         ValueObservation
             .tracking(Player.fetchCount)
@@ -141,7 +141,7 @@ extension AppDatabase {
     func observePlayersOrderedByName(
         onError: @escaping (Error) -> Void,
         onChange: @escaping ([Player]) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         ValueObservation
             .tracking(Player.all().orderedByName().fetchAll)
@@ -155,7 +155,7 @@ extension AppDatabase {
     func observePlayersOrderedByScore(
         onError: @escaping (Error) -> Void,
         onChange: @escaping ([Player]) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         ValueObservation
             .tracking(Player.all().orderedByScore().fetchAll)
