@@ -13,7 +13,6 @@
 		563F3E7A24A78BD700982CF8 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 563F3E7924A78BD700982CF8 /* Preview Assets.xcassets */; };
 		563F3E7D24A78BD700982CF8 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 563F3E7B24A78BD700982CF8 /* LaunchScreen.storyboard */; };
 		5651F47D24A8837800727C9D /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5651F47124A8835B00727C9D /* GRDB.framework */; };
-		5651F47F24A884B200727C9D /* World.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F47E24A884B200727C9D /* World.swift */; };
 		5651F48124A8856300727C9D /* PlayerList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F48024A8856300727C9D /* PlayerList.swift */; };
 		5651F48324A885AF00727C9D /* PlayerListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F48224A885AF00727C9D /* PlayerListViewModel.swift */; };
 		5651F48524A8905100727C9D /* PlayerEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5651F48424A8905100727C9D /* PlayerEditor.swift */; };
@@ -100,7 +99,6 @@
 		563F3E7C24A78BD700982CF8 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		563F3E7E24A78BD700982CF8 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5651F45F24A8835B00727C9D /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
-		5651F47E24A884B200727C9D /* World.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = World.swift; sourceTree = "<group>"; };
 		5651F48024A8856300727C9D /* PlayerList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerList.swift; sourceTree = "<group>"; };
 		5651F48224A885AF00727C9D /* PlayerListViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerListViewModel.swift; sourceTree = "<group>"; };
 		5651F48424A8905100727C9D /* PlayerEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerEditor.swift; sourceTree = "<group>"; };
@@ -158,7 +156,6 @@
 				563F3E7224A78BD400982CF8 /* SceneDelegate.swift */,
 				56AAFD4524A78F9A0077EADB /* AppDatabase.swift */,
 				56AAFD4624A78F9A0077EADB /* Player.swift */,
-				5651F47E24A884B200727C9D /* World.swift */,
 				56248FEF24A8F3DD009C144A /* ViewModels */,
 				56B1B12524A8DA1000D7FB31 /* Views */,
 				563F3E7824A78BD700982CF8 /* Preview Content */,
@@ -365,7 +362,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5651F47F24A884B200727C9D /* World.swift in Sources */,
 				5651F48324A885AF00727C9D /* PlayerListViewModel.swift in Sources */,
 				56B1B13024A8E9A700D7FB31 /* PlayerForm.swift in Sources */,
 				5678066524A8B7DD00606BC6 /* PlayerCreationSheet.swift in Sources */,

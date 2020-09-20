@@ -5,6 +5,9 @@ import GRDB
 /// It applies the pratices recommended at
 /// https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md
 final class AppDatabase {
+    /// The shared AppDatabase
+    static var shared: AppDatabase!
+    
     private let dbQueue: DatabaseQueue
     
     /// Creates an AppDatabase and make sure the database schema is ready.

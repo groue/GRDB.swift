@@ -67,7 +67,7 @@ class PlayerListViewController: UITableViewController {
     }
     
     private func configureTitle() {
-        playerCountCancellable = Current.database().observePlayerCount(
+        playerCountCancellable = AppDatabase.shared.observePlayerCount(
             onError: { error in fatalError("Unexpected error: \(error)") },
             onChange: { [weak self] count in
                 guard let self = self else { return }
@@ -82,14 +82,14 @@ class PlayerListViewController: UITableViewController {
     private func configureTableView() {
         switch playerOrdering {
         case .byName:
-            playersCancellable = Current.database().observePlayersOrderedByName(
+            playersCancellable = AppDatabase.shared.observePlayersOrderedByName(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
                     self.updateTableView(with: players)
             })
         case .byScore:
-            playersCancellable = Current.database().observePlayersOrderedByScore(
+            playersCancellable = AppDatabase.shared.observePlayersOrderedByScore(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
@@ -194,7 +194,7 @@ extension PlayerListViewController {
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         // Delete the player
         if let id = players[indexPath.row].id {
-            try! Current.database().deletePlayers(ids: [id])
+            try! AppDatabase.shared.deletePlayers(ids: [id])
         }
     }
     
@@ -225,19 +225,19 @@ extension PlayerListViewController {
     
     @IBAction func deletePlayers() {
         setEditing(false, animated: true)
-        try! Current.database().deleteAllPlayers()
+        try! AppDatabase.shared.deleteAllPlayers()
     }
     
     @IBAction func refresh() {
         setEditing(false, animated: true)
-        try! Current.database().refreshPlayers()
+        try! AppDatabase.shared.refreshPlayers()
     }
     
     @IBAction func stressTest() {
         setEditing(false, animated: true)
         for _ in 0..<50 {
             DispatchQueue.global().async {
-                try! Current.database().refreshPlayers()
+                try! AppDatabase.shared.refreshPlayers()
             }
         }
     }
