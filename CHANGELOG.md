@@ -70,9 +70,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
-<!--
 ## Next Release
--->
+
+- **Fixed**: [#838](https://github.com/groue/GRDB.swift/issues/838): Have indexed colums inherit the `ifNotExists` flag from table creation.
 
 ## 5.0.0-beta.11
 
