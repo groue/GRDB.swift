@@ -52,4 +52,3 @@ struct PlayerCreationSheet_Previews: PreviewProvider {
     }
 }
 #endif
-        

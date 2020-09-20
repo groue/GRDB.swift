@@ -14,7 +14,7 @@ struct PlayerList: View {
                 playerList
                 toolbar
             }
-            .navigationBarTitle(Text("\(viewModel.players.count) Players"))
+            .navigationBarTitle(Text("\(viewModel.playerList.players.count) Players"))
             .navigationBarItems(
                 leading: HStack {
                     EditButton()
@@ -26,9 +26,10 @@ struct PlayerList: View {
     
     private var playerList: some View {
         List {
-            ForEach(viewModel.players) { player in
+            ForEach(viewModel.playerList.players) { player in
                 NavigationLink(destination: self.editionView(for: player)) {
                     PlayerRow(player: player)
+                        .animation(nil)
                 }
             }
             .onDelete(perform: { offsets in
@@ -36,6 +37,7 @@ struct PlayerList: View {
             })
         }
         .listStyle(PlainListStyle())
+        .animation(viewModel.playerList.animatedChanges ? .default : nil)
     }
     
     private var toolbar: some View {
@@ -52,7 +54,7 @@ struct PlayerList: View {
                 action: viewModel.stressTest,
                 label: { Image(systemName: "tornado").imageScale(.large) })
         }
-            
+        
         .padding()
     }
     
@@ -92,7 +94,7 @@ struct PlayerList: View {
                 // Make sure we do not edit a previously created player.
                 self.viewModel.newPlayerViewModel.editNewPlayer()
                 self.newPlayerIsPresented = true
-        },
+            },
             label: { Image(systemName: "plus").imageScale(.large) })
             .sheet(
                 isPresented: $newPlayerIsPresented,
@@ -105,7 +107,7 @@ struct PlayerList: View {
             viewModel: self.viewModel.newPlayerViewModel,
             dismissAction: {
                 self.newPlayerIsPresented = false
-        })
+            })
     }
 }
 

@@ -9,10 +9,11 @@ private let expectedRowCount = 100_000
 /// Here we test the extraction of values by column index.
 class FetchPositionalValuesTests: XCTestCase {
     
-    func testSQLite() {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+    func testSQLite() throws {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
         var connection: OpaquePointer? = nil
-        sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
+        sqlite3_open_v2(url.path, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
         
         measure {
             var count = 0
@@ -51,8 +52,9 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testGRDB() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = try DatabaseQueue(path: databasePath)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let dbQueue = try DatabaseQueue(path: url.path)
         
         measure {
             var count = 0
@@ -80,9 +82,10 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     #if GRDB_COMPARE
-    func testFMDB() {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)!
+    func testFMDB() throws {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let dbQueue = FMDatabaseQueue(path: url.path)!
         
         measure {
             var count = 0
@@ -110,8 +113,9 @@ class FetchPositionalValuesTests: XCTestCase {
     }
     
     func testSQLiteSwift() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let db = try Connection(databasePath)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let db = try Connection(url.path)
         
         measure {
             var count = 0

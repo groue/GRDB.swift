@@ -356,7 +356,6 @@ extension DatabaseError {
 }
 
 extension DatabaseError {
-    // TODO: test
     /// Returns true if the error has code `SQLITE_ABORT` or `SQLITE_INTERRUPT`.
     ///
     /// Such an error can be thrown when a database has been interrupted, or

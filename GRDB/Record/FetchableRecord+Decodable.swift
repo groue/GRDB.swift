@@ -201,9 +201,10 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             // "book", which is not the name of a column, and not the name of a
             // scope) has to be decoded right from the base row.
             if let decodedRootKey = decodedRootKey {
-                throw DecodingError.keyNotFound(decodedRootKey, DecodingError.Context(
-                    codingPath: codingPath,
-                    debugDescription: "No such key: \(decodedRootKey.stringValue)"))
+                let keys = [decodedRootKey.stringValue, key.stringValue].sorted()
+                throw DecodingError.keyNotFound(key, DecodingError.Context(
+                                                    codingPath: codingPath,
+                                                    debugDescription: "No such key: \(keys.joined(separator: " or "))"))
             } else {
                 decodedRootKey = key
                 return try decode(type, fromRow: row, codingPath: codingPath + [key])

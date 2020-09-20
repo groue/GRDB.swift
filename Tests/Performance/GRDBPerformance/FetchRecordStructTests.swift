@@ -9,10 +9,11 @@ private let expectedRowCount = 100_000
 /// Here we test the extraction of models from rows
 class FetchRecordStructTests: XCTestCase {
 
-    func testSQLite() {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
+    func testSQLite() throws {
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
         var connection: OpaquePointer? = nil
-        sqlite3_open_v2(databasePath, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
+        sqlite3_open_v2(url.path, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
         
         measure {
             var statement: OpaquePointer? = nil
@@ -66,8 +67,9 @@ class FetchRecordStructTests: XCTestCase {
     }
     
     func testGRDB() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = try DatabaseQueue(path: databasePath)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let dbQueue = try DatabaseQueue(path: url.path)
         
         measure {
             let items = try! dbQueue.inDatabase { db in
@@ -81,11 +83,12 @@ class FetchRecordStructTests: XCTestCase {
     }
     
     #if GRDB_COMPARE
-    func testFMDB() {
+    func testFMDB() throws {
         // Here we test the loading of an array of Records.
         
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = FMDatabaseQueue(path: databasePath)!
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let dbQueue = FMDatabaseQueue(path: url.path)!
         
         measure {
             var items = [ItemStruct]()
@@ -104,8 +107,9 @@ class FetchRecordStructTests: XCTestCase {
     }
 
     func testSQLiteSwift() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let db = try Connection(databasePath)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let db = try Connection(url.path)
         
         measure {
             var items = [ItemStruct]()

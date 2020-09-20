@@ -5,6 +5,9 @@ import GRDB
 /// It applies the pratices recommended at
 /// https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md
 final class AppDatabase {
+    /// The shared AppDatabase
+    static var shared: AppDatabase!
+    
     private let dbQueue: DatabaseQueue
     
     /// Creates an AppDatabase and make sure the database schema is ready.
@@ -124,7 +127,7 @@ extension AppDatabase {
     func observePlayerCount(
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Int) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         ValueObservation
             .tracking(Player.fetchCount)
@@ -138,7 +141,7 @@ extension AppDatabase {
     func observePlayersOrderedByName(
         onError: @escaping (Error) -> Void,
         onChange: @escaping ([Player]) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         ValueObservation
             .tracking(Player.all().orderedByName().fetchAll)
@@ -152,7 +155,7 @@ extension AppDatabase {
     func observePlayersOrderedByScore(
         onError: @escaping (Error) -> Void,
         onChange: @escaping ([Player]) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         ValueObservation
             .tracking(Player.all().orderedByScore().fetchAll)

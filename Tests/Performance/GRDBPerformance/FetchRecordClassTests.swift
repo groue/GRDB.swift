@@ -11,8 +11,9 @@ private let expectedRowCount = 100_000
 class FetchRecordClassTests: XCTestCase {
 
     func testGRDB() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceTests", ofType: "sqlite")!
-        let dbQueue = try DatabaseQueue(path: databasePath)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBPerformanceTests.sqlite")
+        try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let dbQueue = try DatabaseQueue(path: url.path)
         
         measure {
             let items = try! dbQueue.inDatabase { db in
@@ -27,11 +28,12 @@ class FetchRecordClassTests: XCTestCase {
     
     #if GRDB_COMPARE
     func testCoreData() throws {
-        let databasePath = Bundle(for: type(of: self)).path(forResource: "PerformanceCoreDataTests", ofType: "sqlite")!
         let modelURL = Bundle(for: type(of: self)).url(forResource: "PerformanceModel", withExtension: "momd")!
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBCoreDataPerformanceTests.sqlite")
+        try generateCoreDataDatabaseIfMissing(at: url, fromModelAt: modelURL, insertedRowCount: expectedRowCount)
         let mom = NSManagedObjectModel(contentsOf: modelURL)!
         let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
-        try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: URL(fileURLWithPath: databasePath), options: nil)
+        try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
         let moc = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
         moc.persistentStoreCoordinator = psc
         
@@ -56,8 +58,9 @@ class FetchRecordClassTests: XCTestCase {
     }
     
     func testRealm() throws {
-        let databaseURL = Bundle(for: type(of: self)).url(forResource: "PerformanceRealmTests", withExtension: "realm")!
-        let realm = try Realm(fileURL: databaseURL)
+        let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("GRDBRealmPerformanceTests.realm")
+        try generateRealmDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
+        let realm = try Realm(fileURL: url)
         
         measure {
             let items = realm.objects(RealmItem.self)

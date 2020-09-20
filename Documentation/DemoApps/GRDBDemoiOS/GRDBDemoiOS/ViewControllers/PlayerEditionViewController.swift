@@ -127,7 +127,7 @@ extension PlayerEditionViewController: UITextFieldDelegate {
         }
         player.name = nameTextField.text ?? ""
         player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
-        try! Current.database().savePlayer(&player)
+        try! AppDatabase.shared.savePlayer(&player)
         self.player = player
     }
 }

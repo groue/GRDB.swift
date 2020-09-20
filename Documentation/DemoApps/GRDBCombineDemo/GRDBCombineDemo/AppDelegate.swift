@@ -40,6 +40,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         try database.createRandomPlayersIfEmpty()
         
         // Expose it to the rest of the application
-        Current.database = { database }
+        AppDatabase.shared = database
     }
 }

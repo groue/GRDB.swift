@@ -6,6 +6,9 @@ import GRDB
 /// It applies the pratices recommended at
 /// https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md
 final class AppDatabase {
+    /// The shared AppDatabase
+    static var shared: AppDatabase!
+    
     private let dbQueue: DatabaseQueue
     
     /// Creates an AppDatabase and make sure the database schema is ready.
@@ -125,9 +128,7 @@ extension AppDatabase {
     func playersOrderedByNamePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByName().fetchAll)
-            // Use the .immediate scheduling so that views do not have to wait
-            // until the players are loaded.
-            .publisher(in: dbQueue, scheduling: .immediate)
+            .publisher(in: dbQueue)
             .eraseToAnyPublisher()
     }
     
@@ -135,9 +136,7 @@ extension AppDatabase {
     func playersOrderedByScorePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByScore().fetchAll)
-            // Use the .immediate scheduling so that views do not have to wait
-            // until the players are loaded.
-            .publisher(in: dbQueue, scheduling: .immediate)
+            .publisher(in: dbQueue)
             .eraseToAnyPublisher()
     }
 }

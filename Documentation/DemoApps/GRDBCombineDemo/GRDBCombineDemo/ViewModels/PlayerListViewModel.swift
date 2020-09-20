@@ -9,11 +9,16 @@ final class PlayerListViewModel: ObservableObject {
         case byName
     }
     
+    struct PlayerList {
+        var players: [Player]
+        var animatedChanges: Bool
+    }
+    
     /// The list ordering
     @Published var ordering: Ordering = .byScore
     
     /// The players in the list
-    @Published var players: [Player] = []
+    @Published var playerList = PlayerList(players: [], animatedChanges: false)
     
     /// The view model that edits a new player
     let newPlayerViewModel: PlayerFormViewModel
@@ -24,9 +29,19 @@ final class PlayerListViewModel: ObservableObject {
     init(database: AppDatabase) {
         self.database = database
         newPlayerViewModel = PlayerFormViewModel(database: database, player: .new())
-        playersCancellable = playersPublisher(in: database).sink { [weak self] players in
-            self?.players = players
-        }
+        playersCancellable = playersPublisher(in: database)
+            .scan(nil) { (previousList: PlayerList?, players: [Player]) in
+                if previousList == nil {
+                    // Do not animate first view update
+                    return PlayerList(players: players, animatedChanges: false)
+                } else {
+                    return PlayerList(players: players, animatedChanges: true)
+                }
+            }
+            .compactMap { $0 }
+            .sink { [weak self] playerList in
+                self?.playerList = playerList
+            }
     }
     
     // MARK: - Players List Management
@@ -39,7 +54,7 @@ final class PlayerListViewModel: ObservableObject {
     
     func deletePlayers(atOffsets offsets: IndexSet) {
         // Eventual error presentation is left as an exercise for the reader.
-        let playerIDs = offsets.compactMap { players[$0].id }
+        let playerIDs = offsets.compactMap { playerList.players[$0].id }
         try! database.deletePlayers(ids: playerIDs)
     }
     

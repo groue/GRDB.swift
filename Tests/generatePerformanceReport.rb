@@ -55,10 +55,14 @@ grdb_version = info_plist_version('Support/Info.plist')
 fmdb_version = info_plist_version("#{SPM_CHECKOUTS}/fmdb/src/fmdb/Info.plist")
 sqlite_swift_version = git_tag_version("#{SPM_CHECKOUTS}/SQLite.swift")
 realm_version = git_tag_version("#{SPM_CHECKOUTS}/realm-cocoa")
+`xcodebuild -version` =~ /Xcode (.*)$/; xcode_version = $1
+`curl -s https://support-sp.apple.com/sp/product?cc=$(system_profiler SPHardwareDataType | awk '/Serial/ {print $4}' | cut -c 9-)` =~ /<configCode>(.*)<\/configCode>/; hardware = $1
 STDERR.puts "GRDB #{grdb_version}"
 STDERR.puts "FMDB #{fmdb_version}"
 STDERR.puts "SQLite.swift #{sqlite_swift_version}"
 STDERR.puts "Realm #{realm_version}"
+STDERR.puts "Xcode #{xcode_version}"
+STDERR.puts "Hardware #{hardware}"
 
 # Generate
 puts <<-REPORT
@@ -68,7 +72,7 @@ puts <<-REPORT
 
 Below are performance benchmarks made on for [GRDB #{grdb_version}](https://github.com/groue/GRDB.swift), [FMDB #{fmdb_version}](https://github.com/ccgus/fmdb), and [SQLite.swift #{sqlite_swift_version}](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm #{realm_version}](https://realm.io) and the raw use of the SQLite C API from Swift.
 
-This report was generated on a MacBook Pro (15-inch, Late 2016), with Xcode 10.2.1, by running the following command:
+This report was generated on a #{hardware}, with Xcode #{xcode_version}, by running the following command:
 
 ```sh
 make test_performance | Tests/parsePerformanceTests.rb | Tests/generatePerformanceReport.rb

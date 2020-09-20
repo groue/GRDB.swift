@@ -1088,4 +1088,46 @@ extension FetchableRecordDecodableTests {
             // a or b can not be decoded because only one key is allowed to be missing
         }
     }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/836
+    func testRootKeyDecodingError() throws {
+        struct Record: Decodable { }
+        struct Composed: Decodable, FetchableRecord {
+            var a: Record
+            var b: Record
+            var c: Record
+        }
+        try makeDatabaseQueue().read { db in
+            do {
+                // - a is present
+                // - root is b and c is missing, or the opposite (two possible user intents)
+                let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["a": EmptyRowAdapter()]))!
+                _ = try RowDecoder().decode(Composed.self, from: row)
+                XCTFail("Expected error")
+            } catch let DecodingError.keyNotFound(key, context) {
+                XCTAssert(["b", "c"].contains(key.stringValue))
+                XCTAssertEqual(context.debugDescription, "No such key: b or c")
+            }
+            do {
+                // - b is present
+                // - root is a and c is missing, or the opposite (two possible user intents)
+                let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["b": EmptyRowAdapter()]))!
+                _ = try RowDecoder().decode(Composed.self, from: row)
+                XCTFail("Expected error")
+            } catch let DecodingError.keyNotFound(key, context) {
+                XCTAssert(["a", "c"].contains(key.stringValue))
+                XCTAssertEqual(context.debugDescription, "No such key: a or c")
+            }
+            do {
+                // - c is present
+                // - root is a and b is missing, or the opposite (two possible user intents)
+                let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["c": EmptyRowAdapter()]))!
+                _ = try RowDecoder().decode(Composed.self, from: row)
+                XCTFail("Expected error")
+            } catch let DecodingError.keyNotFound(key, context) {
+                XCTAssert(["a", "b"].contains(key.stringValue))
+                XCTAssertEqual(context.debugDescription, "No such key: a or b")
+            }
+        }
+    }
 }
