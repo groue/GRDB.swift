@@ -8,10 +8,10 @@ struct PlayerEditor: View {
     
     var body: some View {
         PlayerForm(viewModel: viewModel)
-        .onDisappear(perform: {
-            // Ignore validation errors
-            try? self.viewModel.savePlayer()
-        })
+            .onDisappear(perform: {
+                // Ignore validation errors
+                try? self.viewModel.savePlayer()
+            })
     }
 }
 
