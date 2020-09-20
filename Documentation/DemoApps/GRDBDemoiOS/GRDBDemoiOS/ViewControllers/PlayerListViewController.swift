@@ -9,8 +9,8 @@ class PlayerListViewController: UITableViewController {
     }
     
     @IBOutlet private weak var newPlayerButtonItem: UIBarButtonItem!
+    private var dataSource: PlayerDataSource!
     private var animatesPlayersChange = false // Don't animate first update
-    private var players: [Player] = []
     private var playersCancellable: DatabaseCancellable?
     private var playerCountCancellable: DatabaseCancellable?
     private var playerOrdering: PlayerOrdering = .byScore {
@@ -76,10 +76,23 @@ class PlayerListViewController: UITableViewController {
                 case 1: self.navigationItem.title = "1 Player"
                 default: self.navigationItem.title = "\(count) Players"
                 }
-        })
+            })
     }
     
     private func configureTableView() {
+        dataSource = PlayerDataSource(tableView: tableView) { (tableView, indexPath, player) in
+            let cell = tableView.dequeueReusableCell(withIdentifier: "Player", for: indexPath)
+            if player.name.isEmpty {
+                cell.textLabel?.text = "(anonymous)"
+            } else {
+                cell.textLabel?.text = player.name
+            }
+            cell.detailTextLabel?.text = abs(player.score) > 1 ? "\(player.score) points" : "0 point"
+            return cell
+        }
+        dataSource.defaultRowAnimation = .fade
+        tableView.dataSource = dataSource
+        
         switch playerOrdering {
         case .byName:
             playersCancellable = AppDatabase.shared.observePlayersOrderedByName(
@@ -87,56 +100,29 @@ class PlayerListViewController: UITableViewController {
                 onChange: { [weak self] players in
                     guard let self = self else { return }
                     self.updateTableView(with: players)
-            })
+                })
         case .byScore:
             playersCancellable = AppDatabase.shared.observePlayersOrderedByScore(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
                     self.updateTableView(with: players)
-            })
+                })
         }
     }
     
     private func updateTableView(with players: [Player]) {
-        if animatesPlayersChange == false {
-            self.players = players
-            tableView.reloadData()
-            
+        var snapshot = NSDiffableDataSourceSnapshot<Int, Player>()
+        snapshot.appendSections([0])
+        snapshot.appendItems(players, toSection: 0)
+        
+        if animatesPlayersChange {
+            dataSource.apply(snapshot, animatingDifferences: true, completion: nil)
+        } else {
             // Future updates will be animated
             animatesPlayersChange = true
-            return
+            dataSource.apply(snapshot, animatingDifferences: false, completion: nil)
         }
-        
-        // Compute difference between current and new list of players
-        let difference = players
-            .difference(from: self.players)
-            .inferringMoves()
-        
-        // Apply those changes to the table view
-        tableView.performBatchUpdates({
-            self.players = players
-            for change in difference {
-                switch change {
-                case let .remove(offset, _, associatedWith):
-                    if let associatedWith = associatedWith {
-                        self.tableView.moveRow(
-                            at: IndexPath(row: offset, section: 0),
-                            to: IndexPath(row: associatedWith, section: 0))
-                    } else {
-                        self.tableView.deleteRows(
-                            at: [IndexPath(row: offset, section: 0)],
-                            with: .fade)
-                    }
-                case let .insert(offset, _, associatedWith):
-                    if associatedWith == nil {
-                        self.tableView.insertRows(
-                            at: [IndexPath(row: offset, section: 0)],
-                            with: .fade)
-                    }
-                }
-            }
-        }, completion: nil)
     }
 }
 
@@ -147,20 +133,18 @@ extension PlayerListViewController {
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if segue.identifier == "Edit" {
-            guard
-                let controller = segue.destination as? PlayerEditionViewController,
-                let indexPath = tableView.indexPathForSelectedRow
-                else { return }
-            let player = players[indexPath.row]
+            guard let controller = segue.destination as? PlayerEditionViewController,
+                  let indexPath = tableView.indexPathForSelectedRow,
+                  let player = dataSource.itemIdentifier(for: indexPath)
+            else { return }
             controller.title = player.name
             controller.player = player
             controller.presentation = .push
         }
         else if segue.identifier == "New" {
-            guard
-                let navigationController = segue.destination as? UINavigationController,
-                let controller = navigationController.viewControllers.first as? PlayerEditionViewController
-                else { return }
+            guard let navigationController = segue.destination as? UINavigationController,
+                  let controller = navigationController.viewControllers.first as? PlayerEditionViewController
+            else { return }
             setEditing(false, animated: true)
             controller.title = "New Player"
             controller.player = Player(id: nil, name: "", score: 0)
@@ -180,32 +164,17 @@ extension PlayerListViewController {
 
 // MARK: - UITableViewDataSource
 
-extension PlayerListViewController {
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        players.count
-    }
-    
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Player", for: indexPath)
-        configure(cell, at: indexPath)
-        return cell
+/// Subclass of UITableViewDiffableDataSource that supports row deletion
+private class PlayerDataSource: UITableViewDiffableDataSource<Int, Player> {
+    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        true
     }
     
     override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         // Delete the player
-        if let id = players[indexPath.row].id {
+        if let player = itemIdentifier(for: indexPath), let id = player.id {
             try! AppDatabase.shared.deletePlayers(ids: [id])
         }
-    }
-    
-    private func configure(_ cell: UITableViewCell, at indexPath: IndexPath) {
-        let player = players[indexPath.row]
-        if player.name.isEmpty {
-            cell.textLabel?.text = "(anonymous)"
-        } else {
-            cell.textLabel?.text = player.name
-        }
-        cell.detailTextLabel?.text = abs(player.score) > 1 ? "\(player.score) points" : "0 point"
     }
 }
 
