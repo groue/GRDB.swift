@@ -29,7 +29,7 @@ func generateSQLiteDatabaseIfMissing(at url: URL, insertedRowCount: Int) throws 
 func generateCoreDataDatabaseIfMissing(at url: URL, fromModelAt modelURL: URL, insertedRowCount: Int) throws {
     let mom = NSManagedObjectModel(contentsOf: modelURL)!
     let psc = NSPersistentStoreCoordinator(managedObjectModel: mom)
-    let store = try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
+    try psc.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
     let moc = NSManagedObjectContext(concurrencyType: .mainQueueConcurrencyType)
     moc.performAndWait {
         moc.persistentStoreCoordinator = psc
