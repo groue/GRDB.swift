@@ -128,9 +128,7 @@ extension AppDatabase {
     func playersOrderedByNamePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByName().fetchAll)
-            // Use the .immediate scheduling so that views do not have to wait
-            // until the players are loaded.
-            .publisher(in: dbQueue, scheduling: .immediate)
+            .publisher(in: dbQueue)
             .eraseToAnyPublisher()
     }
     
@@ -138,9 +136,7 @@ extension AppDatabase {
     func playersOrderedByScorePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByScore().fetchAll)
-            // Use the .immediate scheduling so that views do not have to wait
-            // until the players are loaded.
-            .publisher(in: dbQueue, scheduling: .immediate)
+            .publisher(in: dbQueue)
             .eraseToAnyPublisher()
     }
 }
