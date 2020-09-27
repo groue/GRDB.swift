@@ -88,7 +88,7 @@ final class PlayerListViewModel: ObservableObject {
     // MARK: - Player Edition
     
     /// Returns a view model suitable for editing a player.
-    func editionViewModel(for player: Player) -> PlayerFormViewModel {
+    func formViewModel(for player: Player) -> PlayerFormViewModel {
         PlayerFormViewModel(database: database, player: player)
     }
     
