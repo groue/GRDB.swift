@@ -70,4 +70,23 @@ class IndexInfoTests: GRDBTestCase {
             try XCTAssertFalse(db.table("citizenships", hasUniqueKey: ["countryIsoCode"]))
         }
     }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/840
+    func testIndexOnExpressionIsExcluded() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                try db.execute(sql: """
+                    CREATE TABLE player (id INTEGER PRIMARY KEY, name TEXT);
+                    CREATE INDEX expressionIndex ON player (LENGTH(name));
+                    CREATE INDEX columnIndex ON player (name);
+                    """)
+                let indexes = try db.indexes(on: "player")
+                XCTAssertEqual(indexes.count, 1)
+                XCTAssertEqual(indexes[0].name, "columnIndex")
+                XCTAssertEqual(indexes[0].columns, ["name"])
+                XCTAssertFalse(indexes[0].isUnique)
+            }
+        }
+    }
 }
