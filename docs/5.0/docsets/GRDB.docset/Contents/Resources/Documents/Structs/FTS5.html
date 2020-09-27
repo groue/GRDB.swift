@@ -17,7 +17,7 @@
     <a title="FTS5 Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 5.0.0 Docs</a> (89% documented)</p>
+        <p><a href="../index.html">GRDB 5.0.1 Docs</a> (88% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F5.0%2Fdocsets%2FGRDB.xml"><img src="../img/dash.png"/>Install in Dash</a></p>
         <p class="header-right">
@@ -252,6 +252,9 @@
                 <a href="../Extensions/Collection.html">Collection</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
               </li>
               <li class="nav-group-task">
@@ -325,6 +328,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRequest.html">TableRequest</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/UInt.html">UInt</a>
@@ -1034,10 +1043,10 @@
             <a href="../Typealiases.html">Type Aliases</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB17FTS5TokenCallbacka">FTS5TokenCallback</a>
+                <a href="../Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
               </li>
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB24FTS5WrapperTokenCallbacka">FTS5WrapperTokenCallback</a>
+                <a href="../Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Typealiases.html#/s:4GRDB16SQLiteConnectiona">SQLiteConnection</a>
@@ -1053,13 +1062,6 @@
         <section>
           <section class="section">
             <h1>FTS5</h1>
-              <div class="declaration">
-                <div class="language">
-                  
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">FTS5</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/VirtualTableModule.html">VirtualTableModule</a></span></code></pre>
-
-                </div>
-              </div>
             <p>FTS5 lets you define &ldquo;fts5&rdquo; virtual tables.</p>
 <pre class="highlight swift"><code><span class="c1">// CREATE VIRTUAL TABLE document USING fts5(content)</span>
 <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">virtualTable</span><span class="p">:</span> <span class="s">"document"</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="kt">FTS5</span><span class="p">())</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
@@ -1069,9 +1071,6 @@
 
 <p>See <a href="https://www.sqlite.org/fts5.html">https://www.sqlite.org/fts5.html</a></p>
 
-              <div class="slightly-smaller">
-                <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5.swift#L12-L235">Show on GitHub</a>
-              </div>
           </section>
           <section class="section task-group-section">
             <div class="task-group">
@@ -1079,9 +1078,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB4FTS5V10DiacriticsO"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Enum/Diacritics" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB4FTS5V10DiacriticsO">Diacritics</a>
+                    <a class="token" href="#/">Diacritics</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1096,26 +1095,15 @@ tokenizer argument.</p>
 
                         <a href="../Structs/FTS5/Diacritics.html" class="slightly-smaller">See more</a>
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Diacritics</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5.swift#L17-L36">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB4FTS5VACycfc"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/init()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB4FTS5VACycfc">init()</a>
+                    <a class="token" href="#/">init()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1133,17 +1121,6 @@ tokenizer argument.</p>
 
 <p>See <a href="https://www.sqlite.org/fts5.html">https://www.sqlite.org/fts5.html</a></p>
 
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">()</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5.swift#L47-L48">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1164,9 +1141,9 @@ tokenizer argument.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB4FTS5V10moduleNameSSvp"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Property/moduleName" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB4FTS5V10moduleNameSSvp">moduleName</a>
+                    <a class="token" href="#/">moduleName</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1177,26 +1154,15 @@ tokenizer argument.</p>
                         <p>The virtual table module name</p>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">moduleName</span><span class="p">:</span> <span class="kt">String</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5.swift#L53">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB4FTS5V19makeTableDefinitionAA0bdE0CyF"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/makeTableDefinition()" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB4FTS5V19makeTableDefinitionAA0bdE0CyF">makeTableDefinition()</a>
+                    <a class="token" href="#/">makeTableDefinition()</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1207,26 +1173,15 @@ tokenizer argument.</p>
                         <p>Don&rsquo;t use this method.</p>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">makeTableDefinition</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a></span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5.swift#L56-L58">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB4FTS5V15moduleArguments3for2inSaySSGAA0B15TableDefinitionC_AA8DatabaseCtKF"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/moduleArguments(for:in:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB4FTS5V15moduleArguments3for2inSaySSGAA0B15TableDefinitionC_AA8DatabaseCtKF">moduleArguments(for:<wbr>in:<wbr>)</a>
+                    <a class="token" href="#/">moduleArguments(for:<wbr>in:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1237,26 +1192,15 @@ tokenizer argument.</p>
                         <p>Don&rsquo;t use this method.</p>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">moduleArguments</span><span class="p">(</span><span class="k">for</span> <span class="nv">definition</span><span class="p">:</span> <span class="kt"><a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a></span><span class="p">,</span> <span class="k">in</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5.swift#L61-L124">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB4FTS5V8database_9didCreate5usingyAA8DatabaseC_SSAA0B15TableDefinitionCtKF"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/database(_:didCreate:using:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB4FTS5V8database_9didCreate5usingyAA8DatabaseC_SSAA0B15TableDefinitionCtKF">database(_:<wbr>didCreate:<wbr>using:<wbr>)</a>
+                    <a class="token" href="#/">database(_:<wbr>didCreate:<wbr>using:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1269,17 +1213,6 @@ tokenizer argument.</p>
 <p>See Database.create(virtualTable:using:)</p>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">database</span><span class="p">(</span><span class="n">_</span> <span class="nv">db</span><span class="p">:</span> <span class="kt"><a href="../Classes/Database.html">Database</a></span><span class="p">,</span> <span class="n">didCreate</span> <span class="nv">tableName</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="n">using</span> <span class="nv">definition</span><span class="p">:</span> <span class="kt"><a href="../Classes/FTS5TableDefinition.html">FTS5TableDefinition</a></span><span class="p">)</span> <span class="k">throws</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5.swift#L129-L170">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
@@ -1288,7 +1221,7 @@ tokenizer argument.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-20)</p>
+          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-27)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.5</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

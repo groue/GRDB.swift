@@ -17,7 +17,7 @@
     <a title="TableRecord Protocol Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 5.0.0 Docs</a> (89% documented)</p>
+        <p><a href="../index.html">GRDB 5.0.1 Docs</a> (88% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F5.0%2Fdocsets%2FGRDB.xml"><img src="../img/dash.png"/>Install in Dash</a></p>
         <p class="header-right">
@@ -252,6 +252,9 @@
                 <a href="../Extensions/Collection.html">Collection</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
               </li>
               <li class="nav-group-task">
@@ -325,6 +328,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRequest.html">TableRequest</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/UInt.html">UInt</a>
@@ -1034,10 +1043,10 @@
             <a href="../Typealiases.html">Type Aliases</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB17FTS5TokenCallbacka">FTS5TokenCallback</a>
+                <a href="../Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
               </li>
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB24FTS5WrapperTokenCallbacka">FTS5WrapperTokenCallback</a>
+                <a href="../Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Typealiases.html#/s:4GRDB16SQLiteConnectiona">SQLiteConnection</a>
@@ -1070,7 +1079,7 @@ built-in methods that allow to fetch instances identified by key:</p>
 </code></pre>
 
               <div class="slightly-smaller">
-                <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/TableRecord.swift#L11-L50">Show on GitHub</a>
+                <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/TableRecord.swift#L11-L50">Show on GitHub</a>
               </div>
           </section>
           <section class="section task-group-section">
@@ -1124,7 +1133,7 @@ built-in methods that allow to fetch instances identified by key:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/TableRecord.swift#L20">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/TableRecord.swift#L20">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1188,7 +1197,7 @@ of columns:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/TableRecord.swift#L49">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/TableRecord.swift#L49">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1244,46 +1253,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/FTS3+QueryInterface.swift#L39-L41">Show on GitHub</a>
-                      </div>
-                    </section>
-                  </div>
-                </li>
-                <li class="item">
-                  <div>
-                    <code>
-                    <a name="/s:4GRDB11TableRecordPAAE8matchingyAA21QueryInterfaceRequestVyxGAA11FTS5PatternVSgFZ"></a>
-                    <a name="//apple_ref/swift/Method/matching(_:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB11TableRecordPAAE8matchingyAA21QueryInterfaceRequestVyxGAA11FTS5PatternVSgFZ">matching(_:<wbr>)</a>
-                    </code>
-                      <span class="declaration-note">
-                        Extension method
-                      </span>
-                  </div>
-                  <div class="height-container">
-                    <div class="pointer-container"></div>
-                    <section class="section">
-                      <div class="pointer"></div>
-                      <div class="abstract">
-                        <p>Returns a QueryInterfaceRequest with a matching predicate.</p>
-<pre class="highlight swift"><code><span class="c1">// SELECT * FROM book WHERE book MATCH '...'</span>
-<span class="k">var</span> <span class="nv">request</span> <span class="o">=</span> <span class="kt">Book</span><span class="o">.</span><span class="nf">matching</span><span class="p">(</span><span class="n">pattern</span><span class="p">)</span>
-</code></pre>
-
-<p>If the search pattern is nil, the request does not match any
-database row.</p>
-
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">matching</span><span class="p">(</span><span class="n">_</span> <span class="nv">pattern</span><span class="p">:</span> <span class="kt"><a href="../Structs/FTS5Pattern.html">FTS5Pattern</a></span><span class="p">?)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a></span><span class="o">&lt;</span><span class="k">Self</span><span class="o">&gt;</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/FTS5+QueryInterface.swift#L40-L42">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/FTS3+QueryInterface.swift#L39-L41">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1413,7 +1383,7 @@ foreign keys to the destination table.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L58-L65">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L58-L65">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1543,7 +1513,7 @@ foreign keys from the destination table.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L123-L130">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L123-L130">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1694,7 +1664,7 @@ is the same key as the target.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L193-L212">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L193-L212">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1824,7 +1794,7 @@ foreign keys from the destination table.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L270-L277">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L270-L277">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1975,7 +1945,7 @@ is the same key as the target.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L340-L359">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L340-L359">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2023,7 +1993,7 @@ is the same key as the target.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L513-L518">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L513-L518">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2060,7 +2030,7 @@ require that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L523-L528">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L523-L528">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2097,7 +2067,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L533-L538">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L533-L538">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2134,7 +2104,7 @@ require that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L543-L548">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L543-L548">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2171,7 +2141,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L553-L558">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L553-L558">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2221,7 +2191,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L567-L569">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L567-L569">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2258,7 +2228,7 @@ that the associated database table contains a matching row.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L576-L578">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L576-L578">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2301,7 +2271,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L591-L593">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L591-L593">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2354,7 +2324,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L19-L21">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L19-L21">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2387,7 +2357,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L24-L26">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L24-L26">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2423,7 +2393,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L32-L34">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L32-L34">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2459,7 +2429,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L40-L42">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L40-L42">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2498,7 +2468,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L48-L54">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L48-L54">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2534,7 +2504,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L60-L62">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L60-L62">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2577,7 +2547,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L72-L78">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L72-L78">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2620,7 +2590,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L88-L94">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L88-L94">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2664,7 +2634,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L104-L111">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L104-L111">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2707,7 +2677,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L121-L127">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L121-L127">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2745,7 +2715,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L135-L137">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L135-L137">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2783,7 +2753,7 @@ type <em>type</em>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L145-L147">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L145-L147">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2823,7 +2793,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L157-L159">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L157-L159">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2865,7 +2835,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L169-L174">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L169-L174">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2907,7 +2877,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L184-L189">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L184-L189">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2950,7 +2920,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L202-L204">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L202-L204">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2993,7 +2963,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L217-L219">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L217-L219">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3036,7 +3006,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L229-L235">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L229-L235">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3081,7 +3051,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L250-L253">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L250-L253">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3122,7 +3092,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L264-L266">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L264-L266">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3163,7 +3133,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L277-L279">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L277-L279">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3206,7 +3176,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L292-L294">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L292-L294">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3249,7 +3219,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L304-L310">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L304-L310">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3295,7 +3265,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L326-L328">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L326-L328">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3336,7 +3306,7 @@ for individual requests with the <code>TableRecord.select</code> method.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L339-L341">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L339-L341">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3384,7 +3354,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L359-L361">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+QueryInterfaceRequest.swift#L359-L361">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3449,7 +3419,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </table>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/TableRecord.swift#L106-L108">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/TableRecord.swift#L106-L108">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3512,7 +3482,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/TableRecord.swift#L133-L138">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/TableRecord.swift#L133-L138">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3572,7 +3542,7 @@ the ON clause could be not achieved without table aliases.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/TableRecord+Association.swift#L485-L505">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/TableRecord+Association.swift#L485-L505">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3582,7 +3552,7 @@ the ON clause could be not achieved without table aliases.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-20)</p>
+          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-27)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.5</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

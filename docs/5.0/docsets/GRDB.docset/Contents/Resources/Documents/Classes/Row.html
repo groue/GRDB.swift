@@ -17,7 +17,7 @@
     <a title="Row Class Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 5.0.0 Docs</a> (89% documented)</p>
+        <p><a href="../index.html">GRDB 5.0.1 Docs</a> (88% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F5.0%2Fdocsets%2FGRDB.xml"><img src="../img/dash.png"/>Install in Dash</a></p>
         <p class="header-right">
@@ -252,6 +252,9 @@
                 <a href="../Extensions/Collection.html">Collection</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
               </li>
               <li class="nav-group-task">
@@ -325,6 +328,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRequest.html">TableRequest</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/UInt.html">UInt</a>
@@ -1034,10 +1043,10 @@
             <a href="../Typealiases.html">Type Aliases</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB17FTS5TokenCallbacka">FTS5TokenCallback</a>
+                <a href="../Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
               </li>
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB24FTS5WrapperTokenCallbacka">FTS5WrapperTokenCallback</a>
+                <a href="../Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Typealiases.html#/s:4GRDB16SQLiteConnectiona">SQLiteConnection</a>
@@ -1065,7 +1074,7 @@
             <p>A database row.</p>
 
               <div class="slightly-smaller">
-                <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L4-L136">Show on GitHub</a>
+                <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L4-L136">Show on GitHub</a>
               </div>
           </section>
           <section class="section task-group-section">
@@ -1096,7 +1105,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L21">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L21">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1138,7 +1147,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L36">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L36">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1181,7 +1190,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L41-L43">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L41-L43">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1211,7 +1220,7 @@
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L46-L48">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L46-L48">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1244,7 +1253,7 @@ adopt DatabaseValueConvertible.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L54-L66">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L54-L66">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1279,7 +1288,7 @@ duplicated columns names are allowed.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L75-L77">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L75-L77">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1313,7 +1322,7 @@ want to keep a specific one: <code>row.copy()</code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L84-L86">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L84-L86">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1359,7 +1368,7 @@ of column-value pairs in <code>self</code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L146-L148">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L146-L148">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1391,7 +1400,7 @@ of column-value pairs in <code>self</code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L153-L155">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L153-L155">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1444,7 +1453,7 @@ contains a non-null value.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L184-L194">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L184-L194">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1481,7 +1490,7 @@ values.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L204-L207">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L204-L207">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1515,7 +1524,7 @@ righmost column.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L214-L217">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L214-L217">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1553,7 +1562,7 @@ fail, a fatal error is raised.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L228-L231">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L228-L231">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1595,7 +1604,7 @@ StatementColumnConvertible. It <em>may</em> trigger SQLite built-in conversions
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L246-L249">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L246-L249">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1632,7 +1641,7 @@ SQLite value can not be converted to <code>Value</code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L259-L262">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L259-L262">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1673,7 +1682,7 @@ StatementColumnConvertible. It <em>may</em> trigger SQLite built-in conversions
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L276-L279">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L276-L279">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1709,7 +1718,7 @@ the same name, the leftmost column is considered.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L288-L300">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L288-L300">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1747,7 +1756,7 @@ nil. Otherwise the SQLite value is converted to the requested type
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L311-L316">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L311-L316">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1789,7 +1798,7 @@ StatementColumnConvertible. It <em>may</em> trigger SQLite built-in conversions
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L331-L336">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L331-L336">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1828,7 +1837,7 @@ SQLite value can not be converted to <code>Value</code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L348-L354">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L348-L354">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1871,7 +1880,7 @@ StatementColumnConvertible. It <em>may</em> trigger SQLite built-in conversions
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L370-L376">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L370-L376">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1903,12 +1912,12 @@ the same name, the leftmost column is considered.</p>
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">@inlinable</span>
-<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="o">&gt;</span><span class="p">(</span><span class="nv">column</span><span class="p">:</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span><span class="p">?</span> <span class="k">where</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Column</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">column</span><span class="p">:</span> <span class="kt">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span><span class="p">?</span> <span class="k">where</span> <span class="kt">Column</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L386-L388">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L386-L388">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1941,12 +1950,12 @@ nil. Otherwise the SQLite value is converted to the requested type
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">@inlinable</span>
-<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="o">&gt;</span><span class="p">(</span><span class="nv">column</span><span class="p">:</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Value</span><span class="p">?</span> <span class="k">where</span> <span class="kt">Value</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span><span class="p">,</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt">Column</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">column</span><span class="p">:</span> <span class="kt">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Value</span><span class="p">?</span> <span class="k">where</span> <span class="kt">Value</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span><span class="p">,</span> <span class="kt">Column</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L399-L401">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L399-L401">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1983,16 +1992,16 @@ StatementColumnConvertible. It <em>may</em> trigger SQLite built-in conversions
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">@inlinable</span>
-<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">column</span><span class="p">:</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">)</span>
+<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt">Column</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">column</span><span class="p">:</span> <span class="kt">Column</span><span class="p">)</span>
     <span class="o">-&gt;</span> <span class="kt">Value</span><span class="p">?</span>
     <span class="k">where</span>
     <span class="kt">Value</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span> <span class="o">&amp;</span> <span class="kt"><a href="../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a></span><span class="p">,</span>
-    <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span></code></pre>
+    <span class="kt">Column</span><span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L416-L423">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L416-L423">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2026,12 +2035,12 @@ SQLite value can not be converted to <code>Value</code>.</p>
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">@inlinable</span>
-<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="o">&gt;</span><span class="p">(</span><span class="nv">column</span><span class="p">:</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Value</span> <span class="k">where</span> <span class="kt">Value</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span><span class="p">,</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt">Column</span><span class="o">&gt;</span><span class="p">(</span><span class="nv">column</span><span class="p">:</span> <span class="kt">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Value</span> <span class="k">where</span> <span class="kt">Value</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span><span class="p">,</span> <span class="kt">Column</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L435-L437">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L435-L437">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2069,16 +2078,16 @@ StatementColumnConvertible. It <em>may</em> trigger SQLite built-in conversions
                         <div class="language">
                           <p class="aside-title">Swift</p>
                           <pre class="highlight swift"><code><span class="kd">@inlinable</span>
-<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">column</span><span class="p">:</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">)</span>
+<span class="kd">public</span> <span class="kd">subscript</span><span class="o">&lt;</span><span class="kt">Value</span><span class="p">,</span> <span class="kt">Column</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">column</span><span class="p">:</span> <span class="kt">Column</span><span class="p">)</span>
     <span class="o">-&gt;</span> <span class="kt">Value</span>
     <span class="k">where</span>
     <span class="kt">Value</span><span class="p">:</span> <span class="kt"><a href="../Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></span> <span class="o">&amp;</span> <span class="kt"><a href="../Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a></span><span class="p">,</span>
-    <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span></code></pre>
+    <span class="kt">Column</span><span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L453-L460">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L453-L460">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2117,7 +2126,7 @@ than the row&rsquo;s lifetime.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L472-L475">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L472-L475">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2157,7 +2166,7 @@ than the row&rsquo;s lifetime.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L488-L493">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L488-L493">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2192,12 +2201,12 @@ than the row&rsquo;s lifetime.</p>
                         <h4>Declaration</h4>
                         <div class="language">
                           <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">dataNoCopy</span><span class="o">&lt;</span><span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">column</span><span class="p">:</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Data</span><span class="p">?</span> <span class="k">where</span> <span class="kt"><a href="../Structs/Column.html">Column</a></span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span></code></pre>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">dataNoCopy</span><span class="o">&lt;</span><span class="kt">Column</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">column</span><span class="p">:</span> <span class="kt">Column</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">Data</span><span class="p">?</span> <span class="k">where</span> <span class="kt">Column</span> <span class="p">:</span> <span class="kt"><a href="../Protocols/ColumnExpression.html">ColumnExpression</a></span></code></pre>
 
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L506-L508">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L506-L508">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2243,7 +2252,7 @@ of column-value pairs in <code>self</code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L519-L521">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L519-L521">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2316,7 +2325,7 @@ for more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L559-L574">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L559-L574">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2376,7 +2385,7 @@ for more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L607-L612">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L607-L612">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2422,7 +2431,7 @@ for more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L627-L648">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L627-L648">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2464,7 +2473,7 @@ for more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L663-L678">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L663-L678">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2526,7 +2535,7 @@ for more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L705-L707">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L705-L707">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2574,7 +2583,7 @@ for more information.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L728-L730">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L728-L730">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2613,7 +2622,7 @@ adapted rows, such as rows fetched from joined requests.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L742-L753">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L742-L753">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2646,7 +2655,7 @@ adapted rows, such as rows fetched from joined requests.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L759-L761">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L759-L761">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2777,7 +2786,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L846-L853">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L846-L853">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2866,7 +2875,7 @@ elements are undefined.</p>
                         <p>An array of rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L866-L874">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L866-L874">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2955,7 +2964,7 @@ elements are undefined.</p>
                         <p>A set of rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L887-L895">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L887-L895">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3044,7 +3053,7 @@ elements are undefined.</p>
                         <p>An optional row.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L908-L919">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L908-L919">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3175,7 +3184,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L954-L962">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L954-L962">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3280,7 +3289,7 @@ elements are undefined.</p>
                         <p>An array of rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L979-L987">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L979-L987">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3385,7 +3394,7 @@ elements are undefined.</p>
                         <p>A set of rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1004-L1012">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1004-L1012">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3490,7 +3499,7 @@ elements are undefined.</p>
                         <p>An optional row.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1029-L1037">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1029-L1037">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3593,7 +3602,7 @@ elements are undefined.</p>
                         <p>A cursor over fetched rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1071-L1075">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1071-L1075">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3666,7 +3675,7 @@ elements are undefined.</p>
                         <p>An array of rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1087-L1092">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1087-L1092">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3739,7 +3748,7 @@ elements are undefined.</p>
                         <p>A set of rows.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1104-L1113">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1104-L1113">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3812,7 +3821,7 @@ elements are undefined.</p>
                         <p>An optional row.</p>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1125-L1132">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1125-L1132">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3855,7 +3864,7 @@ elements are undefined.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1220-L1226">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1220-L1226">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3920,7 +3929,7 @@ dictionary.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1397-L1455">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1397-L1455">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -3982,7 +3991,7 @@ dictionary.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1481-L1532">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1481-L1532">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -4038,7 +4047,7 @@ dictionary.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Row.swift#L1559-L1624">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Row.swift#L1559-L1624">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -4048,7 +4057,7 @@ dictionary.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-20)</p>
+          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-27)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.5</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

@@ -17,7 +17,7 @@
     <a title="Protocols  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">GRDB 5.0.0 Docs</a> (89% documented)</p>
+        <p><a href="index.html">GRDB 5.0.1 Docs</a> (88% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F5.0%2Fdocsets%2FGRDB.xml"><img src="img/dash.png"/>Install in Dash</a></p>
         <p class="header-right">
@@ -252,6 +252,9 @@
                 <a href="Extensions/Collection.html">Collection</a>
               </li>
               <li class="nav-group-task">
+                <a href="Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="Extensions/CountableClosedRange.html">CountableClosedRange</a>
               </li>
               <li class="nav-group-task">
@@ -325,6 +328,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/TableRequest.html">TableRequest</a>
               </li>
               <li class="nav-group-task">
                 <a href="Extensions/UInt.html">UInt</a>
@@ -1034,10 +1043,10 @@
             <a href="Typealiases.html">Type Aliases</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a href="Typealiases.html#/s:4GRDB17FTS5TokenCallbacka">FTS5TokenCallback</a>
+                <a href="Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
               </li>
               <li class="nav-group-task">
-                <a href="Typealiases.html#/s:4GRDB24FTS5WrapperTokenCallbacka">FTS5WrapperTokenCallback</a>
+                <a href="Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
               </li>
               <li class="nav-group-task">
                 <a href="Typealiases.html#/s:4GRDB16SQLiteConnectiona">SQLiteConnection</a>
@@ -1120,7 +1129,7 @@ to those defined by Swift&rsquo;s Sequence protocol: <code>contains</code>, <cod
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/Cursor.swift#L96-L103">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/Cursor.swift#L96-L103">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1177,7 +1186,7 @@ to those defined by Swift&rsquo;s Sequence protocol: <code>contains</code>, <cod
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/DatabaseFunction.swift#L374-L394">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/DatabaseFunction.swift#L374-L394">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1223,7 +1232,7 @@ connections, protect yourself with transactions, and be ready to setup a
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/DatabaseReader.swift#L22-L227">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/DatabaseReader.swift#L22-L227">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1270,7 +1279,7 @@ into a <code><a href="Structs/DatabaseRegion.html">DatabaseRegion</a></code>.</p
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/DatabaseRegion.swift#L322-L327">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/DatabaseRegion.swift#L322-L327">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1316,7 +1325,7 @@ arrays, or single values:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/DatabaseValueConvertible.swift#L17-L23">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/DatabaseValueConvertible.swift#L17-L23">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1369,7 +1378,7 @@ rows should be interpreted.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/FetchRequest.swift#L21-L24">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/FetchRequest.swift#L21-L24">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1415,7 +1424,7 @@ connections, protect yourself with transactions, and be ready to setup a
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/DatabaseWriter.swift#L22-L196">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/DatabaseWriter.swift#L22-L196">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1464,7 +1473,7 @@ working together.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/RowAdapter.swift#L199">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/RowAdapter.swift#L199">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1517,7 +1526,7 @@ optimization whenever direct access to SQLite is possible:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/StatementColumnConvertible.swift#L24-L45">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/StatementColumnConvertible.swift#L24-L45">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1552,7 +1561,7 @@ optimization whenever direct access to SQLite is possible:</p>
 SQL expression.</p>
 
 <p>It is adopted by protocols like <code><a href="Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></code>, and types
-like <code><a href="Structs/Column.html">Column</a></code>.</p>
+like <code>Column</code>.</p>
 
 <p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
 
@@ -1567,7 +1576,7 @@ like <code><a href="Structs/Column.html">Column</a></code>.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/SQL/SQLExpressible.swift#L10-L13">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/SQL/SQLExpressible.swift#L10-L13">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1614,7 +1623,7 @@ or rollbacked on a database.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Core/TransactionObserver.swift#L666-L744">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Core/TransactionObserver.swift#L666-L744">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1622,9 +1631,9 @@ or rollbacked on a database.</p>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB19FTS5CustomTokenizerP"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Protocol/FTS5CustomTokenizer" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB19FTS5CustomTokenizerP">FTS5CustomTokenizer</a>
+                    <a class="token" href="#/">FTS5CustomTokenizer</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1636,26 +1645,15 @@ or rollbacked on a database.</p>
 
                         <a href="Protocols/FTS5CustomTokenizer.html" class="slightly-smaller">See more</a>
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">FTS5CustomTokenizer</span> <span class="p">:</span> <span class="kt"><a href="Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a></span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5CustomTokenizer.swift#L4-L22">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB13FTS5TokenizerP"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Protocol/FTS5Tokenizer" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB13FTS5TokenizerP">FTS5Tokenizer</a>
+                    <a class="token" href="#/">FTS5Tokenizer</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1667,26 +1665,15 @@ or rollbacked on a database.</p>
 
                         <a href="Protocols/FTS5Tokenizer.html" class="slightly-smaller">See more</a>
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">FTS5Tokenizer</span> <span class="p">:</span> <span class="kt">AnyObject</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5Tokenizer.swift#L40-L62">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB20FTS5WrapperTokenizerP"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Protocol/FTS5WrapperTokenizer" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB20FTS5WrapperTokenizerP">FTS5WrapperTokenizer</a>
+                    <a class="token" href="#/">FTS5WrapperTokenizer</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1724,17 +1711,6 @@ built-in ascii tokenizer without any custom processing:</p>
 </code></pre>
 
                         <a href="Protocols/FTS5WrapperTokenizer.html" class="slightly-smaller">See more</a>
-                      </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">FTS5WrapperTokenizer</span> <span class="p">:</span> <span class="kt"><a href="Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a></span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5WrapperTokenizer.swift#L51-L92">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1778,7 +1754,7 @@ built-in ascii tokenizer without any custom processing:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L197-L219">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/RequestProtocols.swift#L197-L219">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1816,7 +1792,7 @@ built-in methods that allow to fetch instances identified by key:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/TableRecord.swift#L11-L50">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/TableRecord.swift#L11-L50">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1865,7 +1841,7 @@ built-in methods that allow to fetch instances identified by key:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/SQL/Column.swift#L20-L25">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/SQL/Column.swift#L20-L25">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1897,7 +1873,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/Association/Association.swift#L13-L45">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/Association/Association.swift#L13-L45">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1941,7 +1917,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/Association/Association.swift#L301">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/Association/Association.swift#L301">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -1985,7 +1961,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/Association/Association.swift#L313">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/Association/Association.swift#L313">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2029,7 +2005,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L4-L27">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/RequestProtocols.swift#L4-L27">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2073,7 +2049,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L134-L142">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/RequestProtocols.swift#L134-L142">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2117,7 +2093,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L334-L341">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/RequestProtocols.swift#L334-L341">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2161,7 +2137,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L388-L423">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/RequestProtocols.swift#L388-L423">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2205,7 +2181,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L525-L539">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/RequestProtocols.swift#L525-L539">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2248,7 +2224,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L579">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Request/RequestProtocols.swift#L579">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2292,7 +2268,7 @@ record types.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/SQL/SQLCollection.swift#L15-L19">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/SQL/SQLCollection.swift#L15-L19">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2336,7 +2312,7 @@ described at <a href="https://www.sqlite.org/lang_expr.html">https://www.sqlite.
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/SQL/SQLExpression.swift#L54">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/SQL/SQLExpression.swift#L54">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2380,7 +2356,7 @@ described at <a href="https://www.sqlite.org/syntax/ordering-term.html">https://
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/SQL/SQLOrdering.swift#L19">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/SQL/SQLOrdering.swift#L19">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2420,7 +2396,7 @@ FTS4 and FTS5.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/QueryInterface/Schema/VirtualTableModule.swift#L11-L38">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/QueryInterface/Schema/VirtualTableModule.swift#L11-L38">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2451,7 +2427,7 @@ FTS4 and FTS5.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/EncodableRecord.swift#L4-L120">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/EncodableRecord.swift#L4-L120">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2497,7 +2473,7 @@ arrays, or single records:</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/FetchableRecord.swift#L19-L106">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/FetchableRecord.swift#L19-L106">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2529,7 +2505,7 @@ and deleted.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/PersistableRecord.swift#L58-L178">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/PersistableRecord.swift#L58-L178">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2576,7 +2552,7 @@ are not mutating methods.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/Record/PersistableRecord.swift#L688-L744">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/Record/PersistableRecord.swift#L688-L744">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2607,7 +2583,7 @@ are not mutating methods.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/ValueObservation/DatabaseCancellable.swift#L2-L5">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/ValueObservation/DatabaseCancellable.swift#L2-L5">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2637,7 +2613,7 @@ are not mutating methods.</p>
                         </div>
                       </div>
                       <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/ValueObservation/ValueReducer/ValueReducer.swift#L37">Show on GitHub</a>
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.1/GRDB/ValueObservation/ValueReducer/ValueReducer.swift#L37">Show on GitHub</a>
                       </div>
                     </section>
                   </div>
@@ -2647,7 +2623,7 @@ are not mutating methods.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-20)</p>
+          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-27)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.5</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>

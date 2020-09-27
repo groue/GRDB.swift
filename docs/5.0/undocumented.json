@@ -1401,13 +1401,6 @@
       "warning": "undocumented"
     },
     {
-      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/TransactionObserver.swift",
-      "line": 1028,
-      "symbol": "DatabasePreUpdateEvent",
-      "symbol_kind": "source.lang.swift.decl.struct",
-      "warning": "undocumented"
-    },
-    {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/SQL/SQLSelectable+QueryInterface.swift",
       "line": 18,
       "symbol": "AllColumns.init()",

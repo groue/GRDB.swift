@@ -17,7 +17,7 @@
     <a title="FTS5TokenizerDescriptor Structure Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="../index.html">GRDB 5.0.0 Docs</a> (89% documented)</p>
+        <p><a href="../index.html">GRDB 5.0.1 Docs</a> (88% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="../img/gh.png"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F5.0%2Fdocsets%2FGRDB.xml"><img src="../img/dash.png"/>Install in Dash</a></p>
         <p class="header-right">
@@ -252,6 +252,9 @@
                 <a href="../Extensions/Collection.html">Collection</a>
               </li>
               <li class="nav-group-task">
+                <a href="../Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
                 <a href="../Extensions/CountableClosedRange.html">CountableClosedRange</a>
               </li>
               <li class="nav-group-task">
@@ -325,6 +328,12 @@
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="../Extensions/TableRequest.html">TableRequest</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Extensions/UInt.html">UInt</a>
@@ -1034,10 +1043,10 @@
             <a href="../Typealiases.html">Type Aliases</a>
             <ul class="nav-group-tasks">
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB17FTS5TokenCallbacka">FTS5TokenCallback</a>
+                <a href="../Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
               </li>
               <li class="nav-group-task">
-                <a href="../Typealiases.html#/s:4GRDB24FTS5WrapperTokenCallbacka">FTS5WrapperTokenCallback</a>
+                <a href="../Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
               </li>
               <li class="nav-group-task">
                 <a href="../Typealiases.html#/s:4GRDB16SQLiteConnectiona">SQLiteConnection</a>
@@ -1053,13 +1062,6 @@
         <section>
           <section class="section">
             <h1>FTS5TokenizerDescriptor</h1>
-              <div class="declaration">
-                <div class="language">
-                  
-                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">FTS5TokenizerDescriptor</span></code></pre>
-
-                </div>
-              </div>
             <p>An FTS5 tokenizer, suitable for FTS5 table definitions:</p>
 <pre class="highlight swift"><code><span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">virtualTable</span><span class="p">:</span> <span class="s">"book"</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="kt">FTS5</span><span class="p">())</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
     <span class="n">t</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="o">.</span><span class="nf">unicode61</span><span class="p">()</span> <span class="c1">// FTS5TokenizerDescriptor</span>
@@ -1068,9 +1070,6 @@
 
 <p>See <a href="https://www.sqlite.org/fts5.html#tokenizers">https://www.sqlite.org/fts5.html#tokenizers</a></p>
 
-              <div class="slightly-smaller">
-                <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5TokenizerDescriptor.swift#L9-L193">Show on GitHub</a>
-              </div>
           </section>
           <section class="section task-group-section">
             <div class="task-group">
@@ -1078,9 +1077,9 @@
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB23FTS5TokenizerDescriptorV10componentsSaySSGvp"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Property/components" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB23FTS5TokenizerDescriptorV10componentsSaySSGvp">components</a>
+                    <a class="token" href="#/">components</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1097,26 +1096,15 @@
 </code></pre>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">components</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">]</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5TokenizerDescriptor.swift#L17">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB23FTS5TokenizerDescriptorV10componentsACSaySSG_tcfc"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/init(components:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB23FTS5TokenizerDescriptorV10componentsACSaySSG_tcfc">init(components:<wbr>)</a>
+                    <a class="token" href="#/">init(components:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1137,26 +1125,15 @@
 </div>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="nv">components</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">])</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5TokenizerDescriptor.swift#L40-L44">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB23FTS5TokenizerDescriptorV5ascii10separators15tokenCharactersACShySJG_AGtFZ"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/ascii(separators:tokenCharacters:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB23FTS5TokenizerDescriptorV5ascii10separators15tokenCharactersACShySJG_AGtFZ">ascii(separators:<wbr>tokenCharacters:<wbr>)</a>
+                    <a class="token" href="#/">ascii(separators:<wbr>tokenCharacters:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1173,62 +1150,15 @@
 <p>See <a href="https://www.sqlite.org/fts5.html#ascii_tokenizer">https://www.sqlite.org/fts5.html#ascii_tokenizer</a></p>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">ascii</span><span class="p">(</span>
-    <span class="nv">separators</span><span class="p">:</span> <span class="kt">Set</span><span class="o">&lt;</span><span class="kt">Character</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">[],</span>
-    <span class="nv">tokenCharacters</span><span class="p">:</span> <span class="kt">Set</span><span class="o">&lt;</span><span class="kt">Character</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">[])</span>
-    <span class="o">-&gt;</span> <span class="kt">FTS5TokenizerDescriptor</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>separators</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Unless empty (the default), SQLite will consider
-these characters as token separators.</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>tokenCharacters</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Unless empty (the default), SQLite will
-consider these characters as token characters.</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5TokenizerDescriptor.swift#L59-L99">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB23FTS5TokenizerDescriptorV6porter8wrappingA2CSg_tFZ"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/porter(wrapping:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB23FTS5TokenizerDescriptorV6porter8wrappingA2CSg_tFZ">porter(wrapping:<wbr>)</a>
+                    <a class="token" href="#/">porter(wrapping:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1239,26 +1169,15 @@ consider these characters as token characters.</p>
                         <p>See <a href="https://www.sqlite.org/fts5.html#porter_tokenizer">https://www.sqlite.org/fts5.html#porter_tokenizer</a></p>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">porter</span><span class="p">(</span><span class="n">wrapping</span> <span class="nv">base</span><span class="p">:</span> <span class="kt">FTS5TokenizerDescriptor</span><span class="p">?</span> <span class="o">=</span> <span class="kc">nil</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kt">FTS5TokenizerDescriptor</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5TokenizerDescriptor.swift#L112-L118">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
                 <li class="item">
                   <div>
                     <code>
-                    <a name="/s:4GRDB23FTS5TokenizerDescriptorV9unicode6110diacritics10separators15tokenCharactersAcA0B0V10DiacriticsO_ShySJGALtFZ"></a>
+                    <a name="/"></a>
                     <a name="//apple_ref/swift/Method/unicode61(diacritics:separators:tokenCharacters:)" class="dashAnchor"></a>
-                    <a class="token" href="#/s:4GRDB23FTS5TokenizerDescriptorV9unicode6110diacritics10separators15tokenCharactersAcA0B0V10DiacriticsO_ShySJGALtFZ">unicode61(diacritics:<wbr>separators:<wbr>tokenCharacters:<wbr>)</a>
+                    <a class="token" href="#/">unicode61(diacritics:<wbr>separators:<wbr>tokenCharacters:<wbr>)</a>
                     </code>
                   </div>
                   <div class="height-container">
@@ -1275,67 +1194,6 @@ consider these characters as token characters.</p>
 <p>See <a href="https://www.sqlite.org/fts5.html#unicode61_tokenizer">https://www.sqlite.org/fts5.html#unicode61_tokenizer</a></p>
 
                       </div>
-                      <div class="declaration">
-                        <h4>Declaration</h4>
-                        <div class="language">
-                          <p class="aside-title">Swift</p>
-                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">unicode61</span><span class="p">(</span>
-    <span class="nv">diacritics</span><span class="p">:</span> <span class="kt"><a href="../Structs/FTS5.html">FTS5</a></span><span class="o">.</span><span class="kt">Diacritics</span> <span class="o">=</span> <span class="o">.</span><span class="n">removeLegacy</span><span class="p">,</span>
-    <span class="nv">separators</span><span class="p">:</span> <span class="kt">Set</span><span class="o">&lt;</span><span class="kt">Character</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">[],</span>
-    <span class="nv">tokenCharacters</span><span class="p">:</span> <span class="kt">Set</span><span class="o">&lt;</span><span class="kt">Character</span><span class="o">&gt;</span> <span class="o">=</span> <span class="p">[])</span>
-    <span class="o">-&gt;</span> <span class="kt">FTS5TokenizerDescriptor</span></code></pre>
-
-                        </div>
-                      </div>
-                      <div>
-                        <h4>Parameters</h4>
-                        <table class="graybox">
-                          <tbody>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>diacritics</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>By default SQLite will strip diacritics from
-latin characters.</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>separators</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Unless empty (the default), SQLite will consider
-these characters as token separators.</p>
-                                </div>
-                              </td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <code>
-                                <em>tokenCharacters</em>
-                                </code>
-                              </td>
-                              <td>
-                                <div>
-                                  <p>Unless empty (the default), SQLite will
-consider these characters as token characters.</p>
-                                </div>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                      <div class="slightly-smaller">
-                        <a href="https://github.com/groue/GRDB.swift/tree/v5.0.0/GRDB/FTS/FTS5TokenizerDescriptor.swift#L135-L192">Show on GitHub</a>
-                      </div>
                     </section>
                   </div>
                 </li>
@@ -1344,7 +1202,7 @@ consider these characters as token characters.</p>
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-20)</p>
+          <p>&copy; 2020 <a class="link" href="https://github.com/groue" target="_blank" rel="external">Gwendal Roué</a>. All rights reserved. (Last updated: 2020-09-27)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.5</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
         </section>
       </article>
