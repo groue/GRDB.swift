@@ -178,33 +178,47 @@ extension Database {
             return false
         }
     }
-    /// The indexes on table named `tableName`; returns the empty array if the
-    /// table does not exist.
+    
+    /// The indexes on table named `tableName`.
     ///
-    /// Note: SQLite does not define any index for INTEGER PRIMARY KEY columns:
-    /// this method does not return any index that represents this primary key.
+    /// Only indexes on columns are returned. Indexes on expressions are
+    /// not returned.
+    ///
+    /// SQLite does not define any index for INTEGER PRIMARY KEY columns: this
+    /// method does not return any index that represents the primary key.
     ///
     /// If you want to know if a set of columns uniquely identify a row, prefer
-    /// table(_:hasUniqueKey:) instead.
+    /// `table(_:hasUniqueKey:)` instead.
     public func indexes(on tableName: String) throws -> [IndexInfo] {
         if let indexes = schemaCache.indexes(on: tableName) {
             return indexes
         }
         
         let indexes = try Row
+            // [seq:0 name:"index" unique:0 origin:"c" partial:0]
             .fetchAll(self, sql: "PRAGMA index_list(\(tableName.quotedDatabaseIdentifier))")
-            .map { row -> IndexInfo in
-                // [seq:0 name:"index" unique:0 origin:"c" partial:0]
+            .compactMap { row -> IndexInfo? in
                 let indexName: String = row[1]
                 let unique: Bool = row[2]
-                let columns = try Row
+                
+                let indexInfoRows = try Row
+                    // [seqno:0 cid:2 name:"column"]
                     .fetchAll(self, sql: "PRAGMA index_info(\(indexName.quotedDatabaseIdentifier))")
-                    .map({ row -> (Int, String) in
-                        // [seqno:0 cid:2 name:"column"]
-                        (row[0] as Int, row[2] as String)
-                    })
-                    .sorted { $0.0 < $1.0 }
-                    .map { $0.1 }
+                    // Sort by rank
+                    .sorted(by: { ($0[0] as Int) < ($1[0] as Int) })
+                var columns: [String] = []
+                for indexInfoRow in indexInfoRows {
+                    guard let column = indexInfoRow[2] as String? else {
+                        // https://sqlite.org/pragma.html#pragma_index_info
+                        // > The name of the column being indexed is NULL if the
+                        // > column is the rowid or an expression.
+                        //
+                        // IndexInfo does not support expressing such index.
+                        // Maybe in a future GRDB version?
+                        return nil
+                    }
+                    columns.append(column)
+                }
                 return IndexInfo(name: indexName, columns: columns, unique: unique)
         }
         

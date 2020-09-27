@@ -2,8 +2,8 @@ import SwiftUI
 
 /// The Player edition view, designed to be the destination of
 /// a NavigationLink.
-struct PlayerEditor: View {
-    /// Manages edition of the player
+struct PlayerEditionView: View {
+    /// Manages the player form
     let viewModel: PlayerFormViewModel
     
     var body: some View {
@@ -15,17 +15,15 @@ struct PlayerEditor: View {
     }
 }
 
-#if DEBUG
 struct PlayerEditionView_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = try! PlayerFormViewModel(
+        let viewModel = PlayerFormViewModel(
             database: .empty(),
             player: .newRandom())
         
         return NavigationView {
-            PlayerEditor(viewModel: viewModel)
+            PlayerEditionView(viewModel: viewModel)
                 .navigationBarTitle("Player Edition")
         }
     }
 }
-#endif

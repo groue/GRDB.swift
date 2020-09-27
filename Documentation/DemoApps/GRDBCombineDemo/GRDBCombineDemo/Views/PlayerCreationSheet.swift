@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The Player creation sheet
 struct PlayerCreationSheet: View {
-    /// Manages edition of the new player
+    /// Manages the player form
     let viewModel: PlayerFormViewModel
     
     /// Executed when user cancels or saves the new user.
@@ -39,10 +39,9 @@ struct PlayerCreationSheet: View {
     }
 }
 
-#if DEBUG
 struct PlayerCreationSheet_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = try! PlayerFormViewModel(
+        let viewModel = PlayerFormViewModel(
             database: .empty(),
             player: .new())
         
@@ -51,4 +50,3 @@ struct PlayerCreationSheet_Previews: PreviewProvider {
             dismissAction: { })
     }
 }
-#endif

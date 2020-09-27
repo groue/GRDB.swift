@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// The Player edition form, embedded in both
-/// `PlayerCreationSheet` and `PlayerEditor`.
+/// The Player editing form, embedded in both
+/// `PlayerCreationSheet` and `PlayerEditionView`.
 struct PlayerForm: View {
     /// Manages the player form
     @ObservedObject var viewModel: PlayerFormViewModel
@@ -28,14 +28,12 @@ struct PlayerForm: View {
     }
 }
 
-#if DEBUG
 struct PlayerFormView_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = try! PlayerFormViewModel(
+        let viewModel = PlayerFormViewModel(
             database: .empty(),
             player: .newRandom())
         
         return PlayerForm(viewModel: viewModel)
     }
 }
-#endif

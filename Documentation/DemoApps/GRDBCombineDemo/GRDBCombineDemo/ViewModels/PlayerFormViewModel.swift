@@ -3,7 +3,7 @@ import Foundation
 
 /// The view model that validates and saves an edited player into the database.
 ///
-/// It feeds `PlayerForm`, `PlayerCreationSheet` and `PlayerEditor`.
+/// It feeds `PlayerForm`, `PlayerCreationSheet` and `PlayerEditionView`.
 final class PlayerFormViewModel: ObservableObject {
     /// A validation error that prevents the player from being saved into
     /// the database.

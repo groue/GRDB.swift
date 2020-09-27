@@ -82,8 +82,8 @@ struct PlayerList: View {
     
     /// The view that edits a player in the list.
     private func editionView(for player: Player) -> some View {
-        PlayerEditor(
-            viewModel: viewModel.editionViewModel(for: player))
+        PlayerEditionView(
+            viewModel: viewModel.formViewModel(for: player))
             .navigationBarTitle(player.name)
     }
     
@@ -123,11 +123,9 @@ struct PlayerRow: View {
     }
 }
 
-#if DEBUG
 struct PlayerListView_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = try! PlayerListViewModel(database: .random())
+        let viewModel = PlayerListViewModel(database: .random())
         return PlayerList(viewModel: viewModel)
     }
 }
-#endif
