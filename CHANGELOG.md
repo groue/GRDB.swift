@@ -71,6 +71,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **Fixed**: [#841](https://github.com/groue/GRDB.swift/issues/841): Fix GRDB 5 regression with indexes on expressions
+- The [GRDBCombineDemo](Documentation/DemoApps/GRDBCombineDemo/README.md) Combine + SwiftUI demo application was updated for the SwiftUI App lifecycle introduced in iOS 14.
 
 
 ## 5.0.0
