@@ -14,8 +14,10 @@ public class DatabaseSnapshot: DatabaseReader {
         serializedDatabase.configuration
     }
     
-    /// Not nil iff SQLite was compiled with `SQLITE_ENABLE_SNAPSHOT`.
+    #if SQLITE_ENABLE_SNAPSHOT
+    // Support for ValueObservation in DatabasePool
     private(set) var version: UnsafeMutablePointer<sqlite3_snapshot>?
+    #endif
     
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
         var configuration = DatabasePool.readerConfiguration(configuration)
@@ -41,17 +43,22 @@ public class DatabaseSnapshot: DatabaseReader {
             // Acquire snapshot isolation
             try db.internalCachedSelectStatement(sql: "SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
             
-            // Support for ValueObservation in DatabasePool
+            #if SQLITE_ENABLE_SNAPSHOT
+            // We must expect an error: https://www.sqlite.org/c3ref/snapshot_get.html
+            // > At least one transaction must be written to it first.
             version = try? db.takeVersionSnapshot()
+            #endif
         }
     }
     
     deinit {
         // Leave snapshot isolation
         serializedDatabase.reentrantSync { db in
+            #if SQLITE_ENABLE_SNAPSHOT
             if let version = version {
-                grdb_snapshot_free(version)
+                sqlite3_snapshot_free(version)
             }
+            #endif
             try? db.commit()
         }
     }
