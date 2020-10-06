@@ -70,6 +70,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
+- **Fixed**: [#844](https://github.com/groue/GRDB.swift/issues/844): Fix a crash in the demo app
 - **Fixed**: [#847](https://github.com/groue/GRDB.swift/issues/847): Remove dependency on SQLITE_ENABLE_SNAPSHOT
 
 ## 5.0.1
