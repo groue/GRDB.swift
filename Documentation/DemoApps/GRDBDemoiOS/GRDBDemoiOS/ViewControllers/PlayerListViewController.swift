@@ -16,7 +16,7 @@ class PlayerListViewController: UITableViewController {
     private var playerOrdering: PlayerOrdering = .byScore {
         didSet {
             configureOrderingBarButtonItem()
-            configureTableView()
+            configureDataSourceContent()
         }
     }
     
@@ -24,7 +24,8 @@ class PlayerListViewController: UITableViewController {
         super.viewDidLoad()
         configureToolbar()
         configureNavigationItem()
-        configureTableView()
+        configureDataSource()
+        configureDataSourceContent()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -79,7 +80,7 @@ class PlayerListViewController: UITableViewController {
             })
     }
     
-    private func configureTableView() {
+    private func configureDataSource() {
         dataSource = PlayerDataSource(tableView: tableView) { (tableView, indexPath, player) in
             let cell = tableView.dequeueReusableCell(withIdentifier: "Player", for: indexPath)
             if player.name.isEmpty {
@@ -92,26 +93,28 @@ class PlayerListViewController: UITableViewController {
         }
         dataSource.defaultRowAnimation = .fade
         tableView.dataSource = dataSource
-        
+    }
+    
+    private func configureDataSourceContent() {
         switch playerOrdering {
         case .byName:
             playersCancellable = AppDatabase.shared.observePlayersOrderedByName(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
-                    self.updateTableView(with: players)
+                    self.updateDataSourceContent(with: players)
                 })
         case .byScore:
             playersCancellable = AppDatabase.shared.observePlayersOrderedByScore(
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
-                    self.updateTableView(with: players)
+                    self.updateDataSourceContent(with: players)
                 })
         }
     }
     
-    private func updateTableView(with players: [Player]) {
+    private func updateDataSourceContent(with players: [Player]) {
         var snapshot = NSDiffableDataSourceSnapshot<Int, Player>()
         snapshot.appendSections([0])
         snapshot.appendItems(players, toSection: 0)
