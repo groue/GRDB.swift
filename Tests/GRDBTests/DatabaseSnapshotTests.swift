@@ -72,7 +72,7 @@ class DatabaseSnapshotTests: GRDBTestCase {
     func testSnapshotCreatedFromTransactionObserver() throws {
         // Creating a snapshot from a didCommit callback is an important use
         // case. But we know SQLite snapshots created with
-        // sqlite3_snapshot_get() require a transaction. This means that
+        // sqlite3_snapshot_get() requires a transaction. This means that
         // creating a snapshot will open a transaction. We must make sure this
         // transaction does not create any deadlock of reentrancy issue with
         // transaction observers.
