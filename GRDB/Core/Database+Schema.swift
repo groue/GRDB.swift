@@ -365,8 +365,12 @@ extension Database {
                 throw DatabaseError(message: "no such table: \(tableName)")
             }
         }
+        // The "hidden" column magic numbers come from the SQLite source code.
+        // The values 2 and 3 refer to virtual and stored generated columns,
+        // respectively. Search for COLFLAG_VIRTUAL in
+        // https://www.sqlite.org/cgi/src/file?name=src/pragma.c&ci=fca8dc8b578f215a
         let columns = try ColumnInfo
-            .fetchAll(self, sql: "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+            .fetchAll(self, sql: "SELECT * FROM pragma_table_xinfo('\(tableName)') WHERE hidden IN (0,2,3)")
             .sorted(by: { $0.cid < $1.cid })
         if columns.isEmpty {
             throw DatabaseError(message: "no such table: \(tableName)")

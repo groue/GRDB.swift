@@ -83,7 +83,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" ORDER BY "cola1"
@@ -192,7 +192,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "parent" ORDER BY "parentA", "parentB"
@@ -264,7 +264,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" ORDER BY "cola1"
@@ -415,7 +415,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" ORDER BY "cola1"
@@ -539,7 +539,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" ORDER BY "cola1"
@@ -619,7 +619,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "b" ORDER BY "colb1"
@@ -768,7 +768,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" ORDER BY "cola1"
@@ -808,7 +808,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" ORDER BY "cola1"
@@ -937,7 +937,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "b".*, "a".* \
@@ -1047,7 +1047,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "a".*, "c".* \
@@ -1159,7 +1159,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "d".*, "c".*, "a".* \
@@ -1197,7 +1197,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT "d".*, "a".* \
@@ -1235,7 +1235,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 // LEFT JOIN in the first query are useless but harmless.
                 // And SQLite may well optimize them out.
                 // So don't bother removing them.
@@ -1351,7 +1351,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 // LEFT JOIN in the first query are useless but harmless.
                 // And SQLite may well optimize them out.
                 // So don't bother removing them.
@@ -1469,7 +1469,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 // LEFT JOIN in the first query are useless but harmless.
                 // And SQLite may well optimize them out.
                 // So don't bother removing them.
@@ -1510,7 +1510,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 // LEFT JOIN in the first query are useless but harmless.
                 // And SQLite may well optimize them out.
                 // So don't bother removing them.
@@ -1553,7 +1553,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 sqlQueries.removeAll()
                 _ = try Row.fetchAll(db, request)
                 
-                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") }
+                let selectQueries = sqlQueries.filter { $0.contains("SELECT") && !$0.contains("sqlite_") && !$0.contains("pragma_table_xinfo") }
                 XCTAssertEqual(selectQueries, [
                     """
                     SELECT * FROM "a" WHERE 1 + 1 ORDER BY "cola1"
