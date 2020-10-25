@@ -288,6 +288,33 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testColumnGeneratedAs() throws {
+        guard sqlite3_libversion_number() >= 0331000 else {
+            throw XCTSkip("CREATE TABLE COLUMN AS is not available")
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            try db.create(table: "test") { t in
+                t.column("a", .integer)
+                t.column("b", .integer)
+                t.column("c", .text)
+                t.column("d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
+                t.column("e", .text).generatedAs(sql: "substr(c,b,b+1)", .stored)
+            }
+            
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (\
+                "a" INTEGER, \
+                "b" INTEGER, \
+                "c" TEXT, \
+                "d" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL, \
+                "e" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) STORED\
+                )
+                """)
+            return .rollback
+        }
+    }
+    
     func testTablePrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
@@ -523,6 +550,29 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" RENAME COLUMN \"a\" TO \"b\"")
             assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"c\"")
             assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" RENAME COLUMN \"c\" TO \"d\"")
+        }
+    }
+    
+    func testAlterTableAddGeneratedVirtualColumn() throws {
+        guard sqlite3_libversion_number() >= 0331000 else {
+            throw XCTSkip("ALTER TABLE ADD COLUMN AS VIRTUAL is not available")
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("a", .integer)
+                t.column("b", .integer)
+                t.column("c", .text)
+            }
+            
+            sqlQueries.removeAll()
+            try db.alter(table: "test") { t in
+                t.add(column: "d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
+                t.add(column: "e", .text).generatedAs(sql: "substr(c,b,b+1)", .virtual)
+            }
+            
+            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"d\" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"e\" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) VIRTUAL")
         }
     }
     
