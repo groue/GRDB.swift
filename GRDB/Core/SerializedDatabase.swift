@@ -55,6 +55,12 @@ final class SerializedDatabase {
             do {
                 try db.setUp()
             } catch {
+                // Recent versions of the Swift compiler will call the
+                // deinitializer. Older ones won't.
+                // See https://bugs.swift.org/browse/SR-13746 for details.
+                //
+                // So let's close the database now. The deinitializer
+                // will only close the database if needed.
                 db.close()
                 throw error
             }
