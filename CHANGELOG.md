@@ -74,6 +74,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 Released October 25, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.2...v5.0.3)
 
 - **Fixed**: [#859](https://github.com/groue/GRDB.swift/pull/859): Database.close() is idempotent
+- **Fixed**: [#850](https://github.com/groue/GRDB.swift/pull/850) by [@mtancock](https://github.com/mtancock): Add buildActiveScheme to playground settings so they'll build under Xcode 12
+- **Fixed**: [#849](https://github.com/groue/GRDB.swift/pull/849) by [@MarshalGeazipp](https://github.com/MarshalGeazipp): Fix grammar mistake AssociationsBasics.md
 
 
 ## 5.0.2
