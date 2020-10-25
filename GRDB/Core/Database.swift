@@ -355,7 +355,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// This method must be called before database deallocation
     func close() {
         SchedulingWatchdog.preconditionValidQueue(self)
-        assert(!isClosed)
+        
+        if isClosed {
+            return
+        }
         
         configuration.SQLiteConnectionWillClose?(sqliteConnection)
         internalStatementCache.clear()

@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-<!-- - [Next Release](#next-release) -->
+- [Next Release](#next-release)
 
 - `5.0.x` Releases - [5.0.0](#500) | [5.0.1](#501) | [5.0.2](#502)
 - `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6) | [5.0.0-beta.7](#500-beta7) | [5.0.0-beta.8](#500-beta8) | [5.0.0-beta.9](#500-beta9) | [5.0.0-beta.10](#500-beta10) | [5.0.0-beta.11](#500-beta11)
@@ -67,6 +67,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+## Next Release
+
+- **Fixed**: [#859](https://github.com/groue/GRDB.swift/pull/859): Database.close() is idempotent
 
 
 ## 5.0.2
