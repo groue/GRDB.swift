@@ -820,6 +820,7 @@ public final class ColumnDefinition {
         return self
     }
     
+    #if GRDBCUSTOMSQLITE
     /// Adds a generated column constraint on the column.
     ///
     ///     try db.create(table: "player") { t in
@@ -845,6 +846,7 @@ public final class ColumnDefinition {
             qualification: qualification)
         return self
     }
+    #endif
     
     /// Defines a foreign key.
     ///
