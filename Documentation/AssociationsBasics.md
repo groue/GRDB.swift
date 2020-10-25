@@ -116,7 +116,7 @@ Loading all books from an existing author is now easier:
 let books = try author.books.fetchAll(db)
 ```
 
-As for loading all pairs of books and authors, it is not only easier, but also *far much efficient*:
+As for loading all pairs of books and authors, it is not only easier, but also *much more efficient*:
 
 ```swift
 struct BookInfo: FetchableRecord, Decodable {
