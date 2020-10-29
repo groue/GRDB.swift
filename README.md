@@ -5507,9 +5507,19 @@ Take care that there are use cases that ValueObservation is unfit for. For examp
 The `ValueObservation.tracking(_:)` creates an observation that tracks a *database region* which is infered from the function argument:
 
 ```swift
-// An observation which tracks the 'player' table
+// An observation which tracks the full 'player' table
 let observation = ValueObservation.tracking { db -> [Player] in
     try Player.fetchAll(db)
+}
+
+// An observation which tracks the row with id 42 in the 'player' table
+let observation = ValueObservation.tracking { db -> Player? in
+    try Player.fetchOne(db, key: 42)
+}
+
+// An observation which tracks the 'score' column in the 'player' table
+let observation = ValueObservation.tracking { db -> Int? in
+    try Player.select(max(Column("score")))
 }
 
 // An observation which tracks both the 'player' and 'team' tables
@@ -5520,13 +5530,26 @@ let observation = ValueObservation.tracking { db -> ([Team], [Player]) in
 }
 ```
 
-**When an observation does not always execute the same database requests**, the tracked database region may not be **constant**. The `ValueObservation.tracking(_:)` method does not support such an observation, and will not correctly track the database changes.
+The tracked region is made of tables, columns, and, when possible, rowids of individual rows. All changes that happen outside of this region do not impact the observation.
 
-In this case, use `ValueObservation.trackingVaryingRegion(_:)` instead:
+Most observations track a constant region. But some need to observe a **varying region**, and those need to be created with the `ValueObservation.trackingVaryingRegion(_:)` method, or else they will miss changes.
+
+For example, let consider those three observations that depend on some user preference:
 
 ```swift
-// An observation which tracks the 'preference', 'food' and 'beverage' 
-// tables, as needed.
+// Does not always track the same row in the player table.
+let observation = ValueObservation.trackingVaryingRegion { db -> Player? in
+    let favoritePlayerId = try Preferences.fetchOne(db)?.favoritePlayerId
+    return try Player.fetchOne(db, key: favoritePlayerId)
+}
+
+// Only tracks the 'user' table if there are some blocked emails.
+let observation = ValueObservation.trackingVaryingRegion { db -> [User] in
+    let blockedEmails = try Preferences.fetchOne(db)?.blockedEmails ?? []
+    return try User.filter(blockedEmails.contains(Column("email"))).fetchAll(db)
+}
+
+// Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
 let observation = ValueObservation.trackingVaryingRegion { db -> Int in
     let preference = try Preference.fetchOne(db) ?? .default
     switch preference.selection {
@@ -5536,7 +5559,24 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 }
 ```
 
-Observing a varying region can prevent some optimizations. See [ValueObservation Performance](#valueobservation-performance) for more information.
+As you see, observations of a varying region do not perform always the same requests, or perform several requests that depend on each other.
+
+When you are in doubt, add the `print()` method to your observation, and look in your application logs for lines that start with `tracked region`. Make sure the printed database region covers the changes you expect to be tracked.
+
+<details>
+    <summary>Examples of tracked regions</summary>
+
+- `empty`: The empty region, which tracks nothing and never triggers the observation.
+- `player(*)`: The full `player` table
+- `player(id,name)`: The `id` and `name` columns of the `player` table
+- `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
+- `player(*),preference(*)`: Both the full `player` and `preference` tables
+
+</details>
+
+> :point_up: **Note**: observations of a varying region can not profit from a [database pool](#database-pools)'s ability to perform concurrent readonly requests. They must fetch their fresh values from the writer database connection, and thus postpone other application components that want to write. In other words, observations of varying regions increase write contention.
+> 
+> Conversely, in a [database queue](#database-queues), observations of varying regions do not take any toll.
 
 
 ### ValueObservation Scheduling
