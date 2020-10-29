@@ -7824,7 +7824,7 @@ let observation = ValueObservation
 let cancellable = observation.start(...)
 ```
 
-Looking at the observation logs which start with `tracked region`. Does it look like the printed database region covers the expected changes?
+Look at the observation logs which start with `tracked region`. Does the printed database region covers the expected changes?
 
 For example:
 
