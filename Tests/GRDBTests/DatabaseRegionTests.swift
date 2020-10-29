@@ -302,6 +302,18 @@ class DatabaseRegionTests : GRDBTestCase {
             // No rowId
             
             do {
+                let request = Record.none()
+                try XCTAssertEqual(request.databaseRegion(db).description, "empty")
+            }
+            do {
+                let request = Record.filter([Int]().contains(Column("id")))
+                try XCTAssertEqual(request.databaseRegion(db).description, "empty")
+            }
+            do {
+                let request = Record.filter([String]().contains(Column("a")))
+                try XCTAssertEqual(request.databaseRegion(db).description, "empty")
+            }
+            do {
                 let request = Record.filter(Column("id") == nil)
                 try XCTAssertEqual(request.databaseRegion(db).description, "empty")
             }
