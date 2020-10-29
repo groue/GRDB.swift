@@ -5539,22 +5539,23 @@ For example, let consider those three observations that depend on some user pref
 ```swift
 // Does not always track the same row in the player table.
 let observation = ValueObservation.trackingVaryingRegion { db -> Player? in
-    let favoritePlayerId = try Preferences.fetchOne(db)?.favoritePlayerId
-    return try Player.fetchOne(db, key: favoritePlayerId)
+    let pref = try Preference.fetchOne(db) ?? .default
+    return try Player.fetchOne(db, key: pref.favoritePlayerId)
 }
 
 // Only tracks the 'user' table if there are some blocked emails.
 let observation = ValueObservation.trackingVaryingRegion { db -> [User] in
-    let blockedEmails = try Preferences.fetchOne(db)?.blockedEmails ?? []
+    let pref = try Preference.fetchOne(db) ?? .default
+    let blockedEmails = pref.blockedEmails
     return try User.filter(blockedEmails.contains(Column("email"))).fetchAll(db)
 }
 
 // Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
 let observation = ValueObservation.trackingVaryingRegion { db -> Int in
-    let preference = try Preference.fetchOne(db) ?? .default
-    switch preference.selection {
-        case .food: return try Food.fetchCount(db)
-        case .beverage: return try Beverage.fetchCount(db)
+    let pref = try Preference.fetchOne(db) ?? .default
+    switch pref.selection {
+    case .food: return try Food.fetchCount(db)
+    case .beverage: return try Beverage.fetchCount(db)
     }
 }
 ```
