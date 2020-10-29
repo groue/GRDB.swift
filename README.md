@@ -7845,7 +7845,7 @@ let cancellable = observation.start(...)
 
 You should witness that the logs which start with `tracked region` now evolve in order to include the expected changes, and that you get the expected notifications.
 
-If after all those steps, your observation is still failing you, please [open an issue](https://github.com/groue/GRDB.swift/issues/new) and provide a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)!
+If after all those steps (thanks you!), your observation is still failing you, please [open an issue](https://github.com/groue/GRDB.swift/issues/new) and provide a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)!
 
 
 ## FAQ: Errors
