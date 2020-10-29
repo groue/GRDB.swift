@@ -5561,7 +5561,7 @@ let observation = ValueObservation.trackingVaryingRegion { db -> Int in
 
 As you see, observations of a varying region do not perform always the same requests, or perform several requests that depend on each other.
 
-When you are in doubt, add the `print()` method to your observation, and look in your application logs for lines that start with `tracked region`. Make sure the printed database region covers the changes you expect to be tracked.
+When you are in doubt, add the [`print()` method](#valueobservationprint) to your observation before starting it, and look in your application logs for lines that start with `tracked region`. Make sure the printed database region covers the changes you expect to be tracked.
 
 <details>
     <summary>Examples of tracked regions</summary>
