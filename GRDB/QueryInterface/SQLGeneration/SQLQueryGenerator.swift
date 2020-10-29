@@ -156,17 +156,28 @@ struct SQLQueryGenerator: Refinable {
         let statement = try db.makeSelectStatement(sql: sql)
         statement.arguments = context.arguments
         
-        // Optimize statement region. This allows us to track individual rowids.
+        // Optimize statement region. This allows us to track individual rowids,
+        // and also find some provably empty requests such as `Player.none()`.
         statement.databaseRegion = try optimizedSelectedRegion(db, statement.databaseRegion)
         
-        // Also append the prefetched region. This makes sure we observe the
-        // correct database region when the statement is executed, even if we
-        // don't execute all request statements due to lacking database content.
-        // For example, fetching `parent.including(all: children)` will select
-        // parents, but won't attempt to select any children if there is no
-        // parent in the database. And yet we need to observe the table for
-        // children. This is why we include the prefetched region.
-        try statement.databaseRegion.formUnion(prefetchedRegion(db, associations: prefetchedAssociations))
+        if !statement.databaseRegion.isEmpty {
+            // Unless the statement region is provably empty, also append the
+            // region of prefetched associations.
+            //
+            // This makes sure we observe the correct database region when the
+            // statement is executed, even if we don't actually fetch prefetched
+            // associations, due to lacking database content.
+            //
+            // For example, fetching `parent.including(all: children)` will
+            // select parents, but won't attempt to select any children if there
+            // is no parent in the database. And yet we need to observe the
+            // table for children. This is why we include the prefetched region.
+            //
+            // Note that the request `parent.none().including(all: children)` is
+            // different. Since `parent.none()` is provably empty, its region
+            // is empty, and we thus avoid this code branch.
+            try statement.databaseRegion.formUnion(prefetchedRegion(db, associations: prefetchedAssociations))
+        }
         
         return statement
     }
