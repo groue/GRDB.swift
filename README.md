@@ -7505,6 +7505,10 @@ FAQ
 - [How do I filter records and only keep those that are NOT associated to another record?](#how-do-i-filter-records-and-only-keep-those-that-are-not-associated-to-another-record)
 - [How do I select only one column of an associated record?](#how-do-i-select-only-one-column-of-an-associated-record)
 
+**[FAQ: ValueObservation](#faq-valueobservation)**
+
+- [Why is ValueObservation not publishing value changes?](#why-is-valueobservation-not-publishing-value-changes)
+
 **[FAQ: Errors](#faq-errors)**
 
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
@@ -7781,6 +7785,67 @@ By using the `annotated(with:)` method, you append the author name to the top-le
 By using the `joining()` method, you make sure no author column is selected, but the one declared in `annotated(with:)`.
 
 By using `asRequest(of:)`, you enhance the type-safety of your request.
+
+
+## FAQ: ValueObservation
+
+- :arrow_up: [FAQ]
+- [Why is ValueObservation not publishing value changes?](#why-is-valueobservation-not-publishing-value-changes)
+
+### Why is ValueObservation not publishing value changes?
+
+Sometimes it looks that a [ValueObservation] does not notify the changes you expect.
+
+There may be four possible reasons for this:
+
+1. The expected changes did not happen.
+2. The expected changes were published, but were quickly overwritten.
+3. The observation does not track the changes.
+4. ValueObservation has a bug.
+
+To answer the first two questions, look at SQL statements. This is done when you open the database connection:
+
+```swift
+// Prints all SQL statements
+var config = Configuration()
+config.prepareDatabase { db in
+    let dbName = String(describing: db)
+    db.trace { print("\(dbName)> \($0)") }
+}
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
+```
+
+If, after that, you are convinced that the expected changes were committed into the database, and not overwritten soon after, trace observation events:
+
+```swift
+let observation = ValueObservation
+    .tracking { db in ... }
+    .print() // <- trace observation events
+let cancellable = observation.start(...)
+```
+
+Looking at the observation logs which start with `tracked region`. Does it look like the printed database region covers the expected changes?
+
+For example:
+
+- `empty`: The empty region, which tracks nothing and never triggers the observation.
+- `player(*)`: The full `player` table
+- `player(id,name)`: The `id` and `name` columns of the `player` table
+- `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
+- `player(*),team(*)`: Both the full `player` and `team` tables
+
+If you happen to see a mismatch between the tracked region and your expectation, then your observation is likely an [observation of a varying region](#observing-a-varying-database-region). Change the definition of your observation by using `trackingVaryingRegion(_:)`:
+
+```swift
+let observation = ValueObservation
+    .trackingVaryingRegion { db in ... } // <-
+    .print()
+let cancellable = observation.start(...)
+```
+
+You should witness that the logs which start with `tracked region` now evolve in order to include the expected changes, and that you get the expected notifications.
+
+If after all those steps, your observation is still failing you, please [open an issue](https://github.com/groue/GRDB.swift/issues/new) and provide a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)!
 
 
 ## FAQ: Errors
