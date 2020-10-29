@@ -7798,8 +7798,8 @@ Sometimes it looks that a [ValueObservation] does not notify the changes you exp
 
 There may be four possible reasons for this:
 
-1. The expected changes did not happen.
-2. The expected changes were published, but were quickly overwritten.
+1. The expected changes were not committed into the database.
+2. The expected changes were committed into the database, but were quickly overwritten.
 3. The observation does not track the changes.
 4. ValueObservation has a bug.
 
