@@ -121,11 +121,24 @@ extension DatabaseReader {
     @available(*, unavailable)
     public func remove(function: DatabaseFunction) { preconditionFailure() }
     
-    #if SQLITE_ENABLE_FTS5
+//    #if SQLITE_ENABLE_FTS5
+//    @available(*, unavailable, message: "Use Database.add(tokenizer:) in Configuration.prepareDatabase instead.")
+//    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) { preconditionFailure() }
+//    #endif
+}
+
+#if SQLITE_ENABLE_FTS5
+extension DatabaseReader {
     @available(*, unavailable, message: "Use Database.add(tokenizer:) in Configuration.prepareDatabase instead.")
     public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) { preconditionFailure() }
-    #endif
 }
+#else
+@available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *)
+extension DatabaseReader {
+    @available(*, unavailable, message: "Use Database.add(tokenizer:) in Configuration.prepareDatabase instead.")
+    public func add<Tokenizer: FTS5CustomTokenizer>(tokenizer: Tokenizer.Type) { preconditionFailure() }
+}
+#endif
 
 extension FetchRequest {
     @available(*, unavailable, message: "Use makePreparedRequest(_:forSingleResult:) instead.")

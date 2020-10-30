@@ -26,9 +26,9 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
     static let databaseTableName = "book"
     static let author = belongsTo(Author.self)
     static let bookFts4 = hasOne(BookFts4.self, using: ForeignKey([Column.rowID]))
-    #if SQLITE_ENABLE_FTS5
-    static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
-    #endif
+//    #if SQLITE_ENABLE_FTS5
+//    static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
+//    #endif
     
     var author: QueryInterfaceRequest<Author> { request(for: Book.author) }
 }
@@ -36,6 +36,20 @@ private struct Book: FetchableRecord, PersistableRecord, Codable {
 private struct BookFts4: TableRecord { }
 
 #if SQLITE_ENABLE_FTS5
+extension Book {
+    static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
+}
+#else
+@available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *)
+extension Book {
+    static let bookFts5 = hasOne(BookFts5.self, using: ForeignKey([Column.rowID]))
+}
+#endif
+
+#if SQLITE_ENABLE_FTS5
+private struct BookFts5: TableRecord { }
+#else
+@available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *)
 private struct BookFts5: TableRecord { }
 #endif
 
@@ -61,6 +75,13 @@ private var libraryMigrator: DatabaseMigrator = {
         try db.create(virtualTable: "bookFts5", using: FTS5()) { t in
             t.synchronize(withTable: "book")
             t.column("title")
+        }
+        #else
+        if #available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *) {
+            try db.create(virtualTable: "bookFts5", using: FTS5()) { t in
+                t.synchronize(withTable: "book")
+                t.column("title")
+            }
         }
         #endif
     }
@@ -114,6 +135,12 @@ extension DerivableRequest where RowDecoder == Book {
     
     #if SQLITE_ENABLE_FTS5
     // TableRequest & FilteredRequest
+    func matchingFts5(_ pattern: FTS3Pattern?) -> Self {
+        joining(required: Book.bookFts5.matching(pattern))
+    }
+    #else
+    // TableRequest & FilteredRequest
+    @available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *)
     func matchingFts5(_ pattern: FTS3Pattern?) -> Self {
         joining(required: Book.bookFts5.matching(pattern))
     }
@@ -379,6 +406,36 @@ class DerivableRequestTests: GRDBTestCase {
                     JOIN "bookFts5" ON ("bookFts5"."rowid" = "book"."id") AND ("bookFts5" MATCH 'cote swann') \
                     LIMIT 1
                     """))
+            }
+            #else
+            if #available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *) {
+                // matchingFts5
+                do {
+                    sqlQueries.removeAll()
+                    let title = try Book.all()
+                        .matchingFts5(FTS3Pattern(rawPattern: "cote swann"))
+                        .fetchOne(db)
+                        .map(\.title)
+                    XCTAssertEqual(title, "Du côté de chez Swann")
+                    XCTAssert(sqlQueries.contains("""
+                        SELECT "book".* FROM "book" \
+                        JOIN "bookFts5" ON ("bookFts5"."rowid" = "book"."id") AND ("bookFts5" MATCH 'cote swann') \
+                        LIMIT 1
+                        """))
+                    
+                    sqlQueries.removeAll()
+                    let fullName = try Author
+                        .joining(required: Author.books.matchingFts5(FTS3Pattern(rawPattern: "cote swann")))
+                        .fetchOne(db)
+                        .map(\.fullName)
+                    XCTAssertEqual(fullName, "Marcel Proust")
+                    XCTAssert(sqlQueries.contains("""
+                        SELECT "author".* FROM "author" \
+                        JOIN "book" ON "book"."authorId" = "author"."id" \
+                        JOIN "bookFts5" ON ("bookFts5"."rowid" = "book"."id") AND ("bookFts5" MATCH 'cote swann') \
+                        LIMIT 1
+                        """))
+                }
             }
             #endif
             

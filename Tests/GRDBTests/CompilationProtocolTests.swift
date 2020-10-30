@@ -54,6 +54,11 @@ private class UserDatabaseValueConvertible2 : DatabaseValueConvertible {
 private class UserFTS5Tokenizer : FTS5Tokenizer {
     func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 { preconditionFailure() }
 }
+#else
+@available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *)
+private class UserFTS5Tokenizer : FTS5Tokenizer {
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 { preconditionFailure() }
+}
 #endif
 
 // MARK: - FTS5CustomTokenizer
@@ -64,11 +69,26 @@ private class UserFTS5CustomTokenizer : FTS5CustomTokenizer {
     required init(db: Database, arguments: [String]) throws { preconditionFailure() }
     func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 { preconditionFailure() }
 }
+#else
+@available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *)
+private class UserFTS5CustomTokenizer : FTS5CustomTokenizer {
+    static let name: String = "UserFTS5CustomTokenizer"
+    required init(db: Database, arguments: [String]) throws { preconditionFailure() }
+    func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 { preconditionFailure() }
+}
 #endif
 
 // MARK: - FTS5WrapperTokenizer
 
 #if SQLITE_ENABLE_FTS5
+@available(iOS 11.4, macOS 10.13, tvOS 11.4, watchOS 4.3, *)
+private class UserFTS5WrapperTokenizer : FTS5WrapperTokenizer {
+    static let name: String = "UserFTS5WrapperTokenizer"
+    var wrappedTokenizer: FTS5Tokenizer { preconditionFailure() }
+    required init(db: Database, arguments: [String]) throws { preconditionFailure() }
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: (String, FTS5TokenFlags) throws -> ()) throws { preconditionFailure() }
+}
+#else
 private class UserFTS5WrapperTokenizer : FTS5WrapperTokenizer {
     static let name: String = "UserFTS5WrapperTokenizer"
     var wrappedTokenizer: FTS5Tokenizer { preconditionFailure() }

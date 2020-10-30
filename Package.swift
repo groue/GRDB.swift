@@ -23,8 +23,7 @@ let package = Package(
         .target(
             name: "GRDB",
             dependencies: ["CSQLite"],
-            path: "GRDB",
-            swiftSettings: [.define("SQLITE_ENABLE_FTS5")]),
+            path: "GRDB"),
         .testTarget(
             name: "GRDBTests",
             dependencies: ["GRDB"],
