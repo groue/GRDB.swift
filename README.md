@@ -5577,7 +5577,7 @@ When you are in doubt, add the [`print()` method](#valueobservationprint) to you
 
 > :point_up: **Note**: observations of a varying region can not profit from a [database pool](#database-pools)'s ability to perform concurrent readonly requests. They must fetch their fresh values from the writer database connection, and thus postpone other application components that want to write. In other words, observations of varying regions increase write contention.
 > 
-> Conversely, in a [database queue](#database-queues), observations of varying regions do not take any toll.
+> Conversely, in a [database queue](#database-queues), observations of varying regions do not take any additional toll, compared to observations of a constant region.
 
 
 ### ValueObservation Scheduling
