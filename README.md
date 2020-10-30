@@ -7863,7 +7863,11 @@ let observation = ValueObservation
 let cancellable = observation.start(...)
 ```
 
-Look at the observation logs which start with `tracked region`. Does the printed database region cover the expected changes?
+Look at the observation logs which start with `cancel` or `failure`: maybe the observation was cancelled by your app, or did fail with an error.
+
+Look at the observation logs which start with `value`: make sure, again, that the expected value was not actually notified, then overwritten.
+
+Finally, look at the observation logs which start with `tracked region`. Does the printed database region cover the expected changes?
 
 For example:
 
