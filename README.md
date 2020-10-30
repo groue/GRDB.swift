@@ -5534,7 +5534,7 @@ The tracked region is made of tables, columns, and, when possible, rowids of ind
 
 Most observations track a constant region. But some need to observe a **varying region**, and those need to be created with the `ValueObservation.trackingVaryingRegion(_:)` method, or else they will miss changes.
 
-For example, let consider those three observations that depend on some user preference:
+For example, consider those three observations that depend on some user preference:
 
 ```swift
 // Does not always track the same row in the player table.
