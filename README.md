@@ -7837,21 +7837,19 @@ By using `asRequest(of:)`, you enhance the type-safety of your request.
 
 Sometimes it looks that a [ValueObservation] does not notify the changes you expect.
 
-There may be four possible reasons for this:
+There may be three possible reasons for this:
 
 1. The expected changes were not committed into the database.
 2. The expected changes were committed into the database, but were quickly overwritten.
-3. The observation does not track the changes.
-4. ValueObservation has a bug.
+3. The observation does not track the expected database region.
 
-To answer the first two questions, look at SQL statements. This is done when you open the database connection:
+To answer the first two questions, look at SQL statements executed by the database. This is done when you open the database connection:
 
 ```swift
 // Prints all SQL statements
 var config = Configuration()
 config.prepareDatabase { db in
-    let dbName = String(describing: db)
-    db.trace { print("\(dbName)> \($0)") }
+    db.trace { print("SQL: \($0)") }
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
@@ -7865,7 +7863,7 @@ let observation = ValueObservation
 let cancellable = observation.start(...)
 ```
 
-Look at the observation logs which start with `tracked region`. Does the printed database region covers the expected changes?
+Look at the observation logs which start with `tracked region`. Does the printed database region cover the expected changes?
 
 For example:
 
