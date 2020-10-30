@@ -125,6 +125,22 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                 
                 try assertRequestRegionEqual(db, request, "a(cola1,cola2),b(colb1,colb2)")
             }
+            
+            // Empty requests
+            do {
+                let request = A.none()
+                    .including(all: A
+                        .hasMany(B.self))
+                
+                try assertRequestRegionEqual(db, request, "empty")
+            }
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(B.self).none())
+                
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2)")
+            }
         }
     }
     
@@ -202,6 +218,35 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
                         .forKey("cs2"))
                 
                 try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2),d(cold1,cold2,cold3)")
+            }
+            
+            // Empty requests
+            do {
+                let request = A.none()
+                    .including(all: A
+                        .hasMany(C.self)
+                        .including(all: C
+                            .hasMany(D.self)))
+
+                try assertRequestRegionEqual(db, request, "empty")
+            }
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self).none()
+                        .including(all: C
+                            .hasMany(D.self)))
+
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2)")
+            }
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(C.self)
+                        .including(all: C
+                            .hasMany(D.self).none()))
+
+                try assertRequestRegionEqual(db, request, "a(cola1,cola2),c(colc1,colc2)")
             }
         }
     }
