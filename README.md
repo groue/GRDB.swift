@@ -5507,22 +5507,22 @@ Take care that there are use cases that ValueObservation is unfit for. For examp
 The `ValueObservation.tracking(_:)` creates an observation that tracks a *database region* which is infered from the function argument:
 
 ```swift
-// An observation which tracks the full 'player' table
+// Tracks the full 'player' table
 let observation = ValueObservation.tracking { db -> [Player] in
     try Player.fetchAll(db)
 }
 
-// An observation which tracks the row with id 42 in the 'player' table
+// Tracks the row with id 42 in the 'player' table
 let observation = ValueObservation.tracking { db -> Player? in
     try Player.fetchOne(db, key: 42)
 }
 
-// An observation which tracks the 'score' column in the 'player' table
+// Tracks the 'score' column in the 'player' table
 let observation = ValueObservation.tracking { db -> Int? in
-    try Player.select(max(Column("score")))
+    try Player.select(max(Column("score"))).fetchOne(db)
 }
 
-// An observation which tracks both the 'player' and 'team' tables
+// Tracks both the 'player' and 'team' tables
 let observation = ValueObservation.tracking { db -> ([Team], [Player]) in
     let teams = try Team.fetchAll(db)
     let players = try Player.fetchAll(db)
