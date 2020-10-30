@@ -24,9 +24,7 @@ let package = Package(
             name: "GRDB",
             dependencies: ["CSQLite"],
             path: "GRDB",
-            cSettings: [.unsafeFlags(["-D SQLITE_ENABLE_FTS5"])],
-            cxxSettings: [.unsafeFlags(["-D SQLITE_ENABLE_FTS5"])],
-            linkerSettings: [.unsafeFlags(["-D SQLITE_ENABLE_FTS5"])]),
+            swiftSettings: [.define("SQLITE_ENABLE_FTS5")]),
         .testTarget(
             name: "GRDBTests",
             dependencies: ["GRDB"],
