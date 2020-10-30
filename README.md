@@ -7837,11 +7837,12 @@ By using `asRequest(of:)`, you enhance the type-safety of your request.
 
 Sometimes it looks that a [ValueObservation] does not notify the changes you expect.
 
-There may be three possible reasons for this:
+There may be four possible reasons for this:
 
 1. The expected changes were not committed into the database.
 2. The expected changes were committed into the database, but were quickly overwritten.
-3. The observation does not track the expected database region.
+3. The observation was stopped.
+4. The observation does not track the expected database region.
 
 To answer the first two questions, look at SQL statements executed by the database. This is done when you open the database connection:
 
