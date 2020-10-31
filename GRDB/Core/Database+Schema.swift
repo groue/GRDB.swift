@@ -374,15 +374,15 @@ extension Database {
         // 0   | id        | INTEGER | 0       | NULL       | 1  | 0
         // 1   | firstName | TEXT    | 0       | NULL       | 0  | 0
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  | 0
-        if sqlite3_libversion_number() < 3008005 {
-            // Work around a bug in SQLite where PRAGMA table_info would
-            // return a result even after the table was deleted.
-            if try !tableExists(tableName) {
-                throw DatabaseError(message: "no such table: \(tableName)")
-            }
-        }
         let columnInfoQuery: String
         if sqlite3_libversion_number() < 3026000 {
+            if sqlite3_libversion_number() < 3008005 {
+                // Work around a bug in SQLite where PRAGMA table_info would
+                // return a result even after the table was deleted.
+                if try !tableExists(tableName) {
+                    throw DatabaseError(message: "no such table: \(tableName)")
+                }
+            }
             columnInfoQuery = "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))"
         } else {
             // For our purposes, we look for generated columns, not hidden
