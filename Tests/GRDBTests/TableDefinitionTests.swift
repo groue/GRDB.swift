@@ -300,6 +300,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("c", .text)
                 t.column("d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
                 t.column("e", .text).generatedAs(sql: "substr(c,b,b+1)", .stored)
+                t.column("f").generatedAs(sql: "e")
             }
             
             assertEqualSQL(lastSQLQuery!, """
@@ -308,7 +309,8 @@ class TableDefinitionTests: GRDBTestCase {
                 "b" INTEGER, \
                 "c" TEXT, \
                 "d" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL, \
-                "e" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) STORED\
+                "e" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) STORED, \
+                "f" GENERATED ALWAYS AS (e) VIRTUAL\
                 )
                 """)
             return .rollback
@@ -570,10 +572,12 @@ class TableDefinitionTests: GRDBTestCase {
             try db.alter(table: "test") { t in
                 t.add(column: "d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
                 t.add(column: "e", .text).generatedAs(sql: "substr(c,b,b+1)", .virtual)
+                t.add(column: "f").generatedAs(sql: "e", .virtual)
             }
             
-            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"d\" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL")
-            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"e\" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) VIRTUAL")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"d\" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"e\" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) VIRTUAL")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"f\" GENERATED ALWAYS AS (e) VIRTUAL")
         }
         #endif
     }

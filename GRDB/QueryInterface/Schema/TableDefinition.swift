@@ -619,7 +619,8 @@ public final class ColumnDefinition {
         var deferred: Bool
     }
     
-    /// The GeneratedColumnQualification enum defines whether a generated column is virtual or stored
+    /// The `GeneratedColumnQualification` enum defines whether a generated
+    /// column sis virtual or stored.
     ///
     /// See https://sqlite.org/gencol.html#virtual_versus_stored_columns
     public enum GeneratedColumnQualification {
@@ -835,10 +836,11 @@ public final class ColumnDefinition {
     ///
     /// - parameters:
     ///     - sql: An SQL expression.
-    ///     - qualification: The generated column's qualification.
+    ///     - qualification: The generated column's qualification, which
+    ///       defaults to `.virtual`.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
-    public func generatedAs(sql: String, _ qualification: GeneratedColumnQualification) -> Self
+    public func generatedAs(sql: String, _ qualification: GeneratedColumnQualification = .virtual) -> Self
     {
         let expression = SQLLiteral(sql: sql).sqlExpression
         generatedColumnConstraint = GeneratedColumnConstraint(
