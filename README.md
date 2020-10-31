@@ -4022,13 +4022,13 @@ Other **table constraints** can involve several columns:
     
     // CHECK (a + b < 10)
     t.check(sql: "a + b < 10")
-}
 ```
 
 [Generated columns](https://sqlite.org/gencol.html) are available with a [custom SQLite build]:
 
 ```swift
     t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
+}
 ```
 
 ### Modify Tables
