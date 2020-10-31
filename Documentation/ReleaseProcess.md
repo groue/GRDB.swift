@@ -11,7 +11,7 @@ To release a new GRDB version:
     - Archive GRDBDemoiOS
     - Check for performance regression with GRDBOSXPerformanceTests
 - On https://github.com/groue/sqlcipher.git upgrade, update SQLCipher version in README.md
-- On https://github.com/swiftlyfalling/SQLiteLib upgrade, update SQLite version in README.md and Documentation/CustomSQLiteBuilds.md
+- On https://github.com/swiftlyfalling/SQLiteLib upgrade, update SQLite version in Documentation/CustomSQLiteBuilds.md
 - Update GRDB version number and release date in:
     - Makefile
     - CHANGELOG.md
