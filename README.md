@@ -4025,6 +4025,12 @@ Other **table constraints** can involve several columns:
 }
 ```
 
+[Generated columns](https://sqlite.org/gencol.html) are available with a [custom SQLite build]:
+
+```swift
+    t.column("totalScore", .integer).generatedAs(sql: "score + bonus", .stored)
+```
+
 ### Modify Tables
 
 SQLite lets you modify existing tables:
