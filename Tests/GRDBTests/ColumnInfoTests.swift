@@ -110,4 +110,69 @@ class ColumnInfoTests: GRDBTestCase {
             XCTAssertNil(columns[10].defaultValueSQL)
         }
     }
+    
+    func testGeneratedColumnInfo() throws {
+        #if !GRDBCUSTOMSQLITE
+        throw XCTSkip("Generated columns are not available")
+        #else
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: """
+                CREATE TABLE t (
+                    a INT,
+                    b ALWAYS GENERATED AS (a),
+                    c ALWAYS GENERATED AS (a) VIRTUAL,
+                    d ALWAYS GENERATED AS (a) STORED,
+                    e INT ALWAYS GENERATED AS (a),
+                    f TEXT ALWAYS GENERATED AS (a),
+                    g ALWAYS GENERATED AS (a) NOT NULL
+                )
+                """)
+            let columns = try db.columns(in: "t")
+            XCTAssertEqual(columns.count, 7)
+            
+            XCTAssertEqual(columns[0].name, "a")
+            XCTAssertEqual(columns[0].isNotNull, false)
+            XCTAssertEqual(columns[0].type, "INT")
+            XCTAssertEqual(columns[0].primaryKeyIndex, 0)
+            XCTAssertNil(columns[0].defaultValueSQL)
+            
+            XCTAssertEqual(columns[1].name, "b")
+            XCTAssertEqual(columns[1].isNotNull, false)
+            XCTAssertEqual(columns[1].type, "ALWAYS GENERATED")
+            XCTAssertEqual(columns[1].primaryKeyIndex, 0)
+            XCTAssertNil(columns[1].defaultValueSQL)
+            
+            XCTAssertEqual(columns[2].name, "c")
+            XCTAssertEqual(columns[2].isNotNull, false)
+            XCTAssertEqual(columns[2].type, "ALWAYS GENERATED")
+            XCTAssertEqual(columns[2].primaryKeyIndex, 0)
+            XCTAssertNil(columns[2].defaultValueSQL)
+            
+            XCTAssertEqual(columns[3].name, "d")
+            XCTAssertEqual(columns[3].isNotNull, false)
+            XCTAssertEqual(columns[3].type, "ALWAYS GENERATED")
+            XCTAssertEqual(columns[3].primaryKeyIndex, 0)
+            XCTAssertNil(columns[3].defaultValueSQL)
+            
+            XCTAssertEqual(columns[4].name, "e")
+            XCTAssertEqual(columns[4].isNotNull, false)
+            XCTAssertEqual(columns[4].type, "INT ALWAYS GENERATED")
+            XCTAssertEqual(columns[4].primaryKeyIndex, 0)
+            XCTAssertNil(columns[4].defaultValueSQL)
+            
+            XCTAssertEqual(columns[5].name, "f")
+            XCTAssertEqual(columns[5].isNotNull, false)
+            XCTAssertEqual(columns[5].type, "TEXT ALWAYS GENERATED")
+            XCTAssertEqual(columns[5].primaryKeyIndex, 0)
+            XCTAssertNil(columns[5].defaultValueSQL)
+            
+            XCTAssertEqual(columns[6].name, "g")
+            XCTAssertEqual(columns[6].isNotNull, true)
+            XCTAssertEqual(columns[6].type, "ALWAYS GENERATED")
+            XCTAssertEqual(columns[6].primaryKeyIndex, 0)
+            XCTAssertNil(columns[6].defaultValueSQL)
+        }
+        #endif
+    }
 }

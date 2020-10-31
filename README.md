@@ -338,7 +338,7 @@ Installation
 
 See [Encryption](#encryption) for the installation procedure of GRDB with SQLCipher.
 
-See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite 3.28.0.
+See [Custom SQLite builds](Documentation/CustomSQLiteBuilds.md) for the installation procedure of GRDB with a customized build of SQLite.
 
 See [Enabling FTS5 Support](Documentation/FullTextSearch.md#enabling-fts5-support) for the installation procedure of GRDB with support for the FTS5 full-text engine.
 
@@ -4022,6 +4022,13 @@ Other **table constraints** can involve several columns:
     
     // CHECK (a + b < 10)
     t.check(sql: "a + b < 10")
+```
+
+[Generated columns](https://sqlite.org/gencol.html) are available with a [custom SQLite build]:
+
+```swift
+    t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
+    t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
 }
 ```
 
