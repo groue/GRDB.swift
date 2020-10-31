@@ -301,6 +301,8 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
                 t.column("e", .text).generatedAs(sql: "substr(c,b,b+1)", .stored)
                 t.column("f").generatedAs(sql: "e")
+                t.column("g").generatedAs(Column("a") * 2)
+                t.column("h").generatedAs("O'Brien")
             }
             
             assertEqualSQL(lastSQLQuery!, """
@@ -310,7 +312,9 @@ class TableDefinitionTests: GRDBTestCase {
                 "c" TEXT, \
                 "d" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL, \
                 "e" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) STORED, \
-                "f" GENERATED ALWAYS AS (e) VIRTUAL\
+                "f" GENERATED ALWAYS AS (e) VIRTUAL, \
+                "g" GENERATED ALWAYS AS ("a" * 2) VIRTUAL, \
+                "h" GENERATED ALWAYS AS ('O''Brien') VIRTUAL\
                 )
                 """)
             return .rollback
@@ -573,11 +577,16 @@ class TableDefinitionTests: GRDBTestCase {
                 t.add(column: "d", .integer).generatedAs(sql: "a*abs(b)", .virtual)
                 t.add(column: "e", .text).generatedAs(sql: "substr(c,b,b+1)", .virtual)
                 t.add(column: "f").generatedAs(sql: "e", .virtual)
+                t.add(column: "g").generatedAs(Column("a") * 2)
+                t.add(column: "h").generatedAs("O'Brien")
             }
             
-            assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"d\" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL")
-            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"e\" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) VIRTUAL")
-            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"f\" GENERATED ALWAYS AS (e) VIRTUAL")
+            let latestQueries = Array(sqlQueries.suffix(5))
+            assertEqualSQL(latestQueries[0], "ALTER TABLE \"test\" ADD COLUMN \"d\" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL")
+            assertEqualSQL(latestQueries[1], "ALTER TABLE \"test\" ADD COLUMN \"e\" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) VIRTUAL")
+            assertEqualSQL(latestQueries[2], "ALTER TABLE \"test\" ADD COLUMN \"f\" GENERATED ALWAYS AS (e) VIRTUAL")
+            assertEqualSQL(latestQueries[3], "ALTER TABLE \"test\" ADD COLUMN \"g\" GENERATED ALWAYS AS (\"a\" * 2) VIRTUAL")
+            assertEqualSQL(latestQueries[4], "ALTER TABLE \"test\" ADD COLUMN \"h\" GENERATED ALWAYS AS ('O''Brien') VIRTUAL")
         }
         #endif
     }

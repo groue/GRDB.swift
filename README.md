@@ -4028,6 +4028,7 @@ Other **table constraints** can involve several columns:
 
 ```swift
     t.column("totalScore", .integer).generatedAs(sql: "score + bonus")
+    t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"))
 }
 ```
 
