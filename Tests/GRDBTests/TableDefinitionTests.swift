@@ -289,9 +289,9 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testColumnGeneratedAs() throws {
-        guard sqlite3_libversion_number() >= 0331000 else {
-            throw XCTSkip("CREATE TABLE COLUMN AS is not available")
-        }
+        #if !GRDBCUSTOMSQLITE
+        throw XCTSkip("Generated columns are not available")
+        #else
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
             try db.create(table: "test") { t in
@@ -313,6 +313,7 @@ class TableDefinitionTests: GRDBTestCase {
                 """)
             return .rollback
         }
+        #endif
     }
     
     func testTablePrimaryKey() throws {
@@ -554,9 +555,9 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableAddGeneratedVirtualColumn() throws {
-        guard sqlite3_libversion_number() >= 0331000 else {
-            throw XCTSkip("ALTER TABLE ADD COLUMN AS VIRTUAL is not available")
-        }
+        #if !GRDBCUSTOMSQLITE
+        throw XCTSkip("Generated columns are not available")
+        #else
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
@@ -574,6 +575,7 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"d\" INTEGER GENERATED ALWAYS AS (a*abs(b)) VIRTUAL")
             assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"e\" TEXT GENERATED ALWAYS AS (substr(c,b,b+1)) VIRTUAL")
         }
+        #endif
     }
     
     func testDropTable() throws {
