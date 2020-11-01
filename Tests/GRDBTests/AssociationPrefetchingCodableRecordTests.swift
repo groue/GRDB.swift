@@ -307,7 +307,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(C.self)
-                        .filter(false)
+                        .none()
                         .including(all: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
@@ -531,7 +531,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(C.self)
-                        .filter(false)
+                        .none()
                         .including(required: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
