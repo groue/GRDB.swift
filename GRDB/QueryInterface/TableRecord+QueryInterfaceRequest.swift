@@ -159,6 +159,9 @@ extension TableRecord {
         all().filter(predicate.sqlExpression)
     }
     
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter(42)` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
     /// Creates a request with the provided *predicate*.
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'

@@ -153,6 +153,9 @@ extension FilteredRequest {
         filter { _ in predicate }
     }
     
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter(42)` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
