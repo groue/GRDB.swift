@@ -74,6 +74,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: Clarifications on [ValueObservation that track a varying database region](https://github.com/groue/GRDB.swift/blob/master/README.md#observing-a-varying-database-region).
 - **New**: FAQ [Why is ValueObservation not publishing value changes?](https://github.com/groue/GRDB.swift/blob/master/README.md#why-is-valueobservation-not-publishing-value-changes)
 - **New**: [#855](https://github.com/groue/GRDB.swift/pull/855) by [@mallman](https://github.com/mallman): Support for generated columns with custom SQLite build, and upgrade custom SQLite builds to version 3.33.0
+- **New**: [#864](https://github.com/groue/GRDB.swift/pull/864): Prevent filter misuse with a deprecation warning
 
 
 ## 5.0.3
