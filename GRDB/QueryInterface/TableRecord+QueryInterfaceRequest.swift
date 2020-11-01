@@ -154,7 +154,7 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
-    @available(*, deprecated, message: "Did you mean filter(key: id)? If not, prefer filter(value.databaseValue) instead. See also all() and none().")
+    @available(*, deprecated, message: "Did you mean filter(key: id)? If not, prefer filter(value.databaseValue) instead. See also all() and none().") // swiftlint:disable:this line_length
     public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
         all().filter(predicate.sqlExpression)
     }

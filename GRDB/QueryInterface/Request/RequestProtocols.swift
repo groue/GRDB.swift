@@ -148,7 +148,7 @@ extension FilteredRequest {
     ///     // SELECT * FROM player WHERE 0
     ///     var request = Player.all()
     ///     request = request.filter(false)
-    @available(*, deprecated, message: "Did you mean filter(key: id)? If not, prefer filter(value.databaseValue) instead. See also none().")
+    @available(*, deprecated, message: "Did you mean filter(key: id)? If not, prefer filter(value.databaseValue) instead. See also none().") // swiftlint:disable:this line_length
     public func filter(_ predicate: SQLExpressible) -> Self {
         filter { _ in predicate }
     }
