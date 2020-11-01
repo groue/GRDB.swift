@@ -154,7 +154,20 @@ extension TableRecord {
     /// The selection defaults to all columns. This default can be changed for
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
+    @available(*, deprecated, message: "Did you mean filter(key:)? If not, use filter(DatabaseValue) instead.")
     public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
+        all().filter(predicate.sqlExpression)
+    }
+    
+    /// Creates a request with the provided *predicate*.
+    ///
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
+    ///     let request = Player.filter(Column("email") == "arthur@example.com")
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
+    public static func filter(_ predicate: SQLSpecificExpressible) -> QueryInterfaceRequest<Self> {
         all().filter(predicate)
     }
     
