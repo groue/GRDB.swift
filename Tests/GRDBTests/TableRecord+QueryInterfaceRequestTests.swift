@@ -200,14 +200,14 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     func testFilter() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(true)),
+            sql(dbQueue, Reader.filter(true.databaseValue)),
             "SELECT * FROM \"readers\" WHERE 1")
     }
     
     func testMultipleFilter() throws {
         let dbQueue = try makeDatabaseQueue()
         XCTAssertEqual(
-            sql(dbQueue, Reader.filter(true).filter(false)),
+            sql(dbQueue, Reader.filter(true.databaseValue).filter(false.databaseValue)),
             "SELECT * FROM \"readers\" WHERE 1 AND 0")
     }
     
