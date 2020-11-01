@@ -118,7 +118,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
             // Request with avoided prefetch
             do {
                 let request = A
-                    .filter(false)
+                    .none()
                     .including(all: A
                         .hasMany(B.self)
                         .orderByPrimaryKey())
@@ -258,7 +258,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(C.self)
-                        .filter(false)
+                        .none()
                         .including(all: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())
@@ -466,7 +466,7 @@ class AssociationPrefetchingRowTests: GRDBTestCase {
                 let request = A
                     .including(all: A
                         .hasMany(C.self)
-                        .filter(false)
+                        .none()
                         .including(required: C
                             .hasMany(D.self)
                             .orderByPrimaryKey())

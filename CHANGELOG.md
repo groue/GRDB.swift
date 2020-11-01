@@ -9,9 +9,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 <!-- - [Next Release](#next-release) -->
 
+- `5.1.x` Releases - [5.1.0](#510)
 - `5.0.x` Releases - [5.0.0](#500) | [5.0.1](#501) | [5.0.2](#502) | [5.0.3](#503)
 - `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6) | [5.0.0-beta.7](#500-beta7) | [5.0.0-beta.8](#500-beta8) | [5.0.0-beta.9](#500-beta9) | [5.0.0-beta.10](#500-beta10) | [5.0.0-beta.11](#500-beta11)
-
 
 #### 4.x Releases
 
@@ -67,6 +67,16 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+
+## 5.1.0
+
+Released November 1, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.3...v5.1.0)
+
+- **New**: Clarifications on [ValueObservation that track a varying database region](https://github.com/groue/GRDB.swift/blob/master/README.md#observing-a-varying-database-region).
+- **New**: FAQ [Why is ValueObservation not publishing value changes?](https://github.com/groue/GRDB.swift/blob/master/README.md#why-is-valueobservation-not-publishing-value-changes)
+- **New**: [#855](https://github.com/groue/GRDB.swift/pull/855) by [@mallman](https://github.com/mallman): Support for generated columns with custom SQLite build, and upgrade custom SQLite builds to version 3.33.0
+- **New**: [#864](https://github.com/groue/GRDB.swift/pull/864): Prevent filter misuse with a deprecation warning
 
 
 ## 5.0.3

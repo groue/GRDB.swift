@@ -619,6 +619,20 @@ public final class ColumnDefinition {
         var deferred: Bool
     }
     
+    /// The `GeneratedColumnQualification` enum defines whether a generated
+    /// column sis virtual or stored.
+    ///
+    /// See https://sqlite.org/gencol.html#virtual_versus_stored_columns
+    public enum GeneratedColumnQualification {
+        case virtual
+        case stored
+    }
+    
+    private struct GeneratedColumnConstraint {
+        var expression: SQLExpression
+        var qualification: GeneratedColumnQualification
+    }
+    
     fileprivate let name: String
     private let type: Database.ColumnType?
     fileprivate var primaryKey: (conflictResolution: Database.ConflictResolution?, autoincrement: Bool)?
@@ -628,6 +642,7 @@ public final class ColumnDefinition {
     private var foreignKeyConstraints: [ForeignKeyConstraint] = []
     private var defaultExpression: SQLExpression?
     private var collationName: String?
+    private var generatedColumnConstraint: GeneratedColumnConstraint?
     
     init(name: String, type: Database.ColumnType?) {
         self.name = name
@@ -806,6 +821,67 @@ public final class ColumnDefinition {
         return self
     }
     
+    #if GRDBCUSTOMSQLITE
+    /// Defines the column as a generated column.
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.column("id", .integer).primaryKey()
+    ///         t.column("score", .integer).notNull()
+    ///         t.column("bonus", .integer).notNull()
+    ///         t.column("totalScore", .integer).generatedAs(sql: "score + bonus", .stored)
+    ///     }
+    ///
+    /// See https://sqlite.org/gencol.html. Note particularly the limitations of
+    /// generated columns, e.g. they may not have a default value.
+    ///
+    /// - parameters:
+    ///     - sql: An SQL expression.
+    ///     - qualification: The generated column's qualification, which
+    ///       defaults to `.virtual`.
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult
+    public func generatedAs(
+        sql: String,
+        _ qualification: GeneratedColumnQualification = .virtual)
+    -> Self
+    {
+        let expression = SQLLiteral(sql: sql).sqlExpression
+        generatedColumnConstraint = GeneratedColumnConstraint(
+            expression: expression,
+            qualification: qualification)
+        return self
+    }
+    
+    /// Defines the column as a generated column.
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.column("id", .integer).primaryKey()
+    ///         t.column("score", .integer).notNull()
+    ///         t.column("bonus", .integer).notNull()
+    ///         t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"), .stored)
+    ///     }
+    ///
+    /// See https://sqlite.org/gencol.html. Note particularly the limitations of
+    /// generated columns, e.g. they may not have a default value.
+    ///
+    /// - parameters:
+    ///     - expression: The generated expression.
+    ///     - qualification: The generated column's qualification, which
+    ///       defaults to `.virtual`.
+    /// - returns: Self so that you can further refine the column definition.
+    @discardableResult
+    public func generatedAs(
+        _ expression: SQLExpressible,
+        _ qualification: GeneratedColumnQualification = .virtual)
+    -> Self
+    {
+        generatedColumnConstraint = GeneratedColumnConstraint(
+            expression: expression.sqlExpression,
+            qualification: qualification)
+        return self
+    }
+    #endif
+    
     /// Defines a foreign key.
     ///
     ///     try db.create(table: "book") { t in
@@ -929,6 +1005,18 @@ public final class ColumnDefinition {
             if constraint.deferred {
                 chunks.append("DEFERRABLE INITIALLY DEFERRED")
             }
+        }
+        
+        if let constraint = generatedColumnConstraint {
+            try chunks.append("GENERATED ALWAYS AS (\(constraint.expression.quotedSQL(db)))")
+            let qualificationLiteral: String
+            switch constraint.qualification {
+            case .stored:
+                qualificationLiteral = "STORED"
+            case .virtual:
+                qualificationLiteral = "VIRTUAL"
+            }
+            chunks.append(qualificationLiteral)
         }
         
         return chunks.joined(separator: " ")

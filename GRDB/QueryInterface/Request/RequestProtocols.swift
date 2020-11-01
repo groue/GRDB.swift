@@ -145,10 +145,24 @@ extension FilteredRequest {
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
+    ///     // SELECT * FROM player WHERE 0
+    ///     var request = Player.all()
+    ///     request = request.filter(false)
+    @available(*, deprecated, message: "Did you mean filter(key: id)? If not, prefer filter(value.databaseValue) instead. See also none().") // swiftlint:disable:this line_length
+    public func filter(_ predicate: SQLExpressible) -> Self {
+        filter { _ in predicate }
+    }
+    
+    // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
+    // prevent the `Player.filter(42)` misuse.
+    // See https://github.com/groue/GRDB.swift/pull/864
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
     ///     request = request.filter(Column("email") == "arthur@example.com")
-    public func filter(_ predicate: SQLExpressible) -> Self {
+    public func filter(_ predicate: SQLSpecificExpressible) -> Self {
         filter { _ in predicate }
     }
     
@@ -187,7 +201,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.none()
     public func none() -> Self {
-        filter(false)
+        filter { _ in false }
     }
 }
 

@@ -709,4 +709,55 @@ class MutablePersistableRecordTests: GRDBTestCase {
                 "Key not found in table user: [uuid:\"E621E1F8-C36C-495A-93FC-0C247A3E6E5F\"]")
         }
     }
+    
+    func testGeneratedColumnsInsertIsAnError() throws {
+        #if !GRDBCUSTOMSQLITE
+        throw XCTSkip("Generated columns are not available")
+        #else
+        struct T: MutablePersistableRecord {
+            func encode(to container: inout PersistenceContainer) {
+                container["a"] = 1
+                container["b"] = 1
+            }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE t (a, b ALWAYS GENERATED AS (a))")
+            do {
+                var record = T()
+                try record.insert(db)
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message!, "cannot INSERT into generated column \"b\"")
+                XCTAssertEqual(error.sql!, "INSERT INTO \"t\" (\"a\", \"b\") VALUES (?,?)")
+            }
+        }
+        #endif
+    }
+    
+    func testGeneratedColumnsUpdateIsAnError() throws {
+        #if !GRDBCUSTOMSQLITE
+        throw XCTSkip("Generated columns are not available")
+        #else
+        struct T: MutablePersistableRecord {
+            func encode(to container: inout PersistenceContainer) {
+                container["id"] = 1
+                container["a"] = 1
+            }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY, a ALWAYS GENERATED AS (id))")
+            do {
+                try T().update(db)
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message!, "cannot UPDATE generated column \"a\"")
+                XCTAssertEqual(error.sql!, "UPDATE \"t\" SET \"a\"=? WHERE \"id\"=?")
+            }
+        }
+        #endif
+    }
 }

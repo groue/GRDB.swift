@@ -250,6 +250,44 @@ class JoinSupportTests: GRDBTestCase {
         }
     }
     
+    func testNumberOfSelectedColumns() throws {
+        struct T: TableRecord { }
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "CREATE TABLE t (a)")
+            try XCTAssertEqual(T.numberOfSelectedColumns(db), 1)
+            return .rollback
+        }
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "CREATE TABLE t (a, b)")
+            try XCTAssertEqual(T.numberOfSelectedColumns(db), 2)
+            return .rollback
+        }
+    }
+    
+    func testNumberOfSelectedColumnsIncludeGeneratedColumns() throws {
+        #if !GRDBCUSTOMSQLITE
+        throw XCTSkip("Generated columns are not available")
+        #else
+        struct T: TableRecord { }
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "CREATE TABLE t (a, b ALWAYS GENERATED AS (a) VIRTUAL)")
+            try XCTAssertEqual(T.numberOfSelectedColumns(db), 2)
+            return .rollback
+        }
+        
+        try dbQueue.inTransaction { db in
+            try db.execute(sql: "CREATE TABLE t (a, b ALWAYS GENERATED AS (a) STORED)")
+            try XCTAssertEqual(T.numberOfSelectedColumns(db), 2)
+            return .rollback
+        }
+        #endif
+    }
+    
     func testSampleData() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

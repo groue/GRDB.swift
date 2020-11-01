@@ -346,27 +346,54 @@ extension Database {
         // > column in the primary key for columns that are part of the primary
         // > key.
         //
-        // CREATE TABLE players (
+        // sqlite> CREATE TABLE players (
         //   id INTEGER PRIMARY KEY,
         //   firstName TEXT,
-        //   lastName TEXT)
+        //   lastName TEXT);
         //
-        // PRAGMA table_info("players")
-        //
+        // sqlite> PRAGMA table_info("players");
         // cid | name  | type    | notnull | dflt_value | pk |
         // 0   | id    | INTEGER | 0       | NULL       | 1  |
         // 1   | name  | TEXT    | 0       | NULL       | 0  |
         // 2   | score | INTEGER | 0       | NULL       | 0  |
-        
-        if sqlite3_libversion_number() < 3008005 {
-            // Work around a bug in SQLite where PRAGMA table_info would
-            // return a result even after the table was deleted.
-            if try !tableExists(tableName) {
-                throw DatabaseError(message: "no such table: \(tableName)")
+        //
+        //
+        // PRAGMA table_info does not expose hidden and generated columns. For
+        // that, we need PRAGMA table_xinfo, introduced in SQLite 3.26.0:
+        // https://sqlite.org/releaselog/3_26_0.html
+        //
+        // > PRAGMA schema.table_xinfo(table-name);
+        //
+        // > This pragma returns one row for each column in the named table,
+        // > including hidden columns in virtual tables. The output is the same
+        // > as for PRAGMA table_info except that hidden columns are shown
+        // > rather than being omitted.
+        //
+        // sqlite> PRAGMA table_xinfo("players");
+        // cid | name      | type    | notnull | dflt_value | pk | hidden
+        // 0   | id        | INTEGER | 0       | NULL       | 1  | 0
+        // 1   | firstName | TEXT    | 0       | NULL       | 0  | 0
+        // 2   | lastName  | TEXT    | 0       | NULL       | 0  | 0
+        let columnInfoQuery: String
+        if sqlite3_libversion_number() < 3026000 {
+            if sqlite3_libversion_number() < 3008005 {
+                // Work around a bug in SQLite where PRAGMA table_info would
+                // return a result even after the table was deleted.
+                if try !tableExists(tableName) {
+                    throw DatabaseError(message: "no such table: \(tableName)")
+                }
             }
+            columnInfoQuery = "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))"
+        } else {
+            // For our purposes, we look for generated columns, not hidden
+            // columns. The "hidden" column magic numbers come from the SQLite
+            // source code. The values 2 and 3 refer to virtual and stored
+            // generated columns, respectively. Search for COLFLAG_VIRTUAL in
+            // https://www.sqlite.org/cgi/src/file?name=src/pragma.c&ci=fca8dc8b578f215a
+            columnInfoQuery = "SELECT * FROM pragma_table_xinfo('\(tableName)') WHERE hidden IN (0,2,3)"
         }
         let columns = try ColumnInfo
-            .fetchAll(self, sql: "PRAGMA table_info(\(tableName.quotedDatabaseIdentifier))")
+            .fetchAll(self, sql: columnInfoQuery)
             .sorted(by: { $0.cid < $1.cid })
         if columns.isEmpty {
             throw DatabaseError(message: "no such table: \(tableName)")
