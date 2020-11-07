@@ -5769,22 +5769,22 @@ When needed, you can help GRDB optimize observations and reduce database content
     For example:
     
     ```swift
-    // Tracks the full 'player' table
+    // Tracks the full 'player' table (only)
     let observation = ValueObservation.trackingConstantRegion { db -> [Player] in
         try Player.fetchAll(db)
     }
     
-    // Tracks the row with id 42 in the 'player' table
+    // Tracks the row with id 42 in the 'player' table (only)
     let observation = ValueObservation.trackingConstantRegion { db -> Player? in
         try Player.fetchOne(db, key: 42)
     }
     
-    // Tracks the 'score' column in the 'player' table
+    // Tracks the 'score' column in the 'player' table (only)
     let observation = ValueObservation.trackingConstantRegion { db -> Int? in
         try Player.select(max(Column("score"))).fetchOne(db)
     }
     
-    // Tracks both the 'player' and 'team' tables
+    // Tracks both the 'player' and 'team' tables (only)
     let observation = ValueObservation.trackingConstantRegion { db -> ([Team], [Player]) in
         let teams = try Team.fetchAll(db)
         let players = try Player.fetchAll(db)
