@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-<!-- - [Next Release](#next-release) -->
+- [Next Release](#next-release)
 
 - `5.1.x` Releases - [5.1.0](#510)
 - `5.0.x` Releases - [5.0.0](#500) | [5.0.1](#501) | [5.0.2](#502) | [5.0.3](#503)
@@ -67,6 +67,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+
+## Next Release
+
+- **New**: [#868](https://github.com/groue/GRDB.swift/pull/868): ValueObservation optimization is opt-in.
+- **Documentation update**: The [ValueObservation Performance](https://github.com/groue/GRDB.swift#valueobservation-performance) chapter has been extanded with a tip for observations that track a constant database region.
 
 
 ## 5.1.0
