@@ -18,7 +18,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         let request = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id")
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchAll),
+            ValueObservation.trackingConstantRegion(request.fetchAll),
             records: [
                 [],
                 [Player(id: 1, name: "foo")],
@@ -43,7 +43,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
             ValueObservation
-                .tracking { try Row.fetchAll($0, request) }
+                .trackingConstantRegion { try Row.fetchAll($0, request) }
                 .removeDuplicates()
                 .map { $0.map(Player.init(row:)) },
             records: [
@@ -71,7 +71,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         let request = SQLRequest<Player>(sql: "SELECT * FROM t ORDER BY id DESC")
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchOne),
+            ValueObservation.trackingConstantRegion(request.fetchOne),
             records: [
                 nil,
                 Player(id: 1, name: "foo"),
@@ -98,7 +98,7 @@ class ValueObservationRecordTests: GRDBTestCase {
         // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
             ValueObservation
-                .tracking { try Row.fetchOne($0, request) }
+                .trackingConstantRegion { try Row.fetchOne($0, request) }
                 .removeDuplicates()
                 .map { $0.map(Player.init(row:)) },
             records: [

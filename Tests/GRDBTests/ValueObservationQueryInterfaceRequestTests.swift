@@ -76,7 +76,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
-        let observation = ValueObservation.tracking(request.fetchOne)
+        let observation = ValueObservation.trackingConstantRegion(request.fetchOne)
         
         let recorder = observation.record(in: dbQueue)
         try dbQueue.writeWithoutTransaction(performDatabaseModifications)
@@ -113,7 +113,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .including(all: Parent.children.orderByPrimaryKey())
             .orderByPrimaryKey()
             .asRequest(of: Row.self)
-        let observation = ValueObservation.tracking(request.fetchAll)
+        let observation = ValueObservation.trackingConstantRegion(request.fetchAll)
         
         let recorder = observation.record(in: dbQueue)
         try dbQueue.writeWithoutTransaction(performDatabaseModifications)
@@ -171,7 +171,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .asRequest(of: ParentInfo.self)
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchOne),
+            ValueObservation.trackingConstantRegion(request.fetchOne),
             records: [
                 nil,
                 ParentInfo(
@@ -205,7 +205,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
             ValueObservation
-                .tracking { db in try Row.fetchOne(db, request) }
+                .trackingConstantRegion { db in try Row.fetchOne(db, request) }
                 .removeDuplicates()
                 .map { row in row.map(ParentInfo.init(row:)) },
             records: [
@@ -240,7 +240,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             .asRequest(of: ParentInfo.self)
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchAll),
+            ValueObservation.trackingConstantRegion(request.fetchAll),
             records: [
                 [],
                 [
@@ -310,7 +310,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
         // The fundamental technique for removing duplicates of non-Equatable types
         try assertValueObservation(
             ValueObservation
-                .tracking { db in try Row.fetchAll(db, request) }
+                .trackingConstantRegion { db in try Row.fetchAll(db, request) }
                 .removeDuplicates()
                 .map { rows in rows.map(ParentInfo.init(row:)) },
             records: [
