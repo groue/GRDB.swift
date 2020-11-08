@@ -5509,84 +5509,6 @@ let disposable = observation.rx.observe(in: dbQueue).subscribe(
 Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
 
 
-#### Observing a Varying Database Region
-
-The `ValueObservation.tracking(_:)` creates an observation that tracks a *database region* which is infered from the function argument:
-
-```swift
-// Tracks the full 'player' table
-let observation = ValueObservation.tracking { db -> [Player] in
-    try Player.fetchAll(db)
-}
-
-// Tracks the row with id 42 in the 'player' table
-let observation = ValueObservation.tracking { db -> Player? in
-    try Player.fetchOne(db, key: 42)
-}
-
-// Tracks the 'score' column in the 'player' table
-let observation = ValueObservation.tracking { db -> Int? in
-    try Player.select(max(Column("score"))).fetchOne(db)
-}
-
-// Tracks both the 'player' and 'team' tables
-let observation = ValueObservation.tracking { db -> ([Team], [Player]) in
-    let teams = try Team.fetchAll(db)
-    let players = try Player.fetchAll(db)
-    return (teams, players)
-}
-```
-
-The tracked region is made of tables, columns, and, when possible, rowids of individual rows. All changes that happen outside of this region do not impact the observation.
-
-Most observations track a constant region. But some need to observe a **varying region**, and those need to be created with the `ValueObservation.trackingVaryingRegion(_:)` method, or else they will miss changes.
-
-For example, consider those three observations that depend on some user preference:
-
-```swift
-// Does not always track the same row in the player table.
-let observation = ValueObservation.trackingVaryingRegion { db -> Player? in
-    let pref = try Preference.fetchOne(db) ?? .default
-    return try Player.fetchOne(db, key: pref.favoritePlayerId)
-}
-
-// Only tracks the 'user' table if there are some blocked emails.
-let observation = ValueObservation.trackingVaryingRegion { db -> [User] in
-    let pref = try Preference.fetchOne(db) ?? .default
-    let blockedEmails = pref.blockedEmails
-    return try User.filter(blockedEmails.contains(Column("email"))).fetchAll(db)
-}
-
-// Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
-let observation = ValueObservation.trackingVaryingRegion { db -> Int in
-    let pref = try Preference.fetchOne(db) ?? .default
-    switch pref.selection {
-    case .food: return try Food.fetchCount(db)
-    case .beverage: return try Beverage.fetchCount(db)
-    }
-}
-```
-
-As you see, observations of a varying region do not perform always the same requests, or perform several requests that depend on each other.
-
-When you are in doubt, add the [`print()` method](#valueobservationprint) to your observation before starting it, and look in your application logs for lines that start with `tracked region`. Make sure the printed database region covers the changes you expect to be tracked.
-
-<details>
-    <summary>Examples of tracked regions</summary>
-
-- `empty`: The empty region, which tracks nothing and never triggers the observation.
-- `player(*)`: The full `player` table
-- `player(id,name)`: The `id` and `name` columns of the `player` table
-- `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
-- `player(*),preference(*)`: Both the full `player` and `preference` tables
-
-</details>
-
-> :point_up: **Note**: observations of a varying region can not profit from a [database pool](#database-pools)'s ability to perform concurrent readonly requests. They must fetch their fresh values from the writer database connection, and thus postpone other application components that want to write. In other words, observations of varying regions increase write contention.
-> 
-> Conversely, in a [database queue](#database-queues), observations of varying regions do not take any additional toll, compared to observations of a constant region.
-
-
 ### ValueObservation Scheduling
 
 By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously:
@@ -5819,7 +5741,7 @@ When needed, you can help GRDB optimize observations and reduce database content
         .share(replay: 1, scope: .whileConnected)
     ```
 
-3. :bulb: **Tip**: Use a [DatabasePool](#database-pools), because it can perform multi-threaded database accesses.
+3. :bulb: **Tip**: Use a [database pool](#database-pools), because it can perform multi-threaded database accesses.
 
 4. :bulb: **Tip**: When the observation processes some raw fetched values, use the [`map`](#valueobservationmap) operator:
 
@@ -5838,27 +5760,78 @@ When needed, you can help GRDB optimize observations and reduce database content
     
     The `map` operator helps reducing database contention because it performs its job without blocking concurrent database reads.
 
-5. :bulb: **Tip**: Consider rewriting [observations of a varying region](#observing-a-varying-database-region) into observations of a constant region, so that they can profit from DatabasePool concurrency:
+4. :bulb: **Tip**: When the observation tracks a constant database region, create an optimized observation with the `ValueObservation.trackingConstantRegion(_:)` method.
+    
+    The optimization only kicks in when the observation is started from a [database pool](#database-pools): fresh values are fetched concurrently, and do not block database writes.
+    
+    The `ValueObservation.trackingConstantRegion(_:)` has a precondition: the observed requests must fetch from a single and constant database region. The tracked region is made of tables, columns, and, when possible, rowids of individual rows. All changes that happen outside of this region do not impact the observation.
+    
+    For example:
     
     ```swift
-    // An observation of a varying region
-    let observation = ValueObservation.trackingVaryingRegion { db -> Int in
-        switch try Preference.fetchOne(db)!.selection {
-            case .food: return try Food.fetchCount(db)
-            case .beverage: return try Beverage.fetchCount(db)
-        }
+    // Tracks the full 'player' table (only)
+    let observation = ValueObservation.trackingConstantRegion { db -> [Player] in
+        try Player.fetchAll(db)
     }
     
-    // The same observation, rewritten so that it tracks a constant region
+    // Tracks the row with id 42 in the 'player' table (only)
+    let observation = ValueObservation.trackingConstantRegion { db -> Player? in
+        try Player.fetchOne(db, key: 42)
+    }
+    
+    // Tracks the 'score' column in the 'player' table (only)
+    let observation = ValueObservation.trackingConstantRegion { db -> Int? in
+        try Player.select(max(Column("score"))).fetchOne(db)
+    }
+    
+    // Tracks both the 'player' and 'team' tables (only)
+    let observation = ValueObservation.trackingConstantRegion { db -> ([Team], [Player]) in
+        let teams = try Team.fetchAll(db)
+        let players = try Player.fetchAll(db)
+        return (teams, players)
+    }
+    ```
+    
+    When you want to observe a varying database region, make sure you use the plain `ValueObservation.tracking(_:)` method instead, or else some changes will not be notified.
+    
+    For example, consider those three observations below that depend on some user preference. They all track a varying region, and must use `ValueObservation.tracking(_:)`:
+    
+    ```swift
+    // Does not always track the same row in the player table.
+    let observation = ValueObservation.tracking { db -> Player? in
+        let pref = try Preference.fetchOne(db) ?? .default
+        return try Player.fetchOne(db, key: pref.favoritePlayerId)
+    }
+    
+    // Only tracks the 'user' table if there are some blocked emails.
+    let observation = ValueObservation.tracking { db -> [User] in
+        let pref = try Preference.fetchOne(db) ?? .default
+        let blockedEmails = pref.blockedEmails
+        return try User.filter(blockedEmails.contains(Column("email"))).fetchAll(db)
+    }
+    
+    // Sometimes tracks the 'food' table, and sometimes the 'beverage' table.
     let observation = ValueObservation.tracking { db -> Int in
-        let foodCount = try Food.fetchCount(db)
-        let beverageCount = try Beverage.fetchCount(db)
-        switch try Preference.fetchOne(db)!.selection {
-            case .food: return foodCount
-            case .beverage: return beverageCount
+        let pref = try Preference.fetchOne(db) ?? .default
+        switch pref.selection {
+        case .food: return try Food.fetchCount(db)
+        case .beverage: return try Beverage.fetchCount(db)
         }
     }
     ```
+    
+    When you are in doubt, add the [`print()` method](#valueobservationprint) to your observation before starting it, and look in your application logs for lines that start with `tracked region`. Make sure the printed database region covers the changes you expect to be tracked.
+    
+    <details>
+        <summary>Examples of tracked regions</summary>
+    
+    - `empty`: The empty region, which tracks nothing and never triggers the observation.
+    - `player(*)`: The full `player` table
+    - `player(id,name)`: The `id` and `name` columns of the `player` table
+    - `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
+    - `player(*),preference(*)`: Both the full `player` and `preference` tables
+    
+    </details>
 
 
 ## DatabaseRegionObservation
@@ -7885,16 +7858,7 @@ For example:
 - `player(id,name)[1]`: The `id` and `name` columns of the row with id 1 in the `player` table
 - `player(*),team(*)`: Both the full `player` and `team` tables
 
-If you happen to see a mismatch between the tracked region and your expectation, then your observation is likely an [observation of a varying region](#observing-a-varying-database-region). Change the definition of your observation by using `trackingVaryingRegion(_:)`:
-
-```swift
-let observation = ValueObservation
-    .trackingVaryingRegion { db in ... } // <-
-    .print()
-let cancellable = observation.start(...)
-```
-
-You should witness that the logs which start with `tracked region` now evolve in order to include the expected changes, and that you get the expected notifications.
+If you happen to use the `ValueObservation.trackingConstantRegion(_:)` method and see a mismatch between the tracked region and your expectation, then change the definition of your observation by using `tracking(_:)`. You should witness that the logs which start with `tracked region` now evolve in order to include the expected changes, and that you get the expected notifications.
 
 If after all those steps (thanks you!), your observation is still failing you, please [open an issue](https://github.com/groue/GRDB.swift/issues/new) and provide a [minimal reproducible example](https://stackoverflow.com/help/minimal-reproducible-example)!
 

@@ -5,7 +5,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testReadOnlyObservation() throws {
         try assertValueObservation(
-            ValueObservation.tracking {
+            ValueObservation.trackingConstantRegion {
                 try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")!
             },
             records: [0, 1],
@@ -19,7 +19,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testWriteObservationFailsByDefaultWithErrorHandling() throws {
         try assertValueObservation(
-            ValueObservation.tracking { db -> Int in
+            ValueObservation.trackingConstantRegion { db -> Int in
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 return 0
             },
@@ -35,7 +35,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     }
     
     func testWriteObservation() throws {
-        var observation = ValueObservation.tracking { db -> Int in
+        var observation = ValueObservation.trackingConstantRegion { db -> Int in
             XCTAssert(db.isInsideTransaction, "expected a wrapping transaction")
             try db.execute(sql: "CREATE TEMPORARY TABLE temp AS SELECT * FROM t")
             let result = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM temp")!
@@ -57,7 +57,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
     
     func testWriteObservationIsWrappedInSavepointWithErrorHandling() throws {
         struct TestError: Error { }
-        var observation = ValueObservation.tracking { db in
+        var observation = ValueObservation.trackingConstantRegion { db in
             try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
             throw TestError()
         }

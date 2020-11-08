@@ -33,7 +33,7 @@ class ValueObservationPublisherTests : XCTestCase {
         
         func test(writer: DatabaseWriter) throws {
             let publisher = ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer)
             let recorder = publisher.record()
             
@@ -78,7 +78,7 @@ class ValueObservationPublisherTests : XCTestCase {
             let expectation = self.expectation(description: "")
             let semaphore = DispatchSemaphore(value: 0)
             let cancellable = ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer)
                 .sink(
                     receiveCompletion: { _ in },
@@ -105,7 +105,7 @@ class ValueObservationPublisherTests : XCTestCase {
         
         func test(writer: DatabaseWriter) throws {
             let publisher = ValueObservation
-                .tracking { try $0.execute(sql: "THIS IS NOT SQL") }
+                .trackingConstantRegion { try $0.execute(sql: "THIS IS NOT SQL") }
                 .publisher(in: writer)
             let recorder = publisher.record()
             let completion = try wait(for: recorder.completion, timeout: 1)
@@ -137,7 +137,7 @@ class ValueObservationPublisherTests : XCTestCase {
         
         func test(writer: DatabaseWriter) throws {
             let publisher = ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer, scheduling: .immediate)
             let recorder = publisher.record()
             
@@ -190,7 +190,7 @@ class ValueObservationPublisherTests : XCTestCase {
                 })
             
             let observationCancellable = ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer, scheduling: .immediate)
                 .subscribe(testSubject)
             
@@ -212,7 +212,7 @@ class ValueObservationPublisherTests : XCTestCase {
         
         func test(writer: DatabaseWriter) throws {
             let publisher = ValueObservation
-                .tracking { try $0.execute(sql: "THIS IS NOT SQL") }
+                .trackingConstantRegion { try $0.execute(sql: "THIS IS NOT SQL") }
                 .publisher(in: writer, scheduling: .immediate)
             let recorder = publisher.record()
             let completion = try recorder.completion.get()
@@ -283,7 +283,7 @@ class ValueObservationPublisherTests : XCTestCase {
                     receiveValue: { _ in expectation.fulfill() })
             
             ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer)
                 .subscribe(subscriber)
             
@@ -320,7 +320,7 @@ class ValueObservationPublisherTests : XCTestCase {
             })
             
             ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer)
                 .subscribe(subscriber)
             
@@ -359,7 +359,7 @@ class ValueObservationPublisherTests : XCTestCase {
                     receiveValue: { _ in expectation.fulfill() })
             
             ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer, scheduling: .immediate /* make sure we get the initial db state */)
                 .subscribe(subscriber)
             
@@ -403,7 +403,7 @@ class ValueObservationPublisherTests : XCTestCase {
                 })
             
             ValueObservation
-                .tracking(Player.fetchCount)
+                .trackingConstantRegion(Player.fetchCount)
                 .publisher(in: writer, scheduling: .immediate /* make sure we get two db states */)
                 .subscribe(subscriber)
             
