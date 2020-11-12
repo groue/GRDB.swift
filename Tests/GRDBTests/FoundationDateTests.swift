@@ -139,6 +139,25 @@ class FoundationDateTests : GRDBTestCase {
         }
     }
 
+    func testDateAcceptsFormatYMD_HMZ() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(
+                sql: "INSERT INTO dates (creationDate) VALUES (?)",
+                arguments: ["2015-07-22 01:02+01:15"])
+            let date = try Date.fetchOne(db, sql: "SELECT creationDate from dates")!
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+            XCTAssertEqual(calendar.component(.year, from: date), 2015)
+            XCTAssertEqual(calendar.component(.month, from: date), 7)
+            XCTAssertEqual(calendar.component(.day, from: date), 21)
+            XCTAssertEqual(calendar.component(.hour, from: date), 23)
+            XCTAssertEqual(calendar.component(.minute, from: date), 47)
+            XCTAssertEqual(calendar.component(.second, from: date), 0)
+            XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
+        }
+    }
+
     func testDateAcceptsFormatYMD_HMS() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -158,6 +177,25 @@ class FoundationDateTests : GRDBTestCase {
         }
     }
 
+    func testDateAcceptsFormatYMD_HMSZ() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(
+                sql: "INSERT INTO dates (creationDate) VALUES (?)",
+                arguments: ["2015-07-22 01:02:03+01:15"])
+            let date = try Date.fetchOne(db, sql: "SELECT creationDate from dates")!
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+            XCTAssertEqual(calendar.component(.year, from: date), 2015)
+            XCTAssertEqual(calendar.component(.month, from: date), 7)
+            XCTAssertEqual(calendar.component(.day, from: date), 21)
+            XCTAssertEqual(calendar.component(.hour, from: date), 23)
+            XCTAssertEqual(calendar.component(.minute, from: date), 47)
+            XCTAssertEqual(calendar.component(.second, from: date), 3)
+            XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
+        }
+    }
+
     func testDateAcceptsFormatYMD_HMSS() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -172,6 +210,25 @@ class FoundationDateTests : GRDBTestCase {
             XCTAssertEqual(calendar.component(.day, from: date), 22)
             XCTAssertEqual(calendar.component(.hour, from: date), 1)
             XCTAssertEqual(calendar.component(.minute, from: date), 2)
+            XCTAssertEqual(calendar.component(.second, from: date), 3)
+            XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
+        }
+    }
+
+    func testDateAcceptsFormatYMD_HMSSZ() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(
+                sql: "INSERT INTO dates (creationDate) VALUES (?)",
+                arguments: ["2015-07-22 01:02:03.00456+01:15"])
+            let date = try Date.fetchOne(db, sql: "SELECT creationDate from dates")!
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+            XCTAssertEqual(calendar.component(.year, from: date), 2015)
+            XCTAssertEqual(calendar.component(.month, from: date), 7)
+            XCTAssertEqual(calendar.component(.day, from: date), 21)
+            XCTAssertEqual(calendar.component(.hour, from: date), 23)
+            XCTAssertEqual(calendar.component(.minute, from: date), 47)
             XCTAssertEqual(calendar.component(.second, from: date), 3)
             XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
         }
