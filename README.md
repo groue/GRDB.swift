@@ -1269,20 +1269,20 @@ The non-copied data does not live longer than the iteration step: make sure that
 
 Here is how GRDB supports the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
 
-| SQLite format                | Date            | DateComponents |
-|:---------------------------- |:---------------:|:--------------:|
-| YYYY-MM-DD                   |      Read¹      |  Read / Write  |
-| YYYY-MM-DD HH:MM             |      Read¹²     |  Read² / Write |
-| YYYY-MM-DD HH:MM:SS          |      Read¹²     |  Read² / Write |
-| YYYY-MM-DD HH:MM:SS.SSS      | Read¹² / Write¹ |  Read² / Write |
-| YYYY-MM-DD**T**HH:MM         |      Read¹²     |       Read²    |
-| YYYY-MM-DD**T**HH:MM:SS      |      Read¹²     |       Read²    |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |      Read¹²     |       Read²    |
-| HH:MM                        |                 |  Read² / Write |
-| HH:MM:SS                     |                 |  Read² / Write |
-| HH:MM:SS.SSS                 |                 |  Read² / Write |
-| Timestamps since unix epoch  |      Read³      |                |
-| `now`                        |                 |                |
+| SQLite format                | Date               | DateComponents |
+|:---------------------------- |:------------------:|:--------------:|
+| YYYY-MM-DD                   |       Read ¹       | Read / Write   |
+| YYYY-MM-DD HH:MM             |       Read ¹ ²     | Read ² / Write |
+| YYYY-MM-DD HH:MM:SS          |       Read ¹ ²     | Read ² / Write |
+| YYYY-MM-DD HH:MM:SS.SSS      | Read ¹ ² / Write ¹ | Read ² / Write |
+| YYYY-MM-DD**T**HH:MM         |       Read ¹ ²     |      Read ²    |
+| YYYY-MM-DD**T**HH:MM:SS      |       Read ¹ ²     |      Read ²    |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |       Read ¹ ²     |      Read ²    |
+| HH:MM                        |                    | Read ² / Write |
+| HH:MM:SS                     |                    | Read ² / Write |
+| HH:MM:SS.SSS                 |                    | Read ² / Write |
+| Timestamps since unix epoch  |       Read ³       |                |
+| `now`                        |                    |                |
 
 ¹ Missing components are assumed to be zero. Dates are stored and read in the UTC time zone, unless the format is followed by a timezone indicator².
 
