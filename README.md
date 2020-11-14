@@ -1284,7 +1284,7 @@ Here is how GRDB supports the various [date formats](https://www.sqlite.org/lang
 | Timestamps since unix epoch  |       Read ³       |                |
 | `now`                        |                    |                |
 
-¹ Missing components are assumed to be zero. Dates are stored and read in the UTC time zone, unless the format is followed by a timezone indicator².
+¹ Missing components are assumed to be zero. Dates are stored and read in the UTC time zone, unless the format is followed by a timezone indicator ⁽²⁾.
 
 ² This format may be optionally followed by a timezone indicator of the form `[+-]HH:MM` or just `Z`.
 
