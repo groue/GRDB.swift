@@ -1269,24 +1269,26 @@ The non-copied data does not live longer than the iteration step: make sure that
 
 Here is how GRDB supports the various [date formats](https://www.sqlite.org/lang_datefunc.html) supported by SQLite:
 
-| SQLite format                | Date         | DateComponents |
-|:---------------------------- |:------------:|:--------------:|
-| YYYY-MM-DD                   |     Read ¹   |   Read/Write   |
-| YYYY-MM-DD HH:MM             |     Read ¹   |   Read/Write   |
-| YYYY-MM-DD HH:MM:SS          |     Read ¹   |   Read/Write   |
-| YYYY-MM-DD HH:MM:SS.SSS      | Read/Write ¹ |   Read/Write   |
-| YYYY-MM-DD**T**HH:MM         |     Read ¹   |      Read      |
-| YYYY-MM-DD**T**HH:MM:SS      |     Read ¹   |      Read      |
-| YYYY-MM-DD**T**HH:MM:SS.SSS  |     Read ¹   |      Read      |
-| HH:MM                        |              |   Read/Write   |
-| HH:MM:SS                     |              |   Read/Write   |
-| HH:MM:SS.SSS                 |              |   Read/Write   |
-| Timestamps since unix epoch  |     Read ²   |                |
-| `now`                        |              |                |
+| SQLite format                | Date            | DateComponents |
+|:---------------------------- |:---------------:|:--------------:|
+| YYYY-MM-DD                   |      Read¹      |  Read / Write  |
+| YYYY-MM-DD HH:MM             |      Read¹²     |  Read² / Write |
+| YYYY-MM-DD HH:MM:SS          |      Read¹²     |  Read² / Write |
+| YYYY-MM-DD HH:MM:SS.SSS      | Read¹² / Write¹ |  Read² / Write |
+| YYYY-MM-DD**T**HH:MM         |      Read¹²     |       Read²    |
+| YYYY-MM-DD**T**HH:MM:SS      |      Read¹²     |       Read²    |
+| YYYY-MM-DD**T**HH:MM:SS.SSS  |      Read¹²     |       Read²    |
+| HH:MM                        |                 |  Read² / Write |
+| HH:MM:SS                     |                 |  Read² / Write |
+| HH:MM:SS.SSS                 |                 |  Read² / Write |
+| Timestamps since unix epoch  |      Read³      |                |
+| `now`                        |                 |                |
 
-¹ Dates are stored and read in the UTC time zone. Missing components are assumed to be zero.
+¹ Missing components are assumed to be zero. Dates are stored and read in the UTC time zone, unless the format is followed by a timezone indicator².
 
-² GRDB 2+ interprets numerical values as timestamps that fuel `Date(timeIntervalSince1970:)`. Previous GRDB versions used to interpret numbers as [julian days](https://en.wikipedia.org/wiki/Julian_day). Julian days are still supported, with the `Date(julianDay:)` initializer.
+² This format may be optionally followed by a timezone indicator of the form `[+-]HH:MM` or just `Z`.
+
+³ GRDB 2+ interprets numerical values as timestamps that fuel `Date(timeIntervalSince1970:)`. Previous GRDB versions used to interpret numbers as [julian days](https://en.wikipedia.org/wiki/Julian_day). Julian days are still supported, with the `Date(julianDay:)` initializer.
 
 
 #### Date
