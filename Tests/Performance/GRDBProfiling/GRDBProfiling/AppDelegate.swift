@@ -7,6 +7,8 @@ let insertedRowCount = 20_000
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ aNotification: Notification) {
+        try! parseDateComponents()
+        try! parseDates()
         try! fetchValues()
         try! fetchPositionalValues()
         try! fetchNamedValues()
@@ -18,6 +20,46 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         try! insertStructs()
         try! insertCodables()
         try! insertRecords()
+    }
+    
+    // MARK: -
+    
+    func parseDateComponents() throws {
+        /// Selects many dates
+        let request = """
+            WITH RECURSIVE
+                cnt(x) AS (
+                    SELECT 1
+                    UNION ALL
+                    SELECT x+1 FROM cnt
+                    LIMIT 50000
+                )
+            SELECT '2018-04-20 14:47:12.345' FROM cnt;
+            """
+        
+        try DatabaseQueue().inDatabase { db in
+            let cursor = try DatabaseDateComponents.fetchCursor(db, sql: request)
+            while try cursor.next() != nil { }
+        }
+    }
+    
+    func parseDates() throws {
+        /// Selects many dates
+        let request = """
+            WITH RECURSIVE
+                cnt(x) AS (
+                    SELECT 1
+                    UNION ALL
+                    SELECT x+1 FROM cnt
+                    LIMIT 50000
+                )
+            SELECT '2018-04-20 14:47:12.345' FROM cnt;
+            """
+        
+        try DatabaseQueue().inDatabase { db in
+            let cursor = try Date.fetchCursor(db, sql: request)
+            while try cursor.next() != nil { }
+        }
     }
     
     // MARK: -
