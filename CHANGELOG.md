@@ -72,7 +72,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#868](https://github.com/groue/GRDB.swift/pull/868): ValueObservation optimization is opt-in.
-- **Documentation update**: The [ValueObservation Performance](https://github.com/groue/GRDB.swift#valueobservation-performance) chapter has been extanded with a tip for observations that track a constant database region.
+- **New**: [#872](https://github.com/groue/GRDB.swift/pull/872): Parse time zones
+- **Documentation update**: The [ValueObservation Performance](https://github.com/groue/GRDB.swift/blob/master/README.md#valueobservation-performance) chapter was extended with a tip for observations that track a constant database region.
+- **Documentation update**: The [Date and DateComponents](https://github.com/groue/GRDB.swift/blob/master/README.md#date-and-datecomponents) chapter describes the support for time zones.
 
 
 ## 5.1.0
