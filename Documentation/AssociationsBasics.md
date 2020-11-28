@@ -2392,9 +2392,9 @@ See [Good Practices for Designing Record Types] for more information.
             .including(required: Passport.citizen))
     ```
     
-- **The `including(all:)` method may fail with a database error of code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large" when you use a compound foreign key and there are a lot of parent records.
+- **The `including(all:)` method may fail with a database error of code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large" when you use a compound foreign key and there are a lot of parent records.**
 
-    See [Joining And Prefetching Associated Records] for more information.
+    See [Joining And Prefetching Associated Records] for more information about this error.
 
 Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those missing features into reality.
 
