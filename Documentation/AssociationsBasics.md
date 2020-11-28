@@ -937,6 +937,26 @@ The pattern is always the same: you start from a base request, that you extend w
     
     Finally, readers who speak SQL may compare `optional` with left joins, and `required` with inner joins.
 
+> :warning: **Warning**: You will get a database error with code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large", when the following conditions are met:
+>
+> - You use the `including(all:)` method (say: `Parent.including(all: children)`).
+> - The association is based on a compound foreign key (made of two columns or more).
+> - The request fetches a lot of parent records. The exact threshold depends on [SQLITE_LIMIT_EXPR_DEPTH](https://www.sqlite.org/limits.html), which you can get with:
+>
+>     ```swift
+>     let limit = try dbQueue.read { db in
+>          sqlite3_limit(db.sqliteConnection, SQLITE_LIMIT_EXPR_DEPTH, -1)
+>     }
+>     ```
+>
+>     This threshold is around 1000 parents in recent iOS and macOS systems.
+>
+>     Possible workarounds are:
+>     
+>     - Refactor the database schema so that you do not depend on a compound foreign key. Such a refactoring will likely bring performance improvements as well.
+>     - Prefetch children with your own code, without using `including(all:)`.
+>
+>     For more information about this caveat, see [issue #871](https://github.com/groue/GRDB.swift/issues/871).
 
 ## Combining Associations
 
@@ -2374,6 +2394,10 @@ See [Good Practices for Designing Record Types] for more information.
             .including(required: Passport.citizen))
     ```
     
+- **The `including(all:)` method may fail with a database error of code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large" when you use a compound foreign key and there are a lot of parent records.
+
+    See [Joining And Prefetching Associated Records] for more information.
+
 Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those missing features into reality.
 
 ---
