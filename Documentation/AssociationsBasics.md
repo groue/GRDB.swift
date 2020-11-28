@@ -941,7 +941,7 @@ The pattern is always the same: you start from a base request, that you extend w
 >
 > - You use the `including(all:)` method (say: `Parent.including(all: children)`).
 > - The association is based on a compound foreign key (made of two columns or more).
-> - The request fetches a lot of parent records. The exact threshold depends on [SQLITE_LIMIT_EXPR_DEPTH](https://www.sqlite.org/limits.html), which you can get with:
+> - The request fetches a lot of parent records. The exact threshold depends on [SQLITE_LIMIT_EXPR_DEPTH](https://www.sqlite.org/limits.html). It is around 1000 parents in recent iOS and macOS systems. To get an exact figure, run:
 >
 >     ```swift
 >     let limit = try dbQueue.read { db in
@@ -949,14 +949,12 @@ The pattern is always the same: you start from a base request, that you extend w
 >     }
 >     ```
 >
->     This threshold is around 1000 parents in recent iOS and macOS systems.
+> Possible workarounds are:
+> 
+> - Refactor the database schema so that you do not depend on a compound foreign key.
+> - Prefetch children with your own code, without using `including(all:)`.
 >
->     Possible workarounds are:
->     
->     - Refactor the database schema so that you do not depend on a compound foreign key. Such a refactoring will likely bring performance improvements as well.
->     - Prefetch children with your own code, without using `including(all:)`.
->
->     For more information about this caveat, see [issue #871](https://github.com/groue/GRDB.swift/issues/871).
+> For more information about this caveat, see [issue #871](https://github.com/groue/GRDB.swift/issues/871).
 
 ## Combining Associations
 
