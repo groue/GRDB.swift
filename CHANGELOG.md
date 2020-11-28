@@ -75,6 +75,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#872](https://github.com/groue/GRDB.swift/pull/872): Parse time zones
 - **Documentation update**: The [ValueObservation Performance](https://github.com/groue/GRDB.swift/blob/master/README.md#valueobservation-performance) chapter was extended with a tip for observations that track a constant database region.
 - **Documentation update**: The [Date and DateComponents](https://github.com/groue/GRDB.swift/blob/master/README.md#date-and-datecomponents) chapter describes the support for time zones.
+- **Documentation update**: A caveat ([#871](https://github.com/groue/GRDB.swift/issues/871)) with the `including(all:)` method, which may fail with a database error of code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large" when you use a compound foreign key and there are a lot of parent records, is detailed in the [Joining And Prefetching Associated Records](https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#joining-and-prefetching-associated-records) chapter.
 
 
 ## 5.1.0
