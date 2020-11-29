@@ -21,7 +21,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         let request = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id")
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchAll),
+            ValueObservation.trackingConstantRegion(request.fetchAll),
             records: [
                 [],
                 [Name(rawValue: "foo")],
@@ -44,7 +44,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         })
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchAll).removeDuplicates(),
+            ValueObservation.trackingConstantRegion(request.fetchAll).removeDuplicates(),
             records: [
                 [],
                 [Name(rawValue: "foo")],
@@ -70,7 +70,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         let request = SQLRequest<Name>(sql: "SELECT name FROM t ORDER BY id DESC")
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchOne),
+            ValueObservation.trackingConstantRegion(request.fetchOne),
             records: [
                 nil,
                 Name(rawValue: "foo"),
@@ -103,7 +103,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         })
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchOne).removeDuplicates(),
+            ValueObservation.trackingConstantRegion(request.fetchOne).removeDuplicates(),
             records: [
                 nil,
                 Name(rawValue: "foo"),
@@ -137,7 +137,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         let request = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id")
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchAll),
+            ValueObservation.trackingConstantRegion(request.fetchAll),
             records: [
                 [],
                 [Name(rawValue: "foo")],
@@ -160,7 +160,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         })
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchAll).removeDuplicates(),
+            ValueObservation.trackingConstantRegion(request.fetchAll).removeDuplicates(),
             records: [
                 [],
                 [Name(rawValue: "foo")],
@@ -186,7 +186,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         let request = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id DESC")
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchOne),
+            ValueObservation.trackingConstantRegion(request.fetchOne),
             records: [
                 nil,
                 Name(rawValue: "foo"),
@@ -219,7 +219,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         })
         
         try assertValueObservation(
-            ValueObservation.tracking(request.fetchOne).removeDuplicates(),
+            ValueObservation.trackingConstantRegion(request.fetchOne).removeDuplicates(),
             records: [
                 nil,
                 Name(rawValue: "foo"),

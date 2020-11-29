@@ -110,7 +110,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         // I'm completely paranoid about tuple destructuring - I can't wrap my
         // head about the rules that allow or disallow it.
         let dbQueue = try makeDatabaseQueue()
-        let observation = ValueObservation.tracking { db -> (Int, String) in
+        let observation = ValueObservation.trackingConstantRegion { db -> (Int, String) in
             (0, "")
         }
         _ = observation.start(
@@ -137,7 +137,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var regions: [DatabaseRegion] = []
         let observation = ValueObservation
-            .trackingVaryingRegion({ db -> Int in
+            .tracking({ db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
             })
@@ -188,7 +188,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var regions: [DatabaseRegion] = []
         let observation = ValueObservation
-            .trackingVaryingRegion({ db -> Int in
+            .tracking({ db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
             })

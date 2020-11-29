@@ -93,19 +93,6 @@ let observation = ValueObservation.tracking { db in
 let observation = ValueObservation.tracking(Player.fetchAll)
 ```
 
-If the tracked value is computed from several database requests that are not always the same, make sure you use the `trackingVaryingRegion` method, as below. See [Observing a Varying Database Region] for more information.
-
-```swift
-// An observation which does not always execute the same requests:
-let observation = ValueObservation.trackingVaryingRegion { db -> Int in
-    let preference = try Preference.fetchOne(db) ?? .default
-    switch preference.selection {
-        case .food: return try Food.fetchCount(db)
-        case .beverage: return try Beverage.fetchCount(db)
-    }
-}
-```
-
 Several methods that build observations were removed:
 
 ```swift
@@ -515,7 +502,6 @@ let publisher = observation
 [ValueObservation]: ../README.md#valueobservation
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[Observing a Varying Database Region]: ../README.md#observing-a-varying-database-region
 [removeDuplicates]: ../README.md#valueobservationremoveduplicates
 [Custom SQL functions]: ../README.md#custom-sql-functions
 [Batch updates]: ../README.md#update-requests

@@ -31,7 +31,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbReader: DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             
             let expectation = self.expectation(description: "")
@@ -65,7 +65,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbReader: DatabaseReader) throws {
             let logger = TestStream()
             let observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             
             let expectation = self.expectation(description: "")
@@ -97,7 +97,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             struct TestError: Error { }
             let logger = TestStream()
             let observation = ValueObservation
-                .tracking { _ in throw TestError() }
+                .trackingConstantRegion { _ in throw TestError() }
                 .print(to: logger)
             
             let expectation = self.expectation(description: "")
@@ -129,7 +129,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             struct TestError: Error { }
             let logger = TestStream()
             let observation = ValueObservation
-                .tracking { _ in throw TestError() }
+                .trackingConstantRegion { _ in throw TestError() }
                 .print(to: logger)
             
             let expectation = self.expectation(description: "")
@@ -164,7 +164,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -206,7 +206,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -244,7 +244,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbWriter: DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -271,7 +271,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         func test(_ dbWriter: DatabaseWriter) throws {
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -302,7 +302,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -345,7 +345,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             
             let logger = TestStream()
             var observation = ValueObservation
-                .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
                 .print(to: logger)
             observation.requiresWriteAccess = true
             
@@ -394,7 +394,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         // transaction observer, some write did happen.
         var needsChange = true
         let observation = ValueObservation
-            .tracking({ db -> Int? in
+            .trackingConstantRegion({ db -> Int? in
                 if needsChange {
                     needsChange = false
                     try dbPool.write { db in
@@ -441,7 +441,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         // transaction observer, some write did happen.
         var needsChange = true
         let observation = ValueObservation
-            .tracking({ db -> Int? in
+            .trackingConstantRegion({ db -> Int? in
                 if needsChange {
                     needsChange = false
                     try dbPool.write { db in
@@ -491,7 +491,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         
         let logger = TestStream()
         let observation = ValueObservation
-            .trackingVaryingRegion({ db -> Int? in
+            .tracking({ db -> Int? in
                 let table = try String.fetchOne(db, sql: "SELECT t FROM choice")!
                 return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM \(table)")
             })
@@ -543,7 +543,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         let logger1 = TestStream()
         let logger2 = TestStream()
         let observation = ValueObservation
-            .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+            .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
             .print("", to: logger1)
             .print("log", to: logger2)
         
@@ -575,7 +575,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         let logger1 = TestStream()
         let logger2 = TestStream()
         let observation = ValueObservation
-            .tracking { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
+            .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player") }
             .print(to: logger1)
             .removeDuplicates()
             .map { _ in "foo" }
@@ -668,7 +668,7 @@ class ValueObservationPrintTests: GRDBTestCase {
             }
         }
         
-        let observation = ValueObservation.tracking {
+        let observation = ValueObservation.trackingConstantRegion {
             try Int.fetchOne($0, sql: "SELECT MAX(id) FROM player")
         }
         

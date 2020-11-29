@@ -7,8 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-<!-- - [Next Release](#next-release) -->
-
+- `5.2.x` Releases - [5.2.0](#520)
 - `5.1.x` Releases - [5.1.0](#510)
 - `5.0.x` Releases - [5.0.0](#500) | [5.0.1](#501) | [5.0.2](#502) | [5.0.3](#503)
 - `5.0.0` Betas - [5.0.0-beta](#500-beta) | [5.0.0-beta.2](#500-beta2) | [5.0.0-beta.3](#500-beta3) | [5.0.0-beta.4](#500-beta4) | [5.0.0-beta.5](#500-beta5) | [5.0.0-beta.6](#500-beta6) | [5.0.0-beta.7](#500-beta7) | [5.0.0-beta.8](#500-beta8) | [5.0.0-beta.9](#500-beta9) | [5.0.0-beta.10](#500-beta10) | [5.0.0-beta.11](#500-beta11)
@@ -67,6 +66,17 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+
+## 5.2.0
+
+Released November 29, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.1.0...v5.2.0)
+
+- **New**: [#868](https://github.com/groue/GRDB.swift/pull/868): ValueObservation optimization is opt-in.
+- **New**: [#872](https://github.com/groue/GRDB.swift/pull/872): Parse time zones
+- **Documentation update**: The [ValueObservation Performance](https://github.com/groue/GRDB.swift/blob/master/README.md#valueobservation-performance) chapter was extended with a tip for observations that track a constant database region.
+- **Documentation update**: The [Date and DateComponents](https://github.com/groue/GRDB.swift/blob/master/README.md#date-and-datecomponents) chapter describes the support for time zones.
+- **Documentation update**: A caveat ([#871](https://github.com/groue/GRDB.swift/issues/871)) with the `including(all:)` method, which may fail with a database error of code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large" when you use a compound foreign key and there are a lot of parent records, is detailed in the [Joining And Prefetching Associated Records](https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#joining-and-prefetching-associated-records) chapter.
 
 
 ## 5.1.0
