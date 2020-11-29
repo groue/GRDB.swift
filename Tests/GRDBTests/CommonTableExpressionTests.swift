@@ -8,11 +8,24 @@ class CommonTableExpressionTests: GRDBTestCase {
             try db.create(table: "t") { t in
                 t.autoIncrementedPrimaryKey("id")
             }
-            let request = T.all().with(T.all(), aliased: TableAlias())
-            try assertEqualSQL(db, request, """
+            
+            do {
+                let cte = T.all().commonTableExpression()
+                let request = T.all().with(cte)
+                try assertEqualSQL(db, request, """
                 WITH "t2" AS (SELECT * FROM "t") \
                 SELECT "t1".* FROM "t" "t1"
                 """)
+            }
+            
+            do {
+                let cte = T.all().commonTableExpression().aliased(TableAlias(name: "custom"))
+                let request = T.all().with(cte)
+                try assertEqualSQL(db, request, """
+                WITH "custom" AS (SELECT * FROM "t") \
+                SELECT "t".* FROM "t"
+                """)
+            }
         }
     }
 }

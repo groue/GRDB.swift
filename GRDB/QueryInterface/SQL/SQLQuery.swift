@@ -10,7 +10,7 @@ struct SQLQuery {
     // `(a AND b AND c)` instead of `((a AND b) AND c)`.
     var havingExpressionsPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
     var limit: SQLLimit?
-    var ctes: OrderedDictionary<TableAlias, SQLCTE> = [:]
+    var ctes: OrderedDictionary<String, CommonTableExpression> = [:]
 }
 
 extension SQLQuery: Refinable {

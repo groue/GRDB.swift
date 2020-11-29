@@ -337,13 +337,8 @@ extension QueryInterfaceRequest {
     }
     
     #warning("TODO: doc")
-    public func with<T>(_ cte: QueryInterfaceRequest<T>, aliased alias: TableAlias) -> Self {
-        map(\.query) { $0.mapInto(\.ctes) { $0[alias] = .query(cte.query) } }
-    }
-    
-    #warning("TODO: doc")
-    public func with<T>(_ cte: SQLRequest<T>, aliased alias: TableAlias) -> Self {
-        map(\.query) { $0.mapInto(\.ctes) { $0[alias] = .literal(cte.sqlLiteral) } }
+    public func with(_ cte: CommonTableExpression) -> Self {
+        map(\.query) { $0.with(\.ctes[cte.key], cte) }
     }
     
     /// Creates a request bound to type RowDecoder.
