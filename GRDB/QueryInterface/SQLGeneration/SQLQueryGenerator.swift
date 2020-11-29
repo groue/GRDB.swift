@@ -6,6 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
+    private let ctes: [SQLQueryGenerator]
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -60,15 +61,38 @@ struct SQLQueryGenerator: Refinable {
         isDistinct = query.isDistinct
         self.singleResult = singleResult
         prefetchedAssociations = query.relation.prefetchedAssociations
+        ctes = query.ctes.map { SQLQueryGenerator(query: $0) }
     }
     
     func requestSQL(_ context: SQLGenerationContext) throws -> String {
+        let cteWithAliases: [(cte: SQLQueryGenerator, alias: TableAlias)] = ctes.map { cte in
+            guard let alias = cte.relation.source.alias else {
+                fatalError("Can't generate SQL from unnamed CTE")
+            }
+            return (cte: cte, alias: TableAlias(tableName: alias.tableName))
+        }
+        
         // Build an SQL generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
-        let context = SQLGenerationContext(parent: context, aliases: relation.allAliases)
+        let aliases = relation.allAliases + cteWithAliases.map(\.alias)
+        let context = SQLGenerationContext(parent: context, aliases: aliases)
         
-        var sql = "SELECT"
+        var sql = ""
+        
+        if !cteWithAliases.isEmpty {
+            sql += "WITH "
+            sql += try cteWithAliases
+                .map { (cte, alias) in
+                    let cteContext = SQLGenerationContext(parent: context)
+                    let cteSQL = try cte.requestSQL(cteContext)
+                    return "\(context.resolvedName(for: alias)) AS (\(cteSQL))"
+                }
+                .joined(separator: ", ")
+            sql += " "
+        }
+        
+        sql += "SELECT"
         
         if isDistinct {
             sql += " DISTINCT"
