@@ -336,6 +336,16 @@ extension QueryInterfaceRequest {
         map(\.query) { $0.limit(limit, offset: offset) }
     }
     
+    #warning("TODO: doc")
+    public func with<T>(_ cte: QueryInterfaceRequest<T>, aliased alias: TableAlias) -> Self {
+        map(\.query) { $0.mapInto(\.ctes) { $0[alias] = .query(cte.query) } }
+    }
+    
+    #warning("TODO: doc")
+    public func with<T>(_ cte: SQLRequest<T>, aliased alias: TableAlias) -> Self {
+        map(\.query) { $0.mapInto(\.ctes) { $0[alias] = .literal(cte.sqlLiteral) } }
+    }
+    
     /// Creates a request bound to type RowDecoder.
     ///
     /// The returned request can fetch if the type RowDecoder is fetchable (Row,

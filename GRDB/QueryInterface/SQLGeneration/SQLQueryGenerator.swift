@@ -6,7 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
-    private let ctes: [SQLQueryGenerator]
+    private let ctes: OrderedDictionary<TableAlias, SQLCTE>
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -61,31 +61,30 @@ struct SQLQueryGenerator: Refinable {
         isDistinct = query.isDistinct
         self.singleResult = singleResult
         prefetchedAssociations = query.relation.prefetchedAssociations
-        ctes = query.ctes.map { SQLQueryGenerator(query: $0) }
+        ctes = query.ctes
     }
     
     func requestSQL(_ context: SQLGenerationContext) throws -> String {
-        let cteWithAliases: [(cte: SQLQueryGenerator, alias: TableAlias)] = ctes.map { cte in
-            guard let alias = cte.relation.source.alias else {
-                fatalError("Can't generate SQL from unnamed CTE")
-            }
-            return (cte: cte, alias: TableAlias(tableName: alias.tableName))
-        }
-        
         // Build an SQL generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
-        let aliases = relation.allAliases + cteWithAliases.map(\.alias)
+        let aliases = relation.allAliases + ctes.keys
         let context = SQLGenerationContext(parent: context, aliases: aliases)
         
         var sql = ""
         
-        if !cteWithAliases.isEmpty {
+        if !ctes.isEmpty {
             sql += "WITH "
-            sql += try cteWithAliases
-                .map { (cte, alias) in
-                    let cteContext = SQLGenerationContext(parent: context)
-                    let cteSQL = try cte.requestSQL(cteContext)
+            sql += try ctes
+                .map { (alias, cte) in
+                    let cteSQL: String
+                    switch cte {
+                    case let .literal(literal):
+                        cteSQL = try literal.sql(context)
+                    case let .query(query):
+                        let cteContext = SQLGenerationContext(parent: context)
+                        cteSQL = try SQLQueryGenerator(query: query).requestSQL(cteContext)
+                    }
                     return "\(context.resolvedName(for: alias)) AS (\(cteSQL))"
                 }
                 .joined(separator: ", ")
@@ -273,7 +272,7 @@ struct SQLQueryGenerator: Refinable {
                 fatalError("Can't delete without any database table")
             }
             
-            guard relation.joins.isEmpty else {
+            guard relation.joins.isEmpty && ctes.isEmpty else {
                 return try makeTrivialDeleteStatement(db)
             }
             
@@ -347,7 +346,7 @@ struct SQLQueryGenerator: Refinable {
                 fatalError("Can't update without any database table")
             }
             
-            guard relation.joins.isEmpty else {
+            guard relation.joins.isEmpty && ctes.isEmpty else {
                 return try makeTrivialUpdateStatement(
                     db,
                     conflictResolution: conflictResolution,
