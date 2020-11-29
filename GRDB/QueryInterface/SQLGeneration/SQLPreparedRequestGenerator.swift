@@ -169,25 +169,24 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
             let pivotMapping = try foreignKeyRequest
                 .fetchForeignKeyMapping(db)
                 .joinMapping(originIsLeft: originIsLeft)
+            
             let pivotFilter = pivotMapping.joinExpression(leftRows: rows)
+            
             let pivotColumns = pivotMapping.map(\.right)
+            
             let pivotAlias = TableAlias()
             
-            let prefetchedRelation = association
-                .map(\.pivot.relation, { pivotRelation in
-                    pivotRelation
-                        .qualified(with: pivotAlias)
-                        .filter { _ in pivotFilter }
-                })
+            let prefetchRelation = association
+                .map(\.pivot.relation, { $0.qualified(with: pivotAlias).filter(pivotFilter) })
                 .destinationRelation()
                 // Annotate with the pivot columns that allow grouping
                 .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
             
-            let prefetchedGroups = try QueryInterfaceRequest<Row>(relation: prefetchedRelation)
-                .fetchAll(db)
-                .grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
-            // TODO: can we remove those grdb_ columns from user's sight,
-            // now that grouping has been done?
+            let prefetchRequest = QueryInterfaceRequest<Row>(relation: prefetchRelation)
+            
+            let prefetchedRows = try prefetchRequest.fetchAll(db)
+            
+            let prefetchedGroups = prefetchedRows.grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
             
             let groupingIndexes = firstRow.indexes(forColumns: pivotMapping.map(\.left))
             
@@ -211,24 +210,23 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
             // selected region:
             //  ... JOIN right ON right.leftId IS NULL
             //                                    ^ content of the NullRow
-            let pivotFilter = try foreignKeyRequest
+            let pivotMapping = try foreignKeyRequest
                 .fetchForeignKeyMapping(db)
                 .joinMapping(originIsLeft: originIsLeft)
-                .joinExpression(leftRows: [NullRow()])
             
-            let prefetchedRelation = association
-                .map(\.pivot.relation, { pivotRelation in
-                    pivotRelation.filter { _ in pivotFilter }
-                })
+            let pivotFilter = pivotMapping.joinExpression(leftRows: [NullRow()])
+            
+            let prefetchRelation = association
+                .map(\.pivot.relation) { $0.filter(pivotFilter) }
                 .destinationRelation()
             
-            let prefetchedQuery = SQLQuery(relation: prefetchedRelation)
+            let prefetchQuery = SQLQuery(relation: prefetchRelation)
             
-            let prefetchedRegion = try SQLQueryGenerator(query: prefetchedQuery)
+            let prefetchRegion = try SQLQueryGenerator(query: prefetchQuery)
                 .makeSelectStatement(db)
                 .databaseRegion // contains region of nested associations
             
-            region.formUnion(prefetchedRegion)
+            region.formUnion(prefetchRegion)
         }
     }
 }

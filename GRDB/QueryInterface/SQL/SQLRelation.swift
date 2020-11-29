@@ -214,14 +214,6 @@ extension SQLRelation: Refinable {
         annotated(with: { _ in selection })
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        map(\.filtersPromise) { filtersPromise in
-            DatabasePromise { db in
-                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
-            }
-        }
-    }
-    
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
         with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
@@ -237,6 +229,16 @@ extension SQLRelation: Refinable {
     
     func qualified(with alias: TableAlias) -> Self {
         map(\.source) { $0.qualified(with: alias) }
+    }
+}
+
+extension SQLRelation: FilteredRequest {
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        map(\.filtersPromise) { filtersPromise in
+            DatabasePromise { db in
+                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
+            }
+        }
     }
 }
 
@@ -564,7 +566,10 @@ extension JoinMapping {
     /// - precondition: leftRows contains all mapping left columns.
     /// - precondition: All rows have the same layout: a column index returned
     ///   by `index(forColumn:)` refers to the same column in all rows.
-    func joinExpression<Row: ColumnAddressable>(leftRows: [Row]) -> SQLExpression {
+    func joinExpression<Rows>(leftRows: Rows)
+    -> SQLExpression
+    where Rows: Collection, Rows.Element: ColumnAddressable
+    {
         guard let firstLeftRow = leftRows.first else {
             // We could return `false.sqlExpression`.
             //
@@ -573,7 +578,7 @@ extension JoinMapping {
             fatalError("Provide at least one left row, or this method can't generate SQL that can be observed.")
         }
         
-        let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = map { mapping in
+        let mappings: [(leftIndex: Rows.Element.ColumnIndex, rightColumn: Column)] = map { mapping in
             guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
                 fatalError("Missing column: \(mapping.left)")
             }
