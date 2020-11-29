@@ -289,6 +289,8 @@ public class TableAlias: Hashable {
     }
     
     func becomeProxy(of base: TableAlias) {
+        assert(self !== base)
+        
         switch impl {
         case let .undefined(userName):
             if let userName = userName {
@@ -312,6 +314,10 @@ public class TableAlias: Hashable {
     
     /// Returns nil if aliases can't be merged (conflict in tables, aliases...)
     func merged(with other: TableAlias) -> TableAlias? {
+        if self === other {
+            return self
+        }
+        
         let root = self.root
         let otherRoot = other.root
         switch (root.impl, otherRoot.impl) {

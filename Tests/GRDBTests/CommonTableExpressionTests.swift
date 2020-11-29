@@ -9,8 +9,10 @@ class CommonTableExpressionTests: GRDBTestCase {
                 t.autoIncrementedPrimaryKey("id")
             }
             
+            // Just add a WITH clause: query interface request
             do {
-                let cte = T.all().commonTableExpression()
+                let cte = T.all()
+                    .commonTableExpression()
                 let request = T.all()
                     .with(cte)
                 try assertEqualSQL(db, request, """
@@ -19,8 +21,48 @@ class CommonTableExpressionTests: GRDBTestCase {
                 """)
             }
             
+            // Just add a WITH clause: sql request
             do {
-                let cte = T.all().commonTableExpression().aliased(TableAlias(name: "custom"))
+                let cte = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
+                    .commonTableExpression(key: "custom")
+                let request = T.all()
+                    .with(cte)
+                try assertEqualSQL(db, request, """
+                WITH "custom" AS (SELECT 'O''Brien') \
+                SELECT "t".* FROM "t"
+                """)
+            }
+            
+            // Just add a WITH clause: sql request with conflicting key
+            do {
+                let cte = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
+                    .commonTableExpression(key: "t")
+                let request = T.all()
+                    .with(cte)
+                try assertEqualSQL(db, request, """
+                WITH "t2" AS (SELECT 'O''Brien') \
+                SELECT "t1".* FROM "t" "t1"
+                """)
+            }
+            
+            // Just add a WITH clause: sql request with conflicting alias name
+            do {
+                let cte = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
+                    .commonTableExpression(key: "custom")
+                    .aliased(TableAlias(name: "t"))
+                let request = T.all()
+                    .with(cte)
+                try assertEqualSQL(db, request, """
+                WITH "t" AS (SELECT 'O''Brien') \
+                SELECT "t1".* FROM "t" "t1"
+                """)
+            }
+
+            // Just add a WITH clause: custom name for the CTE
+            do {
+                let cte = T.all()
+                    .commonTableExpression()
+                    .aliased(TableAlias(name: "custom"))
                 let request = T.all()
                     .with(cte)
                 try assertEqualSQL(db, request, """
@@ -29,8 +71,10 @@ class CommonTableExpressionTests: GRDBTestCase {
                 """)
             }
             
+            // Include query interface request as a CTE
             do {
-                let cte = T.all().commonTableExpression()
+                let cte = T.all()
+                    .commonTableExpression()
                 let request = T.all()
                     .with(cte)
                     .including(optional: cte, on: { (left, right) in left["id"] > right["id"] })
@@ -42,12 +86,62 @@ class CommonTableExpressionTests: GRDBTestCase {
                 """)
             }
             
+            // Join query interface request as a CTE
             do {
-                let cte = T.all().commonTableExpression()
+                let cte = T.all()
+                    .commonTableExpression()
                 let request = T.all()
                     .with(cte)
                     .joining(required: cte, on: { (left, right) in left["id"] > right["id"] })
                 try assertEqualSQL(db, request, """
+                WITH "t2" AS (SELECT * FROM "t") \
+                SELECT "t1".* \
+                FROM "t" "t1" \
+                JOIN "t2" ON "t1"."id" > "t2"."id"
+                """)
+            }
+            
+            // Join two CTEs with same key and condition
+            do {
+                let cte = T.all()
+                    .commonTableExpression()
+                let request = T.all()
+                    .with(cte)
+                    .joining(required: cte, on: { (left, right) in left["id"] > right["id"] })
+                    .joining(required: cte, on: { (left, right) in left["id"] > right["id"] })
+               try assertEqualSQL(db, request, """
+                WITH "t2" AS (SELECT * FROM "t") \
+                SELECT "t1".* \
+                FROM "t" "t1" \
+                JOIN "t2" ON "t1"."id" > "t2"."id"
+                """)
+            }
+            
+            // Join two CTEs with same key but different condition
+            do {
+                let cte = T.all()
+                    .commonTableExpression()
+                let request = T.all()
+                    .with(cte)
+                    .joining(required: cte, on: { (left, right) in left["id"] > right["id"] })
+                    .joining(required: cte, on: { (left, right) in left["id"] + right["id"] == 1 })
+               try assertEqualSQL(db, request, """
+                WITH "t2" AS (SELECT * FROM "t") \
+                SELECT "t1".* \
+                FROM "t" "t1" \
+                JOIN "t2" ON "t1"."id" > "t2"."id"
+                """)
+            }
+            
+            // Join two CTEs with different keys
+            do {
+                let cte = T.all()
+                    .commonTableExpression()
+                let request = T.all()
+                    .with(cte)
+                    .joining(required: cte.forKey("a"), on: { (left, right) in left["id"] > right["id"] })
+                    .joining(required: cte.forKey("b"), on: { (left, right) in left["id"] > right["id"] })
+               try assertEqualSQL(db, request, """
                 WITH "t2" AS (SELECT * FROM "t") \
                 SELECT "t1".* \
                 FROM "t" "t1" \

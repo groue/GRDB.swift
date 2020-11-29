@@ -505,31 +505,7 @@ extension SQLRelation {
 // MARK: - SQLAssociationCondition
 
 /// The condition that links two tables.
-///
-/// Currently, we only support one kind of condition: foreign keys.
-///
-///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-///                                         <---- the condition ---->
-///
-/// When we eventually add support for new ways to link tables,
-/// SQLAssociationCondition is the type we'll need to update.
-///
-/// SQLAssociationCondition adopts Equatable so that we can merge associations:
-///
-///     // request1 and request2 are equivalent
-///     let request1 = Book
-///         .including(required: Book.author)
-///     let request2 = Book
-///         .including(required: Book.author)
-///         .including(required: Book.author)
-///
-///     // request3 and request4 are equivalent
-///     let request3 = Book
-///         .including(required: Book.author.filter(condition1 && condition2))
-///     let request4 = Book
-///         .joining(required: Book.author.filter(condition1))
-///         .including(optional: Book.author.filter(condition2))
-enum SQLAssociationCondition: Equatable {
+enum SQLAssociationCondition {
     /// Condition based on a foreign key
     ///
     /// originIsLeft is true if the table at the origin of the foreign key is on
@@ -551,6 +527,7 @@ enum SQLAssociationCondition: Equatable {
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
+    #warning("TODO: doc")
     case promise((TableAlias, TableAlias) -> SQLExpression)
     
     var reversed: SQLAssociationCondition {
@@ -559,16 +536,6 @@ enum SQLAssociationCondition: Equatable {
             return .foreignKey(request: request, originIsLeft: !originIsLeft)
         case let .promise(condition):
             return .promise { condition($1, $0) }
-        }
-    }
-    
-    static func == (lhs: SQLAssociationCondition, rhs: SQLAssociationCondition) -> Bool {
-        switch (lhs, rhs) {
-        case let (.foreignKey(lr, lo), .foreignKey(rr, ro)):
-            return lr == rr && lo == ro
-        default:
-            #warning("TODO: do we need equality for promise?")
-            return false
         }
     }
 }
@@ -776,6 +743,32 @@ extension SQLSource {
                 }
                 return .table(tableName: tableName, alias: mergedAlias)
             }
+        case let (.commonTableExpression(alias), .commonTableExpression(otherAlias)):
+            guard let mergedAlias = alias.merged(with: otherAlias) else {
+                // can't merge
+                return nil
+            }
+            return .commonTableExpression(mergedAlias)
+        default:
+            // can't merge
+            return nil
+        }
+    }
+}
+
+extension SQLAssociationCondition {
+    func merged(with other: SQLAssociationCondition) -> Self? {
+        switch (self, other) {
+        case let (.foreignKey(lr, lo), .foreignKey(rr, ro)):
+            if lr == rr && lo == ro {
+                return self
+            } else {
+                // can't merge
+                return nil
+            }
+        case let (.promise, .promise(rhs)):
+            // Can't compare functions: the last one wins
+            return .promise(rhs)
         default:
             // can't merge
             return nil
@@ -786,7 +779,7 @@ extension SQLSource {
 extension SQLRelation.Child {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
     func merged(with other: SQLRelation.Child) -> Self? {
-        guard condition == other.condition else {
+        guard let mergedCondition = condition.merged(with: other.condition) else {
             // can't merge
             return nil
         }
@@ -803,7 +796,7 @@ extension SQLRelation.Child {
         
         return SQLRelation.Child(
             kind: mergedKind,
-            condition: condition,
+            condition: mergedCondition,
             relation: mergedRelation)
     }
 }
