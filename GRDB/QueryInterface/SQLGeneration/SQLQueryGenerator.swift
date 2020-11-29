@@ -6,7 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
-    private let ctes: OrderedDictionary<TableAlias, SQLCTE>
+    private let ctes: OrderedDictionary<TableAlias, SQLQualifiedCTE>
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -61,10 +61,33 @@ struct SQLQueryGenerator: Refinable {
         isDistinct = query.isDistinct
         self.singleResult = singleResult
         prefetchedAssociations = query.relation.prefetchedAssociations
-        ctes = query.ctes
+        ctes = query.ctes.mapValues { cte in
+            switch cte {
+            case let .literal(literal): return .literal(literal)
+            case let .query(query): return .query(SQLQueryGenerator(query: query))
+            }
+        }
     }
     
     func requestSQL(_ context: SQLGenerationContext) throws -> String {
+        #warning("TODO: cleanup CTE names in SQL")
+        for (alias, cte) in ctes {
+            switch cte {
+            case .literal: break
+            case let .query(generator):
+                // Slightly confusing code here:
+                // - We don't set a table name: we set a default base name for
+                //   alias disambiguation, so that user can provide an
+                //   anonymous TableAlias.
+                // - We shouldn't use source table name, but the CTE key (we
+                //   will need keys for joins).
+                // So this is all just temporary code.
+                if let sourceAlias = generator.relation.source.alias {
+                    alias.setTableName(sourceAlias.tableName)
+                }
+            }
+        }
+        
         // Build an SQL generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
@@ -81,11 +104,11 @@ struct SQLQueryGenerator: Refinable {
                     switch cte {
                     case let .literal(literal):
                         cteSQL = try literal.sql(context)
-                    case let .query(query):
+                    case let .query(generator):
                         let cteContext = SQLGenerationContext(parent: context)
-                        cteSQL = try SQLQueryGenerator(query: query).requestSQL(cteContext)
+                        cteSQL = try generator.requestSQL(cteContext)
                     }
-                    return "\(context.resolvedName(for: alias)) AS (\(cteSQL))"
+                    return "\(context.resolvedName(for: alias).quotedDatabaseIdentifier) AS (\(cteSQL))"
                 }
                 .joined(separator: ", ")
             sql += " "
@@ -849,6 +872,11 @@ private struct SQLQualifiedJoin: Refinable {
         
         return sql
     }
+}
+
+private enum SQLQualifiedCTE {
+    case literal(SQLLiteral)
+    case query(SQLQueryGenerator)
 }
 
 // MARK: - SQLExpressionIsConstantInRequest
