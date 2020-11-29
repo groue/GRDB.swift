@@ -585,6 +585,34 @@ extension JoinableRequest {
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         _joining(required: association._sqlAssociation)
     }
+    
+    #warning("TODO: doc")
+    public func including(optional cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
+        _including(optional: association(to: cte, on: condition))
+    }
+    
+    #warning("TODO: doc")
+    public func including(required cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
+        _including(required: association(to: cte, on: condition))
+    }
+    
+    #warning("TODO: doc")
+    public func joining(optional cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
+        _joining(optional: association(to: cte, on: condition))
+    }
+    
+    #warning("TODO: doc")
+    public func joining(required cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
+        _joining(required: association(to: cte, on: condition))
+    }
+    
+    private func association(to cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> _SQLAssociation {
+        _SQLAssociation(
+            key: .inflected(cte.key),
+            condition: .promise(condition),
+            relation: cte.relationForAll,
+            cardinality: .toOne)
+    }
 }
 
 // MARK: - DerivableRequest

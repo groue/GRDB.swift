@@ -8,6 +8,12 @@ public struct CommonTableExpression {
     var key: String
     var alias: TableAlias
     var request: Request
+    
+    var relationForAll: SQLRelation {
+        SQLRelation(
+            source: .commonTableExpression(alias),
+            selectionPromise: DatabasePromise(value: [AllColumns()]))
+    }
 }
 
 extension CommonTableExpression: Refinable {

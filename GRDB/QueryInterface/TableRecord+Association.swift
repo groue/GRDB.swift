@@ -487,6 +487,11 @@ extension TableRecord where Self: EncodableRecord {
         where A.OriginRowDecoder == Self
     {
         switch association._sqlAssociation.pivot.condition {
+        case .promise:
+            // Likely a GRDB bug: such condition only exist for CTEs, for which
+            // no public method builds an Association.
+            fatalError("Not implemented: request association without any foreign key")
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             let destinationRelation = association
                 ._sqlAssociation

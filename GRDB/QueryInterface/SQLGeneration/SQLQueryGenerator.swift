@@ -68,7 +68,13 @@ struct SQLQueryGenerator: Refinable {
         // Build an SQL generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
-        let aliases = relation.allAliases + ctes.values.map(\.alias)
+        var aliases = relation.allAliases
+        for alias in ctes.values.map(\.alias) {
+            // CTE alias is already in relation's if it is joined.
+            if aliases.contains(where: { $0 === alias }) == false {
+                aliases.append(alias)
+            }
+        }
         let context = SQLGenerationContext(parent: context, aliases: aliases)
         
         var sql = ""
@@ -707,6 +713,7 @@ extension SQLQualifiedRelation: Refinable { }
 /// A "qualified" source, where all tables are identified with a table alias.
 private enum SQLQualifiedSource {
     case table(tableName: String, alias: TableAlias)
+    case commonTableExpression(TableAlias)
     indirect case subquery(SQLQueryGenerator)
     
     /// Nil for subquery sources.
@@ -723,6 +730,8 @@ private enum SQLQualifiedSource {
         switch self {
         case let .table(_, alias):
             return alias
+        case let .commonTableExpression(alias):
+            return alias
         case .subquery:
             return nil
         }
@@ -733,7 +742,9 @@ private enum SQLQualifiedSource {
         case let .table(tableName, alias):
             let alias = alias ?? TableAlias(tableName: tableName)
             self = .table(tableName: tableName, alias: alias)
-        case let .subquery(subquery):
+        case let .commonTableExpression(alias):
+            self = .commonTableExpression(alias)
+       case let .subquery(subquery):
             self = .subquery(SQLQueryGenerator(query: subquery))
         }
     }
@@ -746,6 +757,8 @@ private enum SQLQualifiedSource {
             } else {
                 return "\(tableName.quotedDatabaseIdentifier)"
             }
+        case let .commonTableExpression(alias):
+            return context.resolvedName(for: alias).quotedDatabaseIdentifier
         case let .subquery(generator):
             let sql = try generator.requestSQL(context)
             return "(\(sql))"
@@ -828,6 +841,9 @@ private struct SQLQualifiedJoin: Refinable {
         // ... ON <join conditions> AND <other filters>
         var joinExpressions: [SQLExpression]
         switch condition {
+        case let .promise(condition):
+            joinExpressions = [condition(leftAlias, rightAlias)]
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             joinExpressions = try foreignKeyRequest
                 .fetchForeignKeyMapping(context.db)

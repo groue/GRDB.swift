@@ -393,6 +393,7 @@ extension SQLRelation: _JoinableRequest {
 
 enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
+    case commonTableExpression(TableAlias)
     indirect case subquery(SQLQuery)
     
     func qualified(with alias: TableAlias) -> SQLSource {
@@ -405,6 +406,9 @@ enum SQLSource {
                 alias.setTableName(tableName)
                 return .table(tableName: tableName, alias: alias)
             }
+        case let .commonTableExpression(sourceAlias):
+            alias.becomeProxy(of: sourceAlias)
+            return self
         case .subquery:
             return self
         }
@@ -547,10 +551,24 @@ enum SQLAssociationCondition: Equatable {
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
+    case promise((TableAlias, TableAlias) -> SQLExpression)
+    
     var reversed: SQLAssociationCondition {
         switch self {
         case let .foreignKey(request: request, originIsLeft: originIsLeft):
             return .foreignKey(request: request, originIsLeft: !originIsLeft)
+        case let .promise(condition):
+            return .promise { condition($1, $0) }
+        }
+    }
+    
+    static func == (lhs: SQLAssociationCondition, rhs: SQLAssociationCondition) -> Bool {
+        switch (lhs, rhs) {
+        case let (.foreignKey(lr, lo), .foreignKey(rr, ro)):
+            return lr == rr && lo == ro
+        default:
+            #warning("TODO: do we need equality for promise?")
+            return false
         }
     }
 }

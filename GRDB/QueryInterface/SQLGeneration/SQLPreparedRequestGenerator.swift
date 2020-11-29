@@ -144,6 +144,11 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
     // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
     for association in associations {
         switch association.pivot.condition {
+        case .promise:
+            // Likely a GRDB bug: such condition only exist for CTEs, which
+            // are not prefetched.
+            fatalError("Not implemented: prefetch association without any foreign key")
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             // Annotate prefetched rows with pivot columns, so that we can
             // group them.
@@ -204,6 +209,11 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
     try associations.reduce(into: DatabaseRegion()) { (region, association) in
         // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
         switch association.pivot.condition {
+        case .promise:
+            // Likely a GRDB bug: such condition only exist for CTEs, which
+            // are not prefetched.
+            fatalError("Not implemented: prefetch association without any foreign key")
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             // Filter the pivot on a `NullRow` in order to make sure all join
             // condition columns are made visible to SQLite, and present in the

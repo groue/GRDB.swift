@@ -273,6 +273,9 @@ extension QueryInterfaceRequest: TableRequest {
             //      request.filter(keys: ...)
             //      request.orderByPrimaryKey()
             return tableName
+        case .commonTableExpression:
+            #warning("TODO: is this ok?")
+            fatalError("Request is not based on a database table")
         case .subquery:
             // The only current use case for SQLSource.query is the
             // "trivial count query" (see SQLQuery.countQuery):
