@@ -83,15 +83,8 @@ struct SQLQueryGenerator: Refinable {
             sql += "WITH "
             sql += try ctes
                 .map { (_, cte) in
-                    let cteSQL: String
-                    switch cte.request {
-                    case let .literal(literal):
-                        cteSQL = try literal.sql(context)
-                    case let .query(query):
-                        let cteContext = SQLGenerationContext(parent: context)
-                        let generator = SQLQueryGenerator(query: query)
-                        cteSQL = try generator.requestSQL(cteContext)
-                    }
+                    let cteContext = SQLGenerationContext(parent: context)
+                    let cteSQL = try cte.request.requestSQL(cteContext, forSingleResult: false)
                     return "\(context.resolvedName(for: cte.alias).quotedDatabaseIdentifier) AS (\(cteSQL))"
                 }
                 .joined(separator: ", ")
