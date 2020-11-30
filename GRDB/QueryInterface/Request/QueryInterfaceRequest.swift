@@ -337,8 +337,17 @@ extension QueryInterfaceRequest {
     }
     
     #warning("TODO: doc")
-    public func with(_ cte: CommonTableExpression) -> Self {
-        map(\.query) { $0.with(\.ctes[cte.tableName], cte.request) }
+    public func with(_ ctes: CommonTableExpression...) -> Self {
+        with(ctes)
+    }
+    
+    #warning("TODO: doc")
+    public func with(_ ctes: [CommonTableExpression]) -> Self {
+        mapInto(\.query.ctes) {
+            for cte in ctes {
+                $0[cte.tableName] = cte.request
+            }
+        }
     }
     
     /// Creates a request bound to type RowDecoder.

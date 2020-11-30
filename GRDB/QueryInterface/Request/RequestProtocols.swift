@@ -586,7 +586,7 @@ extension JoinableRequest {
         _joining(required: association._sqlAssociation)
     }
     
-    #warning("TODO: Do we need to be able to build a real association? With a default key? With a foreign key?")
+    #warning("TODO: remove?")
     #warning("TODO: doc")
     public func including(
         optional cte: CommonTableExpression,
@@ -597,6 +597,7 @@ extension JoinableRequest {
         _including(optional: association(to: cte, forKey: key, on: condition))
     }
     
+    #warning("TODO: remove?")
     #warning("TODO: doc")
     public func including(
         required cte: CommonTableExpression,
@@ -607,6 +608,7 @@ extension JoinableRequest {
         _including(required: association(to: cte, forKey: key, on: condition))
     }
     
+    #warning("TODO: remove?")
     #warning("TODO: doc")
     public func joining(
         optional cte: CommonTableExpression,
@@ -617,6 +619,7 @@ extension JoinableRequest {
         _joining(optional: association(to: cte, forKey: key, on: condition))
     }
     
+    #warning("TODO: remove?")
     #warning("TODO: doc")
     public func joining(
         required cte: CommonTableExpression,
@@ -627,6 +630,7 @@ extension JoinableRequest {
         _joining(required: association(to: cte, forKey: key, on: condition))
     }
     
+    #warning("TODO: remove?")
     private func association(
         to cte: CommonTableExpression,
         forKey key: String,

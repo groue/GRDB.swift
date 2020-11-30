@@ -357,6 +357,19 @@ extension TableRecord {
             return association
         }
     }
+    
+    #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
+    #warning("TODO: doc")
+    public static func association(
+        to cte: CommonTableExpression,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
+    -> JoinAssociation<Self, Void>
+    {
+        JoinAssociation(
+            key: .inflected(cte.tableName),
+            condition: .promise(condition),
+            relation: cte.relationForAll)
+    }
 }
 
 /// A ForeignKey helps building associations when GRDB can't infer a foreign

@@ -13,6 +13,33 @@ public struct CommonTableExpression {
     public func all() -> QueryInterfaceRequest<Void> {
         QueryInterfaceRequest(relation: relationForAll)
     }
+    
+    #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
+    #warning("TODO: doc")
+    public func association(
+        to cte: CommonTableExpression,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
+    -> JoinAssociation<Void, Void>
+    {
+        JoinAssociation(
+            key: .inflected(cte.tableName),
+            condition: .promise(condition),
+            relation: cte.relationForAll)
+    }
+    
+    #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
+    #warning("TODO: doc")
+    public func association<Destination>(
+        to destination: Destination.Type,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
+    -> JoinAssociation<Void, Void>
+    where Destination: TableRecord
+    {
+        JoinAssociation(
+            key: .inflected(Destination.databaseTableName),
+            condition: .promise(condition),
+            relation: Destination.relationForAll)
+    }
 }
 
 extension _FetchRequest {
