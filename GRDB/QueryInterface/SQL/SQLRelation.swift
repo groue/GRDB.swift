@@ -524,7 +524,7 @@ enum SQLAssociationCondition {
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
     #warning("TODO: doc")
-    case promise((TableAlias, TableAlias) -> SQLExpression)
+    case promise((TableAlias, TableAlias) -> SQLExpressible)
     
     var reversed: SQLAssociationCondition {
         switch self {

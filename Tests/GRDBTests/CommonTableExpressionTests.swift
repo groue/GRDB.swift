@@ -48,6 +48,21 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
+            // Include SQL request as a CTE
+            do {
+                let cte = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
+                    .commonTableExpression(tableName: "cte")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: cte, forKey: "ignored", on: { (_, _) in true })
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte"
+                    """)
+            }
+            
             // Join query interface request as a CTE
             do {
                 let cte = T.all()

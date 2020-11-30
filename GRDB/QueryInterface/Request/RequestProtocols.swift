@@ -590,7 +590,7 @@ extension JoinableRequest {
     public func including(
         optional cte: CommonTableExpression,
         forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
     -> Self
     {
         _including(optional: association(to: cte, forKey: key, on: condition))
@@ -600,7 +600,7 @@ extension JoinableRequest {
     public func including(
         required cte: CommonTableExpression,
         forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
     -> Self
     {
         _including(required: association(to: cte, forKey: key, on: condition))
@@ -610,7 +610,7 @@ extension JoinableRequest {
     public func joining(
         optional cte: CommonTableExpression,
         forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
     -> Self
     {
         _joining(optional: association(to: cte, forKey: key, on: condition))
@@ -620,7 +620,7 @@ extension JoinableRequest {
     public func joining(
         required cte: CommonTableExpression,
         forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
     -> Self
     {
         _joining(required: association(to: cte, forKey: key, on: condition))
@@ -629,7 +629,7 @@ extension JoinableRequest {
     private func association(
         to cte: CommonTableExpression,
         forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
     -> _SQLAssociation
     {
         _SQLAssociation(
