@@ -167,8 +167,3 @@ struct SQLLimit {
         }
     }
 }
-
-enum SQLCTE {
-    case query(SQLQuery)
-    case literal(SQLLiteral)
-}

@@ -868,11 +868,6 @@ private struct SQLQualifiedJoin: Refinable {
     }
 }
 
-private enum SQLQualifiedCTE {
-    case literal(SQLLiteral)
-    case query(SQLQueryGenerator)
-}
-
 // MARK: - SQLExpressionIsConstantInRequest
 
 extension SQLExpression {
