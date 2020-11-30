@@ -6,7 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
-    private let ctes: OrderedDictionary<String, CommonTableExpression>
+    private let ctes: OrderedDictionary<String /* CTE table name */, _FetchRequest>
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -68,24 +68,17 @@ struct SQLQueryGenerator: Refinable {
         // Build an SQL generation context with all aliases found in the query,
         // so that we can disambiguate tables that are used several times with
         // SQL aliases.
-        var aliases = relation.allAliases
-        for alias in ctes.values.map(\.alias) {
-            // CTE alias is already in relation's if it is joined.
-            if aliases.contains(where: { $0 === alias }) == false {
-                aliases.append(alias)
-            }
-        }
-        let context = SQLGenerationContext(parent: context, aliases: aliases)
+        let context = SQLGenerationContext(parent: context, aliases: relation.allAliases)
         
         var sql = ""
         
         if !ctes.isEmpty {
             sql += "WITH "
             sql += try ctes
-                .map { (_, cte) in
+                .map { (tableName, request) in
                     let cteContext = SQLGenerationContext(parent: context)
-                    let cteSQL = try cte.request.requestSQL(cteContext, forSingleResult: false)
-                    return "\(context.resolvedName(for: cte.alias).quotedDatabaseIdentifier) AS (\(cteSQL))"
+                    let cteSQL = try request.requestSQL(cteContext, forSingleResult: false)
+                    return "\(tableName.quotedDatabaseIdentifier) AS (\(cteSQL))"
                 }
                 .joined(separator: ", ")
             sql += " "
@@ -735,9 +728,7 @@ private enum SQLQualifiedSource {
         case let .table(tableName, alias):
             let alias = alias ?? TableAlias(tableName: tableName)
             self = .table(tableName: tableName, alias: alias)
-        case let .commonTableExpression(alias):
-            self = .commonTableExpression(alias)
-       case let .subquery(subquery):
+        case let .subquery(subquery):
             self = .subquery(SQLQueryGenerator(query: subquery))
         }
     }

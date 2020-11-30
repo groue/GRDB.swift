@@ -587,28 +587,53 @@ extension JoinableRequest {
     }
     
     #warning("TODO: doc")
-    public func including(optional cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
-        _including(optional: association(to: cte, on: condition))
+    public func including(
+        optional cte: CommonTableExpression,
+        forKey key: String,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+    -> Self
+    {
+        _including(optional: association(to: cte, forKey: key, on: condition))
     }
     
     #warning("TODO: doc")
-    public func including(required cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
-        _including(required: association(to: cte, on: condition))
+    public func including(
+        required cte: CommonTableExpression,
+        forKey key: String,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+    -> Self
+    {
+        _including(required: association(to: cte, forKey: key, on: condition))
     }
     
     #warning("TODO: doc")
-    public func joining(optional cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
-        _joining(optional: association(to: cte, on: condition))
+    public func joining(
+        optional cte: CommonTableExpression,
+        forKey key: String,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+    -> Self
+    {
+        _joining(optional: association(to: cte, forKey: key, on: condition))
     }
     
     #warning("TODO: doc")
-    public func joining(required cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> Self {
-        _joining(required: association(to: cte, on: condition))
+    public func joining(
+        required cte: CommonTableExpression,
+        forKey key: String,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+    -> Self
+    {
+        _joining(required: association(to: cte, forKey: key, on: condition))
     }
     
-    private func association(to cte: CommonTableExpression, on condition: @escaping (TableAlias, TableAlias) -> SQLExpression) -> _SQLAssociation {
+    private func association(
+        to cte: CommonTableExpression,
+        forKey key: String,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpression)
+    -> _SQLAssociation
+    {
         _SQLAssociation(
-            key: .inflected(cte.key),
+            key: .fixedSingular(key),
             condition: .promise(condition),
             relation: cte.relationForAll,
             cardinality: .toOne)

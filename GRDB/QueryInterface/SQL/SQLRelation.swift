@@ -393,7 +393,6 @@ extension SQLRelation: _JoinableRequest {
 
 enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
-    case commonTableExpression(TableAlias)
     indirect case subquery(SQLQuery)
     
     func qualified(with alias: TableAlias) -> SQLSource {
@@ -406,9 +405,6 @@ enum SQLSource {
                 alias.setTableName(tableName)
                 return .table(tableName: tableName, alias: alias)
             }
-        case let .commonTableExpression(sourceAlias):
-            alias.becomeProxy(of: sourceAlias)
-            return self
         case .subquery:
             return self
         }
@@ -743,12 +739,6 @@ extension SQLSource {
                 }
                 return .table(tableName: tableName, alias: mergedAlias)
             }
-        case let (.commonTableExpression(alias), .commonTableExpression(otherAlias)):
-            guard let mergedAlias = alias.merged(with: otherAlias) else {
-                // can't merge
-                return nil
-            }
-            return .commonTableExpression(mergedAlias)
         default:
             // can't merge
             return nil

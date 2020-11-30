@@ -1,71 +1,75 @@
 #warning("TODO: doc")
 public struct CommonTableExpression {
-    var key: String
-    var alias: TableAlias
+    var tableName: String
     var request: _FetchRequest
     
     var relationForAll: SQLRelation {
         SQLRelation(
-            source: .commonTableExpression(alias),
-            selectionPromise: DatabasePromise(value: [AllColumns()]))
+            source: .table(tableName: tableName, alias: nil),
+            selectionPromise: DatabasePromise(value: [_AllCTEColumns(request: request, alias: nil)]))
     }
-}
-
-extension CommonTableExpression: Refinable {
+    
     #warning("TODO: doc")
-    public func forKey(_ key: String) -> Self {
-        with(\.key, key)
-    }
-
-    #warning("TODO: doc")
-    public func aliased(_ alias: TableAlias) -> Self {
-        alias.becomeProxy(of: self.alias)
-        return self
-    }
-}
-
-extension CommonTableExpression {
-    /// Returns a qualified value that is able to resolve ambiguities in
-    /// joined queries.
-    public subscript(_ selectable: SQLSelectable) -> SQLSelectable {
-        selectable._qualifiedSelectable(with: alias)
-    }
-
-    /// Returns a qualified expression that is able to resolve ambiguities in
-    /// joined queries.
-    public subscript(_ expression: SQLExpression) -> SQLExpression {
-        expression._qualifiedExpression(with: alias)
-    }
-
-    /// Returns a qualified ordering that is able to resolve ambiguities in
-    /// joined queries.
-    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrderingTerm {
-        ordering._qualifiedOrdering(with: alias)
-    }
-
-    /// Returns a qualified columnn that is able to resolve ambiguities in
-    /// joined queries.
-    public subscript(_ column: String) -> SQLExpression {
-        Column(column)._qualifiedExpression(with: alias)
-    }
-}
-
-extension QueryInterfaceRequest {
-    #warning("TODO: doc")
-    public func commonTableExpression() -> CommonTableExpression {
-        CommonTableExpression(
-            key: databaseTableName,
-            alias: TableAlias(tableName: databaseTableName), // Confusing. Should be a "baseName"
-            request: self)
+    public func all() -> QueryInterfaceRequest<Void> {
+        QueryInterfaceRequest(relation: relationForAll)
     }
 }
 
 extension _FetchRequest {
     #warning("TODO: doc")
-    public func commonTableExpression(key: String) -> CommonTableExpression {
+    public func commonTableExpression(tableName: String) -> CommonTableExpression {
         CommonTableExpression(
-            key: key,
-            alias: TableAlias(tableName: key), // Confusing. Should be a "baseName"
+            tableName: tableName,
             request: self)
+    }
+}
+
+// MARK: - _AllCTEColumns
+
+/// :nodoc:
+public struct _AllCTEColumns {
+    var request: _FetchRequest
+    var alias: TableAlias?
+}
+
+extension _AllCTEColumns: SQLSelectable, Refinable {
+    /// :nodoc:
+    public func _count(distinct: Bool) -> _SQLCount? {
+        // SELECT DISTINCT * FROM tableName ...
+        if distinct {
+            // Can't count
+            return nil
+        }
+        
+        // SELECT * FROM tableName ...
+        // ->
+        // SELECT COUNT(*) FROM tableName ...
+        return .all
+    }
+    
+    /// :nodoc:
+    public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
+        // Never requalify
+        if self.alias != nil {
+            return self
+        }
+        return with(\.alias, alias)
+    }
+    
+    /// :nodoc:
+    public func _columnCount(_ db: Database) throws -> Int {
+        let context = SQLGenerationContext(db)
+        let sql = try request.requestSQL(context, forSingleResult: false)
+        let statement = try db.makeSelectStatement(sql: sql)
+        return statement.columnCount
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor: _SQLSelectableVisitor>(_ visitor: inout Visitor) throws {
+        if let alias = alias {
+            return try _SQLQualifiedAllColumns(alias: alias)._accept(&visitor)
+        } else {
+            return try AllColumns()._accept(&visitor)
+        }
     }
 }
