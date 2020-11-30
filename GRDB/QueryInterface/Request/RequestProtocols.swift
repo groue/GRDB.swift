@@ -549,7 +549,7 @@ public protocol JoinableRequest: _JoinableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype RowDecoder: TableRecord
+    associatedtype RowDecoder
 }
 
 extension JoinableRequest {
@@ -586,6 +586,7 @@ extension JoinableRequest {
         _joining(required: association._sqlAssociation)
     }
     
+    #warning("TODO: Do we need to be able to build a real association? With a default key? With a foreign key?")
     #warning("TODO: doc")
     public func including(
         optional cte: CommonTableExpression,

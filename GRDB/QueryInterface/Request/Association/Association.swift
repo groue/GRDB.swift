@@ -25,7 +25,7 @@ public protocol Association: _Association, DerivableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype OriginRowDecoder: TableRecord
+    associatedtype OriginRowDecoder
     
     /// Creates an association with the given key.
     ///
@@ -292,7 +292,30 @@ extension Association {
 // TableRequest
 extension Association {
     /// :nodoc:
-    public var databaseTableName: String { RowDecoder.databaseTableName }
+    public var databaseTableName: String {
+        switch _sqlAssociation.destination.relation.source {
+        case .table(tableName: let tableName, alias: _):
+            // Use case:
+            //
+            //      let request = Player.all()
+            //      request.filter(key: ...)
+            //      request.filter(keys: ...)
+            //      request.orderByPrimaryKey()
+            return tableName
+        case .subquery:
+            // The only current use case for SQLSource.query is the
+            // "trivial count query" (see SQLQuery.countQuery):
+            //
+            //      // SELECT COUNT(*) FROM (SELECT * FROM player LIMIT 10)
+            //      let request = Player.limit(10)
+            //      let count = try request.fetchCount(db)
+            //
+            // This query is currently never wrapped in a QueryInterfaceRequest
+            // So this fatal error can not currently happen.
+            fatalError("Request is not based on a database table")
+        }
+    }
+
 }
 
 // MARK: - AssociationToOne
