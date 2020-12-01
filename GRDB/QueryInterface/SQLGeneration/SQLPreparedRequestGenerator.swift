@@ -144,7 +144,7 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
     // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
     for association in associations {
         switch association.pivot.condition {
-        case .promise:
+        case .expression:
             // Likely a GRDB bug: such condition only exist for CTEs, which
             // are not prefetched.
             fatalError("Not implemented: prefetch association without any foreign key")
@@ -209,7 +209,7 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
     try associations.reduce(into: DatabaseRegion()) { (region, association) in
         // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
         switch association.pivot.condition {
-        case .promise:
+        case .expression:
             // Likely a GRDB bug: such condition only exist for CTEs, which
             // are not prefetched.
             fatalError("Not implemented: prefetch association without any foreign key")

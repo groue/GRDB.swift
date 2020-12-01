@@ -524,14 +524,14 @@ enum SQLAssociationCondition {
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
     #warning("TODO: doc")
-    case promise((TableAlias, TableAlias) -> SQLExpressible)
+    case expression((TableAlias, TableAlias) -> SQLExpressible)
     
     var reversed: SQLAssociationCondition {
         switch self {
         case let .foreignKey(request: request, originIsLeft: originIsLeft):
             return .foreignKey(request: request, originIsLeft: !originIsLeft)
-        case let .promise(condition):
-            return .promise { condition($1, $0) }
+        case let .expression(condition):
+            return .expression { condition($1, $0) }
         }
     }
 }
@@ -756,9 +756,9 @@ extension SQLAssociationCondition {
                 // can't merge
                 return nil
             }
-        case let (.promise, .promise(rhs)):
+        case let (.expression, .expression(rhs)):
             // Can't compare functions: the last one wins
-            return .promise(rhs)
+            return .expression(rhs)
         default:
             // can't merge
             return nil

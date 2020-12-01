@@ -25,7 +25,7 @@ extension CommonTableExpression {
     {
         JoinAssociation(
             key: .inflected(tableName),
-            condition: .promise(condition),
+            condition: .expression(condition),
             relation: relationForAll)
     }
     
@@ -47,7 +47,7 @@ extension CommonTableExpression {
     {
         JoinAssociation(
             key: .inflected(cte.tableName),
-            condition: .promise(condition),
+            condition: .expression(condition),
             relation: cte.relationForAll)
     }
     
@@ -61,7 +61,7 @@ extension CommonTableExpression {
     {
         JoinAssociation(
             key: .inflected(Destination.databaseTableName),
-            condition: .promise(condition),
+            condition: .expression(condition),
             relation: Destination.relationForAll)
     }
 }
