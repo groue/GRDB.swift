@@ -295,12 +295,6 @@ extension Association {
     public var databaseTableName: String {
         switch _sqlAssociation.destination.relation.source {
         case .table(tableName: let tableName, alias: _):
-            // Use case:
-            //
-            //      let request = Player.all()
-            //      request.filter(key: ...)
-            //      request.filter(keys: ...)
-            //      request.orderByPrimaryKey()
             return tableName
         case .subquery:
             // The only current use case for SQLSource.query is the
