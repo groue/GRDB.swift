@@ -29,6 +29,15 @@ extension CommonTableExpression {
             relation: relationForAll)
     }
     
+    #warning("TODO: doc")
+    public func association<T>(from: T.Type = T.self, using columns: Column...)
+    -> JoinAssociation<T, Void>
+    {
+        association(from: T.self, on: { (left, right) -> SQLExpressible in
+            columns.map { left[$0] == right[$0] }.joined(operator: .and)
+        })
+    }
+    
     #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
     #warning("TODO: doc")
     public func association(

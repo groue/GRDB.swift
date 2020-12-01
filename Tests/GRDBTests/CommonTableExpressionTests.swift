@@ -48,13 +48,43 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
-            // Include SQL request as a CTE
+            // Include SQL request as a CTE (true ON clause)
             do {
                 let cte = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
                     .including(required: cte.association(on: { (_, _) in true }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte"
+                    """)
+            }
+            
+            // Include SQL request as a CTE (USING clause)
+            do {
+                let cte = SQLRequest<Int>(literal: "SELECT \("O'Brien") AS id")
+                    .commonTableExpression(tableName: "cte")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: cte.association(using: Column("id")))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien' AS id) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            
+            // Include SQL request as a CTE (empty ON clause)
+            do {
+                let cte = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
+                    .commonTableExpression(tableName: "cte")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: cte.association())
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT 'O''Brien') \
                     SELECT "t".*, "cte".* \
