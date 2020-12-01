@@ -1,5 +1,5 @@
 #warning("TODO: doc")
-public struct CommonTableExpression {
+public struct CommonTableExpression<RowDecoder> {
     var tableName: String
     var request: _FetchRequest
 }
@@ -19,10 +19,10 @@ extension CommonTableExpression {
 
 extension TableRecord {
     #warning("TODO: doc")
-    public static func association(
-        to cte: CommonTableExpression,
+    public static func association<Destination>(
+        to cte: CommonTableExpression<Destination>,
         on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> JoinAssociation<Self, Void>
+    -> JoinAssociation<Self, Destination>
     {
         JoinAssociation(
             key: .inflected(cte.tableName),
@@ -31,10 +31,10 @@ extension TableRecord {
     }
     
     #warning("TODO: doc")
-    public static func association(
-        to cte: CommonTableExpression,
+    public static func association<Destination>(
+        to cte: CommonTableExpression<Destination>,
         using columns: Column...)
-    -> JoinAssociation<Self, Void>
+    -> JoinAssociation<Self, Destination>
     {
         association(to: cte, on: joinCondition(columns))
     }
@@ -42,10 +42,10 @@ extension TableRecord {
 
 extension CommonTableExpression {
     #warning("TODO: doc")
-    public func association(
-        to cte: CommonTableExpression,
+    public func association<Destination>(
+        to cte: CommonTableExpression<Destination>,
         on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> JoinAssociation<Void, Void>
+    -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
             key: .inflected(cte.tableName),
@@ -54,10 +54,10 @@ extension CommonTableExpression {
     }
     
     #warning("TODO: doc")
-    public func association(
-        to cte: CommonTableExpression,
+    public func association<Destination>(
+        to cte: CommonTableExpression<Destination>,
         using columns: Column...)
-    -> JoinAssociation<Void, Void>
+    -> JoinAssociation<RowDecoder, Destination>
     {
         association(to: cte, on: joinCondition(columns))
     }
@@ -66,7 +66,7 @@ extension CommonTableExpression {
     public func association<Destination>(
         to destination: Destination.Type,
         on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> JoinAssociation<Void, Destination>
+    -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
         JoinAssociation(
@@ -79,7 +79,7 @@ extension CommonTableExpression {
     public func association<Destination>(
         to destination: Destination.Type,
         using columns: Column...)
-    -> JoinAssociation<Void, Destination>
+    -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
         association(to: Destination.self, on: joinCondition(columns))
@@ -88,7 +88,7 @@ extension CommonTableExpression {
 
 extension _FetchRequest {
     #warning("TODO: doc")
-    public func commonTableExpression(tableName: String) -> CommonTableExpression {
+    public func commonTableExpression<RowDecoder>(tableName: String) -> CommonTableExpression<RowDecoder> {
         CommonTableExpression(
             tableName: tableName,
             request: self)
@@ -105,17 +105,8 @@ private func joinCondition(_ columns: [Column]) -> (TableAlias, TableAlias) -> S
 
 extension QueryInterfaceRequest {
     #warning("TODO: doc")
-    public func with(_ ctes: CommonTableExpression...) -> Self {
-        with(ctes)
-    }
-    
-    #warning("TODO: doc")
-    public func with(_ ctes: [CommonTableExpression]) -> Self {
-        mapInto(\.query.ctes) {
-            for cte in ctes {
-                $0[cte.tableName] = cte.request
-            }
-        }
+    public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
+        with(\.query.ctes[cte.tableName], cte.request)
     }
 }
 
