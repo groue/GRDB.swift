@@ -108,12 +108,6 @@ extension _FetchRequest {
     }
 }
 
-private func joinCondition(_ columns: [Column]) -> (TableAlias, TableAlias) -> SQLExpressible {
-    { (left, right) -> SQLExpressible in
-        columns.map { left[$0] == right[$0] }.joined(operator: .and)
-    }
-}
-
 // MARK: - QueryInterfaceRequest
 
 extension QueryInterfaceRequest {
