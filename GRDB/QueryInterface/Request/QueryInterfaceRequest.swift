@@ -336,20 +336,6 @@ extension QueryInterfaceRequest {
         map(\.query) { $0.limit(limit, offset: offset) }
     }
     
-    #warning("TODO: doc")
-    public func with(_ ctes: CommonTableExpression...) -> Self {
-        with(ctes)
-    }
-    
-    #warning("TODO: doc")
-    public func with(_ ctes: [CommonTableExpression]) -> Self {
-        mapInto(\.query.ctes) {
-            for cte in ctes {
-                $0[cte.tableName] = cte.request
-            }
-        }
-    }
-    
     /// Creates a request bound to type RowDecoder.
     ///
     /// The returned request can fetch if the type RowDecoder is fetchable (Row,

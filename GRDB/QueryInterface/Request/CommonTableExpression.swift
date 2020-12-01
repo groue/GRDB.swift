@@ -75,6 +75,24 @@ extension _FetchRequest {
     }
 }
 
+// MARK: - QueryInterfaceRequest
+
+extension QueryInterfaceRequest {
+    #warning("TODO: doc")
+    public func with(_ ctes: CommonTableExpression...) -> Self {
+        with(ctes)
+    }
+    
+    #warning("TODO: doc")
+    public func with(_ ctes: [CommonTableExpression]) -> Self {
+        mapInto(\.query.ctes) {
+            for cte in ctes {
+                $0[cte.tableName] = cte.request
+            }
+        }
+    }
+}
+
 // MARK: - _AllCTEColumns
 
 /// :nodoc:
