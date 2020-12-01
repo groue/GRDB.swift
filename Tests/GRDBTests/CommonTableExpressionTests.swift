@@ -39,7 +39,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(optional: cte, forKey: "ignored", on: { (left, right) in left["id"] > right["id"] })
+                    .including(optional: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT "t".*, "cte".* \
@@ -54,7 +54,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(required: cte, forKey: "ignored", on: { (_, _) in true })
+                    .including(required: T.association(to: cte, on: { (_, _) in true }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT 'O''Brien') \
                     SELECT "t".*, "cte".* \
@@ -69,19 +69,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .joining(required: cte, forKey: "ignored", on: { (left, right) in left["id"] > right["id"] })
-                try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT * FROM "t") \
-                    SELECT "t".* \
-                    FROM "t" \
-                    JOIN "cte" ON "t"."id" > "cte"."id"
-                    """)
-            }
-            do {
-                let cte = T.all()
-                    .commonTableExpression(tableName: "cte")
-                let request = T.all()
-                    .with(cte)
                     .joining(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
@@ -90,27 +77,13 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-
+            
             // Include one CTE twice with same key and condition
             do {
                 let cte = T.all()
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(required: cte, forKey: "ignored", on: { (left, right) in left["id"] > right["id"] })
-                    .including(required: cte, forKey: "ignored", on: { (left, right) in left["id"] > right["id"] })
-                try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT * FROM "t") \
-                    SELECT "t".*, "cte".* \
-                    FROM "t" \
-                    JOIN "cte" ON "t"."id" > "cte"."id"
-                    """)
-            }
-            do {
-                let cte = T.all()
-                    .commonTableExpression(tableName: "cte")
-                let request = T.all()
-                    .with(cte)
                     .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
                     .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
                 try assertEqualSQL(db, request, """
@@ -120,22 +93,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte" ON "t"."id" > "cte"."id"
                     """)
             }
-
+            
             // Include one CTE twice with same key but different condition (last condition wins)
-            do {
-                let cte = T.all()
-                    .commonTableExpression(tableName: "cte")
-                let request = T.all()
-                    .with(cte)
-                    .including(required: cte, forKey: "ignored", on: { (left, right) in left["id"] > right["id"] })
-                    .including(required: cte, forKey: "ignored", on: { (left, right) in left["id"] + right["id"] == 1 })
-                try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT * FROM "t") \
-                    SELECT "t".*, "cte".* \
-                    FROM "t" \
-                    JOIN "cte" ON ("t"."id" + "cte"."id") = 1
-                    """)
-            }
             do {
                 let cte = T.all()
                     .commonTableExpression(tableName: "cte")
@@ -157,21 +116,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(required: cte, forKey: "a", on: { (left, right) in left["id"] > right["id"] })
-                    .including(required: cte, forKey: "b", on: { (left, right) in left["id"] > right["id"] })
-                try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT * FROM "t") \
-                    SELECT "t".*, "cte1".*, "cte2".* \
-                    FROM "t" \
-                    JOIN "cte" "cte1" ON "t"."id" > "cte1"."id" \
-                    JOIN "cte" "cte2" ON "t"."id" > "cte2"."id"
-                    """)
-            }
-            do {
-                let cte = T.all()
-                    .commonTableExpression(tableName: "cte")
-                let request = T.all()
-                    .with(cte)
                     .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }).forKey("a"))
                     .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }).forKey("b"))
                 try assertEqualSQL(db, request, """
@@ -183,7 +127,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
-            // Include two CTEs
+            // Chain CTE includes
             do {
                 let cte1 = T.all().commonTableExpression(tableName: "cte1")
                 let cte2 = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
@@ -204,8 +148,10 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "cte2" \
                     JOIN "t" "t2"
                     """)
-           }
-
+            }
+            
+            // TODO: include filtered CTE
+            
             // Use CTE as a subquery
             do {
                 let cte = T.all()
@@ -216,6 +162,20 @@ class CommonTableExpressionTests: GRDBTestCase {
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT *, (SELECT * FROM "cte") FROM "t"
+                    """)
+            }
+            
+            // Use filtered CTE as a subquery
+            do {
+                let cte = T.all()
+                    .commonTableExpression(tableName: "cte")
+                let request = T.all()
+                    .with(cte)
+                    .annotated(with: cte.all().filter(Column("id") > 1))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT *, (SELECT * FROM "cte" WHERE "id" > 1) \
+                    FROM "t"
                     """)
             }
         }

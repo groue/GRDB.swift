@@ -585,64 +585,6 @@ extension JoinableRequest {
     public func joining<A: Association>(required association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         _joining(required: association._sqlAssociation)
     }
-    
-    #warning("TODO: remove?")
-    #warning("TODO: doc")
-    public func including(
-        optional cte: CommonTableExpression,
-        forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> Self
-    {
-        _including(optional: association(to: cte, forKey: key, on: condition))
-    }
-    
-    #warning("TODO: remove?")
-    #warning("TODO: doc")
-    public func including(
-        required cte: CommonTableExpression,
-        forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> Self
-    {
-        _including(required: association(to: cte, forKey: key, on: condition))
-    }
-    
-    #warning("TODO: remove?")
-    #warning("TODO: doc")
-    public func joining(
-        optional cte: CommonTableExpression,
-        forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> Self
-    {
-        _joining(optional: association(to: cte, forKey: key, on: condition))
-    }
-    
-    #warning("TODO: remove?")
-    #warning("TODO: doc")
-    public func joining(
-        required cte: CommonTableExpression,
-        forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> Self
-    {
-        _joining(required: association(to: cte, forKey: key, on: condition))
-    }
-    
-    #warning("TODO: remove?")
-    private func association(
-        to cte: CommonTableExpression,
-        forKey key: String,
-        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> _SQLAssociation
-    {
-        _SQLAssociation(
-            key: .fixedSingular(key),
-            condition: .promise(condition),
-            relation: cte.relationForAll,
-            cardinality: .toOne)
-    }
 }
 
 // MARK: - DerivableRequest
