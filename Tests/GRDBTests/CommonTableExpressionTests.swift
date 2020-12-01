@@ -12,8 +12,8 @@ class CommonTableExpressionTests: GRDBTestCase {
             // Just add a WITH clause: query interface request
             do {
                 enum CTE { }
-                let cte: CommonTableExpression<CTE> = T.all()
-                    .commonTableExpression(tableName: "cte")
+                let cte = T.all()
+                    .commonTableExpression(tableName: "cte", type: CTE.self)
                 let request = T.all()
                     .with(cte)
                 try assertEqualSQL(db, request, """

@@ -88,7 +88,11 @@ extension CommonTableExpression {
 
 extension _FetchRequest {
     #warning("TODO: doc")
-    public func commonTableExpression<RowDecoder>(tableName: String) -> CommonTableExpression<RowDecoder> {
+    public func commonTableExpression<RowDecoder>(
+        tableName: String,
+        type: RowDecoder.Type = RowDecoder.self)
+    -> CommonTableExpression<RowDecoder>
+    {
         CommonTableExpression(
             tableName: tableName,
             request: self)
