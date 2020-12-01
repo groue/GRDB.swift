@@ -131,6 +131,58 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
+            // Include filtered CTE
+            do {
+                enum CTE { }
+                let cte: CommonTableExpression<CTE> = T.all()
+                    .commonTableExpression(tableName: "cte")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte).filter(Column("id") > 0))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "cte"."id" > 0
+                    """)
+            }
+            
+            // Include ordered CTE
+            do {
+                enum CTE { }
+                let cte: CommonTableExpression<CTE> = T.all()
+                    .commonTableExpression(tableName: "cte")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte).order(Column("id")))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" \
+                    ORDER BY "cte"."id"
+                    """)
+            }
+            
+            // Aliased CTE
+            do {
+                enum CTE { }
+                let cte: CommonTableExpression<CTE> = T.all()
+                    .commonTableExpression(tableName: "cte")
+                let alias = TableAlias()
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte).aliased(alias))
+                    .filter(alias[Column("id")] > 0)
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" \
+                    WHERE "cte"."id" > 0
+                    """)
+            }
+            
             // Include one CTE twice with same key and condition
             do {
                 enum CTE { }
@@ -225,8 +277,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     JOIN "t" "t2"
                     """)
             }
-            
-            // TODO: include filtered CTE
             
             // Use CTE as a subquery
             do {
