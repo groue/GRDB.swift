@@ -21,6 +21,8 @@
 		56057C662291C7E500A7CB10 /* AssociationHasManyThroughRowScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56057C642291C7E500A7CB10 /* AssociationHasManyThroughRowScopeTests.swift */; };
 		560714ED227DD10F0091BB10 /* AssociationPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EB227DD10F0091BB10 /* AssociationPrefetchingSQLTests.swift */; };
 		560714EE227DD10F0091BB10 /* AssociationPrefetchingSQLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 560714EB227DD10F0091BB10 /* AssociationPrefetchingSQLTests.swift */; };
+		5611626B2576BF9D007AAF99 /* JoinAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561162692576BF9C007AAF99 /* JoinAssociation.swift */; };
+		5611626C2576BF9D007AAF99 /* JoinAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561162692576BF9C007AAF99 /* JoinAssociation.swift */; };
 		5613ED6121A95E6100DC7A68 /* ValueObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5613ED5921A95E6100DC7A68 /* ValueObservation.swift */; };
 		5613ED6221A95E6100DC7A68 /* ValueObservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5613ED5921A95E6100DC7A68 /* ValueObservation.swift */; };
 		561408A0221596A100DAD589 /* GRDB-5.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5614089E221596A100DAD589 /* GRDB-5.0.swift */; };
@@ -805,6 +807,7 @@
 		560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementColumnConvertible.swift; sourceTree = "<group>"; };
 		560D92441C672C4B00F4F92B /* PersistableRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PersistableRecord.swift; sourceTree = "<group>"; };
 		560D92461C672C4B00F4F92B /* TableRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableRecord.swift; sourceTree = "<group>"; };
+		561162692576BF9C007AAF99 /* JoinAssociation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = JoinAssociation.swift; sourceTree = "<group>"; };
 		5613ED5921A95E6100DC7A68 /* ValueObservation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservation.swift; sourceTree = "<group>"; };
 		5614089E221596A100DAD589 /* GRDB-5.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "GRDB-5.0.swift"; sourceTree = "<group>"; };
 		5615B256222AE19100061C1C /* AssociationHasOneThroughSQLDerivationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationHasOneThroughSQLDerivationTests.swift; sourceTree = "<group>"; };
@@ -1576,6 +1579,7 @@
 				5656A8382295BD56001FF3FF /* HasManyThroughAssociation.swift */,
 				5656A8352295BD56001FF3FF /* HasOneAssociation.swift */,
 				5656A83A2295BD56001FF3FF /* HasOneThroughAssociation.swift */,
+				561162692576BF9C007AAF99 /* JoinAssociation.swift */,
 			);
 			path = Association;
 			sourceTree = "<group>";
@@ -2402,6 +2406,7 @@
 				F3BA80231CFB288C003DC1BA /* NSString.swift in Sources */,
 				5656A85A2295BD56001FF3FF /* SQLGenerationContext.swift in Sources */,
 				5690C3451D23E82A00E59934 /* Data.swift in Sources */,
+				5611626C2576BF9D007AAF99 /* JoinAssociation.swift in Sources */,
 				5656A8A82295BF44001FF3FF /* DatabasePromise.swift in Sources */,
 				5656A86E2295BD56001FF3FF /* HasManyThroughAssociation.swift in Sources */,
 				566BE7162342541F00A8254B /* LockedBox.swift in Sources */,
@@ -2773,6 +2778,7 @@
 				F3BA807F1CFB2E61003DC1BA /* NSString.swift in Sources */,
 				5656A8592295BD56001FF3FF /* SQLGenerationContext.swift in Sources */,
 				5690C3421D23E82A00E59934 /* Data.swift in Sources */,
+				5611626B2576BF9D007AAF99 /* JoinAssociation.swift in Sources */,
 				5656A8A72295BF44001FF3FF /* DatabasePromise.swift in Sources */,
 				5656A86D2295BD56001FF3FF /* HasManyThroughAssociation.swift in Sources */,
 				566BE7152342541F00A8254B /* LockedBox.swift in Sources */,
