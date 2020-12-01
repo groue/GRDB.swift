@@ -493,7 +493,7 @@ extension TableRecord where Self: EncodableRecord {
             fatalError("Not implemented: request association without any foreign key")
             
         case .using:
-            #warning("TODD: request on USING clause")
+            #warning("TODO: request on USING clause")
             fatalError("Not implemented")
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):

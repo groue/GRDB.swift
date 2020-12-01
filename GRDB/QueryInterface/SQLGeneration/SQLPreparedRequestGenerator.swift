@@ -150,7 +150,7 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
             fatalError("Not implemented: prefetch association without any foreign key")
             
         case .using:
-            #warning("TODD: prefetch on USING clause")
+            #warning("TODO: prefetch on USING clause")
             fatalError("Not implemented")
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
@@ -219,7 +219,7 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
             fatalError("Not implemented: prefetch association without any foreign key")
             
         case .using:
-            #warning("TODD: prefetch region on USING clause")
+            #warning("TODO: prefetch region on USING clause")
             fatalError("Not implemented")
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
