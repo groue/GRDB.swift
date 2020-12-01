@@ -699,7 +699,6 @@ extension SQLQualifiedRelation: Refinable { }
 /// A "qualified" source, where all tables are identified with a table alias.
 private enum SQLQualifiedSource {
     case table(tableName: String, alias: TableAlias)
-    case commonTableExpression(TableAlias)
     indirect case subquery(SQLQueryGenerator)
     
     /// Nil for subquery sources.
@@ -715,8 +714,6 @@ private enum SQLQualifiedSource {
     var alias: TableAlias? {
         switch self {
         case let .table(_, alias):
-            return alias
-        case let .commonTableExpression(alias):
             return alias
         case .subquery:
             return nil
@@ -741,8 +738,6 @@ private enum SQLQualifiedSource {
             } else {
                 return "\(tableName.quotedDatabaseIdentifier)"
             }
-        case let .commonTableExpression(alias):
-            return context.resolvedName(for: alias).quotedDatabaseIdentifier
         case let .subquery(generator):
             let sql = try generator.requestSQL(context)
             return "(\(sql))"
