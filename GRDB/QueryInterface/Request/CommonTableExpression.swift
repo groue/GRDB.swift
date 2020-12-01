@@ -17,28 +17,30 @@ extension CommonTableExpression {
     }
 }
 
-extension CommonTableExpression {
-    #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
+extension TableRecord {
     #warning("TODO: doc")
-    public func association<T>(from: T.Type = T.self, on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> JoinAssociation<T, Void>
+    public static func association(
+        to cte: CommonTableExpression,
+        on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
+    -> JoinAssociation<Self, Void>
     {
         JoinAssociation(
-            key: .inflected(tableName),
+            key: .inflected(cte.tableName),
             condition: .expression(condition),
-            relation: relationForAll)
+            relation: cte.relationForAll)
     }
     
     #warning("TODO: doc")
-    public func association<T>(from: T.Type = T.self, using columns: Column...)
-    -> JoinAssociation<T, Void>
+    public static func association(
+        to cte: CommonTableExpression,
+        using columns: Column...)
+    -> JoinAssociation<Self, Void>
     {
-        association(from: T.self, on: { (left, right) -> SQLExpressible in
-            columns.map { left[$0] == right[$0] }.joined(operator: .and)
-        })
+        association(to: cte, on: joinCondition(columns))
     }
-    
-    #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
+}
+
+extension CommonTableExpression {
     #warning("TODO: doc")
     public func association(
         to cte: CommonTableExpression,
@@ -51,7 +53,15 @@ extension CommonTableExpression {
             relation: cte.relationForAll)
     }
     
-    #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
+    #warning("TODO: doc")
+    public func association(
+        to cte: CommonTableExpression,
+        using columns: Column...)
+    -> JoinAssociation<Void, Void>
+    {
+        association(to: cte, on: joinCondition(columns))
+    }
+    
     #warning("TODO: doc")
     public func association<Destination>(
         to destination: Destination.Type,
@@ -64,6 +74,16 @@ extension CommonTableExpression {
             condition: .expression(condition),
             relation: Destination.relationForAll)
     }
+    
+    #warning("TODO: doc")
+    public func association<Destination>(
+        to destination: Destination.Type,
+        using columns: Column...)
+    -> JoinAssociation<Void, Destination>
+    where Destination: TableRecord
+    {
+        association(to: Destination.self, on: joinCondition(columns))
+    }
 }
 
 extension _FetchRequest {
@@ -72,6 +92,12 @@ extension _FetchRequest {
         CommonTableExpression(
             tableName: tableName,
             request: self)
+    }
+}
+
+private func joinCondition(_ columns: [Column]) -> (TableAlias, TableAlias) -> SQLExpressible {
+    { (left, right) -> SQLExpressible in
+        columns.map { left[$0] == right[$0] }.joined(operator: .and)
     }
 }
 
