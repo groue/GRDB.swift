@@ -492,6 +492,10 @@ extension TableRecord where Self: EncodableRecord {
             // no public method builds an Association.
             fatalError("Not implemented: request association without any foreign key")
             
+        case .using:
+            #warning("TODD: request on USING clause")
+            fatalError("Not implemented")
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             let destinationRelation = association
                 ._sqlAssociation

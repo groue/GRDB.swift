@@ -149,6 +149,10 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
             // are not prefetched.
             fatalError("Not implemented: prefetch association without any foreign key")
             
+        case .using:
+            #warning("TODD: prefetch on USING clause")
+            fatalError("Not implemented")
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             // Annotate prefetched rows with pivot columns, so that we can
             // group them.
@@ -213,6 +217,10 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
             // Likely a GRDB bug: such condition only exist for CTEs, which
             // are not prefetched.
             fatalError("Not implemented: prefetch association without any foreign key")
+            
+        case .using:
+            #warning("TODD: prefetch region on USING clause")
+            fatalError("Not implemented")
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             // Filter the pivot on a `NullRow` in order to make sure all join

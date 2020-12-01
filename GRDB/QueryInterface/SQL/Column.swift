@@ -42,7 +42,7 @@ extension ColumnExpression {
 /// Instead, adopt the ColumnExpression protocol.
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct Column: ColumnExpression {
+public struct Column: ColumnExpression, Equatable {
     /// The hidden rowID column
     public static let rowID = Column("rowid")
     

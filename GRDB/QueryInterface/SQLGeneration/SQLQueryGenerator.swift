@@ -821,22 +821,10 @@ private struct SQLQualifiedJoin: Refinable {
         var joinExpressions: [SQLExpression]
         switch condition {
         case let .expression(condition):
-            let conditionExpression = condition(leftAlias, rightAlias).sqlExpression
-            #warning("TODO: we need a expression.isTrue() method")
-            if let dbValue = conditionExpression as? DatabaseValue,
-               dbValue == true.databaseValue
-            {
-                // ON 1 <=> no ON clause
-                joinExpressions = []
-            } else if let expr = conditionExpression as? _SQLExpressionAssociativeBinary,
-                      expr.op == .and,
-                      expr.expressions.isEmpty
-            {
-                // ON (nothing) <=> no ON clause
-                joinExpressions = []
-            } else {
-                joinExpressions = [conditionExpression]
-            }
+            joinExpressions = [condition(leftAlias, rightAlias).sqlExpression]
+            
+        case let .using(columns):
+            joinExpressions = columns.map { leftAlias[$0] == rightAlias[$0] }
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             joinExpressions = try foreignKeyRequest

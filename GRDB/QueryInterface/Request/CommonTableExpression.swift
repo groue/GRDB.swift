@@ -33,10 +33,13 @@ extension TableRecord {
     #warning("TODO: doc")
     public static func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        using columns: Column...)
+        using columns: [Column] = [])
     -> JoinAssociation<Self, Destination>
     {
-        association(to: cte, on: joinCondition(columns))
+        JoinAssociation(
+            key: .inflected(cte.tableName),
+            condition: .using(columns),
+            relation: cte.relationForAll)
     }
 }
 
@@ -56,10 +59,13 @@ extension CommonTableExpression {
     #warning("TODO: doc")
     public func association<Destination>(
         to cte: CommonTableExpression<Destination>,
-        using columns: Column...)
+        using columns: [Column] = [])
     -> JoinAssociation<RowDecoder, Destination>
     {
-        association(to: cte, on: joinCondition(columns))
+        JoinAssociation(
+            key: .inflected(cte.tableName),
+            condition: .using(columns),
+            relation: cte.relationForAll)
     }
     
     #warning("TODO: doc")
@@ -78,11 +84,14 @@ extension CommonTableExpression {
     #warning("TODO: doc")
     public func association<Destination>(
         to destination: Destination.Type,
-        using columns: Column...)
+        using columns: [Column] = [])
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
-        association(to: Destination.self, on: joinCondition(columns))
+        JoinAssociation(
+            key: .inflected(Destination.databaseTableName),
+            condition: .using(columns),
+            relation: Destination.relationForAll)
     }
 }
 
