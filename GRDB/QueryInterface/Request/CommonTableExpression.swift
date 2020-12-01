@@ -2,7 +2,9 @@
 public struct CommonTableExpression {
     var tableName: String
     var request: _FetchRequest
-    
+}
+
+extension CommonTableExpression {
     var relationForAll: SQLRelation {
         SQLRelation(
             source: .table(tableName: tableName, alias: nil),
@@ -12,6 +14,19 @@ public struct CommonTableExpression {
     #warning("TODO: doc")
     public func all() -> QueryInterfaceRequest<Void> {
         QueryInterfaceRequest(relation: relationForAll)
+    }
+}
+
+extension CommonTableExpression {
+    #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
+    #warning("TODO: doc")
+    public func association<T>(from: T.Type = T.self, on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
+    -> JoinAssociation<T, Void>
+    {
+        JoinAssociation(
+            key: .inflected(tableName),
+            condition: .promise(condition),
+            relation: relationForAll)
     }
     
     #warning("TODO: Do we need to be able to provide a foreign key? A USING clause?")
@@ -32,7 +47,7 @@ public struct CommonTableExpression {
     public func association<Destination>(
         to destination: Destination.Type,
         on condition: @escaping (TableAlias, TableAlias) -> SQLExpressible)
-    -> JoinAssociation<Void, Void>
+    -> JoinAssociation<Void, Destination>
     where Destination: TableRecord
     {
         JoinAssociation(

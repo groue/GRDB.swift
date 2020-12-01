@@ -39,7 +39,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(optional: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
+                    .including(optional: cte.association(on: { (left, right) in left["id"] > right["id"] }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT "t".*, "cte".* \
@@ -54,7 +54,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(required: T.association(to: cte, on: { (_, _) in true }))
+                    .including(required: cte.association(on: { (_, _) in true }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT 'O''Brien') \
                     SELECT "t".*, "cte".* \
@@ -69,7 +69,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .joining(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
+                    .joining(required: cte.association(on: { (left, right) in left["id"] > right["id"] }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT "t".* \
@@ -84,8 +84,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
-                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
+                    .including(required: cte.association(on: { (left, right) in left["id"] > right["id"] }))
+                    .including(required: cte.association(on: { (left, right) in left["id"] > right["id"] }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT "t".*, "cte".* \
@@ -100,8 +100,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }))
-                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] + right["id"] == 1 }))
+                    .including(required: cte.association(on: { (left, right) in left["id"] > right["id"] }))
+                    .including(required: cte.association(on: { (left, right) in left["id"] + right["id"] == 1 }))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT "t".*, "cte".* \
@@ -116,8 +116,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                     .commonTableExpression(tableName: "cte")
                 let request = T.all()
                     .with(cte)
-                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }).forKey("a"))
-                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }).forKey("b"))
+                    .including(required: cte.association(on: { (left, right) in left["id"] > right["id"] }).forKey("a"))
+                    .including(required: cte.association(on: { (left, right) in left["id"] > right["id"] }).forKey("b"))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT "t".*, "cte1".*, "cte2".* \
@@ -132,7 +132,8 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte1 = T.all().commonTableExpression(tableName: "cte1")
                 let cte2 = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
                     .commonTableExpression(tableName: "cte2")
-                let assoc1 = T.association(to: cte1, on: { _, _ in true })
+                #warning("TODO: from? to? WTF?")
+                let assoc1 = cte1.association(from: T.self, on: { _, _ in true })
                 let assoc2 = cte1.association(to: cte2, on: { _, _ in true })
                 let assoc3 = cte2.association(to: T.self, on: { _, _ in true })
                 let request = T.all()
