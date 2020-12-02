@@ -134,119 +134,138 @@ private struct SQLRequestCounter: _FetchRequestVisitor {
 
 // MARK: - Eager loading of hasMany associations
 
+// CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
 /// Append rows from prefetched associations into the argument rows.
 private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: [Row]) throws {
+    for association in associations {
+        switch association.pivot.condition {
+        case .expression:
+            // Likely a GRDB bug: such condition only exist for CTEs, which
+            // are not prefetched with including(all:)
+            fatalError("Not implemented: prefetch association without any foreign key")
+            
+        case let .using(columns):
+            let pivotMapping: JoinMapping = columns.map { (left: $0.name, right: $0.name) }
+            try prefetch(db, association: association, pivotMapping: pivotMapping, in: rows)
+            
+        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
+            let pivotMapping = try foreignKeyRequest
+                .fetchForeignKeyMapping(db)
+                .joinMapping(originIsLeft: originIsLeft)
+            try prefetch(db, association: association, pivotMapping: pivotMapping, in: rows)
+        }
+    }
+}
+
+// CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
+private func prefetch(
+    _ db: Database,
+    association: _SQLAssociation,
+    pivotMapping: JoinMapping,
+    in rows: [Row]) throws
+{
     guard let firstRow = rows.first else {
         // No rows -> no prefetch
         return
     }
     
-    // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
-    for association in associations {
+    // Annotate prefetched rows with pivot columns, so that we can
+    // group them.
+    //
+    // Those pivot columns are necessary when we prefetch
+    // indirect associations:
+    //
+    //      // SELECT country.*, passport.citizenId AS grdb_citizenId
+    //      // --                ^ the necessary pivot column
+    //      // FROM country
+    //      // JOIN passport ON passport.countryCode = country.code
+    //      //               AND passport.citizenId IN (1, 2, 3)
+    //      Citizen.including(all: Citizen.countries)
+    //
+    // Those pivot columns are redundant when we prefetch direct
+    // associations (maybe we'll remove this redundancy later):
+    //
+    //      // SELECT *, authorId AS grdb_authorId
+    //      // --        ^ the redundant pivot column
+    //      // FROM book
+    //      // WHERE authorId IN (1, 2, 3)
+    //      Author.including(all: Author.books)
+    
+    let pivotFilter = pivotMapping.joinExpression(leftRows: rows)
+    
+    let pivotColumns = pivotMapping.map(\.right)
+    
+    let pivotAlias = TableAlias()
+    
+    let prefetchRelation = association
+        .map(\.pivot.relation, { $0.qualified(with: pivotAlias).filter(pivotFilter) })
+        .destinationRelation()
+        // Annotate with the pivot columns that allow grouping
+        .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
+    
+    let prefetchRequest = QueryInterfaceRequest<Row>(relation: prefetchRelation)
+    
+    let prefetchedRows = try prefetchRequest.fetchAll(db)
+    
+    let prefetchedGroups = prefetchedRows.grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
+    
+    let groupingIndexes = firstRow.indexes(forColumns: pivotMapping.map(\.left))
+    
+    for row in rows {
+        let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+        let prefetchedRows = prefetchedGroups[groupingKey, default: []]
+        row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
+    }
+}
+
+// CAUTION: Keep this code in sync with prefetch(_:associations:in:)
+/// Returns the region of prefetched associations
+func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws -> DatabaseRegion {
+    try associations.reduce(into: DatabaseRegion()) { (region, association) in
         switch association.pivot.condition {
         case .expression:
             // Likely a GRDB bug: such condition only exist for CTEs, which
-            // are not prefetched.
+            // are not prefetched with including(all:)
             fatalError("Not implemented: prefetch association without any foreign key")
             
-        case .using:
-            #warning("TODO: prefetch on USING clause")
-            fatalError("Not implemented")
-            
+        case let .using(columns):
+            let pivotMapping: JoinMapping = columns.map { (left: $0.name, right: $0.name) }
+            let prefetchRegion = try prefetchedRegion(db, association: association, pivotMapping: pivotMapping)
+            region.formUnion(prefetchRegion)
+
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            // Annotate prefetched rows with pivot columns, so that we can
-            // group them.
-            //
-            // Those pivot columns are necessary when we prefetch
-            // indirect associations:
-            //
-            //      // SELECT country.*, passport.citizenId AS grdb_citizenId
-            //      // --                ^ the necessary pivot column
-            //      // FROM country
-            //      // JOIN passport ON passport.countryCode = country.code
-            //      //               AND passport.citizenId IN (1, 2, 3)
-            //      Citizen.including(all: Citizen.countries)
-            //
-            // Those pivot columns are redundant when we prefetch direct
-            // associations (maybe we'll remove this redundancy later):
-            //
-            //      // SELECT *, authorId AS grdb_authorId
-            //      // --        ^ the redundant pivot column
-            //      // FROM book
-            //      // WHERE authorId IN (1, 2, 3)
-            //      Author.including(all: Author.books)
             let pivotMapping = try foreignKeyRequest
                 .fetchForeignKeyMapping(db)
                 .joinMapping(originIsLeft: originIsLeft)
-            
-            let pivotFilter = pivotMapping.joinExpression(leftRows: rows)
-            
-            let pivotColumns = pivotMapping.map(\.right)
-            
-            let pivotAlias = TableAlias()
-            
-            let prefetchRelation = association
-                .map(\.pivot.relation, { $0.qualified(with: pivotAlias).filter(pivotFilter) })
-                .destinationRelation()
-                // Annotate with the pivot columns that allow grouping
-                .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
-            
-            let prefetchRequest = QueryInterfaceRequest<Row>(relation: prefetchRelation)
-            
-            let prefetchedRows = try prefetchRequest.fetchAll(db)
-            
-            let prefetchedGroups = prefetchedRows.grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
-            
-            let groupingIndexes = firstRow.indexes(forColumns: pivotMapping.map(\.left))
-            
-            for row in rows {
-                let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-                let prefetchedRows = prefetchedGroups[groupingKey, default: []]
-                row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
-            }
+            let prefetchRegion = try prefetchedRegion(db, association: association, pivotMapping: pivotMapping)
+            region.formUnion(prefetchRegion)
         }
     }
 }
 
-// Returns the region of prefetched associations
-func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws -> DatabaseRegion {
-    try associations.reduce(into: DatabaseRegion()) { (region, association) in
-        // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
-        switch association.pivot.condition {
-        case .expression:
-            // Likely a GRDB bug: such condition only exist for CTEs, which
-            // are not prefetched.
-            fatalError("Not implemented: prefetch association without any foreign key")
-            
-        case .using:
-            #warning("TODO: prefetch region on USING clause")
-            fatalError("Not implemented")
-            
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            // Filter the pivot on a `NullRow` in order to make sure all join
-            // condition columns are made visible to SQLite, and present in the
-            // selected region:
-            //  ... JOIN right ON right.leftId IS NULL
-            //                                    ^ content of the NullRow
-            let pivotMapping = try foreignKeyRequest
-                .fetchForeignKeyMapping(db)
-                .joinMapping(originIsLeft: originIsLeft)
-            
-            let pivotFilter = pivotMapping.joinExpression(leftRows: [NullRow()])
-            
-            let prefetchRelation = association
-                .map(\.pivot.relation) { $0.filter(pivotFilter) }
-                .destinationRelation()
-            
-            let prefetchQuery = SQLQuery(relation: prefetchRelation)
-            
-            let prefetchRegion = try SQLQueryGenerator(query: prefetchQuery)
-                .makeSelectStatement(db)
-                .databaseRegion // contains region of nested associations
-            
-            region.formUnion(prefetchRegion)
-        }
-    }
+// CAUTION: Keep this code in sync with prefetch(_:associations:in:)
+func prefetchedRegion(
+    _ db: Database,
+    association: _SQLAssociation,
+    pivotMapping: JoinMapping)
+throws -> DatabaseRegion
+{
+    // Filter the pivot on a `NullRow` in order to make sure all join
+    // condition columns are made visible to SQLite, and present in the
+    // selected region:
+    //  ... JOIN right ON right.leftId IS NULL
+    //                                    ^ content of the NullRow
+    let pivotFilter = pivotMapping.joinExpression(leftRows: [NullRow()])
+    
+    let prefetchRelation = association
+        .map(\.pivot.relation) { $0.filter(pivotFilter) }
+        .destinationRelation()
+    
+    let prefetchQuery = SQLQuery(relation: prefetchRelation)
+    
+    return try SQLQueryGenerator(query: prefetchQuery)
+        .makeSelectStatement(db)
+        .databaseRegion // contains region of nested associations
 }
 
 extension Array where Element == Row {
