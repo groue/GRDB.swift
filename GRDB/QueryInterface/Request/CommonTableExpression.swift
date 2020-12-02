@@ -1,11 +1,24 @@
 #warning("TODO: doc")
 public struct CommonTableExpression<RowDecoder> {
-    var tableName: String
-    var columns: [Column]?
+    #warning("TODO: doc")
+    public var tableName: String
+    
+    #warning("TODO: doc")
+    public var columns: [Column]?
+    
     var request: _FetchRequest
-}
-
-extension CommonTableExpression {
+    
+    #warning("TODO: doc")
+    public init<Request: FetchRequest>(
+        named tableName: String,
+        columns: [Column]? = nil,
+        request: Request)
+    {
+        self.tableName = tableName
+        self.columns = columns
+        self.request = request
+    }
+    
     #warning("TODO: doc")
     public init(
         named tableName: String,
@@ -14,7 +27,7 @@ extension CommonTableExpression {
         arguments: StatementArguments = StatementArguments())
     {
         self.init(
-            tableName: tableName,
+            named: tableName,
             columns: columns,
             request: SQLRequest<Void>(sql: sql, arguments: arguments))
     }
@@ -26,21 +39,9 @@ extension CommonTableExpression {
         literal: SQLLiteral)
     {
         self.init(
-            tableName: tableName,
+            named: tableName,
             columns: columns,
             request: SQLRequest<Void>(literal: literal))
-    }
-    
-    #warning("TODO: doc")
-    public init<Request: FetchRequest>(
-        named tableName: String,
-        columns: [Column]? = nil,
-        request: Request)
-    {
-        self.init(
-            tableName: tableName,
-            columns: columns,
-            request: request)
     }
 }
 
