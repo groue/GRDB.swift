@@ -138,9 +138,16 @@ extension CommonTableExpression {
 // MARK: - QueryInterfaceRequest
 
 extension QueryInterfaceRequest {
+    #warning("TODO: Accept an array of ctes by discarding their RowDecoder type. This would look better when there are several recursive CTEs.")
+    
     #warning("TODO: doc")
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         with(\.query.ctes[cte.tableName], (columns: cte.columns, request: cte.request))
+    }
+    
+    #warning("TODO: doc")
+    public func with<RowDecoder>(recursive cte: CommonTableExpression<RowDecoder>) -> Self {
+        fatalError("TODO")
     }
 }
 
