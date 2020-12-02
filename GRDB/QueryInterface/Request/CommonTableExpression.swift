@@ -8,11 +8,10 @@ public struct CommonTableExpression<RowDecoder> {
 extension CommonTableExpression {
     #warning("TODO: doc")
     public init(
-        tableName: String,
+        named tableName: String,
         columns: [Column]? = nil,
         sql: String,
-        arguments: StatementArguments = StatementArguments(),
-        type: RowDecoder.Type = RowDecoder.self)
+        arguments: StatementArguments = StatementArguments())
     {
         self.init(
             tableName: tableName,
@@ -22,15 +21,26 @@ extension CommonTableExpression {
     
     #warning("TODO: doc")
     public init(
-        tableName: String,
+        named tableName: String,
         columns: [Column]? = nil,
-        literal: SQLLiteral,
-        type: RowDecoder.Type = RowDecoder.self)
+        literal: SQLLiteral)
     {
         self.init(
             tableName: tableName,
             columns: columns,
             request: SQLRequest<Void>(literal: literal))
+    }
+    
+    #warning("TODO: doc")
+    public init<Request: FetchRequest>(
+        named tableName: String,
+        columns: [Column]? = nil,
+        request: Request)
+    {
+        self.init(
+            tableName: tableName,
+            columns: columns,
+            request: request)
     }
 }
 
@@ -125,54 +135,12 @@ extension CommonTableExpression {
     }
 }
 
-// MARK: - _FetchRequest
-
-extension _FetchRequest {
-    #warning("TODO: doc")
-    /// :nodoc:
-    public func _commonTableExpression<RowDecoder>(
-        tableName: String,
-        columns: [Column]?,
-        type: RowDecoder.Type)
-    -> CommonTableExpression<RowDecoder>
-    {
-        CommonTableExpression(
-            tableName: tableName,
-            columns: columns,
-            request: self)
-    }
-}
-
 // MARK: - QueryInterfaceRequest
 
 extension QueryInterfaceRequest {
     #warning("TODO: doc")
-    public func commonTableExpression<RowDecoder>(
-        tableName: String,
-        columns: [Column]? = nil,
-        type: RowDecoder.Type = RowDecoder.self)
-    -> CommonTableExpression<RowDecoder>
-    {
-        _commonTableExpression(tableName: tableName, columns: columns, type: RowDecoder.self)
-    }
-    
-    #warning("TODO: doc")
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         with(\.query.ctes[cte.tableName], (columns: cte.columns, request: cte.request))
-    }
-}
-
-// MARK: - SQLRequest
-
-extension SQLRequest {
-    #warning("TODO: doc")
-    public func commonTableExpression<RowDecoder>(
-        tableName: String,
-        columns: [Column]? = nil,
-        type: RowDecoder.Type = RowDecoder.self)
-    -> CommonTableExpression<RowDecoder>
-    {
-        _commonTableExpression(tableName: tableName, columns: columns, type: RowDecoder.self)
     }
 }
 
