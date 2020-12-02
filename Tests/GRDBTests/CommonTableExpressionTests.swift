@@ -12,8 +12,8 @@ class CommonTableExpressionTests: GRDBTestCase {
             // Just add a WITH clause: query interface request
             do {
                 enum CTE { }
-                let cte = T.all()
-                    .commonTableExpression(tableName: "cte", type: CTE.self)
+                let cteRequest = T.all()
+                let cte = cteRequest.commonTableExpression(tableName: "cte", type: CTE.self)
                 let request = T.all()
                     .with(cte)
                 try assertEqualSQL(db, request, """
@@ -25,8 +25,39 @@ class CommonTableExpressionTests: GRDBTestCase {
             // Just add a WITH clause: sql request
             do {
                 enum CTE { }
-                let cte: CommonTableExpression<CTE> = SQLRequest<Int>(literal: "SELECT \("O'Brien")")
-                    .commonTableExpression(tableName: "cte")
+                let cteRequest: SQLRequest<Int> = "SELECT \("O'Brien")"
+                let cte = cteRequest.commonTableExpression(tableName: "cte", type: CTE.self)
+                let request = T.all()
+                    .with(cte)
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT * FROM "t"
+                    """)
+            }
+            
+            // Just add a WITH clause: sql + arguments
+            do {
+                enum CTE { }
+                let cte = CommonTableExpression(
+                    tableName: "cte",
+                    sql: "SELECT ?",
+                    arguments: ["O'Brien"],
+                    type: CTE.self)
+                let request = T.all()
+                    .with(cte)
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT * FROM "t"
+                    """)
+            }
+            
+            // Just add a WITH clause: sql interpolation
+            do {
+                enum CTE { }
+                let cte = CommonTableExpression(
+                    tableName: "cte",
+                    literal: "SELECT \("O'Brien")",
+                    type: CTE.self)
                 let request = T.all()
                     .with(cte)
                 try assertEqualSQL(db, request, """

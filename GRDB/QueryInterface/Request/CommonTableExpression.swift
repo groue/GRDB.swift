@@ -6,6 +6,35 @@ public struct CommonTableExpression<RowDecoder> {
 }
 
 extension CommonTableExpression {
+    #warning("TODO: doc")
+    public init(
+        tableName: String,
+        columns: [Column]? = nil,
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        type: RowDecoder.Type = RowDecoder.self)
+    {
+        self.init(
+            tableName: tableName,
+            columns: columns,
+            request: SQLRequest<Void>(sql: sql, arguments: arguments))
+    }
+    
+    #warning("TODO: doc")
+    public init(
+        tableName: String,
+        columns: [Column]? = nil,
+        literal: SQLLiteral,
+        type: RowDecoder.Type = RowDecoder.self)
+    {
+        self.init(
+            tableName: tableName,
+            columns: columns,
+            request: SQLRequest<Void>(literal: literal))
+    }
+}
+
+extension CommonTableExpression {
     var relationForAll: SQLRelation {
         SQLRelation(
             source: .table(tableName: tableName, alias: nil),
