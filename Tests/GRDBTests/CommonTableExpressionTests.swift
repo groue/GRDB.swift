@@ -360,4 +360,68 @@ class CommonTableExpressionTests: GRDBTestCase {
             }
         }
     }
+    
+    func testChatWithLatestMessage() throws {
+        struct Chat: Codable, FetchableRecord, PersistableRecord, Equatable {
+            var id: Int64
+        }
+        struct Post: Codable, FetchableRecord, PersistableRecord, Equatable {
+            var id: Int64
+            var chatID: Int64
+            var date: Int // easier to test
+        }
+        struct ChatInfo: Decodable, FetchableRecord, Equatable {
+            var chat: Chat
+            var latestPost: Post?
+        }
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "chat") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "post") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("chatID", .integer).notNull().references("chat")
+                t.column("date", .datetime).notNull()
+            }
+            
+            try Chat(id: 1).insert(db)
+            try Post(id: 1, chatID: 1, date: 1).insert(db)
+            try Post(id: 2, chatID: 1, date: 2).insert(db)
+            try Post(id: 3, chatID: 1, date: 3).insert(db)
+
+            try Chat(id: 2).insert(db)
+            try Post(id: 4, chatID: 2, date: 3).insert(db)
+            try Post(id: 5, chatID: 2, date: 2).insert(db)
+            try Post(id: 6, chatID: 2, date: 1).insert(db)
+            
+            try Chat(id: 3).insert(db)
+            
+            let cte = CommonTableExpression<Post>(
+                named: "latestPost",
+                request: Post
+                    .annotated(with: max(Column("date")))
+                    .group(Column("chatID")))
+            let request = Chat
+                .orderByPrimaryKey()
+                .with(cte)
+                .including(optional: Chat.association(to: cte, on: { chat, post in
+                    chat[Column("id")] == post[Column("chatID")]
+                }))
+                .asRequest(of: ChatInfo.self)
+            try assertEqualSQL(db, request, """
+                WITH "latestPost" AS (SELECT *, MAX("date") FROM "post" GROUP BY "chatID") \
+                SELECT "chat".*, "latestPost".* \
+                FROM "chat" \
+                LEFT JOIN "latestPost" ON "chat"."id" = "latestPost"."chatID" \
+                ORDER BY "chat"."id"
+                """)
+            
+            let chatInfos = try request.fetchAll(db)
+            XCTAssertEqual(chatInfos, [
+                ChatInfo(chat: Chat(id: 1), latestPost: Post(id: 3, chatID: 1, date: 3)),
+                ChatInfo(chat: Chat(id: 2), latestPost: Post(id: 4, chatID: 2, date: 3)),
+                ChatInfo(chat: Chat(id: 3), latestPost: nil),
+            ])
+        }
+    }
 }
