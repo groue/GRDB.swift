@@ -101,7 +101,7 @@ extension SQLQuery {
     }
     
     private func countQuery(_ db: Database) throws -> SQLQuery {
-        guard groupPromise == nil && limit == nil else {
+        guard groupPromise == nil && limit == nil && ctes.isEmpty else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
             return trivialCountQuery
