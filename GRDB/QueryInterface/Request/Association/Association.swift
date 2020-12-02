@@ -304,7 +304,7 @@ extension Association {
             //      let request = Player.limit(10)
             //      let count = try request.fetchCount(db)
             //
-            // This query is currently never wrapped in a QueryInterfaceRequest
+            // This query is currently never wrapped in an Association
             // So this fatal error can not currently happen.
             fatalError("Request is not based on a database table")
         }
