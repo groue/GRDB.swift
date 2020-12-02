@@ -7326,7 +7326,7 @@ The `asyncRead` method can be used from any thread. It submits your database sta
 
 ```swift
 reader.asyncRead { (dbResult: Result<Database, Error>) in
-    try {
+    do {
         let db = try dbResult.get()
         let players = try Player.fetchAll(db)
     } catch {
@@ -7390,7 +7390,7 @@ The `asyncWriteWithoutTransaction` method can be used from any thread. It submit
 
 ```swift
 writer.asyncWriteWithoutTransaction { (db: Database) in
-    try {
+    do {
         try Player(...).insert(db)
     } catch {
         // handle error
@@ -7424,7 +7424,7 @@ try writer.asyncWriteWithoutTransaction { db in
         // <- not in a transaction here
         // Count players concurrently
         writer.asyncConcurrentRead { (dbResult: Result<Database, Error>) in
-            try {
+            do {
                 let db = try dbResult.get()
                 // Guaranteed to be zero
                 let count = try Player.fetchCount(db)
