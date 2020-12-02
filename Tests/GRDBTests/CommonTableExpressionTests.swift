@@ -347,6 +347,17 @@ class CommonTableExpressionTests: GRDBTestCase {
                     FROM "t"
                     """)
             }
+            
+            // Select from a CTE
+            do {
+                enum CTE { }
+                let cte = CommonTableExpression<CTE>(named: "cte", request: T.all())
+                let request = cte.all().with(cte)
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT * FROM "cte"
+                    """)
+            }
         }
     }
 }
