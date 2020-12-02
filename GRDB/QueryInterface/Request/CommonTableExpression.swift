@@ -191,11 +191,11 @@ extension _AllCTEColumns: SQLSelectable, Refinable {
             return columns.count
         }
         
-        // Compile request
-        #warning("TODO: do we need to cache this CTE columnCount?")
+        // Compile request. We can freely use the statement cache because we
+        // do not execute the statement or modify its arguments.
         let context = SQLGenerationContext(db)
         let sql = try request.requestSQL(context, forSingleResult: false)
-        let statement = try db.makeSelectStatement(sql: sql)
+        let statement = try db.cachedSelectStatement(sql: sql)
         return statement.columnCount
     }
     
