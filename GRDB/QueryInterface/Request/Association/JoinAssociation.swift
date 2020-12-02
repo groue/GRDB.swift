@@ -1,3 +1,5 @@
+/// The Join association is used to join common table expression to regular
+/// tables or other common table expressions.
 public struct JoinAssociation<Origin, Destination>: AssociationToOne {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin

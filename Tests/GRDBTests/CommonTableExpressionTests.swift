@@ -340,6 +340,53 @@ class CommonTableExpressionTests: GRDBTestCase {
         }
     }
     
+    func testFetchFromCTE() throws {
+        try makeDatabaseQueue().read { db in
+            do {
+                let answer = CommonTableExpression<Row>(
+                    named: "answer",
+                    sql: "SELECT 42 AS value")
+                let row = try answer.all().with(answer).fetchOne(db)
+                XCTAssertEqual(row, ["value": 42])
+            }
+            do {
+                struct Answer: Decodable, FetchableRecord, Equatable {
+                    var value: Int
+                }
+                let cte = CommonTableExpression<Answer>(
+                    named: "answer",
+                    sql: "SELECT 42 AS value")
+                let answer = try cte.all().with(cte).fetchOne(db)
+                XCTAssertEqual(answer, Answer(value: 42))
+            }
+        }
+    }
+    
+    func testCTEAsSubquery() throws {
+        try makeDatabaseQueue().write { db in
+            struct Player: Decodable, FetchableRecord, TableRecord {
+                var id: Int64
+                var score: Int
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("score", .integer)
+            }
+            let answer = CommonTableExpression<Void>(
+                named: "answer",
+                sql: "SELECT 42 AS value")
+            let request = Player
+                .filter(Column("score") == answer.all())
+                .with(answer)
+            try assertEqualSQL(db, request, """
+                WITH "answer" AS (SELECT 42 AS value) \
+                SELECT * \
+                FROM "player" \
+                WHERE "score" = (SELECT * FROM "answer")
+                """)
+        }
+    }
+    
     func testChatWithLatestMessage() throws {
         struct Chat: Codable, FetchableRecord, PersistableRecord, Equatable {
             var id: Int64
