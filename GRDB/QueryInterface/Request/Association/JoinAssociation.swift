@@ -1,11 +1,3 @@
-//
-//  JoinAssociation.swift
-//  GRDB
-//
-//  Created by Gwendal Roué on 30/11/2020.
-//  Copyright © 2020 Gwendal Roué. All rights reserved.
-//
-
 public struct JoinAssociation<Origin, Destination>: AssociationToOne {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
