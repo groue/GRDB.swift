@@ -6,7 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
-    private let ctes: OrderedDictionary<String /* CTE table name */, _FetchRequest>
+    private let ctes: OrderedDictionary<String /* CTE table name */, (columns: [Column]?, request: _FetchRequest)>
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -75,10 +75,15 @@ struct SQLQueryGenerator: Refinable {
         if !ctes.isEmpty {
             sql += "WITH "
             sql += try ctes
-                .map { (tableName, request) in
+                .map { (tableName, cte) in
                     let cteContext = SQLGenerationContext(parent: context)
-                    let cteSQL = try request.requestSQL(cteContext, forSingleResult: false)
-                    return "\(tableName.quotedDatabaseIdentifier) AS (\(cteSQL))"
+                    let columnsSQL = cte.columns
+                        .map { columns in
+                            "(" + columns.map(\.name.quotedDatabaseIdentifier).joined(separator: ", ") + ")"
+                        }
+                        ?? ""
+                    let requestSQL = try cte.request.requestSQL(cteContext, forSingleResult: false)
+                    return "\(tableName.quotedDatabaseIdentifier)\(columnsSQL) AS (\(requestSQL))"
                 }
                 .joined(separator: ", ")
             sql += " "

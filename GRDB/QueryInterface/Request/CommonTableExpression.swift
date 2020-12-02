@@ -1,6 +1,7 @@
 #warning("TODO: doc")
 public struct CommonTableExpression<RowDecoder> {
     var tableName: String
+    var columns: [Column]?
     var request: _FetchRequest
 }
 
@@ -8,7 +9,7 @@ extension CommonTableExpression {
     var relationForAll: SQLRelation {
         SQLRelation(
             source: .table(tableName: tableName, alias: nil),
-            selectionPromise: DatabasePromise(value: [_AllCTEColumns(request: request, alias: nil)]))
+            selectionPromise: DatabasePromise(value: [_AllCTEColumns(columns: columns, request: request, alias: nil)]))
     }
     
     #warning("TODO: doc")
@@ -102,11 +103,13 @@ extension _FetchRequest {
     /// :nodoc:
     public func _commonTableExpression<RowDecoder>(
         tableName: String,
+        columns: [Column]?,
         type: RowDecoder.Type)
     -> CommonTableExpression<RowDecoder>
     {
         CommonTableExpression(
             tableName: tableName,
+            columns: columns,
             request: self)
     }
 }
@@ -117,15 +120,16 @@ extension QueryInterfaceRequest {
     #warning("TODO: doc")
     public func commonTableExpression<RowDecoder>(
         tableName: String,
+        columns: [Column]? = nil,
         type: RowDecoder.Type = RowDecoder.self)
     -> CommonTableExpression<RowDecoder>
     {
-        _commonTableExpression(tableName: tableName, type: RowDecoder.self)
+        _commonTableExpression(tableName: tableName, columns: columns, type: RowDecoder.self)
     }
     
     #warning("TODO: doc")
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
-        with(\.query.ctes[cte.tableName], cte.request)
+        with(\.query.ctes[cte.tableName], (columns: cte.columns, request: cte.request))
     }
 }
 
@@ -135,10 +139,11 @@ extension SQLRequest {
     #warning("TODO: doc")
     public func commonTableExpression<RowDecoder>(
         tableName: String,
+        columns: [Column]? = nil,
         type: RowDecoder.Type = RowDecoder.self)
     -> CommonTableExpression<RowDecoder>
     {
-        _commonTableExpression(tableName: tableName, type: RowDecoder.self)
+        _commonTableExpression(tableName: tableName, columns: columns, type: RowDecoder.self)
     }
 }
 
@@ -146,6 +151,7 @@ extension SQLRequest {
 
 /// :nodoc:
 public struct _AllCTEColumns {
+    var columns: [Column]?
     var request: _FetchRequest
     var alias: TableAlias?
 }
@@ -176,6 +182,12 @@ extension _AllCTEColumns: SQLSelectable, Refinable {
     
     /// :nodoc:
     public func _columnCount(_ db: Database) throws -> Int {
+        if let columns = columns {
+            return columns.count
+        }
+        
+        // Compile request
+        #warning("TODO: do we need to cache this CTE columnCount?")
         let context = SQLGenerationContext(db)
         let sql = try request.requestSQL(context, forSingleResult: false)
         let statement = try db.makeSelectStatement(sql: sql)

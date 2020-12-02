@@ -99,6 +99,22 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
+            // Include SQL request as a CTE (custom column name)
+            do {
+                enum CTE { }
+                let cte: CommonTableExpression<CTE> = SQLRequest<Int>(literal: "SELECT 1, 2")
+                    .commonTableExpression(tableName: "cte", columns: [Column("id"), Column("a")])
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, using: [Column("id")]))
+                try assertEqualSQL(db, request, """
+                    WITH "cte"("id", "a") AS (SELECT 1, 2) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            
             // Include SQL request as a CTE (empty ON clause)
             do {
                 enum CTE { }
