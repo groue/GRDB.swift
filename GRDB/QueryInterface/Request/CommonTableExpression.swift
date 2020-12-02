@@ -95,11 +95,14 @@ extension CommonTableExpression {
     }
 }
 
+// MARK: - _FetchRequest
+
 extension _FetchRequest {
     #warning("TODO: doc")
-    public func commonTableExpression<RowDecoder>(
+    /// :nodoc:
+    public func _commonTableExpression<RowDecoder>(
         tableName: String,
-        type: RowDecoder.Type = RowDecoder.self)
+        type: RowDecoder.Type)
     -> CommonTableExpression<RowDecoder>
     {
         CommonTableExpression(
@@ -112,8 +115,30 @@ extension _FetchRequest {
 
 extension QueryInterfaceRequest {
     #warning("TODO: doc")
+    public func commonTableExpression<RowDecoder>(
+        tableName: String,
+        type: RowDecoder.Type = RowDecoder.self)
+    -> CommonTableExpression<RowDecoder>
+    {
+        _commonTableExpression(tableName: tableName, type: RowDecoder.self)
+    }
+    
+    #warning("TODO: doc")
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         with(\.query.ctes[cte.tableName], cte.request)
+    }
+}
+
+// MARK: - SQLRequest
+
+extension SQLRequest {
+    #warning("TODO: doc")
+    public func commonTableExpression<RowDecoder>(
+        tableName: String,
+        type: RowDecoder.Type = RowDecoder.self)
+    -> CommonTableExpression<RowDecoder>
+    {
+        _commonTableExpression(tableName: tableName, type: RowDecoder.self)
     }
 }
 
