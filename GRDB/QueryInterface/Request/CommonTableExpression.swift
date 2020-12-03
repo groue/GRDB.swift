@@ -347,16 +347,11 @@ public struct _AllCTEColumns {
 extension _AllCTEColumns: SQLSelectable, Refinable {
     /// :nodoc:
     public func _count(distinct: Bool) -> _SQLCount? {
-        // SELECT DISTINCT * FROM tableName ...
-        if distinct {
-            // Can't count
-            return nil
+        if let alias = alias {
+            return _SQLQualifiedAllColumns(alias: alias)._count(distinct: distinct)
+        } else {
+            return AllColumns()._count(distinct: distinct)
         }
-        
-        // SELECT * FROM tableName ...
-        // ->
-        // SELECT COUNT(*) FROM tableName ...
-        return .all
     }
     
     /// :nodoc:
