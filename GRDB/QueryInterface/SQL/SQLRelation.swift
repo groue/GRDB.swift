@@ -501,6 +501,9 @@ extension SQLRelation {
 // MARK: - SQLAssociationCondition
 
 /// The condition that links two tables.
+///
+///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+///                                         <---- the condition ---->
 enum SQLAssociationCondition {
     /// Condition based on a foreign key
     ///

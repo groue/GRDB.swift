@@ -422,18 +422,28 @@ class CommonTableExpressionTests: GRDBTestCase {
             
             try Chat(id: 3).insert(db)
             
-            let latestPost = CommonTableExpression<Void>(
+            // https://sqlite.org/lang_select.html
+            // > When the min() or max() aggregate functions are used in an
+            // > aggregate query, all bare columns in the result set take values
+            // > from the input row which also contains the minimum or maximum.
+            let latestPostRequest = Post
+                .annotated(with: max(Column("date")))
+                .group(Column("chatID"))
+            
+            let latestPostCTE = CommonTableExpression<Void>(
                 named: "latestPost",
-                request: Post
-                    .annotated(with: max(Column("date")))
-                    .group(Column("chatID")))
+                request: latestPostRequest)
+            
+            let latestPost = Chat.association(to: latestPostCTE, on: { chat, latestPost in
+                chat[Column("id")] == latestPost[Column("chatID")]
+            })
+            
             let request = Chat
+                .with(latestPostCTE)
+                .including(optional: latestPost)
                 .orderByPrimaryKey()
-                .with(latestPost)
-                .including(optional: Chat.association(to: latestPost, on: { chat, latestPost in
-                    chat[Column("id")] == latestPost[Column("chatID")]
-                }))
                 .asRequest(of: ChatInfo.self)
+            
             try assertEqualSQL(db, request, """
                 WITH "latestPost" AS (SELECT *, MAX("date") FROM "post" GROUP BY "chatID") \
                 SELECT "chat".*, "latestPost".* \

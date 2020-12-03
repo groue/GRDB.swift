@@ -140,7 +140,7 @@ extension CommonTableExpression {
     ///     let answer = CommonTableExpression<Void>(
     ///         named: "answer",
     ///         sql: "SELECT 42 AS value")
-    ///     let players = try sPlayer
+    ///     let players = try Player
     ///         .filter(Column("score") == answer.all())
     ///         .with(answer)
     ///         .fetchAll(db)
@@ -298,6 +298,35 @@ extension QueryInterfaceRequest {
     /// - returns: A request.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         with(\.query.ctes[cte.tableName], (columns: cte.columns, request: cte.request))
+    }
+}
+
+extension TableRecord {
+    /// Returns a request which embeds the common table expressions.
+    ///
+    /// For example, you can build a request that fetches all chats with their
+    /// latest post:
+    ///
+    ///     // WITH latestPost AS (SELECT *, MAX(date) FROM post GROUP BY chatID)
+    ///     // SELECT chat.*, latestPost.*
+    ///     // FROM chat
+    ///     // LEFT JOIN latestPost ON chat.id = latestPost.chatID
+    ///     let latestPostCTE = CommonTableExpression<Void>(
+    ///         named: "latestPost",
+    ///         request: Post
+    ///             .annotated(with: max(Column("date")))
+    ///             .group(Column("chatID")))
+    ///     let latestPost = Chat.association(to: latestPostCTE, on: { chat, latestPost in
+    ///         chat[Column("id")] == latestPost[Column("chatID")]
+    ///     })
+    ///     let request = Chat
+    ///         .with(latestPostCTE)
+    ///         .including(optional: latestPost)
+    ///
+    /// - parameter cte: A common table expression.
+    /// - returns: A request.
+    public static func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> QueryInterfaceRequest<Self> {
+        all().with(cte)
     }
 }
 
