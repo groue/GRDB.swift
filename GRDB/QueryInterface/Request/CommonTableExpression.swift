@@ -115,7 +115,7 @@ extension CommonTableExpression {
     var relationForAll: SQLRelation {
         SQLRelation(
             source: .table(tableName: tableName, alias: nil),
-            selectionPromise: DatabasePromise(value: [_AllCTEColumns(cte: cte, alias: nil)]))
+            selectionPromise: DatabasePromise(value: [AllColumns(cte: cte)]))
     }
     
     /// Creates a request for all rows of the common table expression.
@@ -147,6 +147,43 @@ extension CommonTableExpression {
     ///         .fetchAll(db)
     public func all() -> QueryInterfaceRequest<RowDecoder> {
         QueryInterfaceRequest(relation: relationForAll)
+    }
+}
+
+/// A low-level common table expression
+struct SQLCTE {
+    /// The columns of the common table expression.
+    ///
+    /// When nil, the CTE selects the columns of the request:
+    ///
+    ///     -- Columns a, b
+    ///     WITH t AS (SELECT 1 AS a, 2 AS b) ...
+    ///
+    /// When not nil, `columns` provides the columns of the CTE:
+    ///
+    ///     -- Column id
+    ///     WITH t(id) AS (SELECT 1) ...
+    var columns: [String]?
+    
+    /// The common table expression request.
+    ///
+    ///     WITH t AS (SELECT ...)
+    ///                ~~~~~~~~~~
+    var request: _FetchRequest
+    
+    /// The number of columns in the common table expression.
+    func columnsCount(_ db: Database) throws -> Int {
+        if let columns = columns {
+            // No need to hit the database
+            return columns.count
+        }
+        
+        // Compile request. We can freely use the statement cache because we
+        // do not execute the statement or modify its arguments.
+        let context = SQLGenerationContext(db)
+        let sql = try request.requestSQL(context, forSingleResult: false)
+        let statement = try db.cachedSelectStatement(sql: sql)
+        return statement.columnCount
     }
 }
 
@@ -341,57 +378,5 @@ extension TableRecord {
     /// - returns: A request.
     public static func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> QueryInterfaceRequest<Self> {
         all().with(cte)
-    }
-}
-
-// MARK: - _AllCTEColumns
-
-#warning("TODO: merge with AllColumns")
-/// :nodoc:
-public struct _AllCTEColumns {
-    var cte: SQLCTE
-    var alias: TableAlias?
-}
-
-extension _AllCTEColumns: SQLSelectable, Refinable {
-    /// :nodoc:
-    public func _count(distinct: Bool) -> _SQLCount? {
-        if let alias = alias {
-            return _SQLQualifiedAllColumns(alias: alias)._count(distinct: distinct)
-        } else {
-            return AllColumns()._count(distinct: distinct)
-        }
-    }
-    
-    /// :nodoc:
-    public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        // Never requalify
-        if self.alias != nil {
-            return self
-        }
-        return with(\.alias, alias)
-    }
-    
-    /// :nodoc:
-    public func _columnCount(_ db: Database) throws -> Int {
-        if let columns = cte.columns {
-            return columns.count
-        }
-        
-        // Compile request. We can freely use the statement cache because we
-        // do not execute the statement or modify its arguments.
-        let context = SQLGenerationContext(db)
-        let sql = try cte.request.requestSQL(context, forSingleResult: false)
-        let statement = try db.cachedSelectStatement(sql: sql)
-        return statement.columnCount
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLSelectableVisitor>(_ visitor: inout Visitor) throws {
-        if let alias = alias {
-            return try _SQLQualifiedAllColumns(alias: alias)._accept(&visitor)
-        } else {
-            return try AllColumns()._accept(&visitor)
-        }
     }
 }

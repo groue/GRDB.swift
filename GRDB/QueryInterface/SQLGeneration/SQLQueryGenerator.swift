@@ -6,7 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
-    private let ctes: SQLCTEs
+    private let ctes: SQLQueryCTEs
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     

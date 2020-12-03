@@ -15,7 +15,24 @@
 ///     // SELECT *, rowid FROM player
 ///     let request = Player.all()
 public struct AllColumns {
+    /// When nil, select all columns from a regular database table.
+    /// When not nil, select all columns from a common table expression.
+    var cte: SQLCTE?
+    
+    /// The `*` selection.
+    ///
+    /// For example:
+    ///
+    ///     // SELECT * FROM player
+    ///     Player.select(AllColumns())
     public init() { }
+    
+    /// The `*` selection for a common table expression.
+    ///
+    ///     WITH t AS (...) SELECT * FROM t
+    init(cte: SQLCTE) {
+        self.cte = cte
+    }
 }
 
 extension AllColumns: SQLSelectable {
@@ -35,11 +52,15 @@ extension AllColumns: SQLSelectable {
     
     /// :nodoc:
     public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        _SQLQualifiedAllColumns(alias: alias)
+        _SQLQualifiedAllColumns(alias: alias, cte: cte)
     }
     
     /// :nodoc:
     public func _columnCount(_ db: Database) throws -> Int {
+        if let cte = cte {
+            return try cte.columnsCount(db)
+        }
+        
         fatalError("Can't compute number of columns without an alias")
     }
     
@@ -55,10 +76,14 @@ extension AllColumns: SQLSelectable {
 ///
 /// :nodoc:
 public struct _SQLQualifiedAllColumns {
+    /// When nil, select all columns from a regular database table.
+    /// When not nil, select all columns from a common table expression.
+    var cte: SQLCTE?
     let alias: TableAlias
     
-    init(alias: TableAlias) {
+    init(alias: TableAlias, cte: SQLCTE?) {
         self.alias = alias
+        self.cte = cte
     }
 }
 
@@ -74,7 +99,11 @@ extension _SQLQualifiedAllColumns: SQLSelectable {
     
     /// :nodoc:
     public func _columnCount(_ db: Database) throws -> Int {
-        try db.columns(in: alias.tableName).count
+        if let cte = cte {
+            return try cte.columnsCount(db)
+        } else {
+            return try db.columns(in: alias.tableName).count
+        }
     }
     
     /// :nodoc:
