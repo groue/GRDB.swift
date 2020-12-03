@@ -346,6 +346,7 @@ extension TableRecord {
 
 // MARK: - _AllCTEColumns
 
+#warning("TODO: merge with AllColumns")
 /// :nodoc:
 public struct _AllCTEColumns {
     var cte: SQLCTE
