@@ -156,7 +156,7 @@ extension SQLQuery {
 }
 
 struct SQLCTE {
-    var columns: [Column]?
+    var columns: [String]?
     var request: _FetchRequest
 }
 

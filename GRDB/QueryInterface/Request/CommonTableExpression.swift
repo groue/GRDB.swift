@@ -33,20 +33,20 @@ public struct CommonTableExpression<RowDecoder> {
     ///         named: "p",
     ///         request: SQLRequest<Player>(sql: "SELECT * FROM player"))
     ///
-    /// - parameter tableName: The table name of the common table expression.
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.
+    /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter request: A request.
     public init<Request: FetchRequest>(
-        named tableName: String,
         recursive: Bool = false,
-        columns: [Column]? = nil,
+        named tableName: String,
+        columns: [String]? = nil,
         request: Request)
     {
-        self.tableName = tableName
         self.isRecursive = recursive
+        self.tableName = tableName
         self.cte = SQLCTE(columns: columns, request: request)
     }
     
@@ -61,23 +61,23 @@ public struct CommonTableExpression<RowDecoder> {
     ///         sql: "SELECT * FROM player WHERE name = ?",
     ///         arguments: ["O'Brien"])
     ///
-    /// - parameter tableName: The table name of the common table expression.
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.
+    /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Statement arguments.
     public init(
-        named tableName: String,
         recursive: Bool = false,
-        columns: [Column]? = nil,
+        named tableName: String,
+        columns: [String]? = nil,
         sql: String,
         arguments: StatementArguments = StatementArguments())
     {
         self.init(
-            named: tableName,
             recursive: recursive,
+            named: tableName,
             columns: columns,
             request: SQLRequest<Void>(sql: sql, arguments: arguments))
     }
@@ -91,21 +91,21 @@ public struct CommonTableExpression<RowDecoder> {
     ///         named: "p",
     ///         literal: "SELECT * FROM player WHERE name = \("O'Brien")")
     ///
-    /// - parameter tableName: The table name of the common table expression.
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.
+    /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter sqlLiteral: An SQLLiteral.
     public init(
-        named tableName: String,
         recursive: Bool = false,
-        columns: [Column]? = nil,
+        named tableName: String,
+        columns: [String]? = nil,
         literal sqlLiteral: SQLLiteral)
     {
         self.init(
-            named: tableName,
             recursive: recursive,
+            named: tableName,
             columns: columns,
             request: SQLRequest<Void>(literal: sqlLiteral))
     }

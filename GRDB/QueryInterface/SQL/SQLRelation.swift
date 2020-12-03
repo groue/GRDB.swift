@@ -526,7 +526,7 @@ enum SQLAssociationCondition {
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
-    #warning("TODO: doc")
+    #warning("TODO: remove")
     case using([Column])
     
     #warning("TODO: doc")

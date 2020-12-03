@@ -126,7 +126,7 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 let cte = CommonTableExpression<Void>(
                     named: "cte",
-                    columns: [Column("id"), Column("a")],
+                    columns: ["id", "a"],
                     literal: "SELECT 1, 2")
                 let request = T.all()
                     .with(cte)
@@ -465,9 +465,9 @@ class CommonTableExpressionTests: GRDBTestCase {
         try makeDatabaseQueue().read { db in
             func counterRequest(range: ClosedRange<Int>) -> QueryInterfaceRequest<Int> {
                 let counter = CommonTableExpression<Int>(
-                    named: "counter",
                     recursive: true,
-                    columns: [Column("x")],
+                    named: "counter",
+                    columns: ["x"],
                     literal: """
                         VALUES(\(range.lowerBound)) \
                         UNION ALL \

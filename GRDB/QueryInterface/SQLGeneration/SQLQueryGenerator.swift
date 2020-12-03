@@ -81,7 +81,7 @@ struct SQLQueryGenerator: Refinable {
                 .map { tableName, cte in
                     let columnsSQL = cte.columns
                         .map { columns in
-                            "(" + columns.map(\.name.quotedDatabaseIdentifier).joined(separator: ", ") + ")"
+                            "(" + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ") + ")"
                         }
                         ?? ""
                     let cteContext = SQLGenerationContext(parent: context)
