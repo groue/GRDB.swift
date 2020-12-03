@@ -274,7 +274,7 @@ extension QueryInterfaceRequest: TableRequest {
             //      request.orderByPrimaryKey()
             return tableName
         case .subquery:
-            // The only current use case for SQLSource.query is the
+            // The only current use case for SQLSource.subquery is the
             // "trivial count query" (see SQLQuery.countQuery):
             //
             //      // SELECT COUNT(*) FROM (SELECT * FROM player LIMIT 10)
