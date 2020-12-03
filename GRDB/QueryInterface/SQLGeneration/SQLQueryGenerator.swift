@@ -829,10 +829,13 @@ private struct SQLQualifiedJoin: Refinable {
         var joinExpressions: [SQLExpression]
         switch condition {
         case let .expression(condition):
-            joinExpressions = [condition(leftAlias, rightAlias).sqlExpression]
-            
-        case let .using(columns):
-            joinExpressions = columns.map { leftAlias[$0] == rightAlias[$0] }
+            let joinExpression = condition(leftAlias, rightAlias).sqlExpression
+            if joinExpression.isTrue {
+                // Avoid generating an ON clause if possible
+                joinExpressions = []
+            } else {
+                joinExpressions = [joinExpression]
+            }
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             joinExpressions = try foreignKeyRequest
@@ -855,6 +858,130 @@ private struct SQLQualifiedJoin: Refinable {
         }
         
         return sql
+    }
+}
+
+// MARK: - SQLExpressionIsTrue
+
+extension SQLExpression {
+    /// Returns true if the expression is trivially true.
+    ///
+    /// When in doubt, returns false.
+    ///
+    /// Support for removing the ON clause when possible.
+    var isTrue: Bool {
+        var visitor = SQLExpressionIsTrue()
+        do {
+            try _accept(&visitor)
+        } catch is SQLExpressionIsTrue.BreakError {
+        } catch {
+            try! { throw error }()
+        }
+        return visitor.isTrue
+    }
+}
+
+/// Support for `SQLExpression.isTrue`
+private struct SQLExpressionIsTrue: _SQLExpressionVisitor {
+    struct BreakError: Error { }
+    var isTrue = true
+    
+    private mutating func setFalse() throws -> Never {
+        isTrue = false
+        // Poor man's short-circuiting
+        throw BreakError()
+    }
+    
+    mutating func visit(_ dbValue: DatabaseValue) throws {
+        if dbValue != true.databaseValue {
+            try setFalse()
+        }
+    }
+    
+    mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression {
+        try setFalse()
+    }
+    
+    mutating func visit(_ column: _SQLQualifiedColumn) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionBetween) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionBinary) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionAssociativeBinary) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionCollate) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionContains) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionCount) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionCountDistinct) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionEqual) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionFastPrimaryKey) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionFunction) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionIsEmpty) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionLiteral) throws {
+        try setFalse() // Don't know - assume not true
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionNot) throws {
+        try setFalse() // Could do better
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionQualifiedFastPrimaryKey) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionTableMatch) throws {
+        try setFalse()
+    }
+    
+    mutating func visit(_ expr: _SQLExpressionUnary) throws {
+        try setFalse()
+    }
+    
+    // MARK: - _FetchRequestVisitor
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws {
+        try setFalse() // Don't know - assume not true
+    }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws {
+        try setFalse() // Don't know - assume not true
+    }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws {
+        try setFalse() // Don't know - assume not true
     }
 }
 

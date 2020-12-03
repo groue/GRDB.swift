@@ -74,19 +74,19 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
-            // Include SQL request as a CTE (true ON clause)
+            // Include SQL request as a CTE
             do {
                 let cte = CommonTableExpression<Void>(
                     named: "cte",
-                    literal: "SELECT \("O'Brien")")
+                    literal: "SELECT 1 as id")
                 let request = T.all()
                     .with(cte)
-                    .including(required: T.association(to: cte, on: { _, _ in true }))
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
                 try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT 'O''Brien') \
+                    WITH "cte" AS (SELECT 1 as id) \
                     SELECT "t".*, "cte".* \
                     FROM "t" \
-                    JOIN "cte" ON 1
+                    JOIN "cte" ON "t"."id" = "cte"."id"
                     """)
             }
             
@@ -106,22 +106,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
-            // Include SQL request as a CTE (USING clause)
-            do {
-                let cte = CommonTableExpression<Void>(
-                    named: "cte",
-                    literal: "SELECT 1 AS id")
-                let request = T.all()
-                    .with(cte)
-                    .including(required: T.association(to: cte, using: [Column("id")]))
-                try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT 1 AS id) \
-                    SELECT "t".*, "cte".* \
-                    FROM "t" \
-                    JOIN "cte" ON "t"."id" = "cte"."id"
-                    """)
-            }
-            
             // Include SQL request as a CTE (custom column name)
             do {
                 let cte = CommonTableExpression<Void>(
@@ -130,7 +114,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                     literal: "SELECT 1, 2")
                 let request = T.all()
                     .with(cte)
-                    .including(required: T.association(to: cte, using: [Column("id")]))
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
                 try assertEqualSQL(db, request, """
                     WITH "cte"("id", "a") AS (SELECT 1, 2) \
                     SELECT "t".*, "cte".* \
@@ -230,21 +214,6 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
-            // Include one CTE twice with same key and used columns
-            do {
-                let cte = CommonTableExpression<Void>(named: "cte", request: T.all())
-                let request = T.all()
-                    .with(cte)
-                    .including(required: T.association(to: cte, using: [Column("id")]))
-                    .including(required: T.association(to: cte, using: [Column("id")]))
-                try assertEqualSQL(db, request, """
-                    WITH "cte" AS (SELECT * FROM "t") \
-                    SELECT "t".*, "cte".* \
-                    FROM "t" \
-                    JOIN "cte" ON "t"."id" = "cte"."id"
-                    """)
-            }
-            
             // Include one CTE twice with same key but different condition (last condition wins)
             do {
                 let cte = CommonTableExpression<Void>(named: "cte", request: T.all())
@@ -265,14 +234,14 @@ class CommonTableExpressionTests: GRDBTestCase {
                 let cte = CommonTableExpression<Void>(named: "cte", request: T.all())
                 let request = T.all()
                     .with(cte)
-                    .including(required: T.association(to: cte, using: [Column("id")]).forKey("a"))
-                    .including(required: T.association(to: cte, using: [Column("id")]).forKey("b"))
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] > right["id"] }).forKey("a"))
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] < right["id"] }).forKey("b"))
                 try assertEqualSQL(db, request, """
                     WITH "cte" AS (SELECT * FROM "t") \
                     SELECT "t".*, "cte1".*, "cte2".* \
                     FROM "t" \
-                    JOIN "cte" "cte1" ON "t"."id" = "cte1"."id" \
-                    JOIN "cte" "cte2" ON "t"."id" = "cte2"."id"
+                    JOIN "cte" "cte1" ON "t"."id" > "cte1"."id" \
+                    JOIN "cte" "cte2" ON "t"."id" < "cte2"."id"
                     """)
             }
             

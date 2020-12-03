@@ -188,17 +188,19 @@ extension TableRecord {
             condition: .expression(condition),
             relation: cte.relationForAll)
     }
-    
-    #warning("TODO: what about exposing left-right columns mapping instead?")
-    #warning("TODO: doc")
+
+    /// Creates an association to a common table expression that you can join
+    /// or include in another request.
+    ///
+    /// - parameter cte: A common table expression.
+    /// - returns: An association to the common table expression.
     public static func association<Destination>(
-        to cte: CommonTableExpression<Destination>,
-        using columns: [Column] = [])
+        to cte: CommonTableExpression<Destination>)
     -> JoinAssociation<Self, Destination>
     {
         JoinAssociation(
             key: .inflected(cte.tableName),
-            condition: .using(columns),
+            condition: .none,
             relation: cte.relationForAll)
     }
 }
@@ -223,15 +225,18 @@ extension CommonTableExpression {
             relation: cte.relationForAll)
     }
     
-    #warning("TODO: doc")
+    /// Creates an association to a common table expression that you can join
+    /// or include in another request.
+    ///
+    /// - parameter cte: A common table expression.
+    /// - returns: An association to the common table expression.
     public func association<Destination>(
-        to cte: CommonTableExpression<Destination>,
-        using columns: [Column] = [])
+        to cte: CommonTableExpression<Destination>)
     -> JoinAssociation<RowDecoder, Destination>
     {
         JoinAssociation(
             key: .inflected(cte.tableName),
-            condition: .using(columns),
+            condition: .none,
             relation: cte.relationForAll)
     }
     
@@ -255,16 +260,19 @@ extension CommonTableExpression {
             relation: Destination.relationForAll)
     }
     
-    #warning("TODO: doc")
+    /// Creates an association to a table record that you can join
+    /// or include in another request.
+    ///
+    /// - parameter cte: A common table expression.
+    /// - returns: An association to the common table expression.
     public func association<Destination>(
-        to destination: Destination.Type,
-        using columns: [Column] = [])
+        to destination: Destination.Type)
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
         JoinAssociation(
             key: .inflected(Destination.databaseTableName),
-            condition: .using(columns),
+            condition: .none,
             relation: Destination.relationForAll)
     }
 }

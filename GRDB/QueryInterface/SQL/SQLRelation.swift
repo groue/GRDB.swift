@@ -526,18 +526,16 @@ enum SQLAssociationCondition {
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
-    #warning("TODO: remove")
-    case using([Column])
-    
     #warning("TODO: doc")
     case expression((TableAlias, TableAlias) -> SQLExpressible)
+    
+    /// The "absent" joining condition
+    static let none = expression({ _, _ in true })
     
     var reversed: SQLAssociationCondition {
         switch self {
         case let .foreignKey(request: request, originIsLeft: originIsLeft):
             return .foreignKey(request: request, originIsLeft: !originIsLeft)
-        case .using:
-            return self
         case let .expression(condition):
             return .expression { condition($1, $0) }
         }
@@ -759,13 +757,6 @@ extension SQLAssociationCondition {
         switch (self, other) {
         case let (.foreignKey(lr, lo), .foreignKey(rr, ro)):
             if lr == rr && lo == ro {
-                return self
-            } else {
-                // can't merge
-                return nil
-            }
-        case let (.using(lhs), .using(rhs)):
-            if lhs == rhs {
                 return self
             } else {
                 // can't merge

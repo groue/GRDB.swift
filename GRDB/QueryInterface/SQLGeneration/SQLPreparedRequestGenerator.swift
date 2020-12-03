@@ -144,10 +144,6 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
             // are not prefetched with including(all:)
             fatalError("Not implemented: prefetch association without any foreign key")
             
-        case let .using(columns):
-            let pivotMapping: JoinMapping = columns.map { (left: $0.name, right: $0.name) }
-            try prefetch(db, association: association, pivotMapping: pivotMapping, in: rows)
-            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             let pivotMapping = try foreignKeyRequest
                 .fetchForeignKeyMapping(db)
@@ -228,11 +224,6 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
             // are not prefetched with including(all:)
             fatalError("Not implemented: prefetch association without any foreign key")
             
-        case let .using(columns):
-            let pivotMapping: JoinMapping = columns.map { (left: $0.name, right: $0.name) }
-            let prefetchRegion = try prefetchedRegion(db, association: association, pivotMapping: pivotMapping)
-            region.formUnion(prefetchRegion)
-
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             let pivotMapping = try foreignKeyRequest
                 .fetchForeignKeyMapping(db)
