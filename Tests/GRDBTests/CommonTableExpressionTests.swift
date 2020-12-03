@@ -460,4 +460,30 @@ class CommonTableExpressionTests: GRDBTestCase {
             ])
         }
     }
+    
+    func testRecursiveCounter() throws {
+        try makeDatabaseQueue().read { db in
+            func counterRequest(range: ClosedRange<Int>) -> QueryInterfaceRequest<Int> {
+                let counter = CommonTableExpression<Int>(
+                    named: "counter",
+                    recursive: true,
+                    columns: [Column("x")],
+                    literal: """
+                        VALUES(\(range.lowerBound)) \
+                        UNION ALL \
+                        SELECT x+1 FROM counter WHERE x < \(range.upperBound)
+                        """)
+                return counter.all().with(counter)
+            }
+            
+            try assertEqualSQL(db, counterRequest(range: 0...10), """
+                WITH RECURSIVE \
+                "counter"("x") AS (VALUES(0) UNION ALL SELECT x+1 FROM counter WHERE x < 10) \
+                SELECT * FROM "counter"
+                """)
+            
+            try XCTAssertEqual(counterRequest(range: 0...10).fetchAll(db), Array(0...10))
+            try XCTAssertEqual(counterRequest(range: 3...7).fetchAll(db), Array(3...7))
+        }
+    }
 }

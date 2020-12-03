@@ -1,5 +1,3 @@
-#warning("TODO: recursive CTEs")
-
 #warning("TODO: Document the RowDecoder type")
 /// A [common table expression](https://sqlite.org/lang_with.html) that can be
 /// used with the GRDB query interface.
@@ -15,19 +13,11 @@ public struct CommonTableExpression<RowDecoder> {
     ///     answer.tableName // "answer"
     public var tableName: String
     
-    /// The columns of the common table expression.
-    ///
-    /// For example:
-    ///
-    ///     // WITH answer(value) AS (SELECT 42) ...
-    ///     let answer = CommonTableExpression<Void>(
-    ///         named: "answer",
-    ///         columns: [Column("value")],
-    ///         sql: "SELECT 42")
-    ///     answer.columns // [Column("value")]
-    public var columns: [Column]?
+    /// Whether this common table expression needs a `WITH RECURSIVE`
+    /// sql clause.
+    public var isRecursive: Bool
     
-    var request: _FetchRequest
+    var cte: SQLCTE
     
     /// Creates a common table expression from a request.
     ///
@@ -44,17 +34,20 @@ public struct CommonTableExpression<RowDecoder> {
     ///         request: SQLRequest<Player>(sql: "SELECT * FROM player"))
     ///
     /// - parameter tableName: The table name of the common table expression.
+    /// - parameter recursive: Whether this common table expression needs a
+    ///   `WITH RECURSIVE` sql clause.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter request: A request.
     public init<Request: FetchRequest>(
         named tableName: String,
+        recursive: Bool = false,
         columns: [Column]? = nil,
         request: Request)
     {
         self.tableName = tableName
-        self.columns = columns
-        self.request = request
+        self.isRecursive = recursive
+        self.cte = SQLCTE(columns: columns, request: request)
     }
     
     /// Creates a common table expression from an SQL string and
@@ -69,18 +62,22 @@ public struct CommonTableExpression<RowDecoder> {
     ///         arguments: ["O'Brien"])
     ///
     /// - parameter tableName: The table name of the common table expression.
+    /// - parameter recursive: Whether this common table expression needs a
+    ///   `WITH RECURSIVE` sql clause.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter sql: An SQL query.
     /// - parameter arguments: Statement arguments.
     public init(
         named tableName: String,
+        recursive: Bool = false,
         columns: [Column]? = nil,
         sql: String,
         arguments: StatementArguments = StatementArguments())
     {
         self.init(
             named: tableName,
+            recursive: recursive,
             columns: columns,
             request: SQLRequest<Void>(sql: sql, arguments: arguments))
     }
@@ -95,16 +92,20 @@ public struct CommonTableExpression<RowDecoder> {
     ///         literal: "SELECT * FROM player WHERE name = \("O'Brien")")
     ///
     /// - parameter tableName: The table name of the common table expression.
+    /// - parameter recursive: Whether this common table expression needs a
+    ///   `WITH RECURSIVE` sql clause.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter sqlLiteral: An SQLLiteral.
     public init(
         named tableName: String,
+        recursive: Bool = false,
         columns: [Column]? = nil,
         literal sqlLiteral: SQLLiteral)
     {
         self.init(
             named: tableName,
+            recursive: recursive,
             columns: columns,
             request: SQLRequest<Void>(literal: sqlLiteral))
     }
@@ -114,7 +115,7 @@ extension CommonTableExpression {
     var relationForAll: SQLRelation {
         SQLRelation(
             source: .table(tableName: tableName, alias: nil),
-            selectionPromise: DatabasePromise(value: [_AllCTEColumns(columns: columns, request: request, alias: nil)]))
+            selectionPromise: DatabasePromise(value: [_AllCTEColumns(cte: cte, alias: nil)]))
     }
     
     /// Creates a request for all rows of the common table expression.
@@ -297,7 +298,12 @@ extension QueryInterfaceRequest {
     /// - parameter cte: A common table expression.
     /// - returns: A request.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
-        with(\.query.ctes[cte.tableName], (columns: cte.columns, request: cte.request))
+        mapInto(\.query.ctes) { ctes in
+            if cte.isRecursive {
+                ctes.isRecursive = true
+            }
+            ctes.ctes[cte.tableName] = cte.cte
+        }
     }
 }
 
@@ -334,8 +340,7 @@ extension TableRecord {
 
 /// :nodoc:
 public struct _AllCTEColumns {
-    var columns: [Column]?
-    var request: _FetchRequest
+    var cte: SQLCTE
     var alias: TableAlias?
 }
 
@@ -365,14 +370,14 @@ extension _AllCTEColumns: SQLSelectable, Refinable {
     
     /// :nodoc:
     public func _columnCount(_ db: Database) throws -> Int {
-        if let columns = columns {
+        if let columns = cte.columns {
             return columns.count
         }
         
         // Compile request. We can freely use the statement cache because we
         // do not execute the statement or modify its arguments.
         let context = SQLGenerationContext(db)
-        let sql = try request.requestSQL(context, forSingleResult: false)
+        let sql = try cte.request.requestSQL(context, forSingleResult: false)
         let statement = try db.cachedSelectStatement(sql: sql)
         return statement.columnCount
     }
