@@ -1,4 +1,3 @@
-#warning("TODO: Document the RowDecoder type")
 /// A [common table expression](https://sqlite.org/lang_with.html) that can be
 /// used with the GRDB query interface.
 public struct CommonTableExpression<RowDecoder> {
@@ -317,8 +316,6 @@ extension CommonTableExpression {
 // MARK: - QueryInterfaceRequest
 
 extension QueryInterfaceRequest {
-    #warning("TODO: Accept an array of ctes by discarding their RowDecoder type. This would look better when there are several recursive CTEs.")
-    
     /// Returns a request which embeds the common table expressions.
     ///
     /// For example, you can build a request that fetches all chats with their

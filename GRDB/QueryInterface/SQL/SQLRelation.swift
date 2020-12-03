@@ -500,12 +500,28 @@ extension SQLRelation {
 
 // MARK: - SQLAssociationCondition
 
-/// The condition that links two tables.
+/// The condition that links two tables of an association.
 ///
-///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-///                                         <---- the condition ---->
+/// Conditions can feed a `JOIN` clause:
+///
+///     // SELECT ... FROM book JOIN author ON author.id = book.authorId
+///     //                                     ~~~~~~~~~~~~~~~~~~~~~~~~~
+///     Book.including(required: Book.author)
+///
+/// Conditions help eager loading of to-many associations:
+///
+///     // SELECT * FROM author WHERE ...
+///     // SELECT * FROM book WHERE author.id IN (1, 2, 3)
+///     //                          ~~~~~~~~~~~~~~~~~~~~~~
+///     Author.filter(...).including(all: Author.books)
+///
+/// Conditions help fetching associated records:
+///
+///     // SELECT * FROM book WHERE author.id = 1
+///     //                          ~~~~~~~~~~~~~
+///     author.request(for: Author.books)
 enum SQLAssociationCondition {
-    /// Condition based on a foreign key
+    /// A condition based on a foreign key.
     ///
     /// originIsLeft is true if the table at the origin of the foreign key is on
     /// the left of the sql JOIN operator.
@@ -518,18 +534,34 @@ enum SQLAssociationCondition {
     ///
     ///     -- Book.including(required: Book.author)
     ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
     ///
     /// The origin table `book`is on the right of the JOIN operator for
     /// the HasMany and HasOne associations:
     ///
     ///     -- Author.including(required: Author.books)
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
+    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
     
-    #warning("TODO: doc")
-    case expression((TableAlias, TableAlias) -> SQLExpressible)
+    /// A condition based on a function that returns an expression.
+    ///
+    /// The two arguments `left` and `right` are aliases for the left and right
+    /// tables in a `JOIN` clause:
+    ///
+    ///     // WITH bonus AS (...)
+    ///     // SELECT * FROM player
+    ///     // JOIN bonus ON player.id = bonus.playerID
+    ///     //               ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ///     let bonus = CommonTableExpression(...)
+    ///     let association = Player.association(to: bonus, on: { player, bonus in
+    ///         player[Column("id")] == bonus[Column("playerID")]
+    ///     })
+    ///     Player.with(bonus).joining(required: association)
+    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
     
-    /// The "absent" joining condition
+    /// The condition that does not constrain the two associated tables
+    /// in any way.
     static let none = expression({ _, _ in true })
     
     var reversed: SQLAssociationCondition {
