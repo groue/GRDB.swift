@@ -2280,7 +2280,7 @@ let spain = try Country.fetchOne(db, key: "ES") // Country?
 To update a record in the database, call the `update` method:
 
 ```swift
-if let player = try Player.fetchOne(db, key: 1) 
+if let player = try Player.fetchOne(db, key: 1) {
     player.score = 1000
     try player.update(db)
 }
