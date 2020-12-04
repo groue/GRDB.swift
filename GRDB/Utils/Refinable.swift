@@ -39,7 +39,7 @@ extension Refinable {
     /// For example:
     ///
     ///     let player = Player(name: "Arthur", score: 1000)
-    ///     let newPlayer = player.with(\.name, 1100)
+    ///     let newPlayer = player.with(\.score, 1100)
     ///     newPlayer.name  // "Arthur"
     ///     newPlayer.score // 1100
     @inline(__always)
@@ -52,7 +52,7 @@ extension Refinable {
     /// For example:
     ///
     ///     let player = Player(name: "Arthur", score: 1000)
-    ///     let newPlayer = player.map(\.name) { $0 + 100 }
+    ///     let newPlayer = player.map(\.score) { $0 + 100 }
     ///     newPlayer.name  // "Arthur"
     ///     newPlayer.score // 1100
     @inline(__always)
