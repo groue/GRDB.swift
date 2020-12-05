@@ -320,7 +320,7 @@ extension CommonTableExpression {
 // MARK: - QueryInterfaceRequest
 
 extension QueryInterfaceRequest {
-    /// Returns a request which embeds the common table expressions.
+    /// Returns a request which embeds the common table expression.
     ///
     /// If a common table expression with the same table name had already been
     /// embedded, it is replaced by the new one.
@@ -359,7 +359,7 @@ extension QueryInterfaceRequest {
 }
 
 extension TableRecord {
-    /// Returns a request which embeds the common table expressions.
+    /// Returns a request which embeds the common table expression.
     ///
     /// If a common table expression with the same table name had already been
     /// embedded, it is replaced by the new one.
