@@ -6,7 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
-    private let ctes: SQLQueryCTEs
+    private let ctes: OrderedDictionary<String, SQLCTE>
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -74,10 +74,10 @@ struct SQLQueryGenerator: Refinable {
         
         if !ctes.isEmpty {
             sql += "WITH "
-            if ctes.isRecursive {
+            if ctes.values.contains(where: \.isRecursive) {
                 sql += "RECURSIVE "
             }
-            sql += try ctes.ctes
+            sql += try ctes
                 .map { tableName, cte in
                     let columnsSQL = cte.columns
                         .map { columns in

@@ -12,10 +12,6 @@ public struct CommonTableExpression<RowDecoder> {
     ///     answer.tableName // "answer"
     public var tableName: String
     
-    /// Whether this common table expression needs a `WITH RECURSIVE`
-    /// sql clause.
-    public var isRecursive: Bool
-    
     var cte: SQLCTE
     
     /// Creates a common table expression from a request.
@@ -44,9 +40,11 @@ public struct CommonTableExpression<RowDecoder> {
         columns: [String]? = nil,
         request: Request)
     {
-        self.isRecursive = recursive
         self.tableName = tableName
-        self.cte = SQLCTE(columns: columns, request: request)
+        self.cte = SQLCTE(
+            columns: columns,
+            request: request,
+            isRecursive: recursive)
     }
     
     /// Creates a common table expression from an SQL string and
@@ -169,6 +167,10 @@ struct SQLCTE {
     ///     WITH t AS (SELECT ...)
     ///                ~~~~~~~~~~
     var request: _FetchRequest
+    
+    /// Whether this common table expression needs a `WITH RECURSIVE`
+    /// sql clause.
+    var isRecursive: Bool
     
     /// The number of columns in the common table expression.
     func columnsCount(_ db: Database) throws -> Int {
@@ -318,58 +320,73 @@ extension CommonTableExpression {
 extension QueryInterfaceRequest {
     /// Returns a request which embeds the common table expressions.
     ///
-    /// For example, you can build a request that fetches all chats with their
-    /// latest post:
+    /// If a common table expression with the same table name had already been
+    /// embedded, it is replaced by the new one.
     ///
-    ///     // WITH latestPost AS (SELECT *, MAX(date) FROM post GROUP BY chatID)
-    ///     // SELECT chat.*, latestPost.*
+    /// For example, you can build a request that fetches all chats with their
+    /// latest message:
+    ///
+    ///     let latestMessageRequest = Message
+    ///         .annotated(with: max(Column("date")))
+    ///         .group(Column("chatID"))
+    ///
+    ///     let latestMessageCTE = CommonTableExpression<Void>(
+    ///         named: "latestMessage",
+    ///         request: latestMessageRequest)
+    ///
+    ///     let latestMessage = Chat.association(
+    ///         to: latestMessageCTE,
+    ///         on: { chat, latestMessage in
+    ///             chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         })
+    ///
+    ///     // WITH latestMessage AS
+    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
+    ///     // SELECT chat.*, latestMessage.*
     ///     // FROM chat
-    ///     // LEFT JOIN latestPost ON chat.id = latestPost.chatID
-    ///     let latestPostCTE = CommonTableExpression<Void>(
-    ///         named: "latestPost",
-    ///         request: Post
-    ///             .annotated(with: max(Column("date")))
-    ///             .group(Column("chatID")))
-    ///     let latestPost = Chat.association(to: latestPostCTE, on: { chat, latestPost in
-    ///         chat[Column("id")] == latestPost[Column("chatID")]
-    ///     })
+    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
     ///     let request = Chat.all()
-    ///         .with(latestPostCTE)
-    ///         .including(optional: latestPost)
+    ///         .with(latestMessageCTE)
+    ///         .including(optional: latestMessage)
     ///
     /// - parameter cte: A common table expression.
     /// - returns: A request.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
-        mapInto(\.query.ctes) { ctes in
-            if cte.isRecursive {
-                ctes.isRecursive = true
-            }
-            ctes.ctes[cte.tableName] = cte.cte
-        }
+        with(\.query.ctes[cte.tableName], cte.cte)
     }
 }
 
 extension TableRecord {
     /// Returns a request which embeds the common table expressions.
     ///
+    /// If a common table expression with the same table name had already been
+    /// embedded, it is replaced by the new one.
+    ///
     /// For example, you can build a request that fetches all chats with their
     /// latest post:
     ///
-    ///     // WITH latestPost AS (SELECT *, MAX(date) FROM post GROUP BY chatID)
-    ///     // SELECT chat.*, latestPost.*
+    ///     let latestMessageRequest = Message
+    ///         .annotated(with: max(Column("date")))
+    ///         .group(Column("chatID"))
+    ///
+    ///     let latestMessageCTE = CommonTableExpression<Void>(
+    ///         named: "latestMessage",
+    ///         request: latestMessageRequest)
+    ///
+    ///     let latestMessage = Chat.association(
+    ///         to: latestMessageCTE,
+    ///         on: { chat, latestMessage in
+    ///             chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         })
+    ///
+    ///     // WITH latestMessage AS
+    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
+    ///     // SELECT chat.*, latestMessage.*
     ///     // FROM chat
-    ///     // LEFT JOIN latestPost ON chat.id = latestPost.chatID
-    ///     let latestPostCTE = CommonTableExpression<Void>(
-    ///         named: "latestPost",
-    ///         request: Post
-    ///             .annotated(with: max(Column("date")))
-    ///             .group(Column("chatID")))
-    ///     let latestPost = Chat.association(to: latestPostCTE, on: { chat, latestPost in
-    ///         chat[Column("id")] == latestPost[Column("chatID")]
-    ///     })
+    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
     ///     let request = Chat
-    ///         .with(latestPostCTE)
-    ///         .including(optional: latestPost)
+    ///         .with(latestMessageCTE)
+    ///         .including(optional: latestMessage)
     ///
     /// - parameter cte: A common table expression.
     /// - returns: A request.

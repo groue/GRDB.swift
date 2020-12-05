@@ -10,7 +10,7 @@ struct SQLQuery {
     // `(a AND b AND c)` instead of `((a AND b) AND c)`.
     var havingExpressionsPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
     var limit: SQLLimit?
-    var ctes = SQLQueryCTEs()
+    var ctes: OrderedDictionary<String, SQLCTE> = [:]
 }
 
 extension SQLQuery: Refinable {
@@ -153,16 +153,6 @@ extension SQLQuery {
             selectionPromise: DatabasePromise(value: [_SQLExpressionCount(AllColumns())]))
         return SQLQuery(relation: relation)
     }
-}
-
-/// The collection of common table expressions in an `SQLQuery`.
-struct SQLQueryCTEs: Refinable {
-    var isRecursive: Bool = false
-    
-    /// A [table name: CTE] dictionary
-    var ctes: OrderedDictionary<String, SQLCTE> = [:]
-    
-    var isEmpty: Bool { ctes.isEmpty }
 }
 
 struct SQLLimit {
