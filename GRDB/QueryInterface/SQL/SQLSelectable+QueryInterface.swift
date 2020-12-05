@@ -15,6 +15,21 @@
 ///     // SELECT *, rowid FROM player
 ///     let request = Player.all()
 public struct AllColumns {
+    // As long as the CTE is embedded here, the following request will fail
+    // at runtime, in `_columnCount(_:)`, because we can't access the number of
+    // columns in the CTE:
+    //
+    //     let association = Player.association(to: cte)
+    //     Player.including(required: association.select(AllColumns(), ...))
+    //
+    // The need for this should not be frequent. And the user has
+    // two workarounds:
+    //
+    // - provide explicit columns in the CTE definition.
+    // - prefer `annotated(with:)` when she wants to extend the selection.
+    //
+    // TODO: Make `cteRequestOrAssociation.select(AllColumns())` possible.
+    
     /// When nil, select all columns from a regular database table.
     /// When not nil, select all columns from a common table expression.
     var cte: SQLCTE?
