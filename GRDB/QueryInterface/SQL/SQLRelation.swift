@@ -395,6 +395,15 @@ enum SQLSource {
     case table(tableName: String, alias: TableAlias?)
     indirect case subquery(SQLQuery)
     
+    var tableName: String? {
+        switch self {
+        case .table(tableName: let tableName, alias: _):
+            return tableName
+        case .subquery:
+            return nil
+        }
+    }
+    
     func qualified(with alias: TableAlias) -> SQLSource {
         switch self {
         case let .table(tableName: tableName, alias: sourceAlias):

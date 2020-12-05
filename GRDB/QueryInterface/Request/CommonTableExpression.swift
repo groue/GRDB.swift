@@ -192,6 +192,9 @@ extension TableRecord {
     /// Creates an association to a common table expression that you can join
     /// or include in another request.
     ///
+    /// The key of the returned association is the table name of the common
+    /// table expression.
+    ///
     /// For example, you can build a request that fetches all chats with their
     /// latest post:
     ///
@@ -221,14 +224,14 @@ extension TableRecord {
         on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
     -> JoinAssociation<Self, Destination>
     {
-        JoinAssociation(
-            key: .inflected(cte.tableName),
-            condition: .expression(condition),
-            relation: cte.relationForAll)
+        JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
     }
 
     /// Creates an association to a common table expression that you can join
     /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of the common
+    /// table expression.
     ///
     /// - parameter cte: A common table expression.
     /// - returns: An association to the common table expression.
@@ -236,16 +239,16 @@ extension TableRecord {
         to cte: CommonTableExpression<Destination>)
     -> JoinAssociation<Self, Destination>
     {
-        JoinAssociation(
-            key: .inflected(cte.tableName),
-            condition: .none,
-            relation: cte.relationForAll)
+        JoinAssociation(to: cte.relationForAll, condition: .none)
     }
 }
 
 extension CommonTableExpression {
     /// Creates an association to a common table expression that you can join
     /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of the common
+    /// table expression.
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
@@ -257,14 +260,14 @@ extension CommonTableExpression {
         on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
-        JoinAssociation(
-            key: .inflected(cte.tableName),
-            condition: .expression(condition),
-            relation: cte.relationForAll)
+        JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
     }
     
     /// Creates an association to a common table expression that you can join
     /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of the common
+    /// table expression.
     ///
     /// - parameter cte: A common table expression.
     /// - returns: An association to the common table expression.
@@ -272,14 +275,13 @@ extension CommonTableExpression {
         to cte: CommonTableExpression<Destination>)
     -> JoinAssociation<RowDecoder, Destination>
     {
-        JoinAssociation(
-            key: .inflected(cte.tableName),
-            condition: .none,
-            relation: cte.relationForAll)
+        JoinAssociation(to: cte.relationForAll, condition: .none)
     }
     
     /// Creates an association to a table record that you can join
     /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of `Destination`.
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.
@@ -292,14 +294,13 @@ extension CommonTableExpression {
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
-        JoinAssociation(
-            key: .inflected(Destination.databaseTableName),
-            condition: .expression(condition),
-            relation: Destination.relationForAll)
+        JoinAssociation(to: Destination.relationForAll, condition: .expression(condition))
     }
     
     /// Creates an association to a table record that you can join
     /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of `Destination`.
     ///
     /// - parameter cte: A common table expression.
     /// - returns: An association to the common table expression.
@@ -308,10 +309,7 @@ extension CommonTableExpression {
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
-        JoinAssociation(
-            key: .inflected(Destination.databaseTableName),
-            condition: .none,
-            relation: Destination.relationForAll)
+        JoinAssociation(to: Destination.relationForAll, condition: .none)
     }
 }
 

@@ -293,23 +293,19 @@ extension Association {
 extension Association {
     /// :nodoc:
     public var databaseTableName: String {
-        switch _sqlAssociation.destination.relation.source {
-        case .table(tableName: let tableName, alias: _):
-            return tableName
-        case .subquery:
-            // The only current use case for SQLSource.subquery is the
-            // "trivial count query" (see SQLQuery.countQuery):
+        guard let tableName = _sqlAssociation.destination.relation.source.tableName else {
+            // Table name is only nil for SQLSource.subquery, which is only
+            // involved in the "trivial count query" (see SQLQuery.trivialCountQuery):
             //
             //      // SELECT COUNT(*) FROM (SELECT * FROM player LIMIT 10)
             //      let request = Player.limit(10)
             //      let count = try request.fetchCount(db)
             //
-            // This query is currently never wrapped in an Association
-            // So this fatal error can not currently happen.
+            // This fatal error can not currently happen.
             fatalError("Association is not based on a database table")
         }
+        return tableName
     }
-
 }
 
 // MARK: - AssociationToOne
