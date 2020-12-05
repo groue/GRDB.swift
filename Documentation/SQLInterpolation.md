@@ -436,10 +436,10 @@ This chapter lists all kinds of supported interpolations.
     
     ```swift
     // WITH name AS (SELECT 'O''Brien') SELECT * FROM name
-    let name = CommonTableExpression<Void>(
+    let cte = CommonTableExpression<Void>(
        named: "name",
        literal: "SELECT \("O'Brien")")
-    "WITH \(definitionFor: name) SELECT * FROM \(name)"
+    "WITH \(definitionFor: cte) SELECT * FROM \(cte)"
     ```
 
 - SQLLiteral:
