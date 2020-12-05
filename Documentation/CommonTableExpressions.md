@@ -30,7 +30,7 @@ let playerNameCTE = CommonTableExpression<Void>(
     request: Player.select(Column("name")))
 ```
 
-You can feed CTE with SQL as well (second and third examples use [SQL Interpolation]):
+You can feed a CTE with raw SQL as well (second and third examples use [SQL Interpolation]):
 
 ```swift
 let name = "O'Brien"
@@ -134,7 +134,7 @@ let request = Player
 >     cte.all().select(...).filter(...).group(...).order(...)
 >     ```
 
-Common table expressions are also available with [SQLRequest] and [SQL Interpolation]:
+Common table expressions can also be embedded in [SQLRequest] and [SQL Interpolation]:
 
 ```swift
 // WITH playerName AS (SELECT 'O''Brien')
