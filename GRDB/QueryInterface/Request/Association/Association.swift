@@ -306,7 +306,7 @@ extension Association {
             //
             // This query is currently never wrapped in an Association
             // So this fatal error can not currently happen.
-            fatalError("Request is not based on a database table")
+            fatalError("Association is not based on a database table")
         }
     }
 
