@@ -83,7 +83,7 @@ As you can see in all above examples, `CommonTableExpression` is a generic type:
 
 ## Embed Common Table Expressions in Requests
 
-A typical SQLite query that uses a common table expression first *defines* the CTE and then *uses* the CTE by mentioning its table name.
+A typical SQLite query that uses a common table expression first *defines* the CTE and then *uses* the CTE by mentioning its table name. We'll see below Swift apis that match those two steps.
 
 We will use the (simple) query below as a target. It is the query we'll want to generate in this chapter. It defines a CTE, and uses it in a subquery:
 
