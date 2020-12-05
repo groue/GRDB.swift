@@ -140,7 +140,7 @@ Common table expressions can also be embedded in [SQLRequest] with [SQL Interpol
 // WITH playerName AS (SELECT 'O''Brien')
 // SELECT * FROM player
 // WHERE name = (SELECT * FROM playerName)
-let request: SQLRequest<String> = """
+let request: SQLRequest<Player> = """
     WITH \(definitionFor: playerNameCTE) -- embeds the CTE definition
     SELECT * FROM player
     WHERE name = (SELECT * FROM \(playerNameCTE)) -- embeds the CTE table name
@@ -149,7 +149,7 @@ let request: SQLRequest<String> = """
 // WITH playerName AS (SELECT 'O''Brien')
 // SELECT * FROM player
 // WHERE name = (SELECT * FROM playerName)
-let request: SQLRequest<String> = """
+let request: SQLRequest<Player> = """
     WITH \(definitionFor: playerNameCTE) -- embeds the CTE definition
     SELECT * FROM player
     WHERE name = (\(playerNameCTE.all())) -- embeds the CTE request
