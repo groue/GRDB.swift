@@ -750,17 +750,11 @@ private struct SQLQualifiedJoin: Refinable {
         var sql = try "\(kind.rawValue) \(relation.source.sql(context))"
         let rightAlias = relation.source.alias
         
-        // ... ON <join conditions> AND <other filters>
+        // ... ON <join conditions>
         var joinExpressions: [SQLExpression]
         switch condition {
         case let .expression(condition):
-            let joinExpression = condition(leftAlias, rightAlias).sqlExpression
-            if joinExpression.isTrue {
-                // Avoid generating an ON clause if possible
-                joinExpressions = []
-            } else {
-                joinExpressions = [joinExpression]
-            }
+            joinExpressions = [condition(leftAlias, rightAlias).sqlExpression]
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             joinExpressions = try foreignKeyRequest
@@ -768,7 +762,13 @@ private struct SQLQualifiedJoin: Refinable {
                 .joinMapping(originIsLeft: originIsLeft)
                 .joinExpressions(leftAlias: leftAlias)
         }
+        
+        // ... ON ... AND <other filters>
         joinExpressions += try relation.filtersPromise.resolve(context.db)
+        
+        // Avoid generating on ON clause for trivially true conditions
+        joinExpressions = joinExpressions.filter { !$0.isTrue }
+        
         if joinExpressions.isEmpty == false {
             let joiningSQL = try joinExpressions
                 .joined(operator: .and)
