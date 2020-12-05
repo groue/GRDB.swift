@@ -257,6 +257,9 @@ LeftRecord
     .including(required: association)
 ```
 
+
+### CTE Association Example: a Chat App
+
 As an example, let's build the classical main screen of a chat application: a list of all latest messages from all conversations.
 
 The database schema of the chat app contains a `chat` and a `message` table. The application defines the following records:
