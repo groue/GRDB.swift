@@ -196,23 +196,30 @@ extension TableRecord {
     /// table expression.
     ///
     /// For example, you can build a request that fetches all chats with their
-    /// latest post:
+    /// latest message:
     ///
-    ///     // WITH latestPost AS (SELECT *, MAX(date) FROM post GROUP BY chatID)
-    ///     // SELECT chat.*, latestPost.*
+    ///     let latestMessageRequest = Message
+    ///         .annotated(with: max(Column("date")))
+    ///         .group(Column("chatID"))
+    ///
+    ///     let latestMessageCTE = CommonTableExpression<Void>(
+    ///         named: "latestMessage",
+    ///         request: latestMessageRequest)
+    ///
+    ///     let latestMessage = Chat.association(
+    ///         to: latestMessageCTE,
+    ///         on: { chat, latestMessage in
+    ///             chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         })
+    ///
+    ///     // WITH latestMessage AS
+    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
+    ///     // SELECT chat.*, latestMessage.*
     ///     // FROM chat
-    ///     // LEFT JOIN latestPost ON chat.id = latestPost.chatID
-    ///     let latestPostCTE = CommonTableExpression<Void>(
-    ///         named: "latestPost",
-    ///         request: Post
-    ///             .annotated(with: max(Column("date")))
-    ///             .group(Column("chatID")))
-    ///     let latestPost = Chat.association(to: latestPostCTE, on: { chat, latestPost in
-    ///         chat[Column("id")] == latestPost[Column("chatID")]
-    ///     })
-    ///     let request = Chat.all()
-    ///         .with(latestPostCTE)
-    ///         .including(optional: latestPost)
+    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
+    ///     let request = Chat
+    ///         .with(latestMessageCTE)
+    ///         .including(optional: latestMessage)
     ///
     /// - parameter cte: A common table expression.
     /// - parameter condition: A function that returns the joining clause.

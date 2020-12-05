@@ -3776,6 +3776,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.order(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.orderByPrimaryKey()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.limit(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.with(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Record Comparison]** | | |
 | `record.databaseEquals(...)` | [EncodableRecord] | |
 | `record.databaseChanges(from:...)` | [EncodableRecord] | |
@@ -3891,6 +3892,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Update Requests](#update-requests)
 - [Custom Requests](#custom-requests)
 - [Associations and Joins](Documentation/AssociationsBasics.md)
+- [Common Table Expressions]
 
 
 ## Database Schema
@@ -4111,7 +4113,7 @@ enum Columns: String, ColumnExpression {
 }
 ```
 
-You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`, `joining`, `including`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
+You can now build requests with the following methods: `all`, `none`, `select`, `distinct`, `filter`, `matching`, `group`, `having`, `order`, `reversed`, `limit`, `joining`, `including`, `with`. All those methods return another request, which you can further refine by applying another method: `Player.select(...).filter(...).order(...)`.
 
 - `all()`, `none()`: the requests for all rows, or no row.
 
@@ -4286,6 +4288,14 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // FROM player
     // JOIN team ON team.id = player.teamId
     Player.including(required: Player.team)
+    ```
+
+- `with(cte)` embeds a [common table expression]:
+    
+    ```swift
+    // WITH ... SELECT * FROM player
+    let cte = CommonTableExpression(...)
+    Player.with(cte)
     ```
 
 - Other requests that involve the primary key:
@@ -8078,6 +8088,8 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Beyond FetchableRecord]: #beyond-fetchablerecord
 [Codable Records]: #codable-records
 [Columns Selected by a Request]: #columns-selected-by-a-request
+[common table expression]: Documentation/CommonTableExpressions.md
+[Common Table Expressions]: Documentation/CommonTableExpressions.md
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
 [Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
