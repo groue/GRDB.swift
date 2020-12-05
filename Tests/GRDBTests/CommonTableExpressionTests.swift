@@ -491,6 +491,19 @@ class CommonTableExpressionTests: GRDBTestCase {
             do {
                 let cte = CommonTableExpression<Void>(
                     named: "cte",
+                    literal: "SELECT \("O'Brien")")
+                let request: SQLRequest<Void> = """
+                    WITH \(definitionFor: cte) \
+                    \(cte.all())
+                    """
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT * FROM "cte"
+                    """)
+            }
+            do {
+                let cte = CommonTableExpression<Void>(
+                    named: "cte",
                     columns: [],
                     literal: "SELECT \("O'Brien")")
                 let request: SQLRequest<Void> = """
