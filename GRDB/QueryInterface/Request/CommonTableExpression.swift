@@ -179,12 +179,9 @@ struct SQLCTE {
             return columns.count
         }
         
-        // Compile request. We can freely use the statement cache because we
-        // do not execute the statement or modify its arguments.
-        let context = SQLGenerationContext(db)
-        let sql = try request.requestSQL(context, forSingleResult: false)
-        let statement = try db.cachedSelectStatement(sql: sql)
-        return statement.columnCount
+        var counter = SelectedColumnsCounter(db: db)
+        try request._accept(&counter)
+        return counter.columnCount
     }
 }
 

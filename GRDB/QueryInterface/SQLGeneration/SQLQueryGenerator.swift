@@ -500,6 +500,38 @@ struct SQLQueryGenerator: Refinable {
     }
 }
 
+/// A FetchRequest visitor that counts the selected columns
+struct SelectedColumnsCounter: _FetchRequestVisitor {
+    let db: Database
+    var columnCount = 0
+    
+    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws {
+        try request.base._accept(&self)
+    }
+    
+    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws {
+        // We need a qualified relation so that the selected columns are
+        // qualified with a table name: naked `SELECT *` are replaced
+        // with `SELECT player.*`, which we can count.
+        let qualifiedRelation = SQLQualifiedRelation(request.query.relation)
+        columnCount = try qualifiedRelation
+            .selectionPromise
+            .resolve(db)
+            .reduce(0) {
+                try $0 + $1._columnCount(db)
+            }
+    }
+    
+    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws {
+        // Compile request. We can freely use the statement cache because we
+        // do not execute the statement or modify its arguments.
+        let context = SQLGenerationContext(db)
+        let sql = try request.requestSQL(context, forSingleResult: false)
+        let statement = try db.cachedSelectStatement(sql: sql)
+        columnCount = statement.columnCount
+    }
+}
+
 /// A "qualified" relation, where all tables are identified with a table alias.
 ///
 ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
