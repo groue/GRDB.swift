@@ -90,7 +90,7 @@ We will use the (simple) query below as a target. It is the query we'll want to 
 ```sql
 WITH playerName AS (SELECT 'O''Brien')
 SELECT * FROM player
-WHERE name = (SELECT * FROM name)
+WHERE name = (SELECT * FROM playerName)
 ```
 
 We first build a `CommonTableExpression`:
@@ -116,7 +116,7 @@ And we can then filter the `player` table with a subquery:
 ```swift
 // WITH playerName AS (SELECT 'O''Brien')
 // SELECT * FROM player
-// WHERE name = (SELECT * FROM name)
+// WHERE name = (SELECT * FROM playerName)
 let request = Player
     .with(playerNameCTE)
     .filter(Column("name") == playerNameCTE.all())
@@ -139,7 +139,7 @@ Common table expressions are also available with [SQLRequest] and [SQL Interpola
 ```swift
 // WITH playerName AS (SELECT 'O''Brien')
 // SELECT * FROM player
-// WHERE name = (SELECT * FROM name)
+// WHERE name = (SELECT * FROM playerName)
 let request: SQLRequest<String> = """
     WITH \(definitionFor: playerNameCTE) -- embeds the definition
     SELECT * FROM player
@@ -148,7 +148,7 @@ let request: SQLRequest<String> = """
 
 // WITH playerName AS (SELECT 'O''Brien')
 // SELECT * FROM player
-// WHERE name = (SELECT * FROM name)
+// WHERE name = (SELECT * FROM playerName)
 let request: SQLRequest<String> = """
     WITH \(definitionFor: playerNameCTE) -- embeds the definition
     SELECT * FROM player
