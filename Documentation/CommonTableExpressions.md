@@ -12,14 +12,14 @@ In this guide, you will learn how to:
 - [Fetch Values From Common Table Expressions]
 - Join CTEs with [Associations to Common Table Expressions]
 
-> :point_up: **Note**: most code examples will be trivial, and not very "useful". This is because the goal of this guide is to stay focused on the GRDB support for CTEs, with code snippets as short as possible, without distracting you with any complicated setup. Bring your own good ideas with you, and keep them in mind as you're reading!
+> :point_up: **Note**: most code examples will be trivial, and not very "useful". This is because the goal of this guide is to stay focused on the GRDB support for CTEs. Rich setup would just be distracting. So bring your own good ideas with you!
 
 
 ## Define Common Table Expressions
 
 You will create a `CommonTableExpression` definition first. Choose a **name**, and a **request** that provides the content of the common table expression.
 
-The CTE name stand as a regular table name by the requests that use the CTE: pick one that does not conflict with the names of existing tables.
+The CTE name is like a regular table name: pick one that does not conflict with the names of existing tables.
 
 The CTE request can be provided as a [query interface request]:
 
