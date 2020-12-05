@@ -319,7 +319,7 @@ let latestMessageCTE = CommonTableExpression<Void>(
     request: latestMessageRequest)
 ```
 
-The association from a chat to its latest message follow:
+The association from a chat to its latest message follows:
 
 ```swift
 
