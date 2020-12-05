@@ -106,6 +106,23 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
+            // Include SQL request as a CTE (empty columns)
+            do {
+                let cte = CommonTableExpression<Void>(
+                    named: "cte",
+                    columns: [],
+                    literal: "SELECT 1 AS id")
+                let request = T.all()
+                    .with(cte)
+                    .including(required: T.association(to: cte, on: { (left, right) in left["id"] == right["id"] }))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 1 AS id) \
+                    SELECT "t".*, "cte".* \
+                    FROM "t" \
+                    JOIN "cte" ON "t"."id" = "cte"."id"
+                    """)
+            }
+            
             // Include SQL request as a CTE (custom column name)
             do {
                 let cte = CommonTableExpression<Void>(
@@ -453,6 +470,66 @@ class CommonTableExpressionTests: GRDBTestCase {
             
             try XCTAssertEqual(counterRequest(range: 0...10).fetchAll(db), Array(0...10))
             try XCTAssertEqual(counterRequest(range: 3...7).fetchAll(db), Array(3...7))
+        }
+    }
+    
+    func testInterpolation() throws {
+        try makeDatabaseQueue().read { db in
+            do {
+                let cte = CommonTableExpression<Void>(
+                    named: "cte",
+                    literal: "SELECT \("O'Brien")")
+                let request: SQLRequest<Void> = """
+                    WITH \(definitionFor: cte) \
+                    SELECT * FROM \(cte)
+                    """
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT * FROM "cte"
+                    """)
+            }
+            do {
+                let cte = CommonTableExpression<Void>(
+                    named: "cte",
+                    columns: [],
+                    literal: "SELECT \("O'Brien")")
+                let request: SQLRequest<Void> = """
+                    WITH \(definitionFor: cte) \
+                    SELECT * FROM \(cte)
+                    """
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT 'O''Brien') \
+                    SELECT * FROM "cte"
+                    """)
+            }
+            do {
+                let cte = CommonTableExpression<Void>(
+                    named: "cte",
+                    columns: ["name"],
+                    literal: "SELECT \("O'Brien")")
+                let request: SQLRequest<Void> = """
+                    WITH \(definitionFor: cte) \
+                    SELECT * FROM \(cte)
+                    """
+                try assertEqualSQL(db, request, """
+                    WITH "cte"("name") AS (SELECT 'O''Brien') \
+                    SELECT * FROM "cte"
+                    """)
+            }
+            do {
+                let cte = CommonTableExpression<Void>(
+                    named: "cte",
+                    columns: ["name", "score"],
+                    literal: "SELECT \("O'Brien"), 12")
+                let request: SQLRequest<Void> = """
+                    WITH \(definitionFor: cte) \
+                    SELECT * FROM \(cte)
+                    """
+                try assertEqualSQL(db, request, """
+                    WITH "cte"("name", "score") AS (SELECT 'O''Brien', 12) \
+                    SELECT * FROM "cte"
+                    """)
+            }
         }
     }
 }

@@ -75,11 +75,12 @@ struct SQLQueryGenerator: Refinable {
             }
             sql += try ctes
                 .map { tableName, cte in
-                    let columnsSQL = cte.columns
-                        .map { columns in
-                            "(" + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ") + ")"
-                        }
-                        ?? ""
+                    var columnsSQL = ""
+                    if let columns = cte.columns, !columns.isEmpty {
+                        columnsSQL = "("
+                            + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+                            + ")"
+                    }
                     let cteContext = SQLGenerationContext(parent: context)
                     let requestSQL = try cte.request.requestSQL(cteContext, forSingleResult: false)
                     return "\(tableName.quotedDatabaseIdentifier)\(columnsSQL) AS (\(requestSQL))"
