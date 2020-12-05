@@ -300,7 +300,7 @@ LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
 ORDER BY latestMessage.date DESC
 ```
 
-We start by defining the CTE request, which loads all latest messages of all chats:
+We start by defining the CTE request, which loads the latest messages of all chats (this request uses an SQLite-specific [special processing](https://sqlite.org/lang_select.html) of `max`):
 
 ```swift
 // SELECT *, MAX(date) FROM message GROUP BY chatID
