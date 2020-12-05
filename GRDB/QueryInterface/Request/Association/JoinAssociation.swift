@@ -20,20 +20,8 @@ public struct JoinAssociation<Origin, Destination>: AssociationToOne {
         to relation: SQLRelation,
         condition: SQLAssociationCondition)
     {
-        guard let tableName = relation.source.tableName else {
-            // Table name is only nil for SQLSource.subquery, which is only
-            // involved in the "trivial count query" (see SQLQuery.trivialCountQuery):
-            //
-            //      // SELECT COUNT(*) FROM (SELECT * FROM player LIMIT 10)
-            //      let request = Player.limit(10)
-            //      let count = try request.fetchCount(db)
-            //
-            // This fatal error can not currently happen.
-            fatalError("Association is not based on a database table")
-        }
-        
         _sqlAssociation = _SQLAssociation(
-            key: .inflected(tableName),
+            key: .inflected(relation.source.tableName),
             condition: condition,
             relation: relation,
             cardinality: .toOne)

@@ -111,7 +111,7 @@ public struct CommonTableExpression<RowDecoder> {
 extension CommonTableExpression {
     var relationForAll: SQLRelation {
         SQLRelation(
-            source: .table(tableName: tableName, alias: nil),
+            source: SQLSource(tableName: tableName, alias: nil),
             selectionPromise: DatabasePromise(value: [AllColumns(cte: cte)]))
     }
     

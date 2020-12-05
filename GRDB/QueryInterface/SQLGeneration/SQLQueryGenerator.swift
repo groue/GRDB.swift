@@ -45,16 +45,12 @@ struct SQLQueryGenerator: Refinable {
         //
         // This turns `GROUP BY id` INTO `GROUP BY book.id`, and
         // `HAVING MAX(year) < 2000` INTO `HAVING MAX(book.year) < 2000`.
-        if let alias = relation.source.alias {
-            groupPromise = query.groupPromise?.map {
-                $0.map { $0._qualifiedExpression(with: alias) }
-            }
-            havingExpressionsPromise = query.havingExpressionsPromise.map {
-                $0.map { $0._qualifiedExpression(with: alias) }
-            }
-        } else {
-            groupPromise = query.groupPromise
-            havingExpressionsPromise = query.havingExpressionsPromise
+        let sourceAlias = relation.source.alias
+        groupPromise = query.groupPromise?.map {
+            $0.map { $0._qualifiedExpression(with: sourceAlias) }
+        }
+        havingExpressionsPromise = query.havingExpressionsPromise.map {
+            $0.map { $0._qualifiedExpression(with: sourceAlias) }
         }
         
         limit = query.limit
@@ -106,12 +102,7 @@ struct SQLQueryGenerator: Refinable {
         sql += try relation.source.sql(context)
         
         if relation.joins.isEmpty == false {
-            guard let sourceAlias = relation.source.alias else {
-                // This never happens as long as we only use subqueries as sources
-                // in the `SELECT COUNT(*) FROM (SELECT ...)` case: see
-                // SQLQuery.trivialCountQuery.
-                fatalError("Not implemented: join on a subquery")
-            }
+            let sourceAlias = relation.source.alias
             for (_, join) in relation.joins {
                 sql += " "
                 sql += try join.sql(context, leftAlias: sourceAlias)
@@ -210,16 +201,14 @@ struct SQLQueryGenerator: Refinable {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
-        guard
-            case let .table(tableName: tableName, alias: alias) = relation.source,
-            try db.tableExists(tableName) // skip views
-            else {
-                return selectedRegion
+        let tableName = relation.source.tableName
+        guard try db.tableExists(tableName) else { // skip views
+            return selectedRegion
         }
         
         // The filter knows better
         let filter = try relation.filtersPromise.resolve(db).joined(operator: .and)
-        guard let rowIDs = try filter.identifyingRowIDs(db, for: alias) else {
+        guard let rowIDs = try filter.identifyingRowIDs(db, for: relation.source.alias) else {
             return selectedRegion
         }
         
@@ -243,13 +232,11 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // Do we filter on a unique key?
-        if
-            case let .table(tableName: tableName, alias: sourceAlias) = relation.source,
-            try db.tableExists(tableName) // skip views
-        {
+        let tableName = relation.source.tableName
+        if try db.tableExists(tableName) { // skip views
             let identifyingColums = try filters
                 .joined(operator: .and)
-                .identifyingColums(db, for: sourceAlias)
+                .identifyingColums(db, for: relation.source.alias)
             if try db.table(tableName, hasUniqueKey: identifyingColums) {
                 // Filter by unique key: guaranteed single row!
                 return true
@@ -268,11 +255,6 @@ struct SQLQueryGenerator: Refinable {
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         switch try grouping(db) {
         case .none:
-            guard case .table = relation.source else {
-                // Programmer error
-                fatalError("Can't delete without any database table")
-            }
-            
             guard relation.joins.isEmpty && ctes.isEmpty else {
                 return try makeTrivialDeleteStatement(db)
             }
@@ -312,11 +294,7 @@ struct SQLQueryGenerator: Refinable {
     
     /// DELETE FROM table WHERE id IN (SELECT id FROM table ...)
     private func makeTrivialDeleteStatement(_ db: Database) throws -> UpdateStatement {
-        guard case let .table(tableName: tableName, alias: _) = relation.source else {
-            // Programmer error
-            fatalError("Can't delete without any database table")
-        }
-        
+        let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = SQLGenerationContext(parent: context, aliases: relation.allAliases)
@@ -342,11 +320,6 @@ struct SQLQueryGenerator: Refinable {
     {
         switch try grouping(db) {
         case .none:
-            guard case .table = relation.source else {
-                // Programmer error
-                fatalError("Can't update without any database table")
-            }
-            
             guard relation.joins.isEmpty && ctes.isEmpty else {
                 return try makeTrivialUpdateStatement(
                     db,
@@ -412,17 +385,13 @@ struct SQLQueryGenerator: Refinable {
         assignments: [ColumnAssignment])
         throws -> UpdateStatement?
     {
-        guard case let .table(tableName: tableName, alias: _) = relation.source else {
-            // Programmer error
-            fatalError("Can't delete without any database table")
-        }
-        
         // Check for empty assignments after all programmer errors have
         // been checked.
         if assignments.isEmpty {
             return nil
         }
         
+        let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = SQLGenerationContext(parent: context, aliases: relation.allAliases)
@@ -472,16 +441,16 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // Grouping something which is not a table: assume non unique grouping.
+        let tableName = relation.source.tableName
         guard
-            case let .table(tableName: tableName, alias: alias) = relation.source,
             try db.tableExists(tableName) // skip views
-            else {
-                return .nonUnique
+        else {
+            return .nonUnique
         }
         
         var groupingColumns: Set<String> = []
         for expression in groupExpressions {
-            guard let column = try expression.column(db, for: alias, acceptsBijection: true) else {
+            guard let column = try expression.column(db, for: relation.source.alias, acceptsBijection: true) else {
                 // Grouping by something which is not a column: assume non
                 // unique grouping.
                 return .nonUnique
@@ -611,19 +580,14 @@ private struct SQLQualifiedRelation {
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
         joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
-        if let sourceAlias = source.alias {
-            sourceSelectionPromise = relation.selectionPromise.map {
-                $0.map { $0._qualifiedSelectable(with: sourceAlias) }
-            }
-            filtersPromise = relation.filtersPromise.map {
-                $0.map { $0._qualifiedExpression(with: sourceAlias) }
-            }
-            sourceOrdering = relation.ordering.qualified(with: sourceAlias)
-        } else {
-            sourceSelectionPromise = relation.selectionPromise
-            filtersPromise = relation.filtersPromise
-            sourceOrdering = relation.ordering
+        let sourceAlias = source.alias
+        sourceSelectionPromise = relation.selectionPromise.map {
+            $0.map { $0._qualifiedSelectable(with: sourceAlias) }
         }
+        filtersPromise = relation.filtersPromise.map {
+            $0.map { $0._qualifiedExpression(with: sourceAlias) }
+        }
+        sourceOrdering = relation.ordering.qualified(with: sourceAlias)
     }
     
     /// See SQLQueryGenerator.rowAdapter(_:)
@@ -688,14 +652,9 @@ private struct SQLQualifiedRelation {
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> Self {
-        let sourceSelectionPromise: DatabasePromise<[SQLSelectable]>
-        if let sourceAlias = source.alias {
-            sourceSelectionPromise = DatabasePromise(value: selection.map {
-                $0._qualifiedSelectable(with: sourceAlias)
-            })
-        } else {
-            sourceSelectionPromise = DatabasePromise(value: selection)
-        }
+        let sourceSelectionPromise = DatabasePromise(value: selection.map {
+            $0._qualifiedSelectable(with: source.alias)
+        })
         return self
             .with(\.sourceSelectionPromise, sourceSelectionPromise)
             .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
@@ -705,50 +664,21 @@ private struct SQLQualifiedRelation {
 extension SQLQualifiedRelation: Refinable { }
 
 /// A "qualified" source, where all tables are identified with a table alias.
-private enum SQLQualifiedSource {
-    case table(tableName: String, alias: TableAlias)
-    indirect case subquery(SQLQueryGenerator)
-    
-    /// Nil for subquery sources.
-    ///
-    /// Maybe one day we'll support aliased subqueries, as below:
-    ///
-    ///     SELECT alias.* FROM (SELECT ...) alias
-    ///
-    /// But today we only use subqueries for SQLQuery.trivialCountQuery,
-    /// which does not need any alias:
-    ///
-    ///     SELECT COUNT(*) FROM (SELECT ...)
-    var alias: TableAlias? {
-        switch self {
-        case let .table(_, alias):
-            return alias
-        case .subquery:
-            return nil
-        }
-    }
+private struct SQLQualifiedSource {
+    var tableName: String
+    var alias: TableAlias
     
     init(_ source: SQLSource) {
-        switch source {
-        case let .table(tableName, alias):
-            let alias = alias ?? TableAlias(tableName: tableName)
-            self = .table(tableName: tableName, alias: alias)
-        case let .subquery(subquery):
-            self = .subquery(SQLQueryGenerator(query: subquery))
-        }
+        self.tableName = source.tableName
+        self.alias = source.alias ?? TableAlias(tableName: source.tableName)
+        assert(alias.tableName == tableName)
     }
     
     func sql(_ context: SQLGenerationContext) throws -> String {
-        switch self {
-        case let .table(tableName, alias):
-            if let aliasName = context.aliasName(for: alias) {
-                return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
-            } else {
-                return "\(tableName.quotedDatabaseIdentifier)"
-            }
-        case let .subquery(generator):
-            let sql = try generator.requestSQL(context)
-            return "(\(sql))"
+        if let aliasName = context.aliasName(for: alias) {
+            return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
+        } else {
+            return "\(tableName.quotedDatabaseIdentifier)"
         }
     }
 }
@@ -818,12 +748,7 @@ private struct SQLQualifiedJoin: Refinable {
         
         // JOIN table...
         var sql = try "\(kind.rawValue) \(relation.source.sql(context))"
-        guard let rightAlias = relation.source.alias else {
-            // This never happens as long as we only use subqueries as sources
-            // in the `SELECT COUNT(*) FROM (SELECT ...)` case: see
-            // SQLQuery.trivialCountQuery.
-            fatalError("Not implemented: join on a subquery")
-        }
+        let rightAlias = relation.source.alias
         
         // ... ON <join conditions> AND <other filters>
         var joinExpressions: [SQLExpression]

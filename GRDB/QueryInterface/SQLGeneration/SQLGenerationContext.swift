@@ -289,7 +289,9 @@ public class TableAlias: Hashable {
     }
     
     func becomeProxy(of base: TableAlias) {
-        assert(self !== base)
+        if self === base {
+            return
+        }
         
         switch impl {
         case let .undefined(userName):

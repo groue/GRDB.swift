@@ -391,31 +391,17 @@ extension SQLRelation: _JoinableRequest {
 
 // MARK: - SQLSource
 
-enum SQLSource {
-    case table(tableName: String, alias: TableAlias?)
-    indirect case subquery(SQLQuery)
-    
-    var tableName: String? {
-        switch self {
-        case .table(tableName: let tableName, alias: _):
-            return tableName
-        case .subquery:
-            return nil
-        }
-    }
+struct SQLSource {
+    var tableName: String
+    var alias: TableAlias?
     
     func qualified(with alias: TableAlias) -> SQLSource {
-        switch self {
-        case let .table(tableName: tableName, alias: sourceAlias):
-            if let sourceAlias = sourceAlias {
-                alias.becomeProxy(of: sourceAlias)
-                return self
-            } else {
-                alias.setTableName(tableName)
-                return .table(tableName: tableName, alias: alias)
-            }
-        case .subquery:
+        if let sourceAlias = self.alias {
+            alias.becomeProxy(of: sourceAlias)
             return self
+        } else {
+            alias.setTableName(tableName)
+            return SQLSource(tableName: tableName, alias: alias)
         }
     }
 }
@@ -768,27 +754,21 @@ extension SQLRelation {
 extension SQLSource {
     /// Returns nil if sources can't be merged (conflict in tables, aliases...)
     func merged(with other: SQLSource) -> SQLSource? {
-        switch (self, other) {
-        case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
-            guard tableName == otherTableName else {
+        guard tableName == other.tableName else {
+            // can't merge
+            return nil
+        }
+        switch (alias, other.alias) {
+        case (nil, nil):
+            return SQLSource(tableName: tableName, alias: nil)
+        case let (alias?, nil), let (nil, alias?):
+            return SQLSource(tableName: tableName, alias: alias)
+        case let (alias?, otherAlias?):
+            guard let mergedAlias = alias.merged(with: otherAlias) else {
                 // can't merge
                 return nil
             }
-            switch (alias, otherAlias) {
-            case (nil, nil):
-                return .table(tableName: tableName, alias: nil)
-            case let (alias?, nil), let (nil, alias?):
-                return .table(tableName: tableName, alias: alias)
-            case let (alias?, otherAlias?):
-                guard let mergedAlias = alias.merged(with: otherAlias) else {
-                    // can't merge
-                    return nil
-                }
-                return .table(tableName: tableName, alias: mergedAlias)
-            }
-        default:
-            // can't merge
-            return nil
+            return SQLSource(tableName: tableName, alias: mergedAlias)
         }
     }
 }
