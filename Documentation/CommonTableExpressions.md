@@ -206,7 +206,7 @@ let rows: [Row] = try dbQueue.read { db in
 
 ## Associations to Common Table Expressions
 
-GRDB [Associations] define "to-one" and "to-many" relationships between two database tables. Here we will define associations between regular tables and common table expressions.
+GRDB [associations] define "to-one" and "to-many" relationships between two database tables. Here we will define associations between regular tables and common table expressions.
 
 We recommend familiarity with the "joining methods", described in [Joining And Prefetching Associated Records]:
 
@@ -231,7 +231,7 @@ CTE associations are generally built with the `association(to:on:)` method, whic
 - The two sides of the association: a `CommonTableExpression` instance, and another CTE or a type that conforms to the [TableRecord] protocol.
 - A function that returns the condition that joins the two sides of the association.
 
-The condition function plays the same role as the **foreign key** that defines a regular table association such as **BelongsTo** or **HasMany**. It accepts two [TableAlias], from which you can build a joining expression:
+The condition function plays the same role as the **foreign key** that defines regular table [associations] such as **BelongsTo** or **HasMany**. It accepts two [TableAlias], from which you can build a joining expression:
 
 For example:
 
@@ -391,7 +391,6 @@ let chatInfos: [ChatInfos] = try dbQueue.read(request.fetchAll)
 [SQLiteral]: SQLInterpolation.md
 [SQL Interpolation]: SQLInterpolation.md
 [associations]: AssociationsBasics.md
-[Associations]: AssociationsBasics.md
 [Joining And Prefetching Associated Records]: AssociationsBasics.md#joining-and-prefetching-associated-records
 [Define Common Table Expressions]: #define-common-table-expressions
 [Embed Common Table Expressions in Requests]: #embed-common-table-expressions-in-requests
