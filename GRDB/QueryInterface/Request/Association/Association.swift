@@ -292,7 +292,9 @@ extension Association {
 // TableRequest
 extension Association {
     /// :nodoc:
-    public var databaseTableName: String { RowDecoder.databaseTableName }
+    public var databaseTableName: String {
+        _sqlAssociation.destination.relation.source.tableName
+    }
 }
 
 // MARK: - AssociationToOne

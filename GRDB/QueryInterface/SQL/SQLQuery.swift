@@ -96,31 +96,23 @@ extension SQLQuery: _JoinableRequest {
 
 extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
-        try QueryInterfaceRequest<Int>(query: countQuery(db)).fetchOne(db)!
-    }
-    
-    private func countQuery(_ db: Database) throws -> SQLQuery {
         guard groupPromise == nil && limit == nil else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
-            return trivialCountQuery
+            // WITH ... SELECT ...
+            return try fetchTrivialCount(db)
         }
         
         if relation.children.contains(where: { $0.value.impactsParentCount }) { // TODO: not tested
             // SELECT ... FROM ... JOIN ...
-            return trivialCountQuery
-        }
-        
-        guard case .table = relation.source else {
-            // SELECT ... FROM (something which is not a plain table)
-            return trivialCountQuery
+            return try fetchTrivialCount(db)
         }
         
         let selection = try relation.selectionPromise.resolve(db)
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
         if selection.count == 1 {
             guard let count = selection[0]._count(distinct: isDistinct) else {
-                return trivialCountQuery
+                return try fetchTrivialCount(db)
             }
             var countQuery = self.unordered()
             countQuery.isDistinct = false
@@ -130,27 +122,27 @@ extension SQLQuery {
             case .distinct(let expression):
                 countQuery = countQuery.select(_SQLExpressionCountDistinct(expression))
             }
-            return countQuery
+            return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         } else {
             // SELECT [DISTINCT] expr1, expr2, ... FROM tableName ...
             
             guard !isDistinct else {
-                return trivialCountQuery
+                return try fetchTrivialCount(db)
             }
             
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
-            return self.unordered().select(_SQLExpressionCount(AllColumns()))
+            let countQuery = unordered().select(_SQLExpressionCount(AllColumns()))
+            return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         }
     }
-    
+
     // SELECT COUNT(*) FROM (self)
-    private var trivialCountQuery: SQLQuery {
-        let relation = SQLRelation(
-            source: .subquery(unordered()),
-            selectionPromise: DatabasePromise(value: [_SQLExpressionCount(AllColumns())]))
-        return SQLQuery(relation: relation)
+    func fetchTrivialCount(_ db: Database) throws -> Int {
+        let request = QueryInterfaceRequest<Void>(query: unordered())
+        let countRequest: SQLRequest<Int> = "SELECT COUNT(*) FROM (\(request))"
+        return try countRequest.fetchOne(db)!
     }
 }
 

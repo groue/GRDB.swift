@@ -4,7 +4,7 @@ extension TableRecord {
     
     static var relationForAll: SQLRelation {
         SQLRelation(
-            source: .table(tableName: databaseTableName, alias: nil),
+            source: SQLSource(tableName: databaseTableName, alias: nil),
             selectionPromise: DatabasePromise(value: databaseSelection))
     }
     
