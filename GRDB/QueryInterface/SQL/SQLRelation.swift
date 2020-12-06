@@ -365,6 +365,15 @@ extension SQLRelation {
     func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> Self {
         try map(\.children) { try $0.filter { try included($1) } }
     }
+    
+    func removingChildrenForPrefetchedAssociations() -> Self {
+        filteringChildren {
+             switch $0.kind {
+             case .allPrefetched, .allNotPrefetched: return false
+             case .oneRequired, .oneOptional: return true
+             }
+         }
+    }
 }
 
 extension SQLRelation: _JoinableRequest {

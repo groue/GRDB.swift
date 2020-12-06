@@ -198,9 +198,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT * FROM "parent" ORDER BY "parentA", "parentB"
                     """,
                     """
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
                     SELECT *, "parentA" AS "grdb_parentA", "parentB" AS "grdb_parentB" \
-                    FROM "child" \
-                    WHERE (("parentA" = 'baz') AND ("parentB" = 'qux')) OR (("parentA" = 'foo') AND ("parentB" = 'bar'))
+                    FROM "child" WHERE ("parentA", "parentB") IN (SELECT * FROM "grdb_base")
                     """])
             }
             
@@ -240,8 +240,10 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT * FROM "parent" WHERE "parentA" = 'foo' ORDER BY "parentA", "parentB"
                     """,
                     """
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "parentA" = 'foo') \
                     SELECT *, "parentA" AS "grdb_parentA", "parentB" AS "grdb_parentB" \
-                    FROM "child" WHERE ("name" = 'foo') AND (("parentA" = 'foo') AND ("parentB" = 'bar'))
+                    FROM "child" \
+                    WHERE ("name" = 'foo') AND (("parentA", "parentB") IN (SELECT * FROM "grdb_base"))
                     """])
             }
         }

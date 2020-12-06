@@ -87,7 +87,7 @@ private struct SQLPreparedRequestGenerator: _FetchRequestVisitor {
         if associations.isEmpty == false {
             // Eager loading of prefetched associations
             preparedRequest = preparedRequest.with(\.supplementaryFetch) { db, rows in
-                try prefetch(db, associations: associations, in: rows)
+                try prefetch(db, associations: associations, into: rows, from: request)
             }
         }
         self.preparedRequest = preparedRequest
@@ -135,8 +135,23 @@ private struct SQLRequestCounter: _FetchRequestVisitor {
 // MARK: - Eager loading of hasMany associations
 
 // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
-/// Append rows from prefetched associations into the argument rows.
-private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: [Row]) throws {
+/// Append rows from prefetched associations into the `rows` argument.
+///
+/// - parameter db: A database connection.
+/// - parameter associations: Prefetched associations.
+/// - parameter baseRows: The rows that need to be extended with prefetched rows.
+/// - parameter query: The query that was used to fetch `rows`.
+private func prefetch<RowDecoder>(
+    _ db: Database,
+    associations: [_SQLAssociation],
+    into baseRows: [Row],
+    from baseRequest: QueryInterfaceRequest<RowDecoder>) throws
+{
+    guard let firstBaseRow = baseRows.first else {
+        // No rows -> no prefetch
+        return
+    }
+    
     for association in associations {
         switch association.pivot.condition {
         case .expression:
@@ -148,24 +163,104 @@ private func prefetch(_ db: Database, associations: [_SQLAssociation], in rows: 
             let pivotMapping = try foreignKeyRequest
                 .fetchForeignKeyMapping(db)
                 .joinMapping(originIsLeft: originIsLeft)
-            try prefetch(db, association: association, pivotMapping: pivotMapping, in: rows)
+            let pivotColumns = pivotMapping.map(\.right)
+            let leftColumns = pivotMapping.map(\.left)
+
+            // We want to avoid the "Expression tree is too large" SQLite error
+            // when there are many base rows:
+            // https://github.com/groue/GRDB.swift/issues/871
+            //
+            // To this end, we do not inject any value from the base rows in
+            // the prefetch request. Instead, we directly inject the base
+            // request as a common table expression (CTE).
+            //
+            // This is only useful for compound foreign keys. And we need
+            // row values (https://www.sqlite.org/rowvalue.html). So we have
+            // a backup plan which does not uses any CTE.
+            let usesCommonTableExpression = pivotMapping.count > 1 && _SQLRowValue.isAvailable
+            
+            let prefetchRequest: QueryInterfaceRequest<Row>
+            if usesCommonTableExpression {
+                // HasMany: Author.including(all: Author.books)
+                //
+                //      WITH grdb_base AS (SELECT a, b FROM author)
+                //      SELECT book.*, book.authorId AS grdb_authorId
+                //      FROM book
+                //      WHERE (book.a, book.b) IN (SELECT * FROM grdb_base)
+                //
+                // HasManyThrough: Citizen.including(all: Citizen.countries)
+                //
+                //      WITH grdb_base AS (SELECT a, b FROM citizen)
+                //      SELECT country.*, passport.citizenId AS grdb_citizenId
+                //      FROM country
+                //      JOIN passport ON passport.countryCode = country.code
+                //                    AND (passport.a, passport.b) IN (SELECT * FROM grdb_base)
+                let baseRequest = baseRequest.map(\.query.relation) { baseRelation in
+                    // Ordering and including(all:) children are
+                    // useless, and we only need pivoting columns:
+                    baseRelation
+                        .unordered()
+                        .removingChildrenForPrefetchedAssociations()
+                        .selectOnly(leftColumns.map(Column.init))
+                }
+                let baseCTE = CommonTableExpression<Void>(
+                    named: "grdb_base",
+                    request: baseRequest)
+                let pivotFilter = baseCTE.all().contains(_SQLRowValue(pivotColumns.map(Column.init)))
+                
+                prefetchRequest = makePrefetchRequest(
+                    for: association,
+                    filteringPivotWith: pivotFilter,
+                    annotatedWith: pivotColumns)
+                    .with(baseCTE)
+            } else {
+                // HasMany: Author.including(all: Author.books)
+                //
+                //      SELECT *, authorId AS grdb_authorId
+                //      FROM book
+                //      WHERE authorId IN (1, 2, 3)
+                //
+                // HasManyThrough: Citizen.including(all: Citizen.countries)
+                //
+                //      SELECT country.*, passport.citizenId AS grdb_citizenId
+                //      FROM country
+                //      JOIN passport ON passport.countryCode = country.code
+                //                    AND passport.citizenId IN (1, 2, 3)
+                let pivotFilter = pivotMapping.joinExpression(leftRows: baseRows)
+                
+                prefetchRequest = makePrefetchRequest(
+                    for: association,
+                    filteringPivotWith: pivotFilter,
+                    annotatedWith: pivotColumns)
+            }
+            
+            let prefetchedRows = try prefetchRequest.fetchAll(db)
+            let prefetchedGroups = prefetchedRows.grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
+            let groupingIndexes = firstBaseRow.indexes(forColumns: leftColumns)
+            
+            for row in baseRows {
+                let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
+                let prefetchedRows = prefetchedGroups[groupingKey, default: []]
+                row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
+            }
         }
     }
 }
 
-// CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
-private func prefetch(
-    _ db: Database,
-    association: _SQLAssociation,
-    pivotMapping: JoinMapping,
-    in rows: [Row]) throws
+/// Returns a request for prefetched rows.
+///
+/// - parameter assocciation: The prefetched association.
+/// - parameter pivotFilter: The expression that filters the pivot of
+///   the association.
+/// - parameter pivotColumns: The pivot columns that annotate the
+///   returned request.
+func makePrefetchRequest(
+    for association: _SQLAssociation,
+    filteringPivotWith pivotFilter: SQLExpression,
+    annotatedWith pivotColumns: [String])
+-> QueryInterfaceRequest<Row>
 {
-    guard let firstRow = rows.first else {
-        // No rows -> no prefetch
-        return
-    }
-    
-    // Annotate prefetched rows with pivot columns, so that we can
+    // We annotate prefetched rows with pivot columns, so that we can
     // group them.
     //
     // Those pivot columns are necessary when we prefetch
@@ -186,32 +281,14 @@ private func prefetch(
     //      // FROM book
     //      // WHERE authorId IN (1, 2, 3)
     //      Author.including(all: Author.books)
-    
-    let pivotFilter = pivotMapping.joinExpression(leftRows: rows)
-    
-    let pivotColumns = pivotMapping.map(\.right)
-    
     let pivotAlias = TableAlias()
     
     let prefetchRelation = association
         .map(\.pivot.relation, { $0.qualified(with: pivotAlias).filter(pivotFilter) })
         .destinationRelation()
-        // Annotate with the pivot columns that allow grouping
         .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
     
-    let prefetchRequest = QueryInterfaceRequest<Row>(relation: prefetchRelation)
-    
-    let prefetchedRows = try prefetchRequest.fetchAll(db)
-    
-    let prefetchedGroups = prefetchedRows.grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
-    
-    let groupingIndexes = firstRow.indexes(forColumns: pivotMapping.map(\.left))
-    
-    for row in rows {
-        let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
-        let prefetchedRows = prefetchedGroups[groupingKey, default: []]
-        row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
-    }
+    return QueryInterfaceRequest<Row>(relation: prefetchRelation)
 }
 
 // CAUTION: Keep this code in sync with prefetch(_:associations:in:)

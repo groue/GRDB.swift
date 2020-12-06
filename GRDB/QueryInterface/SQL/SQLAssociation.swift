@@ -123,12 +123,7 @@ public struct _SQLAssociation {
                 // children are useless:
                 let relation = step.relation
                     .selectOnly([])
-                    .filteringChildren({
-                         switch $0.kind {
-                         case .allPrefetched, .allNotPrefetched: return false
-                         case .oneRequired, .oneOptional: return true
-                         }
-                     })
+                    .removingChildrenForPrefetchedAssociations()
                 
                 // Don't interfere with user-defined keys that could be added later
                 let key = step.key.map(\.baseName) { "grdb_\($0)" }
