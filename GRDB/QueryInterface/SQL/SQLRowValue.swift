@@ -6,7 +6,7 @@ public struct _SQLRowValue: SQLExpression {
     
     /// SQLite row values were shipped in SQLite 3.15:
     /// https://www.sqlite.org/releaselog/3_15_0.html
-    public /* public for tests */ static let isAvailable = (sqlite3_libversion_number() >= 3015000)
+    static let isAvailable = (sqlite3_libversion_number() >= 3015000)
     
     /// - precondition: `expressions` is not empty
     init(_ expressions: [SQLExpression]) {
