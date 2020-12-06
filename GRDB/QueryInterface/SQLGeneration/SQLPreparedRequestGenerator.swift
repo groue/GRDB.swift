@@ -186,7 +186,7 @@ private func prefetch<RowDecoder>(
                 //      WITH grdb_base AS (SELECT a, b FROM author)
                 //      SELECT book.*, book.authorId AS grdb_authorId
                 //      FROM book
-                //      WHERE (book.a, book.b) IN (SELECT * FROM grdb_base)
+                //      WHERE (book.a, book.b) IN grdb_base
                 //
                 // HasManyThrough: Citizen.including(all: Citizen.countries)
                 //
@@ -194,7 +194,7 @@ private func prefetch<RowDecoder>(
                 //      SELECT country.*, passport.citizenId AS grdb_citizenId
                 //      FROM country
                 //      JOIN passport ON passport.countryCode = country.code
-                //                    AND (passport.a, passport.b) IN (SELECT * FROM grdb_base)
+                //                    AND (passport.a, passport.b) IN grdb_base
                 let baseRequest = baseRequest.map(\.query.relation) { baseRelation in
                     // Ordering and including(all:) children are
                     // useless, and we only need pivoting columns:
@@ -206,7 +206,8 @@ private func prefetch<RowDecoder>(
                 let baseCTE = CommonTableExpression<Void>(
                     named: "grdb_base",
                     request: baseRequest)
-                let pivotFilter = baseCTE.all().contains(_SQLRowValue(pivotColumns.map(Column.init)))
+                let pivotRowValue = _SQLRowValue(pivotColumns.map(Column.init))
+                let pivotFilter = SQLLiteral("\(pivotRowValue) IN grdb_base").sqlExpression
                 
                 prefetchRequest = makePrefetchRequest(
                     for: association,
