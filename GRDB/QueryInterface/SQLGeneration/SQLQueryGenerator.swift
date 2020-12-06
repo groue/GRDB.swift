@@ -1242,6 +1242,10 @@ extension SQLExpression {
     ///     WHERE a = 1 OR a = 2            -- []
     ///     WHERE a > 1                     -- []
     ///
+    /// TODO: deal with row values:
+    ///      WHERE (a, b) = (1, 2)          -- ["a", "b"]
+    ///      WHERE (a, b) IN (SELECT ...)   -- ["a", "b"]
+    ///
     /// Support for `SQLQueryGenerator.expectsSingleResult()`
     func identifyingColums(_ db: Database, for alias: TableAlias) throws -> Set<String> {
         var visitor = SQLIdentifyingColumns(db: db, alias: alias)
@@ -1255,7 +1259,6 @@ extension SQLExpression {
     }
 }
 
-#warning("TODO: what should we do with _SQLRowValue? (a, b) == (1, 2) for example?")
 /// Support for `SQLExpression.identifyingColums(_:for:)`
 private struct SQLIdentifyingColumns: _SQLExpressionVisitor {
     struct BreakError: Error { }
@@ -1360,6 +1363,8 @@ extension SQLExpression {
     ///     WHERE id IN (1, 2) OR rowid IN (2, 3) -- [1, 2, 3]
     ///     WHERE id > 1                          -- nil
     ///
+    /// TODO: deal with row values:
+    ///      WHERE (id, a) = (1, 2)               -- 1
     /// Support for `SQLQueryGenerator.optimizedSelectedRegion()`
     func identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
         var visitor = SQLIdentifyingRowIDs(db: db, alias: alias)
@@ -1368,7 +1373,6 @@ extension SQLExpression {
     }
 }
 
-#warning("TODO: what should we do with _SQLRowValue? (a, b) == (1, 2) for example?")
 /// Support for `SQLExpression.identifyingRowIDs(_:for:)`
 private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     let db: Database
