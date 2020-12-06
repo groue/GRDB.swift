@@ -58,9 +58,33 @@ public struct _SQLExpressionsArray: SQLCollection {
     }
 }
 
+// MARK: - _SQLTableCollection
+
+/// _SQLTableCollection aims at generating `value IN table` expressions.
+///
+/// :nodoc:
+public enum _SQLTableCollection: SQLCollection {
+    case tableName(String)
+    
+    public func contains(_ value: SQLExpressible) -> SQLExpression {
+        return _SQLExpressionContains(value, self)
+    }
+    
+    /// :nodoc:
+    public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        self
+    }
+    
+    /// :nodoc:
+    public func _accept<Visitor>(_ visitor: inout Visitor) throws where Visitor: _SQLCollectionVisitor {
+        try visitor.visit(self)
+    }
+}
+
 // MARK: - SQLCollectionExpressions
 
 extension SQLCollection {
+    /// The expressions in the collection, if possible
     func expressions() -> [SQLExpression]? {
         var visitor = SQLCollectionExpressions()
         try! _accept(&visitor)
@@ -75,6 +99,8 @@ private struct SQLCollectionExpressions: _SQLCollectionVisitor {
     mutating func visit(_ collection: _SQLExpressionsArray) throws {
         expressions = collection.expressions
     }
+    
+    mutating func visit(_ collection: _SQLTableCollection) throws { }
     
     // MARK: _FetchRequestVisitor
     

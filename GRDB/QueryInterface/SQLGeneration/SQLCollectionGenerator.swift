@@ -15,22 +15,29 @@ private struct SQLCollectionGenerator: _SQLCollectionVisitor {
     var resultSQL = ""
     
     mutating func visit(_ collection: _SQLExpressionsArray) throws {
-        resultSQL = try collection.expressions
+        resultSQL = try "(" + collection.expressions
             .map { try $0.expressionSQL(context, wrappedInParenthesis: false) }
-            .joined(separator: ", ")
+            .joined(separator: ", ") + ")"
     }
     
+    mutating func visit(_ collection: _SQLTableCollection) throws {
+        switch collection {
+        case let .tableName(tableName):
+            resultSQL = tableName.quotedDatabaseIdentifier
+        }
+    }
+
     // MARK: _FetchRequestVisitor
     
     mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws {
-        resultSQL = try request.requestSQL(context, forSingleResult: false)
+        resultSQL = try "(" + request.requestSQL(context, forSingleResult: false) + ")"
     }
     
     mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws {
-        resultSQL = try request.requestSQL(context, forSingleResult: false)
+        resultSQL = try "(" + request.requestSQL(context, forSingleResult: false) + ")"
     }
     
     mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws {
-        resultSQL = try request.requestSQL(context, forSingleResult: false)
+        resultSQL = try "(" + request.requestSQL(context, forSingleResult: false) + ")"
     }
 }

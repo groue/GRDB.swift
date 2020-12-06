@@ -98,7 +98,7 @@ private struct SQLExpressionGenerator: _SQLExpressionVisitor {
         resultSQL = try """
             \(expr.expression.expressionSQL(context, wrappedInParenthesis: true)) \
             \(expr.isNegated ? "NOT IN" : "IN") \
-            (\(expr.collection.collectionSQL(context)))
+            \(expr.collection.collectionSQL(context))
             """
         if wrappedInParenthesis {
             resultSQL = "(\(resultSQL))"
