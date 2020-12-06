@@ -870,6 +870,10 @@ private struct SQLExpressionIsTrue: _SQLExpressionVisitor {
         try setFalse()
     }
     
+    mutating func visit(_ expr: _SQLRowValue) throws {
+        try setFalse()
+    }
+    
     mutating func visit(_ expr: _SQLExpressionBetween) throws {
         try setFalse()
     }
@@ -993,6 +997,12 @@ private struct SQLExpressionIsConstantInRequest: _SQLExpressionVisitor {
     
     mutating func visit(_ column: _SQLQualifiedColumn) throws {
         try setNotConstant()
+    }
+    
+    mutating func visit(_ expr: _SQLRowValue) throws {
+        for expression in expr.expressions {
+            try expression._accept(&self)
+        }
     }
     
     mutating func visit(_ expr: _SQLExpressionBetween) throws {
@@ -1139,6 +1149,8 @@ private struct SQLTableColumnVisitor: _SQLExpressionVisitor {
         }
     }
     
+    mutating func visit(_ expr: _SQLRowValue) throws { }
+    
     mutating func visit(_ expr: _SQLExpressionBetween) throws { }
     
     mutating func visit(_ expr: _SQLExpressionBinary) throws {
@@ -1243,6 +1255,7 @@ extension SQLExpression {
     }
 }
 
+#warning("TODO: what should we do with _SQLRowValue? (a, b) == (1, 2) for example?")
 /// Support for `SQLExpression.identifyingColums(_:for:)`
 private struct SQLIdentifyingColumns: _SQLExpressionVisitor {
     struct BreakError: Error { }
@@ -1255,6 +1268,8 @@ private struct SQLIdentifyingColumns: _SQLExpressionVisitor {
     mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression { }
     
     mutating func visit(_ column: _SQLQualifiedColumn) throws { }
+    
+    mutating func visit(_ expr: _SQLRowValue) throws { }
     
     mutating func visit(_ expr: _SQLExpressionBetween) throws { }
     
@@ -1353,6 +1368,7 @@ extension SQLExpression {
     }
 }
 
+#warning("TODO: what should we do with _SQLRowValue? (a, b) == (1, 2) for example?")
 /// Support for `SQLExpression.identifyingRowIDs(_:for:)`
 private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     let db: Database
@@ -1368,6 +1384,8 @@ private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
     mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression { }
     
     mutating func visit(_ column: _SQLQualifiedColumn) throws { }
+    
+    mutating func visit(_ expr: _SQLRowValue) throws { }
     
     mutating func visit(_ expr: _SQLExpressionBetween) throws { }
     
@@ -1524,6 +1542,12 @@ private struct SQLSelectableIsAggregate: _SQLSelectableVisitor {
     }
     
     mutating func visit(_ selectable: _SQLQualifiedAllColumns) throws { }
+    
+    mutating func visit(_ expr: _SQLRowValue) throws {
+        for expression in expr.expressions {
+            try expression._accept(&self)
+        }
+    }
     
     mutating func visit(_ selectable: _SQLSelectionLiteral) throws {
         // Don't know - assume not an aggregate

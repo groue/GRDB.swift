@@ -3,6 +3,8 @@ public protocol _SQLExpressionVisitor: _FetchRequestVisitor {
     mutating func visit(_ dbValue: DatabaseValue) throws
     mutating func visit<Column: ColumnExpression>(_ column: Column) throws
     mutating func visit(_ column: _SQLQualifiedColumn) throws
+    /// - precondition: expr.expressions.count > 1
+    mutating func visit(_ expr: _SQLRowValue) throws
     mutating func visit(_ expr: _SQLExpressionBetween) throws
     mutating func visit(_ expr: _SQLExpressionBinary) throws
     /// - precondition: expr.expressions.count > 1
