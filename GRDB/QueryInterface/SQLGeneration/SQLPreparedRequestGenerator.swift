@@ -135,12 +135,12 @@ private struct SQLRequestCounter: _FetchRequestVisitor {
 // MARK: - Eager loading of hasMany associations
 
 // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
-/// Append rows from prefetched associations into the `rows` argument.
+/// Append rows from prefetched associations into the `baseRows` argument.
 ///
 /// - parameter db: A database connection.
 /// - parameter associations: Prefetched associations.
 /// - parameter baseRows: The rows that need to be extended with prefetched rows.
-/// - parameter query: The query that was used to fetch `rows`.
+/// - parameter query: The query that was used to fetch `baseRows`.
 private func prefetch<RowDecoder>(
     _ db: Database,
     associations: [_SQLAssociation],
@@ -176,7 +176,7 @@ private func prefetch<RowDecoder>(
             //
             // This is only useful for compound foreign keys. And we need
             // row values (https://www.sqlite.org/rowvalue.html). So we have
-            // a backup plan which does not uses any CTE.
+            // a backup plan which does not use any CTE.
             let usesCommonTableExpression = pivotMapping.count > 1 && _SQLRowValue.isAvailable
             
             let prefetchRequest: QueryInterfaceRequest<Row>
