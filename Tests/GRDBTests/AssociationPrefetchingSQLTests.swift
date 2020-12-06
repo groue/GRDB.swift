@@ -201,7 +201,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
                     SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
-                    FROM "child" WHERE ("pA", "pB") IN grdb_base
+                    FROM "child" WHERE ("pA", "pB") IN "grdb_base"
                     """])
             }
             
@@ -244,7 +244,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "parentA" = 'foo') \
                     SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
                     FROM "child" \
-                    WHERE ("name" = 'foo') AND (("pA", "pB") IN grdb_base)
+                    WHERE ("name" = 'foo') AND (("pA", "pB") IN "grdb_base")
                     """])
             }
         }
@@ -459,16 +459,16 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
                     SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
-                    FROM "child" WHERE ("pA", "pB") IN grdb_base
+                    FROM "child" WHERE ("pA", "pB") IN "grdb_base"
                     """,
                     """
                     WITH "grdb_base" AS (\
                     WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
                     SELECT "childA", "childB" FROM "child" \
-                    WHERE ("pA", "pB") IN grdb_base\
+                    WHERE ("pA", "pB") IN "grdb_base"\
                     ) \
                     SELECT *, "cA" AS "grdb_cA", "cB" AS "grdb_cB" \
-                    FROM "grandChild" WHERE ("cA", "cB") IN grdb_base
+                    FROM "grandChild" WHERE ("cA", "cB") IN "grdb_base"
                     """])
             }
             
@@ -508,7 +508,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
                     SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
                     FROM "child" \
-                    WHERE 0 AND (("pA", "pB") IN grdb_base)
+                    WHERE 0 AND (("pA", "pB") IN "grdb_base")
                     """])
             }
 
@@ -533,17 +533,17 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     """
                     WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "name" = 'foo') \
                     SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
-                    FROM "child" WHERE ("name" = 'blue') AND (("pA", "pB") IN grdb_base)
+                    FROM "child" WHERE ("name" = 'blue') AND (("pA", "pB") IN "grdb_base")
                     """,
                     """
                     WITH "grdb_base" AS (\
                     WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "name" = 'foo') \
                     SELECT "childA", "childB" FROM "child" \
-                    WHERE ("name" = 'blue') AND (("pA", "pB") IN grdb_base)\
+                    WHERE ("name" = 'blue') AND (("pA", "pB") IN "grdb_base")\
                     ) \
                     SELECT *, "cA" AS "grdb_cA", "cB" AS "grdb_cB" \
                     FROM "grandChild" \
-                    WHERE ("name" = 'dog') AND (("cA", "cB") IN grdb_base)
+                    WHERE ("name" = 'dog') AND (("cA", "cB") IN "grdb_base")
                     """])
             }
         }

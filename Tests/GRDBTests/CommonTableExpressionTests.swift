@@ -301,6 +301,20 @@ class CommonTableExpressionTests: GRDBTestCase {
                     """)
             }
             
+            // Use CTE as a collection
+            do {
+                let cte = CommonTableExpression<Void>(named: "cte", request: T.all())
+                let request = T.all()
+                    .with(cte)
+                    .filter(cte.contains(Column("id")))
+                try assertEqualSQL(db, request, """
+                    WITH "cte" AS (SELECT * FROM "t") \
+                    SELECT * \
+                    FROM "t" \
+                    WHERE "id" IN "cte"
+                    """)
+            }
+            
             // Use filtered CTE as a subquery
             do {
                 let cte = CommonTableExpression<Void>(named: "cte", request: T.all())
@@ -572,10 +586,12 @@ class CommonTableExpressionTests: GRDBTestCase {
             let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1")
             
             try T.with(cte)
-                .filter(Column("a") == cte.all())
+                .filter(cte.contains(Column("a")))
                 .deleteAll(db)
             XCTAssertEqual(lastSQLQuery, """
-                WITH "cte" AS (SELECT 1) DELETE FROM "t" WHERE "a" = (SELECT * FROM "cte")
+                WITH "cte" AS (SELECT 1) \
+                DELETE FROM "t" \
+                WHERE "a" IN "cte"
                 """)
         }
     }

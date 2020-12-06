@@ -221,8 +221,7 @@ private func prefetch<RowDecoder>(
                 let baseCTE = CommonTableExpression<Void>(
                     named: "grdb_base",
                     request: baseRequest)
-                let pivotRowValue = _SQLRowValue(pivotColumns.map(Column.init))
-                let pivotFilter = SQLLiteral("\(pivotRowValue) IN grdb_base").sqlExpression
+                let pivotFilter = baseCTE.contains(_SQLRowValue(pivotColumns.map(Column.init)))
                 
                 prefetchRequest = makePrefetchRequest(
                     for: association,
