@@ -145,6 +145,19 @@ extension CommonTableExpression {
     public func all() -> QueryInterfaceRequest<RowDecoder> {
         QueryInterfaceRequest(relation: relationForAll)
     }
+    
+    /// An SQL expression that checks the inclusion of an expression in a
+    /// common table expression.
+    ///
+    ///     let playerNameCTE = CommonTableExpression<Void>(
+    ///         named: "playerName",
+    ///         request: Player.select(Column("name"))
+    ///
+    ///     // name IN playerName
+    ///     playerNameCTE.contains(Column("name"))
+    public func contains(_ element: SQLExpressible) -> SQLExpression {
+        SQLLiteral("\(element.sqlExpression) IN \(sql: tableName.quotedDatabaseIdentifier)").sqlExpression
+    }
 }
 
 /// A low-level common table expression
