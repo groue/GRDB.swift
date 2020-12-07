@@ -140,7 +140,7 @@ private struct SQLRequestCounter: _FetchRequestVisitor {
 /// - parameter db: A database connection.
 /// - parameter associations: Prefetched associations.
 /// - parameter baseRows: The rows that need to be extended with prefetched rows.
-/// - parameter query: The query that was used to fetch `baseRows`.
+/// - parameter baseRequest: The request that was used to fetch `baseRows`.
 private func prefetch<RowDecoder>(
     _ db: Database,
     associations: [_SQLAssociation],
