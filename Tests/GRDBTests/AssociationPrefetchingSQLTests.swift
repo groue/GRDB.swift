@@ -157,6 +157,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    #warning("TODO: test two levels of include(all:) with compound foreign keys")
     func testIncludingAllHasManyWithCompoundForeignKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
