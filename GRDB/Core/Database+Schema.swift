@@ -245,7 +245,7 @@ extension Database {
         try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
     
-    // Internal onvenience. Not robust enough for public use.
+    // Internal convenience. Not robust enough for public use.
     func table(_ tableName: String, hasNotNullConstraintOnColumns columnNames: [String]) throws -> Bool {
         let columnNames = columnNames.map { $0.lowercased() }
         let columns = try self
