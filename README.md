@@ -4533,17 +4533,6 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     Player.filter(selectedPlayerIds.contains(idColumn))
     ```
     
-    To check inclusion inside a [common table expression], call the `contains` method as well:
-    
-    ```swift
-    // WITH selectedName AS (...)
-    // SELECT * FROM player WHERE name IN selectedName
-    let cte = CommonTableExpression<Void>(named: "selectedName", ...)
-    Player
-        .with(cte)
-        .filter(cte.contains(nameColumn))
-    ```
-    
     > :point_up: **Note**: SQLite string comparison, by default, is case-sensitive and not Unicode-aware. See [string comparison](#string-comparison) if you need more control.
 
 - `LIKE`
