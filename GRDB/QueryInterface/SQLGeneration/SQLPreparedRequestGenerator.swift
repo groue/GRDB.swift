@@ -167,17 +167,42 @@ private func prefetch<RowDecoder>(
             let leftColumns = pivotMapping.map(\.left)
 
             // We want to avoid the "Expression tree is too large" SQLite error
-            // when there are many base rows:
+            // when the foreign key contains several columns, and there are many
+            // base rows that overflow SQLITE_LIMIT_EXPR_DEPTH:
             // https://github.com/groue/GRDB.swift/issues/871
             //
-            // To this end, we do not inject any value from the base rows in
-            // the prefetch request. Instead, we directly inject the base
-            // request as a common table expression (CTE).
+            //      -- May be too complex for the SQLite engine
+            //      SELECT * FROM child
+            //      WHERE (a = ? AND b = ?)
+            //         OR (a = ? AND b = ?)
+            //         OR ...
             //
-            // This is only useful for compound foreign keys. And we need
-            // row values (https://www.sqlite.org/rowvalue.html). So we have
-            // a backup plan which does not use any CTE.
-            let usesCommonTableExpression = pivotMapping.count > 1 && _SQLRowValue.isAvailable
+            // Instead, we do not inject any value from the base rows in
+            // the prefetch request. Instead, we directly inject the base
+            // request as a common table expression (CTE):
+            //
+            //      WITH grdb_base AS (SELECT a, b FROM parent)
+            //      SELECT * FROM child
+            //      WHERE (a, b) IN grdb_base
+            //
+            // This technique works well, but there are two preconditions:
+            //
+            // 1. Row values must be available (https://www.sqlite.org/rowvalue.html)
+            //    This is the case of almost all our target platforms.
+            //
+            // 2. There must be no null values in the foreign key. That is
+            //    because the `WHERE (a, b) IN grdb_base` snippet does not find
+            //    foreign keys that contain a null value, when we do want to
+            //    find them. We thus look for NOT NULL constraints, and reward
+            //    database schemas that define "proper" foreign keys.
+            //
+            // If any of those precondition is not met, we fallback to the
+            // `(a = ? AND b = ?) OR ...` condition (the one that may fail if
+            // there are too many base rows).
+            let usesCommonTableExpression = try pivotMapping.count > 1
+                && _SQLRowValue.isAvailable
+                && (db.table(baseRequest.query.relation.source.tableName, hasNotNullConstraintOnColumns: leftColumns)
+                        || db.table(association.pivot.relation.source.tableName, hasNotNullConstraintOnColumns: pivotColumns))
             
             let prefetchRequest: QueryInterfaceRequest<Row>
             if usesCommonTableExpression {
