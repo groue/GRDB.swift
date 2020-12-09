@@ -713,7 +713,7 @@ struct Author: TableRecord {
 
 > :point_up: **Note**: Generally speaking, all foreign keys are supported, including composite keys that span several columns.
 >
-> :warning: **Warning**: SQLite voids foreign key constraints when one or more of a foreign key column is NULL (see [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)). GRDB behavior is undefined when a foreign key involves a NULL value. It is recommended that your database schema sets NOT NULL constraints where appropriate.
+> :warning: **Warning**: SQLite voids foreign key constraints when one or more of a foreign key column is NULL (see [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)). GRDB does not match foreign keys that involve a NULL value either. It is recommended that your database schema sets NOT NULL constraints where appropriate.
 
 Sometimes the database schema does not define any foreign key. And sometimes, there are *several* foreign keys from a table to another.
 

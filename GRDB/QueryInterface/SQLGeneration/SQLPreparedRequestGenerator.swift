@@ -334,12 +334,12 @@ func prefetchedRegion(
     pivotMapping: JoinMapping)
 throws -> DatabaseRegion
 {
-    // Filter the pivot on a `NullRow` in order to make sure all join
+    // Filter the pivot on a `DummyRow` in order to make sure all join
     // condition columns are made visible to SQLite, and present in the
     // selected region:
-    //  ... JOIN right ON right.leftId IS NULL
-    //                                    ^ content of the NullRow
-    let pivotFilter = pivotMapping.joinExpression(leftRows: [NullRow()])
+    //  ... JOIN right ON right.leftId = ?
+    //                                   ^ content of the DummyRow
+    let pivotFilter = pivotMapping.joinExpression(leftRows: [DummyRow()])
     
     let prefetchRelation = association
         .map(\.pivot.relation) { $0.filter(pivotFilter) }
