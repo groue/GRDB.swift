@@ -697,7 +697,7 @@ See [Foreign Keys] for more information.
 
 **Associations can automatically infer the foreign keys that define how two database tables are linked together.**
 
-In the example below, the `book.authorId` column is automatically used to link a book to its author:
+In the example below, the `book.authorId` column is automatically used to link a book to its author, because the database schema defines a foreign key between the book and author database tables (see [Convention for the BelongsTo Association]).
 
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
@@ -711,7 +711,9 @@ struct Author: TableRecord {
 }
 ```
 
-But this requires the database schema to define a foreign key between the book and author database tables (see [Convention for the BelongsTo Association]).
+> :point_up: **Note**: Generally speaking, all foreign keys are supported, including composite keys that span several columns.
+>
+> :warning: **Warning**: SQLite voids foreign key constraints when one or more of a foreign key column is NULL (see [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)). GRDB behavior is undefined when a foreign key involves a NULL value. It is recommended that your database schema sets NOT NULL constraints where appropriate.
 
 Sometimes the database schema does not define any foreign key. And sometimes, there are *several* foreign keys from a table to another.
 

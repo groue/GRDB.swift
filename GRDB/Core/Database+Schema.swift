@@ -245,16 +245,6 @@ extension Database {
         try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
     
-    // Internal convenience. Not robust enough for public use.
-    func table(_ tableName: String, hasNotNullConstraintOnColumns columnNames: [String]) throws -> Bool {
-        let columnNames = columnNames.map { $0.lowercased() }
-        let columns = try self
-            .columns(in: tableName)
-            .filter { columnNames.contains($0.name.lowercased()) }
-        assert(columns.count == columnNames.count, "columns not found")
-        return columns.allSatisfy(\.isNotNull)
-    }
-    
     /// The foreign keys defined on table named `tableName`.
     public func foreignKeys(on tableName: String) throws -> [ForeignKeyInfo] {
         if let foreignKeys = schemaCache.foreignKeys(on: tableName) {
