@@ -141,18 +141,18 @@ Common table expressions can also be embedded in [SQLRequest] with [SQL Interpol
 // SELECT * FROM player
 // WHERE name = (SELECT * FROM playerName)
 let request: SQLRequest<Player> = """
-    WITH \(definitionFor: playerNameCTE) -- embeds the CTE definition
+    WITH \(definitionFor: playerNameCTE)
     SELECT * FROM player
-    WHERE name = (SELECT * FROM \(playerNameCTE)) -- embeds the CTE table name
+    WHERE name = (SELECT * FROM \(playerNameCTE))
     """
 
 // WITH playerName AS (SELECT 'O''Brien')
 // SELECT * FROM player
 // WHERE name = (SELECT * FROM playerName)
 let request: SQLRequest<Player> = """
-    WITH \(definitionFor: playerNameCTE) -- embeds the CTE definition
+    WITH \(definitionFor: playerNameCTE)
     SELECT * FROM player
-    WHERE name = (\(playerNameCTE.all())) -- embeds the CTE request
+    WHERE name = (\(playerNameCTE.all()))
     """
 ```
 
