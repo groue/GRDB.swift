@@ -1,9 +1,9 @@
 Common Table Expressions
 ========================
 
-**Common table expressions** (CTEs) can generally be seen as *temporary SQL views*.
+**Common table expressions** (CTEs) can generally be seen as *SQL views that you define on the fly*.
 
-A certain level of familiarity with SQL databases and why and how views are useful is helpful before you dive into this guide. The starting point is obviously the [SQLite documentation](https://sqlite.org/lang_with.html). Many CTE tutorials exist online as well.
+A certain level of familiarity with SQL databases is helpful before you dive into this guide. The starting point is obviously the [SQLite documentation](https://sqlite.org/lang_with.html). Many CTE tutorials exist online as well, including [this good one](https://blog.expensify.com/2015/09/25/the-simplest-sqlite-common-table-expression-tutorial/).
 
 In this guide, you will learn how to:
 
@@ -130,9 +130,9 @@ let request = Player
 >
 > :point_up: **Note**: the `CommonTableExpression.all()` method builds a regular [query interface request] for the content of the CTE (like `SELECT * FROM <cte name>`, not to be mismatched with the request that was used to define the CTE). You can filter this request, sort it, etc, like all query interface requests:
 >
->     ```swift
->     cte.all().select(...).filter(...).group(...).order(...)
->     ```
+> ```swift
+> cte.all().select(...).filter(...).group(...).order(...)
+> ```
 
 Common table expressions can also be embedded in [SQLRequest] with [SQL Interpolation]:
 
