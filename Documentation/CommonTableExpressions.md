@@ -71,7 +71,7 @@ let counterCTE = CommonTableExpression<Int>(
     recursive: true,
     named: "counter",
     columns: ["x"],
-    literal: """
+    sql: """
         VALUES(1)
         UNION ALL
         SELECT x+1 FROM counter WHERE x<1000
