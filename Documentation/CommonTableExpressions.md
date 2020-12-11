@@ -165,7 +165,7 @@ In the previous chapter, a common table expression was embedded as a subquery, w
 
 `all()` builds a regular [query interface request] that you can filter, sort, etc, like all query interface requests. You can also fetch from it, but only as long as it is provided with the definition of the CTE.
 
-This will generally give requests of the form `cte.all().with(cte)`. In SQL, this would give: `WITH cte AS (...) SELECT * FROM cte`).
+This will generally give requests of the form `cte.all().with(cte)`. In SQL, this would give: `WITH cte AS (...) SELECT * FROM cte`.
 
 The generic type of `CommonTableExpression<...>` now turns out useful, so that you can fetch the desired outcome (database [rows](../README.md#row-queries), simple [values](../README.md#value-queries), or custom [records](../README.md#records)).
 
