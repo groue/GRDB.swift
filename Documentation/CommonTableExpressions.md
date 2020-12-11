@@ -78,6 +78,8 @@ let counterCTE = CommonTableExpression<Int>(
         """)
 ```
 
+> :point_up: **Note**: many recursive CTEs use the `UNION ALL` SQL operator. The query interface does not provide any Swift support for it, so you'll generally have to write SQL in your definitions of recursive CTEs.
+
 As you can see in all above examples, `CommonTableExpression` is a generic type: `CommonTableExpression<Void>`, `CommonTableExpression<Int>`. The generic argument (`Void`, `Int`) turns useful when you [join common table expressions](#associations-to-common-table-expressions), or when you [fetch values directly from a common table expression](#fetch-values-from-common-table-expressions). Otherwise, you can just use `Void`.
 
 
