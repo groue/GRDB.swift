@@ -558,19 +558,17 @@ extension MutablePersistableRecord {
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution,
     ///   defaulting to the record's persistenceConflictPolicy.
-    /// - parameter assignment: An assignment.
-    /// - parameter otherAssignments: Eventual other assignments.
+    /// - parameter assignments: Assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignment: Assignment,
-        _ otherAssignments: Assignment...)
+        _ assignments: Assignment...)
         throws -> Int
     {
-        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+        try updateAll(db, onConflict: conflictResolution, assignments)
     }
 }
 
