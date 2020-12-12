@@ -47,7 +47,7 @@ public struct RowValue2<A: SQLExpressible, B: SQLExpressible>: SQLSpecificExpres
     }
 }
 
-extension RowValue2: SQLAssignable where A: SQLAssignable, B: SQLAssignable { }
+extension RowValue2: SQLAssignable where A: ColumnExpression, B: ColumnExpression { }
 #else
 /// A [row value](https://www.sqlite.org/rowvalue.html) made of two expressions.
 ///
@@ -68,7 +68,7 @@ public struct RowValue2<A: SQLExpressible, B: SQLExpressible>: SQLSpecificExpres
 }
 
 @available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
-extension RowValue2: SQLAssignable where A: SQLAssignable, B: SQLAssignable { }
+extension RowValue2: SQLAssignable where A: ColumnExpression, B: ColumnExpression { }
 #endif
 
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
@@ -91,7 +91,7 @@ public struct RowValue3<A: SQLExpressible, B: SQLExpressible, C: SQLExpressible>
     }
 }
 
-extension RowValue3: SQLAssignable where A: SQLAssignable, B: SQLAssignable, C: SQLAssignable { }
+extension RowValue3: SQLAssignable where A: ColumnExpression, B: ColumnExpression, C: ColumnExpression { }
 #else
 /// A [row value](https://www.sqlite.org/rowvalue.html) made of three expressions.
 ///
@@ -114,5 +114,5 @@ public struct RowValue3<A: SQLExpressible, B: SQLExpressible, C: SQLExpressible>
 }
 
 @available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
-extension RowValue3: SQLAssignable where A: SQLAssignable, B: SQLAssignable, C: SQLAssignable { }
+extension RowValue3: SQLAssignable where A: ColumnExpression, B: ColumnExpression, C: ColumnExpression { }
 #endif
