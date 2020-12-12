@@ -71,7 +71,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
+**Release Highlights**: [experimental](README.md#what-are-experimental-features) support for two SQLite features: [common table expressions](https://sqlite.org/lang_with.html), and [row values](https://www.sqlite.org/rowvalue.html).
+
 - **New**: [#880](https://github.com/groue/GRDB.swift/pull/880): Common Table Expressions
+- **New**: [#890](https://github.com/groue/GRDB.swift/pull/890): Row Values
 - **Fixed**: [#881](https://github.com/groue/GRDB.swift/pull/881) by [@felixscheinost](https://github.com/felixscheinost) and [#883](https://github.com/groue/GRDB.swift/pull/883) by [@professordeng](https://github.com/professordeng): Documentation improvements
 - **Fixed**: [#885](https://github.com/groue/GRDB.swift/pull/885): Robustness of eager loading of to-many associations based on compound foreign keys
 - **Documentation update**: A new guide: [Common Table Expressions](https://github.com/groue/GRDB.swift/blob/master/Documentation/CommonTableExpressions.md)
