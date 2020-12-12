@@ -60,6 +60,10 @@ private struct SQLSelectableCountGenerator: _SQLSelectableVisitor {
         resultSQL = try expr.expressionSQL(context, wrappedInParenthesis: false)
     }
     
+    mutating func visit(_ expr: _SQLRowValue) throws {
+        resultSQL = try expr.expressionSQL(context, wrappedInParenthesis: false)
+    }
+    
     mutating func visit(_ expr: _SQLExpressionBetween) throws {
         resultSQL = try expr.expressionSQL(context, wrappedInParenthesis: false)
     }

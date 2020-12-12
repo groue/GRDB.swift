@@ -697,7 +697,7 @@ See [Foreign Keys] for more information.
 
 **Associations can automatically infer the foreign keys that define how two database tables are linked together.**
 
-In the example below, the `book.authorId` column is automatically used to link a book to its author:
+In the example below, the `book.authorId` column is automatically used to link a book to its author, because the database schema defines a foreign key between the book and author database tables (see [Convention for the BelongsTo Association]).
 
 ![BelongsToSchema](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/Associations2/BelongsToSchema.svg)
 
@@ -711,7 +711,9 @@ struct Author: TableRecord {
 }
 ```
 
-But this requires the database schema to define a foreign key between the book and author database tables (see [Convention for the BelongsTo Association]).
+> :point_up: **Note**: Generally speaking, all foreign keys are supported, including composite keys that span several columns.
+>
+> :warning: **Warning**: SQLite voids foreign key constraints when one or more of a foreign key column is NULL (see [SQLite Foreign Key Support](https://www.sqlite.org/foreignkeys.html)). GRDB does not match foreign keys that involve a NULL value either.
 
 Sometimes the database schema does not define any foreign key. And sometimes, there are *several* foreign keys from a table to another.
 
@@ -941,24 +943,6 @@ The pattern is always the same: you start from a base request, that you extend w
     
     Finally, readers who speak SQL may compare `optional` with left joins, and `required` with inner joins.
 
-> :warning: **Warning**: You will get a database error with code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large", when the following conditions are met:
->
-> - You use the `including(all:)` method (say: `Parent.including(all: children)`).
-> - The association is based on a compound foreign key (made of two columns or more).
-> - The request fetches a lot of parent records. The exact threshold depends on [SQLITE_LIMIT_EXPR_DEPTH](https://www.sqlite.org/limits.html). It is around 1000 parents in recent iOS and macOS systems. To get an exact figure, run:
->
->     ```swift
->     let limit = try dbQueue.read { db in
->          sqlite3_limit(db.sqliteConnection, SQLITE_LIMIT_EXPR_DEPTH, -1)
->     }
->     ```
->
-> Possible workarounds are:
-> 
-> - Refactor the database schema so that you do not depend on a compound foreign key.
-> - Prefetch children with your own code, without using `including(all:)`.
->
-> For more information about this caveat, see [issue #871](https://github.com/groue/GRDB.swift/issues/871).
 
 ## Combining Associations
 
@@ -2395,10 +2379,6 @@ See [Good Practices for Designing Record Types] for more information.
         .including(all: Country.passports
             .including(required: Passport.citizen))
     ```
-    
-- **The `including(all:)` method may fail with a database error of code [`SQLITE_ERROR`](https://www.sqlite.org/rescode.html#error) (1) "Expression tree is too large" when you use a compound foreign key and there are a lot of parent records.**
-
-    See [Joining And Prefetching Associated Records] for more information about this error.
 
 Come [discuss](http://twitter.com/groue) for more information, or if you wish to help turning those missing features into reality.
 

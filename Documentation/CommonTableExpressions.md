@@ -1,6 +1,10 @@
 Common Table Expressions
 ========================
 
+[**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features)
+
+---
+
 **Common table expressions** (CTEs) can generally be seen as *SQL views that you define on the fly*.
 
 A certain level of familiarity with SQL databases is helpful before you dive into this guide. The starting point is obviously the [SQLite documentation](https://sqlite.org/lang_with.html). Many CTE tutorials exist online as well, including [this good one](https://blog.expensify.com/2015/09/25/the-simplest-sqlite-common-table-expression-tutorial/).

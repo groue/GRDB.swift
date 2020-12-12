@@ -365,6 +365,15 @@ extension SQLRelation {
     func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> Self {
         try map(\.children) { try $0.filter { try included($1) } }
     }
+    
+    func removingChildrenForPrefetchedAssociations() -> Self {
+        filteringChildren {
+             switch $0.kind {
+             case .allPrefetched, .allNotPrefetched: return false
+             case .oneRequired, .oneOptional: return true
+             }
+         }
+    }
 }
 
 extension SQLRelation: _JoinableRequest {
@@ -588,7 +597,7 @@ extension JoinMapping {
             // We could return `false.sqlExpression`.
             //
             // But we need to take care of database observation, and generate
-            // SQL that involves all used columns. Consider using a `NullRow`.
+            // SQL that involves all used columns. Consider using a `DummyRow`.
             fatalError("Provide at least one left row, or this method can't generate SQL that can be observed.")
         }
         
@@ -609,16 +618,10 @@ extension JoinMapping {
             // Unique database values and filter out NULL:
             let leftIndex = mapping.leftIndex
             var dbValues = Set(leftRows.map { $0.databaseValue(at: leftIndex) })
-            dbValues.remove(.null)
-            
-            if dbValues.isEmpty {
-                // null was removed from dbValues
-                return mapping.rightColumn == nil
-            } else {
-                // table.a IN (1, 2, 3, ...)
-                // Sort database values for nicer output.
-                return dbValues.sorted(by: <).contains(mapping.rightColumn)
-            }
+            dbValues.remove(.null) // SQLite doesn't match foreign keys on NULL
+            // table.a IN (1, 2, 3, ...)
+            // Sort database values for nicer output.
+            return dbValues.sorted(by: <).contains(mapping.rightColumn)
         } else {
             // Join on a multiple columns.
             // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4)) ...
@@ -628,7 +631,8 @@ extension JoinMapping {
                     mappings
                         .map({ mapping -> SQLExpression in
                             let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
-                            return mapping.rightColumn == leftValue
+                            // Force `=` operator, because SQLite doesn't match foreign keys on NULL
+                            return _SQLExpressionEqual(.equal, mapping.rightColumn, leftValue)
                         })
                         .joined(operator: .and)
                 })
@@ -660,12 +664,12 @@ protocol ColumnAddressable {
     func databaseValue(at index: ColumnIndex) -> DatabaseValue
 }
 
-/// A "row" that contains null values for all columns
-struct NullRow: ColumnAddressable {
+/// A "row" that contains a dummy value for all columns
+struct DummyRow: ColumnAddressable {
     struct DummyIndex { }
     func index(forColumn column: String) -> DummyIndex? { DummyIndex() }
     @inline(__always)
-    func databaseValue(at index: DummyIndex) -> DatabaseValue { .null }
+    func databaseValue(at index: DummyIndex) -> DatabaseValue { DatabaseValue(storage: .int64(1)) }
 }
 
 /// Row has columns

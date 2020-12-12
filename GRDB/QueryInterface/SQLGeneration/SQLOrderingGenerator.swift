@@ -36,7 +36,7 @@ private struct SQLOrderingGenerator: _SQLOrderingTermVisitor {
     mutating func visit(_ ordering: _SQLOrderingLiteral) throws {
         resultSQL = try ordering.sqlLiteral.sql(context)
     }
-
+    
     // MARK: - _SQLExpressionVisitor
     
     mutating func visit(_ expr: DatabaseValue) throws {
@@ -48,6 +48,10 @@ private struct SQLOrderingGenerator: _SQLOrderingTermVisitor {
     }
     
     mutating func visit(_ expr: _SQLQualifiedColumn) throws {
+        resultSQL = try expr.expressionSQL(context, wrappedInParenthesis: false)
+    }
+    
+    mutating func visit(_ expr: _SQLRowValue) throws {
         resultSQL = try expr.expressionSQL(context, wrappedInParenthesis: false)
     }
     

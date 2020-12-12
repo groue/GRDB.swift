@@ -41,6 +41,13 @@ private struct SQLExpressionGenerator: _SQLExpressionVisitor {
         resultSQL += column.name.quotedDatabaseIdentifier
     }
     
+    mutating func visit(_ expr: _SQLRowValue) throws {
+        let values = try expr
+            .expressions
+            .map { try $0.expressionSQL(context, wrappedInParenthesis: false) }
+        resultSQL = "(\(values.joined(separator: ", ")))"
+    }
+    
     mutating func visit(_ expr: _SQLExpressionBetween) throws {
         resultSQL = try """
             \(expr.expression.expressionSQL(context, wrappedInParenthesis: true)) \
