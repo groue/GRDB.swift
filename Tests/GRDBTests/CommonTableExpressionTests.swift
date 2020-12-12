@@ -557,8 +557,48 @@ class CommonTableExpressionTests: GRDBTestCase {
             
             try T.with(cte).updateAll(db, Column("a").set(to: cte.all()))
             XCTAssertEqual(lastSQLQuery, """
-                WITH "cte" AS (SELECT 1) UPDATE "t" SET "a" = (SELECT * FROM "cte")
+                WITH "cte" AS (SELECT 1) \
+                UPDATE "t" \
+                SET "a" = (SELECT * FROM "cte")
                 """)
+        }
+    }
+    
+    func testUpdateRowValue() throws {
+        guard #available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *) else {
+            throw XCTSkip("Row values are not available")
+        }
+        
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "t") { t in
+                t.column("a")
+                t.column("b")
+                t.column("c")
+            }
+            
+            struct T: Encodable, PersistableRecord { }
+            
+            do {
+                let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1, 2")
+                
+                try T.with(cte).updateAll(db, RowValue2(Column("a"), Column("b")).set(to: cte.all()))
+                XCTAssertEqual(lastSQLQuery, """
+                WITH "cte" AS (SELECT 1, 2) \
+                UPDATE "t" \
+                SET ("a", "b") = (SELECT * FROM "cte")
+                """)
+            }
+            
+            do {
+                let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1, 2, 3")
+                
+                try T.with(cte).updateAll(db, RowValue3(Column("a"), Column("b"), Column("c")).set(to: cte.all()))
+                XCTAssertEqual(lastSQLQuery, """
+                WITH "cte" AS (SELECT 1, 2, 3) \
+                UPDATE "t" \
+                SET ("a", "b", "c") = (SELECT * FROM "cte")
+                """)
+            }
         }
     }
     
@@ -575,8 +615,52 @@ class CommonTableExpressionTests: GRDBTestCase {
                 .filter(Column("a") == cte.all())
                 .deleteAll(db)
             XCTAssertEqual(lastSQLQuery, """
-                WITH "cte" AS (SELECT 1) DELETE FROM "t" WHERE "a" = (SELECT * FROM "cte")
+                WITH "cte" AS (SELECT 1) \
+                DELETE FROM "t" \
+                WHERE "a" = (SELECT * FROM "cte")
                 """)
+        }
+    }
+    
+    func testDeleteRowValue() throws {
+        guard #available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *) else {
+            throw XCTSkip("Row values are not available")
+        }
+        
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "t") { t in
+                t.column("a")
+                t.column("b")
+                t.column("c")
+            }
+            
+            struct T: Encodable, PersistableRecord { }
+            
+            do {
+                let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1, 2")
+                
+                try T.with(cte)
+                    .filter(cte.all().contains(RowValue2(Column("a"), Column("b"))))
+                    .deleteAll(db)
+                XCTAssertEqual(lastSQLQuery, """
+                WITH "cte" AS (SELECT 1, 2) \
+                DELETE FROM "t" \
+                WHERE ("a", "b") IN (SELECT * FROM "cte")
+                """)
+            }
+            
+            do {
+                let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1, 2, 3")
+                
+                try T.with(cte)
+                    .filter(cte.all().contains(RowValue3(Column("a"), Column("b"), Column("c"))))
+                    .deleteAll(db)
+                XCTAssertEqual(lastSQLQuery, """
+                WITH "cte" AS (SELECT 1, 2, 3) \
+                DELETE FROM "t" \
+                WHERE ("a", "b", "c") IN (SELECT * FROM "cte")
+                """)
+            }
         }
     }
 }

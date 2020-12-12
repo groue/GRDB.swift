@@ -499,6 +499,8 @@
 		56DF0018228DDB8300D611F3 /* AssociationPrefetchingRowTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF0014228DDB8200D611F3 /* AssociationPrefetchingRowTests.swift */; };
 		56DF37A723D77AA0009AAA05 /* Refinable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF37A623D77AA0009AAA05 /* Refinable.swift */; };
 		56DF37A823D77AA0009AAA05 /* Refinable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DF37A623D77AA0009AAA05 /* Refinable.swift */; };
+		56E33C3F2584F4B9000AD57E /* Assignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E33C3D2584F4B9000AD57E /* Assignment.swift */; };
+		56E33C402584F4B9000AD57E /* Assignment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E33C3D2584F4B9000AD57E /* Assignment.swift */; };
 		56E4F7F92392E2EE00A611F6 /* DatabaseAbortedTransactionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4F7F72392E2EE00A611F6 /* DatabaseAbortedTransactionTests.swift */; };
 		56E4F7FA2392E2EE00A611F6 /* DatabaseAbortedTransactionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E4F7F72392E2EE00A611F6 /* DatabaseAbortedTransactionTests.swift */; };
 		56E9FAC42210468500C703A8 /* SQLInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E9FAC32210468500C703A8 /* SQLInterpolation.swift */; };
@@ -1114,6 +1116,7 @@
 		56DF0013228DDB8200D611F3 /* AssociationPrefetchingCodableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingCodableRecordTests.swift; sourceTree = "<group>"; };
 		56DF0014228DDB8200D611F3 /* AssociationPrefetchingRowTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationPrefetchingRowTests.swift; sourceTree = "<group>"; };
 		56DF37A623D77AA0009AAA05 /* Refinable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Refinable.swift; sourceTree = "<group>"; };
+		56E33C3D2584F4B9000AD57E /* Assignment.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Assignment.swift; sourceTree = "<group>"; };
 		56E4F7F72392E2EE00A611F6 /* DatabaseAbortedTransactionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseAbortedTransactionTests.swift; sourceTree = "<group>"; };
 		56E8CE0C1BB4FA5600828BEC /* DatabaseValueConvertibleFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseValueConvertibleFetchTests.swift; sourceTree = "<group>"; };
 		56E8CE0F1BB4FE5B00828BEC /* StatementColumnConvertibleFetchTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementColumnConvertibleFetchTests.swift; sourceTree = "<group>"; };
@@ -1590,6 +1593,7 @@
 		5656A8402295BD56001FF3FF /* SQL */ = {
 			isa = PBXGroup;
 			children = (
+				56E33C3D2584F4B9000AD57E /* Assignment.swift */,
 				5656A84A2295BD56001FF3FF /* Column.swift */,
 				5656A8A52295BF44001FF3FF /* DatabasePromise.swift */,
 				5656A8412295BD56001FF3FF /* SQLAssociation.swift */,
@@ -2405,6 +2409,7 @@
 				F3BA80221CFB288C003DC1BA /* NSNumber.swift in Sources */,
 				5656A8582295BD56001FF3FF /* SQLQueryGenerator.swift in Sources */,
 				56F896C424BA042E005FB062 /* FetchRequestVisitor.swift in Sources */,
+				56E33C402584F4B9000AD57E /* Assignment.swift in Sources */,
 				5656A8842295BD56001FF3FF /* SQLExpression.swift in Sources */,
 				5659F48D1EA8D94E004A4992 /* Utils.swift in Sources */,
 				F3BA80231CFB288C003DC1BA /* NSString.swift in Sources */,
@@ -2778,6 +2783,7 @@
 				F3BA807E1CFB2E61003DC1BA /* NSNumber.swift in Sources */,
 				5656A8572295BD56001FF3FF /* SQLQueryGenerator.swift in Sources */,
 				56F896C324BA042E005FB062 /* FetchRequestVisitor.swift in Sources */,
+				56E33C3F2584F4B9000AD57E /* Assignment.swift in Sources */,
 				5656A8832295BD56001FF3FF /* SQLExpression.swift in Sources */,
 				5659F48A1EA8D94E004A4992 /* Utils.swift in Sources */,
 				F3BA807F1CFB2E61003DC1BA /* NSString.swift in Sources */,

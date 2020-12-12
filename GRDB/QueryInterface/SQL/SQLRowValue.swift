@@ -1,3 +1,5 @@
+// Row values are available in SQLite 3.15+
+
 /// A [row value](https://www.sqlite.org/rowvalue.html).
 ///
 /// :nodoc:
@@ -26,3 +28,91 @@ public struct _SQLRowValue: SQLExpression {
         }
     }
 }
+
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+/// A [row value](https://www.sqlite.org/rowvalue.html) made of two expressions.
+///
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+public struct RowValue2<A: SQLExpressible, B: SQLExpressible>: SQLSpecificExpressible {
+    private var a: A
+    private var b: B
+    
+    public init(_ a: A, _ b: B) {
+        self.a = a
+        self.b = b
+    }
+    
+    public var sqlExpression: SQLExpression {
+        _SQLRowValue([a.sqlExpression, b.sqlExpression])
+    }
+}
+
+extension RowValue2: SQLAssignable where A: SQLAssignable, B: SQLAssignable { }
+#else
+/// A [row value](https://www.sqlite.org/rowvalue.html) made of two expressions.
+///
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+@available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
+public struct RowValue2<A: SQLExpressible, B: SQLExpressible>: SQLSpecificExpressible {
+    private var a: A
+    private var b: B
+    
+    public init(_ a: A, _ b: B) {
+        self.a = a
+        self.b = b
+    }
+    
+    public var sqlExpression: SQLExpression {
+        _SQLRowValue([a.sqlExpression, b.sqlExpression])
+    }
+}
+
+@available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
+extension RowValue2: SQLAssignable where A: SQLAssignable, B: SQLAssignable { }
+#endif
+
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+/// A [row value](https://www.sqlite.org/rowvalue.html) made of three expressions.
+///
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+public struct RowValue3<A: SQLExpressible, B: SQLExpressible, C: SQLExpressible>: SQLSpecificExpressible {
+    private var a: A
+    private var b: B
+    private var c: C
+    
+    public init(_ a: A, _ b: B, _ c: C) {
+        self.a = a
+        self.b = b
+        self.c = c
+    }
+    
+    public var sqlExpression: SQLExpression {
+        _SQLRowValue([a.sqlExpression, b.sqlExpression, c.sqlExpression])
+    }
+}
+
+extension RowValue3: SQLAssignable where A: SQLAssignable, B: SQLAssignable, C: SQLAssignable { }
+#else
+/// A [row value](https://www.sqlite.org/rowvalue.html) made of three expressions.
+///
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+@available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
+public struct RowValue3<A: SQLExpressible, B: SQLExpressible, C: SQLExpressible>: SQLSpecificExpressible {
+    private var a: A
+    private var b: B
+    private var c: C
+    
+    public init(_ a: A, _ b: B, _ c: C) {
+        self.a = a
+        self.b = b
+        self.c = c
+    }
+    
+    public var sqlExpression: SQLExpression {
+        _SQLRowValue([a.sqlExpression, b.sqlExpression, c.sqlExpression])
+    }
+}
+
+@available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
+extension RowValue3: SQLAssignable where A: SQLAssignable, B: SQLAssignable, C: SQLAssignable { }
+#endif

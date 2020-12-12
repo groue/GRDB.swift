@@ -533,14 +533,14 @@ extension MutablePersistableRecord {
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution,
     ///   defaulting to the record's persistenceConflictPolicy.
-    /// - parameter assignments: An array of column assignments.
+    /// - parameter assignments: An array of assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignments: [ColumnAssignment])
+        _ assignments: [Assignment])
         throws -> Int
     {
         try all().updateAll(db, onConflict: conflictResolution, assignments)
@@ -558,16 +558,16 @@ extension MutablePersistableRecord {
     /// - parameter db: A database connection.
     /// - parameter conflictResolution: A policy for conflict resolution,
     ///   defaulting to the record's persistenceConflictPolicy.
-    /// - parameter assignment: A column assignment.
-    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - parameter assignment: An assignment.
+    /// - parameter otherAssignments: Eventual other assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     @discardableResult
     public static func updateAll(
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignment: ColumnAssignment,
-        _ otherAssignments: ColumnAssignment...)
+        _ assignment: Assignment,
+        _ otherAssignments: Assignment...)
         throws -> Int
     {
         try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)

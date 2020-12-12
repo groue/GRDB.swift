@@ -17,7 +17,7 @@
 ///     let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public protocol ColumnExpression: SQLExpression {
+public protocol ColumnExpression: SQLExpression, SQLAssignable {
     /// The unqualified name of a database column.
     ///
     /// "score" is a valid unqualified name. "player.score" is not.

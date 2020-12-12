@@ -295,9 +295,13 @@ struct SQLQueryGenerator: Refinable {
     func makeUpdateStatement(
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
-        assignments: [ColumnAssignment])
+        assignments: [Assignment])
         throws -> UpdateStatement?
     {
+        if assignments.isEmpty {
+            return nil
+        }
+        
         switch try grouping(db) {
         case .none:
             guard relation.joins.isEmpty else {
@@ -305,12 +309,6 @@ struct SQLQueryGenerator: Refinable {
                     db,
                     conflictResolution: conflictResolution,
                     assignments: assignments)
-            }
-            
-            // Check for empty assignments after all programmer errors have
-            // been checked.
-            if assignments.isEmpty {
-                return nil
             }
             
             let context = SQLGenerationContext(db, aliases: relation.allAliases)
@@ -363,7 +361,7 @@ struct SQLQueryGenerator: Refinable {
     private func makeTrivialUpdateStatement(
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
-        assignments: [ColumnAssignment])
+        assignments: [Assignment])
         throws -> UpdateStatement?
     {
         // Check for empty assignments after all programmer errors have
