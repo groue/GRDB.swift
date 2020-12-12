@@ -10,6 +10,7 @@ struct SQLQuery {
     // `(a AND b AND c)` instead of `((a AND b) AND c)`.
     var havingExpressionsPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
     var limit: SQLLimit?
+    var ctes: OrderedDictionary<String, SQLCTE> = [:]
 }
 
 extension SQLQuery: Refinable {
@@ -96,7 +97,7 @@ extension SQLQuery: _JoinableRequest {
 
 extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
-        guard groupPromise == nil && limit == nil else {
+        guard groupPromise == nil && limit == nil && ctes.isEmpty else {
             // SELECT ... GROUP BY ...
             // SELECT ... LIMIT ...
             // WITH ... SELECT ...

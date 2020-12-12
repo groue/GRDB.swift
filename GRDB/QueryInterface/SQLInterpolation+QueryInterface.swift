@@ -270,4 +270,39 @@ extension SQLInterpolation {
     {
         elements.append(.expression(expressible.sqlExpression))
     }
+    
+    // MARK: Common Table Expressions
+    
+    /// Appends the table name of the common table expression.
+    ///
+    ///     // WITH "cte" AS (...) SELECT * FROM "cte"
+    ///     let cte = CommonTableExpression<Void>(named: "cte", ...)
+    ///     let request: SQLRequest<Row> = """
+    ///         WITH \(definitionFor: cte) SELECT * FROM \(cte)
+    ///         """
+    public mutating func appendInterpolation<T>(_ cte: CommonTableExpression<T>) {
+        elements.append(.sql(cte.tableName.quotedDatabaseIdentifier))
+    }
+    
+    /// Appends the definition of the common table expression.
+    ///
+    ///     // WITH "cte" AS (...) SELECT * FROM "cte"
+    ///     let cte = CommonTableExpression<Void>(named: "cte", ...)
+    ///     let request: SQLRequest<Row> = """
+    ///         WITH \(definitionFor: cte) SELECT * FROM \(cte)
+    ///         """
+    public mutating func appendInterpolation<T>(definitionFor cte: CommonTableExpression<T>) {
+        elements.append(.sql(cte.tableName.quotedDatabaseIdentifier))
+        
+        if let columns = cte.cte.columns, !columns.isEmpty {
+            let columnsSQL = "("
+                + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+                + ")"
+            elements.append(.sql(columnsSQL))
+        }
+        
+        elements.append(.sql(" AS ("))
+        elements.append(.subquery(cte.cte.request))
+        elements.append(.sql(")"))
+    }
 }

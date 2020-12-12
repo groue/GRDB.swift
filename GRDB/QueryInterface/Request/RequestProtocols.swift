@@ -549,7 +549,7 @@ public protocol JoinableRequest: _JoinableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype RowDecoder: TableRecord
+    associatedtype RowDecoder
 }
 
 extension JoinableRequest {

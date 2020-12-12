@@ -495,33 +495,28 @@ extension SQLRelation {
 
 // MARK: - SQLAssociationCondition
 
-/// The condition that links two tables.
+/// The condition that links two tables of an association.
 ///
-/// Currently, we only support one kind of condition: foreign keys.
+/// Conditions can feed a `JOIN` clause:
 ///
-///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-///                                         <---- the condition ---->
+///     // SELECT ... FROM book JOIN author ON author.id = book.authorId
+///     //                                     ~~~~~~~~~~~~~~~~~~~~~~~~~
+///     Book.including(required: Book.author)
 ///
-/// When we eventually add support for new ways to link tables,
-/// SQLAssociationCondition is the type we'll need to update.
+/// Conditions help eager loading of to-many associations:
 ///
-/// SQLAssociationCondition adopts Equatable so that we can merge associations:
+///     // SELECT * FROM author WHERE ...
+///     // SELECT * FROM book WHERE author.id IN (1, 2, 3)
+///     //                          ~~~~~~~~~~~~~~~~~~~~~~
+///     Author.filter(...).including(all: Author.books)
 ///
-///     // request1 and request2 are equivalent
-///     let request1 = Book
-///         .including(required: Book.author)
-///     let request2 = Book
-///         .including(required: Book.author)
-///         .including(required: Book.author)
+/// Conditions help fetching associated records:
 ///
-///     // request3 and request4 are equivalent
-///     let request3 = Book
-///         .including(required: Book.author.filter(condition1 && condition2))
-///     let request4 = Book
-///         .joining(required: Book.author.filter(condition1))
-///         .including(optional: Book.author.filter(condition2))
-enum SQLAssociationCondition: Equatable {
-    /// Condition based on a foreign key
+///     // SELECT * FROM book WHERE author.id = 1
+///     //                          ~~~~~~~~~~~~~
+///     author.request(for: Author.books)
+enum SQLAssociationCondition {
+    /// A condition based on a foreign key.
     ///
     /// originIsLeft is true if the table at the origin of the foreign key is on
     /// the left of the sql JOIN operator.
@@ -534,18 +529,42 @@ enum SQLAssociationCondition: Equatable {
     ///
     ///     -- Book.including(required: Book.author)
     ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
     ///
     /// The origin table `book`is on the right of the JOIN operator for
     /// the HasMany and HasOne associations:
     ///
     ///     -- Author.including(required: Author.books)
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
+    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
+    
+    /// A condition based on a function that returns an expression.
+    ///
+    /// The two arguments `left` and `right` are aliases for the left and right
+    /// tables in a `JOIN` clause:
+    ///
+    ///     // WITH bonus AS (...)
+    ///     // SELECT * FROM player
+    ///     // JOIN bonus ON player.id = bonus.playerID
+    ///     //               ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ///     let bonus = CommonTableExpression(...)
+    ///     let association = Player.association(to: bonus, on: { player, bonus in
+    ///         player[Column("id")] == bonus[Column("playerID")]
+    ///     })
+    ///     Player.with(bonus).joining(required: association)
+    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+    
+    /// The condition that does not constrain the two associated tables
+    /// in any way.
+    static let none = expression({ _, _ in true })
     
     var reversed: SQLAssociationCondition {
         switch self {
         case let .foreignKey(request: request, originIsLeft: originIsLeft):
             return .foreignKey(request: request, originIsLeft: !originIsLeft)
+        case let .expression(condition):
+            return .expression { condition($1, $0) }
         }
     }
 }
@@ -754,10 +773,30 @@ extension SQLSource {
     }
 }
 
+extension SQLAssociationCondition {
+    func merged(with other: SQLAssociationCondition) -> Self? {
+        switch (self, other) {
+        case let (.foreignKey(lr, lo), .foreignKey(rr, ro)):
+            if lr == rr && lo == ro {
+                return self
+            } else {
+                // can't merge
+                return nil
+            }
+        case let (.expression, .expression(rhs)):
+            // Can't compare functions: the last one wins
+            return .expression(rhs)
+        default:
+            // can't merge
+            return nil
+        }
+    }
+}
+
 extension SQLRelation.Child {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
     func merged(with other: SQLRelation.Child) -> Self? {
-        guard condition == other.condition else {
+        guard let mergedCondition = condition.merged(with: other.condition) else {
             // can't merge
             return nil
         }
@@ -774,7 +813,7 @@ extension SQLRelation.Child {
         
         return SQLRelation.Child(
             kind: mergedKind,
-            condition: condition,
+            condition: mergedCondition,
             relation: mergedRelation)
     }
 }

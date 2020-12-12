@@ -259,7 +259,7 @@ extension QueryInterfaceRequest: _JoinableRequest {
     }
 }
 
-extension QueryInterfaceRequest: JoinableRequest where RowDecoder: TableRecord { }
+extension QueryInterfaceRequest: JoinableRequest { }
 
 extension QueryInterfaceRequest: TableRequest {
     /// :nodoc:

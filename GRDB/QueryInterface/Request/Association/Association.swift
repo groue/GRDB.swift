@@ -25,7 +25,7 @@ public protocol Association: _Association, DerivableRequest {
     ///         // BelongsToAssociation<Book, Author>
     ///         static let author = belongsTo(Author.self)
     ///     }
-    associatedtype OriginRowDecoder: TableRecord
+    associatedtype OriginRowDecoder
     
     /// Creates an association with the given key.
     ///

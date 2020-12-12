@@ -11,6 +11,7 @@ GRDB Associations
     - [HasOneThrough]
     - [Choosing Between BelongsTo and HasOne]
     - [Self Joins]
+    - [Associations to Common Table Expressions]
 - [Associations and the Database Schema]
     - [Convention for Database Table Names]
     - [Convention for the BelongsTo Association]
@@ -191,17 +192,20 @@ Generally speaking, associations use the [TableRecord], [FetchableRecord], and [
 The Types of Associations
 =========================
 
-GRDB handles five types of associations:
+GRDB handles several types of associations:
 
 - **BelongsTo**
 - **HasMany**
 - **HasOne**
 - **HasManyThrough**
 - **HasOneThrough**
+- **Associations to common table expressions**
 
-An association declares a link from a record type to another, as in "one book **belongs to** its author". It instructs GRDB to use the foreign keys declared in the database as support for Swift methods.
+An association generally declares a link from a record type to another, as in "one book **belongs to** its author". It instructs GRDB to use the foreign keys declared in the database as support for Swift methods.
 
 Each one of these associations is appropriate for a particular database situation.
+
+Associations to [common table expressions] are specific enough and are documented in [Associations to Common Table Expressions].
 
 - [BelongsTo]
 - [HasMany]
@@ -2498,3 +2502,5 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [database observation tools]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation
 [FAQ]: ../README.md#faq-associations
+[common table expressions]: CommonTableExpressions.md
+[Associations to Common Table Expressions]: CommonTableExpressions.md#associations-to-common-table-expressions
