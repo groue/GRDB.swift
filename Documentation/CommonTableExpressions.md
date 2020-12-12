@@ -158,6 +158,23 @@ let request: SQLRequest<Player> = """
     """
 ```
 
+Common table expressions can also be used as subqueries, when you update or delete rows in the database:
+
+```swift
+// WITH playerName AS (SELECT 'O''Brien')
+// UPDATE player SET name = (SELECT * FROM playerName)
+try Player
+    .with(playerNameCTE)
+    .updateAll(db, Column("name").set(to: playerNameCTE.all()))
+    
+// WITH playerName AS (SELECT 'O''Brien')
+// DELETE FROM player WHERE name = (SELECT * FROM playerName)
+try Player
+    .with(playerNameCTE)
+    .filter(Column("name") == playerNameCTE.all())
+    .deleteAll(db)
+```
+
 
 ## Fetch Values From Common Table Expressions
 
