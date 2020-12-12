@@ -188,7 +188,7 @@ See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for
     
     This will avoid https://github.com/sqlcipher/sqlcipher/issues/255.
 
-2. [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features) In each process that wants to write in the database:
+2. [**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features) In each process that wants to write in the database:
 
     Set the `observesSuspensionNotifications` configuration flag:
     
