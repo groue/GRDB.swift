@@ -72,6 +72,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#880](https://github.com/groue/GRDB.swift/pull/880): Common Table Expressions
+- **Fixed**: [#881](https://github.com/groue/GRDB.swift/pull/881) by [@felixscheinost](https://github.com/felixscheinost) and [#883](https://github.com/groue/GRDB.swift/pull/883) by [@professordeng](https://github.com/professordeng): Documentation improvements
 - **Documentation update**: A new guide: [Common Table Expressions](https://github.com/groue/GRDB.swift/blob/master/Documentation/CommonTableExpressions.md)
 
 ## 5.2.0
