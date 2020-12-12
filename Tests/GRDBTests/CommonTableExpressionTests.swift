@@ -545,4 +545,38 @@ class CommonTableExpressionTests: GRDBTestCase {
             }
         }
     }
+    
+    func testUpdate() throws {
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "t") { t in
+                t.column("a")
+            }
+            
+            struct T: Encodable, PersistableRecord { }
+            let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1")
+            
+            try T.with(cte).updateAll(db, Column("a").set(to: cte.all()))
+            XCTAssertEqual(lastSQLQuery, """
+                WITH "cte" AS (SELECT 1) UPDATE "t" SET "a" = (SELECT * FROM "cte")
+                """)
+        }
+    }
+    
+    func testDelete() throws {
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "t") { t in
+                t.column("a")
+            }
+            
+            struct T: Encodable, PersistableRecord { }
+            let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1")
+            
+            try T.with(cte)
+                .filter(Column("a") == cte.all())
+                .deleteAll(db)
+            XCTAssertEqual(lastSQLQuery, """
+                WITH "cte" AS (SELECT 1) DELETE FROM "t" WHERE "a" = (SELECT * FROM "cte")
+                """)
+        }
+    }
 }

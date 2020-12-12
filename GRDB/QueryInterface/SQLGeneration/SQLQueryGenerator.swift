@@ -66,29 +66,7 @@ struct SQLQueryGenerator: Refinable {
         // SQL aliases.
         let context = SQLGenerationContext(parent: context, aliases: relation.allAliases)
         
-        var sql = ""
-        
-        if !ctes.isEmpty {
-            sql += "WITH "
-            if ctes.values.contains(where: \.isRecursive) {
-                sql += "RECURSIVE "
-            }
-            sql += try ctes
-                .map { tableName, cte in
-                    var columnsSQL = ""
-                    if let columns = cte.columns, !columns.isEmpty {
-                        columnsSQL = "("
-                            + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
-                            + ")"
-                    }
-                    let cteContext = SQLGenerationContext(parent: context)
-                    let requestSQL = try cte.request.requestSQL(cteContext, forSingleResult: false)
-                    return "\(tableName.quotedDatabaseIdentifier)\(columnsSQL) AS (\(requestSQL))"
-                }
-                .joined(separator: ", ")
-            sql += " "
-        }
-        
+        var sql = try commonTableExpressionsPrefix(context)
         sql += "SELECT"
         
         if isDistinct {
@@ -256,13 +234,14 @@ struct SQLQueryGenerator: Refinable {
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         switch try grouping(db) {
         case .none:
-            guard relation.joins.isEmpty && ctes.isEmpty else {
+            guard relation.joins.isEmpty else {
                 return try makeTrivialDeleteStatement(db)
             }
             
             let context = SQLGenerationContext(db, aliases: relation.allAliases)
             
-            var sql = try "DELETE FROM " + relation.source.sql(context)
+            var sql = try commonTableExpressionsPrefix(context)
+            sql += try "DELETE FROM " + relation.source.sql(context)
             
             let filters = try relation.filtersPromise.resolve(db)
             if filters.isEmpty == false {
@@ -321,7 +300,7 @@ struct SQLQueryGenerator: Refinable {
     {
         switch try grouping(db) {
         case .none:
-            guard relation.joins.isEmpty && ctes.isEmpty else {
+            guard relation.joins.isEmpty else {
                 return try makeTrivialUpdateStatement(
                     db,
                     conflictResolution: conflictResolution,
@@ -336,7 +315,8 @@ struct SQLQueryGenerator: Refinable {
             
             let context = SQLGenerationContext(db, aliases: relation.allAliases)
             
-            var sql = "UPDATE "
+            var sql = try commonTableExpressionsPrefix(context)
+            sql += "UPDATE "
             
             if conflictResolution != .abort {
                 sql += "OR \(conflictResolution.rawValue) "
@@ -421,6 +401,32 @@ struct SQLQueryGenerator: Refinable {
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
         return statement
+    }
+    
+    private func commonTableExpressionsPrefix(_ context: SQLGenerationContext) throws -> String {
+        if ctes.isEmpty {
+            return ""
+        }
+        
+        var sql = "WITH "
+        if ctes.values.contains(where: \.isRecursive) {
+            sql += "RECURSIVE "
+        }
+        sql += try ctes
+            .map { tableName, cte in
+                var columnsSQL = ""
+                if let columns = cte.columns, !columns.isEmpty {
+                    columnsSQL = "("
+                        + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+                        + ")"
+                }
+                let cteContext = SQLGenerationContext(parent: context)
+                let requestSQL = try cte.request.requestSQL(cteContext, forSingleResult: false)
+                return "\(tableName.quotedDatabaseIdentifier)\(columnsSQL) AS (\(requestSQL))"
+            }
+            .joined(separator: ", ")
+        sql += " "
+        return sql
     }
     
     /// Informs about the query grouping
