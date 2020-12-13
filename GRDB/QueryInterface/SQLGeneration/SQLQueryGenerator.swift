@@ -421,7 +421,9 @@ struct SQLQueryGenerator: Refinable {
                         + ")"
                 }
                 let cteContext = SQLGenerationContext(parent: context)
-                let requestSQL = try cte.request.requestSQL(cteContext, forSingleResult: false)
+                let requestSQL = try cte.requestPromise
+                    .resolve(context.db)
+                    .requestSQL(cteContext, forSingleResult: false)
                 return "\(tableName.quotedDatabaseIdentifier)\(columnsSQL) AS (\(requestSQL))"
             }
             .joined(separator: ", ")

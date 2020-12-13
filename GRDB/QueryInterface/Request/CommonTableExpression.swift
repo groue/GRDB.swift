@@ -13,7 +13,9 @@ public struct CommonTableExpression<RowDecoder> {
     public var tableName: String
     
     var cte: SQLCTE
-    
+}
+
+extension CommonTableExpression {
     /// Creates a common table expression from a request.
     ///
     /// For example:
@@ -40,11 +42,12 @@ public struct CommonTableExpression<RowDecoder> {
         columns: [String]? = nil,
         request: Request)
     {
-        self.tableName = tableName
-        self.cte = SQLCTE(
-            columns: columns,
-            request: request,
-            isRecursive: recursive)
+        self.init(
+            tableName: tableName,
+            cte: SQLCTE(
+                columns: columns,
+                requestPromise: DatabasePromise(value: request),
+                isRecursive: recursive))
     }
     
     /// Creates a common table expression from an SQL string and
@@ -179,7 +182,7 @@ struct SQLCTE {
     ///
     ///     WITH t AS (SELECT ...)
     ///                ~~~~~~~~~~
-    var request: _FetchRequest
+    var requestPromise: DatabasePromise<_FetchRequest>
     
     /// Whether this common table expression needs a `WITH RECURSIVE`
     /// sql clause.
@@ -193,7 +196,7 @@ struct SQLCTE {
         }
         
         var counter = SelectedColumnsCounter(db: db)
-        try request._accept(&counter)
+        try requestPromise.resolve(db)._accept(&counter)
         return counter.columnCount
     }
 }

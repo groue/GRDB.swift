@@ -208,7 +208,7 @@ extension SQLInterpolation {
     public mutating func appendInterpolation<T>(_ request: T)
         where T: _FetchRequest & SQLExpression
     {
-        elements.append(.subquery(request))
+        elements.append(.subquery(DatabasePromise(value: request)))
     }
     
     // MARK: - Sequence
@@ -302,7 +302,7 @@ extension SQLInterpolation {
         }
         
         elements.append(.sql(" AS ("))
-        elements.append(.subquery(cte.cte.request))
+        elements.append(.subquery(cte.cte.requestPromise))
         elements.append(.sql(")"))
     }
 }

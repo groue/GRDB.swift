@@ -13,8 +13,10 @@ public struct SQLLiteral {
     /// SQLLiteral is an array of elements which can be qualified with
     /// table aliases.
     enum Element {
+        // Can't be qualified with a table alias
         case sql(String, StatementArguments = StatementArguments())
-        case subquery(_FetchRequest)
+        // Does not need to be qualified with a table alias
+        case subquery(DatabasePromise<_FetchRequest>)
         // Cases below can be qualified with a table alias
         case expression(SQLExpression)
         case selectable(SQLSelectable)
@@ -38,8 +40,8 @@ public struct SQLLiteral {
                     fatalError("Not implemented: turning an SQL parameter into an SQL literal value")
                 }
                 return sql
-            case let .subquery(request):
-                return try request.requestSQL(context, forSingleResult: false)
+            case let .subquery(requestPromise):
+                return try requestPromise.resolve(context.db).requestSQL(context, forSingleResult: false)
             case let .expression(expression):
                 return try expression.expressionSQL(context, wrappedInParenthesis: false)
             case let .selectable(selectable):
