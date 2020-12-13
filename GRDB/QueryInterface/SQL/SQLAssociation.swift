@@ -148,21 +148,21 @@ struct SQLAssociationStep: Refinable {
     var relation: SQLRelation
     var cardinality: SQLAssociationCardinality
     
+    var keyName: String { key.name(singular: cardinality.isSingular) }
+}
+
+enum SQLAssociationCardinality {
+    case toOne
+    case toMany
+    
     var isSingular: Bool {
-        switch cardinality {
+        switch self {
         case .toOne:
             return true
         case .toMany:
             return false
         }
     }
-    
-    var keyName: String { key.name(singular: isSingular) }
-}
-
-enum SQLAssociationCardinality {
-    case toOne
-    case toMany
 }
 
 // MARK: - SQLAssociationKey

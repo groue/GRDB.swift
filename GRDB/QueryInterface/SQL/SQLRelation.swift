@@ -279,7 +279,7 @@ extension SQLRelation {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
         let isSingular = (kind == .allNotPrefetched)
-            ? association.destination.isSingular
+            ? association.destination.cardinality.isSingular
             : kind.isSingular
         let childKey = association.destination.key.name(singular: isSingular)
         let child = SQLRelation.Child(
