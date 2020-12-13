@@ -1,4 +1,5 @@
 // Row values are available in SQLite 3.15+
+// Assignment was available later, maybe in SQLite 3.23+
 
 /// A [row value](https://www.sqlite.org/rowvalue.html).
 ///
@@ -67,7 +68,7 @@ public struct RowValue2<A: SQLExpressible, B: SQLExpressible>: SQLSpecificExpres
     }
 }
 
-@available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
+@available(OSX 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *)
 extension RowValue2: SQLAssignable where A: ColumnExpression, B: ColumnExpression { }
 #endif
 
@@ -113,6 +114,6 @@ public struct RowValue3<A: SQLExpressible, B: SQLExpressible, C: SQLExpressible>
     }
 }
 
-@available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *)
+@available(OSX 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *)
 extension RowValue3: SQLAssignable where A: ColumnExpression, B: ColumnExpression, C: ColumnExpression { }
 #endif

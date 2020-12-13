@@ -579,8 +579,8 @@ class CommonTableExpressionTests: GRDBTestCase {
     }
     
     func testUpdateRowValue() throws {
-        guard #available(OSX 10.13, iOS 10.3.1, tvOS 10.3.1, watchOS 4, *) else {
-            throw XCTSkip("Row values are not available")
+        guard #available(OSX 10.14, iOS 12.0, tvOS 12.0, watchOS 5.0, *) else {
+            throw XCTSkip("Row value assignment is not available")
         }
         
         try makeDatabaseQueue().write { db in
