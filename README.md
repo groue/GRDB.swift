@@ -6438,6 +6438,29 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 ```
 
+#### Passphrase Datatype: String vs Data
+
+GRDB supports specifying the passcode as either a String or as a Data object.  When security is paramount, it is always recommended that the passcode be provided as a Data object.
+
+Why?  
+
+It is difficult to manage the lifetime of the memory location the stores the content of a String object.  The immutability of Strings ensures that this memory location cannot be altered before the object is released.  There is also no guarantee that releasing the String object will reset that memory.  It is also not a good idea to attempt to manually zero out the memory content using the memory address as there is no guarantee that the backing memory is contiguous.  All of this means that despite implementing code that minimizes the lifetime of a String passphrase object, the actual passphrase may be present in memory for much longer than expected.
+
+In contrast, a Data object is not only mutable but already includes a function (resetBytes) that zeros out its content.
+
+Sample implementation:
+
+```swift
+var config = Configuration()
+config.prepareDatabase { db in
+    let passphrase: Data = try getPassphraseData()
+    defer {
+        data.resetBytes(in: 0..<data.count)
+    }
+    passphrase.resetBytes(in: 0..<passphrase.count)
+}
+```
+
 #### Passphrase availability vs. Database availability
 
 When the passphrase is securely stored in the system keychain, your application can protect it using the [`kSecAttrAccessible`](https://developer.apple.com/documentation/security/ksecattraccessible) attribute.
