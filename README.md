@@ -6457,7 +6457,7 @@ config.prepareDatabase { db in
     defer {
         data.resetBytes(in: 0..<data.count)
     }
-    passphrase.resetBytes(in: 0..<passphrase.count)
+    try db.usePassphrase(passphrase)
 }
 ```
 
