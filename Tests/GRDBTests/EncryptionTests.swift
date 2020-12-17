@@ -28,12 +28,12 @@ class EncryptionTests: GRDBTestCase {
             }
         }
     }
-
-    func testDatabaseQueueWithEmptyPassphraseToDatabaseQueueWithEmptyPassphrase() throws {
+    
+    func testDatabaseConfigWithEmptyPassphrase() throws {
         do {
             var config = Configuration()
             config.prepareDatabase { db in
-                try db.usePassphrase("")
+                XCTAssertThrowsError(try db.usePassphrase(""))
             }
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
             try dbQueue.inDatabase { db in
@@ -41,21 +41,24 @@ class EncryptionTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
-        
+    }
+    
+    func testDatabaseConfigWithEmptyDataPassphrase() throws {
         do {
             var config = Configuration()
             config.prepareDatabase { db in
-                try db.usePassphrase("")
+                XCTAssertThrowsError(try db.usePassphrase(Data()))
             }
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
             try dbQueue.inDatabase { db in
-                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
             }
         }
     }
     
     func testDatabaseQueueWithDataPassphraseToDatabaseQueueWithDataPassphrase() throws {
-        let secretData = "Secret".data(using: .utf8)
+        let secretData = "Secret".data(using: .utf8)!
         do {
             var config = Configuration()
             config.prepareDatabase { db in
@@ -179,8 +182,8 @@ class EncryptionTests: GRDBTestCase {
     }
 
     func testDatabaseQueueWithDataPassphraseToDatabaseQueueWithNewDataPassphrase() throws {
-        let initialPassphrase = "Secret".data(using: .utf8)
-        let finalPassphrase = "MoreSecret".data(using: .utf8)
+        let initialPassphrase = "Secret".data(using: .utf8)!
+        let finalPassphrase = "MoreSecret".data(using: .utf8)!
         
         do {
             var config = Configuration()
