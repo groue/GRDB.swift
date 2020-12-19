@@ -488,7 +488,7 @@ extension TableRecord where Self: EncodableRecord {
     {
         switch association._sqlAssociation.pivot.condition {
         case .expression:
-            #warning("TODO: find a use case")
+            // TODO: find a use case?
             fatalError("Not implemented: request association without any foreign key")
             
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
