@@ -110,11 +110,12 @@ jobs:
       osx_image: xcode12.2
       script: make test_install_manual
     
-    # CocoaPods Lint
-    - name: "Test Installation Xcode 12.2 - CocoaPods Lint"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12.2
-      script: make test_CocoaPodsLint_GRDB
+    # Travis is much too slow, and always fail this job
+    # # CocoaPods Lint
+    # - name: "Test Installation Xcode 12.2 - CocoaPods Lint"
+    #   gemfile: .ci/gemfiles/Gemfile.travis
+    #   osx_image: xcode12.2
+    #   script: make test_CocoaPodsLint_GRDB
     
     # CocoaPods Install GRDB
     - name: "Test Installation Xcode 12.2 - CocoaPods Framework"
