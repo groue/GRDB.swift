@@ -6412,7 +6412,23 @@ config.prepareDatabase { db in
 }
 ```
 
-This technique manages the lifetime of the passphrase string. Some demanding users will want to go further, and manage the lifetime of the raw passphrase bytes. See below.
+This technique helps manages the lifetime of the passphrase, although keep in mind that the content of a String may remain intact in memory long after the object has been released.
+
+For even better control over the lifetime of the passphrase in memory, use a Data object which natively provides the `resetBytes` function.
+
+```swift
+// RECOMMENDED: only load the passphrase when it is needed and reset its content immediately after use
+var config = Configuration()
+config.prepareDatabase { db in
+    let passphrase: Data = try getPassphraseData()
+    defer {
+        if (data.count > 0) { data.resetBytes(in: 0..<data.count) }
+    }
+    try db.usePassphrase(passphrase)
+}
+```
+
+Some demanding users will want to go further, and manage the lifetime of the raw passphrase bytes. See below.
 
 
 #### Managing the lifetime of the passphrase bytes
@@ -6436,29 +6452,6 @@ config.prepareDatabase { db in
     }
 }
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
-```
-
-#### Passphrase Datatype: String vs Data
-
-GRDB supports specifying the passcode as either a String or as a Data object.  When security is paramount, it is always recommended that the passcode be provided as a Data object.
-
-Why?  
-
-It is difficult to manage the lifetime of the memory location the stores the content of a String object.  The immutability of Strings ensures that this memory location cannot be altered before the object is released.  There is also no guarantee that releasing the String object will reset that memory.  It is also not a good idea to attempt to manually zero out the memory content using the memory address as there is no guarantee that the backing memory is contiguous.  All of this means that despite implementing code that minimizes the lifetime of a String passphrase object, the actual passphrase may be present in memory for much longer than expected.
-
-In contrast, a Data object is not only mutable but already includes a function (resetBytes) that zeros out its content.
-
-Sample implementation:
-
-```swift
-var config = Configuration()
-config.prepareDatabase { db in
-    let passphrase: Data = try getPassphraseData()
-    defer {
-        data.resetBytes(in: 0..<data.count)
-    }
-    try db.usePassphrase(passphrase)
-}
 ```
 
 #### Passphrase availability vs. Database availability

@@ -1237,11 +1237,11 @@ extension Database {
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {
-        guard !passphrase.isEmpty, var data = passphrase.data(using: .utf8) else {
-            throw DatabaseError(message: "usePassphrase Failed: invalid or empty passphrase")
+        guard var data = passphrase.data(using: .utf8) else {
+            throw DatabaseError(message: "invalid passphrase")
         }
         defer {
-            data.resetBytes(in: 0..<data.count)
+            if (data.count > 0) { data.resetBytes(in: 0..<data.count) }
         }
         try usePassphrase(data)
     }
@@ -1256,9 +1256,6 @@ extension Database {
     ///         try db.usePassphrase(passphraseData)
     ///     }
     public func usePassphrase(_ passphrase: Data) throws {
-        guard !passphrase.isEmpty else {
-            throw DatabaseError(message: "usePassphrase Failed: invalid or empty passphrase")
-        }
         let code = passphrase.withUnsafeBytes {
             sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
@@ -1269,11 +1266,11 @@ extension Database {
     
     /// Changes the passphrase used by an SQLCipher encrypted database.
     public func changePassphrase(_ passphrase: String) throws {
-        guard !passphrase.isEmpty, var data = passphrase.data(using: .utf8) else {
-            throw DatabaseError(message: "usePassphrase Failed: invalid or empty passphrase")
+        guard var data = passphrase.data(using: .utf8) else {
+            throw DatabaseError(message: "invalid passphrase")
         }
         defer {
-            data.resetBytes(in: 0..<data.count)
+            if data.count > 0 { data.resetBytes(in: 0..<data.count) }
         }
         try changePassphrase(data)
     }
@@ -1290,10 +1287,6 @@ extension Database {
         // > schema of the original db into the new one:
         // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
         // swiftlint:disable:previous line_length
-        guard !passphrase.isEmpty else {
-            throw DatabaseError(message: "usePassphrase Failed: invalid or empty passphrase")
-        }
-        
         let code = passphrase.withUnsafeBytes {
             sqlite3_rekey(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
