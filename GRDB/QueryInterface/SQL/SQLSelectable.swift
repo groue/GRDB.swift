@@ -19,7 +19,7 @@ public protocol _SQLSelectable {
     /// - parameter context: An SQL generation context which accepts
     ///   statement arguments.
     func _countedSQL(_ context: SQLGenerationContext) throws -> String
-
+    
     /// Returns true if the selectable is an aggregate.
     ///
     /// When in doubt, returns false.

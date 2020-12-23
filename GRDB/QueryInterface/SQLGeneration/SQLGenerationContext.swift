@@ -395,7 +395,7 @@ public class TableAlias: Hashable {
     public subscript(_ column: String) -> SQLExpression {
         Column(column)._qualifiedExpression(with: self)
     }
-
+    
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// An expression that evaluates to true if the record refered by this

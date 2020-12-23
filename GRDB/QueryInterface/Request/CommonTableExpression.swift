@@ -244,7 +244,7 @@ extension TableRecord {
     {
         JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
     }
-
+    
     /// Creates an association to a common table expression that you can join
     /// or include in another request.
     ///

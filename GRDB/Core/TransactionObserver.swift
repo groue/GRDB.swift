@@ -293,7 +293,7 @@ class DatabaseObservationBroker {
             // not ony update statements.
             transactionState = .none
         }
-
+        
         if observesRowDeletion {
             return TruncateOptimizationBlocker()
         } else {
@@ -357,7 +357,7 @@ class DatabaseObservationBroker {
                 savepointStack.savepointDidRelease(name)
                 
                 if case .none = self.transactionState, // 2. sqlite3_commit_hook was not triggered
-                    !database.isInsideTransaction      // 3. database is no longer inside a transaction
+                   !database.isInsideTransaction       // 3. database is no longer inside a transaction
                 {
                     // 1+2+3 mean that an empty deferred transaction has been completed:
                     //
@@ -603,7 +603,7 @@ class DatabaseObservationBroker {
                 break
             default:
                 broker.transactionState = .rollback
-                // Next step: updateStatementDidExecute()
+            // Next step: updateStatementDidExecute()
             }
         }, brokerPointer)
     }
@@ -615,12 +615,13 @@ class DatabaseObservationBroker {
             database.sqliteConnection,
             { (brokerPointer, updateKind, databaseNameCString, tableNameCString, rowID) in
                 let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
-                broker.databaseDidChange(with: DatabaseEvent(
-                    kind: DatabaseEvent.Kind(rawValue: updateKind)!,
-                    rowID: rowID,
-                    databaseNameCString: databaseNameCString,
-                    tableNameCString: tableNameCString))
-        },
+                broker.databaseDidChange(
+                    with: DatabaseEvent(
+                        kind: DatabaseEvent.Kind(rawValue: updateKind)!,
+                        rowID: rowID,
+                        databaseNameCString: databaseNameCString,
+                        tableNameCString: tableNameCString))
+            },
             brokerPointer)
         
         #if SQLITE_ENABLE_PREUPDATE_HOOK
@@ -629,14 +630,15 @@ class DatabaseObservationBroker {
             // swiftlint:disable:next line_length
             { (brokerPointer, databaseConnection, updateKind, databaseNameCString, tableNameCString, initialRowID, finalRowID) in
                 let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
-                broker.databaseWillChange(with: DatabasePreUpdateEvent(
-                    connection: databaseConnection!,
-                    kind: DatabasePreUpdateEvent.Kind(rawValue: updateKind)!,
-                    initialRowID: initialRowID,
-                    finalRowID: finalRowID,
-                    databaseNameCString: databaseNameCString,
-                    tableNameCString: tableNameCString))
-        },
+                broker.databaseWillChange(
+                    with: DatabasePreUpdateEvent(
+                        connection: databaseConnection!,
+                        kind: DatabasePreUpdateEvent.Kind(rawValue: updateKind)!,
+                        initialRowID: initialRowID,
+                        finalRowID: finalRowID,
+                        databaseNameCString: databaseNameCString,
+                        tableNameCString: tableNameCString))
+            },
             brokerPointer)
         #endif
     }
@@ -1218,7 +1220,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
             column: CInt(index),
             sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 sqlite3_preupdate_old(connection, column, &value)
-        })
+            })
     }
     
     func finalDatabaseValue(atIndex index: Int) -> DatabaseValue? {
@@ -1228,7 +1230,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
             column: CInt(index),
             sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 sqlite3_preupdate_new(connection, column, &value)
-        })
+            })
     }
     
     func copy(_ event: DatabasePreUpdateEvent) -> DatabasePreUpdateEvent {
@@ -1248,7 +1250,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     private func preupdate_getValues(
         _ connection: SQLiteConnection,
         sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt)
-        -> [DatabaseValue]?
+    -> [DatabaseValue]?
     {
         let columnCount = self.columnCount
         guard columnCount > 0 else { return nil }
@@ -1267,7 +1269,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
         _ connection: SQLiteConnection,
         column: CInt,
         sqlite_func: (_ connection: SQLiteConnection, _ column: CInt, _ value: inout SQLiteValue? ) -> CInt)
-        -> DatabaseValue?
+    -> DatabaseValue?
     {
         var value: SQLiteValue? = nil
         guard sqlite_func(connection, column, &value) == SQLITE_OK else { return nil }
@@ -1282,7 +1284,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
             connection,
             sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 sqlite3_preupdate_old(connection, column, &value)
-        })
+            })
     }
     
     private func preupdate_getValues_new(_ connection: SQLiteConnection) -> [DatabaseValue]? {
@@ -1290,7 +1292,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
             connection,
             sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
                 sqlite3_preupdate_new(connection, column, &value)
-        })
+            })
     }
 }
 

@@ -82,7 +82,7 @@ func conversionErrorMessage<T>(
     to: T.Type,
     from dbValue: DatabaseValue?,
     conversionContext: ValueConversionContext?)
-    -> String
+-> String
 {
     var message: String
     var extras: [String] = []
@@ -128,7 +128,7 @@ func fatalConversionError<T>(
     conversionContext: ValueConversionContext?,
     file: StaticString = #file,
     line: UInt = #line)
-    -> Never
+-> Never
 {
     fatalError(
         conversionErrorMessage(
@@ -147,7 +147,7 @@ func fatalConversionError<T>(
     atColumn columnName: String,
     file: StaticString = #file,
     line: UInt = #line)
-    -> Never
+-> Never
 {
     fatalConversionError(
         to: T.self,
@@ -162,7 +162,7 @@ func fatalConversionError<T>(
     index: Int32,
     file: StaticString = #file,
     line: UInt = #line)
-    -> Never
+-> Never
 {
     let row = Row(sqliteStatement: sqliteStatement)
     fatalConversionError(
@@ -179,7 +179,7 @@ func fatalConversionError<T>(
     index: Int32,
     file: StaticString = #file,
     line: UInt = #line)
-    -> Never
+-> Never
 {
     let row = Row(sqliteStatement: sqliteStatement)
     fatalConversionError(
@@ -205,7 +205,7 @@ extension DatabaseValueConvertible {
     static func decode(
         from dbValue: DatabaseValue,
         conversionContext: @autoclosure () -> ValueConversionContext?)
-        -> Self
+    -> Self
     {
         if let value = fromDatabaseValue(dbValue) {
             return value
@@ -236,7 +236,7 @@ extension DatabaseValueConvertible {
     static func decodeIfPresent(
         from dbValue: DatabaseValue,
         conversionContext: @autoclosure () -> ValueConversionContext?)
-        -> Self?
+    -> Self?
     {
         // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
         if let value = fromDatabaseValue(dbValue) {
@@ -299,7 +299,7 @@ extension Row {
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
-        -> Value
+    -> Value
     {
         impl.fastDecode(type, atUncheckedIndex: index)
     }
@@ -308,7 +308,7 @@ extension Row {
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
-        -> Value?
+    -> Value?
     {
         impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }

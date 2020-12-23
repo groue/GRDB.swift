@@ -109,7 +109,7 @@ struct SQLQualifiedAllColumns: SQLSelectable {
     }
     
     func _count(distinct: Bool) -> _SQLCount? { nil }
-
+    
     func _countedSQL(_ context: SQLGenerationContext) throws -> String {
         if context.qualifier(for: alias) != nil {
             // SELECT COUNT(t.*) is invalid SQL
@@ -143,7 +143,7 @@ struct SQLAliasedExpression: SQLSelectable {
         self.expression = expression
         self.name = name
     }
-
+    
     func _columnCount(_ db: Database) throws -> Int { 1 }
     
     func _count(distinct: Bool) -> _SQLCount? {

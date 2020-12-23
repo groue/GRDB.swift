@@ -59,12 +59,12 @@ struct Migration {
                     // > 11. Commit the transaction started in step 2.
                     return .commit
                 }
-        },
+            },
             finally: {
                 // > 12. If foreign keys constraints were originally enabled,
                 // > reenable them now.
                 try db.execute(sql: "PRAGMA foreign_keys = ON")
-        })
+            })
     }
     
     private func insertAppliedIdentifier(_ db: Database) throws {

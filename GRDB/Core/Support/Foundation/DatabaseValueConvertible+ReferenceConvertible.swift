@@ -27,7 +27,7 @@ extension DatabaseValueConvertible where Self: ReferenceConvertible, Self.Refere
 }
 
 extension DatabaseValueConvertible
-    where
+where
     Self: Decodable & ReferenceConvertible,
     Self.ReferenceType: DatabaseValueConvertible
 {
@@ -38,7 +38,7 @@ extension DatabaseValueConvertible
 }
 
 extension DatabaseValueConvertible
-    where
+where
     Self: Encodable & ReferenceConvertible,
     Self.ReferenceType: DatabaseValueConvertible
 {

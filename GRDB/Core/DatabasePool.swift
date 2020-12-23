@@ -369,7 +369,7 @@ extension DatabasePool: DatabaseReader {
                 } catch {
                     block(.failure(error))
                 }
-        }
+            }
     }
     
     /// :nodoc:
@@ -414,7 +414,7 @@ extension DatabasePool: DatabaseReader {
                 } catch {
                     block(.failure(error))
                 }
-        }
+            }
     }
     
     /// Synchronously executes a read-only block in a protected dispatch queue,
@@ -748,7 +748,7 @@ extension DatabasePool: DatabaseReader {
     public func writeInTransaction(
         _ kind: Database.TransactionKind? = nil,
         _ updates: (Database) throws -> Database.TransactionCompletion)
-        throws
+    throws
     {
         try writer.sync { db in
             try db.inTransaction(kind) {
@@ -793,7 +793,7 @@ extension DatabasePool: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         if configuration.readonly {
             return _addReadOnly(
@@ -823,7 +823,7 @@ extension DatabasePool: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> ValueObserver<Reducer> // For testability
+    -> ValueObserver<Reducer> // For testability
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
@@ -903,7 +903,7 @@ extension DatabasePool: DatabaseReader {
                     } catch {
                         observer.notifyErrorAndComplete(error)
                     }
-            }
+                }
         }
         #else
         if scheduler.immediateInitialValue() {

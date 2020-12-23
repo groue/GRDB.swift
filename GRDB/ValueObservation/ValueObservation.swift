@@ -144,7 +144,7 @@ extension ValueObservation: Refinable {
         didReceiveValue: ((Reducer.Value) -> Void)? = nil,
         didFail: ((Error) -> Void)? = nil,
         didCancel: (() -> Void)? = nil)
-        -> ValueObservation<ValueReducers.Trace<Reducer>>
+    -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
             .mapReducer({ reducer in
@@ -171,7 +171,7 @@ extension ValueObservation: Refinable {
     public func print(
         _ prefix: String = "",
         to stream: TextOutputStream? = nil)
-        -> ValueObservation<ValueReducers.Trace<Reducer>>
+    -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         var stream = stream ?? PrintOutputStream()
@@ -245,7 +245,7 @@ extension ValueObservation {
     public func publisher(
         in reader: DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
-        -> DatabasePublishers.Value<Reducer.Value>
+    -> DatabasePublishers.Value<Reducer.Value>
     {
         return DatabasePublishers.Value(self, in: reader, scheduling: scheduler)
     }
@@ -268,7 +268,7 @@ extension DatabasePublishers {
             _ observation: ValueObservation<Reducer>,
             in reader: DatabaseReader,
             scheduling scheduler: ValueObservationScheduler)
-            where Reducer.Value == Output
+        where Reducer.Value == Output
         {
             start = { [weak reader] (onError, onChange) in
                 guard let reader = reader else {
@@ -291,7 +291,7 @@ extension DatabasePublishers {
     }
     
     private class ValueSubscription<Downstream: Subscriber>: Subscription
-        where Downstream.Failure == Error
+    where Downstream.Failure == Error
     {
         private struct WaitingForDemand {
             let downstream: Downstream
@@ -326,8 +326,8 @@ extension DatabasePublishers {
             downstream: Downstream)
         {
             state = .waitingForDemand(WaitingForDemand(
-                downstream: downstream,
-                start: start))
+                                        downstream: downstream,
+                                        start: start))
         }
         
         func request(_ demand: Subscribers.Demand) {
@@ -338,8 +338,8 @@ extension DatabasePublishers {
                         return
                     }
                     state = .observing(Observing(
-                        downstream: info.downstream,
-                        remainingDemand: demand))
+                                        downstream: info.downstream,
+                                        remainingDemand: demand))
                     let cancellable = info.start(
                         { [weak self] error in self?.receiveCompletion(.failure(error)) },
                         { [weak self] value in self?.receive(value) })
@@ -378,7 +378,7 @@ extension DatabasePublishers {
         private func receive(_ value: Downstream.Input) {
             lock.synchronized {
                 if case let .observing(info) = state,
-                    info.remainingDemand > .none
+                   info.remainingDemand > .none
                 {
                     let additionalDemand = info.downstream.receive(value)
                     if case var .observing(info) = state {
@@ -481,7 +481,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///   the database.
     public static func trackingConstantRegion<Value>(
         _ fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         .init(makeReducer: { .init(isSelectedRegionDeterministic: true, fetch: fetch) })
     }
@@ -506,7 +506,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///   the database.
     public static func tracking<Value>(
         _ fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         .init(makeReducer: { .init(isSelectedRegionDeterministic: false, fetch: fetch) })
     }
@@ -532,7 +532,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     @available(*, deprecated, renamed: "tracking(_:)")
     public static func trackingVaryingRegion<Value>(
         _ fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Fetch<Value>>
+    -> ValueObservation<ValueReducers.Fetch<Value>>
     {
         tracking(fetch)
     }

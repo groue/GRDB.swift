@@ -498,7 +498,7 @@ extension DatabaseFunction {
                 return nil
             }
             return string.capitalized
-    }
+        }
     
     /// An SQL function that returns the Swift built-in lowercased
     /// String property.
@@ -518,7 +518,7 @@ extension DatabaseFunction {
                 return nil
             }
             return string.lowercased()
-    }
+        }
     
     /// An SQL function that returns the Swift built-in uppercased
     /// String property.
@@ -538,7 +538,7 @@ extension DatabaseFunction {
                 return nil
             }
             return string.uppercased()
-    }
+        }
 }
 
 extension DatabaseFunction {
@@ -561,7 +561,7 @@ extension DatabaseFunction {
                 return nil
             }
             return string.localizedCapitalized
-    }
+        }
     
     /// An SQL function that returns the Swift built-in
     /// localizedLowercased String property.
@@ -582,7 +582,7 @@ extension DatabaseFunction {
                 return nil
             }
             return string.localizedLowercase
-    }
+        }
     
     /// An SQL function that returns the Swift built-in
     /// localizedUppercased String property.
@@ -603,7 +603,7 @@ extension DatabaseFunction {
                 return nil
             }
             return string.localizedUppercase
-    }
+        }
 }
 
 
@@ -638,7 +638,7 @@ extension DatabaseCollation {
     public static let unicodeCompare =
         DatabaseCollation("swiftCompare") { (lhs, rhs) in
             (lhs < rhs) ? .orderedAscending : ((lhs == rhs) ? .orderedSame : .orderedDescending)
-    }
+        }
     
     /// A collation, or SQL string comparison function, that compares strings
     /// according to the the Swift built-in caseInsensitiveCompare(_:) method.
@@ -657,7 +657,7 @@ extension DatabaseCollation {
     public static let caseInsensitiveCompare =
         DatabaseCollation("swiftCaseInsensitiveCompare") { (lhs, rhs) in
             lhs.caseInsensitiveCompare(rhs)
-    }
+        }
     
     /// A collation, or SQL string comparison function, that compares strings
     /// according to the the Swift built-in localizedCaseInsensitiveCompare(_:) method.
@@ -676,7 +676,7 @@ extension DatabaseCollation {
     public static let localizedCaseInsensitiveCompare =
         DatabaseCollation("swiftLocalizedCaseInsensitiveCompare") { (lhs, rhs) in
             return lhs.localizedCaseInsensitiveCompare(rhs)
-    }
+        }
     
     /// A collation, or SQL string comparison function, that compares strings
     /// according to the the Swift built-in localizedCompare(_:) method.
@@ -695,7 +695,7 @@ extension DatabaseCollation {
     public static let localizedCompare =
         DatabaseCollation("swiftLocalizedCompare") { (lhs, rhs) in
             lhs.localizedCompare(rhs)
-    }
+        }
     
     /// A collation, or SQL string comparison function, that compares strings
     /// according to the the Swift built-in localizedStandardCompare(_:) method.
@@ -714,5 +714,5 @@ extension DatabaseCollation {
     public static let localizedStandardCompare =
         DatabaseCollation("swiftLocalizedStandardCompare") { (lhs, rhs) in
             lhs.localizedStandardCompare(rhs)
-    }
+        }
 }

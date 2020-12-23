@@ -38,7 +38,7 @@ extension LockedBox where T: Numeric {
             return n
         }
     }
-
+    
     @discardableResult
     func decrement() -> T {
         update { n in

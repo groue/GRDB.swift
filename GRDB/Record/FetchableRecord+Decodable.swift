@@ -212,7 +212,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         }
         
         func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type, forKey key: Key)
-            throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey
+        throws -> KeyedDecodingContainer<NestedKey> where NestedKey: CodingKey
         {
             fatalError("not implemented")
         }
@@ -239,8 +239,8 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             _ type: T.Type,
             fromRow row: Row,
             codingPath: [CodingKey])
-            throws -> T
-            where T: Decodable
+        throws -> T
+        where T: Decodable
         {
             if let type = T.self as? FetchableRecord.Type {
                 // Prefer FetchableRecord decoding over Decodable.
@@ -265,8 +265,8 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             fromRow row: Row,
             columnAtIndex index: Int,
             key: Key)
-            throws -> T
-            where T: Decodable
+        throws -> T
+        where T: Decodable
         {
             do {
                 // This decoding will fail for types that decode from keyed
@@ -333,8 +333,8 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     }
     
     mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type)
-        throws -> KeyedDecodingContainer<NestedKey>
-        where NestedKey: CodingKey
+    throws -> KeyedDecodingContainer<NestedKey>
+    where NestedKey: CodingKey
     {
         fatalError("not implemented")
     }
@@ -498,7 +498,7 @@ extension DatabaseDateDecodingStrategy {
     fileprivate func decode(
         from dbValue: DatabaseValue,
         conversionContext: @autoclosure () -> ValueConversionContext?)
-        -> Date
+    -> Date
     {
         if let date = dateFromDatabaseValue(dbValue) {
             return date
@@ -511,7 +511,7 @@ extension DatabaseDateDecodingStrategy {
     fileprivate func decodeIfPresent(
         from dbValue: DatabaseValue,
         conversionContext: @autoclosure () -> ValueConversionContext?)
-        -> Date?
+    -> Date?
     {
         if dbValue.isNull {
             return nil

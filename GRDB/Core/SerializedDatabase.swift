@@ -20,7 +20,7 @@ final class SerializedDatabase {
         schemaCache: DatabaseSchemaCache,
         defaultLabel: String,
         purpose: String? = nil)
-        throws
+    throws
     {
         // According to https://www.sqlite.org/threadsafe.html
         //

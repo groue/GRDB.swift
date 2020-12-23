@@ -22,7 +22,7 @@ public class AnyDatabaseCancellable: DatabaseCancellable {
     public convenience init(_ cancellable: DatabaseCancellable) {
         self.init(cancel: cancellable.cancel)
     }
-
+    
     deinit {
         _cancel?()
     }

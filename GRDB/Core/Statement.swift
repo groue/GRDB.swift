@@ -282,11 +282,11 @@ extension Statement {
                 let statementStart = buffer.baseAddress!
                 var statementEnd: UnsafePointer<Int8>? = nil
                 guard let statement = try self.init(
-                    database: db,
-                    statementStart: statementStart,
-                    statementEnd: &statementEnd,
-                    prepFlags: prepFlags,
-                    authorizer: authorizer) else
+                        database: db,
+                        statementStart: statementStart,
+                        statementEnd: &statementEnd,
+                        prepFlags: prepFlags,
+                        authorizer: authorizer) else
                 {
                     throw DatabaseError(
                         resultCode: .SQLITE_ERROR,
@@ -634,7 +634,7 @@ public final class UpdateStatement: Statement {
 ///         .filter(sql: "score > ?", arguments: [1000])
 ///         .fetchAll(db)
 public struct StatementArguments: CustomStringConvertible, Equatable,
-    ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral
+                                  ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral
 {
     private(set) var values: [DatabaseValue] = []
     private(set) var namedValues: [String: DatabaseValue] = [:]
@@ -714,7 +714,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
     public init<Sequence>(_ sequence: Sequence)
-        where Sequence: Swift.Sequence, Sequence.Element == (String, DatabaseValueConvertible?)
+    where Sequence: Swift.Sequence, Sequence.Element == (String, DatabaseValueConvertible?)
     {
         namedValues = Dictionary(uniqueKeysWithValues: sequence.map { ($0.0, $0.1?.databaseValue ?? .null) })
     }
@@ -902,7 +902,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     mutating func extractBindings(
         forStatement statement: Statement,
         allowingRemainingValues: Bool)
-        throws -> [DatabaseValue]
+    throws -> [DatabaseValue]
     {
         let initialValuesCount = values.count
         let bindings = try statement.sqliteArgumentNames.map { argumentName -> DatabaseValue in

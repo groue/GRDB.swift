@@ -30,7 +30,7 @@ extension Database {
         ifNotExists: Bool = false,
         withoutRowID: Bool = false,
         body: (TableDefinition) -> Void)
-        throws
+    throws
     {
         let definition = TableDefinition(
             name: name,
@@ -106,7 +106,7 @@ extension Database {
         unique: Bool = false,
         ifNotExists: Bool = false,
         condition: SQLExpressible? = nil)
-        throws
+    throws
     {
         let definition = IndexDefinition(
             name: name,
@@ -225,7 +225,7 @@ public final class TableDefinition {
     public func autoIncrementedPrimaryKey(
         _ name: String,
         onConflict conflictResolution: Database.ConflictResolution? = nil)
-        -> ColumnDefinition
+    -> ColumnDefinition
     {
         column(name, .integer).primaryKey(onConflict: conflictResolution, autoincrement: true)
     }
@@ -318,12 +318,12 @@ public final class TableDefinition {
         deferred: Bool = false)
     {
         foreignKeyConstraints.append(ForeignKeyConstraint(
-            columns: columns,
-            table: table,
-            destinationColumns: destinationColumns,
-            deleteAction: deleteAction,
-            updateAction: updateAction,
-            deferred: deferred))
+                                        columns: columns,
+                                        table: table,
+                                        destinationColumns: destinationColumns,
+                                        deleteAction: deleteAction,
+                                        updateAction: updateAction,
+                                        deferred: deferred))
     }
     
     /// Adds a CHECK constraint.
@@ -667,7 +667,7 @@ public final class ColumnDefinition {
     public func primaryKey(
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         autoincrement: Bool = false)
-        -> Self
+    -> Self
     {
         primaryKey = (conflictResolution: conflictResolution, autoincrement: autoincrement)
         return self
@@ -908,11 +908,11 @@ public final class ColumnDefinition {
         deferred: Bool = false) -> Self
     {
         foreignKeyConstraints.append(ForeignKeyConstraint(
-            table: table,
-            column: column,
-            deleteAction: deleteAction,
-            updateAction: updateAction,
-            deferred: deferred))
+                                        table: table,
+                                        column: column,
+                                        deleteAction: deleteAction,
+                                        updateAction: updateAction,
+                                        deferred: deferred))
         return self
     }
     

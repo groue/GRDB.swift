@@ -122,7 +122,7 @@ extension Inflections {
             "rice",
             "sheep",
             "species",
-            ])
+        ])
         
         inflections.irregularSuffix("child", "children")
         inflections.irregularSuffix("foot", "feet")

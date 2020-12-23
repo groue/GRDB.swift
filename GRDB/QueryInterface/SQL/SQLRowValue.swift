@@ -57,7 +57,7 @@ struct SQLRowValue: SQLExpression {
         
         return false
     }
-
+    
     func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
         SQLRowValue(expressions.map { $0._qualifiedExpression(with: alias) })
     }

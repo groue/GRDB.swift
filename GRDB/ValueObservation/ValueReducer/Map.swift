@@ -3,7 +3,7 @@ extension ValueObservation {
     /// given transformation which each element notified by this
     /// value observation.
     public func map<T>(_ transform: @escaping (Reducer.Value) -> T)
-        -> ValueObservation<ValueReducers.Map<Reducer, T>>
+    -> ValueObservation<ValueReducers.Map<Reducer, T>>
     {
         mapReducer { ValueReducers.Map($0, transform) }
     }

@@ -56,10 +56,10 @@ final class SQLiteDateParser {
     -> DatabaseDateComponents.Format?
     {
         guard let year = parser.parseNNNN(),
-            parser.parse("-"),
-            let month = parser.parseNN(),
-            parser.parse("-"),
-            let day = parser.parseNN()
+              parser.parse("-"),
+              let month = parser.parseNN(),
+              parser.parse("-"),
+              let day = parser.parseNN()
         else { return nil }
         
         components.year = year
@@ -89,8 +89,8 @@ final class SQLiteDateParser {
     -> DatabaseDateComponents.Format?
     {
         guard let hour = parser.parseNN(),
-            parser.parse(":"),
-            let minute = parser.parseNN()
+              parser.parse(":"),
+              let minute = parser.parseNN()
         else { return nil }
         
         components.hour = hour
@@ -98,7 +98,7 @@ final class SQLiteDateParser {
         if parser.length == 0 || parseTimeZone(parser: &parser, into: &components) { return .HM }
         
         guard parser.parse(":"),
-            let second = parser.parseNN()
+              let second = parser.parseNN()
         else { return nil }
         
         components.second = second
@@ -137,18 +137,18 @@ final class SQLiteDateParser {
         }
         
         if parser.parse("+"),
-                  let hour = parser.parseNN(),
-                  parser.parse(":"),
-                  let minute = parser.parseNN()
+           let hour = parser.parseNN(),
+           parser.parse(":"),
+           let minute = parser.parseNN()
         {
             components.timeZone = TimeZone(secondsFromGMT: hour * 3600 + minute * 60)
             return true
         }
         
         if parser.parse("-"),
-                  let hour = parser.parseNN(),
-                  parser.parse(":"),
-                  let minute = parser.parseNN()
+           let hour = parser.parseNN(),
+           parser.parse(":"),
+           let minute = parser.parseNN()
         {
             components.timeZone = TimeZone(secondsFromGMT: -(hour * 3600 + minute * 60))
             return true
@@ -166,7 +166,7 @@ final class SQLiteDateParser {
             cString += 1
             length -= 1
         }
-
+        
         @inline(__always)
         mutating func parse(_ scalar: Unicode.Scalar) -> Bool {
             guard length > 0, cString[0] == UInt8(ascii: scalar) else {

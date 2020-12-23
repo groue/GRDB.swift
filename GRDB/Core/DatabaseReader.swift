@@ -223,7 +223,7 @@ public protocol DatabaseReader: AnyObject {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
 }
 
 extension DatabaseReader {
@@ -248,7 +248,7 @@ extension DatabaseReader {
         to dbDest: Database,
         afterBackupInit: (() -> Void)? = nil,
         afterBackupStep: (() -> Void)? = nil)
-        throws
+    throws
     {
         try read { dbFrom in
             try dbFrom.backup(
@@ -276,7 +276,7 @@ extension DatabaseReader {
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func readPublisher<Output>(
         value: @escaping (Database) throws -> Output)
-        -> DatabasePublishers.Read<Output>
+    -> DatabasePublishers.Read<Output>
     {
         readPublisher(receiveOn: DispatchQueue.main, value: value)
     }
@@ -296,8 +296,8 @@ extension DatabaseReader {
     public func readPublisher<S, Output>(
         receiveOn scheduler: S,
         value: @escaping (Database) throws -> Output)
-        -> DatabasePublishers.Read<Output>
-        where S: Scheduler
+    -> DatabasePublishers.Read<Output>
+    where S: Scheduler
     {
         Deferred {
             Future { fulfill in
@@ -349,7 +349,7 @@ extension DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         if scheduler.immediateInitialValue() {
             do {
@@ -362,10 +362,9 @@ extension DatabaseReader {
         } else {
             var isCancelled = false
             _weakAsyncRead { dbResult in
-                guard
-                    !isCancelled,
-                    let dbResult = dbResult
-                    else { return }
+                guard !isCancelled,
+                      let dbResult = dbResult
+                else { return }
                 
                 let result = dbResult.flatMap { db in
                     Result { try observation.fetchValue(db) }
@@ -437,7 +436,7 @@ public final class AnyDatabaseReader: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         base._add(
             observation: observation,

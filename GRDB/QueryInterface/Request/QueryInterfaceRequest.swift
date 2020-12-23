@@ -101,7 +101,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         map(\.query, { $0.select(selection) }).asRequest(of: RowDecoder.self)
     }
@@ -115,7 +115,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         select(selection, as: type)
     }
@@ -132,7 +132,7 @@ extension QueryInterfaceRequest: SelectionRequest {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         select(literal: SQLLiteral(sql: sql, arguments: arguments), as: type)
     }
@@ -167,7 +167,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func select<RowDecoder>(
         literal sqlLiteral: SQLLiteral,
         as type: RowDecoder.Type = RowDecoder.self)
-        -> QueryInterfaceRequest<RowDecoder>
+    -> QueryInterfaceRequest<RowDecoder>
     {
         select(sqlLiteral.sqlSelectable, as: type)
     }
@@ -396,9 +396,9 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     {
         let conflictResolution = conflictResolution ?? RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
         guard let updateStatement = try SQLQueryGenerator(query: query).makeUpdateStatement(
-            db,
-            conflictResolution: conflictResolution,
-            assignments: assignments) else
+                db,
+                conflictResolution: conflictResolution,
+                assignments: assignments) else
         {
             // database not hit
             return 0
@@ -429,7 +429,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         _ assignment: ColumnAssignment,
         _ otherAssignments: ColumnAssignment...)
-        throws -> Int
+    throws -> Int
     {
         try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
@@ -560,7 +560,7 @@ private func prefetch<RowDecoder>(
                 .joinMapping(originIsLeft: originIsLeft)
             let pivotColumns = pivotMapping.map(\.right)
             let leftColumns = pivotMapping.map(\.left)
-
+            
             // We want to avoid the "Expression tree is too large" SQLite error
             // when the foreign key contains several columns, and there are many
             // base rows that overflow SQLITE_LIMIT_EXPR_DEPTH:

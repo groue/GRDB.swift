@@ -213,7 +213,7 @@ struct SQLQueryGenerator: Refinable {
         selection: [SQLSelectable],
         filters: [SQLExpression],
         groupExpressions: [SQLExpression])
-        throws -> Bool
+    throws -> Bool
     {
         if relation.joins.isEmpty == false {
             // Don't expect single results as soon as there is a join
@@ -306,7 +306,7 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-        throws -> UpdateStatement?
+    throws -> UpdateStatement?
     {
         switch try grouping(db) {
         case .none:
@@ -374,7 +374,7 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-        throws -> UpdateStatement?
+    throws -> UpdateStatement?
     {
         // Check for empty assignments after all programmer errors have
         // been checked.
@@ -461,9 +461,7 @@ struct SQLQueryGenerator: Refinable {
         
         // Grouping something which is not a table: assume non unique grouping.
         let tableName = relation.source.tableName
-        guard
-            try db.tableExists(tableName) // skip views
-        else {
+        guard try db.tableExists(tableName) else { // skip views
             return .nonUnique
         }
         
@@ -747,7 +745,7 @@ private struct SQLQualifiedJoin: Refinable {
         _ context: SQLGenerationContext,
         leftAlias: TableAlias,
         allowingInnerJoin allowsInnerJoin: Bool)
-        throws -> String
+    throws -> String
     {
         var allowsInnerJoin = allowsInnerJoin
         

@@ -349,7 +349,7 @@ extension DatabaseQueue {
     public func inTransaction(
         _ kind: Database.TransactionKind? = nil,
         _ updates: (Database) throws -> Database.TransactionCompletion)
-        throws
+    throws
     {
         try writer.sync { db in
             try db.inTransaction(kind) {
@@ -434,7 +434,7 @@ extension DatabaseQueue {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         if configuration.readonly {
             return _addReadOnly(

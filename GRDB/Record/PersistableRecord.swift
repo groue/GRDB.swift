@@ -220,8 +220,8 @@ extension MutablePersistableRecord {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     public func update<Sequence>(_ db: Database, columns: Sequence)
-        throws
-        where Sequence: Swift.Sequence, Sequence.Element: ColumnExpression
+    throws
+    where Sequence: Swift.Sequence, Sequence.Element: ColumnExpression
     {
         try update(db, columns: Set(columns.map(\.name)))
     }
@@ -234,8 +234,8 @@ extension MutablePersistableRecord {
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
     public func update<Sequence>(_ db: Database, columns: Sequence)
-        throws
-        where Sequence: Swift.Sequence, Sequence.Element == String
+    throws
+    where Sequence: Swift.Sequence, Sequence.Element == String
     {
         try update(db, columns: Set(columns))
     }
@@ -398,13 +398,12 @@ extension MutablePersistableRecord {
     @inlinable
     public func performUpdate(_ db: Database, columns: Set<String>) throws {
         let dao = try DAO(db, self)
-        guard
-            let statement = try dao.updateStatement(
+        guard let statement = try dao.updateStatement(
                 columns: columns,
                 onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate)
-            else {
-                // Nil primary key
-                throw dao.makeRecordNotFoundError()
+        else {
+            // Nil primary key
+            throw dao.makeRecordNotFoundError()
         }
         try statement.execute()
         if db.changesCount == 0 {
@@ -541,7 +540,7 @@ extension MutablePersistableRecord {
         _ db: Database,
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         _ assignments: [ColumnAssignment])
-        throws -> Int
+    throws -> Int
     {
         try all().updateAll(db, onConflict: conflictResolution, assignments)
     }
@@ -568,7 +567,7 @@ extension MutablePersistableRecord {
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         _ assignment: ColumnAssignment,
         _ otherAssignments: ColumnAssignment...)
-        throws -> Int
+    throws -> Int
     {
         try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
     }
@@ -599,8 +598,8 @@ extension MutablePersistableRecord {
     /// - returns: The number of deleted rows
     @discardableResult
     public static func deleteAll<Sequence>(_ db: Database, keys: Sequence)
-        throws -> Int
-        where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    throws -> Int
+    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -631,8 +630,8 @@ extension MutablePersistableRecord {
     /// - returns: Whether a database row was deleted.
     @discardableResult
     public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
-        throws -> Bool
-        where PrimaryKeyType: DatabaseValueConvertible
+    throws -> Bool
+    where PrimaryKeyType: DatabaseValueConvertible
     {
         guard let key = key else {
             // Avoid hitting the database
@@ -1022,16 +1021,16 @@ extension UpdateQuery {
         switch onConflict {
         case .abort:
             sql = """
-            UPDATE \(tableName.quotedDatabaseIdentifier) \
-            SET \(updateSQL) \
-            WHERE \(whereSQL)
-            """
+                UPDATE \(tableName.quotedDatabaseIdentifier) \
+                SET \(updateSQL) \
+                WHERE \(whereSQL)
+                """
         default:
             sql = """
-            UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
-            SET \(updateSQL) \
-            WHERE \(whereSQL)
-            """
+                UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
+                SET \(updateSQL) \
+                WHERE \(whereSQL)
+                """
         }
         Self.sqlCache[self] = sql
         return sql

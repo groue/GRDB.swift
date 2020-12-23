@@ -86,7 +86,7 @@ extension DatabaseRegionObservation {
     public func start(
         in dbWriter: DatabaseWriter,
         onChange: @escaping (Database) -> Void)
-        throws -> TransactionObserver
+    throws -> TransactionObserver
     {
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
@@ -103,7 +103,7 @@ extension DatabaseRegionObservation {
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabaseRegionObservation {
     // MARK: - Publishing Impactful Transactions
-
+    
     /// Returns a publisher that tracks changes in a database region.
     ///
     /// It emits database connections on a protected dispatch queue.
@@ -179,7 +179,7 @@ extension DatabasePublishers {
     }
     
     private class DatabaseRegionSubscription<Downstream: Subscriber>: Subscription
-        where Downstream.Failure == Error, Downstream.Input == Database
+    where Downstream.Failure == Error, Downstream.Input == Database
     {
         private struct WaitingForDemand {
             let downstream: Downstream
@@ -216,9 +216,9 @@ extension DatabasePublishers {
             downstream: Downstream)
         {
             state = .waitingForDemand(WaitingForDemand(
-                downstream: downstream,
-                writer: writer,
-                observation: observation))
+                                        downstream: downstream,
+                                        writer: writer,
+                                        observation: observation))
         }
         
         func request(_ demand: Subscribers.Demand) {
@@ -230,9 +230,9 @@ extension DatabasePublishers {
                     }
                     do {
                         state = .observing(Observing(
-                            downstream: info.downstream,
-                            writer: info.writer,
-                            remainingDemand: demand))
+                                            downstream: info.downstream,
+                                            writer: info.writer,
+                                            remainingDemand: demand))
                         observer = try info.observation.start(
                             in: info.writer,
                             onChange: { [weak self] in self?.receive($0) })
@@ -261,7 +261,7 @@ extension DatabasePublishers {
         private func receive(_ value: Database) {
             lock.synchronized {
                 if case let .observing(info) = state,
-                    info.remainingDemand > .none
+                   info.remainingDemand > .none
                 {
                     let additionalDemand = info.downstream.receive(value)
                     if case var .observing(info) = state {

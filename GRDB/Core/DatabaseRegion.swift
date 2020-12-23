@@ -89,8 +89,8 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         var tableRegionsIntersection: [String: TableRegion] = [:]
         for (table, tableRegion) in tableRegions {
             guard let otherTableRegion = otherTableRegions
-                .first(where: { (otherTable, _) in otherTable == table })?
-                .value else { continue }
+                    .first(where: { (otherTable, _) in otherTable == table })?
+                    .value else { continue }
             let tableRegionIntersection = tableRegion.intersection(otherTableRegion)
             guard !tableRegionIntersection.isEmpty else { continue }
             tableRegionsIntersection[table] = tableRegionIntersection

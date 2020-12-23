@@ -238,7 +238,7 @@ extension Database {
                     columns.append(column)
                 }
                 return IndexInfo(name: indexName, columns: columns, unique: unique)
-        }
+            }
         
         if indexes.isEmpty {
             // PRAGMA index_list doesn't throw any error when table does
@@ -257,8 +257,8 @@ extension Database {
     public func table<T: Sequence>(
         _ tableName: String,
         hasUniqueKey columns: T)
-        throws -> Bool
-        where T.Iterator.Element == String
+    throws -> Bool
+    where T.Iterator.Element == String
     {
         try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
@@ -286,9 +286,8 @@ extension Database {
                     .mapping
                     .append((origin: origin, destination: destination, seq: seq))
             } else {
-                rawForeignKeys.append((
-                    destinationTable: table,
-                    mapping: [(origin: origin, destination: destination, seq: seq)]))
+                let mapping = [(origin: origin, destination: destination, seq: seq)]
+                rawForeignKeys.append((destinationTable: table, mapping: mapping))
                 previousId = id
             }
         }
@@ -427,8 +426,8 @@ extension Database {
     func columnsForUniqueKey<T: Sequence>(
         _ columns: T,
         in tableName: String)
-        throws -> [String]?
-        where T.Iterator.Element == String
+    throws -> [String]?
+    where T.Iterator.Element == String
     {
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
         if lowercasedColumns.isEmpty {

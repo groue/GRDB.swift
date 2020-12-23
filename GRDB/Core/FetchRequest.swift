@@ -248,7 +248,7 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
 extension AnyFetchRequest {
     /// Creates a request that wraps and forwards operations to `request`.
     public init<Request: FetchRequest>(_ request: Request)
-        where Request.RowDecoder == RowDecoder
+    where Request.RowDecoder == RowDecoder
     {
         self.init(request: ConcreteFetchRequestEraser(request: request))
     }

@@ -368,11 +368,11 @@ extension SQLRelation {
     
     func removingChildrenForPrefetchedAssociations() -> Self {
         filteringChildren {
-             switch $0.kind {
-             case .allPrefetched, .allNotPrefetched: return false
-             case .oneRequired, .oneOptional: return true
-             }
-         }
+            switch $0.kind {
+            case .allPrefetched, .allNotPrefetched: return false
+            case .oneRequired, .oneOptional: return true
+            }
+        }
     }
 }
 

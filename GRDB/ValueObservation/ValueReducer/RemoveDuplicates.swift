@@ -2,7 +2,7 @@
 extension ValueObservation where Reducer.Value: Equatable {
     /// Returns a ValueObservation which filters out consecutive equal values.
     public func removeDuplicates()
-        -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
+    -> ValueObservation<ValueReducers.RemoveDuplicates<Reducer>>
     {
         mapReducer { ValueReducers.RemoveDuplicates($0) }
     }

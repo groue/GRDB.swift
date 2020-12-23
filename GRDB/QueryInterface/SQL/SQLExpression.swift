@@ -135,7 +135,7 @@ public protocol _SQLExpression {
     ///
     /// This property supports `_identifyingColums(_:for:)`
     var _isConstantInRequest: Bool { get }
-
+    
     /// Returns true iff the expression is trivially true.
     ///
     /// When in doubt, returns false.
@@ -213,7 +213,7 @@ extension SQLExpression {
     
     /// :nodoc:
     public var _isConstantInRequest: Bool { false }
-
+    
     /// :nodoc:
     public var _isTrue: Bool { false }
     
@@ -236,7 +236,7 @@ extension SQLExpression {
     
     /// :nodoc:
     public func _columnCount(_ db: Database) throws -> Int { 1 }
-
+    
     /// :nodoc:
     public func _count(distinct: Bool) -> _SQLCount? {
         if distinct {

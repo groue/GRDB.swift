@@ -138,7 +138,7 @@ extension SQLQuery {
             return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         }
     }
-
+    
     // SELECT COUNT(*) FROM (self)
     func fetchTrivialCount(_ db: Database) throws -> Int {
         let request = QueryInterfaceRequest<Void>(query: unordered())

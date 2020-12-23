@@ -39,7 +39,7 @@ struct SQLExpressionNot: SQLExpression {
             
         case .false:
             return SQLExpressionEqual(.equal, self, false.sqlExpression)
-        
+            
         case .falsey:
             // Support `NOT (NOT expression)` as a technique to build 0 or 1
             return SQLExpressionNot(self)
@@ -726,10 +726,9 @@ struct SQLExpressionContains: SQLExpression {
     }
     
     func _identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
-        if
-            let expressions = collection._collectionExpressions,
-            let column = try expression._column(db, for: alias),
-            try db.columnIsRowID(column, of: alias.tableName)
+        if let expressions = collection._collectionExpressions,
+           let column = try expression._column(db, for: alias),
+           try db.columnIsRowID(column, of: alias.tableName)
         {
             return Set(expressions.compactMap {
                 ($0 as? DatabaseValue).flatMap { Int64.fromDatabaseValue($0) }
@@ -776,7 +775,7 @@ struct SQLExpressionContains: SQLExpression {
         }
         
         if let expressions = collection._collectionExpressions,
-            expressions.contains(where: \._isAggregate)
+           expressions.contains(where: \._isAggregate)
         {
             // SELECT expr IN (aggregate, ...)
             return true
@@ -914,9 +913,8 @@ struct SQLExpressionFunction: SQLExpression {
     
     var _isConstantInRequest: Bool {
         let function = self.function.uppercased()
-        guard
-            ((function == "MAX" || function == "MIN") && arguments.count > 1)
-            || Self.knownPureFunctions.contains(function)
+        guard ((function == "MAX" || function == "MIN") && arguments.count > 1)
+                || Self.knownPureFunctions.contains(function)
         else {
             return false // Don't know - assume not constant
         }

@@ -244,8 +244,8 @@ extension TableRequest where Self: FilteredRequest {
     
     /// Creates a request with the provided primary key *predicate*.
     public func filter<Sequence: Swift.Sequence>(keys: Sequence)
-        -> Self
-        where Sequence.Element: DatabaseValueConvertible
+    -> Self
+    where Sequence.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
