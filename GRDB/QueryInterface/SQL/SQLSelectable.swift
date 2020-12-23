@@ -30,7 +30,14 @@ public protocol _SQLSelectable {
     ///     SELECT MAX(score)     -- true
     ///     SELECT MAX(score) + 1 -- true
     ///
-    /// Support for `SQLQueryGenerator.expectsSingleResult()`
+    /// This method makes it possible to avoid inserting `LIMIT 1` to the SQL
+    /// of some requests:
+    ///
+    ///     // SELECT MAX("score") FROM "player"
+    ///     try Player.select(max(Column("score")), as: Int.self).fetchOne(db)
+    ///
+    ///     // SELECT "score" FROM "player" LIMIT 1
+    ///     try Player.select(Column("score"), as: Int.self).fetchOne(db)
     var _isAggregate: Bool { get }
     
     /// Returns a qualified selectable
