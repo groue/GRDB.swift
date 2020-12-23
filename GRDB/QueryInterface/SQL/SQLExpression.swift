@@ -6,6 +6,24 @@ public protocol _SQLExpression {
     ///
     /// When in doubt, returns nil.
     ///
+    /// This method makes it possible to avoid inserting `LIMIT 1` to the SQL
+    /// of some requests:
+    ///
+    ///     // SELECT * FROM "player" WHERE "id" = 1
+    ///     try Player.fetchOne(db, key: 1)
+    ///     try Player.filter(Column("id") == 1).fetchOne(db)
+    ///
+    ///     // SELECT * FROM "player" WHERE "name" = 'Arthur' LIMIT 1
+    ///     try Player.filter(Column("name") == "Arthur").fetchOne(db)
+    ///
+    /// This method makes it possible to track individual rows identified by
+    /// their row ids, and ignore modifications to other rows:
+    ///
+    ///     // Track rows 1, 2, 3 only
+    ///     let request = Player.filter(keys: [1, 2, 3])
+    ///     let regionObservation = DatabaseRegionObservation(tracking: request)
+    ///     let valueObservation = ValueObservation.tracking(request.fetchAll)
+    ///
     /// - parameter acceptsBijection: If true, expressions that define a
     ///   bijection on a column return this column. For example: `-score`
     ///   returns `score`.
@@ -32,11 +50,15 @@ public protocol _SQLExpression {
     ///     WHERE a = 1 OR a = 2            -- []
     ///     WHERE a > 1                     -- []
     ///
-    /// TODO: deal with row values:
-    ///      WHERE (a, b) = (1, 2)          -- ["a", "b"]
-    ///      WHERE (a, b) IN (SELECT ...)   -- ["a", "b"]
+    /// This method makes it possible to avoid inserting `LIMIT 1` to the SQL
+    /// of some requests:
     ///
-    /// Support for `SQLQueryGenerator.expectsSingleResult()`
+    ///     // SELECT * FROM "player" WHERE "id" = 1
+    ///     try Player.fetchOne(db, key: 1)
+    ///     try Player.filter(Column("id") == 1).fetchOne(db)
+    ///
+    ///     // SELECT * FROM "player" WHERE "name" = 'Arthur' LIMIT 1
+    ///     try Player.filter(Column("name") == "Arthur").fetchOne(db)
     func _identifyingColums(_ db: Database, for alias: TableAlias) throws -> Set<String>
     
     /// Returns the rowIds that identify rows in the request. A nil result means
@@ -55,10 +77,13 @@ public protocol _SQLExpression {
     ///     WHERE id IN (1, 2) OR rowid IN (2, 3) -- [1, 2, 3]
     ///     WHERE id > 1                          -- nil
     ///
-    /// TODO: deal with row values:
-    ///      WHERE (id, a) = (1, 2)               -- 1
+    /// This method makes it possible to track individual rows identified by
+    /// their row ids, and ignore modifications to other rows:
     ///
-    /// Support for `SQLQueryGenerator.optimizedSelectedRegion()`
+    ///     // Track rows 1, 2, 3 only
+    ///     let request = Player.filter(keys: [1, 2, 3])
+    ///     let regionObservation = DatabaseRegionObservation(tracking: request)
+    ///     let valueObservation = ValueObservation.tracking(request.fetchAll)
     func _identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>?
     
     /// Performs a boolean test.
