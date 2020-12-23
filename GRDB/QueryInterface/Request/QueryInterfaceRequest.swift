@@ -45,7 +45,7 @@ extension QueryInterfaceRequest: FetchRequest {
         try query.fetchCount(db)
     }
     
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool = false) throws -> PreparedRequest {
         let generator = SQLQueryGenerator(query: query, forSingleResult: singleResult)
         var preparedRequest = try generator.makePreparedRequest(db)
         let associations = query.relation.prefetchedAssociations

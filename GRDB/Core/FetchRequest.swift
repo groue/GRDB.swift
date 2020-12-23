@@ -164,7 +164,7 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         try base.fetchCount(db)
     }
     
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool = false) throws -> PreparedRequest {
         var preparedRequest = try base.makePreparedRequest(db, forSingleResult: singleResult)
         
         if let baseAdapter = preparedRequest.adapter {
@@ -213,7 +213,7 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
         try request.fetchCount(db)
     }
     
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
+    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool = false) throws -> PreparedRequest {
         try request.makePreparedRequest(db, forSingleResult: singleResult)
     }
     

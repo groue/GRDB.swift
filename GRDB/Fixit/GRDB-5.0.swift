@@ -239,10 +239,10 @@ extension SQLRequest {
         where Request: FetchRequest, Request.RowDecoder == RowDecoder
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use makePreparedRequest(db, forSingleResult: false).statement.sql instead")
+    @available(*, unavailable, message: "Use makePreparedRequest(db).statement.sql instead")
     public var sql: String { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use makePreparedRequest(db, forSingleResult: false).statement.arguments instead")
+    @available(*, unavailable, message: "Use makePreparedRequest(db).statement.arguments instead")
     public var arguments: StatementArguments { preconditionFailure() }
 }
 
