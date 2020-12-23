@@ -106,7 +106,11 @@ extension SQLRequest: FetchRequest {
         try SQLRequest<Int>("SELECT COUNT(*) FROM (\(self))").fetchOne(db)!
     }
     
-    public func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool = false) throws -> PreparedRequest {
+    public func makePreparedRequest(
+        _ db: Database,
+        forSingleResult singleResult: Bool = false)
+    throws -> PreparedRequest
+    {
         let context = SQLGenerationContext(db)
         let sql = try sqlLiteral.sql(context)
         let statement: SelectStatement
