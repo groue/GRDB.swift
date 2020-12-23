@@ -194,21 +194,20 @@ extension FilteredRequest {
     { preconditionFailure() }
 }
 
-@available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
-public struct SQLExpressionLiteral: SQLExpression {
+/// :nodoc:
+extension SQLExpressionLiteral {
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public var sql: String { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public var arguments: StatementArguments { preconditionFailure() }
     
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public init(sql: String, arguments: StatementArguments = StatementArguments())
     { preconditionFailure() }
     
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public init(literal sqlLiteral: SQLLiteral)
-    { preconditionFailure() }
-    
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression
-    { preconditionFailure() }
-    
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor)
     { preconditionFailure() }
 }
 

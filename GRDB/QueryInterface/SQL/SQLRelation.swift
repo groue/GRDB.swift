@@ -632,7 +632,7 @@ extension JoinMapping {
                         .map({ mapping -> SQLExpression in
                             let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
                             // Force `=` operator, because SQLite doesn't match foreign keys on NULL
-                            return _SQLExpressionEqual(.equal, mapping.rightColumn, leftValue)
+                            return SQLExpressionEqual(.equal, mapping.rightColumn, leftValue)
                         })
                         .joined(operator: .and)
                 })
@@ -652,7 +652,7 @@ extension JoinMapping {
     ///   the AND operator and qualified with the right table.
     func joinExpressions(leftAlias: TableAlias) -> [SQLExpression] {
         map {
-            Column($0.right) == _SQLQualifiedColumn($0.left, alias: leftAlias)
+            Column($0.right) == SQLQualifiedColumn($0.left, alias: leftAlias)
         }
     }
 }

@@ -413,7 +413,7 @@ public class TableAlias: Hashable {
     ///     }
     public var exists: SQLExpression {
         // TODO: this fails with SQL views. Can we do something?
-        _SQLExpressionQualifiedFastPrimaryKey(alias: self) != nil
+        SQLExpressionQualifiedFastPrimaryKey(alias: self) != nil
     }
     
     /// :nodoc:

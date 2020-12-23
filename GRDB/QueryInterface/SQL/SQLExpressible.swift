@@ -44,26 +44,3 @@ public protocol SQLSpecificExpressible: SQLExpressible {
     // - ==(SQLSpecificExpressible, SQLExpressible)
     // - ==(SQLSpecificExpressible, SQLSpecificExpressible)
 }
-
-// MARK: - SQLExpressible & SQLOrderingTerm
-
-extension SQLExpressible where Self: SQLOrderingTerm {
-    /// :nodoc:
-    public var _reversed: SQLOrderingTerm {
-        _SQLOrdering.desc(sqlExpression)
-    }
-}
-
-// MARK: - SQLExpressible & SQLSelectable
-
-extension SQLExpressible where Self: SQLSelectable {
-    /// :nodoc:
-    public func _count(distinct: Bool) -> _SQLCount? {
-        sqlExpression._count(distinct: distinct)
-    }
-    
-    /// :nodoc:
-    public func _columnCount(_ db: Database) throws -> Int {
-        1
-    }
-}

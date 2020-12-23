@@ -119,9 +119,9 @@ extension SQLQuery {
             countQuery.isDistinct = false
             switch count {
             case .all:
-                countQuery = countQuery.select(_SQLExpressionCount(AllColumns()))
+                countQuery = countQuery.select(SQLExpressionCount(AllColumns()))
             case .distinct(let expression):
-                countQuery = countQuery.select(_SQLExpressionCountDistinct(expression))
+                countQuery = countQuery.select(SQLExpressionCountDistinct(expression))
             }
             return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         } else {
@@ -134,7 +134,7 @@ extension SQLQuery {
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
-            let countQuery = unordered().select(_SQLExpressionCount(AllColumns()))
+            let countQuery = unordered().select(SQLExpressionCount(AllColumns()))
             return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         }
     }

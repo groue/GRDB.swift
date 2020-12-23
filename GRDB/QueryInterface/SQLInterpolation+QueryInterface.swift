@@ -206,7 +206,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = (\(subquery))
     ///         """
     public mutating func appendInterpolation<T>(_ request: T)
-        where T: _FetchRequest & SQLExpression
+        where T: FetchRequest & SQLExpression
     {
         elements.append(.subquery(DatabasePromise(value: request)))
     }

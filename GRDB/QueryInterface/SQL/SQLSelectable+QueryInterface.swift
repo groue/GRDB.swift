@@ -14,7 +14,7 @@
 ///
 ///     // SELECT *, rowid FROM player
 ///     let request = Player.all()
-public struct AllColumns {
+public struct AllColumns: SQLSelectable {
     // As long as the CTE is embedded here, the following request will fail
     // at runtime, in `_columnCount(_:)`, because we can't access the number of
     // columns in the CTE:
@@ -48,9 +48,16 @@ public struct AllColumns {
     init(cte: SQLCTE) {
         self.cte = cte
     }
-}
-
-extension AllColumns: SQLSelectable {
+    
+    /// :nodoc:
+    public func _columnCount(_ db: Database) throws -> Int {
+        if let cte = cte {
+            return try cte.columnsCount(db)
+        }
+        
+        fatalError("Can't compute number of columns without an alias")
+    }
+    
     /// :nodoc:
     public func _count(distinct: Bool) -> _SQLCount? {
         // SELECT DISTINCT * FROM tableName ...
@@ -66,31 +73,23 @@ extension AllColumns: SQLSelectable {
     }
     
     /// :nodoc:
+    public func _countedSQL(_ context: SQLGenerationContext) throws -> String { "*" }
+    
+    /// :nodoc:
     public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        _SQLQualifiedAllColumns(alias: alias, cte: cte)
+        SQLQualifiedAllColumns(alias: alias, cte: cte)
     }
     
     /// :nodoc:
-    public func _columnCount(_ db: Database) throws -> Int {
-        if let cte = cte {
-            return try cte.columnsCount(db)
-        }
-        
-        fatalError("Can't compute number of columns without an alias")
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLSelectableVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
-    }
+    public func _resultColumnSQL(_ context: SQLGenerationContext) throws -> String { "*" }
 }
 
-// MARK: - _SQLQualifiedAllColumns
+// MARK: - SQLQualifiedAllColumns
 
 /// _SQLQualifiedAllColumns is the `t.*` in `SELECT t.*`.
 ///
 /// :nodoc:
-public struct _SQLQualifiedAllColumns {
+struct SQLQualifiedAllColumns: SQLSelectable {
     /// When nil, select all columns from a regular database table.
     /// When not nil, select all columns from a common table expression.
     var cte: SQLCTE?
@@ -100,20 +99,8 @@ public struct _SQLQualifiedAllColumns {
         self.alias = alias
         self.cte = cte
     }
-}
-
-extension _SQLQualifiedAllColumns: SQLSelectable {
-    /// :nodoc:
-    public func _count(distinct: Bool) -> _SQLCount? { nil }
     
-    /// :nodoc:
-    public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        // Never requalify
-        return self
-    }
-    
-    /// :nodoc:
-    public func _columnCount(_ db: Database) throws -> Int {
+    func _columnCount(_ db: Database) throws -> Int {
         if let cte = cte {
             return try cte.columnsCount(db)
         } else {
@@ -121,16 +108,34 @@ extension _SQLQualifiedAllColumns: SQLSelectable {
         }
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLSelectableVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _count(distinct: Bool) -> _SQLCount? { nil }
+
+    func _countedSQL(_ context: SQLGenerationContext) throws -> String {
+        if context.qualifier(for: alias) != nil {
+            // SELECT COUNT(t.*) is invalid SQL
+            fatalError("Not implemented, or invalid query")
+        }
+        
+        return "*"
+    }
+    
+    func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
+        // Never requalify
+        return self
+    }
+    
+    func _resultColumnSQL(_ context: SQLGenerationContext) throws -> String {
+        if let qualifier = context.qualifier(for: alias) {
+            return qualifier.quotedDatabaseIdentifier + ".*"
+        }
+        return "*"
     }
 }
 
-// MARK: - _SQLAliasedExpression
+// MARK: - SQLAliasedExpression
 
 /// :nodoc:
-public struct _SQLAliasedExpression: SQLSelectable {
+struct SQLAliasedExpression: SQLSelectable {
     let expression: SQLExpression
     let name: String
     
@@ -138,22 +143,26 @@ public struct _SQLAliasedExpression: SQLSelectable {
         self.expression = expression
         self.name = name
     }
+
+    func _columnCount(_ db: Database) throws -> Int { 1 }
     
-    /// :nodoc:
-    public func _count(distinct: Bool) -> _SQLCount? {
+    func _count(distinct: Bool) -> _SQLCount? {
         expression._count(distinct: distinct)
     }
     
-    /// :nodoc:
-    public func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
-        _SQLAliasedExpression(expression._qualifiedExpression(with: alias), name: name)
+    func _countedSQL(_ context: SQLGenerationContext) throws -> String {
+        try expression._countedSQL(context)
     }
     
-    /// :nodoc:
-    public func _columnCount(_ db: Database) throws -> Int { 1 }
+    var _isAggregate: Bool { expression._isAggregate }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLSelectableVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _qualifiedSelectable(with alias: TableAlias) -> SQLSelectable {
+        SQLAliasedExpression(expression._qualifiedExpression(with: alias), name: name)
+    }
+    
+    func _resultColumnSQL(_ context: SQLGenerationContext) throws -> String {
+        try expression._resultColumnSQL(context)
+            + " AS "
+            + name.quotedDatabaseIdentifier
     }
 }

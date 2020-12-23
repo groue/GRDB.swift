@@ -159,7 +159,7 @@ extension CommonTableExpression {
     ///     // name IN playerName
     ///     playerNameCTE.contains(Column("name"))
     public func contains(_ element: SQLExpressible) -> SQLExpression {
-        _SQLTableCollection.tableName(tableName).contains(element)
+        SQLTableCollection.tableName(tableName).contains(element)
     }
 }
 
@@ -195,9 +195,7 @@ struct SQLCTE {
             return columns.count
         }
         
-        var counter = SelectedColumnsCounter(db: db)
-        try requestPromise.resolve(db)._accept(&counter)
-        return counter.columnCount
+        return try requestPromise.resolve(db)._selectedColumnCount(db)
     }
 }
 

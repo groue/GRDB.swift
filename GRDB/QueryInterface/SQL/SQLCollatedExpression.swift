@@ -7,7 +7,7 @@
 ///
 ///     // SELECT * FROM player WHERE email = 'arthur@example.com' COLLATE NOCASE
 ///     Player.filter(email == "arthur@example.com")
-public struct SQLCollatedExpression {
+public struct SQLCollatedExpression: SQLOrderingTerm {
     /// The tainted expression
     public let expression: SQLExpression
     
@@ -23,7 +23,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var asc: SQLOrderingTerm {
-        _SQLOrdering.asc(sqlExpression)
+        SQLOrdering.asc(sqlExpression)
     }
     
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
@@ -35,7 +35,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var desc: SQLOrderingTerm {
-        _SQLOrdering.desc(sqlExpression)
+        SQLOrdering.desc(sqlExpression)
     }
     
     #if GRDBCUSTOMSQLITE
@@ -48,7 +48,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var ascNullsLast: SQLOrderingTerm {
-        _SQLOrdering.ascNullsLast(sqlExpression)
+        SQLOrdering.ascNullsLast(sqlExpression)
     }
     
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
@@ -60,7 +60,7 @@ public struct SQLCollatedExpression {
     ///
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     public var descNullsFirst: SQLOrderingTerm {
-        _SQLOrdering.descNullsFirst(sqlExpression)
+        SQLOrdering.descNullsFirst(sqlExpression)
     }
     #elseif !GRDBCIPHER
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
@@ -73,7 +73,7 @@ public struct SQLCollatedExpression {
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var ascNullsLast: SQLOrderingTerm {
-        _SQLOrdering.ascNullsLast(sqlExpression)
+        SQLOrdering.ascNullsLast(sqlExpression)
     }
     
     /// Returns an ordering suitable for QueryInterfaceRequest.order()
@@ -86,7 +86,7 @@ public struct SQLCollatedExpression {
     /// See https://github.com/groue/GRDB.swift/#the-query-interface
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var descNullsFirst: SQLOrderingTerm {
-        _SQLOrdering.descNullsFirst(sqlExpression)
+        SQLOrdering.descNullsFirst(sqlExpression)
     }
     #endif
     
@@ -96,15 +96,14 @@ public struct SQLCollatedExpression {
     }
     
     var sqlExpression: SQLExpression {
-        _SQLExpressionCollate(expression, collationName: collationName)
+        SQLExpressionCollate(expression, collationName: collationName)
     }
-}
-
-/// :nodoc:
-extension SQLCollatedExpression: SQLOrderingTerm {
+    
+    // MARK: SQLOrderingTerm
+    
     /// :nodoc:
-    public var _reversed: SQLOrderingTerm {
-        desc
+    public func _orderingTermSQL(_ context: SQLGenerationContext) throws -> String {
+        try sqlExpression._orderingTermSQL(context)
     }
     
     /// :nodoc:
@@ -113,7 +112,5 @@ extension SQLCollatedExpression: SQLOrderingTerm {
     }
     
     /// :nodoc:
-    public func _accept<Visitor: _SQLOrderingTermVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
-    }
+    public var _reversed: SQLOrderingTerm { desc }
 }
