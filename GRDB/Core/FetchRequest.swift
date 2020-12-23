@@ -5,6 +5,23 @@
 /// :nodoc:
 public protocol _FetchRequest {
     /// The number of columns selected by the request.
+    ///
+    /// This method makes it possible to find the columns of a CTE in a request
+    /// that includes a CTE association:
+    ///
+    ///     // WITH cte AS (SELECT 1 AS a, 2 AS b)
+    ///     // SELECT player.*, cte.*
+    ///     // FROM player
+    ///     // JOIN cte
+    ///     let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1 AS a, 2 AS b")
+    ///     let request = Player
+    ///         .with(cte)
+    ///         .including(required: Player.association(to: cte))
+    ///     let row = try Row.fetchOne(db, request)!
+    ///
+    ///     // We know that "SELECT 1 AS a, 2 AS b" selects two columns,
+    ///     // so we can find cte columns in the row:
+    ///     row.scopes["cte"] // [a:1, b:2]
     func _selectedColumnCount(_ db: Database) throws -> Int
     
     /// Returns the request SQL.
