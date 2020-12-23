@@ -35,24 +35,42 @@ extension Database {
     
     /// Returns whether a table is an internal SQLite table.
     ///
-    /// Those are tables whose name begins with "sqlite_".
+    /// Those are tables whose name begins with `sqlite_` and `pragma_`.
     ///
     /// For more information, see https://www.sqlite.org/fileformat2.html
-    public func isSQLiteInternalTable(_ tableName: String) -> Bool {
+    public static func isSQLiteInternalTable(_ tableName: String) -> Bool {
         // https://www.sqlite.org/fileformat2.html#internal_schema_objects
         // > The names of internal schema objects always begin with "sqlite_"
         // > and any table, index, view, or trigger whose name begins with
         // > "sqlite_" is an internal schema object. SQLite prohibits
         // > applications from creating objects whose names begin with
         // > "sqlite_".
-        return tableName.starts(with: "sqlite_")
+        tableName.starts(with: "sqlite_") || tableName.starts(with: "pragma_")
+    }
+    
+    /// Returns whether a table is an internal SQLite table.
+    ///
+    /// Those are tables whose name begins with `sqlite_` and `pragma_`.
+    ///
+    /// For more information, see https://www.sqlite.org/fileformat2.html
+    @available(*, deprecated, message: "Use Database.isSQLiteInternalTable(_:) static method instead.")
+    public func isSQLiteInternalTable(_ tableName: String) -> Bool {
+        Self.isSQLiteInternalTable(tableName)
     }
     
     /// Returns whether a table is an internal GRDB table.
     ///
     /// Those are tables whose name begins with "grdb_".
-    public func isGRDBInternalTable(_ tableName: String) -> Bool {
+    public static func isGRDBInternalTable(_ tableName: String) -> Bool {
         tableName.starts(with: "grdb_")
+    }
+    
+    /// Returns whether a table is an internal GRDB table.
+    ///
+    /// Those are tables whose name begins with "grdb_".
+    @available(*, deprecated, message: "Use Database.isGRDBInternalTable(_:) static method instead.")
+    public func isGRDBInternalTable(_ tableName: String) -> Bool {
+        Self.isGRDBInternalTable(tableName)
     }
     
     /// Returns whether a view exists.
