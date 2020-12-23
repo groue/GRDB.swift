@@ -49,7 +49,8 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
     
     // MARK: -
     
-    #warning("TODO: fix crasher")
+    // TODO: fix crasher
+    //
     // * thread #1, queue = 'com.apple.main-thread', stop reason = EXC_BAD_ACCESS (code=1, address=0x20)
     //     frame #0: 0x00007fff7115c6e8 libobjc.A.dylib`objc_retain + 24
     //     frame #1: 0x00007fff71c313a1 libswiftCore.dylib`swift::metadataimpl::ValueWitnesses<swift::metadataimpl::ObjCRetainableBox>::initializeWithCopy(swift::OpaqueValue*, swift::OpaqueValue*, swift::TargetMetadata<swift::InProcess> const*) + 17
