@@ -22,15 +22,29 @@ public protocol _FetchRequest {
     ///     // We know that "SELECT 1 AS a, 2 AS b" selects two columns,
     ///     // so we can find cte columns in the row:
     ///     row.scopes["cte"] // [a:1, b:2]
+    ///
+    /// :nodoc:
     func _selectedColumnCount(_ db: Database) throws -> Int
     
     /// Returns the request SQL.
+    ///
+    /// This method makes it possible to embed a request as a subquery:
+    ///
+    ///     // SELECT *
+    ///     // FROM "player"
+    ///     // WHERE "score" = (SELECT MAX("score") FROM "player")
+    ///     let maxScore = Player.select(max(Column("score")))
+    ///     let players = try Player
+    ///         .filter(Column("score") == maxScore)
+    ///         .fetchAll(db)
     ///
     /// - parameter context: An SQL generation context.
     /// - parameter singleResult: A hint that a single result row will be
     ///   consumed. Implementations can optionally use it to optimize the
     ///   generated SQL, for example by adding a `LIMIT 1` SQL clause.
     /// - returns: An SQL string.
+    ///
+    /// :nodoc:
     func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String
 }
 

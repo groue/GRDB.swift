@@ -1,5 +1,8 @@
 // MARK: - SQLCollection
 
+/// Implementation details of `SQLCollection`.
+///
+/// :nodoc:
 public protocol _SQLCollection {
     /// Returns a qualified collection.
     ///
@@ -7,6 +10,14 @@ public protocol _SQLCollection {
     func _qualifiedCollection(with alias: TableAlias) -> SQLCollection
     
     /// The expressions in the collection, if known.
+    ///
+    /// This property makes it possible to track individual rows identified by
+    /// their row ids, and ignore modifications to other rows:
+    ///
+    ///     // Track rows 1, 2, 3 only
+    ///     let request = Player.filter(keys: [1, 2, 3])
+    ///     let regionObservation = DatabaseRegionObservation(tracking: request)
+    ///     let valueObservation = ValueObservation.tracking(request.fetchAll)
     ///
     /// :nodoc:
     var _collectionExpressions: [SQLExpression]? { get }
