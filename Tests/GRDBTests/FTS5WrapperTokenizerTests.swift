@@ -92,6 +92,19 @@ private final class SynonymsTokenizer : FTS5WrapperTokenizer {
     }
 }
 
+class CustomizedUnicode61WrappingTokenizer: FTS5WrapperTokenizer {
+    static let name = "custom_unicode61"
+    let wrappedTokenizer: FTS5Tokenizer
+    
+    required init(db: Database, arguments: [String]) throws {
+        wrappedTokenizer = try db.makeTokenizer(.unicode61(diacritics: .removeLegacy, separators: ["X"]))
+    }
+    
+    func accept(token: String, flags: FTS5TokenFlags, for tokenization: FTS5Tokenization, tokenCallback: (String, FTS5TokenFlags) throws -> Void) throws {
+        try tokenCallback(token, [])
+    }
+}
+
 class FTS5WrapperTokenizerTests: GRDBTestCase {
     
     func testStopWordsTokenizerDatabaseQueue() throws {
@@ -207,6 +220,24 @@ class FTS5WrapperTokenizerTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st bar\""]), 1)
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["fi*"]), 2)
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1s*"]), 2)
+        }
+    }
+
+    func testCustomizedUnicode61WrappingTokenizer() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.inDatabase { db in
+            db.add(tokenizer: CustomizedUnicode61WrappingTokenizer.self)
+            try db.create(virtualTable: "documents", using: FTS5()) { t in
+                t.tokenizer = CustomizedUnicode61WrappingTokenizer.tokenizerDescriptor()
+                t.column("content")
+            }
+            
+            try db.execute(sql: "INSERT INTO documents VALUES (?)", arguments: ["abcXdef"])
+            
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abc"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["def"]), 1)
+            XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["abcXdef"]), 1)
         }
     }
 }
