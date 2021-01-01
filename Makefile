@@ -48,7 +48,8 @@ endif
 # xcodebuild actions to run test targets
 TEST_ACTIONS = clean build build-for-testing test-without-building
 
-# When adding support for an Xcode version, look for available devices with `instruments -s devices`
+# When adding support for an Xcode version, look for available devices with
+# `xcrun xctrace list devices` (or the deprecated `instruments -s devices`).
 ifeq ($(XCODEVERSION),12.3)
   MAX_SWIFT_VERSION = 5.3
   MIN_SWIFT_VERSION = 5.2
