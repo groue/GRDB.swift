@@ -360,7 +360,7 @@ The [Swift Package Manager](https://swift.org/package-manager/) automates the di
 ```swift
 let package = Package(
     dependencies: [
-        .package(url: "https://github.com/groue/GRDB.swift.git", ...)
+        .package(name: "GRDB", url: "https://github.com/groue/GRDB.swift.git", ...)
     ]
 )
 ```
