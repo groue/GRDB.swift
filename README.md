@@ -6412,7 +6412,23 @@ config.prepareDatabase { db in
 }
 ```
 
-This technique manages the lifetime of the passphrase string. Some demanding users will want to go further, and manage the lifetime of the raw passphrase bytes. See below.
+This technique helps manages the lifetime of the passphrase, although keep in mind that the content of a String may remain intact in memory long after the object has been released.
+
+For even better control over the lifetime of the passphrase in memory, use a Data object which natively provides the `resetBytes` function.
+
+```swift
+// RECOMMENDED: only load the passphrase when it is needed and reset its content immediately after use
+var config = Configuration()
+config.prepareDatabase { db in
+    let passphrase: Data = try getPassphraseData()
+    defer {
+        if (data.count > 0) { data.resetBytes(in: 0..<data.count) }
+    }
+    try db.usePassphrase(passphrase)
+}
+```
+
+Some demanding users will want to go further, and manage the lifetime of the raw passphrase bytes. See below.
 
 
 #### Managing the lifetime of the passphrase bytes

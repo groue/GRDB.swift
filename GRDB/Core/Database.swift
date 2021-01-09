@@ -493,7 +493,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     #if SQLITE_ENABLE_SNAPSHOT
     /// Returns a snapshot that must be freed with `sqlite3_snapshot_free`.
-    /// 
+    ///
     /// See https://www.sqlite.org/c3ref/snapshot.html
     func takeVersionSnapshot() throws -> UnsafeMutablePointer<sqlite3_snapshot> {
         var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
@@ -1238,8 +1238,26 @@ extension Database {
     ///         try db.usePassphrase("secret")
     ///     }
     public func usePassphrase(_ passphrase: String) throws {
-        let data = passphrase.data(using: .utf8)!
-        let code = data.withUnsafeBytes {
+        guard var data = passphrase.data(using: .utf8) else {
+            throw DatabaseError(message: "invalid passphrase")
+        }
+        defer {
+            data.resetBytes(in: 0..<data.count)
+        }
+        try usePassphrase(data)
+    }
+
+    /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
+    ///
+    /// Call this method from `Configuration.prepareDatabase`,
+    /// as in the example below:
+    ///
+    ///     var config = Configuration()
+    ///     config.prepareDatabase { db in
+    ///         try db.usePassphrase(passphraseData)
+    ///     }
+    public func usePassphrase(_ passphrase: Data) throws {
+        let code = passphrase.withUnsafeBytes {
             sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
         guard code == SQLITE_OK else {
@@ -1249,6 +1267,17 @@ extension Database {
     
     /// Changes the passphrase used by an SQLCipher encrypted database.
     public func changePassphrase(_ passphrase: String) throws {
+        guard var data = passphrase.data(using: .utf8) else {
+            throw DatabaseError(message: "invalid passphrase")
+        }
+        defer {
+            data.resetBytes(in: 0..<data.count)
+        }
+        try changePassphrase(data)
+    }
+
+    /// Changes the passphrase used by an SQLCipher encrypted database.
+    public func changePassphrase(_ passphrase: Data) throws {
         // FIXME: sqlite3_rekey is discouraged.
         //
         // https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320
@@ -1259,8 +1288,7 @@ extension Database {
         // > schema of the original db into the new one:
         // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
         // swiftlint:disable:previous line_length
-        let data = passphrase.data(using: .utf8)!
-        let code = data.withUnsafeBytes {
+        let code = passphrase.withUnsafeBytes {
             sqlite3_rekey(sqliteConnection, $0.baseAddress, Int32($0.count))
         }
         guard code == SQLITE_OK else {
