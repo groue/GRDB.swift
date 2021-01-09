@@ -72,6 +72,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [#880](https://github.com/groue/GRDB.swift/pull/880): Common Table Expressions
+- **New**: [#892](https://github.com/groue/GRDB.swift/pull/892) by [@eburns-vmware](https://github.com/eburns-vmware): Provide SQLCipher passphrase as Data
 - **Fixed**: [#881](https://github.com/groue/GRDB.swift/pull/881) by [@felixscheinost](https://github.com/felixscheinost) and [#883](https://github.com/groue/GRDB.swift/pull/883) by [@professordeng](https://github.com/professordeng): Documentation improvements
 - **Fixed**: [#885](https://github.com/groue/GRDB.swift/pull/885): Robustness of eager loading of to-many associations based on compound foreign keys
 - **Fixed**: [#901](https://github.com/groue/GRDB.swift/pull/901) by [@wuyuehyang](https://github.com/wuyuehyang): Fix creation of FTS5 tokenizer with arguments
