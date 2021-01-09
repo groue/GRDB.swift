@@ -75,6 +75,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Fixed**: [#881](https://github.com/groue/GRDB.swift/pull/881) by [@felixscheinost](https://github.com/felixscheinost) and [#883](https://github.com/groue/GRDB.swift/pull/883) by [@professordeng](https://github.com/professordeng): Documentation improvements
 - **Fixed**: [#885](https://github.com/groue/GRDB.swift/pull/885): Robustness of eager loading of to-many associations based on compound foreign keys
 - **Fixed**: [#901](https://github.com/groue/GRDB.swift/pull/901) by [@wuyuehyang](https://github.com/wuyuehyang): Fix creation of FTS5 tokenizer with arguments
+- **Fixed**: [#903](https://github.com/groue/GRDB.swift/pull/903) by [@chrisballinger](https://github.com/chrisballinger): Fix SPM installation instructions
 - **Documentation update**: A new guide: [Common Table Expressions](https://github.com/groue/GRDB.swift/blob/master/Documentation/CommonTableExpressions.md)
 - **Documentation update**: The [Foreign Keys](https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#foreign-keys) chapter of the Associations Guide clarifies the behavior of SQLite and GRDB regarding the presence of NULL if compound foreign keys.
 
