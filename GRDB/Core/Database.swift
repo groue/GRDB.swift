@@ -1241,7 +1241,7 @@ extension Database {
             throw DatabaseError(message: "invalid passphrase")
         }
         defer {
-            if (data.count > 0) { data.resetBytes(in: 0..<data.count) }
+            data.resetBytes(in: 0..<data.count)
         }
         try usePassphrase(data)
     }
@@ -1270,7 +1270,7 @@ extension Database {
             throw DatabaseError(message: "invalid passphrase")
         }
         defer {
-            if data.count > 0 { data.resetBytes(in: 0..<data.count) }
+            data.resetBytes(in: 0..<data.count)
         }
         try changePassphrase(data)
     }
