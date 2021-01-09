@@ -28,122 +28,123 @@ jobs:
   include:
 
     ###########################################
-    ## Test GRDB Xcode 12
+    ## Test GRDB Xcode 12.2
     
-    - name: "Test GRDB Xcode 12 - GRDBOSX - Swift 5.3"
+    - name: "Test GRDB Xcode 12.2 - GRDBOSX - Swift 5.3"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBOSX_maxSwift
     
-    - name: "Test GRDB Xcode 12 - GRDBOSX - Swift 5.2"
+    - name: "Test GRDB Xcode 12.2 - GRDBOSX - Swift 5.2"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBOSX_minSwift
     
-    - name: "Test GRDB Xcode 12 - GRDBWatchOS"
+    - name: "Test GRDB Xcode 12.2 - GRDBWatchOS"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBWatchOS
     
-    - name: "Test GRDB Xcode 12 - GRDBiOS iOS maxTarget"
+    - name: "Test GRDB Xcode 12.2 - GRDBiOS iOS maxTarget"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBiOS_maxTarget_maxSwift
     
-    - name: "Test GRDB Xcode 12 - GRDBiOS iOS minTarget"
+    - name: "Test GRDB Xcode 12.2 - GRDBiOS iOS minTarget"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBiOS_minTarget
     
-    - name: "Test GRDB Xcode 12 - GRDBtvOS maxTarget"
+    - name: "Test GRDB Xcode 12.2 - GRDBtvOS maxTarget"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBtvOS_maxTarget_maxSwift
     
     - name: "Test GRDB Xcode 12 - GRDBtvOS minTarget"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBtvOS_minTarget
     
-    - name: "Test GRDB Xcode 12 - SPM"
+    - name: "Test GRDB Xcode 12.2 - SPM"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_SPM
     
     ###########################################
-    ## Test GRDBCustom Xcode 12
+    ## Test GRDBCustom Xcode 12.2
     
-    - name: "Test GRDBCustom Xcode 12 - GRDBOSX"
+    - name: "Test GRDBCustom Xcode 12.2 - GRDBOSX"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBCustomSQLiteOSX
     
-    - name: "Test GRDBCustom Xcode 12 - GRDBiOS maxTarget"
+    - name: "Test GRDBCustom Xcode 12.2 - GRDBiOS maxTarget"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBCustomSQLiteiOS_maxTarget_maxSwift
     
-    - name: "Test GRDBCustom Xcode 12 - GRDBiOS minTarget"
+    - name: "Test GRDBCustom Xcode 12.2 - GRDBiOS minTarget"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_GRDBCustomSQLiteiOS_minTarget
     
     ###########################################
-    ## Test SQLCipher Xcode 12
+    ## Test SQLCipher Xcode 12.2
     
-    - name: "Test SQLCipher Xcode 12 - SQLCipher 3"
+    - name: "Test SQLCipher Xcode 12.2 - SQLCipher 3"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_SQLCipher3
     
-    - name: "Test SQLCipher Xcode 12 - SQLCipher 4"
+    - name: "Test SQLCipher Xcode 12.2 - SQLCipher 4"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_framework_SQLCipher4
     
     ###########################################
-    ## Test Installation Xcode 12
+    ## Test Installation Xcode 12.2
     
     # Manual Install
-    - name: "Test Installation Xcode 12 - Manual Install"
+    - name: "Test Installation Xcode 12.2 - Manual Install"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_install_manual
     
-    # CocoaPods Lint
-    - name: "Test Installation Xcode 12 - CocoaPods Lint"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
-      script: make test_CocoaPodsLint_GRDB
+    # Travis is much too slow, and always fail this job
+    # # CocoaPods Lint
+    # - name: "Test Installation Xcode 12.2 - CocoaPods Lint"
+    #   gemfile: .ci/gemfiles/Gemfile.travis
+    #   osx_image: xcode12.2
+    #   script: make test_CocoaPodsLint_GRDB
     
     # CocoaPods Install GRDB
-    - name: "Test Installation Xcode 12 - CocoaPods Framework"
+    - name: "Test Installation Xcode 12.2 - CocoaPods Framework"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_install_GRDB_CocoaPods_framework
     
     # CocoaPods Install GRDB
-    - name: "Test Installation Xcode 12 - CocoaPods Static"
+    - name: "Test Installation Xcode 12.2 - CocoaPods Static"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_install_GRDB_CocoaPods_static
     
     # SPM Install
-    - name: "Test Installation Xcode 12 - SPM Package"
+    - name: "Test Installation Xcode 12.2 - SPM Package"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_install_SPM_Package
     
     # SPM Install
-    - name: "Test Installation Xcode 12 - SPM Package in Xcode Project"
+    - name: "Test Installation Xcode 12.2 - SPM Package in Xcode Project"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_install_SPM_Project
     
     # Custom SQLite Install
-    - name: "Test Installation Xcode 12 - Custom SQLite"
+    - name: "Test Installation Xcode 12.2 - Custom SQLite"
       gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode12
+      osx_image: xcode12.2
       script: make test_install_customSQLite
     
     ###########################################

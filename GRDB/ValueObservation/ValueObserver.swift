@@ -7,10 +7,9 @@ final class ValueObserver<Reducer: ValueReducer> {
     let events: ValueObservationEvents
     private var observedRegion: DatabaseRegion? {
         didSet {
-            if
-                let willTrackRegion = events.willTrackRegion,
-                let region = observedRegion,
-                region != oldValue
+            if let willTrackRegion = events.willTrackRegion,
+               let region = observedRegion,
+               region != oldValue
             {
                 willTrackRegion(region)
             }
@@ -206,7 +205,7 @@ extension ValueObserver {
     private func recordingSelectedRegionIfNeeded<T>(
         _ db: Database,
         fetch: () throws -> T)
-        throws -> T
+    throws -> T
     {
         guard needsRecordingSelectedRegion else {
             return try fetch()

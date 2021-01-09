@@ -85,7 +85,7 @@ extension Database {
                 } catch {
                     return SQLITE_ERROR
                 }
-        })
+            })
         
         // Constructor must remain alive until deleteConstructor() is
         // called, as the last argument of the xCreateTokenizer() function.
@@ -101,7 +101,7 @@ extension Database {
             azArg: UnsafeMutablePointer<UnsafePointer<Int8>?>?,
             nArg: Int32,
             tokenizerHandle: UnsafeMutablePointer<OpaquePointer?>?)
-            -> Int32
+        -> Int32
         {
             guard let constructorPointer = constructorPointer else {
                 return SQLITE_ERROR
@@ -131,7 +131,7 @@ extension Database {
             nText: Int32,
             // swiftlint:disable:next line_length
             tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafePointer<Int8>?, Int32, Int32, Int32) -> Int32)?)
-            -> Int32
+        -> Int32
         {
             guard let tokenizerPointer = tokenizerPointer else {
                 return SQLITE_ERROR

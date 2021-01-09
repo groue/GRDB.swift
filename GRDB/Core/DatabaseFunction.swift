@@ -126,7 +126,7 @@ public final class DatabaseFunction: Hashable {
             { definitionP in
                 // Release the function definition
                 Unmanaged<AnyObject>.fromOpaque(definitionP!).release()
-        })
+            })
         
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.

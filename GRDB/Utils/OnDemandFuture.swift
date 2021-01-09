@@ -107,7 +107,7 @@ private class OnDemandFutureSubscription<Downstream: Subscriber>: Subscription {
                 sideEffect = {
                     downstream.receive(completion: completion)
                 }
-
+                
             case .waitingForDemand, .finished:
                 break
             }

@@ -101,7 +101,7 @@ extension Database {
         ifNotExists: Bool = false,
         using module: Module,
         _ body: ((Module.TableDefinition) -> Void)? = nil)
-        throws
+    throws
     {
         // Define virtual table
         let definition = module.makeTableDefinition()

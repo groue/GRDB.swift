@@ -89,8 +89,8 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         var tableRegionsIntersection: [String: TableRegion] = [:]
         for (table, tableRegion) in tableRegions {
             guard let otherTableRegion = otherTableRegions
-                .first(where: { (otherTable, _) in otherTable == table })?
-                .value else { continue }
+                    .first(where: { (otherTable, _) in otherTable == table })?
+                    .value else { continue }
             let tableRegionIntersection = tableRegion.intersection(otherTableRegion)
             guard !tableRegionIntersection.isEmpty else { continue }
             tableRegionsIntersection[table] = tableRegionIntersection
@@ -164,7 +164,9 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     /// Returns a region which doesn't contain any SQLite internal table.
     func ignoringInternalSQLiteTables() -> DatabaseRegion {
         guard let tableRegions = tableRegions else { return .fullDatabase }
-        let filteredRegions = tableRegions.filter { !$0.key.starts(with: "sqlite_") }
+        let filteredRegions = tableRegions.filter {
+            !Database.isSQLiteInternalTable($0.key)
+        }
         return DatabaseRegion(tableRegions: filteredRegions)
     }
 }

@@ -8,7 +8,7 @@ extension SQLInterpolation {
     ///     // SELECT * FROM player
     ///     let request: SQLRequest<Player> = "SELECT * FROM \(Player.self)"
     public mutating func appendInterpolation<T>(_ table: T.Type)
-        where T: TableRecord
+    where T: TableRecord
     {
         appendLiteral(table.databaseTableName.quotedDatabaseIdentifier)
     }
@@ -28,7 +28,7 @@ extension SQLInterpolation {
     ///     let player: Player = ...
     ///     let request: SQLRequest<Player> = "INSERT INTO \(tableOf: player) ..."
     public mutating func appendInterpolation<T>(tableOf record: T)
-        where T: TableRecord
+    where T: TableRecord
     {
         appendInterpolation(type(of: record))
     }
@@ -53,12 +53,12 @@ extension SQLInterpolation {
     ///     let player: Player = ...
     ///     let request: SQLRequest<Player> = "SELECT \(columnsOf: Player.self, tableAlias: "p") FROM player p"
     public mutating func appendInterpolation<T>(columnsOf record: T.Type, tableAlias: String? = nil)
-        where T: TableRecord
+    where T: TableRecord
     {
         let alias = TableAlias(name: tableAlias ?? T.databaseTableName)
         elements.append(contentsOf: T.databaseSelection
-            .map { CollectionOfOne(.selectable($0._qualifiedSelectable(with: alias))) }
-            .joined(separator: CollectionOfOne(.sql(", "))))
+                            .map { CollectionOfOne(.selectable($0._qualifiedSelectable(with: alias))) }
+                            .joined(separator: CollectionOfOne(.sql(", "))))
     }
     
     // MARK: - SQLSelectable
@@ -70,7 +70,7 @@ extension SQLInterpolation {
     ///         SELECT \(AllColumns()) FROM player
     ///         """
     public mutating func appendInterpolation<T>(_ selection: T)
-        where T: SQLSelectable
+    where T: SQLSelectable
     {
         elements.append(.selectable(selection))
     }
@@ -99,7 +99,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player ORDER BY \(Column("name").desc)
     ///         """
     public mutating func appendInterpolation<T>(_ orderingTerm: T)
-        where T: SQLOrderingTerm
+    where T: SQLOrderingTerm
     {
         elements.append(.orderingTerm(orderingTerm))
     }
@@ -114,7 +114,7 @@ extension SQLInterpolation {
     public mutating func appendInterpolation(_ orderingTerm: SQLOrderingTerm) {
         elements.append(.orderingTerm(orderingTerm))
     }
-
+    
     // MARK: - SQLExpressible
     
     /// Appends the expression SQL.
@@ -124,7 +124,7 @@ extension SQLInterpolation {
     ///         SELECT \(Column("name")) FROM player
     ///         """
     public mutating func appendInterpolation<T>(_ expressible: T)
-        where T: SQLExpressible
+    where T: SQLExpressible
     {
         elements.append(.expression(expressible.sqlExpression))
     }
@@ -136,7 +136,7 @@ extension SQLInterpolation {
     ///         SELECT \(Column("name")) FROM player
     ///         """
     public mutating func appendInterpolation<T>(_ expressible: T)
-        where T: SQLExpressible & SQLSelectable & SQLOrderingTerm
+    where T: SQLExpressible & SQLSelectable & SQLOrderingTerm
     {
         elements.append(.expression(expressible.sqlExpression))
     }
@@ -165,7 +165,7 @@ extension SQLInterpolation {
     ///         SELECT \(CodingKey.name) FROM player
     ///         """
     public mutating func appendInterpolation<T>(_ key: T)
-        where T: CodingKey
+    where T: CodingKey
     {
         appendInterpolation(Column(key.stringValue))
     }
@@ -177,7 +177,7 @@ extension SQLInterpolation {
     ///         SELECT \(CodingKey.name) FROM player
     ///         """
     public mutating func appendInterpolation<T>(_ key: T)
-        where T: CodingKey & SQLExpressible & SQLSelectable & SQLOrderingTerm
+    where T: CodingKey & SQLExpressible & SQLSelectable & SQLOrderingTerm
     {
         appendInterpolation(Column(key.stringValue))
     }
@@ -206,9 +206,9 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE score = (\(subquery))
     ///         """
     public mutating func appendInterpolation<T>(_ request: T)
-        where T: _FetchRequest & SQLExpression
+    where T: FetchRequest & SQLExpression
     {
-        elements.append(.subquery(request))
+        elements.append(.subquery(DatabasePromise(value: request)))
     }
     
     // MARK: - Sequence
@@ -229,7 +229,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE id IN \(ids)
     ///         """
     public mutating func appendInterpolation<T>(_ sequence: T)
-        where T: Sequence, T.Element: SQLExpressible
+    where T: Sequence, T.Element: SQLExpressible
     {
         appendInterpolation(sequence.lazy.map(\.sqlExpression))
     }
@@ -250,7 +250,7 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE a IN \(expressions)
     ///         """
     public mutating func appendInterpolation<T>(_ sequence: T)
-        where T: Sequence, T.Element == SQLExpression
+    where T: Sequence, T.Element == SQLExpression
     {
         let e: [SQLLiteral.Element] = sequence.map { .expression($0.sqlExpression) }
         if e.isEmpty {
@@ -266,8 +266,43 @@ extension SQLInterpolation {
     // favor the expression side. Use case: Foundation.Data interpolation.
     /// :nodoc:
     public mutating func appendInterpolation<T>(_ expressible: T)
-        where T: Sequence, T: SQLExpressible, T.Element: SQLExpressible
+    where T: Sequence, T: SQLExpressible, T.Element: SQLExpressible
     {
         elements.append(.expression(expressible.sqlExpression))
+    }
+    
+    // MARK: Common Table Expressions
+    
+    /// Appends the table name of the common table expression.
+    ///
+    ///     // WITH "cte" AS (...) SELECT * FROM "cte"
+    ///     let cte = CommonTableExpression<Void>(named: "cte", ...)
+    ///     let request: SQLRequest<Row> = """
+    ///         WITH \(definitionFor: cte) SELECT * FROM \(cte)
+    ///         """
+    public mutating func appendInterpolation<T>(_ cte: CommonTableExpression<T>) {
+        elements.append(.sql(cte.tableName.quotedDatabaseIdentifier))
+    }
+    
+    /// Appends the definition of the common table expression.
+    ///
+    ///     // WITH "cte" AS (...) SELECT * FROM "cte"
+    ///     let cte = CommonTableExpression<Void>(named: "cte", ...)
+    ///     let request: SQLRequest<Row> = """
+    ///         WITH \(definitionFor: cte) SELECT * FROM \(cte)
+    ///         """
+    public mutating func appendInterpolation<T>(definitionFor cte: CommonTableExpression<T>) {
+        elements.append(.sql(cte.tableName.quotedDatabaseIdentifier))
+        
+        if let columns = cte.cte.columns, !columns.isEmpty {
+            let columnsSQL = "("
+                + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+                + ")"
+            elements.append(.sql(columnsSQL))
+        }
+        
+        elements.append(.sql(" AS ("))
+        elements.append(.subquery(cte.cte.requestPromise))
+        elements.append(.sql(")"))
     }
 }

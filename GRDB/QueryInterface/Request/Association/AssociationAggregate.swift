@@ -6,7 +6,7 @@ typealias AssociationAggregatePreparation<RowDecoder> =
 
 extension AssociationToMany {
     private func makeAggregate(_ expressionPromise: DatabasePromise<SQLExpression>)
-        -> AssociationAggregate<OriginRowDecoder>
+    -> AssociationAggregate<OriginRowDecoder>
     {
         AssociationAggregate { request in
             let tableAlias = TableAlias()
@@ -38,7 +38,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
-        let expression = _SQLExpressionCountDistinct(_SQLExpressionFastPrimaryKey())
+        let expression = SQLExpressionCountDistinct(SQLExpressionFastPrimaryKey())
         return makeAggregate(expression).forKey("\(key.singularizedName)Count")
     }
     
@@ -58,7 +58,7 @@ extension AssociationToMany {
     ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
-        let expression = _SQLExpressionIsEmpty(_SQLExpressionCountDistinct(_SQLExpressionFastPrimaryKey()))
+        let expression = SQLExpressionIsEmpty(SQLExpressionCountDistinct(SQLExpressionFastPrimaryKey()))
         return makeAggregate(expression).forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
@@ -80,7 +80,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.average(Column("score")) > 100).fetchAll(db)
     public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(_SQLExpressionFunction("AVG", arguments: expression))
+        let aggregate = makeAggregate(SQLExpressionFunction("AVG", arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -107,7 +107,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.max(Column("score")) < 100).fetchAll(db)
     public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(_SQLExpressionFunction("MAX", arguments: expression))
+        let aggregate = makeAggregate(SQLExpressionFunction("MAX", arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -134,7 +134,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.min(Column("score")) > 100).fetchAll(db)
     public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(_SQLExpressionFunction("MIN", arguments: expression))
+        let aggregate = makeAggregate(SQLExpressionFunction("MIN", arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -161,7 +161,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
     public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(_SQLExpressionFunction("SUM", arguments: expression))
+        let aggregate = makeAggregate(SQLExpressionFunction("SUM", arguments: expression))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
@@ -279,7 +279,7 @@ private func combine<RowDecoder>(
     _ lhs: AssociationAggregate<RowDecoder>,
     _ rhs: AssociationAggregate<RowDecoder>,
     with combineExpressions : @escaping (_ lhs: SQLExpression, _ rhs: SQLExpression) throws -> SQLExpression)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     AssociationAggregate { request in
         let lhsPromise = lhs.prepare(&request)
@@ -311,7 +311,7 @@ public prefix func ! <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -
 public func && <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: &&)
 }
@@ -321,7 +321,7 @@ public func && <RowDecoder>(
 public func && <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 && rhs }
 }
@@ -331,7 +331,7 @@ public func && <RowDecoder>(
 public func && <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs && $0 }
 }
@@ -345,7 +345,7 @@ public func && <RowDecoder>(
 public func || <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: ||)
 }
@@ -355,7 +355,7 @@ public func || <RowDecoder>(
 public func || <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 || rhs }
 }
@@ -365,7 +365,7 @@ public func || <RowDecoder>(
 public func || <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs || $0 }
 }
@@ -380,7 +380,7 @@ public func || <RowDecoder>(
 public func == <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: ==)
 }
@@ -393,7 +393,7 @@ public func == <RowDecoder>(
 public func == <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 == rhs }
 }
@@ -406,7 +406,7 @@ public func == <RowDecoder>(
 public func == <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs == $0 }
 }
@@ -437,7 +437,7 @@ public func == <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) ->
 public func != <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: !=)
 }
@@ -450,7 +450,7 @@ public func != <RowDecoder>(
 public func != <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 != rhs }
 }
@@ -463,7 +463,7 @@ public func != <RowDecoder>(
 public func != <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs != $0 }
 }
@@ -494,7 +494,7 @@ public func != <RowDecoder>(lhs: Bool, rhs: AssociationAggregate<RowDecoder>) ->
 public func === <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: ===)
 }
@@ -507,7 +507,7 @@ public func === <RowDecoder>(
 public func === <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 === rhs }
 }
@@ -520,7 +520,7 @@ public func === <RowDecoder>(
 public func === <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs === $0 }
 }
@@ -533,7 +533,7 @@ public func === <RowDecoder>(
 public func !== <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: !==)
 }
@@ -546,7 +546,7 @@ public func !== <RowDecoder>(
 public func !== <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 !== rhs }
 }
@@ -559,7 +559,7 @@ public func !== <RowDecoder>(
 public func !== <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs !== $0 }
 }
@@ -574,7 +574,7 @@ public func !== <RowDecoder>(
 public func <= <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: <=)
 }
@@ -587,7 +587,7 @@ public func <= <RowDecoder>(
 public func <= <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 <= rhs }
 }
@@ -600,7 +600,7 @@ public func <= <RowDecoder>(
 public func <= <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs <= $0 }
 }
@@ -613,7 +613,7 @@ public func <= <RowDecoder>(
 public func < <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: <)
 }
@@ -626,7 +626,7 @@ public func < <RowDecoder>(
 public func < <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 < rhs }
 }
@@ -639,7 +639,7 @@ public func < <RowDecoder>(
 public func < <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs < $0 }
 }
@@ -652,7 +652,7 @@ public func < <RowDecoder>(
 public func > <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: >)
 }
@@ -665,7 +665,7 @@ public func > <RowDecoder>(
 public func > <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 > rhs }
 }
@@ -678,7 +678,7 @@ public func > <RowDecoder>(
 public func > <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs > $0 }
 }
@@ -691,7 +691,7 @@ public func > <RowDecoder>(
 public func >= <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: >=)
 }
@@ -704,7 +704,7 @@ public func >= <RowDecoder>(
 public func >= <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 >= rhs }
 }
@@ -717,7 +717,7 @@ public func >= <RowDecoder>(
 public func >= <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs >= $0 }
 }
@@ -741,7 +741,7 @@ public prefix func - <RowDecoder>(aggregate: AssociationAggregate<RowDecoder>) -
 public func + <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: +)
 }
@@ -754,7 +754,7 @@ public func + <RowDecoder>(
 public func + <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 + rhs }
 }
@@ -767,7 +767,7 @@ public func + <RowDecoder>(
 public func + <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs + $0 }
 }
@@ -780,7 +780,7 @@ public func + <RowDecoder>(
 public func - <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: -)
 }
@@ -793,7 +793,7 @@ public func - <RowDecoder>(
 public func - <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 - rhs }
 }
@@ -806,7 +806,7 @@ public func - <RowDecoder>(
 public func - <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs - $0 }
 }
@@ -819,7 +819,7 @@ public func - <RowDecoder>(
 public func * <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: *)
 }
@@ -832,7 +832,7 @@ public func * <RowDecoder>(
 public func * <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 * rhs }
 }
@@ -845,7 +845,7 @@ public func * <RowDecoder>(
 public func * <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs * $0 }
 }
@@ -858,7 +858,7 @@ public func * <RowDecoder>(
 public func / <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     combine(lhs, rhs, with: /)
 }
@@ -871,7 +871,7 @@ public func / <RowDecoder>(
 public func / <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     lhs.map { $0 / rhs }
 }
@@ -884,7 +884,7 @@ public func / <RowDecoder>(
 public func / <RowDecoder>(
     lhs: SQLExpressible,
     rhs: AssociationAggregate<RowDecoder>)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     rhs.map { lhs / $0 }
 }
@@ -897,7 +897,7 @@ public func / <RowDecoder>(
 public func ?? <RowDecoder>(
     lhs: AssociationAggregate<RowDecoder>,
     rhs: SQLExpressible)
-    -> AssociationAggregate<RowDecoder>
+-> AssociationAggregate<RowDecoder>
 {
     // Preserve key
     lhs.map { $0 ?? rhs }.with(\.key, lhs.key)

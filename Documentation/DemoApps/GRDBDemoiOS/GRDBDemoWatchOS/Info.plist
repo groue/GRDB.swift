@@ -26,7 +26,7 @@
 		<string>UIInterfaceOrientationPortraitUpsideDown</string>
 	</array>
 	<key>WKCompanionAppBundleIdentifier</key>
-	<string>com.github.groue.GRDBDemoiOS2</string>
+	<string>com.github.groue.GRDBDemoiOS</string>
 	<key>WKWatchKitApp</key>
 	<true/>
 </dict>

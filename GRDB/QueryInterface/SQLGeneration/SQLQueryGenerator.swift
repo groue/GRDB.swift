@@ -6,6 +6,7 @@ struct SQLQueryGenerator: Refinable {
     private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
     private let limit: SQLLimit?
     private let singleResult: Bool
+    private let ctes: OrderedDictionary<String, SQLCTE>
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -44,22 +45,19 @@ struct SQLQueryGenerator: Refinable {
         //
         // This turns `GROUP BY id` INTO `GROUP BY book.id`, and
         // `HAVING MAX(year) < 2000` INTO `HAVING MAX(book.year) < 2000`.
-        if let alias = relation.source.alias {
-            groupPromise = query.groupPromise?.map {
-                $0.map { $0._qualifiedExpression(with: alias) }
-            }
-            havingExpressionsPromise = query.havingExpressionsPromise.map {
-                $0.map { $0._qualifiedExpression(with: alias) }
-            }
-        } else {
-            groupPromise = query.groupPromise
-            havingExpressionsPromise = query.havingExpressionsPromise
+        let sourceAlias = relation.source.alias
+        groupPromise = query.groupPromise?.map {
+            $0.map { $0._qualifiedExpression(with: sourceAlias) }
+        }
+        havingExpressionsPromise = query.havingExpressionsPromise.map {
+            $0.map { $0._qualifiedExpression(with: sourceAlias) }
         }
         
         limit = query.limit
         isDistinct = query.isDistinct
         self.singleResult = singleResult
         prefetchedAssociations = query.relation.prefetchedAssociations
+        ctes = query.ctes
     }
     
     func requestSQL(_ context: SQLGenerationContext) throws -> String {
@@ -68,7 +66,8 @@ struct SQLQueryGenerator: Refinable {
         // SQL aliases.
         let context = SQLGenerationContext(parent: context, aliases: relation.allAliases)
         
-        var sql = "SELECT"
+        var sql = try commonTableExpressionsPrefix(context)
+        sql += "SELECT"
         
         if isDistinct {
             sql += " DISTINCT"
@@ -76,18 +75,13 @@ struct SQLQueryGenerator: Refinable {
         
         let selection = try relation.selectionPromise.resolve(context.db)
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with an empty selection")
-        sql += try " " + selection.map { try $0.resultColumnSQL(context) }.joined(separator: ", ")
+        sql += try " " + selection.map { try $0._resultColumnSQL(context) }.joined(separator: ", ")
         
         sql += " FROM "
         sql += try relation.source.sql(context)
         
         if relation.joins.isEmpty == false {
-            guard let sourceAlias = relation.source.alias else {
-                // This never happens as long as we only use subqueries as sources
-                // in the `SELECT COUNT(*) FROM (SELECT ...)` case: see
-                // SQLQuery.trivialCountQuery.
-                fatalError("Not implemented: join on a subquery")
-            }
+            let sourceAlias = relation.source.alias
             for (_, join) in relation.joins {
                 sql += " "
                 sql += try join.sql(context, leftAlias: sourceAlias)
@@ -97,28 +91,28 @@ struct SQLQueryGenerator: Refinable {
         let filters = try relation.filtersPromise.resolve(context.db)
         if filters.isEmpty == false {
             sql += " WHERE "
-            sql += try filters.joined(operator: .and).expressionSQL(context, wrappedInParenthesis: false)
+            sql += try filters.joined(operator: .and)._expressionSQL(context, wrappedInParenthesis: false)
         }
         
         let groupExpressions = try groupPromise?.resolve(context.db) ?? []
         if !groupExpressions.isEmpty {
             sql += " GROUP BY "
             sql += try groupExpressions
-                .map { try $0.expressionSQL(context, wrappedInParenthesis: false) }
+                .map { try $0._expressionSQL(context, wrappedInParenthesis: false) }
                 .joined(separator: ", ")
         }
         
         let havingExpressions = try havingExpressionsPromise.resolve(context.db)
         if havingExpressions.isEmpty == false {
             sql += " HAVING "
-            sql += try havingExpressions.joined(operator: .and).expressionSQL(context, wrappedInParenthesis: false)
+            sql += try havingExpressions.joined(operator: .and)._expressionSQL(context, wrappedInParenthesis: false)
         }
         
         let orderings = try relation.ordering.resolve(context.db)
         if !orderings.isEmpty {
             sql += " ORDER BY "
             sql += try orderings
-                .map { try $0.orderingTermSQL(context) }
+                .map { try $0._orderingTermSQL(context) }
                 .joined(separator: ", ")
         }
         
@@ -144,6 +138,16 @@ struct SQLQueryGenerator: Refinable {
         try PreparedRequest(
             statement: makeSelectStatement(db),
             adapter: rowAdapter(db))
+    }
+    
+    /// The number of fetched columns.
+    func columnsCount(_ db: Database) throws -> Int {
+        try relation
+            .selectionPromise
+            .resolve(db)
+            .reduce(0) {
+                try $0 + $1._columnCount(db)
+            }
     }
     
     /// Returns a select statement
@@ -186,16 +190,14 @@ struct SQLQueryGenerator: Refinable {
         // Can we intersect the region with rowIds?
         //
         // Give up unless request feeds from a single database table
-        guard
-            case let .table(tableName: tableName, alias: alias) = relation.source,
-            try db.tableExists(tableName) // skip views
-            else {
-                return selectedRegion
+        let tableName = relation.source.tableName
+        guard try db.tableExists(tableName) else { // skip views
+            return selectedRegion
         }
         
         // The filter knows better
         let filter = try relation.filtersPromise.resolve(db).joined(operator: .and)
-        guard let rowIDs = try filter.identifyingRowIDs(db, for: alias) else {
+        guard let rowIDs = try filter._identifyingRowIDs(db, for: relation.source.alias) else {
             return selectedRegion
         }
         
@@ -211,7 +213,7 @@ struct SQLQueryGenerator: Refinable {
         selection: [SQLSelectable],
         filters: [SQLExpression],
         groupExpressions: [SQLExpression])
-        throws -> Bool
+    throws -> Bool
     {
         if relation.joins.isEmpty == false {
             // Don't expect single results as soon as there is a join
@@ -219,13 +221,11 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // Do we filter on a unique key?
-        if
-            case let .table(tableName: tableName, alias: sourceAlias) = relation.source,
-            try db.tableExists(tableName) // skip views
-        {
+        let tableName = relation.source.tableName
+        if try db.tableExists(tableName) { // skip views
             let identifyingColums = try filters
                 .joined(operator: .and)
-                .identifyingColums(db, for: sourceAlias)
+                ._identifyingColums(db, for: relation.source.alias)
             if try db.table(tableName, hasUniqueKey: identifyingColums) {
                 // Filter by unique key: guaranteed single row!
                 return true
@@ -233,8 +233,8 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // Do we aggregate without grouping?
-        if groupExpressions.isEmpty && selection.contains(where: { $0.isAggregate() }) {
-            // Selection contains an aggregate function: guaranteed single row!
+        if groupExpressions.isEmpty && selection.contains(where: \._isAggregate) {
+            // Selection contains an aggregate function: guaranteed single row!Ë
             return true
         }
         
@@ -244,31 +244,27 @@ struct SQLQueryGenerator: Refinable {
     func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
         switch try grouping(db) {
         case .none:
-            guard case .table = relation.source else {
-                // Programmer error
-                fatalError("Can't delete without any database table")
-            }
-            
             guard relation.joins.isEmpty else {
                 return try makeTrivialDeleteStatement(db)
             }
             
             let context = SQLGenerationContext(db, aliases: relation.allAliases)
             
-            var sql = try "DELETE FROM " + relation.source.sql(context)
+            var sql = try commonTableExpressionsPrefix(context)
+            sql += try "DELETE FROM " + relation.source.sql(context)
             
             let filters = try relation.filtersPromise.resolve(db)
             if filters.isEmpty == false {
                 sql += " WHERE "
                 sql += try filters
                     .joined(operator: .and)
-                    .expressionSQL(context, wrappedInParenthesis: false)
+                    ._expressionSQL(context, wrappedInParenthesis: false)
             }
             
             if let limit = limit {
                 let orderings = try relation.ordering.resolve(db)
                 if !orderings.isEmpty {
-                    sql += try " ORDER BY " + orderings.map { try $0.orderingTermSQL(context) }.joined(separator: ", ")
+                    sql += try " ORDER BY " + orderings.map { try $0._orderingTermSQL(context) }.joined(separator: ", ")
                 }
                 sql += " LIMIT " + limit.sql
             }
@@ -288,18 +284,14 @@ struct SQLQueryGenerator: Refinable {
     
     /// DELETE FROM table WHERE id IN (SELECT id FROM table ...)
     private func makeTrivialDeleteStatement(_ db: Database) throws -> UpdateStatement {
-        guard case let .table(tableName: tableName, alias: _) = relation.source else {
-            // Programmer error
-            fatalError("Can't delete without any database table")
-        }
-        
+        let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = SQLGenerationContext(parent: context, aliases: relation.allAliases)
-        let primaryKey = _SQLExpressionFastPrimaryKey()
+        let primaryKey = SQLExpressionFastPrimaryKey()
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
-        sql += try alias[primaryKey].expressionSQL(context, wrappedInParenthesis: false)
+        sql += try alias[primaryKey]._expressionSQL(context, wrappedInParenthesis: false)
         sql += " IN ("
         sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(subqueryContext)
         sql += ")"
@@ -314,15 +306,10 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-        throws -> UpdateStatement?
+    throws -> UpdateStatement?
     {
         switch try grouping(db) {
         case .none:
-            guard case .table = relation.source else {
-                // Programmer error
-                fatalError("Can't update without any database table")
-            }
-            
             guard relation.joins.isEmpty else {
                 return try makeTrivialUpdateStatement(
                     db,
@@ -338,7 +325,8 @@ struct SQLQueryGenerator: Refinable {
             
             let context = SQLGenerationContext(db, aliases: relation.allAliases)
             
-            var sql = "UPDATE "
+            var sql = try commonTableExpressionsPrefix(context)
+            sql += "UPDATE "
             
             if conflictResolution != .abort {
                 sql += "OR \(conflictResolution.rawValue) "
@@ -356,13 +344,13 @@ struct SQLQueryGenerator: Refinable {
                 sql += " WHERE "
                 sql += try filters
                     .joined(operator: .and)
-                    .expressionSQL(context, wrappedInParenthesis: false)
+                    ._expressionSQL(context, wrappedInParenthesis: false)
             }
             
             if let limit = limit {
                 let orderings = try relation.ordering.resolve(db)
                 if !orderings.isEmpty {
-                    sql += try " ORDER BY " + orderings.map { try $0.orderingTermSQL(context) }.joined(separator: ", ")
+                    sql += try " ORDER BY " + orderings.map { try $0._orderingTermSQL(context) }.joined(separator: ", ")
                 }
                 sql += " LIMIT " + limit.sql
             }
@@ -386,23 +374,19 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-        throws -> UpdateStatement?
+    throws -> UpdateStatement?
     {
-        guard case let .table(tableName: tableName, alias: _) = relation.source else {
-            // Programmer error
-            fatalError("Can't delete without any database table")
-        }
-        
         // Check for empty assignments after all programmer errors have
         // been checked.
         if assignments.isEmpty {
             return nil
         }
         
+        let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = SQLGenerationContext(parent: context, aliases: relation.allAliases)
-        let primaryKey = _SQLExpressionFastPrimaryKey()
+        let primaryKey = SQLExpressionFastPrimaryKey()
         
         // UPDATE table...
         var sql = "UPDATE "
@@ -419,7 +403,7 @@ struct SQLQueryGenerator: Refinable {
         
         // WHERE id IN (SELECT id FROM ...)
         sql += " WHERE "
-        sql += try alias[primaryKey].expressionSQL(context, wrappedInParenthesis: false)
+        sql += try alias[primaryKey]._expressionSQL(context, wrappedInParenthesis: false)
         sql += " IN ("
         sql += try map(\.relation, { $0.selectOnly([primaryKey]) }).requestSQL(subqueryContext)
         sql += ")"
@@ -427,6 +411,34 @@ struct SQLQueryGenerator: Refinable {
         let statement = try db.makeUpdateStatement(sql: sql)
         statement.arguments = context.arguments
         return statement
+    }
+    
+    private func commonTableExpressionsPrefix(_ context: SQLGenerationContext) throws -> String {
+        if ctes.isEmpty {
+            return ""
+        }
+        
+        var sql = "WITH "
+        if ctes.values.contains(where: \.isRecursive) {
+            sql += "RECURSIVE "
+        }
+        sql += try ctes
+            .map { tableName, cte in
+                var columnsSQL = ""
+                if let columns = cte.columns, !columns.isEmpty {
+                    columnsSQL = "("
+                        + columns.map(\.quotedDatabaseIdentifier).joined(separator: ", ")
+                        + ")"
+                }
+                let cteContext = SQLGenerationContext(parent: context)
+                let requestSQL = try cte.requestPromise
+                    .resolve(context.db)
+                    ._requestSQL(cteContext, forSingleResult: false)
+                return "\(tableName.quotedDatabaseIdentifier)\(columnsSQL) AS (\(requestSQL))"
+            }
+            .joined(separator: ", ")
+        sql += " "
+        return sql
     }
     
     /// Informs about the query grouping
@@ -448,16 +460,14 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // Grouping something which is not a table: assume non unique grouping.
-        guard
-            case let .table(tableName: tableName, alias: alias) = relation.source,
-            try db.tableExists(tableName) // skip views
-            else {
-                return .nonUnique
+        let tableName = relation.source.tableName
+        guard try db.tableExists(tableName) else { // skip views
+            return .nonUnique
         }
         
         var groupingColumns: Set<String> = []
         for expression in groupExpressions {
-            guard let column = try expression.column(db, for: alias, acceptsBijection: true) else {
+            guard let column = try expression._column(db, for: relation.source.alias, acceptsBijection: true) else {
                 // Grouping by something which is not a column: assume non
                 // unique grouping.
                 return .nonUnique
@@ -587,19 +597,14 @@ private struct SQLQualifiedRelation {
         // Qualify all joins, selection, filter, and ordering, so that all
         // identifiers can be correctly disambiguated and qualified.
         joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
-        if let sourceAlias = source.alias {
-            sourceSelectionPromise = relation.selectionPromise.map {
-                $0.map { $0._qualifiedSelectable(with: sourceAlias) }
-            }
-            filtersPromise = relation.filtersPromise.map {
-                $0.map { $0._qualifiedExpression(with: sourceAlias) }
-            }
-            sourceOrdering = relation.ordering.qualified(with: sourceAlias)
-        } else {
-            sourceSelectionPromise = relation.selectionPromise
-            filtersPromise = relation.filtersPromise
-            sourceOrdering = relation.ordering
+        let sourceAlias = source.alias
+        sourceSelectionPromise = relation.selectionPromise.map {
+            $0.map { $0._qualifiedSelectable(with: sourceAlias) }
         }
+        filtersPromise = relation.filtersPromise.map {
+            $0.map { $0._qualifiedExpression(with: sourceAlias) }
+        }
+        sourceOrdering = relation.ordering.qualified(with: sourceAlias)
     }
     
     /// See SQLQueryGenerator.rowAdapter(_:)
@@ -664,14 +669,9 @@ private struct SQLQualifiedRelation {
     
     /// Removes all selections from joins
     func selectOnly(_ selection: [SQLSelectable]) -> Self {
-        let sourceSelectionPromise: DatabasePromise<[SQLSelectable]>
-        if let sourceAlias = source.alias {
-            sourceSelectionPromise = DatabasePromise(value: selection.map {
-                $0._qualifiedSelectable(with: sourceAlias)
-            })
-        } else {
-            sourceSelectionPromise = DatabasePromise(value: selection)
-        }
+        let sourceSelectionPromise = DatabasePromise(value: selection.map {
+            $0._qualifiedSelectable(with: source.alias)
+        })
         return self
             .with(\.sourceSelectionPromise, sourceSelectionPromise)
             .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
@@ -681,50 +681,21 @@ private struct SQLQualifiedRelation {
 extension SQLQualifiedRelation: Refinable { }
 
 /// A "qualified" source, where all tables are identified with a table alias.
-private enum SQLQualifiedSource {
-    case table(tableName: String, alias: TableAlias)
-    indirect case subquery(SQLQueryGenerator)
-    
-    /// Nil for subquery sources.
-    ///
-    /// Maybe one day we'll support aliased subqueries, as below:
-    ///
-    ///     SELECT alias.* FROM (SELECT ...) alias
-    ///
-    /// But today we only use subqueries for SQLQuery.trivialCountQuery,
-    /// which does not need any alias:
-    ///
-    ///     SELECT COUNT(*) FROM (SELECT ...)
-    var alias: TableAlias? {
-        switch self {
-        case let .table(_, alias):
-            return alias
-        case .subquery:
-            return nil
-        }
-    }
+private struct SQLQualifiedSource {
+    var tableName: String
+    var alias: TableAlias
     
     init(_ source: SQLSource) {
-        switch source {
-        case let .table(tableName, alias):
-            let alias = alias ?? TableAlias(tableName: tableName)
-            self = .table(tableName: tableName, alias: alias)
-        case let .subquery(subquery):
-            self = .subquery(SQLQueryGenerator(query: subquery))
-        }
+        self.tableName = source.tableName
+        self.alias = source.alias ?? TableAlias(tableName: source.tableName)
+        assert(alias.tableName == tableName)
     }
     
     func sql(_ context: SQLGenerationContext) throws -> String {
-        switch self {
-        case let .table(tableName, alias):
-            if let aliasName = context.aliasName(for: alias) {
-                return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
-            } else {
-                return "\(tableName.quotedDatabaseIdentifier)"
-            }
-        case let .subquery(generator):
-            let sql = try generator.requestSQL(context)
-            return "(\(sql))"
+        if let aliasName = context.aliasName(for: alias) {
+            return "\(tableName.quotedDatabaseIdentifier) \(aliasName.quotedDatabaseIdentifier)"
+        } else {
+            return "\(tableName.quotedDatabaseIdentifier)"
         }
     }
 }
@@ -774,7 +745,7 @@ private struct SQLQualifiedJoin: Refinable {
         _ context: SQLGenerationContext,
         leftAlias: TableAlias,
         allowingInnerJoin allowsInnerJoin: Bool)
-        throws -> String
+    throws -> String
     {
         var allowsInnerJoin = allowsInnerJoin
         
@@ -794,28 +765,32 @@ private struct SQLQualifiedJoin: Refinable {
         
         // JOIN table...
         var sql = try "\(kind.rawValue) \(relation.source.sql(context))"
-        guard let rightAlias = relation.source.alias else {
-            // This never happens as long as we only use subqueries as sources
-            // in the `SELECT COUNT(*) FROM (SELECT ...)` case: see
-            // SQLQuery.trivialCountQuery.
-            fatalError("Not implemented: join on a subquery")
-        }
+        let rightAlias = relation.source.alias
         
-        // ... ON <join conditions> AND <other filters>
+        // ... ON <join conditions>
         var joinExpressions: [SQLExpression]
         switch condition {
+        case let .expression(condition):
+            joinExpressions = [condition(leftAlias, rightAlias).sqlExpression]
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             joinExpressions = try foreignKeyRequest
                 .fetchForeignKeyMapping(context.db)
                 .joinMapping(originIsLeft: originIsLeft)
                 .joinExpressions(leftAlias: leftAlias)
         }
+        
+        // ... ON ... AND <other filters>
         joinExpressions += try relation.filtersPromise.resolve(context.db)
+        
+        // Avoid generating on ON clause for trivially true conditions
+        joinExpressions = joinExpressions.filter { !$0._isTrue }
+        
         if joinExpressions.isEmpty == false {
             let joiningSQL = try joinExpressions
                 .joined(operator: .and)
                 ._qualifiedExpression(with: rightAlias)
-                .expressionSQL(context, wrappedInParenthesis: false)
+                ._expressionSQL(context, wrappedInParenthesis: false)
             sql += " ON \(joiningSQL)"
         }
         
@@ -826,679 +801,4 @@ private struct SQLQualifiedJoin: Refinable {
         
         return sql
     }
-}
-
-// MARK: - SQLExpressionIsConstantInRequest
-
-extension SQLExpression {
-    /// Returns true if the expression has a unique value when SQLite runs
-    /// a request.
-    ///
-    /// When in doubt, returns false.
-    ///
-    ///     1          -- true
-    ///     1 + 2      -- true
-    ///     score      -- false
-    ///
-    /// Support for `SQLExpression.identifyingColums(_:for:)`
-    var isConstantInRequest: Bool {
-        var visitor = SQLExpressionIsConstantInRequest()
-        do {
-            try _accept(&visitor)
-        } catch is SQLExpressionIsConstantInRequest.BreakError {
-        } catch {
-            try! { throw error }()
-        }
-        return visitor.isConstant
-    }
-}
-
-/// Support for `SQLExpression.isConstantInRequest`
-private struct SQLExpressionIsConstantInRequest: _SQLExpressionVisitor {
-    struct BreakError: Error { }
-    var isConstant = true
-    
-    private mutating func setNotConstant() throws -> Never {
-        isConstant = false
-        // Poor man's short-circuiting
-        throw BreakError()
-    }
-    
-    mutating func visit(_ dbValue: DatabaseValue) throws { }
-    
-    mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression {
-        try setNotConstant()
-    }
-    
-    mutating func visit(_ column: _SQLQualifiedColumn) throws {
-        try setNotConstant()
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionBetween) throws {
-        try expr.expression._accept(&self)
-        try expr.lowerBound._accept(&self)
-        try expr.upperBound._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionBinary) throws {
-        try expr.lhs._accept(&self)
-        try expr.rhs._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionAssociativeBinary) throws {
-        for expression in expr.expressions {
-            try expression._accept(&self)
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCollate) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionContains) throws {
-        guard let expressions = expr.collection.expressions() else {
-            try setNotConstant() // Don't know - assume not constant
-        }
-        try expr.expression._accept(&self)
-        for expression in expressions {
-            try expression._accept(&self)
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCount) throws {
-        try setNotConstant() // Don't know - assume not constant
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCountDistinct) throws {
-        try setNotConstant() // Don't know - assume not constant
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionEqual) throws {
-        try expr.lhs._accept(&self)
-        try expr.rhs._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionFastPrimaryKey) throws {
-        try setNotConstant()
-    }
-    
-    static let knownPureFunctions = [
-        "ABS", "CHAR", "COALESCE", "GLOB", "HEX", "IFNULL",
-        "IIF", "INSTR", "LENGTH", "LIKE", "LIKELIHOOD",
-        "LIKELY", "LOAD_EXTENSION", "LOWER", "LTRIM",
-        "NULLIF", "PRINTF", "QUOTE", "REPLACE", "ROUND",
-        "RTRIM", "SOUNDEX", "SQLITE_COMPILEOPTION_GET",
-        "SQLITE_COMPILEOPTION_USED", "SQLITE_SOURCE_ID",
-        "SQLITE_VERSION", "SUBSTR", "TRIM", "TRIM",
-        "TYPEOF", "UNICODE", "UNLIKELY", "UPPER", "ZEROBLOB",
-    ]
-    mutating func visit(_ expr: _SQLExpressionFunction) throws {
-        let function = expr.function.uppercased()
-        guard
-            ((function == "MAX" || function == "MIN") && expr.arguments.count > 1)
-            || Self.knownPureFunctions.contains(function)
-        else {
-            try setNotConstant() // Don't know - assume not constant
-        }
-        for expression in expr.arguments {
-            try expression._accept(&self)
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionIsEmpty) throws {
-        try expr.countExpression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionLiteral) throws {
-        try setNotConstant() // Don't know - assume not constant
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionNot) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionQualifiedFastPrimaryKey) throws {
-        try setNotConstant()
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionTableMatch) throws {
-        try setNotConstant()
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionUnary) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    // MARK: - _FetchRequestVisitor
-    
-    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws {
-        try setNotConstant() // Don't know - assume not constant
-    }
-    
-    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws {
-        try setNotConstant() // Don't know - assume not constant
-    }
-    
-    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws {
-        try setNotConstant() // Don't know - assume not constant
-    }
-}
-
-// MARK: - SQLTableColumnVisitor
-
-extension SQLExpression {
-    /// If this expression is a table colum, returns the name of this column.
-    ///
-    /// When in doubt, returns nil.
-    ///
-    /// - parameter acceptsBijection: If true, expressions that define a
-    ///   bijection on a column return this column. For example: `-score`
-    ///   returns `score`.
-    func column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool = false) throws -> String? {
-        var visitor = SQLTableColumnVisitor(db: db, alias: alias, acceptsBijection: acceptsBijection)
-        try _accept(&visitor)
-        return visitor.column
-    }
-}
-
-/// Support for `SQLExpression.column(_:for:)`
-private struct SQLTableColumnVisitor: _SQLExpressionVisitor {
-    let db: Database
-    let alias: TableAlias
-    let acceptsBijection: Bool
-    var column: String?
-    
-    mutating func visit(_ dbValue: DatabaseValue) throws { }
-    
-    mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression { }
-    
-    mutating func visit(_ column: _SQLQualifiedColumn) throws {
-        if column.alias == alias {
-            self.column = column.name
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionBetween) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionBinary) throws {
-        if acceptsBijection && expr.op == .subtract {
-            if expr.lhs.isConstantInRequest {
-                try expr.rhs._accept(&self)
-            } else if expr.rhs.isConstantInRequest {
-                try expr.lhs._accept(&self)
-            }
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionAssociativeBinary) throws {
-        if acceptsBijection && (expr.op == .add || expr.op == .concat) {
-            let nonConstants = expr.expressions.filter { $0.isConstantInRequest == false }
-            if nonConstants.count == 1 {
-                try nonConstants[0]._accept(&self)
-            }
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCollate) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionContains) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionCount) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionCountDistinct) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionEqual) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionFastPrimaryKey) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionFunction) throws {
-        if acceptsBijection {
-            let function = expr.function.uppercased()
-            if ["HEX", "QUOTE"].contains(function) && expr.arguments.count == 1 {
-                try expr.arguments[0]._accept(&self)
-            } else if function == "IFNULL" && expr.arguments.count == 2 && expr.arguments[1].isConstantInRequest {
-                try expr.arguments[0]._accept(&self)
-            }
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionIsEmpty) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionLiteral) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionNot) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionQualifiedFastPrimaryKey) throws {
-        if expr.alias == alias {
-            self.column = try expr.columnName(db)
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionTableMatch) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionUnary) throws {
-        if acceptsBijection && expr.op == .minus {
-            try expr.expression._accept(&self)
-        }
-    }
-    
-    // MARK: - _FetchRequestVisitor
-    
-    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
-}
-
-// MARK: - SQLIdentifyingColumns
-
-extension SQLExpression {
-    /// Returns the columns that identify a unique row in the request
-    ///
-    /// When in doubt, returns an empty set.
-    ///
-    ///     WHERE 0                         -- []
-    ///     WHERE a                         -- []
-    ///     WHERE a = b                     -- []
-    ///     WHERE a = 1                     -- ["a"]
-    ///     WHERE a = 1 AND b = 2           -- ["a", "b"]
-    ///     WHERE a = 1 AND b = 2 AND c > 0 -- ["a", "b"]
-    ///     WHERE a = 1 OR a = 2            -- []
-    ///     WHERE a > 1                     -- []
-    ///
-    /// Support for `SQLQueryGenerator.expectsSingleResult()`
-    func identifyingColums(_ db: Database, for alias: TableAlias) throws -> Set<String> {
-        var visitor = SQLIdentifyingColumns(db: db, alias: alias)
-        do {
-            try _accept(&visitor)
-        } catch is SQLIdentifyingColumns.BreakError {
-        } catch {
-            try! { throw error }()
-        }
-        return visitor.columns
-    }
-}
-
-/// Support for `SQLExpression.identifyingColums(_:for:)`
-private struct SQLIdentifyingColumns: _SQLExpressionVisitor {
-    struct BreakError: Error { }
-    let db: Database
-    let alias: TableAlias
-    var columns: Set<String> = []
-    
-    mutating func visit(_ dbValue: DatabaseValue) throws { }
-    
-    mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression { }
-    
-    mutating func visit(_ column: _SQLQualifiedColumn) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionBetween) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionBinary) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionAssociativeBinary) throws {
-        if expr.op == .and {
-            for expression in expr.expressions {
-                try expression._accept(&self)
-            }
-        } else if expr.op == .or {
-            columns = []
-            throw BreakError()
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCollate) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionContains) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionCount) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionCountDistinct) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionEqual) throws {
-        switch expr.op {
-        case .equal, .is:
-            if
-                let column = try expr.lhs.column(db, for: alias),
-                expr.rhs.isConstantInRequest
-            {
-                columns.insert(column)
-            } else if
-                let column = try expr.rhs.column(db, for: alias),
-                expr.lhs.isConstantInRequest
-            {
-                columns.insert(column)
-            }
-            
-        case .notEqual, .isNot:
-            break
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionFastPrimaryKey) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionFunction) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionIsEmpty) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionLiteral) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionNot) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionQualifiedFastPrimaryKey) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionTableMatch) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionUnary) throws { }
-    
-    // MARK: - _FetchRequestVisitor
-    
-    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
-}
-
-// MARK: - SQLIdentifyingRowIDs
-
-extension SQLExpression {
-    /// Returns the rowIds that identify rows in the request. A nil result means
-    /// an unbounded list.
-    ///
-    /// When in doubt, returns nil.
-    ///
-    ///     WHERE 1                               -- nil
-    ///     WHERE 0                               -- []
-    ///     WHERE NULL                            -- []
-    ///     WHERE id IS NULL                      -- []
-    ///     WHERE id = 1                          -- [1]
-    ///     WHERE id = 1 AND b = 2                -- [1]
-    ///     WHERE id = 1 OR id = 2                -- [1, 2]
-    ///     WHERE id IN (1, 2, 3)                 -- [1, 2, 3]
-    ///     WHERE id IN (1, 2) OR rowid IN (2, 3) -- [1, 2, 3]
-    ///     WHERE id > 1                          -- nil
-    ///
-    /// Support for `SQLQueryGenerator.optimizedSelectedRegion()`
-    func identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
-        var visitor = SQLIdentifyingRowIDs(db: db, alias: alias)
-        try _accept(&visitor)
-        return visitor.rowIDs
-    }
-}
-
-/// Support for `SQLExpression.identifyingRowIDs(_:for:)`
-private struct SQLIdentifyingRowIDs: _SQLExpressionVisitor {
-    let db: Database
-    let alias: TableAlias
-    var rowIDs: Set<Int64>? = nil
-    
-    mutating func visit(_ dbValue: DatabaseValue) throws {
-        if dbValue.isNull || dbValue == false.databaseValue {
-            rowIDs = []
-        }
-    }
-    
-    mutating func visit<Column>(_ column: Column) throws where Column: ColumnExpression { }
-    
-    mutating func visit(_ column: _SQLQualifiedColumn) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionBetween) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionBinary) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionAssociativeBinary) throws {
-        if expr.op == .and {
-            for expression in expr.expressions {
-                if let expressionRowIDs = try expression.identifyingRowIDs(db, for: alias) {
-                    if var rowIDs = self.rowIDs {
-                        rowIDs.formIntersection(expressionRowIDs)
-                        self.rowIDs = rowIDs
-                        if rowIDs.isEmpty {
-                            break
-                        }
-                    } else {
-                        self.rowIDs = expressionRowIDs
-                    }
-                }
-            }
-        } else if expr.op == .or {
-            var rowIDs: Set<Int64> = []
-            for expression in expr.expressions {
-                if let expressionRowIDs = try expression.identifyingRowIDs(db, for: alias) {
-                    rowIDs.formUnion(expressionRowIDs)
-                } else {
-                    self.rowIDs = nil
-                    return
-                }
-            }
-            self.rowIDs = rowIDs
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCollate) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionContains) throws {
-        if
-            let expressions = expr.collection.expressions(),
-            let column = try expr.expression.column(db, for: alias),
-            try db.columnIsRowID(column, of: alias.tableName)
-        {
-            rowIDs = Set(expressions.compactMap {
-                ($0 as? DatabaseValue).flatMap { Int64.fromDatabaseValue($0) }
-            })
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCount) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionCountDistinct) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionEqual) throws {
-        switch expr.op {
-        case .equal, .is:
-            if
-                let column = try expr.lhs.column(db, for: alias),
-                try db.columnIsRowID(column, of: alias.tableName),
-                let dbValue = expr.rhs as? DatabaseValue
-            {
-                if let rowID = Int64.fromDatabaseValue(dbValue) {
-                    rowIDs = [rowID]
-                } else {
-                    // We miss `rowid = '1'` here, because SQLite would interpret the '1' string as a number
-                    rowIDs = []
-                }
-            } else if
-                let column = try expr.rhs.column(db, for: alias),
-                try db.columnIsRowID(column, of: alias.tableName),
-                let dbValue = expr.lhs as? DatabaseValue
-            {
-                if let rowID = Int64.fromDatabaseValue(dbValue) {
-                    rowIDs = [rowID]
-                } else {
-                    // We miss `rowid = '1'` here, because SQLite would interpret the '1' string as a number
-                    rowIDs = []
-                }
-            }
-            
-        case .notEqual, .isNot:
-            break
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionFastPrimaryKey) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionFunction) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionIsEmpty) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionLiteral) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionNot) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionQualifiedFastPrimaryKey) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionTableMatch) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionUnary) throws { }
-    
-    // MARK: - _FetchRequestVisitor
-    
-    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
-}
-
-// MARK: - SQLSelectableIsAggregate
-
-extension SQLSelectable {
-    /// Returns true if the selectable is an aggregate.
-    ///
-    /// When in doubt, returns false.
-    ///
-    ///     SELECT *              -- false
-    ///     SELECT score          -- false
-    ///     SELECT COUNT(*)       -- true
-    ///     SELECT MAX(score)     -- true
-    ///     SELECT MAX(score) + 1 -- true
-    ///
-    /// Support for `SQLQueryGenerator.expectsSingleResult()`
-    func isAggregate() -> Bool {
-        var visitor = SQLSelectableIsAggregate()
-        do {
-            try _accept(&visitor)
-        } catch is SQLSelectableIsAggregate.BreakError {
-        } catch {
-            try! { throw error }()
-        }
-        return visitor.isAggregate
-    }
-}
-
-private struct SQLSelectableIsAggregate: _SQLSelectableVisitor {
-    struct BreakError: Error { }
-    var isAggregate = false
-    
-    private mutating func setAggregate() throws -> Never {
-        isAggregate = true
-        // Poor man's short-circuiting
-        throw BreakError()
-    }
-    
-    // MARK: _SQLSelectableVisitor
-    
-    mutating func visit(_ selectable: AllColumns) throws { }
-    
-    mutating func visit(_ selectable: _SQLAliasedExpression) throws {
-        try selectable.expression._accept(&self)
-    }
-    
-    mutating func visit(_ selectable: _SQLQualifiedAllColumns) throws { }
-    
-    mutating func visit(_ selectable: _SQLSelectionLiteral) throws {
-        // Don't know - assume not an aggregate
-    }
-
-    // MARK: _SQLExpressionVisitor
-    
-    mutating func visit(_ dbValue: DatabaseValue) throws { }
-    
-    mutating func visit<Column: ColumnExpression>(_ column: Column) throws { }
-    
-    mutating func visit(_ column: _SQLQualifiedColumn) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionBetween) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionBinary) throws {
-        try expr.lhs._accept(&self)
-        try expr.rhs._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionAssociativeBinary) throws {
-        for expression in expr.expressions {
-            try expression._accept(&self)
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCollate) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionContains) throws {
-        // SELECT aggregate IN (...)
-        try expr.expression._accept(&self)
-        
-        // SELECT expr IN (aggregate, ...)
-        if
-            let expressions = expr.collection.expressions(),
-            expressions.contains(where: { $0.isAggregate() })
-        {
-            try setAggregate()
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCount) throws {
-        try setAggregate()
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionCountDistinct) throws {
-        try setAggregate()
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionEqual) throws {
-        try expr.lhs._accept(&self)
-        try expr.rhs._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionFastPrimaryKey) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionFunction) throws {
-        let function = expr.function.uppercased()
-        if ["MIN", "MAX"].contains(function) && expr.arguments.count == 1 {
-            try setAggregate()
-        } else if ["AVG", "COUNT", "SUM", "TOTAL"].contains(function) && expr.arguments.count == 1 {
-            try setAggregate()
-        } else if function == "GROUP_CONCAT" && (expr.arguments.count == 1 || expr.arguments.count == 2) {
-            try setAggregate()
-        }
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionIsEmpty) throws {
-        try expr.countExpression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionLiteral) throws {
-        // Don't know - assume not an aggregate
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionNot) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    mutating func visit(_ expr: _SQLExpressionQualifiedFastPrimaryKey) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionTableMatch) throws { }
-    
-    mutating func visit(_ expr: _SQLExpressionUnary) throws {
-        try expr.expression._accept(&self)
-    }
-    
-    // MARK: _FetchRequestVisitor
-    
-    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
 }

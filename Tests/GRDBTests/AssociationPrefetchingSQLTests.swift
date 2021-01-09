@@ -158,6 +158,7 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
     }
     
     func testIncludingAllHasManyWithCompoundForeignKey() throws {
+        // We can use the CTE technique
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "parent") { t in
@@ -166,17 +167,17 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 t.primaryKey(["parentA", "parentB"])
             }
             try db.create(table: "child") { t in
-                t.column("parentA", .text)
-                t.column("parentB", .text)
+                t.column("pA", .text)
+                t.column("pB", .text)
                 t.column("name", .text)
-                t.foreignKey(["parentA", "parentB"], references: "parent")
+                t.foreignKey(["pA", "pB"], references: "parent")
             }
             try db.execute(sql: """
                 INSERT INTO parent (parentA, parentB) VALUES ('foo', 'bar');
                 INSERT INTO parent (parentA, parentB) VALUES ('baz', 'qux');
-                INSERT INTO child (parentA, parentB, name) VALUES ('foo', 'bar', 'foobar1');
-                INSERT INTO child (parentA, parentB, name) VALUES ('foo', 'bar', 'foobar2');
-                INSERT INTO child (parentA, parentB, name) VALUES ('baz', 'qux', 'bazqux1');
+                INSERT INTO child (pA, pB, name) VALUES ('foo', 'bar', 'foobar1');
+                INSERT INTO child (pA, pB, name) VALUES ('foo', 'bar', 'foobar2');
+                INSERT INTO child (pA, pB, name) VALUES ('baz', 'qux', 'bazqux1');
                 """)
             
             struct Parent: TableRecord { }
@@ -198,9 +199,9 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT * FROM "parent" ORDER BY "parentA", "parentB"
                     """,
                     """
-                    SELECT *, "parentA" AS "grdb_parentA", "parentB" AS "grdb_parentB" \
-                    FROM "child" \
-                    WHERE (("parentA" = 'baz') AND ("parentB" = 'qux')) OR (("parentA" = 'foo') AND ("parentB" = 'bar'))
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
+                    FROM "child" WHERE ("pA", "pB") IN "grdb_base"
                     """])
             }
             
@@ -240,13 +241,15 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     SELECT * FROM "parent" WHERE "parentA" = 'foo' ORDER BY "parentA", "parentB"
                     """,
                     """
-                    SELECT *, "parentA" AS "grdb_parentA", "parentB" AS "grdb_parentB" \
-                    FROM "child" WHERE ("name" = 'foo') AND (("parentA" = 'foo') AND ("parentB" = 'bar'))
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "parentA" = 'foo') \
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
+                    FROM "child" \
+                    WHERE ("name" = 'foo') AND (("pA", "pB") IN "grdb_base")
                     """])
             }
         }
     }
-
+    
     func testIncludingAllHasManyIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
@@ -393,6 +396,154 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     FROM "d" \
                     WHERE ("cold1" <> 11) AND ("cold2" IN (7, 8)) \
                     ORDER BY "cold1"
+                    """])
+            }
+        }
+    }
+    
+    func testIncludingAllHasManyIncludingAllHasManyWithCompoundForeignKey() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "parent") { t in
+                t.column("parentA", .text)
+                t.column("parentB", .text)
+                t.column("name", .text)
+                t.primaryKey(["parentA", "parentB"])
+            }
+            try db.create(table: "child") { t in
+                t.column("childA", .text)
+                t.column("childB", .text)
+                t.column("pA", .text)
+                t.column("pB", .text)
+                t.column("name", .text)
+                t.primaryKey(["childA", "childB"])
+                t.foreignKey(["pA", "pB"], references: "parent")
+            }
+            try db.create(table: "grandchild") { t in
+                t.column("cA", .text)
+                t.column("cB", .text)
+                t.column("name", .text)
+                t.foreignKey(["cA", "cB"], references: "child")
+            }
+            try db.execute(sql: """
+                INSERT INTO parent (parentA, parentB, name) VALUES ('foo', 'bar', 'foo');
+                INSERT INTO parent (parentA, parentB, name) VALUES ('baz', 'qux', 'foo');
+                INSERT INTO child (childA, childB, pA, pB, name) VALUES ('a', 'b', 'foo', 'bar', 'blue');
+                INSERT INTO child (childA, childB, pA, pB, name) VALUES ('c', 'd', 'foo', 'bar', 'pink');
+                INSERT INTO child (childA, childB, pA, pB, name) VALUES ('e', 'f', 'baz', 'qux', 'blue');
+                INSERT INTO grandchild (cA, cB, name) VALUES ('a', 'b', 'dog');
+                INSERT INTO grandchild (cA, cB, name) VALUES ('a', 'b', 'cat');
+                INSERT INTO grandchild (cA, cB, name) VALUES ('c', 'd', 'cat');
+                INSERT INTO grandchild (cA, cB, name) VALUES ('e', 'f', 'dog');
+                """)
+            
+            struct Parent: TableRecord { }
+            struct Child: TableRecord { }
+            struct GrandChild: TableRecord { }
+            
+            // Plain request
+            do {
+                let request = Parent
+                    .including(all: Parent.hasMany(Child.self)
+                                .including(all: Child.hasMany(GrandChild.self)))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" ORDER BY "parentA", "parentB"
+                    """,
+                    """
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
+                    FROM "child" WHERE ("pA", "pB") IN "grdb_base"
+                    """,
+                    """
+                    WITH "grdb_base" AS (\
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
+                    SELECT "childA", "childB" FROM "child" \
+                    WHERE ("pA", "pB") IN "grdb_base"\
+                    ) \
+                    SELECT *, "cA" AS "grdb_cA", "cB" AS "grdb_cB" \
+                    FROM "grandChild" WHERE ("cA", "cB") IN "grdb_base"
+                    """])
+            }
+            
+            // Request with avoided prefetch
+            do {
+                let request = Parent
+                    .none()
+                    .including(all: Parent.hasMany(Child.self)
+                                .including(all: Child.hasMany(GrandChild.self)))
+                    .orderByPrimaryKey()
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" WHERE 0 ORDER BY "parentA", "parentB"
+                    """])
+            }
+            do {
+                let request = Parent
+                    .including(all: Parent.hasMany(Child.self)
+                                .none()
+                                .including(all: Child.hasMany(GrandChild.self)))
+                    .orderByPrimaryKey()
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" ORDER BY "parentA", "parentB"
+                    """,
+                    """
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent") \
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
+                    FROM "child" \
+                    WHERE 0 AND (("pA", "pB") IN "grdb_base")
+                    """])
+            }
+
+            // Request with filters
+            do {
+                let request = Parent
+                    .including(all: Parent.hasMany(Child.self)
+                                .including(all: Child.hasMany(GrandChild.self)
+                                            .filter(Column("name") == "dog"))
+                                .filter(Column("name") == "blue"))
+                    .filter(Column("name") == "foo")
+                    .orderByPrimaryKey()
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" WHERE "name" = 'foo' ORDER BY "parentA", "parentB"
+                    """,
+                    """
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "name" = 'foo') \
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
+                    FROM "child" WHERE ("name" = 'blue') AND (("pA", "pB") IN "grdb_base")
+                    """,
+                    """
+                    WITH "grdb_base" AS (\
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" WHERE "name" = 'foo') \
+                    SELECT "childA", "childB" FROM "child" \
+                    WHERE ("name" = 'blue') AND (("pA", "pB") IN "grdb_base")\
+                    ) \
+                    SELECT *, "cA" AS "grdb_cA", "cB" AS "grdb_cB" \
+                    FROM "grandChild" \
+                    WHERE ("name" = 'dog') AND (("cA", "cB") IN "grdb_base")
                     """])
             }
         }

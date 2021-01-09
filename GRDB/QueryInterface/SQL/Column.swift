@@ -26,13 +26,13 @@ public protocol ColumnExpression: SQLExpression {
 
 extension ColumnExpression {
     /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLQualifiedColumn(name, alias: alias)
+    public func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        name.quotedDatabaseIdentifier
     }
     
     /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLQualifiedColumn(name, alias: alias)
     }
 }
 
@@ -42,7 +42,7 @@ extension ColumnExpression {
 /// Instead, adopt the ColumnExpression protocol.
 ///
 /// See https://github.com/groue/GRDB.swift#the-query-interface
-public struct Column: ColumnExpression {
+public struct Column: ColumnExpression, Equatable {
     /// The hidden rowID column
     public static let rowID = Column("rowid")
     
@@ -63,8 +63,8 @@ public struct Column: ColumnExpression {
 /// A qualified column in the database, as in `SELECT t.a FROM t`
 /// 
 /// :nodoc:
-public struct _SQLQualifiedColumn: ColumnExpression {
-    public var name: String
+struct SQLQualifiedColumn: ColumnExpression {
+    var name: String
     let alias: TableAlias
     
     /// Creates a column given its name.
@@ -73,15 +73,26 @@ public struct _SQLQualifiedColumn: ColumnExpression {
         self.alias = alias
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        // Never requalify
-        self
+    func _column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool) throws -> String? {
+        if alias == self.alias {
+            return name
+        } else {
+            return nil
+        }
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        if let qualifier = context.qualifier(for: alias) {
+            return qualifier.quotedDatabaseIdentifier
+                + "."
+                + name.quotedDatabaseIdentifier
+        }
+        return name.quotedDatabaseIdentifier
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        // Never requalify
+        self
     }
 }
 

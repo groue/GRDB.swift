@@ -58,7 +58,7 @@ public protocol FTS5Tokenizer: AnyObject {
         pText: UnsafePointer<Int8>?,
         nText: Int32,
         tokenCallback: @escaping FTS5TokenCallback)
-        -> Int32
+    -> Int32
 }
 
 private class TokenizeContext {
@@ -99,22 +99,20 @@ extension FTS5Tokenizer {
                         }
                         
                         // Extract token
-                        guard
-                            let token = pToken.flatMap({
-                                String(
-                                    data: Data(
-                                        bytesNoCopy: UnsafeMutableRawPointer(mutating: $0),
-                                        count: Int(nToken),
-                                        deallocator: .none),
-                                    encoding: .utf8) })
-                            else {
-                                return SQLITE_OK
+                        guard let token = pToken.flatMap({ String(
+                                                            data: Data(
+                                                                bytesNoCopy: UnsafeMutableRawPointer(mutating: $0),
+                                                                count: Int(nToken),
+                                                                deallocator: .none),
+                                                            encoding: .utf8) })
+                        else {
+                            return SQLITE_OK
                         }
                         
                         let context = contextPointer.assumingMemoryBound(to: TokenizeContext.self).pointee
                         context.tokens.append((token, FTS5TokenFlags(rawValue: flags)))
                         return SQLITE_OK
-                })
+                    })
                 if code != SQLITE_OK {
                     throw DatabaseError(resultCode: code)
                 }
@@ -153,27 +151,27 @@ extension Database {
             
             var tokenizerPointer: OpaquePointer? = nil
             let code: Int32
-            if let argument = arguments.first {
-                // Turn [String] into ContiguousArray<UnsafePointer<Int8>>
-                // (for an alternative implementation see https://oleb.net/blog/2016/10/swift-array-of-c-strings/)
-                func convertArguments<Result>(
-                    _ array: inout ContiguousArray<UnsafePointer<Int8>>,
-                    _ car: String,
-                    _ cdr: [String],
-                    _ body: (ContiguousArray<UnsafePointer<Int8>>) -> Result)
-                    -> Result
+            if arguments.isEmpty {
+                code = xCreate(contextPointer, nil, 0, &tokenizerPointer)
+            } else {
+                func withArrayOfCStrings<Result>(
+                    _ input: [String],
+                    _ output: inout ContiguousArray<UnsafePointer<Int8>>,
+                    _ accessor: (ContiguousArray<UnsafePointer<Int8>>) -> Result)
+                -> Result
                 {
-                    car.withCString { cString in
-                        if let car = cdr.first {
-                            array.append(cString)
-                            return convertArguments(&array, car, Array(cdr.suffix(from: 1)), body)
-                        } else {
-                            return body(array)
+                    if output.count == input.count {
+                        return accessor(output)
+                    } else {
+                        return input[output.count].withCString { (cString) -> Result in
+                            output.append(cString)
+                            return withArrayOfCStrings(input, &output, accessor)
                         }
                     }
                 }
                 var cStrings = ContiguousArray<UnsafePointer<Int8>>()
-                code = convertArguments(&cStrings, argument, Array(arguments.suffix(from: 1))) { cStrings in
+                cStrings.reserveCapacity(arguments.count)
+                code = withArrayOfCStrings(arguments, &cStrings) { (cStrings) in
                     cStrings.withUnsafeBufferPointer { azArg in
                         xCreate(
                             contextPointer,
@@ -182,8 +180,6 @@ extension Database {
                             &tokenizerPointer)
                     }
                 }
-            } else {
-                code = xCreate(contextPointer, nil, 0, &tokenizerPointer)
             }
             
             guard code == SQLITE_OK else {
@@ -209,7 +205,7 @@ extension Database {
             pText: UnsafePointer<Int8>?,
             nText: Int32,
             tokenCallback: @escaping FTS5TokenCallback)
-            -> Int32
+        -> Int32
         {
             guard let xTokenize = xTokenizer.xTokenize else {
                 return SQLITE_ERROR

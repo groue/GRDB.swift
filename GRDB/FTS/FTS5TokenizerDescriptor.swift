@@ -59,7 +59,7 @@ public struct FTS5TokenizerDescriptor {
     public static func ascii(
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
-        -> FTS5TokenizerDescriptor {
+    -> FTS5TokenizerDescriptor {
         var components: [String] = ["ascii"]
         if !separators.isEmpty {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
@@ -136,7 +136,7 @@ public struct FTS5TokenizerDescriptor {
         diacritics: FTS5.Diacritics = .removeLegacy,
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
-        -> FTS5TokenizerDescriptor
+    -> FTS5TokenizerDescriptor
     {
         var components: [String] = ["unicode61"]
         switch diacritics {

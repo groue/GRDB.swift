@@ -210,8 +210,8 @@ public struct DatabaseMigrator {
         let appliedIdentifiers = try appliedMigrations(db)
         let knownIdentifiers = migrations.map(\.identifier)
         return Array(zip(appliedIdentifiers, knownIdentifiers)
-            .prefix(while: { $0 == $1 })
-            .map { $0.0 })
+                        .prefix(while: { $0 == $1 })
+                        .map { $0.0 })
     }
     
     /// Returns true if all migrations are applied.
@@ -266,9 +266,9 @@ public struct DatabaseMigrator {
         
         // Subsequent migration must not be applied
         if let targetIndex = migrations.firstIndex(where: { $0.identifier == targetIdentifier }),
-            let lastAppliedIdentifier = appliedIdentifiers.last,
-            let lastAppliedIndex = migrations.firstIndex(where: { $0.identifier == lastAppliedIdentifier }),
-            targetIndex < lastAppliedIndex
+           let lastAppliedIdentifier = appliedIdentifiers.last,
+           let lastAppliedIndex = migrations.firstIndex(where: { $0.identifier == lastAppliedIdentifier }),
+           targetIndex < lastAppliedIndex
         {
             fatalError("database is already migrated beyond migration \(String(reflecting: targetIdentifier))")
         }

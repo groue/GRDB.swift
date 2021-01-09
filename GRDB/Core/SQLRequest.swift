@@ -102,9 +102,43 @@ public struct SQLRequest<RowDecoder> {
 }
 
 extension SQLRequest: FetchRequest {
+    public func fetchCount(_ db: Database) throws -> Int {
+        try SQLRequest<Int>("SELECT COUNT(*) FROM (\(self))").fetchOne(db)!
+    }
+    
+    public func makePreparedRequest(
+        _ db: Database,
+        forSingleResult singleResult: Bool = false)
+    throws -> PreparedRequest
+    {
+        let context = SQLGenerationContext(db)
+        let sql = try sqlLiteral.sql(context)
+        let statement: SelectStatement
+        switch cache {
+        case .none:
+            statement = try db.makeSelectStatement(sql: sql)
+        case .public?:
+            statement = try db.cachedSelectStatement(sql: sql)
+        case .internal?:
+            statement = try db.internalCachedSelectStatement(sql: sql)
+        }
+        try statement.setArguments(context.arguments)
+        return PreparedRequest(statement: statement, adapter: adapter)
+    }
+    
+    /// :nodoc
+    public func _selectedColumnCount(_ db: Database) throws -> Int {
+        // Compile request. We can freely use the statement cache because we
+        // do not execute the statement or modify its arguments.
+        let context = SQLGenerationContext(db)
+        let sql = try _requestSQL(context, forSingleResult: false)
+        let statement = try db.cachedSelectStatement(sql: sql)
+        return statement.columnCount
+    }
+    
     /// :nodoc:
-    public func _accept<Visitor: _FetchRequestVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    public func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
+        try sqlLiteral.sql(context)
     }
 }
 

@@ -51,7 +51,7 @@ public struct FTS3TokenizerDescriptor {
         diacritics: FTS3.Diacritics = .removeLegacy,
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
-        -> FTS3TokenizerDescriptor
+    -> FTS3TokenizerDescriptor
     {
         _unicode61(diacritics: diacritics, separators: separators, tokenCharacters: tokenCharacters)
     }
@@ -60,7 +60,7 @@ public struct FTS3TokenizerDescriptor {
         diacritics: FTS3.Diacritics,
         separators: Set<Character> = [],
         tokenCharacters: Set<Character> = [])
-        -> FTS3TokenizerDescriptor
+    -> FTS3TokenizerDescriptor
     {
         var arguments: [String] = []
         switch diacritics {

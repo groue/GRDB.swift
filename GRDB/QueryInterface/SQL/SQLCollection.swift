@@ -4,11 +4,29 @@
 ///
 /// :nodoc:
 public protocol _SQLCollection {
-    /// Returns a qualified collection
+    /// Returns a qualified collection.
+    ///
+    /// :nodoc:
     func _qualifiedCollection(with alias: TableAlias) -> SQLCollection
     
-    /// Accepts a visitor
-    func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws
+    /// The expressions in the collection, if known.
+    ///
+    /// This property makes it possible to track individual rows identified by
+    /// their row ids, and ignore modifications to other rows:
+    ///
+    ///     // Track rows 1, 2, 3 only
+    ///     let request = Player.filter(keys: [1, 2, 3])
+    ///     let regionObservation = DatabaseRegionObservation(tracking: request)
+    ///     let valueObservation = ValueObservation.tracking(request.fetchAll)
+    ///
+    /// :nodoc:
+    var _collectionExpressions: [SQLExpression]? { get }
+    
+    /// Returns an SQL string that represents the collection.
+    ///
+    /// - parameter context: An SQL generation context which accepts
+    ///   statement arguments.
+    func _collectionSQL(_ context: SQLGenerationContext) throws -> String
 }
 
 /// SQLCollection is the protocol for types that can be checked for inclusion.
@@ -18,17 +36,27 @@ public protocol SQLCollection: _SQLCollection {
     func contains(_ value: SQLExpressible) -> SQLExpression
 }
 
-// MARK: - _SQLExpressionsArray
+// MARK: - SQLExpressionsArray
 
-/// _SQLExpressionsArray wraps an array of expressions
+/// SQLExpressionsArray wraps an array of expressions
 ///
-///     _SQLExpressionsArray([1, 2, 3])
+///     SQLExpressionsArray([1, 2, 3])
 ///
 /// :nodoc:
-public struct _SQLExpressionsArray: SQLCollection {
+struct SQLExpressionsArray: SQLCollection {
     let expressions: [SQLExpression]
     
-    public func contains(_ value: SQLExpressible) -> SQLExpression {
+    var _collectionExpressions: [SQLExpression]? { expressions }
+    
+    func _collectionSQL(_ context: SQLGenerationContext) throws -> String {
+        try "("
+            + expressions
+            .map { try $0._expressionSQL(context, wrappedInParenthesis: false) }
+            .joined(separator: ", ")
+            + ")"
+    }
+    
+    func contains(_ value: SQLExpressible) -> SQLExpression {
         guard let expression = expressions.first else {
             return false.databaseValue
         }
@@ -41,46 +69,37 @@ public struct _SQLExpressionsArray: SQLCollection {
         if expressions.count == 1 {
             // Output `expr = value` instead of `expr IN (value)`, because it
             // looks nicer. And make sure we do not produce 'expr IS NULL'.
-            return _SQLExpressionEqual(.equal, value.sqlExpression, expression)
+            return SQLExpressionEqual(.equal, value.sqlExpression, expression)
         }
         
-        return _SQLExpressionContains(value, self)
+        return SQLExpressionContains(value, self)
     }
     
-    /// :nodoc:
-    public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
-        _SQLExpressionsArray(expressions: expressions.map { $0._qualifiedExpression(with: alias) })
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLCollectionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
+        SQLExpressionsArray(expressions: expressions.map { $0._qualifiedExpression(with: alias) })
     }
 }
 
-// MARK: - SQLCollectionExpressions
+// MARK: - SQLTableCollection
 
-extension SQLCollection {
-    func expressions() -> [SQLExpression]? {
-        var visitor = SQLCollectionExpressions()
-        try! _accept(&visitor)
-        return visitor.expressions
+/// SQLTableCollection aims at generating `value IN table` expressions.
+///
+/// :nodoc:
+enum SQLTableCollection: SQLCollection {
+    case tableName(String)
+    
+    var _collectionExpressions: [SQLExpression]? { nil }
+    
+    func _collectionSQL(_ context: SQLGenerationContext) throws -> String {
+        switch self {
+        case let .tableName(tableName):
+            return tableName.quotedDatabaseIdentifier
+        }
     }
-}
-
-/// Support for SQLCollection.expressions
-private struct SQLCollectionExpressions: _SQLCollectionVisitor {
-    var expressions: [SQLExpression]?
     
-    mutating func visit(_ collection: _SQLExpressionsArray) throws {
-        expressions = collection.expressions
+    func contains(_ value: SQLExpressible) -> SQLExpression {
+        return SQLExpressionContains(value, self)
     }
     
-    // MARK: _FetchRequestVisitor
-    
-    mutating func visit<Base: FetchRequest>(_ request: AdaptedFetchRequest<Base>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: QueryInterfaceRequest<RowDecoder>) throws { }
-    
-    mutating func visit<RowDecoder>(_ request: SQLRequest<RowDecoder>) throws { }
+    func _qualifiedCollection(with alias: TableAlias) -> SQLCollection { self }
 }

@@ -432,6 +432,16 @@ This chapter lists all kinds of supported interpolations.
     "SELECT * FROM player WHERE score = (\(subquery))"
     ```
 
+- Definition and table name of [common table Expressions]:
+    
+    ```swift
+    // WITH name AS (SELECT 'O''Brien') SELECT * FROM name
+    let cte = CommonTableExpression<Void>(
+       named: "name",
+       literal: "SELECT \("O'Brien")")
+    "WITH \(definitionFor: cte) SELECT * FROM \(cte)"
+    ```
+
 - SQLLiteral:
 
     ```swift
@@ -472,3 +482,4 @@ This chapter lists all kinds of supported interpolations.
 [query interface requests]: ../README.md#requests
 [SE-0228 Fix ExpressibleByStringInterpolation]: https://github.com/apple/swift-evolution/blob/master/proposals/0228-fix-expressiblebystringinterpolation.md
 [columns selected by the record]: ../README.md#columns-selected-by-a-request
+[common table Expressions]: CommonTableExpressions.md

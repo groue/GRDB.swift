@@ -59,7 +59,7 @@ extension TableRecord {
         _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-        -> BelongsToAssociation<Self, Destination>
+    -> BelongsToAssociation<Self, Destination>
     {
         BelongsToAssociation(key: key, using: foreignKey)
     }
@@ -124,7 +124,7 @@ extension TableRecord {
         _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-        -> HasManyAssociation<Self, Destination>
+    -> HasManyAssociation<Self, Destination>
     {
         HasManyAssociation(key: key, using: foreignKey)
     }
@@ -195,11 +195,11 @@ extension TableRecord {
         through pivot: Pivot,
         using target: Target,
         key: String? = nil)
-        -> HasManyThroughAssociation<Self, Target.RowDecoder>
-        where Pivot: Association,
-        Target: Association,
-        Pivot.OriginRowDecoder == Self,
-        Pivot.RowDecoder == Target.OriginRowDecoder
+    -> HasManyThroughAssociation<Self, Target.RowDecoder>
+    where Pivot: Association,
+          Target: Association,
+          Pivot.OriginRowDecoder == Self,
+          Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation<Self, Target.RowDecoder>(
             sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
@@ -271,7 +271,7 @@ extension TableRecord {
         _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-        -> HasOneAssociation<Self, Destination>
+    -> HasOneAssociation<Self, Destination>
     {
         HasOneAssociation(key: key, using: foreignKey)
     }
@@ -342,11 +342,11 @@ extension TableRecord {
         through pivot: Pivot,
         using target: Target,
         key: String? = nil)
-        -> HasOneThroughAssociation<Self, Target.RowDecoder>
-        where Pivot: AssociationToOne,
-        Target: AssociationToOne,
-        Pivot.OriginRowDecoder == Self,
-        Pivot.RowDecoder == Target.OriginRowDecoder
+    -> HasOneThroughAssociation<Self, Target.RowDecoder>
+    where Pivot: AssociationToOne,
+          Target: AssociationToOne,
+          Pivot.OriginRowDecoder == Self,
+          Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation<Self, Target.RowDecoder>(
             sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
@@ -483,10 +483,14 @@ extension TableRecord where Self: EncodableRecord {
     ///     let team: Team = ...
     ///     let players = try team.players.fetchAll(db) // [Player]
     public func request<A: Association>(for association: A)
-        -> QueryInterfaceRequest<A.RowDecoder>
-        where A.OriginRowDecoder == Self
+    -> QueryInterfaceRequest<A.RowDecoder>
+    where A.OriginRowDecoder == Self
     {
         switch association._sqlAssociation.pivot.condition {
+        case .expression:
+            // TODO: find a use case?
+            fatalError("Not implemented: request association without any foreign key")
+            
         case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
             let destinationRelation = association
                 ._sqlAssociation
@@ -511,8 +515,8 @@ extension TableRecord {
     
     /// Creates a request that prefetches an association.
     public static func including<A: AssociationToMany>(all association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.OriginRowDecoder == Self
+    -> QueryInterfaceRequest<Self>
+    where A.OriginRowDecoder == Self
     {
         all().including(all: association)
     }
@@ -521,8 +525,8 @@ extension TableRecord {
     /// associated record are selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public static func including<A: Association>(optional association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.OriginRowDecoder == Self
+    -> QueryInterfaceRequest<Self>
+    where A.OriginRowDecoder == Self
     {
         all().including(optional: association)
     }
@@ -531,8 +535,8 @@ extension TableRecord {
     /// associated record are selected. The returned association requires
     /// that the associated database table contains a matching row.
     public static func including<A: Association>(required association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.OriginRowDecoder == Self
+    -> QueryInterfaceRequest<Self>
+    where A.OriginRowDecoder == Self
     {
         all().including(required: association)
     }
@@ -541,8 +545,8 @@ extension TableRecord {
     /// associated record are not selected. The returned association does not
     /// require that the associated database table contains a matching row.
     public static func joining<A: Association>(optional association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.OriginRowDecoder == Self
+    -> QueryInterfaceRequest<Self>
+    where A.OriginRowDecoder == Self
     {
         all().joining(optional: association)
     }
@@ -551,8 +555,8 @@ extension TableRecord {
     /// associated record are not selected. The returned association requires
     /// that the associated database table contains a matching row.
     public static func joining<A: Association>(required association: A)
-        -> QueryInterfaceRequest<Self>
-        where A.OriginRowDecoder == Self
+    -> QueryInterfaceRequest<Self>
+    where A.OriginRowDecoder == Self
     {
         all().joining(required: association)
     }

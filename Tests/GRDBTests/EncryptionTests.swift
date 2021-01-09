@@ -28,7 +28,62 @@ class EncryptionTests: GRDBTestCase {
             }
         }
     }
-
+    
+    func testDatabaseConfigWithEmptyPassphrase() throws {
+        do {
+            var config = Configuration()
+            config.prepareDatabase { db in
+                XCTAssertThrowsError(try db.usePassphrase(""))
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+    }
+    
+    func testDatabaseConfigWithEmptyDataPassphrase() throws {
+        do {
+            var config = Configuration()
+            config.prepareDatabase { db in
+                XCTAssertThrowsError(try db.usePassphrase(Data()))
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+    }
+    
+    func testDatabaseQueueWithDataPassphraseToDatabaseQueueWithDataPassphrase() throws {
+        let secretData = "Secret".data(using: .utf8)!
+        do {
+            var config = Configuration()
+            config.prepareDatabase { db in
+                try db.usePassphrase(secretData)
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase { db in
+                try db.usePassphrase(secretData)
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+    
+        }
+    }
+    
     func testDatabaseQueueWithPassphraseToDatabaseQueueWithoutPassphrase() throws {
         do {
             var config = Configuration()
@@ -126,6 +181,54 @@ class EncryptionTests: GRDBTestCase {
         }
     }
 
+    func testDatabaseQueueWithDataPassphraseToDatabaseQueueWithNewDataPassphrase() throws {
+        let initialPassphrase = "Secret".data(using: .utf8)!
+        let finalPassphrase = "MoreSecret".data(using: .utf8)!
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase { db in
+                try db.usePassphrase(initialPassphrase)
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "CREATE TABLE data (value INTEGER)")
+                try db.execute(sql: "INSERT INTO data (value) VALUES (1)")
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase { db in
+                try db.usePassphrase(initialPassphrase)
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 1)
+            }
+            try dbQueue.write { db in
+                try db.changePassphrase(finalPassphrase)
+            }
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "INSERT INTO data (value) VALUES (2)")
+            }
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+        
+        do {
+            var config = Configuration()
+            config.prepareDatabase { db in
+                try db.usePassphrase(finalPassphrase)
+            }
+            let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
+            try dbQueue.inDatabase { db in
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM data")!, 2)
+            }
+        }
+    }
+    
     func testDatabaseQueueWithPassphraseToDatabasePoolWithPassphrase() throws {
         do {
             var config = Configuration()

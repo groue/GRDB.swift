@@ -274,13 +274,12 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
         //
         // But this would trigger two calls to `encode(to:)`.
         let dao = try DAO(db, self)
-        guard
-            let statement = try dao.updateStatement(
+        guard let statement = try dao.updateStatement(
                 columns: columns,
                 onConflict: type(of: self).persistenceConflictPolicy.conflictResolutionForUpdate)
-            else {
-                // Nil primary key
-                throw dao.makeRecordNotFoundError()
+        else {
+            // Nil primary key
+            throw dao.makeRecordNotFoundError()
         }
         try statement.execute()
         if db.changesCount == 0 {

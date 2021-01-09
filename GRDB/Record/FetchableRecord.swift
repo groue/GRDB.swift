@@ -155,7 +155,7 @@ extension FetchableRecord {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> RecordCursor<Self>
+    throws -> RecordCursor<Self>
     {
         try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
@@ -175,7 +175,7 @@ extension FetchableRecord {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> [Self]
+    throws -> [Self]
     {
         try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
@@ -195,7 +195,7 @@ extension FetchableRecord {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> Self?
+    throws -> Self?
     {
         try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
     }
@@ -217,7 +217,7 @@ extension FetchableRecord where Self: Hashable {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> Set<Self>
+    throws -> Set<Self>
     {
         try Set(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
@@ -251,7 +251,7 @@ extension FetchableRecord {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> RecordCursor<Self>
+    throws -> RecordCursor<Self>
     {
         try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -272,7 +272,7 @@ extension FetchableRecord {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> [Self]
+    throws -> [Self]
     {
         try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -293,7 +293,7 @@ extension FetchableRecord {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> Self?
+    throws -> Self?
     {
         try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -316,7 +316,7 @@ extension FetchableRecord where Self: Hashable {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> Set<Self>
+    throws -> Set<Self>
     {
         try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }

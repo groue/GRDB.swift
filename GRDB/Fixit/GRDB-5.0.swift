@@ -94,7 +94,7 @@ extension DatabaseMigrator {
 extension DatabasePool {
     @available(*, unavailable, message: "Use pool.writeWithoutTransaction { $0.checkpoint() } instead")
     public func checkpoint(_ kind: Database.CheckpointMode = .passive) throws { preconditionFailure() }
-
+    
     #if os(iOS)
     @available(*, unavailable, message: "Memory management is now enabled by default. This method does nothing.")
     public func setupMemoryManagement(in application: UIApplication) { preconditionFailure() }
@@ -194,21 +194,20 @@ extension FilteredRequest {
     { preconditionFailure() }
 }
 
-@available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
-public struct SQLExpressionLiteral: SQLExpression {
+/// :nodoc:
+extension SQLExpressionLiteral {
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public var sql: String { preconditionFailure() }
+    
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public var arguments: StatementArguments { preconditionFailure() }
     
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public init(sql: String, arguments: StatementArguments = StatementArguments())
     { preconditionFailure() }
     
+    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public init(literal sqlLiteral: SQLLiteral)
-    { preconditionFailure() }
-    
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression
-    { preconditionFailure() }
-    
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor)
     { preconditionFailure() }
 }
 
@@ -236,14 +235,14 @@ extension SQLRequest {
         _ db: Database,
         request: Request,
         cached: Bool = false)
-        throws
-        where Request: FetchRequest, Request.RowDecoder == RowDecoder
+    throws
+    where Request: FetchRequest, Request.RowDecoder == RowDecoder
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use makePreparedRequest(db, forSingleResult: false).statement.sql instead")
+    @available(*, unavailable, message: "Use makePreparedRequest(db).statement.sql instead")
     public var sql: String { preconditionFailure() }
     
-    @available(*, unavailable, message: "Use makePreparedRequest(db, forSingleResult: false).statement.arguments instead")
+    @available(*, unavailable, message: "Use makePreparedRequest(db).statement.arguments instead")
     public var arguments: StatementArguments { preconditionFailure() }
 }
 
@@ -311,7 +310,7 @@ extension ValueObservation {
         Combined>(
         _ other: ValueObservation<R1>,
         _ transform: @escaping (Reducer.Value, R1.Value) -> Combined)
-        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    -> ValueObservation<ValueReducers.Unavailable<Combined>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -322,7 +321,7 @@ extension ValueObservation {
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
         _ transform: @escaping (Reducer.Value, R1.Value, R2.Value) -> Combined)
-        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    -> ValueObservation<ValueReducers.Unavailable<Combined>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -335,7 +334,7 @@ extension ValueObservation {
         _ observation2: ValueObservation<R2>,
         _ observation3: ValueObservation<R3>,
         _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value) -> Combined)
-        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    -> ValueObservation<ValueReducers.Unavailable<Combined>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -350,7 +349,7 @@ extension ValueObservation {
         _ observation3: ValueObservation<R3>,
         _ observation4: ValueObservation<R4>,
         _ transform: @escaping (Reducer.Value, R1.Value, R2.Value, R3.Value, R4.Value) -> Combined)
-        -> ValueObservation<ValueReducers.Unavailable<Combined>>
+    -> ValueObservation<ValueReducers.Unavailable<Combined>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "compactMap is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -371,7 +370,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         R2: _ValueReducer>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>)
-        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value)>>
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -382,7 +381,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>)
-        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value)>>
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -395,7 +394,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
         _ o4: ValueObservation<R4>)
-        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value)>>
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -410,7 +409,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ o3: ValueObservation<R3>,
         _ o4: ValueObservation<R4>,
         _ o5: ValueObservation<R5>)
-        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value)>>
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -427,7 +426,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ o4: ValueObservation<R4>,
         _ o5: ValueObservation<R5>,
         _ o6: ValueObservation<R6>)
-        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value)>>
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -446,7 +445,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ o5: ValueObservation<R5>,
         _ o6: ValueObservation<R6>,
         _ o7: ValueObservation<R7>)
-        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value)>>
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
@@ -467,75 +466,75 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ o6: ValueObservation<R6>,
         _ o7: ValueObservation<R7>,
         _ o8: ValueObservation<R8>)
-        -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value, R8.Value)>>
+    -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value, R3.Value, R4.Value, R5.Value, R6.Value, R7.Value, R8.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingCount<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unavailable<Int>>
+    -> ValueObservation<ValueReducers.Unavailable<Int>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder]>>
-        where Request.RowDecoder: DatabaseValueConvertible
+    -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder]>>
+    where Request.RowDecoder: DatabaseValueConvertible
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unavailable<Request.RowDecoder?>>
-        where Request.RowDecoder: DatabaseValueConvertible
+    -> ValueObservation<ValueReducers.Unavailable<Request.RowDecoder?>>
+    where Request.RowDecoder: DatabaseValueConvertible
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder.Wrapped?]>>
-        where Request.RowDecoder: _OptionalProtocol,
-        Request.RowDecoder.Wrapped: DatabaseValueConvertible
+    -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder.Wrapped?]>>
+    where Request.RowDecoder: _OptionalProtocol,
+          Request.RowDecoder.Wrapped: DatabaseValueConvertible
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder]>>
-        where Request.RowDecoder: FetchableRecord
+    -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder]>>
+    where Request.RowDecoder: FetchableRecord
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request) ->
-        ValueObservation<ValueReducers.Unavailable<Request.RowDecoder?>>
-        where Request.RowDecoder: FetchableRecord
+    ValueObservation<ValueReducers.Unavailable<Request.RowDecoder?>>
+    where Request.RowDecoder: FetchableRecord
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unavailable<[Row]>>
-        where Request.RowDecoder == Row
+    -> ValueObservation<ValueReducers.Unavailable<[Row]>>
+    where Request.RowDecoder == Row
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request)
-        -> ValueObservation<ValueReducers.Unavailable<Row?>>
-        where Request.RowDecoder == Row
+    -> ValueObservation<ValueReducers.Unavailable<Row?>>
+    where Request.RowDecoder == Row
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func tracking<Value>(
         _ regions: DatabaseRegionConvertible...,
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Unavailable<Value>>
+    -> ValueObservation<ValueReducers.Unavailable<Value>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func tracking<Value>(
         _ regions: [DatabaseRegionConvertible],
         fetch: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Unavailable<Value>>
+    -> ValueObservation<ValueReducers.Unavailable<Value>>
     { preconditionFailure() }
     
     @available(*, unavailable, renamed: "tracking(_:)")
     public static func tracking<Value>(
         value: @escaping (Database) throws -> Value)
-        -> ValueObservation<ValueReducers.Unavailable<Value>>
+    -> ValueObservation<ValueReducers.Unavailable<Value>>
     { preconditionFailure() }
 }
 

@@ -2,8 +2,8 @@ import Foundation
 
 /// A database row.
 public final class Row: Equatable, Hashable, RandomAccessCollection,
-    ExpressibleByDictionaryLiteral, CustomStringConvertible,
-    CustomDebugStringConvertible
+                        ExpressibleByDictionaryLiteral, CustomStringConvertible,
+                        CustomDebugStringConvertible
 {
     // It is not a violation of the Demeter law when another type uses this
     // property, which is exposed for optimizations.
@@ -123,8 +123,8 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
         statement: SelectStatement)
     {
         self.init(impl: StatementCopyRowImpl(
-            sqliteStatement: sqliteStatement,
-            columnNames: statement.columnNames))
+                    sqliteStatement: sqliteStatement,
+                    columnNames: statement.columnNames))
     }
     
     init(impl: RowImpl) {
@@ -414,8 +414,8 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @inlinable
     public subscript<Value, Column>(_ column: Column)
-        -> Value?
-        where
+    -> Value?
+    where
         Value: DatabaseValueConvertible & StatementColumnConvertible,
         Column: ColumnExpression
     {
@@ -451,8 +451,8 @@ extension Row {
     /// (see https://www.sqlite.org/datatype3.html).
     @inlinable
     public subscript<Value, Column>(_ column: Column)
-        -> Value
-        where
+    -> Value
+    where
         Value: DatabaseValueConvertible & StatementColumnConvertible,
         Column: ColumnExpression
     {
@@ -625,8 +625,8 @@ extension Row {
     ///     print(books[0].title)
     ///     // Prints "Moby-Dick"
     public subscript<Collection>(_ key: String)
-        -> Collection
-        where
+    -> Collection
+    where
         Collection: RangeReplaceableCollection,
         Collection.Element: FetchableRecord
     {
@@ -847,7 +847,7 @@ extension Row {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> RowCursor
+    throws -> RowCursor
     {
         try RowCursor(statement: statement, arguments: arguments, adapter: adapter)
     }
@@ -867,7 +867,7 @@ extension Row {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> [Row]
+    throws -> [Row]
     {
         // The cursor reuses a single mutable row. Return immutable copies.
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
@@ -888,7 +888,7 @@ extension Row {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> Set<Row>
+    throws -> Set<Row>
     {
         // The cursor reuses a single mutable row. Return immutable copies.
         return try Set(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
@@ -909,7 +909,7 @@ extension Row {
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
-        throws -> Row?
+    throws -> Row?
     {
         let cursor = try fetchCursor(statement, arguments: arguments, adapter: adapter)
         // Keep cursor alive until we can copy the fetched row
@@ -956,7 +956,7 @@ extension Row {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> RowCursor
+    throws -> RowCursor
     {
         try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -981,7 +981,7 @@ extension Row {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> [Row]
+    throws -> [Row]
     {
         try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -1006,7 +1006,7 @@ extension Row {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> Set<Row>
+    throws -> Set<Row>
     {
         try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -1031,7 +1031,7 @@ extension Row {
         sql: String,
         arguments: StatementArguments = StatementArguments(),
         adapter: RowAdapter? = nil)
-        throws -> Row?
+    throws -> Row?
     {
         try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
     }
@@ -1650,11 +1650,11 @@ protocol RowImpl {
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
-        -> Value
+    -> Value
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
-        -> Value?
+    -> Value?
     func dataNoCopy(atUncheckedIndex index: Int) -> Data?
     
     /// Returns the index of the leftmost column that matches *name* (case-insensitive)

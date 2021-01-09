@@ -10,7 +10,7 @@ protocol StatementAuthorizer: AnyObject {
         _ cString2: UnsafePointer<Int8>?,
         _ cString3: UnsafePointer<Int8>?,
         _ cString4: UnsafePointer<Int8>?)
-        -> Int32
+    -> Int32
 }
 
 /// A class that gathers information about one statement during its compilation.
@@ -38,13 +38,13 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
         _ cString2: UnsafePointer<Int8>?,
         _ cString3: UnsafePointer<Int8>?,
         _ cString4: UnsafePointer<Int8>?)
-        -> Int32
+    -> Int32
     {
-//        print("""
-//            StatementCompilationAuthorizer: \
-//            \(AuthorizerActionCode(rawValue: actionCode)) \
-//            \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
-//            """)
+        // print("""
+        //     StatementCompilationAuthorizer: \
+        //     \(AuthorizerActionCode(rawValue: actionCode)) \
+        //     \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
+        //     """)
         
         switch actionCode {
         case SQLITE_DROP_TABLE, SQLITE_DROP_VTABLE, SQLITE_DROP_TEMP_TABLE,
@@ -173,13 +173,13 @@ final class TruncateOptimizationBlocker: StatementAuthorizer {
         _ cString2: UnsafePointer<Int8>?,
         _ cString3: UnsafePointer<Int8>?,
         _ cString4: UnsafePointer<Int8>?)
-        -> Int32
+    -> Int32
     {
-//        print("""
-//            TruncateOptimizationBlocker: \
-//            \(AuthorizerActionCode(rawValue: actionCode)) \
-//            \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
-//            """)
+        // print("""
+        //     TruncateOptimizationBlocker: \
+        //     \(AuthorizerActionCode(rawValue: actionCode)) \
+        //     \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
+        //     """)
         return (actionCode == SQLITE_DELETE) ? SQLITE_IGNORE : SQLITE_OK
     }
 }

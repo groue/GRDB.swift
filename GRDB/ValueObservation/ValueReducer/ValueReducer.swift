@@ -66,8 +66,11 @@ public enum ValueReducers {
     // ValueObservation<ValueReducers.Auto>.tracking(_:).
     /// :nodoc:
     public enum Auto: ValueReducer {
+        /// :nodoc:
         public var _isSelectedRegionDeterministic: Bool { preconditionFailure() }
+        /// :nodoc:
         public func _fetch(_ db: Database) throws -> Never { preconditionFailure() }
+        /// :nodoc:
         public mutating func _value(_ fetched: Never) -> Never? { }
     }
 }

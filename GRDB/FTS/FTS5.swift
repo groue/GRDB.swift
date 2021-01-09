@@ -212,7 +212,7 @@ public struct FTS5: VirtualTableModule {
         _ sqlite3_prepare_v3: @convention(c) (OpaquePointer?, UnsafePointer<Int8>?, Int32, UInt32, UnsafeMutablePointer<OpaquePointer?>?, UnsafeMutablePointer<UnsafePointer<Int8>?>?) -> Int32,
         // swiftlint:disable:next line_length
         _ sqlite3_bind_pointer: @convention(c) (OpaquePointer?, Int32, UnsafeMutableRawPointer?, UnsafePointer<Int8>?, (@convention(c) (UnsafeMutableRawPointer?) -> Void)?) -> Int32)
-        -> UnsafePointer<fts5_api>
+    -> UnsafePointer<fts5_api>
     {
         var statement: SQLiteStatement? = nil
         var api: UnsafePointer<fts5_api>? = nil

@@ -214,14 +214,6 @@ extension SQLRelation: Refinable {
         annotated(with: { _ in selection })
     }
     
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        map(\.filtersPromise) { filtersPromise in
-            DatabasePromise { db in
-                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
-            }
-        }
-    }
-    
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
         with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
@@ -237,6 +229,16 @@ extension SQLRelation: Refinable {
     
     func qualified(with alias: TableAlias) -> Self {
         map(\.source) { $0.qualified(with: alias) }
+    }
+}
+
+extension SQLRelation: FilteredRequest {
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        map(\.filtersPromise) { filtersPromise in
+            DatabasePromise { db in
+                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
+            }
+        }
     }
 }
 
@@ -277,7 +279,7 @@ extension SQLRelation {
         // Preserve association cardinality in intermediate steps of
         // including(all:), and force desired cardinality otherwize
         let isSingular = (kind == .allNotPrefetched)
-            ? association.destination.isSingular
+            ? association.destination.cardinality.isSingular
             : kind.isSingular
         let childKey = association.destination.key.name(singular: isSingular)
         let child = SQLRelation.Child(
@@ -363,6 +365,15 @@ extension SQLRelation {
     func filteringChildren(_ included: (Child) throws -> Bool) rethrows -> Self {
         try map(\.children) { try $0.filter { try included($1) } }
     }
+    
+    func removingChildrenForPrefetchedAssociations() -> Self {
+        filteringChildren {
+            switch $0.kind {
+            case .allPrefetched, .allNotPrefetched: return false
+            case .oneRequired, .oneOptional: return true
+            }
+        }
+    }
 }
 
 extension SQLRelation: _JoinableRequest {
@@ -389,22 +400,17 @@ extension SQLRelation: _JoinableRequest {
 
 // MARK: - SQLSource
 
-enum SQLSource {
-    case table(tableName: String, alias: TableAlias?)
-    indirect case subquery(SQLQuery)
+struct SQLSource {
+    var tableName: String
+    var alias: TableAlias?
     
     func qualified(with alias: TableAlias) -> SQLSource {
-        switch self {
-        case let .table(tableName: tableName, alias: sourceAlias):
-            if let sourceAlias = sourceAlias {
-                alias.becomeProxy(of: sourceAlias)
-                return self
-            } else {
-                alias.setTableName(tableName)
-                return .table(tableName: tableName, alias: alias)
-            }
-        case .subquery:
+        if let sourceAlias = self.alias {
+            alias.becomeProxy(of: sourceAlias)
             return self
+        } else {
+            alias.setTableName(tableName)
+            return SQLSource(tableName: tableName, alias: alias)
         }
     }
 }
@@ -498,33 +504,28 @@ extension SQLRelation {
 
 // MARK: - SQLAssociationCondition
 
-/// The condition that links two tables.
+/// The condition that links two tables of an association.
 ///
-/// Currently, we only support one kind of condition: foreign keys.
+/// Conditions can feed a `JOIN` clause:
 ///
-///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-///                                         <---- the condition ---->
+///     // SELECT ... FROM book JOIN author ON author.id = book.authorId
+///     //                                     ~~~~~~~~~~~~~~~~~~~~~~~~~
+///     Book.including(required: Book.author)
 ///
-/// When we eventually add support for new ways to link tables,
-/// SQLAssociationCondition is the type we'll need to update.
+/// Conditions help eager loading of to-many associations:
 ///
-/// SQLAssociationCondition adopts Equatable so that we can merge associations:
+///     // SELECT * FROM author WHERE ...
+///     // SELECT * FROM book WHERE author.id IN (1, 2, 3)
+///     //                          ~~~~~~~~~~~~~~~~~~~~~~
+///     Author.filter(...).including(all: Author.books)
 ///
-///     // request1 and request2 are equivalent
-///     let request1 = Book
-///         .including(required: Book.author)
-///     let request2 = Book
-///         .including(required: Book.author)
-///         .including(required: Book.author)
+/// Conditions help fetching associated records:
 ///
-///     // request3 and request4 are equivalent
-///     let request3 = Book
-///         .including(required: Book.author.filter(condition1 && condition2))
-///     let request4 = Book
-///         .joining(required: Book.author.filter(condition1))
-///         .including(optional: Book.author.filter(condition2))
-enum SQLAssociationCondition: Equatable {
-    /// Condition based on a foreign key
+///     // SELECT * FROM book WHERE author.id = 1
+///     //                          ~~~~~~~~~~~~~
+///     author.request(for: Author.books)
+enum SQLAssociationCondition {
+    /// A condition based on a foreign key.
     ///
     /// originIsLeft is true if the table at the origin of the foreign key is on
     /// the left of the sql JOIN operator.
@@ -537,18 +538,42 @@ enum SQLAssociationCondition: Equatable {
     ///
     ///     -- Book.including(required: Book.author)
     ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
     ///
     /// The origin table `book`is on the right of the JOIN operator for
     /// the HasMany and HasOne associations:
     ///
     ///     -- Author.including(required: Author.books)
     ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
+    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
     case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
+    
+    /// A condition based on a function that returns an expression.
+    ///
+    /// The two arguments `left` and `right` are aliases for the left and right
+    /// tables in a `JOIN` clause:
+    ///
+    ///     // WITH bonus AS (...)
+    ///     // SELECT * FROM player
+    ///     // JOIN bonus ON player.id = bonus.playerID
+    ///     //               ~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ///     let bonus = CommonTableExpression(...)
+    ///     let association = Player.association(to: bonus, on: { player, bonus in
+    ///         player[Column("id")] == bonus[Column("playerID")]
+    ///     })
+    ///     Player.with(bonus).joining(required: association)
+    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+    
+    /// The condition that does not constrain the two associated tables
+    /// in any way.
+    static let none = expression({ _, _ in true })
     
     var reversed: SQLAssociationCondition {
         switch self {
         case let .foreignKey(request: request, originIsLeft: originIsLeft):
             return .foreignKey(request: request, originIsLeft: !originIsLeft)
+        case let .expression(condition):
+            return .expression { condition($1, $0) }
         }
     }
 }
@@ -564,16 +589,19 @@ extension JoinMapping {
     /// - precondition: leftRows contains all mapping left columns.
     /// - precondition: All rows have the same layout: a column index returned
     ///   by `index(forColumn:)` refers to the same column in all rows.
-    func joinExpression<Row: ColumnAddressable>(leftRows: [Row]) -> SQLExpression {
+    func joinExpression<Rows>(leftRows: Rows)
+    -> SQLExpression
+    where Rows: Collection, Rows.Element: ColumnAddressable
+    {
         guard let firstLeftRow = leftRows.first else {
             // We could return `false.sqlExpression`.
             //
             // But we need to take care of database observation, and generate
-            // SQL that involves all used columns. Consider using a `NullRow`.
+            // SQL that involves all used columns. Consider using a `DummyRow`.
             fatalError("Provide at least one left row, or this method can't generate SQL that can be observed.")
         }
         
-        let mappings: [(leftIndex: Row.ColumnIndex, rightColumn: Column)] = map { mapping in
+        let mappings: [(leftIndex: Rows.Element.ColumnIndex, rightColumn: Column)] = map { mapping in
             guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
                 fatalError("Missing column: \(mapping.left)")
             }
@@ -590,16 +618,10 @@ extension JoinMapping {
             // Unique database values and filter out NULL:
             let leftIndex = mapping.leftIndex
             var dbValues = Set(leftRows.map { $0.databaseValue(at: leftIndex) })
-            dbValues.remove(.null)
-            
-            if dbValues.isEmpty {
-                // null was removed from dbValues
-                return mapping.rightColumn == nil
-            } else {
-                // table.a IN (1, 2, 3, ...)
-                // Sort database values for nicer output.
-                return dbValues.sorted(by: <).contains(mapping.rightColumn)
-            }
+            dbValues.remove(.null) // SQLite doesn't match foreign keys on NULL
+            // table.a IN (1, 2, 3, ...)
+            // Sort database values for nicer output.
+            return dbValues.sorted(by: <).contains(mapping.rightColumn)
         } else {
             // Join on a multiple columns.
             // ((table.a = 1) AND (table.b = 2)) OR ((table.a = 3) AND (table.b = 4)) ...
@@ -609,7 +631,8 @@ extension JoinMapping {
                     mappings
                         .map({ mapping -> SQLExpression in
                             let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
-                            return mapping.rightColumn == leftValue
+                            // Force `=` operator, because SQLite doesn't match foreign keys on NULL
+                            return SQLExpressionEqual(.equal, mapping.rightColumn, leftValue)
                         })
                         .joined(operator: .and)
                 })
@@ -629,7 +652,7 @@ extension JoinMapping {
     ///   the AND operator and qualified with the right table.
     func joinExpressions(leftAlias: TableAlias) -> [SQLExpression] {
         map {
-            Column($0.right) == _SQLQualifiedColumn($0.left, alias: leftAlias)
+            Column($0.right) == SQLQualifiedColumn($0.left, alias: leftAlias)
         }
     }
 }
@@ -641,12 +664,12 @@ protocol ColumnAddressable {
     func databaseValue(at index: ColumnIndex) -> DatabaseValue
 }
 
-/// A "row" that contains null values for all columns
-struct NullRow: ColumnAddressable {
+/// A "row" that contains a dummy value for all columns
+struct DummyRow: ColumnAddressable {
     struct DummyIndex { }
     func index(forColumn column: String) -> DummyIndex? { DummyIndex() }
     @inline(__always)
-    func databaseValue(at index: DummyIndex) -> DatabaseValue { .null }
+    func databaseValue(at index: DummyIndex) -> DatabaseValue { DatabaseValue(storage: .int64(1)) }
 }
 
 /// Row has columns
@@ -735,24 +758,38 @@ extension SQLRelation {
 extension SQLSource {
     /// Returns nil if sources can't be merged (conflict in tables, aliases...)
     func merged(with other: SQLSource) -> SQLSource? {
-        switch (self, other) {
-        case let (.table(tableName: tableName, alias: alias), .table(tableName: otherTableName, alias: otherAlias)):
-            guard tableName == otherTableName else {
+        guard tableName == other.tableName else {
+            // can't merge
+            return nil
+        }
+        switch (alias, other.alias) {
+        case (nil, nil):
+            return SQLSource(tableName: tableName, alias: nil)
+        case let (alias?, nil), let (nil, alias?):
+            return SQLSource(tableName: tableName, alias: alias)
+        case let (alias?, otherAlias?):
+            guard let mergedAlias = alias.merged(with: otherAlias) else {
                 // can't merge
                 return nil
             }
-            switch (alias, otherAlias) {
-            case (nil, nil):
-                return .table(tableName: tableName, alias: nil)
-            case let (alias?, nil), let (nil, alias?):
-                return .table(tableName: tableName, alias: alias)
-            case let (alias?, otherAlias?):
-                guard let mergedAlias = alias.merged(with: otherAlias) else {
-                    // can't merge
-                    return nil
-                }
-                return .table(tableName: tableName, alias: mergedAlias)
+            return SQLSource(tableName: tableName, alias: mergedAlias)
+        }
+    }
+}
+
+extension SQLAssociationCondition {
+    func merged(with other: SQLAssociationCondition) -> Self? {
+        switch (self, other) {
+        case let (.foreignKey(lr, lo), .foreignKey(rr, ro)):
+            if lr == rr && lo == ro {
+                return self
+            } else {
+                // can't merge
+                return nil
             }
+        case let (.expression, .expression(rhs)):
+            // Can't compare functions: the last one wins
+            return .expression(rhs)
         default:
             // can't merge
             return nil
@@ -763,7 +800,7 @@ extension SQLSource {
 extension SQLRelation.Child {
     /// Returns nil if joins can't be merged (conflict in condition, relation...)
     func merged(with other: SQLRelation.Child) -> Self? {
-        guard condition == other.condition else {
+        guard let mergedCondition = condition.merged(with: other.condition) else {
             // can't merge
             return nil
         }
@@ -780,7 +817,7 @@ extension SQLRelation.Child {
         
         return SQLRelation.Child(
             kind: mergedKind,
-            condition: condition,
+            condition: mergedCondition,
             relation: mergedRelation)
     }
 }

@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.3.x` Releases - [5.3.0](#530)
 - `5.2.x` Releases - [5.2.0](#520)
 - `5.1.x` Releases - [5.1.0](#510)
 - `5.0.x` Releases - [5.0.0](#500) | [5.0.1](#501) | [5.0.2](#502) | [5.0.3](#503)
@@ -66,6 +67,20 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+
+## 5.3.0
+
+Released January 9, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.2.0...v5.3.0)
+
+- **New**: [#880](https://github.com/groue/GRDB.swift/pull/880): Common Table Expressions
+- **New**: [#892](https://github.com/groue/GRDB.swift/pull/892) by [@eburns-vmware](https://github.com/eburns-vmware): Provide SQLCipher passphrase as Data
+- **Fixed**: [#881](https://github.com/groue/GRDB.swift/pull/881) by [@felixscheinost](https://github.com/felixscheinost) and [#883](https://github.com/groue/GRDB.swift/pull/883) by [@professordeng](https://github.com/professordeng): Documentation improvements
+- **Fixed**: [#885](https://github.com/groue/GRDB.swift/pull/885): Robustness of eager loading of to-many associations based on compound foreign keys
+- **Fixed**: [#901](https://github.com/groue/GRDB.swift/pull/901) by [@wuyuehyang](https://github.com/wuyuehyang): Fix creation of FTS5 tokenizer with arguments
+- **Fixed**: [#903](https://github.com/groue/GRDB.swift/pull/903) by [@chrisballinger](https://github.com/chrisballinger): Fix SPM installation instructions
+- **Documentation update**: A new guide: [Common Table Expressions](https://github.com/groue/GRDB.swift/blob/master/Documentation/CommonTableExpressions.md)
+- **Documentation update**: The [Foreign Keys](https://github.com/groue/GRDB.swift/blob/master/Documentation/AssociationsBasics.md#foreign-keys) chapter of the Associations Guide clarifies the behavior of SQLite and GRDB regarding the presence of NULL if compound foreign keys.
 
 
 ## 5.2.0

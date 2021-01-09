@@ -317,7 +317,7 @@ extension DatabaseWriter {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> ValueObserver<Reducer> // For testability
+    -> ValueObserver<Reducer> // For testability
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         
@@ -379,7 +379,7 @@ extension DatabaseWriter {
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func writePublisher<Output>(
         updates: @escaping (Database) throws -> Output)
-        -> DatabasePublishers.Write<Output>
+    -> DatabasePublishers.Write<Output>
     {
         writePublisher(receiveOn: DispatchQueue.main, updates: updates)
     }
@@ -402,18 +402,18 @@ extension DatabaseWriter {
     public func writePublisher<S, Output>(
         receiveOn scheduler: S,
         updates: @escaping (Database) throws -> Output)
-        -> DatabasePublishers.Write<Output>
-        where S: Scheduler
+    -> DatabasePublishers.Write<Output>
+    where S: Scheduler
     {
         OnDemandFuture({ fulfill in
             self.asyncWrite(updates, completion: { _, result in
                 fulfill(result)
             })
         })
-            // We don't want users to process emitted values on a
-            // database dispatch queue.
-            .receiveValues(on: scheduler)
-            .eraseToWritePublisher()
+        // We don't want users to process emitted values on a
+        // database dispatch queue.
+        .receiveValues(on: scheduler)
+        .eraseToWritePublisher()
     }
     
     /// Returns a Publisher that asynchronously writes into the database.
@@ -431,7 +431,7 @@ extension DatabaseWriter {
     public func writePublisher<T, Output>(
         updates: @escaping (Database) throws -> T,
         thenRead value: @escaping (Database, T) throws -> Output)
-        -> DatabasePublishers.Write<Output>
+    -> DatabasePublishers.Write<Output>
     {
         writePublisher(receiveOn: DispatchQueue.main, updates: updates, thenRead: value)
     }
@@ -455,8 +455,8 @@ extension DatabaseWriter {
         receiveOn scheduler: S,
         updates: @escaping (Database) throws -> T,
         thenRead value: @escaping (Database, T) throws -> Output)
-        -> DatabasePublishers.Write<Output>
-        where S: Scheduler
+    -> DatabasePublishers.Write<Output>
+    where S: Scheduler
     {
         OnDemandFuture({ fulfill in
             self.asyncWriteWithoutTransaction { db in
@@ -475,10 +475,10 @@ extension DatabaseWriter {
                 }
             }
         })
-            // We don't want users to process emitted values on a
-            // database dispatch queue.
-            .receiveValues(on: scheduler)
-            .eraseToWritePublisher()
+        // We don't want users to process emitted values on a
+        // database dispatch queue.
+        .receiveValues(on: scheduler)
+        .eraseToWritePublisher()
     }
 }
 
@@ -647,7 +647,7 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-        -> DatabaseCancellable
+    -> DatabaseCancellable
     {
         base._add(
             observation: observation,

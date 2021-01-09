@@ -45,7 +45,7 @@ extension Sequence {
     /// over self.
     public func flatMap<SegmentOfResult: Cursor>(
         _ transform: @escaping (Iterator.Element) throws -> SegmentOfResult)
-        -> FlattenCursor<MapCursor<AnyCursor<Iterator.Element>, SegmentOfResult>>
+    -> FlattenCursor<MapCursor<AnyCursor<Iterator.Element>, SegmentOfResult>>
     {
         AnyCursor(self).flatMap(transform)
     }
@@ -159,7 +159,7 @@ extension Cursor {
     /// Returns a cursor over the concatenated non-nil results of mapping
     /// transform over this cursor.
     public func compactMap<ElementOfResult>(_ transform: @escaping (Element) throws -> ElementOfResult?)
-        -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
+    -> MapCursor<FilterCursor<MapCursor<Self, ElementOfResult?>>, ElementOfResult>
     {
         map(transform).filter { $0 != nil }.map { $0! }
     }
@@ -263,8 +263,8 @@ extension Cursor {
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult>(_ transform: @escaping (Element) throws -> SegmentOfResult)
-        -> FlattenCursor<MapCursor<Self, AnyCursor<SegmentOfResult.Element>>>
-        where SegmentOfResult: Sequence
+    -> FlattenCursor<MapCursor<Self, AnyCursor<SegmentOfResult.Element>>>
+    where SegmentOfResult: Sequence
     {
         flatMap { try AnyCursor(transform($0)) }
     }
@@ -272,8 +272,8 @@ extension Cursor {
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult>(_ transform: @escaping (Element) throws -> SegmentOfResult)
-        -> FlattenCursor<MapCursor<Self, SegmentOfResult>>
-        where SegmentOfResult: Cursor
+    -> FlattenCursor<MapCursor<Self, SegmentOfResult>>
+    where SegmentOfResult: Cursor
     {
         map(transform).joined()
     }
@@ -367,7 +367,7 @@ extension Cursor {
     public func reduce<Result>(
         _ initialResult: Result,
         _ nextPartialResult: (Result, Element) throws -> Result)
-        throws -> Result
+    throws -> Result
     {
         var accumulator = initialResult
         while let element = try next() {
@@ -381,7 +381,7 @@ extension Cursor {
     public func reduce<Result>(
         into initialResult: Result,
         _ updateAccumulatingResult: (inout Result, Element) throws -> Void)
-        throws -> Result
+    throws -> Result
     {
         var accumulator = initialResult
         while let element = try next() {

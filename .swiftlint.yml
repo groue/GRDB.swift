@@ -2,6 +2,7 @@ included:
   - GRDB
 
 disabled_rules:
+  - comment_spacing
   - cyclomatic_complexity
   - duplicate_enum_cases
   - file_length

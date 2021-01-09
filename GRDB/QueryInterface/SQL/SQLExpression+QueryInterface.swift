@@ -6,47 +6,58 @@ extension SQLExpression {
     ///     try "foo'bar".databaseValue.quotedSQL(db) // "'foo''bar'""
     func quotedSQL(_ db: Database) throws -> String {
         let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
-        return try expressionSQL(context, wrappedInParenthesis: false)
+        return try _expressionSQL(context, wrappedInParenthesis: false)
     }
 }
 
-// MARK: - _SQLExpressionNot
+// MARK: - SQLExpressionNot
 
 /// :nodoc:
-public struct _SQLExpressionNot: SQLExpression {
+struct SQLExpressionNot: SQLExpression {
     let expression: SQLExpression
     
     init(_ expression: SQLExpression) {
         self.expression = expression
     }
     
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+    // MARK: SQLExpression
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try "NOT \(expression._expressionSQL(context, wrappedInParenthesis: true))"
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
+    }
+    
+    func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            return SQLExpressionEqual(.equal, self, true.sqlExpression)
             
         case .false:
-            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
-        
+            return SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
         case .falsey:
             // Support `NOT (NOT expression)` as a technique to build 0 or 1
-            return _SQLExpressionNot(self)
+            return SQLExpressionNot(self)
         }
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionNot(expression._qualifiedExpression(with: alias))
+    var _isConstantInRequest: Bool { expression._isConstantInRequest }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionNot(expression._qualifiedExpression(with: alias))
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
-    }
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool { expression._isAggregate }
 }
 
-// MARK: - _SQLExpressionUnary
+// MARK: - SQLExpressionUnary
 
 /// SQLUnaryOperator is a SQLite unary operator.
 struct SQLUnaryOperator: Hashable {
@@ -68,11 +79,11 @@ struct SQLUnaryOperator: Hashable {
     static let minus = SQLUnaryOperator("-", needsRightSpace: false)
 }
 
-/// _SQLExpressionUnary is an expression made of an unary operator and
+/// SQLExpressionUnary is an expression made of an unary operator and
 /// an operand expression.
 ///
 /// :nodoc:
-public struct _SQLExpressionUnary: SQLExpression {
+struct SQLExpressionUnary: SQLExpression {
     let op: SQLUnaryOperator
     let expression: SQLExpression
     
@@ -81,18 +92,40 @@ public struct _SQLExpressionUnary: SQLExpression {
         self.expression = value.sqlExpression
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionUnary(op, expression._qualifiedExpression(with: alias))
+    // MARK: SQLExpression
+    
+    func _column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool) throws -> String? {
+        if acceptsBijection && op == .minus {
+            return try expression._column(db, for: alias, acceptsBijection: acceptsBijection)
+        }
+        
+        return nil
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try op.sql
+            + (op.needsRightSpace ? " " : "")
+            + expression._expressionSQL(context, wrappedInParenthesis: true)
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
     }
+    
+    var _isConstantInRequest: Bool { expression._isConstantInRequest }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionUnary(op, expression._qualifiedExpression(with: alias))
+    }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool { expression._isAggregate }
 }
 
-// MARK: - _SQLExpressionBinary
+// MARK: - SQLExpressionBinary
 
 /// SQLBinaryOperator is an SQLite binary operator, such as >, =, etc.
 struct SQLBinaryOperator: Hashable {
@@ -147,13 +180,13 @@ struct SQLBinaryOperator: Hashable {
     static let match = SQLBinaryOperator("MATCH")
 }
 
-/// _SQLExpressionBinary is an expression made of two expressions joined with a
+/// SQLExpressionBinary is an expression made of two expressions joined with a
 /// binary operator.
 ///
-///     _SQLExpressionBinary(.multiply, Column("length"), Column("width"))
+///     SQLExpressionBinary(.multiply, Column("length"), Column("width"))
 ///
 /// :nodoc:
-public struct _SQLExpressionBinary: SQLExpression {
+struct SQLExpressionBinary: SQLExpression {
     let lhs: SQLExpression
     let op: SQLBinaryOperator
     let rhs: SQLExpression
@@ -162,43 +195,76 @@ public struct _SQLExpressionBinary: SQLExpression {
     /// binary operator.
     ///
     ///     // length * width
-    ///     _SQLExpressionBinary(.subtract, Column("score"), Column("malus"))
+    ///     SQLExpressionBinary(.subtract, Column("score"), Column("malus"))
     init(_ op: SQLBinaryOperator, _ lhs: SQLExpressible, _ rhs: SQLExpressible) {
         self.lhs = lhs.sqlExpression
         self.op = op
         self.rhs = rhs.sqlExpression
     }
     
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+    // MARK: SQLExpression
+    
+    func _column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool) throws -> String? {
+        guard acceptsBijection && op == .subtract else {
+            return nil
+        }
+        
+        if lhs._isConstantInRequest {
+            return try rhs._column(db, for: alias, acceptsBijection: acceptsBijection)
+        } else if rhs._isConstantInRequest {
+            return try lhs._column(db, for: alias, acceptsBijection: acceptsBijection)
+        } else {
+            return nil
+        }
+    }
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try """
+            \(lhs._expressionSQL(context, wrappedInParenthesis: true)) \
+            \(op.sql) \
+            \(rhs._expressionSQL(context, wrappedInParenthesis: true))
+            """
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
+    }
+    
+    func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            return SQLExpressionEqual(.equal, self, true.sqlExpression)
             
         case .false:
-            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            return SQLExpressionEqual(.equal, self, false.sqlExpression)
             
         case .falsey:
             if let negatedOp = op.negated {
-                return _SQLExpressionBinary(negatedOp, lhs, rhs)
+                return SQLExpressionBinary(negatedOp, lhs, rhs)
             } else {
-                return _SQLExpressionNot(self)
+                return SQLExpressionNot(self)
             }
         }
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionBinary(op, lhs._qualifiedExpression(with: alias), rhs._qualifiedExpression(with: alias))
+    var _isConstantInRequest: Bool {
+        lhs._isConstantInRequest && rhs._isConstantInRequest
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionBinary(op, lhs._qualifiedExpression(with: alias), rhs._qualifiedExpression(with: alias))
+    }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool {
+        lhs._isAggregate || rhs._isAggregate
     }
 }
 
-// MARK: - _SQLExpressionAssociativeBinary
+// MARK: - SQLExpressionAssociativeBinary
 
 /// SQLAssociativeBinaryOperator is an SQLite associative binary operator, such
 /// as `+`, `*`, `AND`, etc.
@@ -218,19 +284,28 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     /// The neutral value
     let neutralValue: DatabaseValue
     
-    /// if true, (a • b) • c is strictly equal to a • (b • c).
+    /// If true, (a • b) • c is strictly equal to a • (b • c).
     ///
     /// `AND`, `OR`, `||` (concat) are stricly associative.
     ///
     /// `+` and `*` are not stricly associative when applied to floating
     /// point values.
-    let strictlyAssociative: Bool
+    let isStrictlyAssociative: Bool
+    
+    /// If true, (a • b) is a bijective function of a, and a bijective
+    /// function of b.
+    ///
+    /// `+` and `||` (concat) are bijective.
+    ///
+    /// `AND`, `OR` and `*` are not.
+    let isBijective: Bool
     
     /// Creates a binary operator
-    init(sql: String, neutralValue: DatabaseValue, strictlyAssociative: Bool) {
+    init(sql: String, neutralValue: DatabaseValue, strictlyAssociative: Bool, bijective: Bool) {
         self.sql = sql
         self.neutralValue = neutralValue
-        self.strictlyAssociative = strictlyAssociative
+        self.isStrictlyAssociative = strictlyAssociative
+        self.isBijective = bijective
     }
     
     /// The `+` binary operator
@@ -242,7 +317,8 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     public static let add = SQLAssociativeBinaryOperator(
         sql: "+",
         neutralValue: 0.databaseValue,
-        strictlyAssociative: false)
+        strictlyAssociative: false,
+        bijective: true)
     
     /// The `*` binary operator
     ///
@@ -253,7 +329,8 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     public static let multiply = SQLAssociativeBinaryOperator(
         sql: "*",
         neutralValue: 1.databaseValue,
-        strictlyAssociative: false)
+        strictlyAssociative: false,
+        bijective: false)
     
     /// The `AND` binary operator
     ///
@@ -264,7 +341,8 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     public static let and = SQLAssociativeBinaryOperator(
         sql: "AND",
         neutralValue: true.databaseValue,
-        strictlyAssociative: true)
+        strictlyAssociative: true,
+        bijective: false)
     
     /// The `OR` binary operator
     ///
@@ -275,7 +353,8 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     public static let or = SQLAssociativeBinaryOperator(
         sql: "OR",
         neutralValue: false.databaseValue,
-        strictlyAssociative: true)
+        strictlyAssociative: true,
+        bijective: false)
     
     /// The `||` string concatenation operator
     ///
@@ -286,14 +365,15 @@ public struct SQLAssociativeBinaryOperator: Hashable {
     public static let concat = SQLAssociativeBinaryOperator(
         sql: "||",
         neutralValue: "".databaseValue,
-        strictlyAssociative: true)
+        strictlyAssociative: true,
+        bijective: true)
 }
 
-/// `_SQLExpressionAssociativeBinary` is an expression made of several
+/// `SQLExpressionAssociativeBinary` is an expression made of several
 /// expressions joined with an associative binary operator.
 ///
 /// :nodoc:
-public struct _SQLExpressionAssociativeBinary: SQLExpression {
+struct SQLExpressionAssociativeBinary: SQLExpression {
     let expressions: [SQLExpression]
     let op: SQLAssociativeBinaryOperator
     
@@ -301,14 +381,14 @@ public struct _SQLExpressionAssociativeBinary: SQLExpression {
     /// binary operator.
     ///
     ///     // length * width
-    ///     _SQLExpressionAssociativeBinary(.multiply, [Column("length"), Column("width")])
+    ///     SQLExpressionAssociativeBinary(.multiply, [Column("length"), Column("width")])
     init(_ op: SQLAssociativeBinaryOperator, _ expressions: [SQLExpression]) {
         self.op = op
         
         // flatten when possible: a • (b • c) = a • b • c
-        if op.strictlyAssociative {
+        if op.isStrictlyAssociative {
             self.expressions = expressions.flatMap { expression -> [SQLExpression] in
-                if let reduce = expression as? _SQLExpressionAssociativeBinary, reduce.op == op {
+                if let reduce = expression as? SQLExpressionAssociativeBinary, reduce.op == op {
                     return reduce.expressions
                 } else {
                     return [expression]
@@ -319,20 +399,138 @@ public struct _SQLExpressionAssociativeBinary: SQLExpression {
         }
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionAssociativeBinary(op, expressions.map { $0._qualifiedExpression(with: alias) })
-    }
+    // MARK: SQLExpression
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
+    func _column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool) throws -> String? {
         switch expressions.count {
         case 0:
-            try op.neutralValue._accept(&visitor)
+            return try op.neutralValue._column(db, for: alias, acceptsBijection: acceptsBijection)
         case 1:
-            try expressions[0]._accept(&visitor)
+            return try expressions[0]._column(db, for: alias, acceptsBijection: acceptsBijection)
         default:
-            try visitor.visit(self)
+            guard acceptsBijection && op.isBijective else {
+                return nil
+            }
+            
+            let nonConstants = expressions.filter { $0._isConstantInRequest == false }
+            if nonConstants.count == 1 {
+                return try nonConstants[0]._column(db, for: alias, acceptsBijection: acceptsBijection)
+            }
+            
+            return nil
+        }
+    }
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        switch expressions.count {
+        case 0:
+            return try op.neutralValue._expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
+        case 1:
+            return try expressions[0]._expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
+        default:
+            let expressionSQLs = try expressions.map {
+                try $0._expressionSQL(context, wrappedInParenthesis: true)
+            }
+            let joiner = " \(op.sql) "
+            var resultSQL = expressionSQLs.joined(separator: joiner)
+            
+            if wrappedInParenthesis {
+                resultSQL = "(\(resultSQL))"
+            }
+            
+            return resultSQL
+        }
+    }
+    
+    func _identifyingColums(_ db: Database, for alias: TableAlias) throws -> Set<String> {
+        switch expressions.count {
+        case 0:
+            return try op.neutralValue._identifyingColums(db, for: alias)
+        case 1:
+            return try expressions[0]._identifyingColums(db, for: alias)
+        default:
+            if op == .and {
+                return try expressions.reduce(into: []) { try $0.formUnion($1._identifyingColums(db, for: alias)) }
+            } else if op == .or {
+                return []
+            } else {
+                return []
+            }
+        }
+    }
+    
+    func _identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
+        switch expressions.count {
+        case 0:
+            return try op.neutralValue._identifyingRowIDs(db, for: alias)
+        case 1:
+            return try expressions[0]._identifyingRowIDs(db, for: alias)
+        default:
+            if op == .and {
+                var result: Set<Int64>? = nil
+                for expression in expressions {
+                    if let expressionRowIDs = try expression._identifyingRowIDs(db, for: alias) {
+                        if var rowIDs = result {
+                            rowIDs.formIntersection(expressionRowIDs)
+                            result = rowIDs
+                            if rowIDs.isEmpty {
+                                break
+                            }
+                        } else {
+                            result = expressionRowIDs
+                        }
+                    }
+                }
+                return result
+            } else if op == .or {
+                var result: Set<Int64> = []
+                for expression in expressions {
+                    if let expressionRowIDs = try expression._identifyingRowIDs(db, for: alias) {
+                        result.formUnion(expressionRowIDs)
+                    } else {
+                        return nil
+                    }
+                }
+                return result
+            } else {
+                return nil
+            }
+        }
+    }
+    
+    var _isConstantInRequest: Bool {
+        switch expressions.count {
+        case 0:
+            return op.neutralValue._isConstantInRequest
+        default:
+            return expressions.allSatisfy(\._isConstantInRequest)
+        }
+    }
+    
+    var _isTrue: Bool {
+        switch expressions.count {
+        case 0:
+            return op.neutralValue._isTrue
+        case 1:
+            return expressions[0]._isTrue
+        default:
+            // Could do better (1 OR x, for example)
+            return false
+        }
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionAssociativeBinary(op, expressions.map { $0._qualifiedExpression(with: alias) })
+    }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool {
+        switch expressions.count {
+        case 0:
+            return op.neutralValue._isAggregate
+        default:
+            return expressions.contains(where: \._isAggregate)
         }
     }
 }
@@ -357,14 +555,14 @@ extension Sequence where Element == SQLExpression {
     /// value of the operator. It is 0 (zero) for `.add`, 1 for ‘.multiply`,
     /// false for `.or`, and true for `.and`.
     public func joined(operator: SQLAssociativeBinaryOperator) -> SQLExpression {
-        _SQLExpressionAssociativeBinary(`operator`, Array(self))
+        SQLExpressionAssociativeBinary(`operator`, Array(self))
     }
 }
 
-// MARK: - _SQLExpressionEqual
+// MARK: - SQLExpressionEqual
 
 /// :nodoc:
-public struct _SQLExpressionEqual: SQLExpression {
+struct SQLExpressionEqual: SQLExpression {
     var lhs: SQLExpression
     var rhs: SQLExpression
     var op: Operator
@@ -391,41 +589,116 @@ public struct _SQLExpressionEqual: SQLExpression {
         }
     }
     
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
-        switch test {
-        case .true:
-            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+    // MARK: SQLExpression
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try """
+            \(lhs._expressionSQL(context, wrappedInParenthesis: true)) \
+            \(op.rawValue) \
+            \(rhs._expressionSQL(context, wrappedInParenthesis: true))
+            """
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
+    }
+    
+    func _identifyingColums(_ db: Database, for alias: TableAlias) throws -> Set<String> {
+        switch op {
+        case .equal, .is:
+            if let column = try lhs._column(db, for: alias, acceptsBijection: true),
+               rhs._isConstantInRequest
+            {
+                return [column]
+            }
             
-        case .false:
-            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            if let column = try rhs._column(db, for: alias, acceptsBijection: true),
+               lhs._isConstantInRequest
+            {
+                return [column]
+            }
             
-        case .falsey:
-            return _SQLExpressionEqual(op.negated, lhs, rhs)
+            return []
+            
+        case .notEqual, .isNot:
+            return []
         }
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionEqual(op, lhs._qualifiedExpression(with: alias), rhs._qualifiedExpression(with: alias))
+    func _identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
+        switch op {
+        case .equal, .is:
+            if let column = try lhs._column(db, for: alias),
+               try db.columnIsRowID(column, of: alias.tableName),
+               let dbValue = rhs as? DatabaseValue
+            {
+                if let rowID = Int64.fromDatabaseValue(dbValue) {
+                    return [rowID]
+                } else {
+                    // We miss `rowid = '1'` here, because SQLite would interpret the '1' string as a number
+                    return []
+                }
+            }
+            
+            if let column = try rhs._column(db, for: alias),
+               try db.columnIsRowID(column, of: alias.tableName),
+               let dbValue = lhs as? DatabaseValue
+            {
+                if let rowID = Int64.fromDatabaseValue(dbValue) {
+                    return [rowID]
+                } else {
+                    // We miss `rowid = '1'` here, because SQLite would interpret the '1' string as a number
+                    return []
+                }
+            }
+            
+            return nil
+            
+        case .notEqual, .isNot:
+            return nil
+        }
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return SQLExpressionEqual(op.negated, lhs, rhs)
+        }
+    }
+    
+    var _isConstantInRequest: Bool {
+        lhs._isConstantInRequest && rhs._isConstantInRequest
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionEqual(op, lhs._qualifiedExpression(with: alias), rhs._qualifiedExpression(with: alias))
+    }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool {
+        lhs._isAggregate || rhs._isAggregate
     }
 }
 
-// MARK: - _SQLExpressionContains
+// MARK: - SQLExpressionContains
 
-/// _SQLExpressionContains is an expression that checks the inclusion of a
+/// SQLExpressionContains is an expression that checks the inclusion of a
 /// value in a collection with the `IN` operator.
 ///
 ///     // id IN (1,2,3)
-///     _SQLExpressionContains(Column("id"), _SQLExpressionsArray([1,2,3]))
+///     SQLExpressionContains(Column("id"), _SQLExpressionsArray([1,2,3]))
 ///
 /// :nodoc:
-public struct _SQLExpressionContains: SQLExpression {
+struct SQLExpressionContains: SQLExpression {
     let expression: SQLExpression
     let collection: SQLCollection
     let isNegated: Bool
@@ -436,44 +709,92 @@ public struct _SQLExpressionContains: SQLExpression {
         self.isNegated = negated
     }
     
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
-        switch test {
-        case .true:
-            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
-            
-        case .false:
-            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
-            
-        case .falsey:
-            return _SQLExpressionContains(expression, collection, negated: !isNegated)
+    // MARK: SQLExpression
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try """
+            \(expression._expressionSQL(context, wrappedInParenthesis: true)) \
+            \(isNegated ? "NOT IN" : "IN") \
+            \(collection._collectionSQL(context))
+            """
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
+    }
+    
+    func _identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
+        if let expressions = collection._collectionExpressions,
+           let column = try expression._column(db, for: alias),
+           try db.columnIsRowID(column, of: alias.tableName)
+        {
+            return Set(expressions.compactMap {
+                ($0 as? DatabaseValue).flatMap { Int64.fromDatabaseValue($0) }
+            })
+        } else {
+            return nil
         }
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionContains(
+    func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        switch test {
+        case .true:
+            return SQLExpressionEqual(.equal, self, true.sqlExpression)
+            
+        case .false:
+            return SQLExpressionEqual(.equal, self, false.sqlExpression)
+            
+        case .falsey:
+            return SQLExpressionContains(expression, collection, negated: !isNegated)
+        }
+    }
+    
+    var _isConstantInRequest: Bool {
+        guard let expressions = collection._collectionExpressions else {
+            return false
+        }
+        
+        return expression._isConstantInRequest && expressions.allSatisfy(\._isConstantInRequest)
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionContains(
             expression._qualifiedExpression(with: alias),
             collection._qualifiedCollection(with: alias),
             negated: isNegated)
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool {
+        if expression._isAggregate {
+            // SELECT aggregate IN (...)
+            return true
+        }
+        
+        if let expressions = collection._collectionExpressions,
+           expressions.contains(where: \._isAggregate)
+        {
+            // SELECT expr IN (aggregate, ...)
+            return true
+        }
+        
+        return false
     }
 }
 
-// MARK: - _SQLExpressionBetween
+// MARK: - SQLExpressionBetween
 
-/// _SQLExpressionBetween is an expression that checks if a values is included
+/// SQLExpressionBetween is an expression that checks if a values is included
 /// in a range with the `BETWEEN` operator.
 ///
 ///     // id BETWEEN 1 AND 3
-///     _SQLExpressionBetween(Column("id"), 1.databaseValue, 3.databaseValue)
+///     SQLExpressionBetween(Column("id"), 1.databaseValue, 3.databaseValue)
 ///
 /// :nodoc:
-public struct _SQLExpressionBetween: SQLExpression {
+struct SQLExpressionBetween: SQLExpression {
     let expression: SQLExpression
     let lowerBound: SQLExpression
     let upperBound: SQLExpression
@@ -486,39 +807,62 @@ public struct _SQLExpressionBetween: SQLExpression {
         self.isNegated = negated
     }
     
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+    // MARK: SQLExpression
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try """
+            \(expression._expressionSQL(context, wrappedInParenthesis: true)) \
+            \(isNegated ? "NOT BETWEEN" : "BETWEEN") \
+            \(lowerBound._expressionSQL(context, wrappedInParenthesis: true)) \
+            AND \
+            \(upperBound._expressionSQL(context, wrappedInParenthesis: true))
+            """
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
+    }
+    
+    func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
-            return _SQLExpressionEqual(.equal, self, true.sqlExpression)
+            return SQLExpressionEqual(.equal, self, true.sqlExpression)
             
         case .false:
-            return _SQLExpressionEqual(.equal, self, false.sqlExpression)
+            return SQLExpressionEqual(.equal, self, false.sqlExpression)
             
         case .falsey:
-            return _SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
+            return SQLExpressionBetween(expression, lowerBound, upperBound, negated: !isNegated)
         }
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionBetween(
+    var _isConstantInRequest: Bool {
+        expression._isConstantInRequest
+            && lowerBound._isConstantInRequest
+            && upperBound._isConstantInRequest
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionBetween(
             expression._qualifiedExpression(with: alias),
             lowerBound._qualifiedExpression(with: alias),
             upperBound._qualifiedExpression(with: alias),
             negated: isNegated)
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool {
+        expression._isAggregate
     }
 }
 
-// MARK: - _SQLExpressionFunction
+// MARK: - SQLExpressionFunction
 
 /// :nodoc:
-public struct _SQLExpressionFunction: SQLExpression {
+struct SQLExpressionFunction: SQLExpression {
     let function: String
     let arguments: [SQLExpression]
     
@@ -531,26 +875,82 @@ public struct _SQLExpressionFunction: SQLExpression {
         self.init(function, arguments: arguments.map(\.sqlExpression))
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionFunction(function, arguments: arguments.map { $0._qualifiedExpression(with: alias) })
+    // MARK: SQLExpression
+    
+    func _column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool) throws -> String? {
+        guard acceptsBijection else {
+            return nil
+        }
+        let function = self.function.uppercased()
+        if ["HEX", "QUOTE"].contains(function) && arguments.count == 1 {
+            return try arguments[0]._column(db, for: alias, acceptsBijection: acceptsBijection)
+        } else if function == "IFNULL" && arguments.count == 2 && arguments[1]._isConstantInRequest {
+            return try arguments[0]._column(db, for: alias, acceptsBijection: acceptsBijection)
+        } else {
+            return nil
+        }
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try function
+            + "("
+            + arguments
+            .map { try $0._expressionSQL(context, wrappedInParenthesis: false) }
+            .joined(separator: ", ")
+            + ")"
+    }
+    
+    private static let knownPureFunctions = [
+        "ABS", "CHAR", "COALESCE", "GLOB", "HEX", "IFNULL",
+        "IIF", "INSTR", "LENGTH", "LIKE", "LIKELIHOOD",
+        "LIKELY", "LOAD_EXTENSION", "LOWER", "LTRIM",
+        "NULLIF", "PRINTF", "QUOTE", "REPLACE", "ROUND",
+        "RTRIM", "SOUNDEX", "SQLITE_COMPILEOPTION_GET",
+        "SQLITE_COMPILEOPTION_USED", "SQLITE_SOURCE_ID",
+        "SQLITE_VERSION", "SUBSTR", "TRIM", "TRIM",
+        "TYPEOF", "UNICODE", "UNLIKELY", "UPPER", "ZEROBLOB",
+    ]
+    
+    var _isConstantInRequest: Bool {
+        let function = self.function.uppercased()
+        guard ((function == "MAX" || function == "MIN") && arguments.count > 1)
+                || Self.knownPureFunctions.contains(function)
+        else {
+            return false // Don't know - assume not constant
+        }
+        
+        return arguments.allSatisfy(\._isConstantInRequest)
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionFunction(function, arguments: arguments.map { $0._qualifiedExpression(with: alias) })
+    }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool {
+        let function = self.function.uppercased()
+        if ["MIN", "MAX"].contains(function) && arguments.count == 1 {
+            return true
+        } else if ["AVG", "COUNT", "SUM", "TOTAL"].contains(function) && arguments.count == 1 {
+            return true
+        } else if function == "GROUP_CONCAT" && (arguments.count == 1 || arguments.count == 2) {
+            return true
+        } else {
+            return false
+        }
     }
 }
 
-// MARK: - _SQLExpressionCount
+// MARK: - SQLExpressionCount
 
-/// _SQLExpressionCount is a call to the SQL `COUNT` function.
+/// SQLExpressionCount is a call to the SQL `COUNT` function.
 ///
 ///     // COUNT(name)
-///     _SQLExpressionCount(Column("name"))
+///     SQLExpressionCount(Column("name"))
 ///
 /// :nodoc:
-public struct _SQLExpressionCount: SQLExpression {
+struct SQLExpressionCount: SQLExpression {
     /// The counted value
     let counted: SQLSelectable
     
@@ -558,51 +958,59 @@ public struct _SQLExpressionCount: SQLExpression {
         self.counted = counted
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionCount(counted._qualifiedSelectable(with: alias))
+    // MARK: SQLExpression
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try "COUNT(\(counted._countedSQL(context)))"
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionCount(counted._qualifiedSelectable(with: alias))
     }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool { true }
 }
 
-// MARK: - _SQLExpressionCountDistinct
+// MARK: - SQLExpressionCountDistinct
 
-/// _SQLExpressionCountDistinct is a call to the SQL `COUNT(DISTINCT ...)` function.
+/// SQLExpressionCountDistinct is a call to the SQL `COUNT(DISTINCT ...)` function.
 ///
 ///     // COUNT(DISTINCT name)
-///     _SQLExpressionCountDistinct(Column("name"))
+///     SQLExpressionCountDistinct(Column("name"))
 ///
 /// :nodoc:
-public struct _SQLExpressionCountDistinct: SQLExpression {
+struct SQLExpressionCountDistinct: SQLExpression {
     let counted: SQLExpression
     
     init(_ counted: SQLExpression) {
         self.counted = counted
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionCountDistinct(counted._qualifiedExpression(with: alias))
+    // MARK: SQLExpression
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try "COUNT(DISTINCT \(counted._countedSQL(context)))"
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionCountDistinct(counted._qualifiedExpression(with: alias))
     }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool { true }
 }
 
-// MARK: - _SQLExpressionIsEmpty
+// MARK: - SQLExpressionIsEmpty
 
 /// This one helps generating `COUNT(...) = 0` or `COUNT(...) > 0` while letting
 /// the user using the not `!` logical operator, or comparisons with booleans
 /// such as `== true` or `== false`.
 ///
 /// :nodoc:
-public struct _SQLExpressionIsEmpty: SQLExpression {
+struct SQLExpressionIsEmpty: SQLExpression {
     var countExpression: SQLExpression
     var isEmpty: Bool
     
@@ -612,56 +1020,78 @@ public struct _SQLExpressionIsEmpty: SQLExpression {
         self.isEmpty = isEmpty
     }
     
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+    // MARK: SQLExpression
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try """
+            \(countExpression._expressionSQL(context, wrappedInParenthesis: true)) \
+            \(isEmpty ? "= 0" : "> 0")
+            """
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
+    }
+    
+    func _is(_ test: _SQLBooleanTest) -> SQLExpression {
         switch test {
         case .true:
             return self
         case .false, .falsey:
-            return _SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
+            return SQLExpressionIsEmpty(countExpression, isEmpty: !isEmpty)
         }
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionIsEmpty(countExpression._qualifiedExpression(with: alias), isEmpty: isEmpty)
+    var _isConstantInRequest: Bool { countExpression._isConstantInRequest }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionIsEmpty(countExpression._qualifiedExpression(with: alias), isEmpty: isEmpty)
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
-    }
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool { countExpression._isAggregate }
 }
 
-// MARK: - _SQLExpressionTableMatch
+// MARK: - SQLExpressionTableMatch
 
 /// :nodoc:
-public struct _SQLExpressionTableMatch: SQLExpression {
+struct SQLExpressionTableMatch: SQLExpression {
     var alias: TableAlias
     var pattern: SQLExpression
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionTableMatch(
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try """
+            \(context.resolvedName(for: alias).quotedDatabaseIdentifier) \
+            MATCH \
+            \(pattern._expressionSQL(context, wrappedInParenthesis: true))
+            """
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionTableMatch(
             alias: self.alias,
             pattern: pattern._qualifiedExpression(with: alias))
     }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
-    }
 }
 
-// MARK: - _SQLExpressionCollate
+// MARK: - SQLExpressionCollate
 
-/// _SQLExpressionCollate is an expression tainted by an SQLite collation.
+/// SQLExpressionCollate is an expression tainted by an SQLite collation.
 ///
 ///     // email = 'arthur@example.com' COLLATE NOCASE
-///     _SQLExpressionCollate(Column("email") == "arthur@example.com", "NOCASE")
+///     SQLExpressionCollate(Column("email") == "arthur@example.com", "NOCASE")
 ///
 /// :nodoc:
-public struct _SQLExpressionCollate: SQLExpression {
+struct SQLExpressionCollate: SQLExpression {
     let expression: SQLExpression
     let collationName: Database.CollationName
     
@@ -670,57 +1100,76 @@ public struct _SQLExpressionCollate: SQLExpression {
         self.collationName = collationName
     }
     
-    /// :nodoc:
-    public func _is(_ test: _SQLBooleanTest) -> SQLExpression {
-        _SQLExpressionCollate(expression._is(test), collationName: collationName)
+    // MARK: SQLExpression
+    
+    func _column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool) throws -> String? {
+        try expression._column(db, for: alias, acceptsBijection: acceptsBijection)
     }
     
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionCollate(expression._qualifiedExpression(with: alias), collationName: collationName)
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        var resultSQL = try """
+            \(expression._expressionSQL(context, wrappedInParenthesis: false)) \
+            COLLATE \
+            \(collationName.rawValue)
+            """
+        
+        if wrappedInParenthesis {
+            resultSQL = "(\(resultSQL))"
+        }
+        
+        return resultSQL
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _identifyingColums(_ db: Database, for alias: TableAlias) throws -> Set<String> {
+        try expression._identifyingColums(db, for: alias)
     }
+    
+    func _identifyingRowIDs(_ db: Database, for alias: TableAlias) throws -> Set<Int64>? {
+        try expression._identifyingRowIDs(db, for: alias)
+    }
+    
+    func _is(_ test: _SQLBooleanTest) -> SQLExpression {
+        SQLExpressionCollate(expression._is(test), collationName: collationName)
+    }
+    
+    var _isConstantInRequest: Bool { expression._isConstantInRequest }
+    
+    var _isTrue: Bool { expression._isTrue }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionCollate(expression._qualifiedExpression(with: alias), collationName: collationName)
+    }
+    
+    // MARK: SQLSelectable
+    
+    var _isAggregate: Bool { expression._isAggregate }
+    
 }
 
-// MARK: - _SQLExpressionFastPrimaryKey
+// MARK: - SQLExpressionFastPrimaryKey
 
-/// _SQLExpressionFastPrimaryKey is an expression that picks the fastest available
+/// SQLExpressionFastPrimaryKey is an expression that picks the fastest available
 /// primary key.
 ///
 /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
 /// Future versions of GRDB may use [row values](https://www.sqlite.org/rowvalue.html).
 ///
 /// :nodoc:
-public struct _SQLExpressionFastPrimaryKey: SQLExpression {
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        _SQLExpressionQualifiedFastPrimaryKey(alias: alias)
+struct SQLExpressionFastPrimaryKey: SQLExpression {
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        // Likely a GRDB bug: how comes this expression is used before it
+        // has been qualified?
+        fatalError("SQLExpressionFastPrimaryKey is not qualified.")
     }
     
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        SQLExpressionQualifiedFastPrimaryKey(alias: alias)
     }
 }
 
 /// :nodoc:
-public struct _SQLExpressionQualifiedFastPrimaryKey: SQLExpression {
+struct SQLExpressionQualifiedFastPrimaryKey: SQLExpression {
     let alias: TableAlias
-    
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
-        // Never requalify
-        self
-    }
-    
-    /// :nodoc:
-    public func _accept<Visitor: _SQLExpressionVisitor>(_ visitor: inout Visitor) throws {
-        try visitor.visit(self)
-    }
     
     /// Return the name of the fast primary key column
     func columnName(_ db: Database) throws -> String {
@@ -737,5 +1186,22 @@ public struct _SQLExpressionQualifiedFastPrimaryKey: SQLExpression {
         } else {
             fatalError("Not implemented: WITHOUT ROWID table with a multi-columns primary key")
         }
+    }
+    
+    func _column(_ db: Database, for alias: TableAlias, acceptsBijection: Bool) throws -> String? {
+        if alias == self.alias {
+            return try columnName(db)
+        }
+        return nil
+    }
+    
+    func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
+        try SQLQualifiedColumn(columnName(context.db), alias: alias)
+            ._expressionSQL(context, wrappedInParenthesis: wrappedInParenthesis)
+    }
+    
+    func _qualifiedExpression(with alias: TableAlias) -> SQLExpression {
+        // Never requalify
+        self
     }
 }

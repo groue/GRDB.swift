@@ -101,7 +101,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
         func nestedContainer<NestedKey>(
             keyedBy keyType: NestedKey.Type,
             forKey key: Key)
-            -> KeyedEncodingContainer<NestedKey>
+        -> KeyedEncodingContainer<NestedKey>
         {
             fatalError("Not implemented")
         }
@@ -264,8 +264,8 @@ private struct JSONRequiredEncoder<Record: EncodableRecord>: Encoder {
         func nestedContainer<NestedKey>(
             keyedBy keyType: NestedKey.Type,
             forKey key: KeyType)
-            -> KeyedEncodingContainer<NestedKey>
-            where NestedKey: CodingKey
+        -> KeyedEncodingContainer<NestedKey>
+        where NestedKey: CodingKey
         {
             let container = KeyedContainer<NestedKey>(codingPath: codingPath + [key])
             return KeyedEncodingContainer(container)
@@ -308,8 +308,8 @@ extension JSONRequiredEncoder: UnkeyedEncodingContainer {
     var count: Int { 0 }
     
     mutating func nestedContainer<NestedKey>(keyedBy keyType: NestedKey.Type)
-        -> KeyedEncodingContainer<NestedKey>
-        where NestedKey: CodingKey
+    -> KeyedEncodingContainer<NestedKey>
+    where NestedKey: CodingKey
     {
         let container = KeyedContainer<NestedKey>(codingPath: codingPath)
         return KeyedEncodingContainer(container)
