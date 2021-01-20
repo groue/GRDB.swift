@@ -56,11 +56,14 @@ public struct FTS5Pattern {
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }
     
-    /// Creates a pattern that matches a contiguous string prefix; returns
-    /// nil if no pattern could be built.
+    /// Creates a pattern that matches the prefix of an indexed document;
+    /// returns nil if no pattern could be built.
     ///
-    ///     FTS5Pattern(matchingPrefixPhrase: "")        // nil
-    ///     FTS5Pattern(matchingPrefixPhrase: "foo bar") // ^"foo bar"
+    ///     FTS5Pattern(matchingPrefixPhrase: "")         // nil
+    ///     FTS5Pattern(matchingPrefixPhrase: "the word") // ^"the word"
+    ///
+    /// This pattern matches a prefix made of full tokens: "the bat" matches
+    /// "the bat is happy", but not "mind the bat", or "the batcave is dark".
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingPrefixPhrase string: String) {
