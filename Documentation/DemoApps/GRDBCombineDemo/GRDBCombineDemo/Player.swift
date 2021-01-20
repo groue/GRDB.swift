@@ -2,8 +2,9 @@ import GRDB
 
 /// The Player struct.
 ///
-/// Identifiable conformance supports SwiftUI list animations
-struct Player: Identifiable {
+/// Identifiable conformance supports SwiftUI list animations.
+/// Equatable conformance supports tests.
+struct Player: Identifiable, Equatable {
     /// The player id.
     ///
     /// Int64 is the recommended type for auto-incremented database ids.
