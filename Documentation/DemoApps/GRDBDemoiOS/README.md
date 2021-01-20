@@ -16,13 +16,13 @@ The topics covered in this demo are:
 
 **Files of interest:**
 
-- [AppDelegate.swift](GRDBDemoiOS/AppDelegate.swift)
-    
-    `AppDelegate` creates, on application startup, a unique instance of [DatabaseQueue](../../../README.md#database-queues) available for the whole application.
-
 - [AppDatabase.swift](GRDBDemoiOS/AppDatabase.swift)
     
-    `AppDatabase` grants database access for the whole application. It uses [DatabaseMigrator](../../Migrations.md) in order to setup the database schema, and [ValueObservation](../../../README.md#valueobservation) in order to let the application observe database changes.
+    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](../../Migrations.md) in order to setup the database schema, and [ValueObservation](../../../README.md#valueobservation) in order to let the application observe database changes.
+
+- [Persistence.swift](GRDBDemoiOS/Persistence.swift)
+    
+    This file instantiates various `AppDatabase` for the various projects needs: one database on disk for the application, and in-memory databases for tests.
 
 - [Player.swift](GRDBDemoiOS/Player.swift)
     

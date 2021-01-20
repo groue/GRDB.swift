@@ -5,16 +5,15 @@ import GRDB
 /// It applies the pratices recommended at
 /// https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md
 final class AppDatabase {
-    /// The shared AppDatabase
-    static var shared: AppDatabase!
-    
-    private let dbQueue: DatabaseQueue
-    
-    /// Creates an AppDatabase and make sure the database schema is ready.
-    init(_ dbQueue: DatabaseQueue) throws {
-        self.dbQueue = dbQueue
-        try migrator.migrate(dbQueue)
+    /// Creates an `AppDatabase` from a database connection,
+    /// and make sure the database schema is ready.
+    init(_ dbWriter: DatabaseWriter) throws {
+        self.dbWriter = dbWriter
+        try migrator.migrate(dbWriter)
     }
+    
+    /// The database connection
+    private let dbWriter: DatabaseWriter
     
     /// The DatabaseMigrator that defines the database schema.
     ///
@@ -50,37 +49,34 @@ final class AppDatabase {
     }
 }
 
-// MARK: - Database Access
-//
-// This extension defines methods that fulfill application needs, both in terms
-// of writes and reads.
+// MARK: - Database Access: Writes
+
 extension AppDatabase {
-    // MARK: Writes
-    
-    /// Save (insert or update) a player.
+    /// Saves (inserts or updates) a player. When the method returns, the
+    /// player id is not nil.
     func savePlayer(_ player: inout Player) throws {
-        try dbQueue.write { db in
+        try dbWriter.write { db in
             try player.save(db)
         }
     }
     
     /// Delete the specified players
     func deletePlayers(ids: [Int64]) throws {
-        try dbQueue.write { db in
+        try dbWriter.write { db in
             _ = try Player.deleteAll(db, keys: ids)
         }
     }
     
     /// Delete all players
     func deleteAllPlayers() throws {
-        try dbQueue.write { db in
+        try dbWriter.write { db in
             _ = try Player.deleteAll(db)
         }
     }
     
     /// Refresh all players (by performing some random changes, for demo purpose).
     func refreshPlayers() throws {
-        try dbQueue.write { db in
+        try dbWriter.write { db in
             if try Player.fetchCount(db) == 0 {
                 // Insert new random players
                 try createRandomPlayers(db)
@@ -90,10 +86,12 @@ extension AppDatabase {
                     var player = Player.newRandom()
                     try player.insert(db)
                 }
+                
                 // Delete a random player
                 if Bool.random() {
                     try Player.order(sql: "RANDOM()").limit(1).deleteAll(db)
                 }
+                
                 // Update some players
                 for var player in try Player.fetchAll(db) where Bool.random() {
                     try player.updateChanges(db) {
@@ -106,7 +104,7 @@ extension AppDatabase {
     
     /// Create random players if the database is empty.
     func createRandomPlayersIfEmpty() throws {
-        try dbQueue.write { db in
+        try dbWriter.write { db in
             if try Player.fetchCount(db) == 0 {
                 try createRandomPlayers(db)
             }
@@ -120,9 +118,11 @@ extension AppDatabase {
             try player.insert(db)
         }
     }
-    
-    // MARK: Reads
-    
+}
+
+// MARK: - Database Access: Reads
+
+extension AppDatabase {
     /// Tracks changes in the number of players
     func observePlayerCount(
         onError: @escaping (Error) -> Void,
@@ -132,7 +132,7 @@ extension AppDatabase {
         ValueObservation
             .tracking(Player.fetchCount)
             .start(
-                in: dbQueue,
+                in: dbWriter,
                 onError: onError,
                 onChange: onChange)
     }
@@ -146,7 +146,7 @@ extension AppDatabase {
         ValueObservation
             .tracking(Player.all().orderedByName().fetchAll)
             .start(
-                in: dbQueue,
+                in: dbWriter,
                 onError: onError,
                 onChange: onChange)
     }
@@ -160,19 +160,8 @@ extension AppDatabase {
         ValueObservation
             .tracking(Player.all().orderedByScore().fetchAll)
             .start(
-                in: dbQueue,
+                in: dbWriter,
                 onError: onError,
                 onChange: onChange)
     }
 }
-
-// MARK: - Support for Tests
-
-#if DEBUG
-extension AppDatabase {
-    /// Returns an empty, in-memory database, suitable for testing.
-    static func empty() throws -> AppDatabase {
-        try AppDatabase(DatabaseQueue())
-    }
-}
-#endif

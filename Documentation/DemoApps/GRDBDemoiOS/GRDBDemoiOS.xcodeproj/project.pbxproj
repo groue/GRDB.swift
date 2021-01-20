@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56185BBF25B8036100B9C30F /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56185BBE25B8036100B9C30F /* Persistence.swift */; };
 		56606D202355938A00185962 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56606D142355931F00185962 /* GRDB.framework */; };
 		56606D212355938A00185962 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 56606D142355931F00185962 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		56606D24235593AB00185962 /* GRDB.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 56606D182355931F00185962 /* GRDB.framework */; };
@@ -164,6 +165,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		56185BBE25B8036100B9C30F /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		568E5FBF1E926430002582E0 /* GRDBDemoWatchOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBDemoWatchOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		568E5FC21E926430002582E0 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Interface.storyboard; sourceTree = "<group>"; };
 		568E5FC41E926430002582E0 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -275,13 +277,14 @@
 		56B036051E8D9EBE003B6DA4 /* GRDBDemoiOS */ = {
 			isa = PBXGroup;
 			children = (
-				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
-				56FE6F2524A90CE400711EDF /* SceneDelegate.swift */,
 				56B036191E8D9F38003B6DA4 /* AppDatabase.swift */,
+				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
+				56185BBE25B8036100B9C30F /* Persistence.swift */,
 				56B0361A1E8D9F38003B6DA4 /* Player.swift */,
-				56FE6F4F24A9114200711EDF /* ViewControllers */,
+				56FE6F2524A90CE400711EDF /* SceneDelegate.swift */,
 				56FE6F4E24A9112900711EDF /* Resources */,
 				56FE6F5124A9118000711EDF /* Support */,
+				56FE6F4F24A9114200711EDF /* ViewControllers */,
 			);
 			path = GRDBDemoiOS;
 			sourceTree = "<group>";
@@ -534,6 +537,7 @@
 				56FE6F2624A90CE400711EDF /* SceneDelegate.swift in Sources */,
 				56B0361C1E8D9F38003B6DA4 /* Player.swift in Sources */,
 				56B0361B1E8D9F38003B6DA4 /* AppDatabase.swift in Sources */,
+				56185BBF25B8036100B9C30F /* Persistence.swift in Sources */,
 				56B036071E8D9EBE003B6DA4 /* AppDelegate.swift in Sources */,
 				56B036241E8D9F4C003B6DA4 /* PlayerListViewController.swift in Sources */,
 				56B036231E8D9F4C003B6DA4 /* PlayerEditionViewController.swift in Sources */,
