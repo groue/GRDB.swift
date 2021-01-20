@@ -137,6 +137,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		56185BC125B8047D00B9C30F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				567C3E1D2520B6DF0011F6E9 /* Assets.xcassets */,
+				567C3E772520BB650011F6E9 /* LaunchScreen.storyboard */,
+				567C3E752520BB650011F6E9 /* Localizable.stringsdict */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		56185BC225B8048B00B9C30F /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				567C3E222520B6DF0011F6E9 /* Info.plist */,
+			);
+			name = Support;
+			sourceTree = "<group>";
+		};
 		567C3E0D2520B6DE0011F6E9 = {
 			isa = PBXGroup;
 			children = (
@@ -158,17 +176,15 @@
 		567C3E182520B6DE0011F6E9 /* GRDBCombineDemo */ = {
 			isa = PBXGroup;
 			children = (
-				567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */,
 				567C3E652520B7880011F6E9 /* AppDatabase.swift */,
+				567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */,
 				567C3E542520B75C0011F6E9 /* Persistence.swift */,
 				567C3E532520B75C0011F6E9 /* Player.swift */,
+				567C3E1F2520B6DF0011F6E9 /* Preview Content */,
+				56185BC125B8047D00B9C30F /* Resources */,
+				56185BC225B8048B00B9C30F /* Support */,
 				567C3E552520B75C0011F6E9 /* ViewModels */,
 				567C3E582520B75C0011F6E9 /* Views */,
-				567C3E772520BB650011F6E9 /* LaunchScreen.storyboard */,
-				567C3E752520BB650011F6E9 /* Localizable.stringsdict */,
-				567C3E222520B6DF0011F6E9 /* Info.plist */,
-				567C3E1D2520B6DF0011F6E9 /* Assets.xcassets */,
-				567C3E1F2520B6DF0011F6E9 /* Preview Content */,
 			);
 			path = GRDBCombineDemo;
 			sourceTree = "<group>";

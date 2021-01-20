@@ -6,13 +6,15 @@ import GRDB
 /// It applies the pratices recommended at
 /// https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md
 struct AppDatabase {
-    private let dbWriter: DatabaseWriter
-    
-    /// Creates an AppDatabase and make sure the database schema is ready.
+    /// Creates an `AppDatabase` from a database connection,
+    /// and make sure the database schema is ready.
     init(_ dbWriter: DatabaseWriter) throws {
         self.dbWriter = dbWriter
         try migrator.migrate(dbWriter)
     }
+    
+    /// The database connection
+    private let dbWriter: DatabaseWriter
     
     /// The DatabaseMigrator that defines the database schema.
     ///
@@ -48,14 +50,11 @@ struct AppDatabase {
     }
 }
 
-// MARK: - Database Access
-//
-// This extension defines methods that fulfill application needs, both in terms
-// of writes and reads.
+// MARK: - Database Access: Writes
+
 extension AppDatabase {
-    // MARK: Writes
-    
-    /// Save (insert or update) a player.
+    /// Saves (inserts or updates) a player. When the method returns, the
+    /// player id is not nil.
     func savePlayer(_ player: inout Player) throws {
         try dbWriter.write { db in
             try player.save(db)
@@ -88,10 +87,12 @@ extension AppDatabase {
                     var player = Player.newRandom()
                     try player.insert(db)
                 }
+                
                 // Delete a random player
                 if Bool.random() {
                     try Player.order(sql: "RANDOM()").limit(1).deleteAll(db)
                 }
+                
                 // Update some players
                 for var player in try Player.fetchAll(db) where Bool.random() {
                     try player.updateChanges(db) {
@@ -118,14 +119,16 @@ extension AppDatabase {
             try player.insert(db)
         }
     }
-    
-    // MARK: Reads
-    
+}
+
+// MARK: - Database Access: Reads
+
+extension AppDatabase {
     /// Returns a publisher that tracks changes in players ordered by name
     func playersOrderedByNamePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByName().fetchAll)
-            .publisher(in: dbWriter)
+            .publisher(in: dbWriter, scheduling: .immediate)
             .eraseToAnyPublisher()
     }
     
@@ -133,7 +136,7 @@ extension AppDatabase {
     func playersOrderedByScorePublisher() -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking(Player.all().orderedByScore().fetchAll)
-            .publisher(in: dbWriter)
+            .publisher(in: dbWriter, scheduling: .immediate)
             .eraseToAnyPublisher()
     }
 }
