@@ -11,8 +11,10 @@ final class AppDatabase {
         try migrator.migrate(dbWriter)
     }
     
-    /// Provides access to the database. Application can use a `DatabasePool`,
-    /// and tests can use a fast in-memory `DatabaseQueue`.
+    /// Provides access to the database.
+    ///
+    /// Application can use a `DatabasePool`, and tests can use a fast
+    /// in-memory `DatabaseQueue`.
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
     private let dbWriter: DatabaseWriter
