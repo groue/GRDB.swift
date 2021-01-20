@@ -40,3 +40,9 @@ The topics covered in this demo are:
 - [PlayerForm.swift](GRDBCombineDemo/Views/PlayerForm.swift), [PlayerEditionView.swift](GRDBCombineDemo/Views/PlayerEditionView.swift), [PlayerCreationSheet.swift](GRDBCombineDemo/Views/PlayerCreationSheet.swift) and [PlayerFormViewModel.swift](GRDBCombineDemo/ViewModels/PlayerFormViewModel.swift).
     
     `PlayerForm` is the SwiftUI view that displays a Player editing form. It is embedded in `PlayerEditionView` and `PlayerCreationSheet`, two SwiftUI views that edit or create a player. All those views are fed by `PlayerFormViewModel`.
+
+- [GRDBCombineDemoTests](GRDBCombineDemoTests)
+    
+    - Test the database schema
+    - Test the `Player` record and its requests
+    - Test the `AppDatabase` methods that let the app access the application.

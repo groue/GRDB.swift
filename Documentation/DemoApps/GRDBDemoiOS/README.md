@@ -35,3 +35,9 @@ The topics covered in this demo are:
 - [PlayerEditionViewController.swift](GRDBDemoiOS/ViewControllers/PlayerEditionViewController.swift)
     
     `PlayerEditionViewController` can create or edit a player, and save it in the database.
+
+- [GRDBDemoiOSTests](GRDBDemoiOSTests)
+    
+    - Test the database schema
+    - Test the `Player` record and its requests
+    - Test the `AppDatabase` methods that let the app access the application.
