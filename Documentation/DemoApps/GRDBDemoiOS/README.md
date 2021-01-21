@@ -22,7 +22,7 @@ The topics covered in this demo are:
 
 - [Persistence.swift](GRDBDemoiOS/Persistence.swift)
     
-    This file instantiates various `AppDatabase` for the various projects needs: one database on disk for the application, and in-memory databases for tests.
+    This file defines the `AppDatabase` instance used by the application.
 
 - [Player.swift](GRDBDemoiOS/Player.swift)
     
@@ -35,3 +35,9 @@ The topics covered in this demo are:
 - [PlayerEditionViewController.swift](GRDBDemoiOS/ViewControllers/PlayerEditionViewController.swift)
     
     `PlayerEditionViewController` can create or edit a player, and save it in the database.
+
+- [GRDBDemoiOSTests](GRDBDemoiOSTests)
+    
+    - Test the database schema
+    - Test the `Player` record and its requests
+    - Test the `AppDatabase` methods that let the app access the database.
