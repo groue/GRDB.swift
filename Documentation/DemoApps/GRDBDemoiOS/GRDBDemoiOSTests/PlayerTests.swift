@@ -3,6 +3,9 @@ import GRDB
 @testable import GRDBDemoiOS
 
 class PlayerTests: XCTestCase {
+    // MARK: - CRUD
+    // Test that our Player type properly talks to GRDB.
+    
     func testInsert() throws {
         // Given an empty players database
         let dbQueue = DatabaseQueue()
@@ -34,8 +37,11 @@ class PlayerTests: XCTestCase {
         XCTAssertEqual(insertedPlayer, fetchedPlayer)
     }
     
+    // MARK: - Requests
+    // Test that requests defined on the Player type behave as expected.
+    
     func testOrderedByScore() throws {
-        // Given an players database that contains players with distinct scores
+        // Given a players database that contains players with distinct scores
         let dbQueue = DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: 1, name: "Arthur", score: 100)
@@ -57,7 +63,7 @@ class PlayerTests: XCTestCase {
     }
     
     func testOrderedByScoreSortsIdenticalScoresByName() throws {
-        // Given an players database that contains players with common scores
+        // Given a players database that contains players with common scores
         let dbQueue = DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: 1, name: "Arthur", score: 100)
@@ -79,7 +85,7 @@ class PlayerTests: XCTestCase {
     }
     
     func testOrderedByName() throws {
-        // Given an players database that contains players with distinct names
+        // Given a players database that contains players with distinct names
         let dbQueue = DatabaseQueue()
         _ = try AppDatabase(dbQueue)
         var player1 = Player(id: 1, name: "Arthur", score: 100)
