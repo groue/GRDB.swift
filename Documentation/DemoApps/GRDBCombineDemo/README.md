@@ -45,4 +45,4 @@ The topics covered in this demo are:
     
     - Test the database schema
     - Test the `Player` record and its requests
-    - Test the `AppDatabase` methods that let the app access the application.
+    - Test the `AppDatabase` methods that let the app access the database.

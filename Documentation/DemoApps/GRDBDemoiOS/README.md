@@ -22,7 +22,7 @@ The topics covered in this demo are:
 
 - [Persistence.swift](GRDBDemoiOS/Persistence.swift)
     
-    This file instantiates various `AppDatabase` for the various projects needs: one database on disk for the application, and in-memory databases for tests.
+    This file defines the `AppDatabase` instance used by the application.
 
 - [Player.swift](GRDBDemoiOS/Player.swift)
     
@@ -40,4 +40,4 @@ The topics covered in this demo are:
     
     - Test the database schema
     - Test the `Player` record and its requests
-    - Test the `AppDatabase` methods that let the app access the application.
+    - Test the `AppDatabase` methods that let the app access the database.
