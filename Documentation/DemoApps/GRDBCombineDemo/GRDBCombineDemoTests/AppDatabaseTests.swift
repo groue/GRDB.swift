@@ -144,7 +144,7 @@ class AppDatabaseTests: XCTestCase {
         XCTAssertEqual(players, [player])
     }
     
-    func test_playersOrderedByNamePublisher() throws {
+    func test_playersOrderedByNamePublisher_publishes_well_ordered_players() throws {
         // Given a players database that contains two players
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
@@ -174,7 +174,31 @@ class AppDatabaseTests: XCTestCase {
         XCTAssertEqual(players, [player1, player2])
     }
     
-    func test_playersOrderedByScorePublisher() throws {
+    func test_playersOrderedByNamePublisher_publishes_right_on_subscripion() throws {
+        // Our SwiftUI views have no "waiting" state, and must be fed with
+        // players without any delay in order to avoid any rendering glitch.
+        // This test makes sure `playersOrderedByNamePublisher` publishes right
+        // on subscription.
+        
+        // Given a players database
+        let dbQueue = DatabaseQueue()
+        let appDatabase = try AppDatabase(dbQueue)
+        
+        // When we observe players
+        var players: [Player]?
+        _ = appDatabase.playersOrderedByNamePublisher().sink { completion in
+            if case let .failure(error) = completion {
+                XCTFail("Unexpected error \(error)")
+            }
+        } receiveValue: {
+            players = $0
+        }
+        
+        // Then the players are published right on subscription
+        XCTAssertNotNil(players)
+    }
+    
+    func test_playersOrderedByScorePublisher_publishes_well_ordered_players() throws {
         // Given a players database that contains two players
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
@@ -202,5 +226,29 @@ class AppDatabaseTests: XCTestCase {
         
         // Then the players are the two players ordered by score descending
         XCTAssertEqual(players, [player2, player1])
+    }
+    
+    func test_playersOrderedByScorePublisher_publishes_right_on_subscripion() throws {
+        // Our SwiftUI views have no "waiting" state, and must be fed with
+        // players without any delay in order to avoid any rendering glitch.
+        // This test makes sure `playersOrderedByScorePublisher` publishes right
+        // on subscription.
+        
+        // Given a players database
+        let dbQueue = DatabaseQueue()
+        let appDatabase = try AppDatabase(dbQueue)
+        
+        // When we observe players
+        var players: [Player]?
+        _ = appDatabase.playersOrderedByScorePublisher().sink { completion in
+            if case let .failure(error) = completion {
+                XCTFail("Unexpected error \(error)")
+            }
+        } receiveValue: {
+            players = $0
+        }
+        
+        // Then the players are published right on subscription
+        XCTAssertNotNil(players)
     }
 }
