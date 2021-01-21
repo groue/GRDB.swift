@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		56026CAC25B8A7EF00D1DF3F /* PlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56026CAA25B8A7EF00D1DF3F /* PlayerTests.swift */; };
+		56026CAD25B8A7EF00D1DF3F /* AppDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56026CAB25B8A7EF00D1DF3F /* AppDatabaseTests.swift */; };
 		567C3E1A2520B6DE0011F6E9 /* GRDBCombineDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */; };
 		567C3E1E2520B6DF0011F6E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E1D2520B6DF0011F6E9 /* Assets.xcassets */; };
 		567C3E212520B6DF0011F6E9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E202520B6DF0011F6E9 /* Preview Assets.xcassets */; };
@@ -26,6 +28,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		56026C9D25B8A7D000D1DF3F /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 567C3E0E2520B6DE0011F6E9 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 567C3E152520B6DE0011F6E9;
+			remoteInfo = GRDBCombineDemo;
+		};
 		567C3E342520B7000011F6E9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 567C3E292520B7000011F6E9 /* GRDB.xcodeproj */;
@@ -106,6 +115,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		56026C9825B8A7D000D1DF3F /* GRDBCombineDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCombineDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		56026C9C25B8A7D000D1DF3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		56026CAA25B8A7EF00D1DF3F /* PlayerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerTests.swift; sourceTree = "<group>"; };
+		56026CAB25B8A7EF00D1DF3F /* AppDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabaseTests.swift; sourceTree = "<group>"; };
 		567C3E162520B6DE0011F6E9 /* GRDBCombineDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBCombineDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBCombineDemoApp.swift; sourceTree = "<group>"; };
 		567C3E1D2520B6DF0011F6E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -126,6 +139,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		56026C9525B8A7D000D1DF3F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		567C3E132520B6DE0011F6E9 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,6 +157,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		56026C9925B8A7D000D1DF3F /* GRDBCombineDemoTests */ = {
+			isa = PBXGroup;
+			children = (
+				56026C9C25B8A7D000D1DF3F /* Info.plist */,
+				56026CAB25B8A7EF00D1DF3F /* AppDatabaseTests.swift */,
+				56026CAA25B8A7EF00D1DF3F /* PlayerTests.swift */,
+			);
+			path = GRDBCombineDemoTests;
+			sourceTree = "<group>";
+		};
 		56185BC125B8047D00B9C30F /* Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -160,6 +190,7 @@
 			children = (
 				567C3E292520B7000011F6E9 /* GRDB.xcodeproj */,
 				567C3E182520B6DE0011F6E9 /* GRDBCombineDemo */,
+				56026C9925B8A7D000D1DF3F /* GRDBCombineDemoTests */,
 				567C3E172520B6DE0011F6E9 /* Products */,
 				567C3E4D2520B70E0011F6E9 /* Frameworks */,
 			);
@@ -169,6 +200,7 @@
 			isa = PBXGroup;
 			children = (
 				567C3E162520B6DE0011F6E9 /* GRDBCombineDemo.app */,
+				56026C9825B8A7D000D1DF3F /* GRDBCombineDemoTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -242,6 +274,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		56026C9725B8A7D000D1DF3F /* GRDBCombineDemoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 56026CA825B8A7D000D1DF3F /* Build configuration list for PBXNativeTarget "GRDBCombineDemoTests" */;
+			buildPhases = (
+				56026C9425B8A7D000D1DF3F /* Sources */,
+				56026C9525B8A7D000D1DF3F /* Frameworks */,
+				56026C9625B8A7D000D1DF3F /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				56026C9E25B8A7D000D1DF3F /* PBXTargetDependency */,
+			);
+			name = GRDBCombineDemoTests;
+			productName = GRDBCombineDemoTests;
+			productReference = 56026C9825B8A7D000D1DF3F /* GRDBCombineDemoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		567C3E152520B6DE0011F6E9 /* GRDBCombineDemo */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 567C3E252520B6DF0011F6E9 /* Build configuration list for PBXNativeTarget "GRDBCombineDemo" */;
@@ -267,9 +317,13 @@
 		567C3E0E2520B6DE0011F6E9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 1200;
+				LastSwiftUpdateCheck = 1230;
 				LastUpgradeCheck = 1200;
 				TargetAttributes = {
+					56026C9725B8A7D000D1DF3F = {
+						CreatedOnToolsVersion = 12.3;
+						TestTargetID = 567C3E152520B6DE0011F6E9;
+					};
 					567C3E152520B6DE0011F6E9 = {
 						CreatedOnToolsVersion = 12.0;
 					};
@@ -295,6 +349,7 @@
 			projectRoot = "";
 			targets = (
 				567C3E152520B6DE0011F6E9 /* GRDBCombineDemo */,
+				56026C9725B8A7D000D1DF3F /* GRDBCombineDemoTests */,
 			);
 		};
 /* End PBXProject section */
@@ -359,6 +414,13 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
+		56026C9625B8A7D000D1DF3F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		567C3E142520B6DE0011F6E9 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -373,6 +435,15 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		56026C9425B8A7D000D1DF3F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				56026CAC25B8A7EF00D1DF3F /* PlayerTests.swift in Sources */,
+				56026CAD25B8A7EF00D1DF3F /* AppDatabaseTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		567C3E122520B6DE0011F6E9 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -393,6 +464,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		56026C9E25B8A7D000D1DF3F /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 567C3E152520B6DE0011F6E9 /* GRDBCombineDemo */;
+			targetProxy = 56026C9D25B8A7D000D1DF3F /* PBXContainerItemProxy */;
+		};
 		567C3E522520B71C0011F6E9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = GRDBiOS;
@@ -420,6 +496,46 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
+		56026C9F25B8A7D000D1DF3F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = GRDBCombineDemoTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCombineDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GRDBCombineDemo.app/GRDBCombineDemo";
+			};
+			name = Debug;
+		};
+		56026CA025B8A7D000D1DF3F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = GRDBCombineDemoTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.3;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBCombineDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GRDBCombineDemo.app/GRDBCombineDemo";
+			};
+			name = Release;
+		};
 		567C3E232520B6DF0011F6E9 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -583,6 +699,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		56026CA825B8A7D000D1DF3F /* Build configuration list for PBXNativeTarget "GRDBCombineDemoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56026C9F25B8A7D000D1DF3F /* Debug */,
+				56026CA025B8A7D000D1DF3F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		567C3E112520B6DE0011F6E9 /* Build configuration list for PBXProject "GRDBCombineDemo" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

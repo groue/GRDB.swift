@@ -31,12 +31,4 @@ extension AppDatabase {
             fatalError("Unresolved error \(error)")
         }
     }
-    
-    /// Creates an empty in-memory database for test
-    static func empty() -> AppDatabase {
-        // Connect to an in-memory database
-        // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
-        let dbQueue = DatabaseQueue()
-        return try! AppDatabase(dbQueue)
-    }
 }
