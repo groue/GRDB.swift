@@ -272,14 +272,7 @@ extension AppDatabase {
 }
 ```
 
-Note that the `execute(literal:)` method takes care of SQL injection, thanks to [SQL Interpolation]:
-
-```swift
-// INSERT INTO player (name, score)
-// VALUES ('O''Brien', 100)
-var player = Player(id: nil, name: "O'Brien", score: 100)
-try AppDatabase.shared.insertPlayer(&player)
-```
+Note that the `execute(literal:)` method above avoids [SQL injection], thanks to [SQL Interpolation].
 
 </details>
 
@@ -421,7 +414,7 @@ extension AppDatabase {
 }
 ```
 
-The `deleteAll(_:keys:)` method uses [SQL Interpolation] so that you can embed an array of ids right inside your SQL query. The "really raw" SQL is a little more involved:
+The `deleteAll(_:keys:)` method above uses [SQL Interpolation] so that you can embed an array of ids right inside your SQL query (`WHERE id IN \(ids)`). The "really raw" SQL version below is a little more involved:
 
 ```swift
     func deletePlayers(ids: [Int64]) throws {
@@ -437,6 +430,8 @@ The `deleteAll(_:keys:)` method uses [SQL Interpolation] so that you can embed a
         }
     }
 ```
+
+All the techniques we have seen avoid [SQL injection].
 
 </details>
 
@@ -456,3 +451,4 @@ The `deleteAll(_:keys:)` method uses [SQL Interpolation] so that you can embed a
 [Sharing a database]: SharingADatabase.md
 [database observation]: ../README.md#database-changes-observation
 [SQL Interpolation]: SQLInterpolation.md
+[SQL injection]: ../README.md#avoiding-sql-injection
