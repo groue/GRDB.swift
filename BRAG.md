@@ -4,6 +4,12 @@ Here is a list of people who were happy to meet GRDB :-)
 
 ---
 
+https://twitter.com/peres/status/1352219836508729346
+
+> Just the occasional reminder that GRDB and its documentation is the gold standard. That's it.
+
+---
+
 https://twitter.com/steipete/status/1275305583718129664
 
 > This is the future of Core Data
