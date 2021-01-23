@@ -276,9 +276,9 @@ try AppDatabase.shared.insertPlayer(&player)
 
 </details>
 
-Raw SQL is just fine, but we can also make `Player` a [persistable record]. With persistable records, you do not have to write the SQL queries for common persistence operations.
+SQL is just fine, but we can also make `Player` a [persistable record]. With persistable records, you do not have to write the SQL queries that perform common persistence operations.
 
-The `player` database table has an autoincremented id, and this is why the `Player` struct adopts the `MutablePersistableRecord` protocol. It is "persistable" because players can be inserted, updated and deleted. It is "mutable" because inserting a player gives it an id.
+The `Player` struct adopts the `MutablePersistableRecord` protocol, because the `player` database table has an autoincremented id. "Persistable": players can be inserted, updated and deleted. "Mutable": inserting a player modifies it by setting its id.
 
 Conformance to `MutablePersistableRecord` is almost free for types that adopt the standard [Codable] protocol:
 
@@ -293,6 +293,8 @@ extension Player: Encodable, MutablePersistableRecord {
     }
 }
 ```
+
+In this tutorial, the name of the database table matches the name of the type, and columns matches properties, so we do not have to configure anything.
 
 <details>
     <summary>Avoiding Encodable</summary>
