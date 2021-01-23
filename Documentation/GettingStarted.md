@@ -17,7 +17,7 @@ The demo application displays the list of players stored in the database. The ap
 
 ## The Database Service
 
-In this chapter, we introduce the `AppDatabase` service. Its role is to grant access to the player database, in a controlled fashion.
+In this chapter, we introduce the `AppDatabase` service. It is the class that grants access to the player database, in a controlled fashion.
 
 We'll make it possible to fetch the list of players, insert new players, as well as other application needs. But not all database operations will be possible. For example, setting up the database schema is the strict privilege of `AppDatabase`, not of the rest of the application.
 
