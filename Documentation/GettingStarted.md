@@ -188,7 +188,9 @@ Some readers like to write SQL. Please be welcome:
 
 The database table for players is named `player`, because GRDB recommends that table names are English, singular, and camel-cased (`player`, `country`, `postalAddress`, etc.) Such names will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
 
-The primary key for players is an auto-incremented column named `id`. It also could have been, say, a UUID column named `uuid`. GRDB generally accepts all primary keys, even if they are not named `id`, even if they span several columns, without any extra setup. Yet `id` is a frequent convention.
+The primary key for players is an auto-incremented column named `id`. It also could have been a UUID column named `uuid`. GRDB generally accepts all primary keys, even if they are not named `id`, even if they span several columns, without any extra setup. Yet `id` is a frequent convention.
+
+The `id` column is [autoincremented](https://sqlite.org/autoinc.html), in order to avoid id reuse. Reused ids can trip up [database observation] tools: a deletion followed by an insertion with the same id may wrongly be interpreted as an update.
 
 </details>
 
@@ -371,3 +373,4 @@ try AppDatabase.shared.savePlayer(player)
 [data protection]: ../README.md#data-protection
 [Associations]: AssociationsBasics.md
 [Sharing a database]: SharingADatabase.md
+[database observation]: ../README.md#database-changes-observation
