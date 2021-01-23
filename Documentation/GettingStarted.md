@@ -9,11 +9,11 @@ We will not cover the creation of an Xcode project, storyboards, or view control
 
 The demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
 
-- [The Database Service]
-- [The Shared Application Database]
-- [The Database Schema]
-- [Inserting Players in the Database, and the Player struct]
-- [Testing the Database]
+- [The Database Service](#the-database-service)
+- [The Shared Application Database](#the-shared-application-database)
+- [The Database Schema](#the-database-schema)
+- [Inserting Players in the Database, and the Player Struct](#inserting-players-in-the-database-and-the-player-struct)
+- [Testing the Database](#testing-the-database)
 
 ## The Database Service
 
@@ -120,7 +120,7 @@ Any error which prevents the application from opening the database has the appli
 
 ## The Database Schema
 
-Now that we have an empty database, we need to define its schema: the database table(s) that will store our application data. A good database schema will have SQLite manage the database integrity for you, and make sure it is impossible to store invalid data in the database: this is an important step!
+Now that we have an empty database, let's define its schema: the database table(s) that will store our application data. A good database schema will have SQLite manage the database integrity for you, and make sure it is impossible to store invalid data in the database: this is an important step!
 
 <details>
     <summary>ℹ️ Design Notes</summary>
@@ -131,7 +131,7 @@ With GRDB, it is just the other way around: you freely define the database schem
 
 </details>
 
-Our app needs a database that contains one table, `player`, where each row contains the attributes of a player: a unique identifier (aka *primary key*), a name, and a score. The identifier makes it possible to instruct the database to perform operations on a specific player. We'll make sure all players have a name and a score (we'll prevent *NULL* values from entering those columns).
+Our database needs one table, `player`, where each row contains the attributes of a player: a unique identifier (aka *primary key*), a name, and a score. The identifier makes it possible to instruct the database to perform operations on a specific player. We'll make sure all players have a name and a score (we'll prevent *NULL* values from entering those columns).
 
 In order to define the schema and create the `player` table, it is recommended to use [migrations]. All applications around us evolve as time passes, and ship several versions: it is likely our app will do the same. The database schema evolves as well, as we add features and fix bugs in our app. That's exactly what migrations are for: they represent the building steps of our database schema, as our app goes through its versions.
 
@@ -205,7 +205,7 @@ The migrations are now defined, but they are not applied yet. Let's modify the `
 
 > ✅ At this stage, we have a `AppDatabase.shared` object which vends a database that contains a `player` table.
 
-## Inserting Players in the Database, and the Player struct
+## Inserting Players in the Database, and the Player Struct
 
 The `player` table can't remain empty, or the application will never display anything!
 
