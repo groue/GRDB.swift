@@ -111,7 +111,7 @@ The database is stored in its own directory, so that you can easily:
 
 The shared `AppDatabase` uses a `DatabasePool` in order to profit from the SQLite [WAL mode].
 
-Any error which prevents the application from opening the database has the application crash. You will have to adapt this sample code if you intend to build an app that is able to run without a working database.
+Any error which prevents the application from opening the database has the application crash. You will have to adapt this sample code if you intend to build an app that is able to run without a working database. For example, you could modify `AppDatabase` so that it owns a `Result<DatabaseWriter, Error>` instead of a plain `DatabaseWriter` - but your mileage may vary.
 
 </details>
 
