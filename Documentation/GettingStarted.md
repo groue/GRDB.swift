@@ -5,9 +5,15 @@ Getting Started with GRDB
 
 **This tutorial describes the building of the [UIKit demo application], step by step, applying best SQLite and GRDB practices along the way.** In the end, you will have a database access layer that fulfills the application needs, and can be tested.
 
-We will not cover the creation of an Xcode project, storyboards, or view controllers. But we will explain our design choices: when you want an explanation about some particular piece of code, expand the notes marked with an ℹ️.
+The target audience is already fluent with the creation of an Xcode project, storyboards, or view controllers: these topics are not covered.
 
-The demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
+Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features such as record types, the query interface, and database observation. For all topics, a "raw SQL" version is also provided, so that you can choose your favorite way to deal with SQLite.
+
+The tutorial explains its design choices: when you want an explanation about some particular piece of code, expand the notes marked with an ℹ️.
+
+As you can see in the [screenshot](https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png), the demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
+
+Let's start!
 
 - [The Database Service](#the-database-service)
 - [The Shared Application Database](#the-shared-application-database)
