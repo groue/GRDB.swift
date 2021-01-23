@@ -258,7 +258,7 @@ extension AppDatabase {
     /// Inserts a player. When the method returns, the
     /// player id is set to the newly inserted id. 
     func insertPlayer(_ player: inout Player) throws {
-        try dbQueue.write { db in
+        try dbWriter.write { db in
             try db.execute(literal: """
                 INSERT INTO player (name, score) 
                 VALUES (\(player.name), \(player.score))
