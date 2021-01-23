@@ -424,6 +424,8 @@ The `deleteAll(_:keys:)` method above uses [SQL Interpolation] so that you can e
                 return
             }
             // DELETE FROM player WHERE id IN (?, ?, ...)
+            //                                 ~~~~~~~~~
+            //   as many question marks as there are ids
             let placeholders = databaseQuestionMarks(count: ids.count)
             let query = "DELETE FROM player WHERE id IN (\(placeholders))"
             try db.execute(sql: query, arguments: StatementArguments(ids))
