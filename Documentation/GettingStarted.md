@@ -133,7 +133,7 @@ With GRDB, it is just the other way around: you freely define the database schem
 
 Our app needs a database that contains one table, `player`, where each row contains the attributes of a player: a unique identifier (aka *primary key*), a name, and a score. The identifier makes it possible to instruct the database to perform operations on a specific player. We'll make sure all players have a name and a score (we'll prevent *NULL* values from entering those columns).
 
-In order to define the schema and create the `player` table, GRDB recommends that we use [migrations]. All applications around us evolve as time passes, and ship several versions: it is likely our app will do the same. The database schema will also evolve, as we add features and fix bugs in our app. That's exactly what migrations are for: they represent the building steps of our database schema, as our app goes through its versions.
+In order to define the schema and create the `player` table, it is recommended to use [migrations]. All applications around us evolve as time passes, and ship several versions: it is likely our app will do the same. The database schema evolves as well, as we add features and fix bugs in our app. That's exactly what migrations are for: they represent the building steps of our database schema, as our app goes through its versions.
 
 The migrations are defined in the `AppDatabase.migrator` property, in which we register the *initial migration*:
 
@@ -192,7 +192,7 @@ The primary key for players is an auto-incremented column named `id`. It also co
 
 </details>
 
-The migrations are now defined, but they are not applied yet. Let's modify the `AppDatabase` initializer:
+The migrations are now defined, but they are not applied yet. Let's modify the `AppDatabase` initializer, and *migrate* the database. It means that unapplied migrations are run. In the end, we are sure that the database schema is exactly what we want it to be:
 
 ```swift
     /// Creates an `AppDatabase` from a database connection,
