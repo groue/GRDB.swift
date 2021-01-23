@@ -236,15 +236,13 @@ struct Player {
 }
 ```
 
-Now we have a `Player` type that can deal with all application needs.
-
 The type of the `id` property is an `Int64?` because it matches the `id` column in the `player` table (SQLite numeric ids are 64-bit integers, even on 32-bit platforms). When the id is nil, the player is not yet saved in the database. When the id is not nil, it is the identifier of a player in the database.
 
 The `name` and `score` properties are regular `String` and `Int`. They are not optional (`String?` or `Int?`), because we added "not null" constraints on those database columns when we defined the `player` table.
 
-> 👆 **Note**: we have defined a [record type], a type whose properties match the columns of a database table. GRDB makes your life easy when you define one record type per database table. At this stage, `Player` has no database power yet, but hold on.
+> ✅ Now we have a `Player` type that fits the columns of the `player` database table, and is able to deal with all application needs. This is what GRDB calls a [record type]. At this stage, `Player` has no database power yet, but hold on.
 
-Now we can insert a player. We can do it with raw SQL:
+The `Player` type allows `AppDatabase` to insert a player. We can do it with raw SQL:
 
 <details>
     <summary>Raw SQL version</summary>
@@ -278,9 +276,9 @@ try AppDatabase.shared.insertPlayer(&player)
 
 </details>
 
-Instead of raw SQL, we can make `Player` a [persistable record]. With persistable records, you do not have to write the SQL queries for common persistence operations.
+Raw SQL is just fine, but we can also make `Player` a [persistable record]. With persistable records, you do not have to write the SQL queries for common persistence operations.
 
-The `player` database table has an autoincremented id, and this is why the `Player` struct adopts the `MutablePersistableRecord` protocol. It is "persistable" because players can be inserted, updated and deleted. It is "mutable" because inserting a player modifies a player by giving it an id.
+The `player` database table has an autoincremented id, and this is why the `Player` struct adopts the `MutablePersistableRecord` protocol. It is "persistable" because players can be inserted, updated and deleted. It is "mutable" because inserting a player gives it an id.
 
 Conformance to `MutablePersistableRecord` is almost free for types that adopt the standard [Codable] protocol:
 
