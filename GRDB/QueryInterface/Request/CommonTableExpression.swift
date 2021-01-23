@@ -113,9 +113,7 @@ extension CommonTableExpression {
 
 extension CommonTableExpression {
     var relationForAll: SQLRelation {
-        SQLRelation(
-            source: SQLSource(tableName: tableName, alias: nil),
-            selectionPromise: DatabasePromise(value: [AllColumns(cte: cte)]))
+        .all(fromTable: tableName, selection: { _ in [AllColumns(cte: cte)] })
     }
     
     /// Creates a request for all rows of the common table expression.

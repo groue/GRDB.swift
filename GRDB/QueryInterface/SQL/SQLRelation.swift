@@ -186,6 +186,19 @@ struct SQLRelation {
     }
 }
 
+extension SQLRelation {
+    /// Convenience factory methods which selects all rows from a table.
+    static func all(
+        fromTable tableName: String,
+        selection: @escaping (Database) -> [SQLSelectable] = { _ in [AllColumns()] })
+    -> Self
+    {
+        SQLRelation(
+            source: SQLSource(tableName: tableName, alias: nil),
+            selectionPromise: DatabasePromise(selection))
+    }
+}
+
 extension SQLRelation: Refinable {
     func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
         with(\.selectionPromise, DatabasePromise(selection))

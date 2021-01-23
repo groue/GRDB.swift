@@ -3,9 +3,7 @@ extension TableRecord {
     // MARK: Request Derivation
     
     static var relationForAll: SQLRelation {
-        SQLRelation(
-            source: SQLSource(tableName: databaseTableName, alias: nil),
-            selectionPromise: DatabasePromise(value: databaseSelection))
+        .all(fromTable: databaseTableName, selection: { _ in databaseSelection })
     }
     
     /// Creates a request which fetches all records.

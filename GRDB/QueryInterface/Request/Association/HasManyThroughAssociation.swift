@@ -41,7 +41,7 @@
 /// two other associations: the `through:` and `using:` arguments. Those
 /// associations can be any other association (BelongsTo, HasMany,
 /// HasManyThrough, etc).
-public struct HasManyThroughAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToMany {
+public struct HasManyThroughAssociation<Origin, Destination>: AssociationToMany {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
