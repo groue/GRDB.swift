@@ -50,11 +50,11 @@ final class AppDatabase {
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-The `dbWriter` property is private: this allows `AppDatabase` to restrict the operations that can be performed on the database.
-
-The initializer is not private: we can freely create `AppDatabase` instances, for the application, and for tests.
-
-The initializer is declared with the `throws` qualifier, because it will be extended, below in this guide, in order to prepare the database for application use.
+> The `dbWriter` property is private: this allows `AppDatabase` to restrict the operations that can be performed on the database.
+> 
+> The initializer is not private: we can freely create `AppDatabase` instances, for the application, and for tests.
+> 
+> The initializer is declared with the `throws` qualifier, because it will be extended, below in this guide, in order to prepare the database for application use.
 
 </details>
 
@@ -69,9 +69,9 @@ Inspired by `UIApplication.shared`, `UserDefaults.standard`, or `FileManager.def
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-Some applications will prefer to manage the shared `AppDatabase` instance differently, for example with some dependency injection technique. In this case, you will not define `AppDatabase.shared`.
-
-Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. [Sharing a database] is hard. Get inspiration from `AppDatabase.makeShared()`, below, in order to create the single instance of your database service.
+> Some applications will prefer to manage the shared `AppDatabase` instance differently, for example with some dependency injection technique. In this case, you will not define `AppDatabase.shared`.
+> 
+> Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. [Sharing a database] is hard. Get inspiration from `AppDatabase.makeShared()`, below, in order to create the single instance of your database service.
 
 </details>
 
@@ -111,14 +111,14 @@ extension AppDatabase {
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-The database is stored in its own directory, so that you can easily:
-
-- Set up [data protection].
-- Remove the database as well as its companion [temporary files](https://sqlite.org/tempfiles.html) from disk in a single stroke.
-
-The shared `AppDatabase` uses a `DatabasePool` in order to profit from the SQLite [WAL mode].
-
-Any error which prevents the application from opening the database has the application crash. You will have to adapt this sample code if you intend to build an app that is able to run without a working database. For example, you could modify `AppDatabase` so that it owns a `Result<DatabaseWriter, Error>` instead of a plain `DatabaseWriter` - but your mileage may vary.
+> The database is stored in its own directory, so that you can easily:
+> 
+> - Set up [data protection].
+> - Remove the database as well as its companion [temporary files](https://sqlite.org/tempfiles.html) from disk in a single stroke.
+> 
+> The shared `AppDatabase` uses a `DatabasePool` in order to profit from the SQLite [WAL mode].
+> 
+> Any error which prevents the application from opening the database has the application crash. You will have to adapt this sample code if you intend to build an app that is able to run without a working database. For example, you could modify `AppDatabase` so that it owns a `Result<DatabaseWriter, Error>` instead of a plain `DatabaseWriter` - but your mileage may vary.
 
 </details>
 
@@ -132,9 +132,9 @@ Now that we have an empty database, let's define its schema: the database table(
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-Some database libraries derive the database schema and relational constraints right from application code. For example, the fact that the name of a player can't be nil would be expressed in Swift, and the database library would prevent nil names from entering the database. With such libraries, you may not be free to define the database schema as you would want it to be, and you do not have much guarantee about the quality of your data.
-
-With GRDB, it is just the other way around: you freely define the database schema so that it fulfills your application needs, and you access the database data with Swift code that matches this schema. You can't build a safer haven for your precious users' data than a robust SQLite schema. Bring your database skills with you!
+> Some database libraries derive the database schema and relational constraints right from application code. For example, the fact that the name of a player can't be nil would be expressed in Swift, and the database library would prevent nil names from entering the database. With such libraries, you may not be free to define the database schema as you would want it to be, and you do not have much guarantee about the quality of your data.
+> 
+> With GRDB, it is just the other way around: you freely define the database schema so that it fulfills your application needs, and you access the database data with Swift code that matches this schema. You can't build a safer haven for your precious users' data than a robust SQLite schema. Bring your database skills with you!
 
 </details>
 
@@ -193,11 +193,11 @@ Some readers like to write SQL. Please be welcome:
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-The database table for players is named `player`, because GRDB recommends that table names are English, singular, and camel-cased (`player`, `country`, `postalAddress`, etc.) Such names will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will have to perform extra configuration.
-
-The primary key for players is an auto-incremented column named `id`. It also could have been a UUID column named `uuid`. GRDB generally accepts all primary keys, even if they are not named `id`, even if they span several columns, without any extra setup. Yet `id` is a frequent convention.
-
-The `id` column is [autoincremented](https://sqlite.org/autoinc.html), in order to avoid id reuse. Reused ids can trip up [database observation] tools: a deletion followed by an insertion with the same id may be interpreted as an update, with unintended consequences.
+> The database table for players is named `player`, because GRDB recommends that table names are English, singular, and camel-cased (`player`, `country`, `postalAddress`, etc.) Such names will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will have to perform extra configuration.
+> 
+> The primary key for players is an auto-incremented column named `id`. It also could have been a UUID column named `uuid`. GRDB generally accepts all primary keys, even if they are not named `id`, even if they span several columns, without any extra setup. Yet `id` is a frequent convention.
+> 
+> The `id` column is [autoincremented](https://sqlite.org/autoinc.html), in order to avoid id reuse. Reused ids can trip up [database observation] tools: a deletion followed by an insertion with the same id may be interpreted as an update, with unintended consequences.
 
 </details>
 
