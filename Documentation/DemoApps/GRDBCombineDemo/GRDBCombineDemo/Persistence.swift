@@ -6,12 +6,21 @@ extension AppDatabase {
     
     private static func makeShared() -> AppDatabase {
         do {
+            // Create a folder for storing the SQLite database, as well as
+            // the various temporary files created during normal database
+            // operations (https://sqlite.org/tempfiles.html).
+            let fileManager = FileManager()
+            let folderURL = try fileManager
+                .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                .appendingPathComponent("database", isDirectory: true)
+            try fileManager.createDirectory(at: folderURL, withIntermediateDirectories: true)
+            
             // Connect to a database on disk
             // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
-            let url: URL = try FileManager.default
-                    .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-                    .appendingPathComponent("db.sqlite")
-            let dbPool = try DatabasePool(path: url.path)
+            let dbURL = folderURL.appendingPathComponent("db.sqlite")
+            let dbPool = try DatabasePool(path: dbURL.path)
+            
+            // Create the AppDatabase
             let appDatabase = try AppDatabase(dbPool)
             
             // Populate the database if it is empty, for better demo purpose.
