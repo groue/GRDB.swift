@@ -127,20 +127,6 @@ extension AppDatabase {
 // MARK: - Database Access: Reads
 
 extension AppDatabase {
-    /// Tracks changes in the number of players
-    func observePlayerCount(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Int) -> Void)
-    -> DatabaseCancellable
-    {
-        ValueObservation
-            .tracking(Player.fetchCount)
-            .start(
-                in: dbWriter,
-                onError: onError,
-                onChange: onChange)
-    }
-    
     /// Tracks changes in players ordered by name
     func observePlayersOrderedByName(
         onError: @escaping (Error) -> Void,

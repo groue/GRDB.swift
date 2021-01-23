@@ -12,11 +12,10 @@ class PlayerListViewController: UITableViewController {
     private var dataSource: PlayerDataSource!
     private var animatesPlayersChange = false // Don't animate first update
     private var playersCancellable: DatabaseCancellable?
-    private var playerCountCancellable: DatabaseCancellable?
     private var playerOrdering: PlayerOrdering = .byScore {
         didSet {
             configureOrderingBarButtonItem()
-            configureDataSourceContent()
+            observePlayers()
         }
     }
     
@@ -25,7 +24,7 @@ class PlayerListViewController: UITableViewController {
         configureToolbar()
         configureNavigationItem()
         configureDataSource()
-        configureDataSourceContent()
+        observePlayers()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -49,7 +48,6 @@ class PlayerListViewController: UITableViewController {
             target: nil, action: nil)
         navigationItem.leftBarButtonItems = [editButtonItem, newPlayerButtonItem]
         configureOrderingBarButtonItem()
-        configureTitle()
     }
     
     private func configureOrderingBarButtonItem() {
@@ -67,19 +65,6 @@ class PlayerListViewController: UITableViewController {
         }
     }
     
-    private func configureTitle() {
-        playerCountCancellable = AppDatabase.shared.observePlayerCount(
-            onError: { error in fatalError("Unexpected error: \(error)") },
-            onChange: { [weak self] count in
-                guard let self = self else { return }
-                switch count {
-                case 0: self.navigationItem.title = "No Player"
-                case 1: self.navigationItem.title = "1 Player"
-                default: self.navigationItem.title = "\(count) Players"
-                }
-            })
-    }
-    
     private func configureDataSource() {
         dataSource = PlayerDataSource(tableView: tableView) { (tableView, indexPath, player) in
             let cell = tableView.dequeueReusableCell(withIdentifier: "Player", for: indexPath)
@@ -95,26 +80,18 @@ class PlayerListViewController: UITableViewController {
         tableView.dataSource = dataSource
     }
     
-    private func configureDataSourceContent() {
-        switch playerOrdering {
-        case .byName:
-            playersCancellable = AppDatabase.shared.observePlayersOrderedByName(
-                onError: { error in fatalError("Unexpected error: \(error)") },
-                onChange: { [weak self] players in
-                    guard let self = self else { return }
-                    self.updateDataSourceContent(with: players)
-                })
-        case .byScore:
-            playersCancellable = AppDatabase.shared.observePlayersOrderedByScore(
-                onError: { error in fatalError("Unexpected error: \(error)") },
-                onChange: { [weak self] players in
-                    guard let self = self else { return }
-                    self.updateDataSourceContent(with: players)
-                })
+    private func configureTitle(from players: [Player]) {
+        switch players.count {
+        case 0:
+            navigationItem.title = "No Player"
+        case 1:
+            navigationItem.title = "1 Player"
+        case let count:
+            navigationItem.title = "\(count) Players"
         }
     }
     
-    private func updateDataSourceContent(with players: [Player]) {
+    private func configureDataSource(from players: [Player]) {
         var snapshot = NSDiffableDataSourceSnapshot<Int, Player>()
         snapshot.appendSections([0])
         snapshot.appendItems(players, toSection: 0)
@@ -125,6 +102,27 @@ class PlayerListViewController: UITableViewController {
             // Future updates will be animated
             animatesPlayersChange = true
             dataSource.apply(snapshot, animatingDifferences: false, completion: nil)
+        }
+    }
+    
+    private func observePlayers() {
+        switch playerOrdering {
+        case .byName:
+            playersCancellable = AppDatabase.shared.observePlayersOrderedByName(
+                onError: { error in fatalError("Unexpected error: \(error)") },
+                onChange: { [weak self] players in
+                    guard let self = self else { return }
+                    self.configureTitle(from: players)
+                    self.configureDataSource(from: players)
+                })
+        case .byScore:
+            playersCancellable = AppDatabase.shared.observePlayersOrderedByScore(
+                onError: { error in fatalError("Unexpected error: \(error)") },
+                onChange: { [weak self] players in
+                    guard let self = self else { return }
+                    self.configureTitle(from: players)
+                    self.configureDataSource(from: players)
+                })
         }
     }
 }
