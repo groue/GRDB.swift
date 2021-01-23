@@ -7,7 +7,7 @@ Getting Started with GRDB
 
 The target audience is already fluent with the creation of an Xcode project, storyboards, or view controllers: these topics are not covered.
 
-Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features such as record types, the query interface, and database observation. For all topics, a "raw SQL" version is also provided, so that you can choose your favorite way to deal with SQLite.
+Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features (record types, query interface, database observation). For all topics, a "raw SQL" version is also provided, so that you can choose your favorite way to deal with SQLite.
 
 The tutorial explains its design choices: when you want an explanation about some particular piece of code, expand the notes marked with an ℹ️.
 
