@@ -414,7 +414,7 @@ extension AppDatabase {
 }
 ```
 
-The `deleteAll(_:keys:)` method above uses [SQL Interpolation] so that you can embed an array of ids right inside your SQL query (`WHERE id IN \(ids)`). The "really raw" SQL version below is a little more involved:
+The `deletePlayers(ids:)` method above uses [SQL Interpolation] so that you can embed an array of ids right inside your SQL query (`WHERE id IN \(ids)`). The "really raw" SQL version below is a little more involved:
 
 ```swift
     func deletePlayers(ids: [Int64]) throws {
