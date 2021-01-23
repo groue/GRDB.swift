@@ -13,6 +13,7 @@ The demo application displays the list of players stored in the database. The ap
 - [The Shared Application Database](#the-shared-application-database)
 - [The Database Schema](#the-database-schema)
 - [Inserting Players in the Database, and the Player Struct](#inserting-players-in-the-database-and-the-player-struct)
+- [Deleting Players](#deleting-players)
 - [Testing the Database](#testing-the-database)
 
 ## The Database Service
@@ -265,7 +266,7 @@ extension AppDatabase {
 }
 ```
 
-Note that the `execute(literal:)` method takes care of SQL injection:
+Note that the `execute(literal:)` method takes care of SQL injection, thanks to [SQL Interpolation]:
 
 ```swift
 // INSERT INTO player (name, score)
@@ -355,6 +356,84 @@ try AppDatabase.shared.savePlayer(player)
 >
 > ✅ At this stage, we have a `AppDatabase.shared` object which is able to insert and update players in the database.
 
+## Deleting Players
+
+The application can delete players:
+
+- The "Trash" icon at the bottom left of the screen deletes all players.
+- The "Edit" button at the top left of the screen lets the user delete individual players.
+- The player list supports the swipe to delete gesture.
+
+The `AppDatabase` service supports these use cases with two new methods:
+
+```swift
+// File: AppDatabase.swift
+
+extension AppDatabase {
+    /// Delete the specified players
+    func deletePlayers(ids: [Int64]) throws {
+        try dbWriter.write { db in
+            _ = try Player.deleteAll(db, keys: ids)
+        }
+    }
+    
+    /// Delete all players
+    func deleteAllPlayers() throws {
+        try dbWriter.write { db in
+            _ = try Player.deleteAll(db)
+        }
+    }
+}
+```
+
+Both `deleteAll(_:)` and `deleteAll(_:keys:)` methods are available for all persistable records.
+
+<details>
+    <summary>Raw SQL version</summary>
+
+If you do not want to make `Player` a persistable record, you can fallback to raw SQL:
+
+```swift
+// File: AppDatabase.swift
+
+extension AppDatabase {
+    /// Delete the specified players
+    func deletePlayers(ids: [Int64]) throws {
+        try dbWriter.write { db in
+            try db.execute(literal: """
+                DELETE FROM player WHERE id IN \(ids)
+                """)
+        }
+    }
+    
+    /// Delete all players
+    func deleteAllPlayers() throws {
+        try dbWriter.write { db in
+            try db.execute(sql: "DELETE FROM player")
+        }
+    }
+}
+```
+
+The `deleteAll(_:keys:)` method uses [SQL Interpolation] so that you can embed an array of ids right inside your SQL query. The "really raw" SQL is a little more involved:
+
+```swift
+    func deletePlayers(ids: [Int64]) throws {
+        try dbWriter.write { db in
+            if ids.isEmpty {
+                // Avoid SQL syntax error
+                return
+            }
+            // DELETE FROM player WHERE id IN (?, ?, ...)
+            let placeholders = databaseQuestionMarks(count: ids.count)
+            let query = "DELETE FROM player WHERE id IN (\(placeholders))"
+            try db.execute(sql: query, arguments: StatementArguments(ids))
+        }
+    }
+```
+
+</details>
+
 ## Testing the Database
 
 [UIKit demo application]: DemoApps/GRDBDemoiOS
@@ -370,3 +449,4 @@ try AppDatabase.shared.savePlayer(player)
 [Associations]: AssociationsBasics.md
 [Sharing a database]: SharingADatabase.md
 [database observation]: ../README.md#database-changes-observation
+[SQL Interpolation]: SQLInterpolation.md
