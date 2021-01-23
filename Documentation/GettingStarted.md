@@ -236,7 +236,7 @@ struct Player {
 }
 ```
 
-The type of the `id` property is an `Int64?` because it matches the `id` column in the `player` table (SQLite numeric ids are 64-bit integers, even on 32-bit platforms). When the id is nil, the player is not yet saved in the database. When the id is not nil, it is the identifier of a player in the database.
+The type of the `id` property is `Int64?` because it matches the `id` column in the `player` table (SQLite numeric ids are 64-bit integers, even on 32-bit platforms). When the id is nil, the player is not yet saved in the database. When the id is not nil, it is the identifier of a player in the database.
 
 The `name` and `score` properties are regular `String` and `Int`. They are not optional (`String?` or `Int?`), because we added "not null" constraints on those database columns when we defined the `player` table.
 
