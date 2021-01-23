@@ -4388,6 +4388,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 ### SQL Operators
 
+GRDB comes with a Swift version of many SQLite [built-in operators](https://sqlite.org/lang_expr.html#operators), listed below. But not all: see [Adding support for missing SQL functions or operators](#adding-support-for-missing-sql-functions-or-operators).
+
 - `=`, `<>`, `<`, `<=`, `>`, `>=`, `IS`, `IS NOT`
     
     Comparison operators are based on the Swift operators `==`, `!=`, `===`, `!==`, `<`, `<=`, `>`, `>=`:
@@ -4577,6 +4579,8 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 ### SQL Functions
 
+GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Adding support for missing SQL functions or operators](#adding-support-for-missing-sql-functions-or-operators).
+
 - `ABS`, `AVG`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`:
     
     Those are based on the `abs`, `average`, `count`, `dateTime`, `julianDay`, `length`, `max`, `min` and `sum` Swift functions:
@@ -4641,6 +4645,22 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
     // SELECT f(name) FROM player
     Player.select(f.apply(nameColumn))
     ```
+
+### Adding support for missing SQL functions or operators
+
+When you spot an SQL function or operator that misses its Swift version, you can define it right into your application code.
+
+For example, you can add support for the `DATE` function, thanks to [SQL Interpolation]:
+
+```swift
+func date(_ value: SQLExpressible) -> SQLExpression {
+    SQLLiteral("DATE(\(value))").sqlExpression
+}
+
+// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+let createdAt = Column("createdAt")
+let request = Player.filter(date(createdAt) == "2020-01-23")
+```
 
 
 ## Fetching from Requests
