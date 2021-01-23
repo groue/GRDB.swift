@@ -1,11 +1,13 @@
 Getting Started with GRDB
 =========================
 
-This document describes the building steps of the [UIKit demo application]. In the end, you will have a database access layer that fulfills the application needs, and can be tested.
+<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
-The demo application displays a list of players, sorted by name or by score. The application user can add, edit, and delete players. The application user can also refresh the list of players. For demo purpose, refreshing players performs random modifications to the players.
+**This tutorial describes the building of the [UIKit demo application], step by step, applying best SQLite and GRDB practices along the way.** In the end, you will have a database access layer that fulfills the application needs, and can be tested.
 
-We'll progress, step by step, applying best SQLite and GRDB practices along the way. When you want an explanation about some particular piece of code, expand the design notes marked with an ℹ️.
+We will not cover the creation of an Xcode project, storyboards, or view controllers. But we will explain our design choices: when you want an explanation about some particular piece of code, expand the notes marked with an ℹ️.
+
+The demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
 
 - [The Database Service]
 - [The Shared Application Database]
@@ -19,7 +21,7 @@ In this chapter, we introduce the `AppDatabase` service. Its role is to grant ac
 
 We'll make it possible to fetch the list of players, insert new players, as well as other application needs. But not all database operations will be possible. For example, setting up the database schema is the strict privilege of `AppDatabase`, not of the rest of the application.
 
-The `AppDatabase` service needs a read/write access to an SQLite database. Such access is provided by GRDB [database connections]. We'd like the application to use a `DatabasePool`, because it leverages the advantages of the SQLite [WAL mode]. On the other side, we'd prefer application tests to run as fast as possible, on an in-memory database provided by a `DatabaseQueue`.
+The `AppDatabase` service needs a read/write access to an SQLite database. Such access is provided by GRDB [database connections]. We'd like the application to use a `DatabasePool`, because it leverages the advantages of the SQLite [WAL mode]. On the other side, we'd prefer application tests to run as fast as possible, with an in-memory database provided by a `DatabaseQueue`.
 
 Pools and queues share a common protocol, `DatabaseWriter`, and this is what our `AppDatabase` service needs:
 
