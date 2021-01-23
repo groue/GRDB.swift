@@ -190,7 +190,7 @@ The database table for players is named `player`, because GRDB recommends that t
 
 The primary key for players is an auto-incremented column named `id`. It also could have been a UUID column named `uuid`. GRDB generally accepts all primary keys, even if they are not named `id`, even if they span several columns, without any extra setup. Yet `id` is a frequent convention.
 
-The `id` column is [autoincremented](https://sqlite.org/autoinc.html), in order to avoid id reuse. Reused ids can trip up [database observation] tools: a deletion followed by an insertion with the same id may wrongly be interpreted as an update.
+The `id` column is [autoincremented](https://sqlite.org/autoinc.html), in order to avoid id reuse. Reused ids can trip up [database observation] tools: a deletion followed by an insertion with the same id may be interpreted as an update, with unintended consequences.
 
 </details>
 
