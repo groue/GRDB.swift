@@ -38,9 +38,6 @@ struct AppDatabase {
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("name", .text).notNull()
-                    // Sort player names in a localized case insensitive fashion by default
-                    // See https://github.com/groue/GRDB.swift/blob/master/README.md#unicode
-                    .collate(.localizedCaseInsensitiveCompare)
                 t.column("score", .integer).notNull()
             }
         }

@@ -78,7 +78,9 @@ extension DerivableRequest where RowDecoder == Player {
     ///         try Player.all().orderedByName().fetchAll(db)
     ///     }
     func orderedByName() -> Self {
-        order(Player.Columns.name)
+        // Sort by name in a localized case insensitive fashion
+        // See https://github.com/groue/GRDB.swift/blob/master/README.md#unicode
+        order(Player.Columns.name.collating(.localizedCaseInsensitiveCompare))
     }
     
     /// A request of players ordered by score
@@ -89,6 +91,11 @@ extension DerivableRequest where RowDecoder == Player {
     ///         try Player.all().orderedByScore().fetchAll(db)
     ///     }
     func orderedByScore() -> Self {
-        order(Player.Columns.score.desc, Player.Columns.name)
+        // Sort by descending score, and then by name, in a
+        // localized case insensitive fashion
+        // See https://github.com/groue/GRDB.swift/blob/master/README.md#unicode
+        order(
+            Player.Columns.score.desc,
+            Player.Columns.name.collating(.localizedCaseInsensitiveCompare))
     }
 }
