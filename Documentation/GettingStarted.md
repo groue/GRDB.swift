@@ -649,7 +649,7 @@ Here we will extend the `Player` record type so that it provides the **database 
 
 > With GRDB, record types are responsible of their table: they know how data is stored in the database. This is why `Player` is better suited to know what sorting players by name, or by score, means.
 >
-> On the other side, `Player` does not perform database fetches on its own. Actual database fetches are decided by the application, depending on the user actions, by invoking methods on `AppDatabase.shared`.
+> On the other side, `Player` does not perform database fetches on its own. Actual database fetches are performed by the application, depending on the user actions, by invoking methods on `AppDatabase.shared`.
 >
 > `Player` *defines* database requests, and `AppDatabase` *executes* those requests.
 
@@ -727,9 +727,18 @@ extension DerivableRequest where RowDecoder == Player {
 }
 ```
 
-The sample code contains inline documentation which describes the usage of those requests.
-
 Names are sorted according to the `localizedCaseInsensitiveCompare` collation. See [String Comparison](../README.md#string-comparison) for more information.
+
+Writing "extension of the `DerivableRequest` protocol" may sound intimidating. Well, don't be, and look at the sample code above: it contains inline documentation which describes the usage of those requests. `DerivableRequest` makes it possible to extend the query interface with specific requests, and also to hide some inner database implementation details inside a dedicated type.
+
+If you know the [Active Record](https://guides.rubyonrails.org/active_record_querying.html) Ruby library, you can be reminded of [scopes](https://guides.rubyonrails.org/active_record_querying.html#scopes):
+
+```ruby
+# player.rb
+class Player < ApplicationRecord
+  scope :ordered_by_name, -> { order(name: :asc) }
+end
+```
 
 <details>
     <summary>Raw SQL version</summary>
