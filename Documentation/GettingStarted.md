@@ -263,17 +263,25 @@ extension AppDatabase {
     /// player id is set to the newly inserted id. 
     func insertPlayer(_ player: inout Player) throws {
         try dbWriter.write { db in
-            try db.execute(literal: """
-                INSERT INTO player (name, score) 
-                VALUES (\(player.name), \(player.score))
-                """)
-            player.id = db.lastInsertedRowID
+            try insert(db, player: &player)
         }
+    }
+    
+    /// Inserts a player. When the method returns, the
+    /// player id is set to the newly inserted id. 
+    private func insert(_ db: Database, player: inout Player) throws {
+        try db.execute(literal: """
+            INSERT INTO player (name, score) 
+            VALUES (\(player.name), \(player.score))
+            """)
+        player.id = db.lastInsertedRowID
     }
 }
 ```
 
-Note that the `execute(literal:)` method above avoids [SQL injection], thanks to [SQL Interpolation].
+The `insertPlayer(_:)` method calls a private helper method `insert(_:player:)`. This helper method will be reused later in the tutorial.
+
+Note that the helper method calls the `execute(literal:)` method, which avoids [SQL injection], thanks to [SQL Interpolation].
 
 </details>
 
@@ -442,9 +450,7 @@ All the techniques we have seen avoid [SQL injection].
 
 The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Inserting Players in the Database, and the Player Struct] chapter.
 
-There is another way to modify players: the refresh button at the bottom center of the [screen]. This one simulates a "real" refresh from, say, a server, and applies random transformations to the player database.
-
-The existing `savePlayer(_:)` and `deletePlayers(ids:)` methods can already perform such transformations. But we will not use them. The added value of the `AppDatabase` service is its set of [ACID] transformations, that guarantee that the state of the database is fully controlled. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players should be avoided in order to make the application robust. The precise role of the `AppDatabase` service is to provide one method per transformation needed by the app. All those methods perform a single GRDB write, in order to profit from all ACID guarantees of SQLite transactions:
+There is another way to modify players: the refresh button at the bottom center of the [screen]. This one simulates a "real" refresh from, say, a server, and applies random transformations to the player database. We implement this modification of the players database with the `AppDatabase.refreshPlayers()` method:
 
 ```swift
 // File: AppDatabase.swift
@@ -510,6 +516,71 @@ extension Player {
 }
 ```
 
+The `AppDatabase.refreshPlayers()` method calls a private helper method `createRandomPlayers(_:)`. This helper method will be reused later in the tutorial.
+
+<details>
+    <summary>ℹ️ Design Notes</summary>
+
+> The existing `savePlayer(_:)` and `deletePlayers(ids:)` methods can perform player transformations, but we do not use them from `AppDatabase.refreshPlayers()`.
+>
+> This is because the role of the `AppDatabase` service is to provide a set of [ACID] transformations, that guarantee that the state of the database is fully controlled. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players should be avoided in order to make the application robust.
+>
+> This is the added value of the `AppDatabase` service. It provides one method per transformation needed by the app. All those methods perform a single GRDB write, in order to profit from all ACID guarantees of SQLite transactions.
+
+</details>
+
+<details>
+    <summary>Raw SQL version</summary>
+
+```swift
+// File: AppDatabase.swift
+
+extension AppDatabase {
+    /// Refresh all players (by performing some random changes, for demo purpose).
+    func refreshPlayers() throws {
+        try dbWriter.write { db in
+            if try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player") == 0 {
+                // When database is empty, insert new random players
+                try createRandomPlayers(db)
+            } else {
+                // Insert a player
+                if Bool.random() {
+                    var player = Player.newRandom()
+                    try insert(db, player: &player)
+                }
+                
+                // Delete a random player
+                if Bool.random() {
+                    try db.execute(sql: """
+                        DELETE FROM player
+                        ORDER BY RANDOM()
+                        LIMIT 1
+                        """)
+                }
+                
+                // Update some players
+                let ids = try Int64.fetchAll(db, sql: "SELECT id FROM player")
+                for id in ids where Bool.random() {
+                    try db.execute(literal: """
+                        UPDATE player
+                        SET score = \(Player.randomScore())
+                        WHERE id = \(id)
+                        """)
+                }
+            }
+        }
+    }
+    
+    private func createRandomPlayers(_ db: Database) throws {
+        for _ in 0..<8 {
+            var player = Player.newRandom()
+            try insert(db, player: &player)
+        }
+    }
+}
+```
+
+</details>
 
 ## Testing the Database
 
