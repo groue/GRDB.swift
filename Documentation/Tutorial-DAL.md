@@ -1,5 +1,5 @@
-Getting Started with GRDB
-=========================
+Tutorial: Building a Database Access Layer
+==========================================
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
@@ -7,7 +7,7 @@ Getting Started with GRDB
 
 The target audience is already fluent with the creation of an Xcode project, storyboards, view controllers, or SwiftUI. These topics are mentionned, but not covered.
 
-Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features (record types, query interface, database observation). A raw SQL version is also provided, so that you can choose your favorite way to deal with SQLite.
+Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features: record types, query interface, database observation. Raw SQL is also provided, so that you can choose your favorite way to use SQLite.
 
 When you want an explanation about some particular recommendation or piece of code, expand the design notes marked with an ℹ️.
 
