@@ -3,9 +3,9 @@ Getting Started with GRDB
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
-**This tutorial describes the building of the [UIKit demo application], step by step, applying best SQLite and GRDB practices along the way.** In the end, you will have a database access layer that fulfills the application needs, and can be tested.
+**This tutorial describes the building of the database access layer of the [demo applications], step by step, applying good SQLite and GRDB practices along the way.**
 
-The target audience is already fluent with the creation of an Xcode project, storyboards, or view controllers: these topics are not covered.
+The target audience is already fluent with the creation of an Xcode project, storyboards, view controllers, or SwiftUI. These topics are mentionned, but not covered.
 
 Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features (record types, query interface, database observation). A raw SQL version is also provided, so that you can choose your favorite way to deal with SQLite.
 
@@ -21,6 +21,7 @@ Let's start!
 - [Inserting Players in the Database, and the Player Struct]
 - [Deleting Players]
 - [Fetching and Modifying Players]
+- [Sorting Players]
 - [Testing the Database]
 
 ## The Database Service
@@ -123,8 +124,22 @@ extension AppDatabase {
 
 </details>
 
-> ✅ At this stage, we have a `AppDatabase.shared` object which vends an empty database. We'll add methods and properties to `AppDatabase`, as we discover the needs of our application.
+The [Combine + SwiftUI Demo Application] defines more instances of `AppDatabase`, such as en empty players database suitable for some SwiftUI previews:
 
+```swift
+// File: Persistence.swift
+
+extension AppDatabase {
+    /// Creates an empty database for SwiftUI previews
+    static func empty() -> AppDatabase {
+        // Connect to an in-memory database
+        let dbQueue = DatabaseQueue()
+        return try! AppDatabase(dbQueue)
+    }
+}
+```
+
+> ✅ At this stage, we have a `AppDatabase.shared` object which vends an empty database. We'll add methods and properties to `AppDatabase`, as we discover the needs of our application.
 
 ## The Database Schema
 
@@ -620,6 +635,8 @@ The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players 
 
 </details>
 
+## Sorting Players
+
 ## Testing the Database
 
 [The Database Service]: #the-database-service
@@ -628,9 +645,12 @@ The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players 
 [Inserting Players in the Database, and the Player Struct]: #inserting-players-in-the-database-and-the-player-struct
 [Deleting Players]: #deleting-players
 [Fetching and Modifying Players]: #fetching-and-modifying-players
+[Sorting Players]: #sorting-players
 [Testing the Database]: #testing-the-database
 
-[UIKit demo application]: DemoApps/GRDBDemoiOS
+[demo applications]: DemoApps
+[UIKit demo application]: DemoApps/GRDBDemoiOS/README.md
+[Combine + SwiftUI Demo Application]: DemoApps/GRDBCombineDemo/README.md
 [database connection]: https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
 [DatabaseQueue]: ../README.md#database-queues
 [DatabasePool]: ../README.md#database-pools
