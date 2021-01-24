@@ -62,7 +62,7 @@ final class AppDatabase {
 
 </details>
 
-> ✅ At this stage, we have a `AppDatabase` class which encapsulates access to the database. It supports both WAL databases, and in-memory databases, so that it can feed both the application, and tests.
+> ✅ At this stage, we have an `AppDatabase` class which encapsulates access to the database. It supports both WAL databases, and in-memory databases, so that it can feed both the application, and tests.
 
 ## The Shared Application Database
 
@@ -141,7 +141,7 @@ extension AppDatabase {
 }
 ```
 
-> ✅ At this stage, we have a `AppDatabase.shared` object which vends an empty database. We'll add methods and properties to `AppDatabase`, as we discover the needs of our application.
+> ✅ At this stage, we have an `AppDatabase.shared` object which vends an empty database. We'll add methods and properties to `AppDatabase`, as we discover the needs of our application.
 
 ## The Database Schema
 
@@ -230,7 +230,7 @@ The migrations are now defined, but they are not applied yet. Let's modify the `
     }
 ```
 
-> ✅ At this stage, we have a `AppDatabase.shared` object which vends a database that contains a `player` table.
+> ✅ At this stage, we have an `AppDatabase.shared` object which vends a database that contains a `player` table.
 
 ## Inserting Players in the Database, and the Player Struct
 
@@ -379,7 +379,7 @@ try AppDatabase.shared.savePlayer(player)
 
 > 👆 **Note**: make sure you define the `Encodable` extension to `Player` in the same file where the `Player` struct is defined: this is how you will profit from the synthesized conformance to this protocol.
 >
-> ✅ At this stage, we have a `AppDatabase.shared` object which is able to insert and update players in the database.
+> ✅ At this stage, we can insert and update players in the database.
 
 ## Deleting Players
 
@@ -460,6 +460,8 @@ The `deletePlayers(ids:)` method above uses [SQL Interpolation] so that you can 
 ```
 
 All the techniques we have seen avoid [SQL injection].
+
+> ✅ At this stage, we can delete all or individual players from the database.
 
 </details>
 
@@ -636,6 +638,8 @@ extension AppDatabase {
 The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players in the Database, and the Player Struct].
 
 </details>
+
+> ✅ At this stage, we can fetch players from the database, and modify players in a controlled and robust way.
 
 ## Sorting Players
 
@@ -818,6 +822,7 @@ Compared to query interface requests, raw SQL requests lose two benefits:
     
 </details>
 
+> ✅ At this stage, we have defined the database requests that can feed the list of players in the application.
 
 ## Observing Players
 
@@ -886,7 +891,7 @@ extension AppDatabase {
 
 </details>
 
-
+> ✅ At this stage, we have a polished Database Access Layer that makes sure the demo app looks good.
 
 ## Testing the Database
 
