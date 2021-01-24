@@ -795,10 +795,11 @@ extension Player {
 
 Compared to query interface requests, raw SQL requests lose two benefits:
 
-- SQL requests are not composable together. You can not write, for example:
+- SQL requests are not composable together. You can not reuse them. For example:
 
     ```swift
-    // A request from a future version of our app:
+    // A request from a future version of our app.
+    // Request composition is only possible for query interface requests.
     let request = Player.all()
         .filter(team: .red)
         .including(all: Player.awards)
@@ -808,8 +809,8 @@ Compared to query interface requests, raw SQL requests lose two benefits:
 - SQL requests do not auto-optimize when you are only interested in the first row:
     
     ```swift
+    // No automatic appending of `LIMIT 1`, as query interface requests do.
     let bestPlayer: Player? = try dbWriter.read { db in
-        // No automatic appending of `LIMIT 1`, as query interface requests do
         try Player.orderedByScore().fetchOne(db)
     }
     ```
