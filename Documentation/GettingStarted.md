@@ -523,9 +523,11 @@ The `AppDatabase.refreshPlayers()` method calls a private helper method `createR
 
 > The existing `savePlayer(_:)` and `deletePlayers(ids:)` methods can perform player transformations, but we do not use them from `AppDatabase.refreshPlayers()`.
 >
-> This is because the role of the `AppDatabase` service is to provide a set of [ACID] transformations, that guarantee that the state of the database is fully controlled. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players should be avoided in order to make the application robust.
+> This is because the role of the `AppDatabase` service is to provide a set of [ACID] transformations, that fully control the state of the database. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players must be avoided, in order to make the application robust.
 >
-> This is the added value of the `AppDatabase` service. It provides one method per transformation needed by the app. All those methods perform a single GRDB write, in order to profit from all ACID guarantees of SQLite transactions.
+> **This is the added value of the `AppDatabase` service.** It provides one method per transformation needed by the app. All those methods perform a single GRDB write, in order to profit from all ACID guarantees of SQLite transactions.
+>
+> :bulb: **Tip**: when two distinct service methods want to reuse a piece of code, we extract it in a helper method such as `createRandomPlayers(_:)` above. Unlike service methods, helper methods access the database through their `Database` argument, not through the `dbWriter` property.
 
 </details>
 
