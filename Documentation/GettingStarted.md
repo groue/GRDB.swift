@@ -729,9 +729,9 @@ extension DerivableRequest where RowDecoder == Player {
 
 Names are sorted according to the `localizedCaseInsensitiveCompare` collation. See [String Comparison](../README.md#string-comparison) for more information.
 
-Writing "extension of the `DerivableRequest` protocol" may sound intimidating. Well, don't be, and look at the sample code above: it contains inline documentation which describes the usage of those requests. `DerivableRequest` makes it possible to extend the query interface with specific requests, and also to hide some inner database implementation details inside a dedicated type.
+Writing an "extension of the `DerivableRequest` protocol" may sound intimidating. Well, don't be shy, and look at the sample code above: it contains inline documentation which describes the usage of those requests. Is it more clear now? `DerivableRequest` makes it possible to extend the query interface with custom requests, and also to hide some database implementation details inside a dedicated record type.
 
-If you know the [Active Record](https://guides.rubyonrails.org/active_record_querying.html) Ruby library, you can be reminded of [scopes](https://guides.rubyonrails.org/active_record_querying.html#scopes):
+If you know the [Active Record](https://guides.rubyonrails.org/active_record_querying.html) Ruby library, you may be reminded of [scopes](https://guides.rubyonrails.org/active_record_querying.html#scopes):
 
 ```ruby
 # player.rb
