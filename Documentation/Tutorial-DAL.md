@@ -32,7 +32,7 @@ In this chapter, we introduce the `AppDatabase` service. It is the class that gr
 
 We'll make it possible to fetch the list of players, insert new players, as well as other application needs. But not all database operations will be possible. For example, setting up the database schema is the strict privilege of `AppDatabase`, not of the rest of the application.
 
-The `AppDatabase` service accesses the SQLite database through a GRDB [database connection]. We'd like the application to use a `DatabasePool`, because this connection leverages the advantages of the SQLite [WAL mode]. On the other side, we'd prefer application tests to run as fast as possible, with an in-memory database provided by a `DatabaseQueue`.
+The `AppDatabase` service accesses the SQLite database through a GRDB [database connection]. We'd like the application to use a `DatabasePool`, because this connection leverages the advantages of the SQLite [WAL mode]. On the other side, we'd prefer application tests to run as fast as possible, with an in-memory database provided by a `DatabaseQueue`. SwiftUI previews will also run with in-memory databases.
 
 Pools and queues share a common protocol, `DatabaseWriter`, and this is what our `AppDatabase` service needs:
 
