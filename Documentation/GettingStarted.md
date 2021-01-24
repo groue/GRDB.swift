@@ -7,20 +7,21 @@ Getting Started with GRDB
 
 The target audience is already fluent with the creation of an Xcode project, storyboards, or view controllers: these topics are not covered.
 
-Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features (record types, query interface, database observation). For all topics, a "raw SQL" version is also provided, so that you can choose your favorite way to deal with SQLite.
+Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features (record types, query interface, database observation). A raw SQL version is also provided, so that you can choose your favorite way to deal with SQLite.
 
-The tutorial explains its design choices: when you want an explanation about some particular piece of code, expand the notes marked with an ℹ️.
+When you want an explanation about some particular recommendation or piece of code, expand the design notes marked with an ℹ️.
 
 As you can see in the [screenshot](https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png), the demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
 
 Let's start!
 
-- [The Database Service](#the-database-service)
-- [The Shared Application Database](#the-shared-application-database)
-- [The Database Schema](#the-database-schema)
-- [Inserting Players in the Database, and the Player Struct](#inserting-players-in-the-database-and-the-player-struct)
-- [Deleting Players](#deleting-players)
-- [Testing the Database](#testing-the-database)
+- [The Database Service]
+- [The Shared Application Database]
+- [The Database Schema]
+- [Inserting Players in the Database, and the Player Struct]
+- [Deleting Players]
+- [Modifying Players]
+- [Testing the Database]
 
 ## The Database Service
 
@@ -359,7 +360,7 @@ try AppDatabase.shared.savePlayer(player)
 
 The application can delete players:
 
-- The "Trash" icon at the bottom left of the screen deletes all players.
+- The "Trash" icon at the bottom left of the [screen] deletes all players.
 - The "Edit" button at the top left of the screen lets the user delete individual players.
 - The player list supports the swipe to delete gesture.
 
@@ -437,7 +438,88 @@ All the techniques we have seen avoid [SQL injection].
 
 </details>
 
+## Modifying Players
+
+The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Inserting Players in the Database, and the Player Struct] chapter.
+
+There is another way to modify players: the refresh button at the bottom center of the [screen]. This one simulates a "real" refresh from, say, a server, and applies random transformations to the player database.
+
+The existing `savePlayer(_:)` and `deletePlayers(ids:)` methods can already perform such transformations. But we will not use them. The added value of the `AppDatabase` service is its set of [ACID] transformations, that guarantee that the state of the database is fully controlled. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players should be avoided in order to make the application robust. The precise role of the `AppDatabase` service is to provide one method per transformation needed by the app. All those methods perform a single GRDB write, in order to profit from all ACID guarantees of SQLite transactions:
+
+```swift
+// File: AppDatabase.swift
+
+extension AppDatabase {
+    /// Refresh all players (by performing some random changes, for demo purpose).
+    func refreshPlayers() throws {
+        try dbWriter.write { db in
+            if try Player.fetchCount(db) == 0 {
+                // When database is empty, insert new random players
+                try createRandomPlayers(db)
+            } else {
+                // Insert a player
+                if Bool.random() {
+                    var player = Player.newRandom()
+                    try player.insert(db)
+                }
+                
+                // Delete a random player
+                if Bool.random() {
+                    try Player.order(sql: "RANDOM()").limit(1).deleteAll(db)
+                }
+                
+                // Update some players
+                for var player in try Player.fetchAll(db) where Bool.random() {
+                    try player.updateChanges(db) {
+                        $0.score = Player.randomScore()
+                    }
+                }
+            }
+        }
+    }
+    
+    private func createRandomPlayers(_ db: Database) throws {
+        for _ in 0..<8 {
+            var player = Player.newRandom()
+            try player.insert(db)
+        }
+    }
+}
+```
+
+```swift
+// File: Player.swift
+
+extension Player {
+    private static let names = ["Arthur", "Anita", ...]
+    
+    /// Creates a new player with random name and random score
+    static func newRandom() -> Player {
+        Player(id: nil, name: randomName(), score: randomScore())
+    }
+    
+    /// Returns a random name
+    static func randomName() -> String {
+        names.randomElement()!
+    }
+    
+    /// Returns a random score
+    static func randomScore() -> Int {
+        10 * Int.random(in: 0...100)
+    }
+}
+```
+
+
 ## Testing the Database
+
+[The Database Service]: #the-database-service
+[The Shared Application Database]: #the-shared-application-database
+[The Database Schema]: #the-database-schema
+[Inserting Players in the Database, and the Player Struct]: #inserting-players-in-the-database-and-the-player-struct)
+[Deleting Players]: #deleting-players
+[Modifying Players]: #modifying-players
+[Testing the Database]: #testing-the-database
 
 [UIKit demo application]: DemoApps/GRDBDemoiOS
 [database connection]: https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
@@ -454,3 +536,6 @@ All the techniques we have seen avoid [SQL injection].
 [database observation]: ../README.md#database-changes-observation
 [SQL Interpolation]: SQLInterpolation.md
 [SQL injection]: ../README.md#avoiding-sql-injection
+[screenshot]: https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png
+[screen]: https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png
+[ACID]: https://en.wikipedia.org/wiki/ACID

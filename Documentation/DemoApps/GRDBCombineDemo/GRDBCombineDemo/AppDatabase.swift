@@ -83,7 +83,7 @@ extension AppDatabase {
     func refreshPlayers() throws {
         try dbWriter.write { db in
             if try Player.fetchCount(db) == 0 {
-                // Insert new random players
+                // When database is empty, insert new random players
                 try createRandomPlayers(db)
             } else {
                 // Insert a player
