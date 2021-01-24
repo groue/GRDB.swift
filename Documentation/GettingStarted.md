@@ -516,7 +516,7 @@ extension Player {
 [The Database Service]: #the-database-service
 [The Shared Application Database]: #the-shared-application-database
 [The Database Schema]: #the-database-schema
-[Inserting Players in the Database, and the Player Struct]: #inserting-players-in-the-database-and-the-player-struct)
+[Inserting Players in the Database, and the Player Struct]: #inserting-players-in-the-database-and-the-player-struct
 [Deleting Players]: #deleting-players
 [Modifying Players]: #modifying-players
 [Testing the Database]: #testing-the-database
