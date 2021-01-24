@@ -752,7 +752,7 @@ end
 <details>
     <summary>Raw SQL version</summary>
 
-You can build SQL requests with `SQLRequest`, which profits from [SQL Interpolation]. If you have the `Player` type conform to [FetchableRecord], those requests will be able to fetch. Otherwise, we'll have to fetch raw database rows and we will have more work to do. But those requests still hold:
+You can build SQL requests with `SQLRequest`, which profits from [SQL Interpolation]. If you have the `Player` type conform to [FetchableRecord], those requests will be able to fetch. Otherwise, we'll have to fetch raw database rows and we will have more work to do. But those requests can still be defined:
 
 ```swift
 // File: Player.swift
@@ -781,7 +781,7 @@ extension Player {
     ///     let players: [Player] = try dbWriter.read { db in
     ///         try Player.orderedByScore().fetchAll(db)
     ///     }
-    static func orderedByScore() -> Self {
+    static func orderedByScore() -> SQLRequest<Player> {
         // Sort by descending score, and then by name, in a
         // localized case insensitive fashion
         """
