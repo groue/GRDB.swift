@@ -550,7 +550,7 @@ extension Player {
 
 Refreshing players also needs to fetch the players that are randomly updated (`try Player.fetchAll(db)`).
 
-Fetching players is free when `Player` adopts the [Decodable] protocol: we just need to add the `FetchableRecord` conformance:
+Fetching players is free when `Player` adopts the [Decodable] protocol: we just need to add the [FetchableRecord] conformance:
 
 ```swift
 // File: Player.swift
@@ -660,6 +660,7 @@ The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players 
 [Decodable]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
 [record type]: ../README.md#records
 [persistable record]: ../README.md#persistablerecord-protocol
+[FetchableRecord]: ../README.md#fetchablerecord-protocol
 [WAL mode]: https://sqlite.org/wal.html
 [data protection]: ../README.md#data-protection
 [Associations]: AssociationsBasics.md
