@@ -673,7 +673,7 @@ extension Player {
 <details>
     <summary>Avoiding Codable</summary>
 
-The `Codable` protocol is handy, but you may prefer not to use it. In this case, define string columns:
+The `Codable` protocol is handy, but you may prefer not to use it. In this case, define columns as a String enum:
 
 ```swift
 // File: Player.swift
