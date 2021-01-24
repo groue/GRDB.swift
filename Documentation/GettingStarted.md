@@ -11,7 +11,7 @@ Basic database knowledge is assumed, such as what tables and columns are. The tu
 
 When you want an explanation about some particular recommendation or piece of code, expand the design notes marked with an ℹ️.
 
-As you can see in the [screenshot](https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png), the demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
+As you can see in the [screenshot], the demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
 
 Let's start!
 
@@ -22,6 +22,7 @@ Let's start!
 - [Deleting Players]
 - [Fetching and Modifying Players]
 - [Sorting Players]
+- [Observing Players]
 - [Testing the Database]
 
 ## The Database Service
@@ -637,6 +638,169 @@ The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players 
 
 ## Sorting Players
 
+The application [screen] displays a list of players. The user can choose the order of players by tapping the button at the top right of the screen. The app supports two orderings: by descending score, and by ascending name.
+
+In this chapter, we will not describe how the applications keeps its screen synchronized with the content of the database. This will be the topic of [Observing Players].
+
+Here we will extend the `Player` record type so that it provides the **database requests** needed by the application.
+
+<details>
+    <summary>ℹ️ Design Notes</summary>
+
+> With GRDB, record types are responsible of their table: they know how data is stored in the database. This is why `Player` is better suited to know what sorting players by name, or by score, means.
+>
+> On the other side, `Player` does not perform database fetches on its own. Actual database fetches are decided by the application, depending on the user actions, by invoking methods on `AppDatabase.shared`.
+>
+> `Player` *defines* database requests, and `AppDatabase` *executes* those requests.
+
+</details>
+
+We made `Player` a full-fledged record type in the previous chapters. Record types can profit from the [query interface], a Swift way to build database requests.
+
+In order to build requests that sort by score or by name, we need to define columns. When the `Player` type is [Codable], we can profit from its `CodingKeys` so that the compiler makes sure we do not make any typo:
+
+```swift
+// File: Player.swift
+extension Player {
+    // Player columns are defined from CodingKeys
+    fileprivate enum Columns {
+        static let name = Column(CodingKeys.name)
+        static let score = Column(CodingKeys.score)
+    }
+}
+```
+
+<details>
+    <summary>Avoiding Codable</summary>
+
+The `Codable` protocol is handy, but you may prefer not to use it. In this case, define string columns:
+
+```swift
+// File: Player.swift
+extension Player {
+    // Player columns
+    fileprivate enum Columns: String, ColumnExpression {
+        case name
+        case score
+    }
+}
+```
+
+</details>
+
+Following advice from the [Good Practices for Designing Record Types], we can now define player requests in an extension of the `DerivableRequest` protocol:
+
+```swift
+// File: Player.swift
+
+/// Define some player requests used by the application.
+extension DerivableRequest where RowDecoder == Player {
+    /// A request of players ordered by name.
+    ///
+    /// For example:
+    ///
+    ///     let players: [Player] = try dbWriter.read { db in
+    ///         try Player.all().orderedByName().fetchAll(db)
+    ///     }
+    func orderedByName() -> Self {
+        // Sort by name in a localized case insensitive fashion
+        order(Player.Columns.name.collating(.localizedCaseInsensitiveCompare))
+    }
+    
+    /// A request of players ordered by score.
+    ///
+    /// For example:
+    ///
+    ///     let players: [Player] = try dbWriter.read { db in
+    ///         try Player.all().orderedByScore().fetchAll(db)
+    ///     }
+    ///     let bestPlayer: Player? = try dbWriter.read { db in
+    ///         try Player.all().orderedByScore().fetchOne(db)
+    ///     }
+    func orderedByScore() -> Self {
+        // Sort by descending score, and then by name, in a
+        // localized case insensitive fashion
+        order(
+            Player.Columns.score.desc,
+            Player.Columns.name.collating(.localizedCaseInsensitiveCompare))
+    }
+}
+```
+
+The sample code contains inline documentation which describes the usage of those requests.
+
+Names are sorted according to the `localizedCaseInsensitiveCompare` collation. See [String Comparison](../README.md#string-comparison) for more information.
+
+<details>
+    <summary>Raw SQL version</summary>
+
+You can build SQL requests with `SQLRequest`, which profits from [SQL Interpolation]. If you have the `Player` type conform to [FetchableRecord], those requests will be able to fetch. Otherwise, we'll have to fetch raw database rows and we will have more work to do. But those requests still hold:
+
+```swift
+// File: Player.swift
+
+/// Define some player requests used by the application.
+extension Player {
+    /// A request of players ordered by name.
+    ///
+    /// For example:
+    ///
+    ///     let players: [Player] = try dbWriter.read { db in
+    ///         try Player.orderedByName().fetchAll(db)
+    ///     }
+    static func orderedByName() -> SQLRequest<Player> {
+        // Sort by name in a localized case insensitive fashion
+        """
+        SELECT * FROM player
+        ORDER BY name COLLATING \(.localizedCaseInsensitiveCompare)
+        """
+    }
+    
+    /// A request of players ordered by score.
+    ///
+    /// For example:
+    ///
+    ///     let players: [Player] = try dbWriter.read { db in
+    ///         try Player.orderedByScore().fetchAll(db)
+    ///     }
+    static func orderedByScore() -> Self {
+        // Sort by descending score, and then by name, in a
+        // localized case insensitive fashion
+        """
+        SELECT * FROM player
+        ORDER BY score DESC,
+                 name COLLATING \(.localizedCaseInsensitiveCompare)
+        """
+    }
+}
+```
+
+Compared to query interface requests, raw SQL requests lose two benefits:
+
+- SQL requests are not composable together. You can not write, for example:
+
+    ```swift
+    // A request from a future version of our app:
+    let request = Player.all()
+        .filter(team: .red)
+        .including(all: Player.awards)
+        .orderedByName()
+    ```
+
+- SQL requests do not auto-optimize when you are only interested in the first row:
+    
+    ```swift
+    let bestPlayer: Player? = try dbWriter.read { db in
+        // No automatic appending of `LIMIT 1`, as query interface requests do
+        try Player.orderedByScore().fetchOne(db)
+    }
+    ```
+    
+</details>
+
+
+## Observing Players
+
 ## Testing the Database
 
 [The Database Service]: #the-database-service
@@ -646,6 +810,7 @@ The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players 
 [Deleting Players]: #deleting-players
 [Fetching and Modifying Players]: #fetching-and-modifying-players
 [Sorting Players]: #sorting-players
+[Observing Players]: #observing-players
 [Testing the Database]: #testing-the-database
 
 [demo applications]: DemoApps
@@ -671,3 +836,5 @@ The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players 
 [screenshot]: https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png
 [screen]: https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png
 [ACID]: https://en.wikipedia.org/wiki/ACID
+[query interface]: ../README.md#the-query-interface
+[Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
