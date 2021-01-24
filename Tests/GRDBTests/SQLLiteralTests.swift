@@ -739,6 +739,29 @@ extension SQLLiteralTests {
         }
     }
     
+    func testCollationInterpolation() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            do {
+                // Database.CollationName
+                let query: SQLLiteral = "SELECT * FROM player ORDER BY email COLLATION \(.nocase)"
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT * FROM player ORDER BY email COLLATION NOCASE
+                    """)
+                XCTAssertEqual(arguments, [])
+            }
+            do {
+                // DatabaseCollation
+                let query: SQLLiteral = "SELECT * FROM player ORDER BY name COLLATION \(.localizedCompare)"
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT * FROM player ORDER BY name COLLATION swiftLocalizedCompare
+                    """)
+                XCTAssertEqual(arguments, [])
+            }
+        }
+    }
+    
     func testIsEmpty() {
         XCTAssertTrue(SQLLiteral(elements: []).isEmpty)
         XCTAssertTrue(SQLLiteral(sql: "").isEmpty)
