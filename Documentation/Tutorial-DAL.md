@@ -3,7 +3,7 @@ Tutorial: Building a Database Access Layer
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
-**This tutorial describes the building of the database access layer of the [demo applications], step by step, applying good SQLite and GRDB practices along the way.**
+**This tutorial describes the building of the database access layer of the UIKit and SwiftUI [demo applications], step by step, applying good SQLite and GRDB practices along the way.**
 
 The target audience is already fluent with the creation of an Xcode project, storyboards, view controllers, or SwiftUI. These topics are mentionned, but not covered.
 
