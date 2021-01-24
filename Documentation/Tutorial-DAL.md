@@ -304,7 +304,10 @@ Note that the helper method calls the `execute(literal:)` method, which avoids [
 
 SQL is just fine, but we can also make `Player` a [persistable record]. With persistable records, you do not have to write the SQL queries that perform common persistence operations.
 
-The `Player` struct adopts the `MutablePersistableRecord` protocol, because the `player` database table has an autoincremented id. "Persistable": players can be inserted, updated and deleted. "Mutable": inserting a player modifies it by setting its id.
+The `Player` struct adopts the `MutablePersistableRecord` protocol, because the `player` database table has an autoincremented id:
+
+- "Persistable": players can be inserted, updated and deleted.
+- "Mutable": a player is modified (mutated) upon insertion, because its `id` property is set from the autoincremented SQLite id.
 
 Conformance to `MutablePersistableRecord` is almost free for types that adopt the standard [Encodable] protocol:
 
