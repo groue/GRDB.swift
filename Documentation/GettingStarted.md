@@ -20,7 +20,7 @@ Let's start!
 - [The Database Schema]
 - [Inserting Players in the Database, and the Player Struct]
 - [Deleting Players]
-- [Modifying Players]
+- [Fetching and Modifying Players]
 - [Testing the Database]
 
 ## The Database Service
@@ -289,7 +289,7 @@ SQL is just fine, but we can also make `Player` a [persistable record]. With per
 
 The `Player` struct adopts the `MutablePersistableRecord` protocol, because the `player` database table has an autoincremented id. "Persistable": players can be inserted, updated and deleted. "Mutable": inserting a player modifies it by setting its id.
 
-Conformance to `MutablePersistableRecord` is almost free for types that adopt the standard [Codable] protocol:
+Conformance to `MutablePersistableRecord` is almost free for types that adopt the standard [Encodable] protocol:
 
 ```swift
 // File: Player.swift
@@ -446,7 +446,7 @@ All the techniques we have seen avoid [SQL injection].
 
 </details>
 
-## Modifying Players
+## Fetching and Modifying Players
 
 The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Inserting Players in the Database, and the Player Struct] chapter.
 
@@ -493,6 +493,23 @@ extension AppDatabase {
 }
 ```
 
+The `AppDatabase.refreshPlayers()` method calls a private helper method `createRandomPlayers(_:)`. This helper method will be reused later in the tutorial.
+
+<details>
+    <summary>ℹ️ Design Notes</summary>
+
+> The existing `savePlayer(_:)` and `deletePlayers(ids:)` methods can perform player transformations, but we do not use them from `AppDatabase.refreshPlayers()`.
+>
+> This is because the role of the `AppDatabase` service is to provide a set of [ACID] transformations, that fully control the state of the database. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players must be avoided, in order to make the application robust.
+>
+> **This is the added value of the `AppDatabase` service.** It provides one method per transformation needed by the app. All those methods perform a single GRDB write, in order to profit from all ACID guarantees of SQLite transactions.
+>
+> :bulb: **Tip**: when two distinct service methods want to reuse a piece of code, we extract it in a helper method such as `createRandomPlayers(_:)` above. Unlike service methods, helper methods access the database through their `Database` argument, not through the `dbWriter` property.
+
+</details>
+
+Refreshing players needs some support from the `Player` record type, so that we can build random players:
+
 ```swift
 // File: Player.swift
 
@@ -516,23 +533,40 @@ extension Player {
 }
 ```
 
-The `AppDatabase.refreshPlayers()` method calls a private helper method `createRandomPlayers(_:)`. This helper method will be reused later in the tutorial.
+Refreshing players also needs to fetch the players that are randomly updated (`try Player.fetchAll(db)`).
+
+Fetching players is free when `Player` adopts the [Decodable] protocol: we just need to add the `FetchableRecord` conformance:
+
+```swift
+// File: Player.swift
+
+extension Player: Decodable, FetchableRecord { }
+```
 
 <details>
-    <summary>ℹ️ Design Notes</summary>
+    <summary>Avoiding Decodable</summary>
 
-> The existing `savePlayer(_:)` and `deletePlayers(ids:)` methods can perform player transformations, but we do not use them from `AppDatabase.refreshPlayers()`.
->
-> This is because the role of the `AppDatabase` service is to provide a set of [ACID] transformations, that fully control the state of the database. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players must be avoided, in order to make the application robust.
->
-> **This is the added value of the `AppDatabase` service.** It provides one method per transformation needed by the app. All those methods perform a single GRDB write, in order to profit from all ACID guarantees of SQLite transactions.
->
-> :bulb: **Tip**: when two distinct service methods want to reuse a piece of code, we extract it in a helper method such as `createRandomPlayers(_:)` above. Unlike service methods, helper methods access the database through their `Database` argument, not through the `dbWriter` property.
+The `Decodable` protocol is handy, but you may prefer not to use it. In this case, you have to fulfill the fetchable record requirements:
+
+```swift
+// File: Player.swift
+
+extension Player: FetchableRecord {
+    /// Creates a player from a database row
+    init(row: Row) {
+        id = row["id"]
+        name = row["name"]
+        score = row["score"]
+    }
+}
+```
 
 </details>
 
 <details>
     <summary>Raw SQL version</summary>
+
+Let's write `AppDatabase.refreshPlayers()` without any support from SQL generation provided by record protocols:
 
 ```swift
 // File: AppDatabase.swift
@@ -582,6 +616,8 @@ extension AppDatabase {
 }
 ```
 
+The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players in the Database, and the Player Struct].
+
 </details>
 
 ## Testing the Database
@@ -591,7 +627,7 @@ extension AppDatabase {
 [The Database Schema]: #the-database-schema
 [Inserting Players in the Database, and the Player Struct]: #inserting-players-in-the-database-and-the-player-struct
 [Deleting Players]: #deleting-players
-[Modifying Players]: #modifying-players
+[Fetching and Modifying Players]: #fetching-and-modifying-players
 [Testing the Database]: #testing-the-database
 
 [UIKit demo application]: DemoApps/GRDBDemoiOS
@@ -600,6 +636,8 @@ extension AppDatabase {
 [DatabasePool]: ../README.md#database-pools
 [migrations]: Migrations.md
 [Codable]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
+[Encodable]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
+[Decodable]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
 [record type]: ../README.md#records
 [persistable record]: ../README.md#persistablerecord-protocol
 [WAL mode]: https://sqlite.org/wal.html
