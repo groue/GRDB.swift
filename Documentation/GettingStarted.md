@@ -23,6 +23,7 @@ Let's start!
 - [Fetching and Modifying Players]
 - [Sorting Players]
 - [Observing Players]
+- [The Initial Application State]
 - [Testing the Database]
 
 ## The Database Service
@@ -820,6 +821,73 @@ Compared to query interface requests, raw SQL requests lose two benefits:
 
 ## Observing Players
 
+## The Initial Application State
+
+Let's perform a little polishing step, so that the first time the application is launched, it is already populated with a few players. We write a demo application, and a demo is nicer when the user can play right away.
+
+To this end, we create a new `AppDatabase.createRandomPlayersIfEmpty()` method. It reuses the `createRandomPlayers(_:)` helper method defined in the [Fetching and Modifying Players] chapter:
+
+```swift
+// File: AppDatabase.swift
+
+extension AppDatabase {
+    /// Create random players if the database is empty.
+    func createRandomPlayersIfEmpty() throws {
+        try dbWriter.write { db in
+            if try Player.fetchCount(db) == 0 {
+                try createRandomPlayers(db)
+            }
+        }
+    }
+}
+```
+
+And we modify `AppDatabase.makeShared()` so that the application never boots with an empty database:
+
+```swift
+// File: Persistence.swift
+import GRDB
+
+extension AppDatabase {
+    /// The database for the application
+    static let shared = makeShared()
+    
+    private static func makeShared() -> AppDatabase {
+        do {
+            // Create a folder for storing the SQLite database
+            let fileManager = FileManager()
+            let folderURL = try fileManager
+                .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                .appendingPathComponent("database", isDirectory: true)
+            try fileManager.createDirectory(at: folderURL, withIntermediateDirectories: true)
+            
+            // Connect to a database on disk
+            let dbURL = folderURL.appendingPathComponent("db.sqlite")
+            let dbPool = try DatabasePool(path: dbURL.path)
+            
+            // Create the AppDatabase
+            let appDatabase = try AppDatabase(dbPool)
+            
+            // Populate the database if it is empty, for better demo purpose.
+            try appDatabase.createRandomPlayersIfEmpty()
+            
+            return appDatabase
+        } catch {
+            fatalError("Unresolved error \(error)")
+        }
+    }
+}
+```
+
+<details>
+    <summary>ℹ️ Design Notes</summary>
+
+> We do not call `createRandomPlayersIfEmpty()` from the `AppDatabase` initializer, or from its migrator, because we also need to create empty databases (for tests, or some SwiftUI previews). The correct place is indeed `makeShared()`, the method that creates the database for the application itself.
+
+</details>
+
+
+
 ## Testing the Database
 
 [The Database Service]: #the-database-service
@@ -830,6 +898,7 @@ Compared to query interface requests, raw SQL requests lose two benefits:
 [Fetching and Modifying Players]: #fetching-and-modifying-players
 [Sorting Players]: #sorting-players
 [Observing Players]: #observing-players
+[The Initial Application State]: #the-initial-application-state
 [Testing the Database]: #testing-the-database
 
 [demo applications]: DemoApps
