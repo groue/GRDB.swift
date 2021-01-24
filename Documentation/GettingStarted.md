@@ -671,6 +671,15 @@ extension Player {
 ```
 
 <details>
+    <summary>ℹ️ Design Notes</summary>
+
+> `Player.Columns` is declared `fileprivate`. The goal is to prevent other application files from messing with the intimate relationship between the `Player` record type and the `player` database table.
+>
+> Some apps eventually need to relax the visibility of those columns. Until they really have to, though, `fileprivate` is the recommended default for columns.
+
+</details>
+
+<details>
     <summary>Avoiding Codable</summary>
 
 The `Codable` protocol is handy, but you may prefer not to use it. In this case, define columns as a String enum:
