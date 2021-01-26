@@ -32,7 +32,7 @@ The database service (or database manager, or persistence layer) is a class name
 
 `AppDatabase` accesses the database through a GRDB [database connection]. In the application, the service uses a `DatabasePool` connection that leverages the advantages of the SQLite [WAL mode]. Tests use a service that connects to an in-memory database, with `DatabaseQueue`, so that they can run as fast as possible. SwiftUI previews also run with in-memory databases.
 
-Database pools and queues share a common protocol: `DatabaseWriter`. This is what the `AppDatabase` service needs:
+Database pools and queues share a common protocol: `DatabaseWriter`. This is what the `AppDatabase` service needs, in order to support both:
 
 ```swift
 // File: AppDatabase.swift
@@ -52,11 +52,11 @@ final class AppDatabase {
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-> The `dbWriter` property is private: this allows `AppDatabase` to restrict the operations that can be performed on the database.
+> :point_right: The `dbWriter` property is private: this allows `AppDatabase` to restrict the operations that can be performed on the database.
 > 
-> The initializer is not private: we can freely create `AppDatabase` instances, for the application, and for tests.
+> :point_right: The initializer is not private: we can freely create `AppDatabase` instances, for the application, and for tests.
 > 
-> The initializer is declared with the `throws` qualifier, because it will be extended, below in this guide, in order to prepare the database for application use.
+> :point_right: The initializer is declared with the `throws` qualifier, because it will be extended, below in this guide, in order to prepare the database for application use.
 
 </details>
 
@@ -64,20 +64,9 @@ final class AppDatabase {
 
 ## The Shared Application Database
 
-Our app uses a single database file, so we want a "shared" database.
+Our app uses a single database file, so we want a "shared" database: `AppDatabase.shared`.
 
-Inspired by `UIApplication.shared`, `UserDefaults.standard`, or `FileManager.default`, we will define `AppDatabase.shared`.
-
-<details>
-    <summary>ℹ️ Design Notes</summary>
-
-> Some applications will prefer to manage the shared `AppDatabase` instance differently, for example with some dependency injection technique. In this case, you will not define `AppDatabase.shared`.
-> 
-> Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. [Sharing a database] is hard. Get inspiration from `AppDatabase.makeShared()`, below, in order to create the single instance of your database service.
-
-</details>
-
-The shared `AppDatabase` instance opens the database on the file system, in a file named "db.sqlite" stored in a "database" folder, and creates an empty database if the file does not already exist:
+The shared `AppDatabase` instance opens a file named "db.sqlite" stored in a "database" folder. The database is created if the file does not already exist:
 
 ```swift
 // File: Persistence.swift
@@ -113,14 +102,18 @@ extension AppDatabase {
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-> The database is stored in its own directory, so that you can easily:
+> :point_right: Some applications will prefer to manage the shared `AppDatabase` instance differently, for example with some dependency injection technique. In this case, you will not define `AppDatabase.shared`.
+> 
+> Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. [Sharing a database] is hard. Get inspiration from `AppDatabase.makeShared()`, above, in order to create the single instance of your database service.
+>
+> :point_right: The database is stored in its own directory, so that you can easily:
 > 
 > - Set up [data protection].
 > - Remove the database as well as its companion [temporary files](https://sqlite.org/tempfiles.html) from disk in a single stroke.
 > 
-> The shared `AppDatabase` uses a `DatabasePool` in order to profit from the SQLite [WAL mode].
+> :point_right: `AppDatabase.shared` is created from a `DatabasePool` in order to profit from the SQLite [WAL mode].
 > 
-> Any error which prevents the application from opening the database has the application crash. You will have to adapt this sample code if you intend to build an app that is able to run without a working database. For example, you could modify `AppDatabase` so that it owns a `Result<DatabaseWriter, Error>` instead of a plain `DatabaseWriter` - but your mileage may vary.
+> :point_right: Any error which prevents the application from opening the database has the application crash. You will have to adapt this sample code if you intend to build an app that is able to run without a working database. For example, you could modify `AppDatabase` so that it feeds from a `Result<DatabaseWriter, Error>` instead of a plain `DatabaseWriter` - but your mileage may vary. This sample code has the error bubble up in crash reports, which is arguably better than displaying a blank screen without any error reporting.
 
 </details>
 
