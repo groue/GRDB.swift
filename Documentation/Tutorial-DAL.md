@@ -99,6 +99,21 @@ extension AppDatabase {
 }
 ```
 
+The [Combine + SwiftUI Demo Application] defines more instances of `AppDatabase`, such as en empty players database suitable for some SwiftUI previews:
+
+```swift
+// File: Persistence.swift
+
+extension AppDatabase {
+    /// Creates an empty database for SwiftUI previews
+    static func empty() -> AppDatabase {
+        // Connect to an in-memory database
+        let dbQueue = DatabaseQueue()
+        return try! AppDatabase(dbQueue)
+    }
+}
+```
+
 <details>
     <summary>ℹ️ Design Notes</summary>
 
@@ -116,21 +131,6 @@ extension AppDatabase {
 > :point_right: Any error which prevents the application from opening the database has the application crash. You will have to adapt this sample code if you intend to build an app that is able to run without a working database. For example, you could modify `AppDatabase` so that it feeds from a `Result<DatabaseWriter, Error>` instead of a plain `DatabaseWriter` - but your mileage may vary. This sample code has the error bubble up in crash reports, which is arguably better than displaying a blank screen without any error reporting.
 
 </details>
-
-The [Combine + SwiftUI Demo Application] defines more instances of `AppDatabase`, such as en empty players database suitable for some SwiftUI previews:
-
-```swift
-// File: Persistence.swift
-
-extension AppDatabase {
-    /// Creates an empty database for SwiftUI previews
-    static func empty() -> AppDatabase {
-        // Connect to an in-memory database
-        let dbQueue = DatabaseQueue()
-        return try! AppDatabase(dbQueue)
-    }
-}
-```
 
 > ✅ At this stage, we have an `AppDatabase.shared` object which vends an empty database. We'll add methods and properties to `AppDatabase`, as we discover the needs of our application.
 
