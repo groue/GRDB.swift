@@ -28,13 +28,11 @@ Let's start!
 
 ## The Database Service
 
-In this chapter, we introduce the `AppDatabase` service. It is the class that grants access to the player database, in a controlled fashion.
+The database service (or database manager, or persistence layer) is a class named `AppDatabase` that grants access to the SQLite database of players. It fetches the list of players, inserts new players, etc.
 
-We'll make it possible to fetch the list of players, insert new players, as well as other application needs. But not all database operations will be possible. For example, setting up the database schema is the strict privilege of `AppDatabase`, not of the rest of the application.
+`AppDatabase` accesses the database through a GRDB [database connection]. In the application, the service uses a `DatabasePool` connection that leverages the advantages of the SQLite [WAL mode]. Tests use a service that connects to an in-memory database, with `DatabaseQueue`, so that they can run as fast as possible. SwiftUI previews also run with in-memory databases.
 
-The `AppDatabase` service accesses the SQLite database through a GRDB [database connection]. We'd like the application to use a `DatabasePool`, because this connection leverages the advantages of the SQLite [WAL mode]. On the other side, we'd prefer application tests to run as fast as possible, with an in-memory database provided by a `DatabaseQueue`. SwiftUI previews will also run with in-memory databases.
-
-Pools and queues share a common protocol, `DatabaseWriter`, and this is what our `AppDatabase` service needs:
+Database pools and queues share a common protocol: `DatabaseWriter`. This is what the `AppDatabase` service needs:
 
 ```swift
 // File: AppDatabase.swift
