@@ -3,15 +3,15 @@ Tutorial: Building a Database Access Layer
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
-**This tutorial describes the building of the database access layer of the UIKit and SwiftUI [demo applications], step by step, applying good SQLite and GRDB practices along the way.**
+**This tutorial builds and explains the database access layer of the UIKit and SwiftUI [demo applications].**
 
-The target audience is already fluent with the creation of an Xcode project, storyboards, view controllers, or SwiftUI. These topics are mentionned, but not covered.
+The target audience has basic database knowledge, and knows what tables and columns are. The tutorial visits high-level GRDB features: record types, query interface, database observation. Raw SQL is also provided, so that you can choose your favorite way to use SQLite.
 
-Basic database knowledge is assumed, such as what tables and columns are. The tutorial covers high-level GRDB features: record types, query interface, database observation. Raw SQL is also provided, so that you can choose your favorite way to use SQLite.
+The setup of Xcode projects, view controllers, or SwiftUI is not discussed. Refer to the demo apps for sample code.
 
 When you want an explanation about some particular recommendation or piece of code, expand the design notes marked with an ℹ️.
 
-As you can see in the [screenshot], the demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players.
+As you can see in the [screenshot], the demo application displays the list of players stored in the database. The application user can sort players by name or by score. She can add, edit, and delete players. The list of players can be "refreshed". For demo purpose, refreshing players performs random modifications to the players. The tornado icon exercices multi-threading robustness by spawning many concurrent refreshes.
 
 Let's start!
 
@@ -826,6 +826,23 @@ Compared to query interface requests, raw SQL requests lose two benefits:
 > ✅ At this stage, we have defined the database requests that can feed the list of players in the application.
 
 ## Observing Players
+
+Some elements that are visible in the application [screen] do not depend on the database: action buttons, and the selected ordering. Those are transient information that live in a UIKit controller, or a SwiftUI view.
+
+The database content on screen is:
+
+- The number of players (in the navigation title).
+- The list of all players.
+
+Those two elements are not independent. We want them to be always consistent: if there are twelve players in the list, the title must be "12 Players".
+
+
+
+In the previous [Sorting Players] chapter, we built database requests for players, one sorted by name, one sorted by score. Now is time to fetch those players from those requests.
+
+More precisely, we will **observe** the requests of players. This will make it much easier to display an always-accurate list of players in the app. We will not have to remember to update the list whenever the player database is updated.
+
+> ✅ At this stage, we can feed UIViewControllers and SwiftUI with an always fresh list of players.
 
 ## The Initial Application State
 
