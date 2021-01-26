@@ -204,7 +204,7 @@ The migrations are now defined, but they are not applied yet. Let's modify the `
 <details>
     <summary>ℹ️ Design Notes</summary>
 
-> :point_right: GRDB is a library that fosters robust database schema, defined right at the SQLite level, because you can't build a safer haven for your precious users' data. There is no such thing as "automatic schema definition" or "automatic migrations" based on annotated Swift models. See [Trust SQLite More Than Yourself] for a longer explanation of this policy.
+> :point_right: GRDB is a library that fosters robust database schemas, defined right at the SQLite level, because you can't build a safer haven for your precious users' data. There is no such thing as "automatic schema definition" or "automatic migrations" based on annotated Swift models. See [Trust SQLite More Than Yourself] for a longer explanation of this policy.
 >
 > :point_right: The database table for players is named `player`, because GRDB recommends that table names are English, singular, and camel-cased (`player`, `country`, `postalAddress`, etc.) Such names will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will have to perform extra configuration.
 > 
