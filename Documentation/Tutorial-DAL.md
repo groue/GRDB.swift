@@ -138,15 +138,6 @@ extension AppDatabase {
 
 Now that we have an empty database, let's define its schema: the database table(s) that will store our application data. A good database schema will have SQLite manage the database integrity for you, and make sure it is impossible to store invalid data in the database: this is an important step!
 
-<details>
-    <summary>ℹ️ Design Notes</summary>
-
-> Some database libraries derive the database schema and relational constraints right from application code. For example, the fact that the name of a player can't be nil would be expressed in Swift, and the database library would prevent nil names from entering the database. With such libraries, you may not be free to define the database schema as you would want it to be, and you do not have much guarantee about the quality of your data.
-> 
-> With GRDB, it is just the other way around: you freely define the database schema so that it fulfills your application needs, and you access the database data with Swift code that matches this schema. You can't build a safer haven for your precious users' data than a robust SQLite schema. Bring your database skills with you!
-
-</details>
-
 Our database has one table, `player`, where each row contains the attributes of a player: a unique identifier (aka *primary key*), a name, and a score. The identifier makes it possible to instruct the database to perform operations on a specific player. We'll make sure all players have a name and a score (we'll prevent *NULL* values from entering those columns).
 
 In order to define the schema and create the `player` table, it is recommended to use [migrations]. All applications around us evolve as time passes, and ship several versions: it is likely our app will do the same. The database schema evolves as well, as we add features and fix bugs in our app. That's exactly what migrations are for: they represent the building steps of our database schema, as our app goes through its versions.
@@ -173,17 +164,6 @@ The migrations are defined in the `AppDatabase.migrator` property, in which we r
         return migrator
     }
 ```
-
-<details>
-    <summary>ℹ️ Design Notes</summary>
-
-> The database table for players is named `player`, because GRDB recommends that table names are English, singular, and camel-cased (`player`, `country`, `postalAddress`, etc.) Such names will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will have to perform extra configuration.
-> 
-> The primary key for players is an auto-incremented column named `id`. It also could have been a UUID column named `uuid`. GRDB generally accepts all primary keys, even if they are not named `id`, even if they span several columns, without any extra setup. Yet `id` is a frequent convention.
-> 
-> The `id` column is [autoincremented](https://sqlite.org/autoinc.html), in order to avoid id reuse. Reused ids can trip up [database observation] tools: a deletion followed by an insertion with the same id may be interpreted as an update, with unintended consequences.
-
-</details>
 
 <details>
     <summary>Raw SQL version</summary>
@@ -220,6 +200,19 @@ The migrations are now defined, but they are not applied yet. Let's modify the `
         try migrator.migrate(dbWriter)
     }
 ```
+
+<details>
+    <summary>ℹ️ Design Notes</summary>
+
+> :point_right: GRDB is a library that fosters robust database schema, defined right at the SQLite level, because you can't build a safer haven for your precious users' data. There is no such thing as "automatic schema definition" or "automatic migrations" based on annotated Swift models. See [Trust SQLite More Than Yourself] for a longer explanation of this policy.
+>
+> :point_right: The database table for players is named `player`, because GRDB recommends that table names are English, singular, and camel-cased (`player`, `country`, `postalAddress`, etc.) Such names will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will have to perform extra configuration.
+> 
+> :point_right: The primary key for players is an auto-incremented column named `id`. It also could have been a UUID column named `uuid`. GRDB generally accepts all primary keys, even if they are not named `id`, even if they span several columns, without any extra setup. Yet `id` is a frequent convention.
+> 
+> :point_right: The `id` column is [autoincremented](https://sqlite.org/autoinc.html), in order to avoid id reuse. Reused ids can trip up [database observation] tools: a deletion followed by an insertion with the same id could be interpreted as an update, with unintended consequences.
+
+</details>
 
 > ✅ At this stage, we have an `AppDatabase.shared` object which vends a database that contains a `player` table.
 
@@ -940,3 +933,4 @@ extension AppDatabase {
 [ACID]: https://en.wikipedia.org/wiki/ACID
 [query interface]: ../README.md#the-query-interface
 [Good Practices for Designing Record Types]: GoodPracticesForDesigningRecordTypes.md
+[Trust SQLite More Than Yourself]: GoodPracticesForDesigningRecordTypes.md#trust-sqlite-more-than-yourself
