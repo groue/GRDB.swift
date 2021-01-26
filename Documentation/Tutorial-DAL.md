@@ -119,7 +119,7 @@ extension AppDatabase {
 
 > :point_right: Some applications will prefer to manage the shared `AppDatabase` instance differently, for example with some dependency injection technique. In this case, you will not define `AppDatabase.shared`.
 > 
-> Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. [Sharing a database] is hard. Get inspiration from `AppDatabase.makeShared()`, above, in order to create the single instance of your database service.
+> Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. [Sharing a database] across processus is hard. Get inspiration from `AppDatabase.makeShared()`, above, in order to create the single instance of database service used by the application.
 >
 > :point_right: The database is stored in its own directory, so that you can easily:
 > 
