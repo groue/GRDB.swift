@@ -220,9 +220,7 @@ The migrations are now defined, but they are not applied yet. Let's modify the `
 
 The `player` table can't remain empty, or the application will never display anything!
 
-The application will insert players through the `AppDatabase` service. We could define an `AppDatabase.insertPlayer(name:score:)` method. But this does not scale well with the number of player columns: who wants to call a method with a dozen arguments?
-
-Instead, let's define a `Player` struct that groups all player attributes:
+The application inserts players through the `AppDatabase` service. We could define an `AppDatabase.insertPlayer(name:score:)` method, but this does not scale well with the number of player columns: who wants to call a method with a dozen arguments? Instead, let's define a `Player` struct that groups all player attributes:
 
 ```swift
 // File: Player.swift
@@ -234,7 +232,7 @@ struct Player {
 }
 ```
 
-This is enough to define the `AppDatabase.insertPlayer(_:)` method. But let's go further: the app will, eventually, deal with player identifiers. So let's add a `Player.id` property right away:
+This is enough to define an `AppDatabase.insertPlayer(_ player: Player)` method. But the app will, eventually, deal with player identifiers. So let's define the `Player.id` property right away:
 
 ```swift
 /// A Player
@@ -247,7 +245,7 @@ struct Player {
 
 The type of the `id` property is `Int64?` because it matches the `id` column in the `player` table (SQLite integer primary keys are 64-bit integers, even on 32-bit platforms). When the id is nil, the player is not yet saved in the database. When the id is not nil, it is the identifier of a player in the database.
 
-The `name` and `score` properties are regular `String` and `Int`. They are not optional (`String?` or `Int?`), because we added "not null" constraints on those database columns when we defined the `player` table.
+The `name` and `score` properties are regular `String` and `Int`. They are not optional because the `player` table was created with "not null" constraints on those database columns.
 
 > ✅ Now we have a `Player` type that fits the columns of the `player` database table, and is able to deal with all application needs. This is what GRDB calls a [record type]. At this stage, `Player` has no database power yet, but hold on.
 
