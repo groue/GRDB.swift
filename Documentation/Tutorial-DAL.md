@@ -60,7 +60,7 @@ final class AppDatabase {
 
 </details>
 
-> ✅ At this stage, we have an `AppDatabase` class which encapsulates access to the database. It supports both WAL databases, and in-memory databases, so that it can feed both the application, and tests.
+> ✅ At this stage, we have an `AppDatabase` class which encapsulates access to the database. It supports both WAL databases, and in-memory databases, so that it can feed the application, tests, and SwiftUI previews.
 
 ## The Shared Application Database
 
