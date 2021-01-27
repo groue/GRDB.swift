@@ -169,25 +169,25 @@ The migrations are defined in the `AppDatabase.migrator` property, in which we r
 <details>
     <summary>Raw SQL version</summary>
 
-Some readers like to write SQL. Please be welcome:
-
-```swift
-    private var migrator: DatabaseMigrator {
-        var migrator = DatabaseMigrator()
-        
-        migrator.registerMigration("initial") { db in
-            try db.execute(sql: """
-                CREATE TABLE player (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    name TEXT NOT NULL,
-                    score INTEGER NOT NULL
-                )
-                """)
-        }
-        
-        return migrator
-    }
-```
+> Some readers like to write SQL. Please be welcome:
+> 
+> ```swift
+>     private var migrator: DatabaseMigrator {
+>         var migrator = DatabaseMigrator()
+>         
+>         migrator.registerMigration("initial") { db in
+>             try db.execute(sql: """
+>                 CREATE TABLE player (
+>                     id INTEGER PRIMARY KEY AUTOINCREMENT,
+>                     name TEXT NOT NULL,
+>                     score INTEGER NOT NULL
+>                 )
+>                 """)
+>         }
+>         
+>         return migrator
+>     }
+> ```
 
 </details>
 
@@ -249,33 +249,33 @@ The application inserts players through the `AppDatabase` service. We can do it 
 <details>
     <summary>Raw SQL version</summary>
 
-```swift
-// File: AppDatabase.swift
-
-extension AppDatabase {
-    /// Inserts a player. When the method returns, the
-    /// player id is set to the newly inserted id. 
-    func insertPlayer(_ player: inout Player) throws {
-        try dbWriter.write { db in
-            try insert(db, player: &player)
-        }
-    }
-    
-    /// Inserts a player. When the method returns, the
-    /// player id is set to the newly inserted id. 
-    private func insert(_ db: Database, player: inout Player) throws {
-        try db.execute(literal: """
-            INSERT INTO player (name, score) 
-            VALUES (\(player.name), \(player.score))
-            """)
-        player.id = db.lastInsertedRowID
-    }
-}
-```
-
-The `insertPlayer(_:)` method calls a private helper method `insert(_:player:)`. This helper method will be reused later in the tutorial.
-
-Note that the helper method calls the `execute(literal:)` method, which avoids [SQL injection], thanks to [SQL Interpolation].
+> ```swift
+> // File: AppDatabase.swift
+> 
+> extension AppDatabase {
+>     /// Inserts a player. When the method returns, the
+>     /// player id is set to the newly inserted id. 
+>     func insertPlayer(_ player: inout Player) throws {
+>         try dbWriter.write { db in
+>             try insert(db, player: &player)
+>         }
+>     }
+>     
+>     /// Inserts a player. When the method returns, the
+>     /// player id is set to the newly inserted id. 
+>     private func insert(_ db: Database, player: inout Player) throws {
+>         try db.execute(literal: """
+>             INSERT INTO player (name, score) 
+>             VALUES (\(player.name), \(player.score))
+>             """)
+>         player.id = db.lastInsertedRowID
+>     }
+> }
+> ```
+> 
+> The `insertPlayer(_:)` method calls a private helper method `insert(_:player:)`. This helper method will be reused later in the tutorial.
+> 
+> Note that the helper method calls the `execute(literal:)` method, which avoids [SQL injection], thanks to [SQL Interpolation].
 
 </details>
 
@@ -394,54 +394,54 @@ Both `deleteAll(_:)` and `deleteAll(_:keys:)` methods are available for all pers
 <details>
     <summary>Raw SQL version</summary>
 
-If you do not want to make `Player` a persistable record, you can fallback to raw SQL:
-
-```swift
-// File: AppDatabase.swift
-
-extension AppDatabase {
-    /// Delete the specified players
-    func deletePlayers(ids: [Int64]) throws {
-        try dbWriter.write { db in
-            try db.execute(literal: """
-                DELETE FROM player WHERE id IN \(ids)
-                """)
-        }
-    }
-    
-    /// Delete all players
-    func deleteAllPlayers() throws {
-        try dbWriter.write { db in
-            try db.execute(sql: "DELETE FROM player")
-        }
-    }
-}
-```
-
-The `deletePlayers(ids:)` method above uses [SQL Interpolation] so that you can embed an array of ids right inside your SQL query (`WHERE id IN \(ids)`). The "really raw" SQL version below is a little more involved:
-
-```swift
-    func deletePlayers(ids: [Int64]) throws {
-        try dbWriter.write { db in
-            if ids.isEmpty {
-                // Avoid SQL syntax error
-                return
-            }
-            // DELETE FROM player WHERE id IN (?, ?, ...)
-            //                                 ~~~~~~~~~
-            //   as many question marks as there are ids
-            let placeholders = databaseQuestionMarks(count: ids.count)
-            let query = "DELETE FROM player WHERE id IN (\(placeholders))"
-            try db.execute(sql: query, arguments: StatementArguments(ids))
-        }
-    }
-```
-
-All the techniques we have seen avoid [SQL injection].
-
-> ✅ At this stage, we can delete all or individual players from the database.
+> If you do not want to make `Player` a persistable record, you can fallback to raw SQL:
+> 
+> ```swift
+> // File: AppDatabase.swift
+> 
+> extension AppDatabase {
+>     /// Delete the specified players
+>     func deletePlayers(ids: [Int64]) throws {
+>         try dbWriter.write { db in
+>             try db.execute(literal: """
+>                 DELETE FROM player WHERE id IN \(ids)
+>                 """)
+>         }
+>     }
+>     
+>     /// Delete all players
+>     func deleteAllPlayers() throws {
+>         try dbWriter.write { db in
+>             try db.execute(sql: "DELETE FROM player")
+>         }
+>     }
+> }
+> ```
+> 
+> The `deletePlayers(ids:)` method above uses [SQL Interpolation] so that you can embed an array of ids right inside your SQL query (`WHERE id IN \(ids)`). The "really raw" SQL version below is a little more involved:
+> 
+> ```swift
+>     func deletePlayers(ids: [Int64]) throws {
+>         try dbWriter.write { db in
+>             if ids.isEmpty {
+>                 // Avoid SQL syntax error
+>                 return
+>             }
+>             // DELETE FROM player WHERE id IN (?, ?, ...)
+>             //                                 ~~~~~~~~~
+>             //   as many question marks as there are ids
+>             let placeholders = databaseQuestionMarks(count: ids.count)
+>             let query = "DELETE FROM player WHERE id IN (\(placeholders))"
+>             try db.execute(sql: query, arguments: StatementArguments(ids))
+>         }
+>     }
+> ```
+> 
+> All the techniques we have seen avoid [SQL injection].
 
 </details>
+
+> ✅ At this stage, we can delete all or individual players from the database.
 
 ## Fetching and Modifying Players
 
@@ -561,57 +561,57 @@ extension Player: FetchableRecord {
 <details>
     <summary>Raw SQL version</summary>
 
-Let's write `AppDatabase.refreshPlayers()` without any support from SQL generation provided by record protocols:
-
-```swift
-// File: AppDatabase.swift
-
-extension AppDatabase {
-    /// Refresh all players (by performing some random changes, for demo purpose).
-    func refreshPlayers() throws {
-        try dbWriter.write { db in
-            if try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player") == 0 {
-                // When database is empty, insert new random players
-                try createRandomPlayers(db)
-            } else {
-                // Insert a player
-                if Bool.random() {
-                    var player = Player.newRandom()
-                    try insert(db, player: &player)
-                }
-                
-                // Delete a random player
-                if Bool.random() {
-                    try db.execute(sql: """
-                        DELETE FROM player
-                        ORDER BY RANDOM()
-                        LIMIT 1
-                        """)
-                }
-                
-                // Update some players
-                let ids = try Int64.fetchAll(db, sql: "SELECT id FROM player")
-                for id in ids where Bool.random() {
-                    try db.execute(literal: """
-                        UPDATE player
-                        SET score = \(Player.randomScore())
-                        WHERE id = \(id)
-                        """)
-                }
-            }
-        }
-    }
-    
-    private func createRandomPlayers(_ db: Database) throws {
-        for _ in 0..<8 {
-            var player = Player.newRandom()
-            try insert(db, player: &player)
-        }
-    }
-}
-```
-
-The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players].
+> Let's write `AppDatabase.refreshPlayers()` without any support from SQL generation provided by record protocols:
+> 
+> ```swift
+> // File: AppDatabase.swift
+> 
+> extension AppDatabase {
+>     /// Refresh all players (by performing some random changes, for demo purpose).
+>     func refreshPlayers() throws {
+>         try dbWriter.write { db in
+>             if try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player") == 0 {
+>                 // When database is empty, insert new random players
+>                 try createRandomPlayers(db)
+>             } else {
+>                 // Insert a player
+>                 if Bool.random() {
+>                     var player = Player.newRandom()
+>                     try insert(db, player: &player)
+>                 }
+>                 
+>                 // Delete a random player
+>                 if Bool.random() {
+>                     try db.execute(sql: """
+>                         DELETE FROM player
+>                         ORDER BY RANDOM()
+>                         LIMIT 1
+>                         """)
+>                 }
+>                 
+>                 // Update some players
+>                 let ids = try Int64.fetchAll(db, sql: "SELECT id FROM player")
+>                 for id in ids where Bool.random() {
+>                     try db.execute(literal: """
+>                         UPDATE player
+>                         SET score = \(Player.randomScore())
+>                         WHERE id = \(id)
+>                         """)
+>                 }
+>             }
+>         }
+>     }
+>     
+>     private func createRandomPlayers(_ db: Database) throws {
+>         for _ in 0..<8 {
+>             var player = Player.newRandom()
+>             try insert(db, player: &player)
+>         }
+>     }
+> }
+> ```
+> 
+> The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players].
 
 </details>
 
@@ -733,68 +733,68 @@ end
 <details>
     <summary>Raw SQL version</summary>
 
-You can build SQL requests with `SQLRequest`, which profits from [SQL Interpolation]. If you have the `Player` type conform to [FetchableRecord], those requests will be able to fetch. Otherwise, we'll have to fetch raw database rows and we will have more work to do. But those requests can still be defined:
-
-```swift
-// File: Player.swift
-
-/// Define some player requests used by the application.
-extension Player {
-    /// A request of players ordered by name.
-    ///
-    /// For example:
-    ///
-    ///     let players: [Player] = try dbWriter.read { db in
-    ///         try Player.orderedByName().fetchAll(db)
-    ///     }
-    static func orderedByName() -> SQLRequest<Player> {
-        // Sort by name in a localized case insensitive fashion
-        """
-        SELECT * FROM player
-        ORDER BY name COLLATING \(.localizedCaseInsensitiveCompare)
-        """
-    }
-    
-    /// A request of players ordered by score.
-    ///
-    /// For example:
-    ///
-    ///     let players: [Player] = try dbWriter.read { db in
-    ///         try Player.orderedByScore().fetchAll(db)
-    ///     }
-    static func orderedByScore() -> SQLRequest<Player> {
-        // Sort by descending score, and then by name, in a
-        // localized case insensitive fashion
-        """
-        SELECT * FROM player
-        ORDER BY score DESC,
-                 name COLLATING \(.localizedCaseInsensitiveCompare)
-        """
-    }
-}
-```
-
-Compared to query interface requests, raw SQL requests lose two benefits:
-
-- SQL requests are not composable together. You can not reuse them. For example:
-
-    ```swift
-    // A request from a future version of our app.
-    // Request composition is only possible for query interface requests.
-    let request = Player.all()
-        .filter(team: .red)
-        .including(all: Player.awards)
-        .orderedByName()
-    ```
-
-- SQL requests do not auto-optimize when you are only interested in the first row:
-    
-    ```swift
-    // No automatic appending of `LIMIT 1`, as query interface requests do.
-    let bestPlayer: Player? = try dbWriter.read { db in
-        try Player.orderedByScore().fetchOne(db)
-    }
-    ```
+> You can build SQL requests with `SQLRequest`, which profits from [SQL Interpolation]. If you have the `Player` type conform to [FetchableRecord], those requests will be able to fetch. Otherwise, we'll have to fetch raw database rows and we will have more work to do. But those requests can still be defined:
+> 
+> ```swift
+> // File: Player.swift
+> 
+> /// Define some player requests used by the application.
+> extension Player {
+>     /// A request of players ordered by name.
+>     ///
+>     /// For example:
+>     ///
+>     ///     let players: [Player] = try dbWriter.read { db in
+>     ///         try Player.orderedByName().fetchAll(db)
+>     ///     }
+>     static func orderedByName() -> SQLRequest<Player> {
+>         // Sort by name in a localized case insensitive fashion
+>         """
+>         SELECT * FROM player
+>         ORDER BY name COLLATING \(.localizedCaseInsensitiveCompare)
+>         """
+>     }
+>     
+>     /// A request of players ordered by score.
+>     ///
+>     /// For example:
+>     ///
+>     ///     let players: [Player] = try dbWriter.read { db in
+>     ///         try Player.orderedByScore().fetchAll(db)
+>     ///     }
+>     static func orderedByScore() -> SQLRequest<Player> {
+>         // Sort by descending score, and then by name, in a
+>         // localized case insensitive fashion
+>         """
+>         SELECT * FROM player
+>         ORDER BY score DESC,
+>                  name COLLATING \(.localizedCaseInsensitiveCompare)
+>         """
+>     }
+> }
+> ```
+> 
+> Compared to query interface requests, raw SQL requests lose two benefits:
+> 
+> - SQL requests are not composable together. You can not reuse them. For example:
+> 
+>     ```swift
+>     // A request from a future version of our app.
+>     // Request composition is only possible for query interface requests.
+>     let request = Player.all()
+>         .filter(team: .red)
+>         .including(all: Player.awards)
+>         .orderedByName()
+>     ```
+> 
+> - SQL requests do not auto-optimize when you are only interested in the first row:
+>     
+>     ```swift
+>     // No automatic appending of `LIMIT 1`, as query interface requests do.
+>     let bestPlayer: Player? = try dbWriter.read { db in
+>         try Player.orderedByScore().fetchOne(db)
+>     }
+>     ```
     
 </details>
 
