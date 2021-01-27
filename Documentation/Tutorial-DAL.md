@@ -3,7 +3,7 @@ Tutorial: Building a Database Access Layer
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
-**This tutorial builds and explains the database access layer of a UIKit or SwiftUI application**. See the [demo applications] for sample code.
+**This tutorial builds and explains a database access layer for a UIKit or SwiftUI application**. See the [demo applications] for sample code.
 
 The target audience has basic database knowledge, and knows what tables and columns are. The tutorial visits high-level GRDB features: record types, query interface, database observation. Raw SQL is also provided, so that you can choose your favorite way to use SQLite.
 
@@ -19,8 +19,9 @@ Let's start!
 - [The Shared Application Database]
 - [The Database Schema]
 - [The Player Struct]
-- [Inserting Players]
+- [Saving Players]
 - [Deleting Players]
+- [Fetching Players]
 - [Fetching and Modifying Players]
 - [Sorting Players]
 - [Observing Players]
@@ -240,11 +241,15 @@ The `name` and `score` properties are regular `String` and `Int`. They are not o
 
 > ✅ Now we have a `Player` type that fits the columns of the `player` database table, and is able to deal with all application needs. This is what GRDB calls a [record type]. At this stage, `Player` has no database power yet.
 
-## Inserting Players
+## Saving Players
 
-The `player` table can't remain empty, or the application will never display anything!
+The user application inserts player by tapping the "+" button on the top left of the [screen], which displays a form. The user fills the name and score fields, and hits the "Done" button.
 
-The application inserts players through the `AppDatabase` service. We can do it with raw SQL:
+The same form screen is pushed when the user taps a player in the list. The app then updates the player when the user hits the back button.
+
+The `AppDatabase` service supports both these use cases by providing a `savePlayer(_:)` method.
+
+We can write it with raw SQL:
 
 <details>
     <summary>Raw SQL version</summary>
@@ -253,29 +258,49 @@ The application inserts players through the `AppDatabase` service. We can do it 
 > // File: AppDatabase.swift
 > 
 > extension AppDatabase {
->     /// Inserts a player. When the method returns, the
->     /// player id is set to the newly inserted id. 
->     func insertPlayer(_ player: inout Player) throws {
+>     /// Saves (inserts or updates) a player. When the method returns, the
+>     /// player is present in the database, and its id is not nil.
+>     func savePlayer(_ player: inout Player) throws {
 >         try dbWriter.write { db in
->             try insert(db, player: &player)
+>             try save(db, player: &player)
 >         }
 >     }
 >     
->     /// Inserts a player. When the method returns, the
->     /// player id is set to the newly inserted id. 
->     private func insert(_ db: Database, player: inout Player) throws {
->         try db.execute(literal: """
->             INSERT INTO player (name, score) 
->             VALUES (\(player.name), \(player.score))
->             """)
->         player.id = db.lastInsertedRowID
+>     /// Saves (inserts or updates) a player. When the method returns, the
+>     /// player is present in the database, and its id is not nil.
+>     private func save(_ db: Database, player: inout Player) throws {
+>         if let id = player.id {
+>             // Player has an id: update
+>             try db.execute(literal: """
+>                 UPDATE player
+>                 SET name = \(player.name),
+>                     score = \(player.score)
+>                 WHERE id = \(id)
+>                 """)
+>             
+>             if db.changesCount == 0 {
+>                 // Player was not updated. This means that is was not
+>                 // present in the database. So let's insert it with its id.
+>                 try db.execute(literal: """
+>                     INSERT INTO player (id, name, score)
+>                     VALUES (\(player.id), \(player.name), \(player.score))
+>                     """)
+>             }
+>         } else {
+>             // Player has no id: insert
+>             try db.execute(literal: """
+>                 INSERT INTO player (name, score)
+>                 VALUES (\(player.name), \(player.score))
+>                 """)
+>             player.id = db.lastInsertedRowID
+>         }
 >     }
 > }
 > ```
 > 
-> The `insertPlayer(_:)` method calls a private helper method `insert(_:player:)`. This helper method will be reused later in the tutorial.
+> The `savePlayer(_:)` method calls a private helper method `save(_:player:)`. This helper method will be reused later in the tutorial.
 > 
-> Note that the helper method calls the `execute(literal:)` method, which avoids [SQL injection], thanks to [SQL Interpolation].
+> Note that the helper method uses the `execute(literal:)` method, which avoids [SQL injection], thanks to [SQL Interpolation].
 
 </details>
 
@@ -335,7 +360,7 @@ Thanks to persistable records, we now support both inserts and updates:
 
 extension AppDatabase {
     /// Saves (inserts or updates) a player. When the method returns, the
-    /// player id is not nil.
+    /// player is present in the database, and its id is not nil.
     func savePlayer(_ player: inout Player) throws {
         try dbWriter.write { db in
             try player.save(db)
@@ -357,7 +382,7 @@ player.score = 1000
 try AppDatabase.shared.savePlayer(player)
 ```
 
-> ✅ At this stage, we can insert and update players in the database.
+> ✅ At this stage, we can save players in the database.
 
 ## Deleting Players
 
@@ -443,9 +468,11 @@ Both `deleteAll(_:)` and `deleteAll(_:keys:)` methods are available for all pers
 
 > ✅ At this stage, we can delete all or individual players from the database.
 
+## Fetching Players
+
 ## Fetching and Modifying Players
 
-The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Inserting Players] chapter.
+The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Saving Players] chapter.
 
 There is another way to modify players: the refresh button at the bottom center of the [screen]. This one simulates a "real" refresh from, say, a server, and applies random transformations to the player database. We implement this modification of the players database with the `AppDatabase.refreshPlayers()` method:
 
@@ -463,7 +490,7 @@ extension AppDatabase {
                 // Insert a player
                 if Bool.random() {
                     var player = Player.newRandom()
-                    try player.insert(db)
+                    try player.save(db)
                 }
                 
                 // Delete a random player
@@ -484,7 +511,7 @@ extension AppDatabase {
     private func createRandomPlayers(_ db: Database) throws {
         for _ in 0..<8 {
             var player = Player.newRandom()
-            try player.insert(db)
+            try player.save(db)
         }
     }
 }
@@ -577,7 +604,7 @@ extension Player: FetchableRecord {
 >                 // Insert a player
 >                 if Bool.random() {
 >                     var player = Player.newRandom()
->                     try insert(db, player: &player)
+>                     try save(db, player: &player)
 >                 }
 >                 
 >                 // Delete a random player
@@ -605,13 +632,13 @@ extension Player: FetchableRecord {
 >     private func createRandomPlayers(_ db: Database) throws {
 >         for _ in 0..<8 {
 >             var player = Player.newRandom()
->             try insert(db, player: &player)
+>             try save(db, player: &player)
 >         }
 >     }
 > }
 > ```
 > 
-> The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players].
+> The `save(_:player:)` method was defined, with raw SQL, in [Saving Players].
 
 </details>
 
@@ -892,8 +919,9 @@ extension AppDatabase {
 [The Shared Application Database]: #the-shared-application-database
 [The Database Schema]: #the-database-schema
 [The Player Struct]: #the-player-struct
-[Inserting Players]: #inserting-players
+[Saving Players]: #saving-players
 [Deleting Players]: #deleting-players
+[Fetching Players]: #fetching-players
 [Fetching and Modifying Players]: #fetching-and-modifying-players
 [Sorting Players]: #sorting-players
 [Observing Players]: #observing-players
