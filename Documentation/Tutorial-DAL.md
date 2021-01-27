@@ -18,7 +18,8 @@ Let's start!
 - [The Database Service]
 - [The Shared Application Database]
 - [The Database Schema]
-- [Inserting Players in the Database, and the Player Struct]
+- [The Player Struct]
+- [Inserting Players]
 - [Deleting Players]
 - [Fetching and Modifying Players]
 - [Sorting Players]
@@ -119,7 +120,7 @@ extension AppDatabase {
 
 > :point_right: Some applications will prefer to manage the shared `AppDatabase` instance differently, for example with some dependency injection technique. In this case, you will not define `AppDatabase.shared`.
 > 
-> Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. [Sharing a database] across processus is hard. Get inspiration from `AppDatabase.makeShared()`, above, in order to create the single instance of database service used by the application.
+> Just make sure that there exists a single instance of `DatabaseQueue` or `DatabasePool` for any given database file. This is because multiple instances would compete for database access, and sometimes throw errors. Get inspiration from `AppDatabase.makeShared()`, above, in order to create the single instance of database service used by the application.
 >
 > :point_right: The database is stored in its own directory, so that you can easily:
 > 
@@ -216,25 +217,13 @@ The migrations are now defined, but they are not applied yet. Let's modify the `
 
 > ✅ At this stage, we have an `AppDatabase.shared` object which vends a database that contains a `player` table.
 
-## Inserting Players in the Database, and the Player Struct
+## The Player Struct
 
-The `player` table can't remain empty, or the application will never display anything!
-
-The application inserts players through the `AppDatabase` service. We could define an `AppDatabase.insertPlayer(name:score:)` method, but this does not scale well with the number of player columns: who wants to call a method with a dozen arguments? Instead, let's define a `Player` struct that groups all player attributes:
+The application will insert, edit, display, and delete players. Let's *model* a player with a dedicated type:
 
 ```swift
 // File: Player.swift
 
-/// A Player (take one)
-struct Player {
-    var name: String
-    var score: Int
-}
-```
-
-This is enough to define an `AppDatabase.insertPlayer(_ player: Player)` method. But the app will, eventually, deal with player identifiers. So let's define the `Player.id` property right away:
-
-```swift
 /// A Player
 struct Player {
     var id: Int64?
@@ -243,13 +232,19 @@ struct Player {
 }
 ```
 
-The type of the `id` property is `Int64?` because it matches the `id` column in the `player` table (SQLite integer primary keys are 64-bit integers, even on 32-bit platforms). When the id is nil, the player is not yet saved in the database. When the id is not nil, it is the identifier of a player in the database.
+With its `name` and `score` properties, it can feed our application screens. With its `id` property, it can talk to `AppDatabase`, whenever we need to perform operations of a particular player (such as saving changes performed on a player).
 
-The `name` and `score` properties are regular `String` and `Int`. They are not optional because the `player` table was created with "not null" constraints on those database columns.
+The type of `id` is `Int64?`, because it matches the `id` column in the `player` table (SQLite integer primary keys are 64-bit integers, even on 32-bit platforms). When the id is nil, the player is not yet saved in the database. When the id is not nil, it is the identifier of a player in the database.
 
-> ✅ Now we have a `Player` type that fits the columns of the `player` database table, and is able to deal with all application needs. This is what GRDB calls a [record type]. At this stage, `Player` has no database power yet, but hold on.
+The `name` and `score` properties are regular `String` and `Int`. They are not optional because the `player` table was created with "not null" constraints on those database columns: we do not want to insert nil names, and we are sure we won't fetch nil names either.
 
-The `Player` type allows `AppDatabase` to insert a player. We can do it with raw SQL:
+> ✅ Now we have a `Player` type that fits the columns of the `player` database table, and is able to deal with all application needs. This is what GRDB calls a [record type]. At this stage, `Player` has no database power yet.
+
+## Inserting Players
+
+The `player` table can't remain empty, or the application will never display anything!
+
+The application inserts players through the `AppDatabase` service. We can do it with raw SQL:
 
 <details>
     <summary>Raw SQL version</summary>
@@ -284,14 +279,14 @@ Note that the helper method calls the `execute(literal:)` method, which avoids [
 
 </details>
 
-SQL is just fine, but we can also make `Player` a [persistable record]. With persistable records, you do not have to write the SQL queries that perform common persistence operations.
+SQL is just fine, but we can also make `Player` a [persistable record], so that you do not have to write the SQL queries that perform common persistence operations.
 
-The `Player` struct adopts the `MutablePersistableRecord` protocol, because the `player` database table has an autoincremented id:
+In our specific case, the `Player` struct adopts the `MutablePersistableRecord` protocol, because the `player` database table has an autoincremented id:
 
 - "Persistable": players can be inserted, updated and deleted.
 - "Mutable": a player is modified (mutated) upon insertion, because its `id` property is set from the autoincremented SQLite id.
 
-Conformance to `MutablePersistableRecord` is almost free for types that adopt the standard [Encodable] protocol:
+Conformance to `MutablePersistableRecord` is easy for types that adopt the standard [Encodable] protocol:
 
 ```swift
 // File: Player.swift
@@ -305,12 +300,12 @@ extension Player: Encodable, MutablePersistableRecord {
 }
 ```
 
-In this tutorial, the name of the database table matches the name of the type, and columns matches properties, so we do not have to configure anything.
+In this tutorial, the name of the database table matches the name of the type, and so do columns and properties: we do not have to configure anything.
 
 <details>
     <summary>Avoiding Encodable</summary>
 
-The `Encodable` protocol is handy, but you may prefer not to use it. In this case, you have to fulfill the persistable record requirements:
+The `Encodable` protocol is handy, but you may prefer not to use it. In this case, you have to fulfill the `MutablePersistableRecord` requirements:
 
 ```swift
 // File: Player.swift
@@ -333,7 +328,7 @@ extension Player: MutablePersistableRecord {
 
 </details>
 
-That's it. And thanks to persistable records, we now support both inserts and updates:
+Thanks to persistable records, we now support both inserts and updates:
 
 ```swift
 // File: AppDatabase.swift
@@ -349,7 +344,7 @@ extension AppDatabase {
 }
 ```
 
-Now, we can save players from the app:
+Usage:
 
 ```swift
 // Inserts a player
@@ -362,8 +357,6 @@ player.score = 1000
 try AppDatabase.shared.savePlayer(player)
 ```
 
-> 👆 **Note**: make sure you define the `Encodable` extension to `Player` in the same file where the `Player` struct is defined: this is how you will profit from the synthesized conformance to this protocol.
->
 > ✅ At this stage, we can insert and update players in the database.
 
 ## Deleting Players
@@ -452,7 +445,7 @@ All the techniques we have seen avoid [SQL injection].
 
 ## Fetching and Modifying Players
 
-The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Inserting Players in the Database, and the Player Struct] chapter.
+The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Inserting Players] chapter.
 
 There is another way to modify players: the refresh button at the bottom center of the [screen]. This one simulates a "real" refresh from, say, a server, and applies random transformations to the player database. We implement this modification of the players database with the `AppDatabase.refreshPlayers()` method:
 
@@ -618,7 +611,7 @@ extension AppDatabase {
 }
 ```
 
-The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players in the Database, and the Player Struct].
+The `insert(_:player:)` method was defined, with raw SQL, in [Inserting Players].
 
 </details>
 
@@ -898,7 +891,8 @@ extension AppDatabase {
 [The Database Service]: #the-database-service
 [The Shared Application Database]: #the-shared-application-database
 [The Database Schema]: #the-database-schema
-[Inserting Players in the Database, and the Player Struct]: #inserting-players-in-the-database-and-the-player-struct
+[The Player Struct]: #the-player-struct
+[Inserting Players]: #inserting-players
 [Deleting Players]: #deleting-players
 [Fetching and Modifying Players]: #fetching-and-modifying-players
 [Sorting Players]: #sorting-players
