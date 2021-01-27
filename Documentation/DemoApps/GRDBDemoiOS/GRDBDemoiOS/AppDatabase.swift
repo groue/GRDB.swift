@@ -54,7 +54,7 @@ final class AppDatabase {
 
 extension AppDatabase {
     /// Saves (inserts or updates) a player. When the method returns, the
-    /// player id is not nil.
+    /// player is present in the database, and its id is not nil.
     func savePlayer(_ player: inout Player) throws {
         try dbWriter.write { db in
             try player.save(db)
