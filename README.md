@@ -355,15 +355,7 @@ GRDB can be installed as a framework, or a static library.
 
 ## Swift Package Manager
 
-The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to your `Package.swift` file:
-
-```swift
-let package = Package(
-    dependencies: [
-        .package(name: "GRDB", url: "https://github.com/groue/GRDB.swift.git", ...)
-    ]
-)
-```
+The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to `https://github.com/groue/GRDB.swift.git`
 
 > :point_up: **Note**: Linux is not currently supported.
 >
