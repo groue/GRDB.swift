@@ -5,7 +5,7 @@
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
-
+- [ ] Get inspiration from the templates at https://github.com/woocommerce/woocommerce-ios/tree/develop/.github (https://github.com/woocommerce/woocommerce-ios/pull/3523)
 
 ## Documentation
 
