@@ -22,7 +22,7 @@ Let's start!
 - [Saving Players]
 - [Deleting Players]
 - [Fetching Players]
-- [Fetching and Modifying Players]
+- [Refreshing Players]
 - [Sorting Players]
 - [Observing Players]
 - [The Initial Application State]
@@ -470,11 +470,41 @@ Both `deleteAll(_:)` and `deleteAll(_:keys:)` methods are available for all pers
 
 ## Fetching Players
 
-## Fetching and Modifying Players
+GRDB record types also provide fetching methods, when they adopt the [FetchableRecord] protocol.
 
-The user of the application can edit a player, by tapping on its row: this presents a form where both name & score can be edited. This use case is already fulfilled by the `AppDatabase.savePlayer(_:)` service method, described in the [Saving Players] chapter.
+This protocol is "free" when `Player` adopts the [Decodable] protocol:
 
-There is another way to modify players: the refresh button at the bottom center of the [screen]. This one simulates a "real" refresh from, say, a server, and applies random transformations to the player database. We implement this modification of the players database with the `AppDatabase.refreshPlayers()` method:
+```swift
+// File: Player.swift
+
+extension Player: Decodable, FetchableRecord { }
+```
+
+<details>
+    <summary>Avoiding Decodable</summary>
+
+The `Decodable` protocol is handy, but you may prefer not to use it. In this case, you have to fulfill the [FetchableRecord] requirement:
+
+```swift
+// File: Player.swift
+
+extension Player: FetchableRecord {
+    /// Creates a player from a database row
+    init(row: Row) {
+        id = row["id"]
+        name = row["name"]
+        score = row["score"]
+    }
+}
+```
+
+</details>
+
+> ✅ At this stage, we can turn raw database rows into players.
+
+## Refreshing Players
+
+The refresh button at the bottom center of the [screen] applies random transformations to the player database. The `AppDatabase` service supports this use cases by providing a `refreshPlayers()` method.
 
 ```swift
 // File: AppDatabase.swift
@@ -554,36 +584,6 @@ extension Player {
     }
 }
 ```
-
-Refreshing players also needs to fetch the players that are randomly updated (`try Player.fetchAll(db)`).
-
-Fetching players is free when `Player` adopts the [Decodable] protocol: we just need to add the [FetchableRecord] conformance:
-
-```swift
-// File: Player.swift
-
-extension Player: Decodable, FetchableRecord { }
-```
-
-<details>
-    <summary>Avoiding Decodable</summary>
-
-The `Decodable` protocol is handy, but you may prefer not to use it. In this case, you have to fulfill the fetchable record requirements:
-
-```swift
-// File: Player.swift
-
-extension Player: FetchableRecord {
-    /// Creates a player from a database row
-    init(row: Row) {
-        id = row["id"]
-        name = row["name"]
-        score = row["score"]
-    }
-}
-```
-
-</details>
 
 <details>
     <summary>Raw SQL version</summary>
@@ -850,7 +850,7 @@ More precisely, we will **observe** the requests of players. This will make it m
 
 Let's perform a little polishing step, so that the first time the application is launched, it is already populated with a few players. We write a demo application, and a demo is nicer when the user can play right away.
 
-To this end, we create a new `AppDatabase.createRandomPlayersIfEmpty()` method. It reuses the `createRandomPlayers(_:)` helper method defined in the [Fetching and Modifying Players] chapter:
+To this end, we create a new `AppDatabase.createRandomPlayersIfEmpty()` method. It reuses the `createRandomPlayers(_:)` helper method defined in the [Refreshing Players] chapter:
 
 ```swift
 // File: AppDatabase.swift
@@ -922,7 +922,7 @@ extension AppDatabase {
 [Saving Players]: #saving-players
 [Deleting Players]: #deleting-players
 [Fetching Players]: #fetching-players
-[Fetching and Modifying Players]: #fetching-and-modifying-players
+[Refreshing Players]: #refreshing-players
 [Sorting Players]: #sorting-players
 [Observing Players]: #observing-players
 [The Initial Application State]: #the-initial-application-state
