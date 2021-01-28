@@ -37,9 +37,6 @@ final class AppDatabase {
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("name", .text).notNull()
-                    // Sort player names in a localized case insensitive fashion by default
-                    // See https://github.com/groue/GRDB.swift/blob/master/README.md#unicode
-                    .collate(.localizedCaseInsensitiveCompare)
                 t.column("score", .integer).notNull()
             }
         }
@@ -57,7 +54,7 @@ final class AppDatabase {
 
 extension AppDatabase {
     /// Saves (inserts or updates) a player. When the method returns, the
-    /// player id is not nil.
+    /// player is present in the database, and its id is not nil.
     func savePlayer(_ player: inout Player) throws {
         try dbWriter.write { db in
             try player.save(db)
@@ -82,7 +79,7 @@ extension AppDatabase {
     func refreshPlayers() throws {
         try dbWriter.write { db in
             if try Player.fetchCount(db) == 0 {
-                // Insert new random players
+                // When database is empty, insert new random players
                 try createRandomPlayers(db)
             } else {
                 // Insert a player
@@ -127,20 +124,6 @@ extension AppDatabase {
 // MARK: - Database Access: Reads
 
 extension AppDatabase {
-    /// Tracks changes in the number of players
-    func observePlayerCount(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping (Int) -> Void)
-    -> DatabaseCancellable
-    {
-        ValueObservation
-            .tracking(Player.fetchCount)
-            .start(
-                in: dbWriter,
-                onError: onError,
-                onChange: onChange)
-    }
-    
     /// Tracks changes in players ordered by name
     func observePlayersOrderedByName(
         onError: @escaping (Error) -> Void,
