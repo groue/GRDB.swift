@@ -417,9 +417,16 @@ This chapter lists all kinds of supported interpolations.
     
     ```swift
     // SELECT * FROM player ORDER BY name DESC
-    "SELECT * FROM player WHERE id IN \(Column("name").desc)"
+    "SELECT * FROM player ORDER BY \(Column("name").desc)"
     ```
 
+- Database Collations:
+
+    ```swift
+    "SELECT * FROM player ORDER BY email COLLATING \(.nocase)"
+    "SELECT * FROM player ORDER BY email COLLATING \(.localizedCompare)"
+    ```
+    
 - Subqueries:
     
     ```swift

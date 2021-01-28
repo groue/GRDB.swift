@@ -271,7 +271,7 @@ extension SQLInterpolation {
         elements.append(.expression(expressible.sqlExpression))
     }
     
-    // MARK: Common Table Expressions
+    // MARK: - Common Table Expressions
     
     /// Appends the table name of the common table expression.
     ///
@@ -304,5 +304,27 @@ extension SQLInterpolation {
         elements.append(.sql(" AS ("))
         elements.append(.subquery(cte.cte.requestPromise))
         elements.append(.sql(")"))
+    }
+    
+    // MARK: - Collations
+    
+    /// Appends the name of the collation.
+    ///
+    ///     let request: SQLRequest<Player> = """
+    ///         SELECT * FROM player
+    ///         ORDER BY name COLLATING \(DatabaseCollation.localizedCaseInsensitiveCompare)
+    ///         """
+    public mutating func appendInterpolation(_ collation: DatabaseCollation) {
+        elements.append(.sql(collation.name))
+    }
+    
+    /// Appends the name of the collation.
+    ///
+    ///     let request: SQLRequest<Player> = """
+    ///         SELECT * FROM player
+    ///         ORDER BY email COLLATING \(.nocase)
+    ///         """
+    public mutating func appendInterpolation(_ collation: Database.CollationName) {
+        elements.append(.sql(collation.rawValue))
     }
 }

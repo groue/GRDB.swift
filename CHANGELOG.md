@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- [Next Release](#next-release)
 - `5.3.x` Releases - [5.3.0](#530)
 - `5.2.x` Releases - [5.2.0](#520)
 - `5.1.x` Releases - [5.1.0](#510)
@@ -68,6 +69,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [0.110.0](#01100), ...
 
+## Next Release
+
+- **New**: [SQL Interpolation](Documentation/SQLInterpolation.md) supports embedding collations into SQL literals.
 
 ## 5.3.0
 
