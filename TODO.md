@@ -5,7 +5,7 @@
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
-
+- [ ] Get inspiration from the templates at https://github.com/woocommerce/woocommerce-ios/tree/develop/.github (https://github.com/woocommerce/woocommerce-ios/pull/3523)
 
 ## Documentation
 
@@ -15,6 +15,7 @@
 
 ## Features
 
+- [ ] ValueObservation share replay
 - [ ] Can we use generated columns to makes it convenient to index on inserted JSON objects? https://github.com/apple/swift-package-manager/pull/3090#issuecomment-740091760
 - [ ] DatabaseMigrator.publisher(in:)
 - [ ] Look at [@FetchRequest](https://developer.apple.com/documentation/swiftui/fetchrequest): managed object context is stored in the environment, and error processing happens somewhere else (where?).
