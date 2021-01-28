@@ -549,17 +549,6 @@ extension AppDatabase {
 
 The `AppDatabase.refreshPlayers()` method calls a private helper method `createRandomPlayers(_:)`. This helper method will be reused later in the tutorial.
 
-<details>
-    <summary>ℹ️ Design Notes</summary>
-
-> The role of the `AppDatabase` service is to provide a set of [ACID] transformations, that fully control the state of the database. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players must be avoided, in order to make the application robust. After all, errors happen, and even hard crashes. Thanks to the ACID guarantees provided by SQLite, errors and crashes are unable to threaten important database invariants.
->
-> **The added value of the `AppDatabase` service is to provide one method per database transformation needed by the app.** All those methods perform **a single GRDB write**, in order to profit from all ACID guarantees of SQLite transactions. Refreshing players is one of those transformations. Saving a player is another, which supports the user interface for editing of creating players.
->
-> :bulb: **Tip**: when two distinct service methods want to reuse a piece of code, we extract it in a helper method such as `createRandomPlayers(_:)` above. Unlike service methods, helper methods access the database through their `Database` argument, not through the `dbWriter` property.
-
-</details>
-
 Refreshing players needs some support from the `Player` record type, so that we can build random players:
 
 ```swift
@@ -642,7 +631,18 @@ extension Player {
 
 </details>
 
-> ✅ At this stage, we can fetch players from the database, and modify players in a controlled and robust way.
+<details>
+    <summary>ℹ️ Design Notes</summary>
+
+> The role of the `AppDatabase` service is to provide a set of [ACID] transformations, that fully control the state of the database. Either a player is saved, either it is not. Players are refreshed, or they are not. If our application would synchronize its local database with some remote server, we would want players to be fully synchronized, or not at all. Intermediate states such as partially saved, deleted, refreshed, or synchronized players must be avoided, in order to make the application robust. After all, errors happen, and even hard crashes. Thanks to the ACID guarantees provided by SQLite, errors and crashes are unable to threaten important database invariants.
+>
+> **The added value of the `AppDatabase` service is to provide one method per database transformation needed by the app.** All those methods perform **a single GRDB write**, in order to profit from all ACID guarantees of SQLite transactions. Refreshing players is one of those transformations. Saving a player is another, which supports the user interface for editing of creating players.
+>
+> :bulb: **Tip**: when two distinct service methods want to reuse a piece of code, we extract it in a helper method such as `createRandomPlayers(_:)` above. Unlike service methods, helper methods access the database through their `Database` argument, not through the `dbWriter` property.
+
+</details>
+
+> ✅ At this stage, we can modify players in a controlled and robust way.
 
 ## Sorting Players
 
