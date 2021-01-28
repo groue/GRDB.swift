@@ -4,6 +4,12 @@ Here is a list of people who were happy to meet GRDB :-)
 
 ---
 
+https://twitter.com/swiftkarim/status/1354753451377483781
+
+> I cannot recommend GRDB enough. It works well with Swift and eliminates whole classes of potential programming errors that can be made with Core Data. Also being able to use raw SQL queries if needed can be extremely useful!
+
+---
+
 https://twitter.com/peres/status/1352219836508729346
 
 > Just the occasional reminder that GRDB and its documentation is the gold standard. That's it.
