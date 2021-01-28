@@ -72,6 +72,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **New**: [SQL Interpolation](Documentation/SQLInterpolation.md) supports embedding collations into SQL literals.
+- **Documentation update**: [Adding support for missing SQL functions or operators](README.md#adding-support-for-missing-sql-functions-or-operators) explains how to extend the query interface when needed.
 
 ## 5.3.0
 
