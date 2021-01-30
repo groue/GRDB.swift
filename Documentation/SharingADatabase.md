@@ -66,7 +66,7 @@ Since several processes may open the database at the same time, protect the crea
                 }
             }
         }
-        let dbPool = try DatabasePool(path: databaseURL.path)
+        let dbPool = try DatabasePool(path: databaseURL.path, configuration: configuration)
         
         // Perform here other database setups, such as defining
         // the database schema with a DatabaseMigrator, and 
