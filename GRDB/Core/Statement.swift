@@ -649,6 +649,11 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// Creates empty StatementArguments.
     public init() {
     }
+
+    /// Creates a new StatementArguments with the given values
+    public init(values: [DatabaseValue]) {
+        self.values = values
+    }
     
     // MARK: Positional Arguments
     
