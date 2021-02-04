@@ -101,7 +101,7 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: Int.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -130,7 +130,7 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int8(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: Int8.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -159,7 +159,7 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int16(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: Int16.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -188,7 +188,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = Int32(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: Int32.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -250,7 +250,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: UInt.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -279,7 +279,7 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt8(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: UInt8.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -308,7 +308,7 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt16(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: UInt16.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -337,7 +337,7 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt32(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: UInt32.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     
@@ -366,7 +366,7 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
         if let v = UInt64(exactly: int64) {
             self = v
         } else {
-            fatalConversionError(to: UInt64.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
     }
     

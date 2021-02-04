@@ -23,6 +23,7 @@
 /// `Float`, `Double`, `String`, and `Bool`.
 public protocol StatementColumnConvertible {
     
+    // TODO: inject a decoding context, and make throwable
     /// Initializes a value from a raw SQLite statement pointer.
     ///
     /// For example, here is the how Int64 adopts StatementColumnConvertible:
@@ -92,7 +93,10 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecode(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            return try Value.fastDecode(
+                from: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }
@@ -150,7 +154,10 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecodeIfPresent(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            return try Value.fastDecodeIfPresent(
+                from: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }

@@ -77,7 +77,10 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor 
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.decode(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            return try Value.decode(
+                from: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }
@@ -132,7 +135,10 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible>:
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.decodeIfPresent(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            return try Value.decodeIfPresent(
+                from: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }

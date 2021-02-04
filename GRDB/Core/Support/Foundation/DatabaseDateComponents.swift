@@ -71,7 +71,7 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
     ///     - index: The column index.
     public init(sqliteStatement: SQLiteStatement, index: Int32) {
         guard let cString = sqlite3_column_text(sqliteStatement, index) else {
-            fatalConversionError(to: DatabaseDateComponents.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
         let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
         let optionalComponents = cString.withMemoryRebound(
@@ -80,7 +80,7 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
             SQLiteDateParser().components(cString: cString, length: length)
         }
         guard let components = optionalComponents else {
-            fatalConversionError(to: DatabaseDateComponents.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(Self.self, sqliteStatement: sqliteStatement, index: index))
         }
         self.dateComponents = components.dateComponents
         self.format = components.format

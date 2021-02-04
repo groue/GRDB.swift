@@ -55,18 +55,27 @@ extension UUID: StatementColumnConvertible {
         case SQLITE_TEXT:
             let string = String(cString: sqlite3_column_text(sqliteStatement, index)!)
             guard let uuid = UUID(uuidString: string) else {
-                fatalConversionError(to: UUID.self, sqliteStatement: sqliteStatement, index: index)
+                fatalError(RowDecodingError.valueMismatch(
+                            Self.self,
+                            sqliteStatement: sqliteStatement,
+                            index: index))
             }
             self.init(uuid: uuid.uuid)
         case SQLITE_BLOB:
             guard sqlite3_column_bytes(sqliteStatement, index) == 16,
                   let blob = sqlite3_column_blob(sqliteStatement, index) else
             {
-                fatalConversionError(to: UUID.self, sqliteStatement: sqliteStatement, index: index)
+                fatalError(RowDecodingError.valueMismatch(
+                            Self.self,
+                            sqliteStatement: sqliteStatement,
+                            index: index))
             }
             self.init(uuid: blob.assumingMemoryBound(to: uuid_t.self).pointee)
         default:
-            fatalConversionError(to: UUID.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(
+                        Self.self,
+                        sqliteStatement: sqliteStatement,
+                        index: index))
         }
     }
 }

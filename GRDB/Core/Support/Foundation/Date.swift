@@ -126,11 +126,17 @@ extension Date: StatementColumnConvertible {
         case SQLITE_TEXT:
             let databaseDateComponents = DatabaseDateComponents(sqliteStatement: sqliteStatement, index: index)
             guard let date = Date(databaseDateComponents: databaseDateComponents) else {
-                fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
+                fatalError(RowDecodingError.valueMismatch(
+                            Self.self,
+                            sqliteStatement: sqliteStatement,
+                            index: index))
             }
             self.init(timeIntervalSinceReferenceDate: date.timeIntervalSinceReferenceDate)
         default:
-            fatalConversionError(to: Date.self, sqliteStatement: sqliteStatement, index: index)
+            fatalError(RowDecodingError.valueMismatch(
+                        Self.self,
+                        sqliteStatement: sqliteStatement,
+                        index: index))
         }
     }
 }
