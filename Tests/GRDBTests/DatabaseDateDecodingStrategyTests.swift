@@ -39,7 +39,10 @@ private enum StrategyFormatted: StrategyProvider {
 }
 
 private enum StrategyCustom: StrategyProvider {
-    static let strategy: DatabaseDateDecodingStrategy = .custom { _ in
+    static let strategy: DatabaseDateDecodingStrategy = .custom { dbValue in
+        if dbValue == "invalid".databaseValue {
+            return nil
+        }
         return Date(timeIntervalSinceReferenceDate: 123456)
     }
 }
@@ -54,7 +57,6 @@ private struct RecordWithOptionalDate<Strategy: StrategyProvider>: DecodableReco
     var date: Date?
 }
 
-#warning("TODO: test decoding error")
 class DatabaseDateDecodingStrategyTests: GRDBTestCase {
     /// test the conversion from a database value to a date extracted from a record
     private func test<T: DecodableRecord>(
@@ -188,6 +190,27 @@ extension DatabaseDateDecodingStrategyTests {
                 XCTAssertEqual(calendar.component(.second, from: date), 3)
                 XCTAssertTrue(abs(calendar.component(.nanosecond, from: date) - 4_000_000) < 10)  // We actually get 4_000_008. Some precision is lost during the DateComponents -> Date conversion. Not a big deal.
             }
+            
+            // error
+            do {
+                try test(db, strategy: StrategyDeferredToDate.self, databaseValue: "Yesterday") { date in
+                    XCTFail("Unexpected Date")
+                }
+            } catch let error as RowDecodingError {
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"], \
+                        sql: `SELECT ? AS date`, \
+                        arguments: ["Yesterday"]
+                        """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
         }
     }
 }
@@ -209,6 +232,29 @@ extension DatabaseDateDecodingStrategyTests {
             try test(db, strategy: StrategyTimeIntervalSinceReferenceDate.self, databaseValue: 123.456) { date in
                 XCTAssertEqual(date, Date(timeIntervalSinceReferenceDate: 123.456))
             }
+            
+            // error
+            do {
+                try test(db, strategy: StrategyTimeIntervalSinceReferenceDate.self, databaseValue: "Yesterday") { date in
+                    // Decoding from SQLite statement works:
+                    // "Yesterday" is decoded as 0.
+                    XCTAssertEqual(date, Date(timeIntervalSinceReferenceDate: 0))
+                }
+            } catch let error as RowDecodingError {
+                // Decoding from DatabaseValue does not work:
+                // "Yesterday" is not decoded as 0.
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"]
+                        """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
         }
     }
 }
@@ -229,6 +275,29 @@ extension DatabaseDateDecodingStrategyTests {
             // 123.456
             try test(db, strategy: StrategyTimeIntervalSince1970.self, databaseValue: 123.456) { date in
                 XCTAssertEqual(date, Date(timeIntervalSince1970: 123.456))
+            }
+            
+            // error
+            do {
+                try test(db, strategy: StrategyTimeIntervalSince1970.self, databaseValue: "Yesterday") { date in
+                    // Decoding from SQLite statement works:
+                    // "Yesterday" is decoded as 0.
+                    XCTAssertEqual(date, Date(timeIntervalSince1970: 0))
+                }
+            } catch let error as RowDecodingError {
+                // Decoding from DatabaseValue does not work:
+                // "Yesterday" is not decoded as 0.
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"]
+                        """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
             }
         }
     }
@@ -261,6 +330,29 @@ extension DatabaseDateDecodingStrategyTests {
             try test(db, strategy: StrategyMillisecondsSince1970.self, databaseValue: 123456.789) { date in
                 XCTAssertEqual(date, Date(timeIntervalSince1970: 123456.789 / 1000))
             }
+            
+            // error
+            do {
+                try test(db, strategy: StrategyMillisecondsSince1970.self, databaseValue: "Yesterday") { date in
+                    // Decoding from SQLite statement works:
+                    // "Yesterday" is decoded as 0.
+                    XCTAssertEqual(date, Date(timeIntervalSince1970: 0))
+                }
+            } catch let error as RowDecodingError {
+                // Decoding from DatabaseValue does not work:
+                // "Yesterday" is not decoded as 0.
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"]
+                        """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
         }
     }
 }
@@ -288,6 +380,27 @@ extension DatabaseDateDecodingStrategyTests {
                     XCTAssertEqual(calendar.component(.second, from: date), 7)
                     XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
                 }
+                
+                // error
+                do {
+                    try test(db, strategy: StrategyIso8601.self, databaseValue: "Yesterday") { date in
+                        XCTFail("Unexpected Date")
+                    }
+                } catch let error as RowDecodingError {
+                    switch error {
+                    case .valueMismatch:
+                        XCTAssertEqual(error.description, """
+                            could not decode Date from database value "Yesterday" - \
+                            column: "date", \
+                            column index: 0, \
+                            row: [date:"Yesterday"], \
+                            sql: `SELECT ? AS date`, \
+                            arguments: ["Yesterday"]
+                            """)
+                    default:
+                        XCTFail("Unexpected Error")
+                    }
+                }
             }
         }
     }
@@ -314,6 +427,27 @@ extension DatabaseDateDecodingStrategyTests {
                 XCTAssertEqual(calendar.component(.second, from: date), 55)
                 XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
             }
+            
+            // error
+            do {
+                try test(db, strategy: StrategyFormatted.self, databaseValue: "Yesterday") { date in
+                    XCTFail("Unexpected Date")
+                }
+            } catch let error as RowDecodingError {
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"], \
+                        sql: `SELECT ? AS date`, \
+                        arguments: ["Yesterday"]
+                        """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
+            }
         }
     }
 }
@@ -327,8 +461,29 @@ extension DatabaseDateDecodingStrategyTests {
             try testNullDecoding(db, strategy: StrategyCustom.self)
 
             // Date
-            try test(db, strategy: StrategyCustom.self, databaseValue: "whatever") { date in
+            try test(db, strategy: StrategyCustom.self, databaseValue: "valid") { date in
                 XCTAssertEqual(date, Date(timeIntervalSinceReferenceDate: 123456))
+            }
+            
+            // error
+            do {
+                try test(db, strategy: StrategyCustom.self, databaseValue: "invalid") { date in
+                    XCTFail("Unexpected Date")
+                }
+            } catch let error as RowDecodingError {
+                switch error {
+                case .valueMismatch:
+                    XCTAssertEqual(error.description, """
+                        could not decode Date from database value "invalid" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"invalid"], \
+                        sql: `SELECT ? AS date`, \
+                        arguments: ["invalid"]
+                        """)
+                default:
+                    XCTFail("Unexpected Error")
+                }
             }
         }
     }
