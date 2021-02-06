@@ -288,12 +288,12 @@ As an example, let's build the classical main screen of a chat application: a li
 The database schema of the chat app contains a `chat` and a `message` table. The application defines the following records:
 
 ```swift
-struct Chat: Codable, FetchableRecord, PersistableRecord {
+struct Chat: Codable, DecodableRecord, PersistableRecord {
     var id: Int64
     ...
 }
 
-struct Message: Codable, FetchableRecord, PersistableRecord {
+struct Message: Codable, DecodableRecord, PersistableRecord {
     var chatID: Int64
     var date: Date
     ...
@@ -303,7 +303,7 @@ struct Message: Codable, FetchableRecord, PersistableRecord {
 To feed the main app screen, we want to fetch a list of `ChatInfo` records:
 
 ```swift
-struct ChatInfo: Decodable, FetchableRecord {
+struct ChatInfo: Decodable, DecodableRecord {
     /// The chat
     var chat: Chat
     

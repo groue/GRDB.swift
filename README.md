@@ -1212,7 +1212,7 @@ let urls = try URL.fetchAll(db, sql: "SELECT url FROM link")  // [URL]
 Use values in [Records](#records):
 
 ```swift
-struct Link: FetchableRecord {
+struct Link: DecodableRecord {
     var url: URL
     var isVerified: Bool
     
@@ -1993,7 +1993,7 @@ print(row.unadapted)
 [Record types](#records) are typical row consumers that expect database rows to have a specific layout so that they can decode them:
 
 ```swift
-struct MyRecord: Decodable, FetchableRecord {
+struct MyRecord: Decodable, DecodableRecord {
     var consumed: String
 }
 let record = try MyRecord.fetchOne(db, sql: "SELECT 'Hello' AS produced", adapter: adapter)!
@@ -2217,7 +2217,7 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 **Protocols and the Record Class**
 
 - [Record Protocols Overview](#record-protocols-overview)
-- [FetchableRecord Protocol](#fetchablerecord-protocol)
+- [DecodableRecord Protocol](#DecodableRecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
     - [Persistence Methods](#persistence-methods)
@@ -2262,9 +2262,9 @@ let bestPlayers = try Player                    // [Player]
 let spain = try Country.fetchOne(db, key: "ES") // Country?
 ```
 
-:point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [FetchableRecord] protocol.
+:point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [DecodableRecord] protocol.
 
-:point_right: Fetching without SQL, using the [query interface](#the-query-interface), is available for subclasses of the [Record](#record-class) class, and types that adopt both [FetchableRecord] and [TableRecord] protocol.
+:point_right: Fetching without SQL, using the [query interface](#the-query-interface), is available for subclasses of the [Record](#record-class) class, and types that adopt both [DecodableRecord] and [TableRecord] protocol.
 
 
 ### Updating Records
@@ -2349,7 +2349,7 @@ let playerWithEmailCount: Int = try Player
 Details follow:
 
 - [Record Protocols Overview](#record-protocols-overview)
-- [FetchableRecord Protocol](#fetchablerecord-protocol)
+- [DecodableRecord Protocol](#DecodableRecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
 - [Codable Records]
@@ -2364,18 +2364,18 @@ Details follow:
 
 **GRDB ships with three record protocols**. Your own types will adopt one or several of them, according to the abilities you want to extend your types with.
 
-- [FetchableRecord] is able to **decode database rows**.
+- [DecodableRecord] is able to **decode database rows**.
     
     ```swift
-    struct Place: FetchableRecord { ... }
+    struct Place: DecodableRecord { ... }
     let places = try dbQueue.read { db in
         try Place.fetchAll(db, sql: "SELECT * FROM place")
     }
     ```
     
-    > :bulb: **Tip**: `FetchableRecord` can derive its implementation from the standard `Decodable` protocol. See [Codable Records] for more information.
+    > :bulb: **Tip**: `DecodableRecord` can derive its implementation from the standard `Decodable` protocol. See [Codable Records] for more information.
     
-    `FetchableRecord` can decode database rows, but it is not able to build SQL requests for you. For that, you also need `TableRecord`:
+    `DecodableRecord` can decode database rows, but it is not able to build SQL requests for you. For that, you also need `TableRecord`:
     
 - [TableRecord] is able to **generate SQL queries**:
     
@@ -2387,10 +2387,10 @@ Details follow:
     }
     ```
     
-    When a type adopts both `TableRecord` and `FetchableRecord`, it can load from those requests:
+    When a type adopts both `TableRecord` and `DecodableRecord`, it can load from those requests:
     
     ```swift
-    struct Place: TableRecord, FetchableRecord { ... }
+    struct Place: TableRecord, DecodableRecord { ... }
     try dbQueue.read { db in
         let places = try Place.order(Column("title")).fetchAll(db)
         let paris = try Place.fetchOne(key: 1)
@@ -2412,18 +2412,18 @@ Details follow:
     > :bulb: **Tip**: `PersistableRecord` can derive its implementation from the standard `Encodable` protocol. See [Codable Records] for more information.
 
 
-## FetchableRecord Protocol
+## DecodableRecord Protocol
 
-**The FetchableRecord protocol grants fetching methods to any type** that can be built from a database row:
+**The DecodableRecord protocol grants fetching methods to any type** that can be built from a database row:
 
 ```swift
-protocol FetchableRecord {
+protocol DecodableRecord {
     /// Row initializer
     init(row: Row)
 }
 ```
 
-**To use FetchableRecord**, subclass the [Record](#record-class) class, or adopt it explicitly. For example:
+**To use DecodableRecord**, subclass the [Record](#record-class) class, or adopt it explicitly. For example:
 
 ```swift
 struct Place {
@@ -2432,7 +2432,7 @@ struct Place {
     var coordinate: CLLocationCoordinate2D
 }
 
-extension Place : FetchableRecord {
+extension Place : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         title = row["title"]
@@ -2446,7 +2446,7 @@ extension Place : FetchableRecord {
 Rows also accept column enums:
 
 ```swift
-extension Place : FetchableRecord {
+extension Place : DecodableRecord {
     enum Columns: String, ColumnExpression {
         case id, title, latitude, longitude
     }
@@ -2467,14 +2467,14 @@ When your record type adopts the standard Decodable protocol, you don't have to 
 
 ```swift
 // That's all
-struct Player: Decodable, FetchableRecord {
+struct Player: Decodable, DecodableRecord {
     var id: Int64
     var name: String
     var score: Int
 }
 ```
 
-FetchableRecord allows adopting types to be fetched from SQL queries:
+DecodableRecord allows adopting types to be fetched from SQL queries:
 
 ```swift
 try Place.fetchCursor(db, sql: "SELECT ...", arguments:...) // A Cursor of Place
@@ -2487,7 +2487,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 
 > :point_up: **Note**: for performance reasons, the same row argument to `init(row:)` is reused during the iteration of a fetch query. If you want to keep the row for later use, make sure to store a copy: `self.row = row.copy()`.
 
-> :point_up: **Note**: The `FetchableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When FetchableRecord does not exactly provide the support you need, have a look at the [Beyond FetchableRecord] chapter.
+> :point_up: **Note**: The `DecodableRecord.init(row:)` initializer fits the needs of most applications. But some application are more demanding than others. When DecodableRecord does not exactly provide the support you need, have a look at the [Beyond DecodableRecord] chapter.
 
 
 ## TableRecord Protocol
@@ -2536,7 +2536,7 @@ class Place: Record {
 print(Place.databaseTableName) // prints "place"
 ```
 
-When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-protocol), it can be fetched using the [query interface](#the-query-interface):
+When a type adopts both TableRecord and [DecodableRecord](#DecodableRecord-protocol), it can be fetched using the [query interface](#the-query-interface):
 
 ```swift
 // SELECT * FROM place WHERE name = 'Paris'
@@ -2768,7 +2768,7 @@ Record types that adopt an archival protocol ([Codable, Encodable or Decodable](
 
 ```swift
 // Declare a record...
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable, DecodableRecord, PersistableRecord {
     var name: String
     var score: Int
 }
@@ -2810,7 +2810,7 @@ struct Achievement: Codable {
     var color: AchievementColor
 }
 
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable, DecodableRecord, PersistableRecord {
     var name: String
     var score: Int
     var achievements: [Achievement] // stored in a JSON column
@@ -2833,7 +2833,7 @@ GRDB uses the standard [JSONDecoder](https://developer.apple.com/documentation/f
 You can customize the JSON format by implementing those methods:
 
 ```swift
-protocol FetchableRecord {
+protocol DecodableRecord {
     static func databaseJSONDecoder(for column: String) -> JSONDecoder
 }
 
@@ -2854,7 +2854,7 @@ To sum up: dates encode themselves in the "YYYY-MM-DD HH:MM:SS.SSS" format, in t
 Those behaviors can be overridden:
 
 ```swift
-protocol FetchableRecord {
+protocol DecodableRecord {
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
 }
 
@@ -2873,7 +2873,7 @@ See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.3/E
 So make sure that dates and uuids are properly encoded in your requests. For example:
 
 ```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable, DecodableRecord, PersistableRecord {
     // UUIDs are stored as strings
     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
     var uuid: UUID
@@ -2926,7 +2926,7 @@ Your [Codable Records] can be stored in the database, but they may also have oth
 The standard way to provide such context is the `userInfo` dictionary. Implement those properties:
 
 ```swift
-protocol FetchableRecord {
+protocol DecodableRecord {
     static var databaseDecodingUserInfo: [CodingUserInfoKey: Any] { get }
 }
 
@@ -2941,7 +2941,7 @@ For example, here is a Player type that customizes its decoding:
 // A key that holds a decoder's name
 let decoderName = CodingUserInfoKey(rawValue: "decoderName")!
 
-struct Player: FetchableRecord, Decodable {
+struct Player: DecodableRecord, Decodable {
     init(from decoder: Decoder) throws {
         // Print the decoder name
         let decoderName = decoder.userInfo[decoderName] as? String
@@ -2963,7 +2963,7 @@ let player = try decoder.decode(Player.self, from: jsonData)
 ... and another one from database rows:
 
 ```swift
-extension Player: FetchableRecord {
+extension Player: DecodableRecord {
     static let databaseDecodingUserInfo: [CodingUserInfoKey: Any] = [decoderName: "database row"]
 }
 
@@ -2985,7 +2985,7 @@ struct Player: Codable {
     var score: Int
 }
 
-extension Player: FetchableRecord, PersistableRecord {
+extension Player: DecodableRecord, PersistableRecord {
     enum Columns {
         static let id = Column(CodingKeys.id)
         static let name = Column(CodingKeys.name)
@@ -2999,7 +2999,7 @@ See the [query interface](#the-query-interface) and [Good Practices for Designin
 
 ## Record Class
 
-**Record** is a class that is designed to be subclassed. It inherits its features from the [FetchableRecord, TableRecord, and PersistableRecord](#record-protocols-overview) protocols. On top of that, Record instances can compare against previous versions of themselves in order to [avoid useless updates](#record-comparison).
+**Record** is a class that is designed to be subclassed. It inherits its features from the [DecodableRecord, TableRecord, and PersistableRecord](#record-protocols-overview) protocols. On top of that, Record instances can compare against previous versions of themselves in order to [avoid useless updates](#record-comparison).
 
 Record subclasses define their custom database relationship by overriding database methods. For example:
 
@@ -3198,7 +3198,7 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 - [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
 - [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.
-- [Beyond FetchableRecord]: the FetchableRecord protocol is not the end of the story.
+- [Beyond DecodableRecord]: the DecodableRecord protocol is not the end of the story.
 
 [Codable Records] have a few extra options:
 
@@ -3345,10 +3345,10 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     let events = try Event.fetchAll(db)
     ```
 
-2. Have `init(row:)` from the [FetchableRecord] protocol consume the "rowid" column:
+2. Have `init(row:)` from the [DecodableRecord] protocol consume the "rowid" column:
     
     ```swift
-    struct Event : FetchableRecord {
+    struct Event : DecodableRecord {
         var id: Int64?
         
         init(row: Row) {
@@ -3401,9 +3401,9 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     ```
 
 
-### Beyond FetchableRecord
+### Beyond DecodableRecord
 
-**Some GRDB users eventually discover that the [FetchableRecord] protocol does not fit all situations.** Use cases that are not well handled by FetchableRecord include:
+**Some GRDB users eventually discover that the [DecodableRecord] protocol does not fit all situations.** Use cases that are not well handled by DecodableRecord include:
 
 - Your application needs polymorphic row decoding: it decodes some type or another, depending on the values contained in a database row.
 
@@ -3411,9 +3411,9 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
 
 - Your application needs a record type that supports untrusted databases, and may fail at decoding database rows (throw an error when a row contains invalid values).
 
-Since those use cases are not well handled by FetchableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
+Since those use cases are not well handled by DecodableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
 
-Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Documentation/Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need. And remember that leaving FetchableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
+Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Documentation/Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape DecodableRecord when you need. And remember that leaving DecodableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
 
 
 ## Examples of Record Definitions
@@ -3475,7 +3475,7 @@ extension Place: TableRecord {
 }
 
 // Fetching methods
-extension Place: FetchableRecord { }
+extension Place: DecodableRecord { }
 
 // Persistence methods
 extension Place: MutablePersistableRecord {
@@ -3510,7 +3510,7 @@ extension Place: TableRecord {
 }
 
 // Fetching methods
-extension Place: FetchableRecord {
+extension Place: DecodableRecord {
     /// Creates a record from a database row
     init(row: Row) {
         id = row[Columns.id]
@@ -3591,7 +3591,7 @@ extension Place: TableRecord {
 }
 
 // Fetching methods
-extension Place: FetchableRecord {
+extension Place: DecodableRecord {
     /// Creates a record from a database row
     init(row: Row) {
         // For high performance, use numeric indexes that match the
@@ -3681,7 +3681,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | Method | Protocols | Notes |
 | ------ | --------- | :---: |
 | **Core Methods** | | |
-| `init(row:)` | [FetchableRecord] | |
+| `init(row:)` | [DecodableRecord] | |
 | `Type.databaseTableName` | [TableRecord] | |
 | `Type.databaseSelection` | [TableRecord] | [*](#columns-selected-by-a-request) |
 | `Type.persistenceConflictPolicy` | [PersistableRecord] | [*](#conflict-resolution) |
@@ -3711,33 +3711,33 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.fetchCount(db)` | [TableRecord] | |
 | `Type.filter(...).fetchCount(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record [Cursors](#cursors)** | | |
-| `Type.fetchCursor(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchCursor(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchCursor(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchCursor(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchCursor(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchCursor(db)` | [DecodableRecord] & [TableRecord] | |
+| `Type.fetchCursor(db, keys:...)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchCursor(db, sql: sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchCursor(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchCursor(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Arrays** | | |
-| `Type.fetchAll(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchAll(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchAll(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchAll(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchAll(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchAll(db)` | [DecodableRecord] & [TableRecord] | |
+| `Type.fetchAll(db, keys:...)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchAll(db, sql: sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchAll(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchAll(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Sets** | | |
-| `Type.fetchSet(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchSet(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchSet(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchSet(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchSet(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchSet(db)` | [DecodableRecord] & [TableRecord] | |
+| `Type.fetchSet(db, keys:...)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchSet(db, sql: sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchSet(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchSet(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Individual Records** | | |
-| `Type.fetchOne(db)` | [FetchableRecord] & [TableRecord] | |
-| `Type.fetchOne(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
-| `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
-| `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.fetchOne(db)` | [DecodableRecord] & [TableRecord] | |
+| `Type.fetchOne(db, key:...)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchOne(db, sql: sql)` | [DecodableRecord] | <a href="#list-of-record-methods-3">³</a> |
+| `Type.fetchOne(statement)` | [DecodableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
+| `Type.filter(...).fetchOne(db)` | [DecodableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **[Codable Records]** | | |
-| `Type.databaseDecodingUserInfo` | [FetchableRecord] | [*](#the-userinfo-dictionary) |
-| `Type.databaseJSONDecoder(for:)` | [FetchableRecord] | [*](#json-columns) |
-| `Type.databaseDateDecodingStrategy` | [FetchableRecord] | [*](#date-and-uuid-coding-strategies) |
+| `Type.databaseDecodingUserInfo` | [DecodableRecord] | [*](#the-userinfo-dictionary) |
+| `Type.databaseJSONDecoder(for:)` | [DecodableRecord] | [*](#json-columns) |
+| `Type.databaseDateDecodingStrategy` | [DecodableRecord] | [*](#date-and-uuid-coding-strategies) |
 | `Type.databaseEncodingUserInfo` | [EncodableRecord] | [*](#the-userinfo-dictionary) |
 | `Type.databaseJSONEncoder(for:)` | [EncodableRecord] | [*](#json-columns) |
 | `Type.databaseDateEncodingStrategy` | [EncodableRecord] | [*](#date-and-uuid-coding-strategies) |
@@ -4708,7 +4708,7 @@ You can also change the request so that it knows the type it has to fetch:
 - With `asRequest(of:)`, useful when you use [Associations]:
     
     ```swift
-    struct BookInfo: FetchableRecord, Decodable {
+    struct BookInfo: DecodableRecord, Decodable {
         var book: Book
         var author: Author
     }
@@ -5001,7 +5001,7 @@ try Player.customRequest().fetchAll(db) // [Player]
 - The `asRequest(of:)` method changes the type fetched by the request. It is useful, for example, when you use [Associations]:
 
     ```swift
-    struct BookInfo: FetchableRecord, Decodable {
+    struct BookInfo: DecodableRecord, Decodable {
         var book: Book
         var author: Author
     }
@@ -5057,7 +5057,7 @@ This technique works pretty well, but it has three drawbacks:
 
 1. The selection becomes hard to read and understand.
 2. Such queries are difficult to write by hand.
-3. The mangled names are a *very* bad fit for [FetchableRecord] types that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM team ...`, it should be able to read `SELECT ..., team.*, ...` as well.
+3. The mangled names are a *very* bad fit for [DecodableRecord] types that expect specific column names. After all, if the `Team` record type can read `SELECT * FROM team ...`, it should be able to read `SELECT ..., team.*, ...` as well.
 
 We thus need another technique. **Below we'll see how to split rows into slices, and preserve column names.**
 
@@ -5165,7 +5165,7 @@ But we may want to make it more usable and robust:
 2. Joined records not always need all columns from a table (see `TableRecord.databaseSelection` in [Columns Selected by a Request]).
 3. Building row adapters is long and error prone.
 
-To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [FetchableRecord] protocol:
+To address the first bullet, let's define a record that holds our player, optional team, and maximum score. Since it can decode database rows, it adopts the [DecodableRecord] protocol:
 
 ```swift
 struct PlayerInfo {
@@ -5175,7 +5175,7 @@ struct PlayerInfo {
 }
 
 /// PlayerInfo can decode rows:
-extension PlayerInfo: FetchableRecord {
+extension PlayerInfo: DecodableRecord {
     private enum Scopes {
         static let player = "player"
         static let team = "team"
@@ -5257,7 +5257,7 @@ let playerInfos = try dbQueue.read { db in
 
 > :bulb: In this chapter, we have learned:
 > 
-> - how to define a `FetchableRecord` record that consumes rows fetched from a joined query.
+> - how to define a `DecodableRecord` record that consumes rows fetched from a joined query.
 > - how to use [SQL Interpolation] and `numberOfSelectedColumns` in order to deal with nested record types that define custom selection.
 > - how to use `splittingRowAdapters` in order to streamline the definition of row slices.
 > - how to gather all relevant methods and constants in a record type, fully responsible of its relationship with the database.
@@ -5270,16 +5270,16 @@ let playerInfos = try dbQueue.read { db in
 You can consume complex joined queries with Codable records as well. As a demonstration, we'll rewrite the [above](#splitting-rows-the-record-way) sample code:
 
 ```swift
-struct Player: Decodable, FetchableRecord, TableRecord {
+struct Player: Decodable, DecodableRecord, TableRecord {
     var id: Int64
     var name: String
 }
-struct Team: Decodable, FetchableRecord, TableRecord {
+struct Team: Decodable, DecodableRecord, TableRecord {
     var id: Int64
     var name: String
     var color: Color
 }
-struct PlayerInfo: Decodable, FetchableRecord {
+struct PlayerInfo: Decodable, DecodableRecord {
     var player: Player
     var team: Team?
     var maxScore: Int
@@ -5662,7 +5662,7 @@ let observation = ValueObservation
 This technique is also available for requests that involve [Associations]:
 
 ```swift
-struct TeamInfo: Decodable, FetchableRecord {
+struct TeamInfo: Decodable, DecodableRecord {
     var team: Team
     var players: [Player]
 }
@@ -7826,7 +7826,7 @@ struct Author: Decodable, TableRecord {
 And then we can write our request and the ad-hoc record that decodes it:
 
 ```swift
-struct BookInfo: Decodable, FetchableRecord {
+struct BookInfo: Decodable, DecodableRecord {
     var book: Book
     var authorName: String? // nil when the book is anonymous
     
@@ -8082,7 +8082,7 @@ This chapter has been renamed [Record Comparison].
 
 #### Customized Decoding of Database Rows
 
-This chapter has been renamed [Beyond FetchableRecord].
+This chapter has been renamed [Beyond DecodableRecord].
 
 #### Dealing with External Connections
 
@@ -8112,7 +8112,7 @@ This protocol has been renamed [PersistableRecord] in GRDB 3.0.
 
 #### RowConvertible Protocol
 
-This protocol has been renamed [FetchableRecord] in GRDB 3.0.
+This protocol has been renamed [DecodableRecord] in GRDB 3.0.
 
 #### TableMapping Protocol
 
@@ -8124,7 +8124,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 
 
 [Associations]: Documentation/AssociationsBasics.md
-[Beyond FetchableRecord]: #beyond-fetchablerecord
+[Beyond DecodableRecord]: #beyond-DecodableRecord
 [Codable Records]: #codable-records
 [Columns Selected by a Request]: #columns-selected-by-a-request
 [common table expression]: Documentation/CommonTableExpressions.md
@@ -8138,7 +8138,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
 [The userInfo Dictionary]: #the-userinfo-dictionary
 [JSON Columns]: #json-columns
-[FetchableRecord]: #fetchablerecord-protocol
+[DecodableRecord]: #DecodableRecord-protocol
 [EncodableRecord]: #persistablerecord-protocol
 [PersistableRecord]: #persistablerecord-protocol
 [Record Comparison]: #record-comparison

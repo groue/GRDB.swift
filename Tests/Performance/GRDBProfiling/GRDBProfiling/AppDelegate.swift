@@ -389,7 +389,7 @@ class ItemRecord : Record {
     }
 }
 
-struct ItemStruct: FetchableRecord, PersistableRecord {
+struct ItemStruct: DecodableRecord, PersistableRecord {
     var i0: Int?
     var i1: Int?
     var i2: Int?
@@ -443,7 +443,7 @@ struct ItemStruct: FetchableRecord, PersistableRecord {
     }
 }
 
-struct ItemCodable : Codable, FetchableRecord, PersistableRecord {
+struct ItemCodable : Codable, DecodableRecord, PersistableRecord {
     var i0: Int?
     var i1: Int?
     var i2: Int?

@@ -51,7 +51,7 @@ public protocol _FetchRequest {
 /// The protocol for all requests that fetch database rows, and tell how those
 /// rows should be interpreted.
 ///
-///     struct Player: FetchableRecord { ... }
+///     struct Player: DecodableRecord { ... }
 ///     let request: ... // Some FetchRequest that fetches Player
 ///     try request.fetchCursor(db) // Cursor of Player
 ///     try request.fetchAll(db)    // [Player]

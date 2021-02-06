@@ -1,26 +1,26 @@
 import XCTest
 import GRDB
 
-private struct A: TableRecord, FetchableRecord, Decodable, Equatable {
+private struct A: TableRecord, DecodableRecord, Decodable, Equatable {
     var cola1: Int64
     var cola2: String
 }
-private struct B: TableRecord, FetchableRecord, Decodable, Equatable, Hashable {
+private struct B: TableRecord, DecodableRecord, Decodable, Equatable, Hashable {
     var colb1: Int64
     var colb2: Int64?
     var colb3: String
 }
-private struct C: TableRecord, FetchableRecord, Decodable, Equatable {
+private struct C: TableRecord, DecodableRecord, Decodable, Equatable {
     var colc1: Int64
     var colc2: Int64
 }
-private struct D: TableRecord, FetchableRecord, Decodable, Equatable {
+private struct D: TableRecord, DecodableRecord, Decodable, Equatable {
     var cold1: Int64
     var cold2: Int64?
     var cold3: String
 }
 
-class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
+class AssociationPrefetchingDecodableDecodableRecordTests: GRDBTestCase {
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "a") { t in
@@ -92,7 +92,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 
                 // Array
                 do {
-                    struct Record: FetchableRecord, Decodable, Equatable {
+                    struct Record: DecodableRecord, Decodable, Equatable {
                         var a: A
                         var bs: [B]
                     }
@@ -132,7 +132,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 
                 // Set
                 do {
-                    struct Record: FetchableRecord, Decodable, Equatable {
+                    struct Record: DecodableRecord, Decodable, Equatable {
                         var a: A
                         var bs: Set<B>
                     }
@@ -187,7 +187,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .forKey("bs2"))
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     var a: A
                     var bs1: [B]
                     var bs2: [B]
@@ -244,7 +244,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     struct CInfo: Decodable, Equatable {
                         var c: C
                         var ds: [D]
@@ -314,7 +314,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     struct CInfo: Decodable, Equatable {
                         var c: C
                         var ds: [D]
@@ -384,7 +384,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .forKey("cs2"))
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     struct CInfo: Decodable, Equatable {
                         var c: C
                         var ds1: [D]
@@ -474,7 +474,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     struct CInfo: Decodable, Equatable {
                         var c: C
                         var d: D
@@ -538,7 +538,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     struct CInfo: Decodable, Equatable {
                         var c: C
                         var d: D
@@ -608,7 +608,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .forKey("cs2"))
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     struct CInfo: Decodable, Equatable {
                         var c: C
                         var d1: D?
@@ -681,7 +681,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .orderByPrimaryKey())
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     var a: A
                     var ds: [D]
                 }
@@ -739,7 +739,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .forKey("ds3"))
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     var a: A
                     var ds1: [D]
                     var ds2: [D]
@@ -804,7 +804,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 
                 // Record (nested)
                 do {
-                    struct Record: FetchableRecord, Decodable, Equatable {
+                    struct Record: DecodableRecord, Decodable, Equatable {
                         struct AInfo: Decodable, Equatable {
                             var a: A
                             var cs: [C]
@@ -860,7 +860,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 
                 // Record (flat)
                 do {
-                    struct Record: FetchableRecord, Decodable, Equatable {
+                    struct Record: DecodableRecord, Decodable, Equatable {
                         var b: B
                         var a: A?
                         var cs: [C] // not optional
@@ -942,7 +942,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         .forKey("a2"))
                     .orderByPrimaryKey()
                 
-                struct Record: FetchableRecord, Decodable, Equatable {
+                struct Record: DecodableRecord, Decodable, Equatable {
                     struct AInfo: Decodable, Equatable {
                         var a: A
                         var cs1: [C]
@@ -1025,7 +1025,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 
                 // Record (flat)
                 do {
-                    struct Record: FetchableRecord, Decodable, Equatable {
+                    struct Record: DecodableRecord, Decodable, Equatable {
                         var d: D
                         var bs: [B] // not optional
                     }
@@ -1077,7 +1077,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
     }
     
     func testSelfJoin() throws {
-        struct Employee: TableRecord, FetchableRecord, Decodable, Hashable {
+        struct Employee: TableRecord, DecodableRecord, Decodable, Hashable {
             static let subordinates = hasMany(Employee.self, key: "subordinates")
             static let manager = belongsTo(Employee.self, key: "manager")
             var id: Int64
@@ -1102,7 +1102,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 INSERT INTO employee (id, managerId, name) VALUES (5, NULL, 'Eve');
                 """)
             
-            struct EmployeeInfo: FetchableRecord, Decodable, Equatable {
+            struct EmployeeInfo: DecodableRecord, Decodable, Equatable {
                 var employee: Employee
                 var manager: Employee?
                 var subordinates: Set<Employee>

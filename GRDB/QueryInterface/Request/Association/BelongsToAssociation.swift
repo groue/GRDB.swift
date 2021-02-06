@@ -53,7 +53,7 @@
 /// still use BelongsTo associations. But your help is needed to define the
 /// missing foreign key:
 ///
-///     struct Book: FetchableRecord, TableRecord {
+///     struct Book: DecodableRecord, TableRecord {
 ///         static let author = belongsTo(Author.self, using: ForeignKey(...))
 ///     }
 ///

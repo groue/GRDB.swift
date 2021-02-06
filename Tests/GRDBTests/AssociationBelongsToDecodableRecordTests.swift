@@ -1,45 +1,42 @@
 import XCTest
 import GRDB
 
-private struct Team: Codable, FetchableRecord, PersistableRecord {
+private struct Team: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "teams"
     var id: Int64
     var name: String
 }
 
-private struct Player: Codable, FetchableRecord, PersistableRecord {
+private struct Player: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "players"
-    static let team = Player.belongsTo(Team.self)
+    static let teamScope = "team"
+    static let team = Player.belongsTo(Team.self, key: teamScope)
     var id: Int64
     var teamId: Int64?
     var name: String
 }
 
-private struct PlayerWithRequiredTeam: Decodable, FetchableRecord {
+private struct PlayerWithRequiredTeam: DecodableRecord {
     var player: Player
     var team: Team
-    static let team = Player.team.forKey(CodingKeys.team)
+    
+    init(row: Row) {
+        player = Player(row: row)
+        team = row[Player.teamScope]
+    }
 }
 
-private struct PlayerWithOptionalTeam: Decodable, FetchableRecord {
+private struct PlayerWithOptionalTeam: DecodableRecord {
     var player: Player
     var team: Team?
-    static let team = Player.team.forKey(CodingKeys.team)
-}
-
-extension QueryInterfaceRequest where RowDecoder == Player {
-    func filter(teamName: String) -> QueryInterfaceRequest<Player> {
-        joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
-    }
     
-    func orderedByTeamName() -> QueryInterfaceRequest<Player> {
-        let teamAlias = TableAlias()
-        return joining(optional: PlayerWithOptionalTeam.team.aliased(teamAlias))
-            .order(teamAlias[Column("name")], Column("name"))
+    init(row: Row) {
+        player = Player(row: row)
+        team = row[Player.teamScope]
     }
 }
 
-/// Test support for Decodable records
+/// Test support for DecodableRecord records
 class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
@@ -63,7 +60,7 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
     func testIncludingRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player
-            .including(required: PlayerWithRequiredTeam.team)
+            .including(required: Player.team)
             .asRequest(of: PlayerWithRequiredTeam.self)
         let records = try dbQueue.inDatabase { try request.fetchAll($0) }
         XCTAssertEqual(records.count, 1)
@@ -77,7 +74,7 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
     func testIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player
-            .including(optional: PlayerWithOptionalTeam.team)
+            .including(optional: Player.team)
             .asRequest(of: PlayerWithOptionalTeam.self)
         let records = try dbQueue.inDatabase { try request.fetchAll($0) }
         XCTAssertEqual(records.count, 2)
@@ -113,27 +110,5 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
         XCTAssertEqual(players[1].id, 2)
         XCTAssertNil(players[1].teamId)
         XCTAssertEqual(players[1].name, "Barbara")
-    }
-    
-    func testRequestRefining() throws {
-        let dbQueue = try makeDatabaseQueue()
-        let request = Player
-            .including(required: PlayerWithRequiredTeam.team.select(Column("name"), Column("id")))
-            .filter(teamName: "Reds")
-            .orderedByTeamName()
-            .asRequest(of: PlayerWithRequiredTeam.self)
-        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
-        XCTAssertEqual(lastSQLQuery, """
-            SELECT "players".*, "teams"."name", "teams"."id" \
-            FROM "players" \
-            JOIN "teams" ON ("teams"."id" = "players"."teamId") AND ("teams"."name" = 'Reds') \
-            ORDER BY "teams"."name", "players"."name"
-            """)
-        XCTAssertEqual(records.count, 1)
-        XCTAssertEqual(records[0].player.id, 1)
-        XCTAssertEqual(records[0].player.teamId, 1)
-        XCTAssertEqual(records[0].player.name, "Arthur")
-        XCTAssertEqual(records[0].team.id, 1)
-        XCTAssertEqual(records[0].team.name, "Reds")
     }
 }

@@ -55,7 +55,7 @@
 /// foreign keys between tables, you can still use HasOne associations. But
 /// your help is needed to define the missing foreign key:
 ///
-///     struct Country: FetchableRecord, TableRecord {
+///     struct Country: DecodableRecord, TableRecord {
 ///         static let demographics = hasOne(Demographics.self, using: ForeignKey(...))
 ///     }
 ///

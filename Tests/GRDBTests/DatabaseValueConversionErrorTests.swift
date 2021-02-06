@@ -4,8 +4,8 @@ import XCTest
 // Those tests are tightly coupled to GRDB decoding code.
 // Each test comes with the (commented) crashing code snippets that trigger it.
 class DatabaseValueConversionErrorTests: GRDBTestCase {
-//    func testFetchableRecord1() throws {
-//        struct Record: FetchableRecord {
+//    func testDecodableRecord1() throws {
+//        struct Record: DecodableRecord {
 //            var name: String
 //
 //            init(row: Row) {
@@ -67,12 +67,12 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
 //        }
 //    }
 //
-//    func testFetchableRecord2() throws {
+//    func testDecodableRecord2() throws {
 //        enum Value: String, DatabaseValueConvertible, Decodable {
 //            case valid
 //        }
 //
-//        struct Record: FetchableRecord {
+//        struct Record: DecodableRecord {
 //            var value: Value
 //
 //            init(row: Row) {
@@ -133,8 +133,8 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
 //        }
 //    }
 //
-//    func testDecodableFetchableRecord1() throws {
-//        struct Record: Decodable, FetchableRecord {
+//    func testDecodableDecodableRecord1() throws {
+//        struct Record: Decodable, DecodableRecord {
 //            var name: String
 //            var team: String
 //        }
@@ -193,12 +193,12 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
 //        }
 //    }
 //
-//    func testDecodableFetchableRecord2() throws {
+//    func testDecodableDecodableRecord2() throws {
 //        enum Value: String, DatabaseValueConvertible, Decodable {
 //            case valid
 //        }
 //
-//        struct Record: Decodable, FetchableRecord {
+//        struct Record: Decodable, DecodableRecord {
 //            var value: Value
 //        }
 //
@@ -255,12 +255,12 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
 //        }
 //    }
 //
-//    func testDecodableFetchableRecord3() throws {
+//    func testDecodableDecodableRecord3() throws {
 //        enum Value: String, Decodable {
 //            case valid
 //        }
 //
-//        struct Record: Decodable, FetchableRecord {
+//        struct Record: Decodable, DecodableRecord {
 //            var value: Value
 //        }
 //

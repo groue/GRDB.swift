@@ -1,13 +1,13 @@
 import XCTest
 import GRDB
 
-private struct Team: Codable, FetchableRecord, PersistableRecord {
+private struct Team: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "teams"
     var id: Int64
     var name: String
 }
 
-private struct Player: Codable, FetchableRecord, PersistableRecord {
+private struct Player: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "players"
     static let defaultTeam = belongsTo(Team.self)
     static let customTeam = belongsTo(Team.self, key: "customTeam")

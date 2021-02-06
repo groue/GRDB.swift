@@ -7,7 +7,7 @@ private struct Reader: Hashable {
     let age: Int?
 }
 
-extension Reader : FetchableRecord {
+extension Reader : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -35,7 +35,7 @@ private struct AltReader {
     let age: Int?
 }
 
-extension AltReader : FetchableRecord {
+extension AltReader : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         name = row["name"]
@@ -43,8 +43,8 @@ extension AltReader : FetchableRecord {
     }
 }
 
-
-class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
+#warning("TODO: test decoding error")
+class DecodableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -60,7 +60,7 @@ class FetchableRecordQueryInterfaceRequestTests: GRDBTestCase {
     }
     
     
-    // MARK: - Fetch FetchableRecord
+    // MARK: - Fetch DecodableRecord
     
     func testAll() throws {
         let dbQueue = try makeDatabaseQueue()

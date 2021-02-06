@@ -50,7 +50,7 @@ extension Player {
 /// Make Player a Codable Record.
 ///
 /// See https://github.com/groue/GRDB.swift/blob/master/README.md#records
-extension Player: Codable, FetchableRecord, MutablePersistableRecord {
+extension Player: Codable, DecodableRecord, MutablePersistableRecord {
     // Define database columns from CodingKeys
     fileprivate enum Columns {
         static let name = Column(CodingKeys.name)

@@ -4,7 +4,7 @@ import GRDB
 class ColumnExpressionTests: GRDBTestCase {
     
     func testRawColumnExpression() throws {
-        struct Player: TableRecord, FetchableRecord, PersistableRecord {
+        struct Player: TableRecord, DecodableRecord, PersistableRecord {
             var id: Int64
             var name: String
             var score: Int
@@ -70,7 +70,7 @@ class ColumnExpressionTests: GRDBTestCase {
     }
     
     func testRawRepresentableColumnExpression() throws {
-        struct Player: TableRecord, FetchableRecord, PersistableRecord {
+        struct Player: TableRecord, DecodableRecord, PersistableRecord {
             var id: Int64
             var name: String
             var score: Int
@@ -130,7 +130,7 @@ class ColumnExpressionTests: GRDBTestCase {
     }
     
     func testColumnsDerivedFromCodingKeys() throws {
-        struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord {
+        struct Player: Codable, TableRecord, DecodableRecord, PersistableRecord {
             var id: Int64
             var name: String
             var score: Int
@@ -184,7 +184,7 @@ class ColumnExpressionTests: GRDBTestCase {
     }
 
     func testCodingKeysAsColumnExpression() throws {
-        struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord {
+        struct Player: Codable, TableRecord, DecodableRecord, PersistableRecord {
             var id: Int64
             var name: String
             var score: Int

@@ -122,7 +122,7 @@ extension CommonTableExpression {
     ///
     ///     // WITH answer AS (SELECT 42 AS value)
     ///     // SELECT * FROM answer
-    ///     struct Answer: Decodable, FetchableRecord {
+    ///     struct Answer: Decodable, DecodableRecord {
     ///         var value: Int
     ///     }
     ///     let cte = CommonTableExpression<Answer>(

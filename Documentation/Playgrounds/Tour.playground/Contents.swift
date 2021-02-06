@@ -73,8 +73,8 @@ struct Place {
     var coordinate: CLLocationCoordinate2D
 }
 
-// Adopt FetchableRecord
-extension Place : FetchableRecord {
+// Adopt DecodableRecord
+extension Place : DecodableRecord {
     init(row: Row) {
         id = row["id"]
         title = row["title"]

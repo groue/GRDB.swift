@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Author: FetchableRecord, PersistableRecord, Codable {
+private struct Author: DecodableRecord, PersistableRecord, Codable {
     var id: Int64
     var firstName: String?
     var lastName: String?
@@ -18,7 +18,7 @@ private struct Author: FetchableRecord, PersistableRecord, Codable {
     var books: QueryInterfaceRequest<Book> { request(for: Author.books) }
 }
 
-private struct Book: FetchableRecord, PersistableRecord, Codable {
+private struct Book: DecodableRecord, PersistableRecord, Codable {
     var id: Int64
     var authorId: Int64
     var title: String

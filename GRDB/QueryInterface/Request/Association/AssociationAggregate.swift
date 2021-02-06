@@ -29,7 +29,7 @@ extension AssociationToMany {
     ///
     /// For example:
     ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///     struct TeamInfo: DecodableRecord, Decodable {
     ///         var team: Team
     ///         var playerCount: Int
     ///     }
@@ -47,7 +47,7 @@ extension AssociationToMany {
     /// It has a default name, which is "hasNo[Key]", where key is the key of
     /// the association. For example:
     ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///     struct TeamInfo: DecodableRecord, Decodable {
     ///         var team: Team
     ///         var hasNoPlayer: Bool
     ///     }
@@ -71,7 +71,7 @@ extension AssociationToMany {
     ///
     /// For example:
     ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///     struct TeamInfo: DecodableRecord, Decodable {
     ///         var team: Team
     ///         var averagePlayerScore: Double
     ///     }
@@ -98,7 +98,7 @@ extension AssociationToMany {
     ///
     /// For example:
     ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///     struct TeamInfo: DecodableRecord, Decodable {
     ///         var team: Team
     ///         var maxPlayerScore: Double
     ///     }
@@ -125,7 +125,7 @@ extension AssociationToMany {
     ///
     /// For example:
     ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///     struct TeamInfo: DecodableRecord, Decodable {
     ///         var team: Team
     ///         var minPlayerScore: Double
     ///     }
@@ -152,7 +152,7 @@ extension AssociationToMany {
     ///
     /// For example:
     ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///     struct TeamInfo: DecodableRecord, Decodable {
     ///         var team: Team
     ///         var playerScoreSum: Double
     ///     }
@@ -252,7 +252,7 @@ extension AssociationAggregate: Refinable {
     ///
     /// For example:
     ///
-    ///     struct AuthorInfo: Decodable, FetchableRecord {
+    ///     struct AuthorInfo: Decodable, DecodableRecord {
     ///         var author: Author
     ///         var numberOfBooks: Int
     ///

@@ -40,7 +40,7 @@ try migrator.migrate(dbQueue)
 
 //: Define Record types
 
-struct Author: Codable, FetchableRecord, MutablePersistableRecord {
+struct Author: Codable, DecodableRecord, MutablePersistableRecord {
     var id: Int64?
     var name: String
     
@@ -49,7 +49,7 @@ struct Author: Codable, FetchableRecord, MutablePersistableRecord {
     }
 }
 
-struct Book: Codable, FetchableRecord, MutablePersistableRecord {
+struct Book: Codable, DecodableRecord, MutablePersistableRecord {
     var id: Int64?
     var authorId: Int64
     var title: String
@@ -115,7 +115,7 @@ if let authorInfo = authorInfo {
 
 print("----------")
 print("Fetch book information")
-struct BookInfo: FetchableRecord, Codable {
+struct BookInfo: DecodableRecord, Codable {
     var book: Book
     var author: Author
 }
@@ -134,7 +134,7 @@ if let bookInfo = bookInfo {
 
 print("----------")
 print("Fetch all authorships")
-struct Authorship: Decodable, FetchableRecord {
+struct Authorship: Decodable, DecodableRecord {
     var book: Book
     var author: Author
 }

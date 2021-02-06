@@ -73,7 +73,7 @@ extension SQLSpecificExpressible {
     ///
     /// For example:
     ///
-    ///     struct Shape: Decodable, FetchableRecord, TableRecord {
+    ///     struct Shape: Decodable, DecodableRecord, TableRecord {
     ///         let width: Int
     ///         let height: Int
     ///         let area: Int

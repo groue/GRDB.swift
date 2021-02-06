@@ -169,7 +169,7 @@ let request = Player.filter(date(createdAt) == "2020-01-23")
 
 The [record protocols] extend your application types with database abilities.
 
-**A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contain the column names. And with [FetchableRecord], you can decode raw database rows.
+**A record type knows everything about the schema of its underlying database table**. With the [TableRecord] protocol, the `databaseTableName` property contains the table name. With the [Decodable] protocol, the [CodingKeys] enum contain the column names. And with [DecodableRecord], you can decode raw database rows.
 
 SQL Interpolation puts this knowledge to good use, so that you can build robust queries that consistently use correct table and column names. Let's start from this record:
 
@@ -180,7 +180,7 @@ struct Player {
     var score: Int?
 }
 
-extension Player: Decodable, TableRecord, FetchableRecord { }
+extension Player: Decodable, TableRecord, DecodableRecord { }
 ```
 
 Let's extend Player with database methods.
@@ -247,7 +247,7 @@ Let's extend Player with database methods.
 - `filter(ids:)`
     
     ```swift
-    extension Player: Decodable, FetchableRecord, TableRecord {
+    extension Player: Decodable, DecodableRecord, TableRecord {
         /// "Simple" version
         static func filter(ids: [Int64]) -> SQLRequest<Player> {
             "SELECT * FROM player WHERE id IN \(ids)"
@@ -278,7 +278,7 @@ Let's extend Player with database methods.
 - `maximumScore()`
     
     ```swift
-    extension Player: Decodable, FetchableRecord, TableRecord {
+    extension Player: Decodable, DecodableRecord, TableRecord {
         /// The maximum score
         static func maximumScore() -> SQLRequest<Int> {
             "SELECT MAX(\(CodingKeys.score)) FROM \(self)"
@@ -300,7 +300,7 @@ Let's extend Player with database methods.
 - `bestPlayers()`
     
     ```swift
-    extension Player: Decodable, FetchableRecord, TableRecord {
+    extension Player: Decodable, DecodableRecord, TableRecord {
         /// "Simple" version
         static func bestPlayers() -> SQLRequest<Player> {
             "SELECT * FROM player WHERE score = (\(maximumScore()))"
@@ -331,7 +331,7 @@ Let's extend Player with database methods.
 - `complexRequest()`
 
     ```swift
-    extension Player: Decodable, FetchableRecord, TableRecord {
+    extension Player: Decodable, DecodableRecord, TableRecord {
         /// A complex request
         static func complexRequest() -> SQLRequest<Player> {
             let query: SQLLiteral = "SELECT \(columnsOf: self) "
@@ -475,7 +475,7 @@ This chapter lists all kinds of supported interpolations.
 [String interpolation]: https://docs.swift.org/swift-book/LanguageGuide/StringsAndCharacters.html#ID292
 [SQL injection]: ../README.md#avoiding-sql-injection
 [record protocols]: ../README.md#record-protocols-overview
-[FetchableRecord]: ../README.md#fetchablerecord-protocol
+[DecodableRecord]: ../README.md#decodablerecord-protocol
 [TableRecord]: ../README.md#tablerecord-protocol
 [Decodable]: ../README.md#codable-records
 [CodingKeys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types

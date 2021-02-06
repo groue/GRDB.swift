@@ -982,7 +982,7 @@ extension PersistableRecordTests {
     }
     
     func testStringStoredInArray() throws {
-        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+        struct TestStruct : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let numbers: [String]
         }
@@ -1009,7 +1009,7 @@ extension PersistableRecordTests {
     }
     
     func testOptionalStringStoredInArray() throws {
-        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+        struct TestStruct : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let numbers: [String]?
         }

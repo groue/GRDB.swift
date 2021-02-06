@@ -35,33 +35,33 @@ let testedLiteral: SQLLiteral = """
     ORDER BY t1.id
     """
 
-private struct T1: Codable, FetchableRecord, TableRecord {
+private struct T1: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t1"
     var id: Int64
     var name: String
 }
 
-private struct T2: Codable, FetchableRecord, TableRecord {
+private struct T2: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t2"
     var id: Int64
     var t1id: Int64
     var name: String
 }
 
-private struct T3: Codable, FetchableRecord, TableRecord {
+private struct T3: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t3"
     static let databaseSelection: [SQLSelectable] = [Column("t1id"), Column("name")]
     var t1id: Int64
     var name: String
 }
 
-private struct T4: Codable, FetchableRecord, TableRecord {
+private struct T4: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t4"
     var t1id: Int64
     var name: String
 }
 
-private struct T5: Codable, FetchableRecord, TableRecord {
+private struct T5: Codable, DecodableRecord, TableRecord {
     static let databaseTableName = "t5"
     var id: Int64
     var t3id: Int64?
@@ -69,7 +69,7 @@ private struct T5: Codable, FetchableRecord, TableRecord {
     var name: String
 }
 
-private struct FlatModel: FetchableRecord {
+private struct FlatModel: DecodableRecord {
     private enum Scopes {
         static let t1 = "t1"
         static let t2Left = "t2Left"
@@ -126,7 +126,7 @@ private struct FlatModel: FetchableRecord {
     }
 }
 
-private struct CodableFlatModel: FetchableRecord, Codable {
+private struct CodableFlatModel: DecodableRecord, Codable {
     var t1: T1
     var t2Left: T2?
     var t2Right: T2?
@@ -165,7 +165,7 @@ private struct CodableFlatModel: FetchableRecord, Codable {
     }
 }
 
-private struct CodableNestedModel: FetchableRecord, Codable {
+private struct CodableNestedModel: DecodableRecord, Codable {
     struct T2Pair: Codable {
         var left: T2?
         var right: T2?

@@ -2,14 +2,14 @@ import Foundation
 import XCTest
 @testable import GRDB
 
-class FetchableRecordDecodableTests: GRDBTestCase { }
+class DecodableRecordDecodableTests: GRDBTestCase { }
 
-// MARK: - FetchableRecord conformance derived from Decodable
+// MARK: - DecodableRecord conformance derived from Decodable
 
-extension FetchableRecordDecodableTests {
+extension DecodableRecordDecodableTests {
     
     func testTrivialDecodable() {
-        struct Struct : FetchableRecord, Decodable {
+        struct Struct : DecodableRecord, Decodable {
             let value: String
         }
         
@@ -20,7 +20,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testCustomDecodable() {
-        struct Struct : FetchableRecord, Decodable {
+        struct Struct : DecodableRecord, Decodable {
             let value: String
             
             private enum CodingKeys : String, CodingKey {
@@ -39,28 +39,28 @@ extension FetchableRecordDecodableTests {
         }
     }
     
-    func testCustomFetchableRecord() {
-        struct Struct : FetchableRecord, Decodable {
+    func testCustomDecodableRecord() {
+        struct Struct : DecodableRecord, Decodable {
             let value: String
             
             init(row: Row) {
-                value = (row["value"] as String) + " (FetchableRecord)"
+                value = (row["value"] as String) + " (DecodableRecord)"
             }
         }
         
         do {
             let s = Struct(row: ["value": "foo"])
-            XCTAssertEqual(s.value, "foo (FetchableRecord)")
+            XCTAssertEqual(s.value, "foo (DecodableRecord)")
         }
     }
 }
 
 // MARK: - Different kinds of single-value properties
 
-extension FetchableRecordDecodableTests {
+extension DecodableRecordDecodableTests {
     
     func testTrivialProperty() {
-        struct Struct : FetchableRecord, Decodable {
+        struct Struct : DecodableRecord, Decodable {
             let int64: Int64
             let optionalInt64: Int64?
         }
@@ -94,7 +94,7 @@ extension FetchableRecordDecodableTests {
             }
         }
         
-        struct Struct : FetchableRecord, Decodable {
+        struct Struct : DecodableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -138,7 +138,7 @@ extension FetchableRecordDecodableTests {
             }
         }
         
-        struct Struct : FetchableRecord, Decodable {
+        struct Struct : DecodableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -175,7 +175,7 @@ extension FetchableRecordDecodableTests {
             case foo, bar
         }
         
-        struct Struct : FetchableRecord, Decodable {
+        struct Struct : DecodableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -231,7 +231,7 @@ extension FetchableRecordDecodableTests {
             }
         }
         
-        struct Struct : FetchableRecord, Decodable {
+        struct Struct : DecodableRecord, Decodable {
             let value: Value
             let optionalValue: Value?
         }
@@ -261,10 +261,10 @@ extension FetchableRecordDecodableTests {
 
 // MARK: - Foundation Codable Types
 
-extension FetchableRecordDecodableTests {
+extension DecodableRecordDecodableTests {
 
     func testStructWithDate() {
-        struct StructWithDate : FetchableRecord, Decodable {
+        struct StructWithDate : DecodableRecord, Decodable {
             let date: Date
         }
         
@@ -274,7 +274,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testStructWithURL() {
-        struct StructWithURL : FetchableRecord, Decodable {
+        struct StructWithURL : DecodableRecord, Decodable {
             let url: URL
         }
         
@@ -284,7 +284,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testStructWithUUID() {
-        struct StructWithUUID : FetchableRecord, Decodable {
+        struct StructWithUUID : DecodableRecord, Decodable {
             let uuid: UUID
         }
         
@@ -296,14 +296,14 @@ extension FetchableRecordDecodableTests {
 
 // MARK: - Custom nested Decodable types - nested saved as JSON
 
-extension FetchableRecordDecodableTests {
+extension DecodableRecordDecodableTests {
     func testOptionalNestedStruct() throws {
         struct NestedStruct : Codable {
             let firstName: String?
             let lastName: String?
         }
         
-        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+        struct StructWithNestedType : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let nested: NestedStruct?
         }
@@ -336,7 +336,7 @@ extension FetchableRecordDecodableTests {
             let lastName: String?
         }
         
-        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+        struct StructWithNestedType : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let nested: NestedStruct?
         }
@@ -362,7 +362,7 @@ extension FetchableRecordDecodableTests {
             let lastName: String?
         }
         
-        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+        struct StructWithNestedType : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let nested: [NestedStruct]?
         }
@@ -399,7 +399,7 @@ extension FetchableRecordDecodableTests {
             let lastName: String?
         }
         
-        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+        struct StructWithNestedType : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let nested: [NestedStruct]?
         }
@@ -425,7 +425,7 @@ extension FetchableRecordDecodableTests {
             let lastName: String?
         }
         
-        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+        struct StructWithNestedType : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let nested: NestedStruct
         }
@@ -459,7 +459,7 @@ extension FetchableRecordDecodableTests {
             let lastName: String?
         }
         
-        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+        struct StructWithNestedType : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let nested: [NestedStruct]
         }
@@ -511,7 +511,7 @@ extension FetchableRecordDecodableTests {
     }
 
     func testCodableExampleCode() throws {
-        struct Player: PersistableRecord, FetchableRecord, Codable {
+        struct Player: PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let name: String
             let score: Int
@@ -571,12 +571,12 @@ extension FetchableRecordDecodableTests {
     // MARK: - JSON data in Detached Rows
     
     func testDetachedRows() throws {
-        struct NestedStruct : PersistableRecord, FetchableRecord, Codable {
+        struct NestedStruct : PersistableRecord, DecodableRecord, Codable {
             let firstName: String?
             let lastName: String?
         }
         
-        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+        struct StructWithNestedType : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let nested: NestedStruct
         }
@@ -591,7 +591,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testArrayOfDetachedRowsAsData() throws {
-        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+        struct TestStruct : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let name: String
         }
@@ -623,7 +623,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testArrayOfDetachedRowsAsString() throws {
-        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+        struct TestStruct : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let name: String
         }
@@ -652,7 +652,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testCursorRowsAsData() throws {
-        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+        struct TestStruct : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let name: String
         }
@@ -683,7 +683,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testCursorRowsAsString() throws {
-        struct TestStruct : PersistableRecord, FetchableRecord, Codable {
+        struct TestStruct : PersistableRecord, DecodableRecord, Codable {
             static let databaseTableName = "t1"
             let name: String
         }
@@ -711,7 +711,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testJSONDataEncodingStrategy() throws {
-        struct Record: FetchableRecord, Decodable {
+        struct Record: DecodableRecord, Decodable {
             let data: Data
             let optionalData: Data?
             let datas: [Data]
@@ -738,7 +738,7 @@ extension FetchableRecordDecodableTests {
     }
     
     func testJSONDateEncodingStrategy() throws {
-        struct Record: FetchableRecord, Decodable {
+        struct Record: DecodableRecord, Decodable {
             let date: Date
             let optionalDate: Date?
             let dates: [Date]
@@ -769,7 +769,7 @@ extension FetchableRecordDecodableTests {
 private let testKeyRoot = CodingUserInfoKey(rawValue: "test1")!
 private let testKeyNested = CodingUserInfoKey(rawValue: "test2")!
 
-extension FetchableRecordDecodableTests {
+extension DecodableRecordDecodableTests {
     struct NestedKeyed: Decodable {
         var name: String
         var key: String?
@@ -811,7 +811,7 @@ extension FetchableRecordDecodableTests {
         }
     }
     
-    struct Record: Decodable, FetchableRecord {
+    struct Record: Decodable, DecodableRecord {
         var nestedKeyed: NestedKeyed
         var nestedSingle: NestedSingle
         var nestedUnkeyed: NestedUnkeyed
@@ -832,7 +832,7 @@ extension FetchableRecordDecodableTests {
         }
     }
     
-    class CustomizedRecord: Decodable, FetchableRecord {
+    class CustomizedRecord: Decodable, DecodableRecord {
         var nestedKeyed: NestedKeyed
         var nestedSingle: NestedSingle
         var nestedUnkeyed: NestedUnkeyed
@@ -1057,7 +1057,7 @@ extension FetchableRecordDecodableTests {
         struct A: Decodable { }
         struct B: Decodable { }
         struct C: Decodable { }
-        struct Composed: Decodable, FetchableRecord {
+        struct Composed: Decodable, DecodableRecord {
             var a: A
             var b: B?
             var c: C?
@@ -1077,7 +1077,7 @@ extension FetchableRecordDecodableTests {
     func testMissingKeys2() throws {
         struct A: Decodable { }
         struct B: Decodable { }
-        struct Composed: Decodable, FetchableRecord {
+        struct Composed: Decodable, DecodableRecord {
             var a: A
             var b: B
         }
@@ -1092,7 +1092,7 @@ extension FetchableRecordDecodableTests {
     // Regression test for https://github.com/groue/GRDB.swift/issues/836
     func testRootKeyDecodingError() throws {
         struct Record: Decodable { }
-        struct Composed: Decodable, FetchableRecord {
+        struct Composed: Decodable, DecodableRecord {
             var a: Record
             var b: Record
             var c: Record

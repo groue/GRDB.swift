@@ -2,7 +2,7 @@
 
 /// Record is a class that wraps a table row, or the result of any query. It is
 /// designed to be subclassed.
-open class Record: FetchableRecord, TableRecord, PersistableRecord {
+open class Record: DecodableRecord, TableRecord, PersistableRecord {
     
     // MARK: - Initializers
     

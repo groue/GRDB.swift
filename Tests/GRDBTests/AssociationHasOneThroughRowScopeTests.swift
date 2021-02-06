@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct A: Codable, FetchableRecord, PersistableRecord {
+private struct A: Codable, DecodableRecord, PersistableRecord {
     static let defaultB = belongsTo(B.self)
     static let defaultC = hasOne(C.self, through: defaultB, using: B.c)
     static let customC1 = hasOne(C.self, through: defaultB.forKey("customB"), using: B.c)
@@ -12,14 +12,14 @@ private struct A: Codable, FetchableRecord, PersistableRecord {
     var name: String
 }
 
-private struct B: Codable, FetchableRecord, PersistableRecord {
+private struct B: Codable, DecodableRecord, PersistableRecord {
     static let c = belongsTo(C.self)
     var id: Int64
     var cId: Int64?
     var name: String
 }
 
-private struct C: Codable, FetchableRecord, PersistableRecord {
+private struct C: Codable, DecodableRecord, PersistableRecord {
     var id: Int64
     var name: String
 }

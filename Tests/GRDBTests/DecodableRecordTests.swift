@@ -6,14 +6,15 @@ private struct Fetched: Hashable{
     var lastName: String
 }
 
-extension Fetched : FetchableRecord {
+extension Fetched : DecodableRecord {
     init(row: Row) {
         firstName = row["firstName"]
         lastName = row["lastName"]
     }
 }
 
-class FetchableRecordTests: GRDBTestCase {
+#warning("TODO: test decoding error")
+class DecodableRecordTests: GRDBTestCase {
 
     func testRowInitializer() {
         let row = Row(["firstName": "Arthur", "lastName": "Martin"])

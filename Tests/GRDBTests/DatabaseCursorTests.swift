@@ -69,7 +69,7 @@ class DatabaseCursorTests: GRDBTestCase {
     
     // Regression test for http://github.com/groue/GRDB.swift/issues/583
     func testIssue583() throws {
-        struct User: Codable, TableRecord, FetchableRecord, MutablePersistableRecord {
+        struct User: Codable, TableRecord, DecodableRecord, MutablePersistableRecord {
             static let databaseTableName: String = "user"
             
             var id: Int64?
@@ -87,7 +87,7 @@ class DatabaseCursorTests: GRDBTestCase {
             }
         }
         
-        struct FlagUser: Codable, TableRecord, FetchableRecord, MutablePersistableRecord {
+        struct FlagUser: Codable, TableRecord, DecodableRecord, MutablePersistableRecord {
             static let databaseTableName: String = "flagUser"
             
             var username: String

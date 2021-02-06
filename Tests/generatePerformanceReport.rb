@@ -142,7 +142,7 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
         
         This test fetches an array of 100000 record objects initiated from rows of 10 ints.
         
-        It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [FetchableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#fetchablerecord-protocol) protocol, and the values returned by the high-level query builder of SQLite.swift.
+        It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [DecodableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#decodablerecord-protocol) protocol, and the values returned by the high-level query builder of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/InsertRecordStructTests.swift))
         

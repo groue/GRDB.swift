@@ -113,7 +113,7 @@ extension ValueObserver: TransactionObserver {
             if self.isCompleted { return }
             do {
                 let fetchedValue = try fetchedFuture.wait()
-                if let value = self.reducer._value(fetchedValue) {
+                if let value = try self.reducer._value(fetchedValue) {
                     self.notifyChange(value)
                 }
             } catch {

@@ -31,7 +31,7 @@ GRDB Associations
 - [Fetching Values from Associations]
     - [The Structure of a Joined Request]
     - [Decoding a Joined Request with a Decodable Record]
-    - [Decoding a Joined Request with FetchableRecord]
+    - [Decoding a Joined Request with DecodableRecord]
     - [Debugging Request Decoding]
 - [Association Aggregates]
     - [Available Association Aggregates]
@@ -120,7 +120,7 @@ let books = try author.books.fetchAll(db)
 As for loading all pairs of books and authors, it is not only easier, but also *much more efficient*:
 
 ```swift
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     let book: Book
     let author: Author?
 }
@@ -138,7 +138,7 @@ Before we dive in, please remember that associations can not generate all possib
 
 When your record type is a subclass of the [Record class], all necessary protocols are already setup and ready: you can skip this chapter.
 
-Generally speaking, associations use the [TableRecord], [FetchableRecord], and [EncodableRecord] protocols:
+Generally speaking, associations use the [TableRecord], [DecodableRecord], and [EncodableRecord] protocols:
 
 - **[TableRecord]** is the protocol that lets you declare associations between record types:
 
@@ -152,10 +152,10 @@ Generally speaking, associations use the [TableRecord], [FetchableRecord], and [
     }
     ```
 
-- **[FetchableRecord]** makes it possible to fetch records from the database:
+- **[DecodableRecord]** makes it possible to fetch records from the database:
 
     ```swift
-    extension Author: FetchableRecord { }
+    extension Author: DecodableRecord { }
     
     // Who's prolific?
     let authors = try dbQueue.read { db in
@@ -165,7 +165,7 @@ Generally speaking, associations use the [TableRecord], [FetchableRecord], and [
     }
     ```
     
-    FetchableRecord conformance can be derived from the standard Decodable protocol. See [Codable Records] for more information.
+    DecodableRecord conformance can be derived from the standard Decodable protocol. See [Codable Records] for more information.
 
 - **[EncodableRecord]** makes it possible to fetch associated records with the `request(for:)` method:
 
@@ -439,7 +439,7 @@ migrator.registerMigration("Employees") { db in
 Note that both sides of the self-join use a customized **[association key](#the-structure-of-a-joined-request)**. This helps consuming this association. For example:
 
 ```swift
-struct EmployeeInfo: FetchableRecord, Decodable {
+struct EmployeeInfo: DecodableRecord, Decodable {
     var employee: Employee
     var manager: Employee?
     var subordinates: Set<Employee>
@@ -885,7 +885,7 @@ The pattern is always the same: you start from a base request, that you extend w
         .including(required: Book.author)
     
     // This request can feed the following record:
-    struct BookInfo: FetchableRecord, Decodable {
+    struct BookInfo: DecodableRecord, Decodable {
         var book: Book
         var author: Author // the required associated author
     }
@@ -900,7 +900,7 @@ The pattern is always the same: you start from a base request, that you extend w
         .including(all: Author.books)
     
     // This request can feed the following record:
-    struct AuthorInfo: FetchableRecord, Decodable {
+    struct AuthorInfo: DecodableRecord, Decodable {
         var author: Author
         var books: [Book] // all associated books
     }
@@ -930,7 +930,7 @@ The pattern is always the same: you start from a base request, that you extend w
         .including(optional: Book.author)
     
     // This request can feed the following record:
-    struct BookInfo: FetchableRecord, Decodable {
+    struct BookInfo: DecodableRecord, Decodable {
         var book: Book
         var author: Author? // the optional associated author
     }
@@ -974,7 +974,7 @@ let request = Book
     .including(optional: Book.translator)
 
 // This request can feed the following record:
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var author: Person
     var translator: Person?
@@ -996,7 +996,7 @@ let request = Book
         .including(optional: Person.country))
 
 // This request can feed the following record:
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var author: Author
     var country: Country?
@@ -1018,7 +1018,7 @@ let request = Book
         .including(optional: Person.country))
 
 // This request can feed the following record:
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var country: Country?
 }
@@ -1035,7 +1035,7 @@ let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 let request = Book.including(optional: Book.country)
 
 // This request can feed the following record:
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var country: Country?
 }
@@ -1086,7 +1086,7 @@ let request = Author
         .forKey("poems"))
 
 // This request can feed the following record:
-struct AuthorInfo: FetchableRecord, Decodable {
+struct AuthorInfo: DecodableRecord, Decodable {
     var author: Author
     var novels: [Book]
     var poems: [Book]
@@ -1147,12 +1147,12 @@ But you can build an ordering right into the definition of an association, so th
 Let's start with a **HasMany** association. Each player knows its position in its team:
 
 ```swift
-struct Team: FetchableRecord, TableRecord {
+struct Team: DecodableRecord, TableRecord {
     var id: Int64
     var name: String
 }
 
-struct Player: FetchableRecord, TableRecord {
+struct Player: DecodableRecord, TableRecord {
     var id: Int64
     var teamId: Int64
     var name: String
@@ -1175,18 +1175,18 @@ extension Team {
 Things are very similar for **HasManyThrough** associations. Now each player knows its position in the teams it belongs to:
 
 ```swift
-struct Team: FetchableRecord, TableRecord {
+struct Team: DecodableRecord, TableRecord {
     var id: Int64
     var name: String
 }
 
-struct PlayerRole: FetchableRecord, TableRecord {
+struct PlayerRole: DecodableRecord, TableRecord {
     var teamId: Int64
     var playerId: Int64
     var position: Int
 }
 
-struct Player: FetchableRecord, TableRecord {
+struct Player: DecodableRecord, TableRecord {
     var id: Int64
     var name: String
 }
@@ -1213,7 +1213,7 @@ extension PlayerRole {
 In both cases, you can escape the default ordering when you need it:
 
 ```swift
-struct TeamInfo: Decodable, FetchableRecord {
+struct TeamInfo: Decodable, DecodableRecord {
     var team: Team
     var players: [Player]
 }
@@ -1436,7 +1436,7 @@ extension DerivableRequest where RowDecoder == Book {
 And then compose those in a fluent style:
 
 ```swift
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var author: Author
 }
@@ -1461,7 +1461,7 @@ Fetching Values from Associations
 
 We have seen in [Joining And Prefetching Associated Records] how to define requests that involve several records.
 
-To consume those requests, you will generally define a record type that matches the structure of the request. You'll make it adopt the [FetchableRecord] protocol, so that it can decode database rows.
+To consume those requests, you will generally define a record type that matches the structure of the request. You'll make it adopt the [DecodableRecord] protocol, so that it can decode database rows.
 
 Often, you'll also make it adopt the standard Decodable protocol, because the compiler will generate the decoding code for you.
 
@@ -1472,7 +1472,7 @@ Each association included in the request can feed a property of the decoded reco
     ```swift
     let request = Employee.including(optional: Employee.manager)
     
-    struct EmployeeInfo: FetchableRecord, Decodable {
+    struct EmployeeInfo: DecodableRecord, Decodable {
         var employee: Employee
         var manager: Employee? // the optional associated manager
     }
@@ -1484,7 +1484,7 @@ Each association included in the request can feed a property of the decoded reco
     ```swift
     let request = Book.including(required: Book.author)
     
-    struct BookInfo: FetchableRecord, Decodable {
+    struct BookInfo: DecodableRecord, Decodable {
         var book: Book
         var author: Author // the required associated author
     }
@@ -1497,7 +1497,7 @@ Each association included in the request can feed a property of the decoded reco
     ```swift
     let request = Author.including(all: Author.books)
     
-    struct AuthorInfo: FetchableRecord, Decodable {
+    struct AuthorInfo: DecodableRecord, Decodable {
         var author: Author
         var books: [Book] // all associated books
     }
@@ -1506,7 +1506,7 @@ Each association included in the request can feed a property of the decoded reco
 
 - [The Structure of a Joined Request]
 - [Decoding a Joined Request with a Decodable Record]
-- [Decoding a Joined Request with FetchableRecord]
+- [Decoding a Joined Request with DecodableRecord]
 - [Debugging Request Decoding]
 - [Good Practices for Designing Record Types] - in this general guide about records, check out the "Compose Records" chapter.
 
@@ -1531,7 +1531,7 @@ This request builds the following **tree of association keys**:
 Requests can feed record types whose property names match those association keys:
 
 ```swift
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var author: Author
     var country: Country?
@@ -1586,7 +1586,7 @@ let request = Book
         .including(optional: Author.country))
     .including(optional: Book.coverImage)
 
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var author: Author
     var country: Country?
@@ -1618,7 +1618,7 @@ This requests for all books, with their cover images, and their authors and tran
 We plan to decode this request into is the following nested record:
 
 ```swift
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     struct PersonInfo: Decodable {
         var person: Person
         var country: Country?
@@ -1655,11 +1655,11 @@ let bookInfos = try BookInfo.all().fetchAll(db, request) // [BookInfo]
 2. The `asRequest(of:)` method turns the request into a request of BookInfo. See [Custom Requests] for more information.
 
 
-## Decoding a Joined Request with FetchableRecord
+## Decoding a Joined Request with DecodableRecord
 
 When [Decodable](#decoding-a-joined-request-with-a-decodable-record) records provides convenient decoding of joined rows, you may want a little more control over row decoding.
 
-The `init(row:)` initializer of the [FetchableRecord] protocol is what you look after:
+The `init(row:)` initializer of the [DecodableRecord] protocol is what you look after:
 
 ```swift
 let request = Book
@@ -1667,7 +1667,7 @@ let request = Book
         .including(optional: Author.country))
     .including(optional: Book.coverImage)
 
-struct BookInfo: FetchableRecord {
+struct BookInfo: DecodableRecord {
     var book: Book
     var author: Author
     var country: Country?
@@ -1704,7 +1704,7 @@ When you use the `include(all:)` method, you can decode an Array or a Set of rec
 ```swift
 let request = Author.including(all: Author.books)
 
-struct AuthorInfo: FetchableRecord {
+struct AuthorInfo: DecodableRecord {
     var author: Author
     var books: [Book]
     
@@ -1748,7 +1748,7 @@ Watch in the row debugging description:
 The associated rows that contain only null values are easy to deal with: null rows loaded from optional associated records should be decoded into Swift optionals:
 
 ```swift
-struct BookInfo: FetchableRecord, Decodable {
+struct BookInfo: DecodableRecord, Decodable {
     var book: Book
     var author: Author          // .including(required: Book.author)
     var country: Country?       // .including(optional: Author.country)
@@ -1815,7 +1815,7 @@ let productiveAuthors: [Author] = try Author
 And you'll use the `count` aggregate in order to fetch all authors along with the number of books they wrote:
 
 ```swift
-struct AuthorInfo: Decodable, FetchableRecord {
+struct AuthorInfo: Decodable, DecodableRecord {
     var author: Author
     var bookCount: Int
 }
@@ -1850,7 +1850,7 @@ In order to access those values, you fetch records that have matching properties
 For example:
 
 ```swift
-struct AuthorInfo: Decodable, FetchableRecord {
+struct AuthorInfo: Decodable, DecodableRecord {
     var author: Author
     var bookCount: Int
     var maxBookYear: Int?
@@ -1893,7 +1893,7 @@ Those default names are lost whenever an aggregate is modified (negated, added, 
 You can name or rename aggregates with the `forKey` method:
 
 ```swift
-struct AuthorInfo: Decodable, FetchableRecord {
+struct AuthorInfo: Decodable, DecodableRecord {
     var author: Author
     var numberOfBooks: Int
 }
@@ -1901,7 +1901,7 @@ let numberOfBooks = Author.books.count.forKey("numberOfBooks")                  
 let request = Author.annotated(with: numberOfBooks)
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
-struct AuthorInfo: Decodable, FetchableRecord {
+struct AuthorInfo: Decodable, DecodableRecord {
     var author: Author
     var hasBooks: Bool
 }
@@ -1909,7 +1909,7 @@ let hasBooks = (Author.books.isEmpty == false).forKey("hasBooks")               
 let request = Author.annotated(with: hasBooks)
 let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 
-struct AuthorInfo: Decodable, FetchableRecord {
+struct AuthorInfo: Decodable, DecodableRecord {
     var author: Author
     var workCount: Int
 }
@@ -1921,7 +1921,7 @@ let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
 Coding keys are also accepted:
 
 ```swift
-struct AuthorInfo: Decodable, FetchableRecord {
+struct AuthorInfo: Decodable, DecodableRecord {
     var author: Author
     var numberOfBooks: Int
     
@@ -2189,7 +2189,7 @@ In the example below, we use compute two aggregates from the same association `A
         static let books = hasMany(Book.self) // association key "books"
     }
     
-    struct AuthorInfo: Decodable, FetchableRecord {
+    struct AuthorInfo: Decodable, DecodableRecord {
         var author: Author
         var minBookYear: Int?
         var maxBookYear: Int?
@@ -2225,7 +2225,7 @@ In this other example, the `Author.books` and `Author.paintings` have the distin
         static let paintings = hasMany(Painting.self) // association key "paintings"
     }
     
-    struct AuthorInfo: Decodable, FetchableRecord {
+    struct AuthorInfo: Decodable, DecodableRecord {
         var author: Author
         var workCount: Int
     }
@@ -2260,7 +2260,7 @@ But in the following example, we use the same association `Author.books` twice, 
         static let books = hasMany(Book.self) // association key "books"
     }
     
-    struct AuthorInfo: Decodable, FetchableRecord {
+    struct AuthorInfo: Decodable, DecodableRecord {
         var author: Author
         var novelCount: Int
         var theatrePlayCount: Int
@@ -2448,7 +2448,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Self Joins]: #self-joins
 [Ordered Associations]: #ordered-associations
 [The Types of Associations]: #the-types-of-associations
-[FetchableRecord]: ../README.md#fetchablerecord-protocols
+[DecodableRecord]: ../README.md#decodablerecord-protocols
 [migration]: Migrations.md
 [Record]: ../README.md#records
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
@@ -2472,7 +2472,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [The Structure of a Joined Request]: #the-structure-of-a-joined-request
 [Decoding a Joined Request with a Decodable Record]: #decoding-a-joined-request-with-a-decodable-record
 [Decoding a Hierarchical Decodable Record]: #decoding-a-hierarchical-decodable-record
-[Decoding a Joined Request with FetchableRecord]: #decoding-a-joined-request-with-fetchablerecord
+[Decoding a Joined Request with DecodableRecord]: #decoding-a-joined-request-with-fetchablerecord
 [Debugging Request Decoding]: #debugging-request-decoding
 [Custom Requests]: ../README.md#custom-requests
 [Association Aggregates]: #association-aggregates

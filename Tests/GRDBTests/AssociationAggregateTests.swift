@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Team: Codable, FetchableRecord, PersistableRecord {
+private struct Team: Codable, DecodableRecord, PersistableRecord {
     static let players = hasMany(Player.self)
     static let awards = hasMany(Award.self)
     static let customPlayers = hasMany(Player.self, key: "customPlayers")
@@ -9,7 +9,7 @@ private struct Team: Codable, FetchableRecord, PersistableRecord {
     var name: String
 }
 
-private struct Player: Codable, FetchableRecord, PersistableRecord {
+private struct Player: Codable, DecodableRecord, PersistableRecord {
     static let awards = hasMany(Award.self, through: belongsTo(Team.self), using: Team.awards)
     var id: Int64
     var teamId: Int64?
@@ -17,13 +17,13 @@ private struct Player: Codable, FetchableRecord, PersistableRecord {
     var score: Int
 }
 
-private struct Award: Codable, FetchableRecord, PersistableRecord {
+private struct Award: Codable, DecodableRecord, PersistableRecord {
     var customPrimaryKey: Int64
     var teamId: Int64?
     var name: String
 }
 
-private struct TeamInfo: Decodable, FetchableRecord {
+private struct TeamInfo: Decodable, DecodableRecord {
     var team: Team
     var averagePlayerScore: Double?
     var playerCount: Int?
@@ -32,7 +32,7 @@ private struct TeamInfo: Decodable, FetchableRecord {
     var playerScoreSum: Int?
 }
 
-private struct CustomTeamInfo: Decodable, FetchableRecord {
+private struct CustomTeamInfo: Decodable, DecodableRecord {
     var team: Team
     var averageCustomPlayerScore: Double?
     var customPlayerCount: Int?
@@ -188,7 +188,7 @@ class AssociationAggregateTests: GRDBTestCase {
     }
     
     func testAnnotatedWithHasManyThroughDefaultCount() throws {
-        struct PlayerInfo: Decodable, FetchableRecord {
+        struct PlayerInfo: Decodable, DecodableRecord {
             var player: Player
             var awardCount: Int
         }
@@ -735,7 +735,7 @@ class AssociationAggregateTests: GRDBTestCase {
     }
     
     func testAnnotatedWithHasManyMultipleCount() throws {
-        struct TeamInfo: Decodable, FetchableRecord {
+        struct TeamInfo: Decodable, DecodableRecord {
             var team: Team
             var lowPlayerCount: Int
             var highPlayerCount: Int

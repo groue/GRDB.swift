@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 // A -> B <- C -> D
-private struct A: Codable, FetchableRecord, PersistableRecord {
+private struct A: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "a"
     static let defaultB = belongsTo(B.self)
     var id: Int64
@@ -10,14 +10,14 @@ private struct A: Codable, FetchableRecord, PersistableRecord {
     var name: String
 }
 
-private struct B: Codable, FetchableRecord, PersistableRecord {
+private struct B: Codable, DecodableRecord, PersistableRecord {
     static let defaultC = hasOne(C.self)
     static let databaseTableName = "b"
     var id: Int64
     var name: String
 }
 
-private struct C: Codable, FetchableRecord, PersistableRecord {
+private struct C: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "c"
     static let defaultD = belongsTo(D.self)
     var id: Int64
@@ -26,7 +26,7 @@ private struct C: Codable, FetchableRecord, PersistableRecord {
     var name: String
 }
 
-private struct D: Codable, FetchableRecord, PersistableRecord {
+private struct D: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "d"
     var id: Int64
     var name: String

@@ -101,6 +101,16 @@ private class UserPersistableRecord2 : PersistableRecord {
     func encode(to container: inout PersistenceContainer) { }
 }
 
+// MARK: - DecodableRecord
+
+private struct UserDecodableRecord1 : DecodableRecord {
+    init(row: Row) throws { }
+}
+
+private class UserDecodableRecord2 : DecodableRecord {
+    required init(row: Row) throws { }
+}
+
 // MARK: - FetchableRecord
 
 private struct UserFetchableRecord1 : FetchableRecord {

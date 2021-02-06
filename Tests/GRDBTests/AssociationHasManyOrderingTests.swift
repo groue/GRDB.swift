@@ -2,20 +2,20 @@ import XCTest
 import GRDB
 
 // Ordered hasManyThrough
-private struct Team: Codable, FetchableRecord, PersistableRecord, Equatable {
+private struct Team: Codable, DecodableRecord, PersistableRecord, Equatable {
     static let players = hasMany(Player.self).order(Column("position"))
     var id: Int64
     var name: String
 }
 
-private struct Player: Codable, FetchableRecord, PersistableRecord, Equatable {
+private struct Player: Codable, DecodableRecord, PersistableRecord, Equatable {
     var id: Int64
     var teamId: Int64
     var name: String
     var position: Int
 }
 
-private struct TeamInfo: Decodable, FetchableRecord, Equatable {
+private struct TeamInfo: Decodable, DecodableRecord, Equatable {
     var team: Team
     var players: [Player]
 }

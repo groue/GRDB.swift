@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Player: Codable, PersistableRecord, FetchableRecord {
+private struct Player: Codable, PersistableRecord, DecodableRecord {
     var id: Int64
     var name: String
     var score: Int

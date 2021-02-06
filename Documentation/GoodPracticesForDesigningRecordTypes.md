@@ -110,14 +110,14 @@ struct Book: Codable {
 
 // Add Database access
 
-extension Author: FetchableRecord, MutablePersistableRecord {
+extension Author: DecodableRecord, MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
     }
 }
 
-extension Book: FetchableRecord, MutablePersistableRecord {
+extension Book: DecodableRecord, MutablePersistableRecord {
     // Update auto-incremented id upon successful insertion
     mutating func didInsert(with rowID: Int64, for column: String?) {
         id = rowID
@@ -300,7 +300,7 @@ Thanks to this setup, you can fetch associated records, or compute aggregated va
 
 ```swift
 // Fetch all authors and their number of books
-struct AuthorInfo: Decodable, FetchableRecord {
+struct AuthorInfo: Decodable, DecodableRecord {
     var author: Author
     var bookCount: Int
 }
@@ -310,7 +310,7 @@ let authorInfos: [AuthorInfo] = try dbQueue.read { db in
 }
 
 // Fetch all Colombian books and their authors:
-struct Authorship: Decodable, FetchableRecord {
+struct Authorship: Decodable, DecodableRecord {
     var book: Book
     var author: Author
 }
@@ -320,7 +320,7 @@ let authorships: [Authorship] = try dbQueue.read { db in
 }
 ```
 
-As in the sample code above, requests which feed from several associated records will often have you define extra record types, such as `AuthorInfo` and `Authorship`. Those extra record types are designed to be able to decode database requests. The names and types of their properties follow the conventions defined by [associations]. Make them conform to the Decodable and FetchableRecord protocols so that they can decode database rows in a breeze.
+As in the sample code above, requests which feed from several associated records will often have you define extra record types, such as `AuthorInfo` and `Authorship`. Those extra record types are designed to be able to decode database requests. The names and types of their properties follow the conventions defined by [associations]. Make them conform to the Decodable and DecodableRecord protocols so that they can decode database rows in a breeze.
 
 Unlike the primitive persistable record types `Author` and `Book`, those records can not write in the database. They are simple data types, passive views on the database content. Remember, only [Persistable Record Types are Responsible for Their Tables].
 
@@ -351,7 +351,7 @@ Granted with primitive and derived record types, your application will load the 
 2. Prepare the application screen that displays an author and her books:
     
     ```swift
-    struct AuthorInfo: Codable, FetchableRecord {
+    struct AuthorInfo: Codable, DecodableRecord {
         var author: Author
         var books: [Book]
     }
@@ -367,7 +367,7 @@ Granted with primitive and derived record types, your application will load the 
 3. Prepare the application screen that displays a book information:
     
     ```swift
-    struct BookInfo: Decodable, FetchableRecord {
+    struct BookInfo: Decodable, DecodableRecord {
         var book: Book
         var author: Author
     }
@@ -587,7 +587,7 @@ class LibraryManager {
 
 // Feeds the list of authors
 extension LibraryManager {
-    struct AuthorListItem: Decodable, FetchableRecord {
+    struct AuthorListItem: Decodable, DecodableRecord {
         let author: Author
         let bookCount: Int
     }

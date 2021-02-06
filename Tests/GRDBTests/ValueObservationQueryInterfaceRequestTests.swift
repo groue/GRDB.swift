@@ -1,19 +1,19 @@
 import XCTest
 import GRDB
 
-private struct Parent: TableRecord, FetchableRecord, Decodable, Equatable {
+private struct Parent: TableRecord, DecodableRecord, Decodable, Equatable {
     static let children = hasMany(Child.self)
     var id: Int64
     var name: String
 }
 
-private struct Child: TableRecord, FetchableRecord, Decodable, Equatable {
+private struct Child: TableRecord, DecodableRecord, Decodable, Equatable {
     var id: Int64
     var parentId: Int64
     var name: String
 }
 
-private struct ParentInfo: FetchableRecord, Decodable, Equatable {
+private struct ParentInfo: DecodableRecord, Decodable, Equatable {
     var parent: Parent
     var children: [Child]
 }

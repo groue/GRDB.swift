@@ -14,9 +14,9 @@ extension TableRecord {
     ///     let request = Book.including(optional: Book.author)
     ///
     /// To consume those requests, define a type that adopts both the
-    /// FetchableRecord and Decodable protocols:
+    /// DecodableRecord and Decodable protocols:
     ///
-    ///     struct BookInfo: FetchableRecord, Decodable {
+    ///     struct BookInfo: DecodableRecord, Decodable {
     ///         var book: Book
     ///         var author: Author?
     ///     }
@@ -84,9 +84,9 @@ extension TableRecord {
     ///     let request = Author.including(required: Author.books)
     ///
     /// To consume those requests, define a type that adopts both the
-    /// FetchableRecord and Decodable protocols:
+    /// DecodableRecord and Decodable protocols:
     ///
-    ///     struct Authorship: FetchableRecord, Decodable {
+    ///     struct Authorship: DecodableRecord, Decodable {
     ///         var author: Author
     ///         var book: Book
     ///     }
@@ -160,9 +160,9 @@ extension TableRecord {
     ///     let request = Country.including(required: Coutry.citizens)
     ///
     /// To consume those requests, define a type that adopts both the
-    /// FetchableRecord and Decodable protocols:
+    /// DecodableRecord and Decodable protocols:
     ///
-    ///     struct Citizenship: FetchableRecord, Decodable {
+    ///     struct Citizenship: DecodableRecord, Decodable {
     ///         var country: Country
     ///         var citizen: Citizen
     ///     }
@@ -236,9 +236,9 @@ extension TableRecord {
     ///     let request = Country.including(optional: Country.demographics)
     ///
     /// To consume those requests, define a type that adopts both the
-    /// FetchableRecord and Decodable protocols:
+    /// DecodableRecord and Decodable protocols:
     ///
-    ///     struct CountryInfo: FetchableRecord, Decodable {
+    ///     struct CountryInfo: DecodableRecord, Decodable {
     ///         var country: Country
     ///         var demographics: Demographics?
     ///     }
@@ -312,9 +312,9 @@ extension TableRecord {
     ///     let request = Book.including(required: Book.returnAddress)
     ///
     /// To consume those requests, define a type that adopts both the
-    /// FetchableRecord and Decodable protocols:
+    /// DecodableRecord and Decodable protocols:
     ///
-    ///     struct Todo: FetchableRecord, Decodable {
+    ///     struct Todo: DecodableRecord, Decodable {
     ///         var book: Book
     ///         var address: Address
     ///     }

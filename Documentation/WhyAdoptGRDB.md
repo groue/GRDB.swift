@@ -65,10 +65,10 @@ struct Place {
 }
 ```
 
-By adopting the [FetchableRecord] protocol, places can be loaded from SQL requests:
+By adopting the [DecodableRecord] protocol, places can be loaded from SQL requests:
 
 ```swift
-extension Place: FetchableRecord { ... }
+extension Place: DecodableRecord { ... }
 let places = try Place.fetchAll(db, sql: "SELECT * FROM place") // [Place]
 ```
 
@@ -299,7 +299,7 @@ Happy GRDB! :gift:
 [GRDBObjc]: http://github.com/groue/GRDBObjc
 [PersistableRecord]: ../README.md#records
 [Realm]: http://realm.io
-[FetchableRecord]: ../README.md#records
+[DecodableRecord]: ../README.md#records
 [SQLite.swift]: http://github.com/stephencelis/SQLite.swift
 [StORM]: https://www.perfect.org/docs/StORM.html
 [Swift-Kuery]: http://github.com/IBM-Swift/Swift-Kuery

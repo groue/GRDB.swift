@@ -30,7 +30,7 @@ public protocol _ValueReducer {
     ///     reducer._value(...) // MUST NOT be nil
     ///     reducer._value(...) // MAY be nil
     ///     reducer._value(...) // MAY be nil
-    mutating func _value(_ fetched: Fetched) -> Value?
+    mutating func _value(_ fetched: Fetched) throws -> Value?
 }
 
 /// The `ValueReducer` protocol supports `ValueObservation`.
@@ -54,7 +54,7 @@ extension ValueReducer {
     
     mutating func fetchAndReduce(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
         let fetchedValue = try fetch(db, requiringWriteAccess: requiringWriteAccess)
-        return _value(fetchedValue)
+        return try _value(fetchedValue)
     }
 }
 

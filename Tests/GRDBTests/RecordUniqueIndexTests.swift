@@ -1,7 +1,7 @@
 import XCTest
 @testable import GRDB
 
-private struct Person : FetchableRecord, TableRecord {
+private struct Person : DecodableRecord, TableRecord {
     static let databaseTableName = "persons"
     init(row: Row) {
     }

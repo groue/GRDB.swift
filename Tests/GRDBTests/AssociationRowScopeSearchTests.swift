@@ -4,26 +4,26 @@ import XCTest
 // a -> b* -> c
 //         -> d*
 //   -> c*
-private struct A: TableRecord, FetchableRecord, Decodable {
+private struct A: TableRecord, DecodableRecord, Decodable {
     static let databaseTableName = "a"
     static let b = hasOne(B.self)
     static let c = hasOne(C.self)
     var id: Int64
 }
-private struct B: TableRecord, FetchableRecord, Decodable {
+private struct B: TableRecord, DecodableRecord, Decodable {
     static let databaseTableName = "b"
     static let c = hasOne(C.self)
     static let d = hasOne(D.self)
     var id: Int64
     var aid: Int64
 }
-private struct C: TableRecord, FetchableRecord, Decodable {
+private struct C: TableRecord, DecodableRecord, Decodable {
     static let databaseTableName = "c"
     var id: Int64
     var aid: Int64?
     var bid: Int64?
 }
-private struct D: TableRecord, FetchableRecord, Decodable {
+private struct D: TableRecord, DecodableRecord, Decodable {
     static let databaseTableName = "d"
     var id: Int64
     var bid: Int64
@@ -91,8 +91,8 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
         }
     }
     
-    func testFetchableRecordDecoding() throws {
-        struct Record: FetchableRecord {
+    func testDecodableRecordDecoding() throws {
+        struct Record: DecodableRecord {
             var a: A
             var b: B
             var c: C
@@ -120,7 +120,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
     }
     
     func testFlatDecodableRecordDecoding() throws {
-        struct Record: FetchableRecord, Decodable {
+        struct Record: DecodableRecord, Decodable {
             var a: A
             var b: B
             var c: C
@@ -147,7 +147,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var c: C
             var d: D
         }
-        struct Record: FetchableRecord, Decodable {
+        struct Record: DecodableRecord, Decodable {
             var a: A
             var b: NestedB
             var c: C
@@ -171,7 +171,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
     }
     
     func testDecodableWithCustomRowDecoding() throws {
-        struct CustomA: FetchableRecord, Decodable {
+        struct CustomA: DecodableRecord, Decodable {
             var id: Int64
             var custom: Bool?
             init(row: Row) {
@@ -179,7 +179,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
                 custom = true
             }
         }
-        struct CustomB: FetchableRecord, Decodable {
+        struct CustomB: DecodableRecord, Decodable {
             var id: Int64
             var aid: Int64
             var custom: Bool?
@@ -189,7 +189,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
                 custom = true
             }
         }
-        struct CustomC: FetchableRecord, Decodable {
+        struct CustomC: DecodableRecord, Decodable {
             var id: Int64
             var aid: Int64?
             var bid: Int64?
@@ -201,7 +201,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
                 custom = true
             }
         }
-        struct CustomD: FetchableRecord, Decodable {
+        struct CustomD: DecodableRecord, Decodable {
             var id: Int64
             var bid: Int64
             var custom: Bool?
@@ -211,7 +211,7 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
                 custom = true
             }
         }
-        struct Record: FetchableRecord, Decodable {
+        struct Record: DecodableRecord, Decodable {
             var a: CustomA
             var b: CustomB
             var c: CustomC

@@ -3,7 +3,7 @@ import GRDB
 
 // A -> B <- C
 // A -> D
-private struct A: Codable, FetchableRecord, PersistableRecord {
+private struct A: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "a"
     static let defaultB = belongsTo(B.self)
     static let defaultD = belongsTo(D.self)
@@ -15,7 +15,7 @@ private struct A: Codable, FetchableRecord, PersistableRecord {
     var name: String
 }
 
-private struct B: Codable, FetchableRecord, PersistableRecord {
+private struct B: Codable, DecodableRecord, PersistableRecord {
     static let defaultA = hasOne(A.self)
     static let defaultC = hasOne(C.self)
     static let customA = hasOne(A.self, key: "customA")
@@ -25,14 +25,14 @@ private struct B: Codable, FetchableRecord, PersistableRecord {
     var name: String
 }
 
-private struct C: Codable, FetchableRecord, PersistableRecord {
+private struct C: Codable, DecodableRecord, PersistableRecord {
     static let databaseTableName = "c"
     var id: Int64
     var bid: Int64?
     var name: String
 }
 
-private struct D: Codable, FetchableRecord, PersistableRecord {
+private struct D: Codable, DecodableRecord, PersistableRecord {
     static let defaultA = hasOne(A.self)
     static let customA = hasOne(A.self, key: "customA")
     static let databaseTableName = "d"

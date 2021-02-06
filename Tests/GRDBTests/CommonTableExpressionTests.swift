@@ -350,7 +350,7 @@ class CommonTableExpressionTests: GRDBTestCase {
                 XCTAssertEqual(row, ["value": 42])
             }
             do {
-                struct Answer: Decodable, FetchableRecord, Equatable {
+                struct Answer: Decodable, DecodableRecord, Equatable {
                     var value: Int
                 }
                 let cte = CommonTableExpression<Answer>(
@@ -364,7 +364,7 @@ class CommonTableExpressionTests: GRDBTestCase {
     
     func testCTEAsSubquery() throws {
         try makeDatabaseQueue().write { db in
-            struct Player: Decodable, FetchableRecord, TableRecord {
+            struct Player: Decodable, DecodableRecord, TableRecord {
                 var id: Int64
                 var score: Int
             }
@@ -388,15 +388,15 @@ class CommonTableExpressionTests: GRDBTestCase {
     }
     
     func testChatWithLatestMessage() throws {
-        struct Chat: Codable, FetchableRecord, PersistableRecord, Equatable {
+        struct Chat: Codable, DecodableRecord, PersistableRecord, Equatable {
             var id: Int64
         }
-        struct Post: Codable, FetchableRecord, PersistableRecord, Equatable {
+        struct Post: Codable, DecodableRecord, PersistableRecord, Equatable {
             var id: Int64
             var chatID: Int64
             var date: Int // easier to test
         }
-        struct ChatInfo: Decodable, FetchableRecord, Equatable {
+        struct ChatInfo: Decodable, DecodableRecord, Equatable {
             var chat: Chat
             var latestPost: Post?
         }

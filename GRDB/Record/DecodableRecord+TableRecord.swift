@@ -1,4 +1,4 @@
-extension FetchableRecord where Self: TableRecord {
+extension DecodableRecord where Self: TableRecord {
     
     // MARK: Fetching All
     
@@ -59,7 +59,7 @@ extension FetchableRecord where Self: TableRecord {
     }
 }
 
-extension FetchableRecord where Self: TableRecord & Hashable {
+extension DecodableRecord where Self: TableRecord & Hashable {
     /// A set of all records fetched from the database.
     ///
     ///     // SELECT * FROM player
@@ -76,7 +76,7 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     }
 }
 
-extension FetchableRecord where Self: TableRecord {
+extension DecodableRecord where Self: TableRecord {
     
     // MARK: Fetching by Single-Column Primary Key
     
@@ -145,7 +145,7 @@ extension FetchableRecord where Self: TableRecord {
     }
 }
 
-extension FetchableRecord where Self: TableRecord & Hashable {
+extension DecodableRecord where Self: TableRecord & Hashable {
     /// Returns a set of records, given their primary keys.
     ///
     ///     let players = try Player.fetchSet(db, keys: [1, 2, 3]) // Set<Player>
@@ -168,7 +168,7 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     }
 }
 
-extension FetchableRecord where Self: TableRecord {
+extension DecodableRecord where Self: TableRecord {
     
     // MARK: Fetching by Key
     
@@ -238,7 +238,7 @@ extension FetchableRecord where Self: TableRecord {
     }
 }
 
-extension FetchableRecord where Self: TableRecord & Hashable {
+extension DecodableRecord where Self: TableRecord & Hashable {
     /// Returns a set of records identified by the provided unique keys
     /// (primary key or any key with a unique index on it).
     ///

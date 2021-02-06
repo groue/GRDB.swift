@@ -9,7 +9,7 @@ private struct Book {
     let body: String
 }
 
-extension Book : FetchableRecord {
+extension Book : DecodableRecord {
     init(row: Row) {
         id = row[Column.rowID]
         title = row["title"]

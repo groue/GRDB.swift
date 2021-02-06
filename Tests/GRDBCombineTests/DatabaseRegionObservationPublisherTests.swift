@@ -3,7 +3,7 @@ import Combine
 import GRDB
 import XCTest
 
-private struct Player: Codable, FetchableRecord, PersistableRecord {
+private struct Player: Codable, DecodableRecord, PersistableRecord {
     var id: Int64
     var name: String
     var score: Int?

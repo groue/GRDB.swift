@@ -62,7 +62,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             
             do {
                 // Test for rowID optimization
-                struct Player: TableRecord, FetchableRecord, Decodable { }
+                struct Player: TableRecord, DecodableRecord, Decodable { }
                 var region = DatabaseRegion()
                 _ = try db.recordingSelection(&region) {
                     _ = try Player.fetchOne(db, key: 123)

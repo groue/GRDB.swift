@@ -105,7 +105,7 @@ class SQLRequestTests: GRDBTestCase {
         // This test assumes SQLRequest interpolation is based on
         // SQLInterpolation, just like SQLLiteral. We thus test much less
         // cases.
-        struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord {
+        struct Player: Codable, TableRecord, DecodableRecord, PersistableRecord {
             var id: Int64
             var name: String
             

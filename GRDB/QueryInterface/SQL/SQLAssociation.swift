@@ -185,7 +185,7 @@ enum SQLAssociationCardinality {
 ///     }
 ///
 ///     // "books"
-///     struct AuthorInfo: FetchableRecord, Decodable {
+///     struct AuthorInfo: DecodableRecord, Decodable {
 ///         var author: Author
 ///         var books: [Book]
 ///     }
@@ -193,7 +193,7 @@ enum SQLAssociationCardinality {
 ///     let authorInfos = try AuthorInfo.fetchAll(db, request)
 ///
 ///     "book"
-///     struct AuthorInfo: FetchableRecord, Decodable {
+///     struct AuthorInfo: DecodableRecord, Decodable {
 ///         var author: Author
 ///         var book: Book
 ///     }
@@ -201,7 +201,7 @@ enum SQLAssociationCardinality {
 ///     let authorInfos = try AuthorInfo.fetchAll(db, request)
 ///
 ///     "bookCount"
-///     struct AuthorInfo: FetchableRecord, Decodable {
+///     struct AuthorInfo: DecodableRecord, Decodable {
 ///         var author: Author
 ///         var bookCount: Int
 ///     }

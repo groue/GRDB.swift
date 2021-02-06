@@ -871,7 +871,7 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
+    public subscript<Record: DecodableRecord>(_ scope: String) -> Record {
         try! decode(Record.self, forKey: scope)
     }
     
@@ -906,7 +906,7 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public func decode<Record: FetchableRecord>(
+    public func decode<Record: DecodableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)
     throws -> Record
@@ -941,7 +941,7 @@ extension Row {
                         scope \(String(reflecting: scope)) only contains null values
                         """))
         }
-        return Record(row: scopedRow)
+        return try Record(row: scopedRow)
     }
     
     /// Returns the eventual record associated with the given scope.
@@ -975,7 +975,7 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
+    public subscript<Record: DecodableRecord>(_ scope: String) -> Record? {
         try! decodeIfPresent(Record.self, forKey: scope)
     }
     
@@ -1010,7 +1010,7 @@ extension Row {
     ///
     /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
     /// for more information.
-    public func decodeIfPresent<Record: FetchableRecord>(
+    public func decodeIfPresent<Record: DecodableRecord>(
         _ type: Record.Type = Record.self,
         forKey scope: String)
     throws -> Record?
@@ -1018,7 +1018,7 @@ extension Row {
         guard let scopedRow = scopesTree[scope], scopedRow.containsNonNullValue else {
             return nil
         }
-        return Record(row: scopedRow)
+        return try Record(row: scopedRow)
     }
     
     /// Returns the records encoded in the given prefetched rows.
@@ -1038,7 +1038,7 @@ extension Row {
     -> Collection
     where
         Collection: RangeReplaceableCollection,
-        Collection.Element: FetchableRecord
+        Collection.Element: DecodableRecord
     {
         try! decode(Collection.self, forKey: key)
     }
@@ -1062,7 +1062,7 @@ extension Row {
     throws -> Collection
     where
         Collection: RangeReplaceableCollection,
-        Collection.Element: FetchableRecord
+        Collection.Element: DecodableRecord
     {
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
@@ -1089,7 +1089,7 @@ extension Row {
         var collection = Collection()
         collection.reserveCapacity(rows.count)
         for row in rows {
-            collection.append(Collection.Element(row: row))
+            try collection.append(Collection.Element(row: row))
         }
         return collection
     }
@@ -1107,7 +1107,7 @@ extension Row {
     ///     let books: Set<Book> = row["books"]
     ///     print(books.first!.title)
     ///     // Prints "Moby-Dick"
-    public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
+    public subscript<Record: DecodableRecord & Hashable>(_ key: String) -> Set<Record> {
         try! decode(Set<Record>.self, forKey: key)
     }
     
@@ -1124,7 +1124,7 @@ extension Row {
     ///     let books: Set<Book> = row["books"]
     ///     print(books.first!.title)
     ///     // Prints "Moby-Dick"
-    public func decode<Record: FetchableRecord & Hashable>(
+    public func decode<Record: DecodableRecord & Hashable>(
         _ type: Set<Record>.Type = Set<Record>.self,
         forKey key: String)
     throws -> Set<Record>
@@ -1152,7 +1152,7 @@ extension Row {
         }
         var set = Set<Record>(minimumCapacity: rows.count)
         for row in rows {
-            set.insert(Record(row: row))
+            try set.insert(Record(row: row))
         }
         return set
     }

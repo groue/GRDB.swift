@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Player: FetchableRecord, MutablePersistableRecord, Codable {
+private struct Player: DecodableRecord, MutablePersistableRecord, Codable {
     static let databaseTableName = "players"
     
     var id: Int64?

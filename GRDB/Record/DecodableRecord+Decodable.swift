@@ -1,19 +1,15 @@
 import Foundation
 
-extension FetchableRecord where Self: Decodable {
-    public init(row: Row) {
-        // Intended force-try. FetchableRecord is designed for records that
-        // reliably decode from rows.
-        self = try! RowDecoder().decode(from: row)
+extension DecodableRecord where Self: Decodable {
+    public init(row: Row) throws {
+        self = try RowDecoder().decode(from: row)
     }
 }
 
-// For testability. Not intended to become public as long as FetchableRecord has
-// a non-throwing row initializer, since this would open an undesired door.
 class RowDecoder {
     init() { }
     
-    func decode<T: FetchableRecord & Decodable>(_ type: T.Type = T.self, from row: Row) throws -> T {
+    func decode<T: DecodableRecord & Decodable>(_ type: T.Type = T.self, from row: Row) throws -> T {
         let decoder = _RowDecoder<T>(row: row, codingPath: [])
         return try T(from: decoder)
     }
@@ -22,7 +18,7 @@ class RowDecoder {
 // MARK: - _RowDecoder
 
 /// The decoder that decodes a record from a database row
-private struct _RowDecoder<R: FetchableRecord>: Decoder {
+private struct _RowDecoder<R: DecodableRecord>: Decoder {
     var row: Row
     var codingPath: [CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
@@ -60,7 +56,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             throw RowDecodingError.columnNotFound(key.stringValue, context: RowDecodingContext(row: row))
         }
         // TODO: test
-        // See DatabaseValueConversionErrorTests.testDecodableFetchableRecord2
+        // See DatabaseValueConversionErrorTests.testDecodableDecodableRecord2
         return ColumnDecoder<R>(row: row, columnIndex: index, codingPath: codingPath)
     }
     
@@ -244,9 +240,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         throws -> T
         where T: Decodable
         {
-            if let type = T.self as? FetchableRecord.Type {
-                // Prefer FetchableRecord decoding over Decodable.
-                return type.init(row: row) as! T
+            if let type = T.self as? DecodableRecord.Type {
+                // Prefer DecodableRecord decoding over Decodable.
+                return try type.init(row: row) as! T
             } else {
                 let decoder = _RowDecoder(row: row, codingPath: codingPath)
                 return try T(from: decoder)
@@ -285,7 +281,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
 
 // MARK: - PrefetchedRowsDecoder
 
-private struct PrefetchedRowsDecoder<R: FetchableRecord>: Decoder {
+private struct PrefetchedRowsDecoder<R: DecodableRecord>: Decoder {
     var rows: [Row]
     var codingPath: [CodingKey]
     var currentIndex: Int
@@ -340,7 +336,7 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
 // MARK: - ColumnDecoder
 
 /// The decoder that decodes from a database column
-private struct ColumnDecoder<R: FetchableRecord>: Decoder {
+private struct ColumnDecoder<R: DecodableRecord>: Decoder {
     var row: Row
     var columnIndex: Int
     var codingPath: [CodingKey]

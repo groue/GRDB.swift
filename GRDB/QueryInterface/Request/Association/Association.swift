@@ -239,7 +239,7 @@ extension Association {
     ///         static let team = belongsTo(Team.self)
     ///     }
     ///
-    ///     struct PlayerInfo: FetchableRecord, Decodable {
+    ///     struct PlayerInfo: DecodableRecord, Decodable {
     ///         let player: Player
     ///         let team: Team
     ///

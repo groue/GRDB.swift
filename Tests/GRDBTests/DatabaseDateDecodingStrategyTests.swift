@@ -44,19 +44,20 @@ private enum StrategyCustom: StrategyProvider {
     }
 }
 
-private struct RecordWithDate<Strategy: StrategyProvider>: FetchableRecord, Decodable {
+private struct RecordWithDate<Strategy: StrategyProvider>: DecodableRecord, Decodable {
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { Strategy.strategy }
     var date: Date
 }
 
-private struct RecordWithOptionalDate<Strategy: StrategyProvider>: FetchableRecord, Decodable {
+private struct RecordWithOptionalDate<Strategy: StrategyProvider>: DecodableRecord, Decodable {
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { Strategy.strategy }
     var date: Date?
 }
 
+#warning("TODO: test decoding error")
 class DatabaseDateDecodingStrategyTests: GRDBTestCase {
     /// test the conversion from a database value to a date extracted from a record
-    private func test<T: FetchableRecord>(
+    private func test<T: DecodableRecord>(
         _ db: Database,
         record: T.Type,
         date: (T) -> Date?,

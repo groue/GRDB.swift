@@ -15,7 +15,7 @@ import GRDB
 //:
 //: Customized row decoding allows you to go beyong the built-in support for
 //: requests of raw rows, values, or types that adopt the
-//: FetchableRecord protocol.
+//: DecodableRecord protocol.
 //:
 //: For example:
 //:
@@ -30,7 +30,7 @@ import GRDB
 //: and may fail at decoding database rows (throw an error when a row contains
 //: invalid values).
 //:
-//: None of those use cases can be handled by the built-in `FetchableRecord`
+//: None of those use cases can be handled by the built-in `DecodableRecord`
 //: protocol and its `init(row:)` initializer. They need *customized
 //: row decoding*.
 //:
@@ -182,7 +182,7 @@ try dbQueue.read { db in
 //:
 //: GRDB ships with three built-in realms of requests: requests of raw rows,
 //: requests of values, and requests of record types that adopt the
-//: `FetchableRecord` protocol.
+//: `DecodableRecord` protocol.
 //:
 //: We'll define requests of record types that adopt the custom
 //: `MyDatabaseDecoder` protocol:
@@ -202,7 +202,7 @@ extension Base: MyDatabaseDecoder {
 
 //: Now let's see how we can define a new realm of requests based on the
 //: `MyDatabaseDecoder` protocol. Our goal is to make them just as powerful as
-//: ready-made requests of rows, values and FetchableRecord.
+//: ready-made requests of rows, values and DecodableRecord.
 //:
 //: All we need is a set of *extensions* that define the classic GRDB fetching
 //: methods: `fetchOne`, `fetchAll`, and `fetchCursor`. The most fundamental one
@@ -325,7 +325,7 @@ try dbQueue.read { db in
     }
 }
 
-//: Types that adopt both FetchableRecord and TableRecord are able to fetch
+//: Types that adopt both DecodableRecord and TableRecord are able to fetch
 //: right from the base type. Let's allow this as well for MyDatabaseDecoder:
 //:
 //:     try dbQueue.read { db in
@@ -389,7 +389,7 @@ try dbQueue.read { db in
 }
 
 //: Voilà! Our `MyDatabaseDecoder` protocol is now as able as the built-in
-//: `FetchableRecord` protocol.
+//: `DecodableRecord` protocol.
 //:
 //: To sum up, you have learned:
 //:
@@ -397,7 +397,7 @@ try dbQueue.read { db in
 //: them the way you want.
 //: - how to define a whole new realm of requests based on a custom protocol.
 //: This involves writing a few extensions that give your protocol the same
-//: fluent interface that is ready-made for the built-in FetchableRecord
+//: fluent interface that is ready-made for the built-in DecodableRecord
 //: protocol. This is more work, but you are granted with the full
 //: customization freedom.
 //:
@@ -410,17 +410,17 @@ try dbQueue.read { db in
 //: should be initialized with some extra value that does not come from
 //: the database.
 //:
-//: In this case, you may define a `ContextFetchableRecord` protocol, and
+//: In this case, you may define a `ContextDecodableRecord` protocol, and
 //: derive all other fetching methods from the most fundamental one, which
 //: fetches a cursor from a prepared statement (as we did for the
 //: MyDatabaseDecoder protocol, above):
 
-protocol ContextFetchableRecord {
+protocol ContextDecodableRecord {
     associatedtype Context
     init(row: Row, context: Context)
 }
 
-extension ContextFetchableRecord {
+extension ContextDecodableRecord {
     static func fetchCursor(
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,
@@ -443,16 +443,16 @@ extension ContextFetchableRecord {
 //: and may fail at decoding database rows (throw an error when a row contains
 //: invalid values).
 //:
-//: In this case, you may define a `FailableFetchableRecord` protocol, and
+//: In this case, you may define a `FailableDecodableRecord` protocol, and
 //: derive all other fetching methods from the most fundamental one, which
 //: fetches a cursor from a prepared statement (as we did for the
 //: MyDatabaseDecoder protocol, above):
 
-protocol FailableFetchableRecord {
+protocol FailableDecodableRecord {
     init(row: Row) throws
 }
 
-extension FailableFetchableRecord {
+extension FailableDecodableRecord {
     static func fetchCursor(
         _ statement: SelectStatement,
         arguments: StatementArguments? = nil,

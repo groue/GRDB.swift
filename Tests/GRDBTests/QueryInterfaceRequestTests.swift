@@ -626,7 +626,7 @@ class QueryInterfaceRequestTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.execute(sql: "CREATE VIEW v AS SELECT * FROM readers")
-            struct ViewRecord: TableRecord, FetchableRecord, Decodable {
+            struct ViewRecord: TableRecord, DecodableRecord, Decodable {
                 static let databaseTableName = "v"
             }
             _ = try ViewRecord.filter(Column("id") == 1).fetchOne(db)

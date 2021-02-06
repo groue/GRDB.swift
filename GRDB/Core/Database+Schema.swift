@@ -475,7 +475,7 @@ extension Database {
 ///     2     score  INTEGER  0         NULL        0
 ///
 /// See `Database.columns(in:)` and https://www.sqlite.org/pragma.html#pragma_table_info
-public struct ColumnInfo: FetchableRecord {
+public struct ColumnInfo: DecodableRecord {
     let cid: Int
     
     /// The column name
@@ -727,7 +727,7 @@ struct SchemaInfo: Equatable {
         return objects.first { $0.name.lowercased() == name }?.name
     }
     
-    private struct SchemaObject: Codable, Hashable, FetchableRecord {
+    private struct SchemaObject: Codable, Hashable, DecodableRecord {
         var type: String
         var name: String
         var tbl_name: String?

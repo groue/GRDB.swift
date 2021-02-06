@@ -6,7 +6,7 @@ private struct Player: Equatable {
     var name: String
 }
 
-extension Player: TableRecord, FetchableRecord {
+extension Player: TableRecord, DecodableRecord {
     static let databaseTableName = "t"
     init(row: Row) {
         self.init(id: row["id"], name: row["name"])

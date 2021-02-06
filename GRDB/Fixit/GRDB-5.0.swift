@@ -147,7 +147,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     { preconditionFailure() }
 }
 
-extension FetchRequest where RowDecoder: FetchableRecord {
+extension FetchRequest where RowDecoder: DecodableRecord {
     @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchAll) instead")
     public func observationForAll() -> ValueObservation<ValueReducers.Unavailable<[RowDecoder]>>
     { preconditionFailure() }
@@ -276,7 +276,7 @@ extension TableRecord {
     { preconditionFailure() }
 }
 
-extension TableRecord where Self: FetchableRecord {
+extension TableRecord where Self: DecodableRecord {
     @available(*, unavailable, message: "Use ValueObservation.tracking(MyRecord.fetchAll) instead")
     public static func observationForAll() -> ValueObservation<ValueReducers.Unavailable<[Self]>>
     { preconditionFailure() }
@@ -496,13 +496,13 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingAll<Request: FetchRequest>(_ request: Request)
     -> ValueObservation<ValueReducers.Unavailable<[Request.RowDecoder]>>
-    where Request.RowDecoder: FetchableRecord
+    where Request.RowDecoder: DecodableRecord
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
     public static func trackingOne<Request: FetchRequest>(_ request: Request) ->
     ValueObservation<ValueReducers.Unavailable<Request.RowDecoder?>>
-    where Request.RowDecoder: FetchableRecord
+    where Request.RowDecoder: DecodableRecord
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(_:) instead")
