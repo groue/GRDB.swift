@@ -97,11 +97,11 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var b: B
             var c: C
             var d: D
-            init(row: Row) {
-                a = A(row: row)
-                b = row["b"]
-                c = row["c"]
-                d = row["d"]
+            init(row: Row) throws {
+                a = try A(row: row)
+                b = try row.decode(forKey: "b")
+                c = try row.decode(forKey: "c")
+                d = try row.decode(forKey: "d")
             }
         }
         

@@ -2,24 +2,25 @@ import Foundation
 import XCTest
 @testable import GRDB
 
+#warning("TODO: test decoding errors")
 class DecodableRecordDecodableTests: GRDBTestCase { }
 
 // MARK: - DecodableRecord conformance derived from Decodable
 
 extension DecodableRecordDecodableTests {
     
-    func testTrivialDecodable() {
+    func testTrivialDecodable() throws {
         struct Struct : DecodableRecord, Decodable {
             let value: String
         }
         
         do {
-            let s = Struct(row: ["value": "foo"])
+            let s = try Struct(row: ["value": "foo"])
             XCTAssertEqual(s.value, "foo")
         }
     }
     
-    func testCustomDecodable() {
+    func testCustomDecodable() throws {
         struct Struct : DecodableRecord, Decodable {
             let value: String
             
@@ -34,22 +35,22 @@ extension DecodableRecordDecodableTests {
         }
         
         do {
-            let s = Struct(row: ["someColumn": "foo"])
+            let s = try Struct(row: ["someColumn": "foo"])
             XCTAssertEqual(s.value, "foo")
         }
     }
     
-    func testCustomDecodableRecord() {
+    func testCustomDecodableRecord() throws {
         struct Struct : DecodableRecord, Decodable {
             let value: String
             
-            init(row: Row) {
-                value = (row["value"] as String) + " (DecodableRecord)"
+            init(row: Row) throws {
+                value = try row.decode(String.self, forKey: "value") + " (DecodableRecord)"
             }
         }
         
         do {
-            let s = Struct(row: ["value": "foo"])
+            let s = try Struct(row: ["value": "foo"])
             XCTAssertEqual(s.value, "foo (DecodableRecord)")
         }
     }
@@ -59,7 +60,7 @@ extension DecodableRecordDecodableTests {
 
 extension DecodableRecordDecodableTests {
     
-    func testTrivialProperty() {
+    func testTrivialProperty() throws {
         struct Struct : DecodableRecord, Decodable {
             let int64: Int64
             let optionalInt64: Int64?
@@ -67,25 +68,25 @@ extension DecodableRecordDecodableTests {
         
         do {
             // No null values
-            let s = Struct(row: ["int64": 1, "optionalInt64": 2])
+            let s = try Struct(row: ["int64": 1, "optionalInt64": 2])
             XCTAssertEqual(s.int64, 1)
             XCTAssertEqual(s.optionalInt64, 2)
         }
         do {
             // Null values
-            let s = Struct(row: ["int64": 2, "optionalInt64": nil])
+            let s = try Struct(row: ["int64": 2, "optionalInt64": nil])
             XCTAssertEqual(s.int64, 2)
             XCTAssertNil(s.optionalInt64)
         }
         do {
             // Missing and extra values
-            let s = Struct(row: ["int64": 3, "ignored": "?"])
+            let s = try Struct(row: ["int64": 3, "ignored": "?"])
             XCTAssertEqual(s.int64, 3)
             XCTAssertNil(s.optionalInt64)
         }
     }
     
-    func testTrivialSingleValueDecodableProperty() {
+    func testTrivialSingleValueDecodableProperty() throws {
         struct Value : Decodable {
             let string: String
             
@@ -101,27 +102,27 @@ extension DecodableRecordDecodableTests {
         
         do {
             // No null values
-            let s = Struct(row: ["value": "foo", "optionalValue": "bar"])
+            let s = try Struct(row: ["value": "foo", "optionalValue": "bar"])
             XCTAssertEqual(s.value.string, "foo")
             XCTAssertEqual(s.optionalValue!.string, "bar")
         }
         
         do {
             // Null values
-            let s = Struct(row: ["value": "foo", "optionalValue": nil])
+            let s = try Struct(row: ["value": "foo", "optionalValue": nil])
             XCTAssertEqual(s.value.string, "foo")
             XCTAssertNil(s.optionalValue)
         }
         
         do {
             // Missing and extra values
-            let s = Struct(row: ["value": "foo", "ignored": "?"])
+            let s = try Struct(row: ["value": "foo", "ignored": "?"])
             XCTAssertEqual(s.value.string, "foo")
             XCTAssertNil(s.optionalValue)
         }
     }
     
-    func testNonTrivialSingleValueDecodableProperty() {
+    func testNonTrivialSingleValueDecodableProperty() throws {
         struct NestedValue : Decodable {
             let string: String
             
@@ -145,27 +146,27 @@ extension DecodableRecordDecodableTests {
         
         do {
             // No null values
-            let s = Struct(row: ["value": "foo", "optionalValue": "bar"])
+            let s = try Struct(row: ["value": "foo", "optionalValue": "bar"])
             XCTAssertEqual(s.value.nestedValue.string, "foo")
             XCTAssertEqual(s.optionalValue!.nestedValue.string, "bar")
         }
         
         do {
             // Null values
-            let s = Struct(row: ["value": "foo", "optionalValue": nil])
+            let s = try Struct(row: ["value": "foo", "optionalValue": nil])
             XCTAssertEqual(s.value.nestedValue.string, "foo")
             XCTAssertNil(s.optionalValue)
         }
         
         do {
             // Missing and extra values
-            let s = Struct(row: ["value": "foo", "ignored": "?"])
+            let s = try Struct(row: ["value": "foo", "ignored": "?"])
             XCTAssertEqual(s.value.nestedValue.string, "foo")
             XCTAssertNil(s.optionalValue)
         }
     }
     
-    func testDecodableRawRepresentableProperty() {
+    func testDecodableRawRepresentableProperty() throws {
         // This test is somewhat redundant with testSingleValueDecodableProperty,
         // since a RawRepresentable enum is a "single-value" Decodable.
         //
@@ -182,27 +183,27 @@ extension DecodableRecordDecodableTests {
         
         do {
             // No null values
-            let s = Struct(row: ["value": "foo", "optionalValue": "bar"])
+            let s = try Struct(row: ["value": "foo", "optionalValue": "bar"])
             XCTAssertEqual(s.value, .foo)
             XCTAssertEqual(s.optionalValue!, .bar)
         }
         
         do {
             // Null values
-            let s = Struct(row: ["value": "foo", "optionalValue": nil])
+            let s = try Struct(row: ["value": "foo", "optionalValue": nil])
             XCTAssertEqual(s.value, .foo)
             XCTAssertNil(s.optionalValue)
         }
         
         do {
             // Missing and extra values
-            let s = Struct(row: ["value": "foo", "ignored": "?"])
+            let s = try Struct(row: ["value": "foo", "ignored": "?"])
             XCTAssertEqual(s.value, .foo)
             XCTAssertNil(s.optionalValue)
         }
     }
     
-    func testDatabaseValueConvertibleProperty() {
+    func testDatabaseValueConvertibleProperty() throws {
         // This test makes sure that Date, for example, can be read from a String.
         //
         // Without this preference for fromDatabaseValue(_:) over init(from:Decoder),
@@ -238,21 +239,21 @@ extension DecodableRecordDecodableTests {
         
         do {
             // No null values
-            let s = Struct(row: ["value": "foo", "optionalValue": "bar"])
+            let s = try Struct(row: ["value": "foo", "optionalValue": "bar"])
             XCTAssertEqual(s.value.string, "foo (DatabaseValueConvertible)")
             XCTAssertEqual(s.optionalValue!.string, "bar (DatabaseValueConvertible)")
         }
         
         do {
             // Null values
-            let s = Struct(row: ["value": "foo", "optionalValue": nil])
+            let s = try Struct(row: ["value": "foo", "optionalValue": nil])
             XCTAssertEqual(s.value.string, "foo (DatabaseValueConvertible)")
             XCTAssertNil(s.optionalValue)
         }
         
         do {
             // Missing and extra values
-            let s = Struct(row: ["value": "foo", "ignored": "?"])
+            let s = try Struct(row: ["value": "foo", "ignored": "?"])
             XCTAssertEqual(s.value.string, "foo (DatabaseValueConvertible)")
             XCTAssertNil(s.optionalValue)
         }
@@ -263,33 +264,33 @@ extension DecodableRecordDecodableTests {
 
 extension DecodableRecordDecodableTests {
 
-    func testStructWithDate() {
+    func testStructWithDate() throws {
         struct StructWithDate : DecodableRecord, Decodable {
             let date: Date
         }
         
         let date = Date()
-        let value = StructWithDate(row: ["date": date])
+        let value = try StructWithDate(row: ["date": date])
         XCTAssert(abs(value.date.timeIntervalSince(date)) < 0.001)
     }
     
-    func testStructWithURL() {
+    func testStructWithURL() throws {
         struct StructWithURL : DecodableRecord, Decodable {
             let url: URL
         }
         
         let url = URL(string: "https://github.com")
-        let value = StructWithURL(row: ["url": url])
+        let value = try StructWithURL(row: ["url": url])
         XCTAssertEqual(value.url, url)
     }
     
-    func testStructWithUUID() {
+    func testStructWithUUID() throws {
         struct StructWithUUID : DecodableRecord, Decodable {
             let uuid: UUID
         }
         
         let uuid = UUID()
-        let value = StructWithUUID(row: ["uuid": uuid])
+        let value = try StructWithUUID(row: ["uuid": uuid])
         XCTAssertEqual(value.uuid, uuid)
     }
 }
@@ -585,7 +586,7 @@ extension DecodableRecordDecodableTests {
             {"firstName":"Bob","lastName":"Dylan"}
             """]
         
-        let model = StructWithNestedType(row: row)
+        let model = try StructWithNestedType(row: row)
         XCTAssertEqual(model.nested.firstName, "Bob")
         XCTAssertEqual(model.nested.lastName, "Dylan")
     }
@@ -942,7 +943,7 @@ extension DecodableRecordDecodableTests {
             test(record)
             
             let row = try Row.fetchOne(db, request)!
-            test(Record(row: row))
+            try test(Record(row: row))
         }
     }
     
@@ -977,7 +978,7 @@ extension DecodableRecordDecodableTests {
             test(record)
             
             let row = try Row.fetchOne(db, request)!
-            test(Record(row: row))
+            try test(Record(row: row))
         }
     }
     
@@ -1014,7 +1015,7 @@ extension DecodableRecordDecodableTests {
             test(record)
             
             let row = try Row.fetchOne(db, request)!
-            test(CustomizedRecord(row: row))
+            try test(CustomizedRecord(row: row))
         }
     }
     
@@ -1049,7 +1050,7 @@ extension DecodableRecordDecodableTests {
             test(record)
             
             let row = try Row.fetchOne(db, request)!
-            test(CustomizedRecord(row: row))
+            try test(CustomizedRecord(row: row))
         }
     }
     

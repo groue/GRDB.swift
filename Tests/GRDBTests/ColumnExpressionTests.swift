@@ -7,7 +7,7 @@ class ColumnExpressionTests: GRDBTestCase {
         struct Player: TableRecord, DecodableRecord, PersistableRecord {
             var id: Int64
             var name: String
-            var score: Int
+            var score: Int?
             
             struct Column: ColumnExpression {
                 var name: String
@@ -22,11 +22,13 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test databaseSelection
             static let databaseSelection: [SQLSelectable] = [Columns.id, Columns.name, Columns.score]
             
-            init(row: Row) {
+            init(row: Row) throws {
                 // Test row subscript
                 id = row[Columns.id]
-                name = row[Columns.name]
-                score = row[Columns.score]
+                
+                // Test row decoding
+                name = try row.decode(forKey: Columns.name)
+                score = try row.decodeIfPresent(forKey: Columns.score)
             }
             
             func encode(to container: inout PersistenceContainer) {
@@ -58,7 +60,7 @@ class ColumnExpressionTests: GRDBTestCase {
             try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(id,name,score)[1,2,3]")
             
             // Test specific column updates
-            let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])
+            let player = try Player(row: ["id": 1, "name": "Arthur", "score": 1000])
             try? player.update(db, columns: [Player.Columns.name, Player.Columns.score])
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             
@@ -73,7 +75,7 @@ class ColumnExpressionTests: GRDBTestCase {
         struct Player: TableRecord, DecodableRecord, PersistableRecord {
             var id: Int64
             var name: String
-            var score: Int
+            var score: Int?
             
             enum Columns: String, ColumnExpression {
                 case id, name, score
@@ -82,11 +84,13 @@ class ColumnExpressionTests: GRDBTestCase {
             // Test databaseSelection
             static let databaseSelection: [SQLSelectable] = [Columns.id, Columns.name, Columns.score]
             
-            init(row: Row) {
+            init(row: Row) throws {
                 // Test row subscript
                 id = row[Columns.id]
-                name = row[Columns.name]
-                score = row[Columns.score]
+                
+                // Test row decoding
+                name = try row.decode(forKey: Columns.name)
+                score = try row.decodeIfPresent(forKey: Columns.score)
             }
             
             func encode(to container: inout PersistenceContainer) {
@@ -118,7 +122,7 @@ class ColumnExpressionTests: GRDBTestCase {
             try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(id,name,score)[1,2,3]")
             
             // Test specific column updates
-            let player = Player(row: ["id": 1, "name": "Arthur", "score": 1000])
+            let player = try Player(row: ["id": 1, "name": "Arthur", "score": 1000])
             try? player.update(db, columns: [Player.Columns.name, Player.Columns.score])
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             
@@ -172,7 +176,7 @@ class ColumnExpressionTests: GRDBTestCase {
             try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.Columns.id)).databaseRegion(db).description, "player(full_name,id,score)[1,2,3]")
             
             // Test specific column updates
-            let player = Player(row: ["id": 1, "full_name": "Arthur", "score": 1000])
+            let player = try Player(row: ["id": 1, "full_name": "Arthur", "score": 1000])
             try? player.update(db, columns: [Player.Columns.name, Player.Columns.score])
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"full_name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             
@@ -220,7 +224,7 @@ class ColumnExpressionTests: GRDBTestCase {
             try XCTAssertEqual(Player.filter([1, 2, 3].contains(Player.CodingKeys.id)).databaseRegion(db).description, "player(full_name,id,score)[1,2,3]")
             
             // Test specific column updates
-            let player = Player(row: ["id": 1, "full_name": "Arthur", "score": 1000])
+            let player = try Player(row: ["id": 1, "full_name": "Arthur", "score": 1000])
             try? player.update(db, columns: [Player.CodingKeys.name, Player.CodingKeys.score])
             XCTAssertEqual(lastSQLQuery, "UPDATE \"player\" SET \"full_name\"=\'Arthur\', \"score\"=1000 WHERE \"id\"=1")
             

@@ -20,9 +20,9 @@ private struct PlayerWithRequiredTeam: DecodableRecord {
     var player: Player
     var team: Team
     
-    init(row: Row) {
-        player = Player(row: row)
-        team = row[Player.teamScope]
+    init(row: Row) throws {
+        player = try Player(row: row)
+        team = try row.decode(forKey: Player.teamScope)
     }
 }
 
@@ -30,9 +30,9 @@ private struct PlayerWithOptionalTeam: DecodableRecord {
     var player: Player
     var team: Team?
     
-    init(row: Row) {
-        player = Player(row: row)
-        team = row[Player.teamScope]
+    init(row: Row) throws {
+        player = try Player(row: row)
+        team = try row.decodeIfPresent(forKey: Player.teamScope)
     }
 }
 

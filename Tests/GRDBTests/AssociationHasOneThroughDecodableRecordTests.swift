@@ -25,9 +25,9 @@ private struct AWithRequiredC: DecodableRecord {
     var a: A
     var c: C
     
-    init(row: Row) {
-        a = A(row: row)
-        c = row["c"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        c = try row.decode(forKey: "c")
     }
 }
 
@@ -35,9 +35,9 @@ private struct AWithOptionalC: DecodableRecord {
     var a: A
     var c: C?
     
-    init(row: Row) {
-        a = A(row: row)
-        c = row["c"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        c = try row.decodeIfPresent(forKey: "c")
     }
 }
 
@@ -46,10 +46,10 @@ private struct AWithRequiredBAndOptionalC: DecodableRecord {
     var b: B
     var c: C?
     
-    init(row: Row) {
-        a = A(row: row)
-        b = row["b"]
-        c = row["c"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        b = try row.decode(forKey: "b")
+        c = try row.decodeIfPresent(forKey: "c")
     }
 }
 
