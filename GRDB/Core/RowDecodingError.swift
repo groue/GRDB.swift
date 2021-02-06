@@ -83,22 +83,6 @@ public enum RowDecodingError: Error {
             databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: Int32(index)))
     }
     
-    // TODO: remove when injecting decoding context into StatementColumnConvertible becomes possible
-    /// Convenience method that builds the
-    /// `could not decode <Type> from database value <value>` error message.
-    @usableFromInline
-    static func valueMismatch(
-        _ type: Any.Type,
-        sqliteStatement: SQLiteStatement,
-        index: Int32)
-    -> Self
-    {
-        valueMismatch(
-            type,
-            context: RowDecodingContext(sqliteStatement: sqliteStatement, index: index),
-            databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
-    }
-    
     /// Convenience method that builds the `column not found: <column>`
     /// error message.
     @usableFromInline
@@ -151,16 +135,6 @@ struct RowDecodingContext {
         self.row = Row(copiedFromSQLiteStatement: statement.sqliteStatement, statement: statement)
         self.sql = statement.sql
         self.statementArguments = statement.arguments
-    }
-    
-    // TODO: remove when injecting decoding context into StatementColumnConvertible becomes possible
-    @usableFromInline
-    /// Convenience initializer
-    init(sqliteStatement: SQLiteStatement, index: Int32) {
-        self.key = .columnIndex(Int(index))
-        self.row = Row(sqliteStatement: sqliteStatement).copy()
-        self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
-        self.statementArguments = nil // Can't rebuild them
     }
 }
 

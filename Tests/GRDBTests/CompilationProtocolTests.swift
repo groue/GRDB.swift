@@ -124,11 +124,11 @@ private class UserFetchableRecord2 : FetchableRecord {
 // MARK: - StatementColumnConvertible
 
 private struct UserStatementColumnConvertible1 : StatementColumnConvertible {
-    init(sqliteStatement: SQLiteStatement, index: Int32) { }
+    init?(sqliteStatement: SQLiteStatement, index: Int32) { }
 }
 
 private class UserStatementColumnConvertible2 : StatementColumnConvertible {
-    required init(sqliteStatement: SQLiteStatement, index: Int32) { }
+    required init?(sqliteStatement: SQLiteStatement, index: Int32) { }
 }
 
 // MARK: - TableRecord

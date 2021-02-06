@@ -87,10 +87,15 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         context: @autoclosure () -> RowDecodingContext)
     throws -> Self
     {
-        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: .null)
+        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL,
+              let value = self.init(sqliteStatement: sqliteStatement, index: index)
+        else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                context: context(),
+                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
         }
-        return self.init(sqliteStatement: sqliteStatement, index: index)
+        return value
     }
 
     @inlinable
@@ -118,8 +123,13 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
         }
-        // TODO: inject decoding context when possible
-        return self.init(sqliteStatement: sqliteStatement, index: index)
+        guard let value = self.init(sqliteStatement: sqliteStatement, index: index) else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                context: context(),
+                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+        }
+        return value
     }
 
     @inlinable

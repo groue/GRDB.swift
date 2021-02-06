@@ -438,7 +438,13 @@ extension DatabaseDateDecodingStrategy {
     {
         switch self {
         case .deferredToDate:
-            return Date(sqliteStatement: sqliteStatement, index: index)
+            guard let date = Date(sqliteStatement: sqliteStatement, index: index) else {
+                throw RowDecodingError.valueMismatch(
+                    Date.self,
+                    context: context(),
+                    databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+            }
+            return date
         case .timeIntervalSinceReferenceDate:
             let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
             return Date(timeIntervalSinceReferenceDate: timeInterval)
@@ -452,7 +458,10 @@ extension DatabaseDateDecodingStrategy {
             if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
                 let string = String(sqliteStatement: sqliteStatement, index: index)
                 guard let date = iso8601Formatter.date(from: string) else {
-                    throw RowDecodingError.valueMismatch(Date.self, sqliteStatement: sqliteStatement, index: index)
+                    throw RowDecodingError.valueMismatch(
+                        Date.self,
+                        context: context(),
+                        databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
                 }
                 return date
             } else {
@@ -461,13 +470,19 @@ extension DatabaseDateDecodingStrategy {
         case .formatted(let formatter):
             let string = String(sqliteStatement: sqliteStatement, index: index)
             guard let date = formatter.date(from: string) else {
-                throw RowDecodingError.valueMismatch(Date.self, sqliteStatement: sqliteStatement, index: index)
+                throw RowDecodingError.valueMismatch(
+                    Date.self,
+                    context: context(),
+                    databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
             }
             return date
         case .custom(let format):
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
             guard let date = format(dbValue) else {
-                throw RowDecodingError.valueMismatch(Date.self, sqliteStatement: sqliteStatement, index: index)
+                throw RowDecodingError.valueMismatch(
+                    Date.self,
+                    context: context(),
+                    databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
             }
             return date
         }
