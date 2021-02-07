@@ -180,7 +180,11 @@ struct SQLQueryGenerator: Refinable {
             // Note that the request `parent.none().including(all: children)` is
             // different. Since `parent.none()` is provably empty, its region
             // is empty, and we thus avoid this code branch.
-            try statement.databaseRegion.formUnion(prefetchedRegion(db, associations: prefetchedAssociations))
+            let region = try prefetchedRegion(
+                db,
+                associations: prefetchedAssociations,
+                from: relation.source.tableName)
+            statement.databaseRegion.formUnion(region)
         }
         
         return statement
@@ -765,31 +769,24 @@ private struct SQLQualifiedJoin: Refinable {
         
         // JOIN table...
         var sql = try "\(kind.rawValue) \(relation.source.sql(context))"
-        let rightAlias = relation.source.alias
         
         // ... ON <join conditions>
-        var joinExpressions: [SQLExpression]
-        switch condition {
-        case let .expression(condition):
-            joinExpressions = [condition(leftAlias, rightAlias).sqlExpression]
-            
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            joinExpressions = try foreignKeyRequest
-                .fetchForeignKeyMapping(context.db)
-                .joinMapping(originIsLeft: originIsLeft)
-                .joinExpressions(leftAlias: leftAlias)
-        }
+        let rightAlias = relation.source.alias
+        var conditions = try condition.joinExpressions(context.db,
+                                                       leftAlias: leftAlias,
+                                                       rightAlias: rightAlias)
         
-        // ... ON ... AND <other filters>
-        joinExpressions += try relation.filtersPromise.resolve(context.db)
+        // ... AND <other filters>
+        conditions += try relation.filtersPromise
+            .resolve(context.db)
+            .map { $0._qualifiedExpression(with: rightAlias) }
         
         // Avoid generating on ON clause for trivially true conditions
-        joinExpressions = joinExpressions.filter { !$0._isTrue }
+        conditions = conditions.filter { !$0._isTrue }
         
-        if joinExpressions.isEmpty == false {
-            let joiningSQL = try joinExpressions
+        if conditions.isEmpty == false {
+            let joiningSQL = try conditions
                 .joined(operator: .and)
-                ._qualifiedExpression(with: rightAlias)
                 ._expressionSQL(context, wrappedInParenthesis: false)
             sql += " ON \(joiningSQL)"
         }

@@ -76,20 +76,15 @@ public struct HasOneAssociation<Origin, Destination>: AssociationToOne {
     }
     
     init(
-        from originTable: String,
         to destinationRelation: SQLRelation,
         key: String?,
         using foreignKey: ForeignKey?)
     {
         let destinationTable = destinationRelation.source.tableName
         
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: destinationTable,
-            destinationTable: originTable,
-            foreignKey: foreignKey)
-        
-        let condition = SQLAssociationCondition.foreignKey(
-            request: foreignKeyRequest,
+        let foreignKeyCondition = SQLForeignKeyCondition(
+            destinationTable: destinationTable,
+            foreignKey: foreignKey,
             originIsLeft: false)
         
         let associationKey: SQLAssociationKey
@@ -101,7 +96,7 @@ public struct HasOneAssociation<Origin, Destination>: AssociationToOne {
         
         _sqlAssociation = _SQLAssociation(
             key: associationKey,
-            condition: condition,
+            condition: .foreignKey(foreignKeyCondition),
             relation: destinationRelation,
             cardinality: .toOne)
     }

@@ -63,7 +63,6 @@ extension TableRecord {
     where Destination: TableRecord
     {
         BelongsToAssociation(
-            from: databaseTableName,
             to: Destination.relationForAll,
             key: key,
             using: foreignKey)
@@ -133,7 +132,6 @@ extension TableRecord {
     where Destination: TableRecord
     {
         HasManyAssociation(
-            from: databaseTableName,
             to: Destination.relationForAll,
             key: key,
             using: foreignKey)
@@ -285,7 +283,6 @@ extension TableRecord {
     where Destination: TableRecord
     {
         HasOneAssociation(
-            from: databaseTableName,
             to: Destination.relationForAll,
             key: key,
             using: foreignKey)
@@ -432,7 +429,7 @@ extension TableRecord {
 ///         static let authorForeignKey = ForeignKey(["authorId"], to: ["id"]))
 ///         static let author = belongsTo(Person.self, using: authorForeignKey)
 ///     }
-public struct ForeignKey {
+public struct ForeignKey: Equatable {
     var originColumns: [String]
     var destinationColumns: [String]?
     
@@ -506,15 +503,14 @@ extension TableRecord where Self: EncodableRecord {
             // TODO: find a use case?
             fatalError("Not implemented: request association without any foreign key")
             
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
+        case let .foreignKey(foreignKey):
             let destinationRelation = association
                 ._sqlAssociation
                 .map(\.pivot.relation, { pivotRelation in
                     pivotRelation.filter { db in
                         // Filter the pivot on self
-                        try foreignKeyRequest
-                            .fetchForeignKeyMapping(db)
-                            .joinMapping(originIsLeft: originIsLeft)
+                        try foreignKey
+                            .joinMapping(db, from: Self.databaseTableName)
                             .joinExpression(leftRows: [PersistenceContainer(db, self)])
                     }
                 })

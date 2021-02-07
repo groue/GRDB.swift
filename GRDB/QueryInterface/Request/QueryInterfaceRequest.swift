@@ -56,7 +56,7 @@ extension QueryInterfaceRequest: FetchRequest {
         if associations.isEmpty == false {
             // Eager loading of prefetched associations
             preparedRequest = preparedRequest.with(\.supplementaryFetch) { db, rows in
-                try prefetch(db, associations: associations, into: rows, from: self)
+                try prefetch(db, associations: associations, from: self, into: rows)
             }
         }
         return preparedRequest
@@ -539,8 +539,8 @@ public func /= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 private func prefetch<RowDecoder>(
     _ db: Database,
     associations: [_SQLAssociation],
-    into baseRows: [Row],
-    from baseRequest: QueryInterfaceRequest<RowDecoder>) throws
+    from baseRequest: QueryInterfaceRequest<RowDecoder>,
+    into baseRows: [Row]) throws
 {
     guard let firstBaseRow = baseRows.first else {
         // No rows -> no prefetch
@@ -554,10 +554,9 @@ private func prefetch<RowDecoder>(
             // are not prefetched with including(all:)
             fatalError("Not implemented: prefetch association without any foreign key")
             
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            let pivotMapping = try foreignKeyRequest
-                .fetchForeignKeyMapping(db)
-                .joinMapping(originIsLeft: originIsLeft)
+        case let .foreignKey(pivotForeignKey):
+            let originTable = baseRequest.query.relation.source.tableName
+            let pivotMapping = try pivotForeignKey.joinMapping(db, from: originTable)
             let pivotColumns = pivotMapping.map(\.right)
             let leftColumns = pivotMapping.map(\.left)
             
@@ -703,7 +702,12 @@ func makePrefetchRequest(
 
 // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
 /// Returns the region of prefetched associations
-func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws -> DatabaseRegion {
+func prefetchedRegion(
+    _ db: Database,
+    associations: [_SQLAssociation],
+    from originTable: String)
+throws -> DatabaseRegion
+{
     try associations.reduce(into: DatabaseRegion()) { (region, association) in
         switch association.pivot.condition {
         case .expression:
@@ -711,10 +715,8 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
             // are not prefetched with including(all:)
             fatalError("Not implemented: prefetch association without any foreign key")
             
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            let pivotMapping = try foreignKeyRequest
-                .fetchForeignKeyMapping(db)
-                .joinMapping(originIsLeft: originIsLeft)
+        case let .foreignKey(pivotForeignKey):
+            let pivotMapping = try pivotForeignKey.joinMapping(db, from: originTable)
             let prefetchRegion = try prefetchedRegion(db, association: association, pivotMapping: pivotMapping)
             region.formUnion(prefetchRegion)
         }

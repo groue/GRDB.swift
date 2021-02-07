@@ -130,7 +130,7 @@ public struct _SQLAssociation {
                 
                 return SQLAssociationStep(
                     key: key,
-                    condition: nextStep.condition.reversed,
+                    condition: nextStep.condition.reversed(to: step.relation.source.tableName),
                     relation: relation,
                     cardinality: .toOne)
             })

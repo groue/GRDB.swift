@@ -539,27 +539,7 @@ extension SQLRelation {
 ///     author.request(for: Author.books)
 enum SQLAssociationCondition {
     /// A condition based on a foreign key.
-    ///
-    /// originIsLeft is true if the table at the origin of the foreign key is on
-    /// the left of the sql JOIN operator.
-    ///
-    /// Let's consider the `book.authorId -> author.id` foreign key.
-    /// Its origin table is `book`.
-    ///
-    /// The origin table `book` is on the left of the JOIN operator for
-    /// the BelongsTo association:
-    ///
-    ///     -- Book.including(required: Book.author)
-    ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
-    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
-    ///
-    /// The origin table `book`is on the right of the JOIN operator for
-    /// the HasMany and HasOne associations:
-    ///
-    ///     -- Author.including(required: Author.books)
-    ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
-    ///                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
-    case foreignKey(request: SQLForeignKeyRequest, originIsLeft: Bool)
+    case foreignKey(SQLForeignKeyCondition)
     
     /// A condition based on a function that returns an expression.
     ///
@@ -581,12 +561,94 @@ enum SQLAssociationCondition {
     /// in any way.
     static let none = expression({ _, _ in true })
     
-    var reversed: SQLAssociationCondition {
+    func reversed(to destinationTable: String) -> SQLAssociationCondition {
         switch self {
-        case let .foreignKey(request: request, originIsLeft: originIsLeft):
-            return .foreignKey(request: request, originIsLeft: !originIsLeft)
+        case let .foreignKey(foreignKey):
+            return .foreignKey(foreignKey.reversed(to: destinationTable))
         case let .expression(condition):
             return .expression { condition($1, $0) }
+        }
+    }
+    
+    func joinExpressions(
+        _ db: Database,
+        leftAlias: TableAlias,
+        rightAlias: TableAlias)
+    throws -> [SQLExpression]
+    {
+        switch self {
+        case let .expression(condition):
+            return [condition(leftAlias, rightAlias).sqlExpression]
+        case let .foreignKey(foreignKey):
+            return try foreignKey
+                .joinMapping(db, from: leftAlias.tableName)
+                .joinExpressions(leftAlias: leftAlias, rightAlias: rightAlias)
+        }
+    }
+}
+
+/// An association condition based on a foreign key.
+struct SQLForeignKeyCondition: Equatable {
+    /// The destination table of an association.
+    ///
+    /// In `Author.hasMany(Book.self)`, the destination is `book`.
+    var destinationTable: String
+    
+    /// A user-provided foreign key. When nil, we introspect the database in
+    /// order to look for a foreign key in the schema.
+    var foreignKey: ForeignKey?
+    
+    /// `originIsLeft` is true if the table at the origin of the foreign key is
+    /// on the left of the sql JOIN operator.
+    ///
+    /// Let's consider the `book.authorId -> author.id` foreign key.
+    /// Its origin table is `book`.
+    ///
+    /// The origin table `book` is on the left of the JOIN operator for
+    /// the `BelongsTo` association:
+    ///
+    ///     -- Book.including(required: Book.author)
+    ///     SELECT ... FROM book JOIN author ON author.id = book.authorId
+    ///                     ~~~~ ~~~~
+    ///
+    /// The origin table `book`is on the right of the JOIN operator for
+    /// the `HasMany` and `HasOne` associations:
+    ///
+    ///     -- Author.including(required: Author.books)
+    ///     SELECT ... FROM author JOIN book ON author.id = book.authorId
+    ///                            ~~~~ ~~~~
+    ///
+    /// See also `ForeignKeyMapping.joinMapping(originIsLeft:)`
+    var originIsLeft: Bool
+    
+    func reversed(to destinationTable: String) -> SQLForeignKeyCondition {
+        SQLForeignKeyCondition(
+            destinationTable: destinationTable,
+            foreignKey: foreignKey,
+            originIsLeft: !originIsLeft)
+    }
+    
+    /// Turns the foreign key condition into a `JoinMapping` that can feed an
+    /// SQL JOIN clause.
+    func joinMapping(_ db: Database, from originTable: String) throws -> JoinMapping {
+        try foreignKeyRequest(from: originTable)
+            .fetchForeignKeyMapping(db)
+            .joinMapping(originIsLeft: originIsLeft)
+    }
+    
+    private func foreignKeyRequest(from originTable: String) -> SQLForeignKeyRequest {
+        // Convert association destination/origin to
+        // foreign key destination/origin.
+        if originIsLeft {
+            return SQLForeignKeyRequest(
+                originTable: originTable,
+                destinationTable: destinationTable,
+                foreignKey: foreignKey)
+        } else {
+            return SQLForeignKeyRequest(
+                originTable: destinationTable,
+                destinationTable: originTable,
+                foreignKey: foreignKey)
         }
     }
 }
@@ -661,11 +723,15 @@ extension JoinMapping {
     ///
     /// - parameter leftAlias: A TableAlias for the table on the left of the
     ///   JOIN operator.
+    /// - parameter rightAlias: A TableAlias for the table on the right of the
+    ///   JOIN operator.
     /// - Returns: An array of SQL expression that should be joined with
     ///   the AND operator and qualified with the right table.
-    func joinExpressions(leftAlias: TableAlias) -> [SQLExpression] {
+    func joinExpressions(leftAlias: TableAlias, rightAlias: TableAlias) -> [SQLExpression] {
         map {
-            Column($0.right) == SQLQualifiedColumn($0.left, alias: leftAlias)
+            let right = SQLQualifiedColumn($0.right, alias: rightAlias)
+            let left = SQLQualifiedColumn($0.left, alias: leftAlias)
+            return right == left
         }
     }
 }
@@ -793,8 +859,8 @@ extension SQLSource {
 extension SQLAssociationCondition {
     func merged(with other: SQLAssociationCondition) -> Self? {
         switch (self, other) {
-        case let (.foreignKey(lr, lo), .foreignKey(rr, ro)):
-            if lr == rr && lo == ro {
+        case let (.foreignKey(lhs), .foreignKey(rhs)):
+            if lhs == rhs {
                 return self
             } else {
                 // can't merge
