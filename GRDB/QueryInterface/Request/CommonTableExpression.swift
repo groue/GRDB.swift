@@ -197,68 +197,6 @@ struct SQLCTE {
     }
 }
 
-extension TableRecord {
-    /// Creates an association to a common table expression that you can join
-    /// or include in another request.
-    ///
-    /// The key of the returned association is the table name of the common
-    /// table expression.
-    ///
-    /// For example, you can build a request that fetches all chats with their
-    /// latest message:
-    ///
-    ///     let latestMessageRequest = Message
-    ///         .annotated(with: max(Column("date")))
-    ///         .group(Column("chatID"))
-    ///
-    ///     let latestMessageCTE = CommonTableExpression<Void>(
-    ///         named: "latestMessage",
-    ///         request: latestMessageRequest)
-    ///
-    ///     let latestMessage = Chat.association(
-    ///         to: latestMessageCTE,
-    ///         on: { chat, latestMessage in
-    ///             chat[Column("id")] == latestMessage[Column("chatID")]
-    ///         })
-    ///
-    ///     // WITH latestMessage AS
-    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
-    ///     // SELECT chat.*, latestMessage.*
-    ///     // FROM chat
-    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
-    ///     let request = Chat
-    ///         .with(latestMessageCTE)
-    ///         .including(optional: latestMessage)
-    ///
-    /// - parameter cte: A common table expression.
-    /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
-    /// - returns: An association to the common table expression.
-    public static func association<Destination>(
-        to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
-    -> JoinAssociation<Self, Destination>
-    {
-        JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
-    }
-    
-    /// Creates an association to a common table expression that you can join
-    /// or include in another request.
-    ///
-    /// The key of the returned association is the table name of the common
-    /// table expression.
-    ///
-    /// - parameter cte: A common table expression.
-    /// - returns: An association to the common table expression.
-    public static func association<Destination>(
-        to cte: CommonTableExpression<Destination>)
-    -> JoinAssociation<Self, Destination>
-    {
-        JoinAssociation(to: cte.relationForAll, condition: .none)
-    }
-}
-
 extension CommonTableExpression {
     /// Creates an association to a common table expression that you can join
     /// or include in another request.
@@ -329,7 +267,7 @@ extension CommonTableExpression {
     }
 }
 
-// MARK: - QueryInterfaceRequest
+// MARK: - With
 
 extension QueryInterfaceRequest {
     /// Returns a request which embeds the common table expression.
