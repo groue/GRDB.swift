@@ -329,9 +329,6 @@
 		5653EB2120944C7C00F46237 /* HasOneAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB0220944C7C00F46237 /* HasOneAssociation.swift */; };
 		5653EB2220944C7C00F46237 /* HasOneAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB0220944C7C00F46237 /* HasOneAssociation.swift */; };
 		5653EB2320944C7C00F46237 /* HasOneAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB0220944C7C00F46237 /* HasOneAssociation.swift */; };
-		5653EB252094A14400F46237 /* QueryInterfaceRequest+Association.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB242094A14400F46237 /* QueryInterfaceRequest+Association.swift */; };
-		5653EB262094A14400F46237 /* QueryInterfaceRequest+Association.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB242094A14400F46237 /* QueryInterfaceRequest+Association.swift */; };
-		5653EB272094A14400F46237 /* QueryInterfaceRequest+Association.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB242094A14400F46237 /* QueryInterfaceRequest+Association.swift */; };
 		5653EC122098738B00F46237 /* SQLGenerationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EC0B2098738B00F46237 /* SQLGenerationContext.swift */; };
 		5653EC132098738B00F46237 /* SQLGenerationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EC0B2098738B00F46237 /* SQLGenerationContext.swift */; };
 		5653EC142098738B00F46237 /* SQLGenerationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EC0B2098738B00F46237 /* SQLGenerationContext.swift */; };
@@ -914,7 +911,6 @@
 		AAA4DC83230F1E0600C74B15 /* FTS3.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB4F81EAA2F4D00BFAF62 /* FTS3.swift */; };
 		AAA4DC84230F1E0600C74B15 /* CGFloat.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F1491C672E4000235C62 /* CGFloat.swift */; };
 		AAA4DC85230F1E0600C74B15 /* Column.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CEB5401EAA359A00BFAF62 /* Column.swift */; };
-		AAA4DC86230F1E0600C74B15 /* QueryInterfaceRequest+Association.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB242094A14400F46237 /* QueryInterfaceRequest+Association.swift */; };
 		AAA4DC87230F1E0600C74B15 /* Date.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5605F14F1C672E4000235C62 /* Date.swift */; };
 		AAA4DC89230F1E0600C74B15 /* TransactionObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566B91321FA4D3810012D5B0 /* TransactionObserver.swift */; };
 		AAA4DC8A230F1E0600C74B15 /* ValueObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = 564CE43021AA901800652B19 /* ValueObserver.swift */; };
@@ -1379,7 +1375,6 @@
 		5653EAFA20944C7B00F46237 /* Association.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Association.swift; sourceTree = "<group>"; };
 		5653EAFB20944C7B00F46237 /* HasManyAssociation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HasManyAssociation.swift; sourceTree = "<group>"; };
 		5653EB0220944C7C00F46237 /* HasOneAssociation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HasOneAssociation.swift; sourceTree = "<group>"; };
-		5653EB242094A14400F46237 /* QueryInterfaceRequest+Association.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "QueryInterfaceRequest+Association.swift"; sourceTree = "<group>"; };
 		5653EC0B2098738B00F46237 /* SQLGenerationContext.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLGenerationContext.swift; sourceTree = "<group>"; };
 		565490A01D5A4798005622CB /* GRDB.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GRDB.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		56553C181C3E906C00522B5C /* GRDBOSXCrashTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBOSXCrashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -2074,7 +2069,6 @@
 				5653EAF720944BC900F46237 /* Association */,
 				56012B742574048B00B4925B /* CommonTableExpression.swift */,
 				56300B6F1C53F592005A543B /* QueryInterfaceRequest.swift */,
-				5653EB242094A14400F46237 /* QueryInterfaceRequest+Association.swift */,
 				5616AAF0207CD45E00AC3664 /* RequestProtocols.swift */,
 			);
 			path = Request;
@@ -2900,7 +2894,6 @@
 				564CE43321AA901800652B19 /* ValueObserver.swift in Sources */,
 				56CEB5671EAA359A00BFAF62 /* SQLSelectable.swift in Sources */,
 				563B8FC724A1D3B9007A48C9 /* OnDemandFuture.swift in Sources */,
-				5653EB272094A14400F46237 /* QueryInterfaceRequest+Association.swift in Sources */,
 				565490B91D5AE236005622CB /* DatabasePool.swift in Sources */,
 				563B06AD217EF0CC00B38F35 /* ValueObservation.swift in Sources */,
 				5674A6EF1F307F0E0095F066 /* DatabaseValueConvertible+Encodable.swift in Sources */,
@@ -3041,7 +3034,6 @@
 				56CEB4FD1EAA2F4D00BFAF62 /* FTS3.swift in Sources */,
 				5605F15A1C672E4000235C62 /* CGFloat.swift in Sources */,
 				56CEB5481EAA359A00BFAF62 /* Column.swift in Sources */,
-				5653EB262094A14400F46237 /* QueryInterfaceRequest+Association.swift in Sources */,
 				5605F1641C672E4000235C62 /* Date.swift in Sources */,
 				566B91361FA4D3810012D5B0 /* TransactionObserver.swift in Sources */,
 				564CE43221AA901800652B19 /* ValueObserver.swift in Sources */,
@@ -3628,7 +3620,6 @@
 				AAA4DC83230F1E0600C74B15 /* FTS3.swift in Sources */,
 				AAA4DC84230F1E0600C74B15 /* CGFloat.swift in Sources */,
 				AAA4DC85230F1E0600C74B15 /* Column.swift in Sources */,
-				AAA4DC86230F1E0600C74B15 /* QueryInterfaceRequest+Association.swift in Sources */,
 				AAA4DC87230F1E0600C74B15 /* Date.swift in Sources */,
 				AAA4DC89230F1E0600C74B15 /* TransactionObserver.swift in Sources */,
 				AAA4DC8A230F1E0600C74B15 /* ValueObserver.swift in Sources */,
@@ -4028,7 +4019,6 @@
 				56A2FA3624424D2A00E97D23 /* Export.swift in Sources */,
 				56B964B11DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
 				560A37A71C8FF6E500949E71 /* SerializedDatabase.swift in Sources */,
-				5653EB252094A14400F46237 /* QueryInterfaceRequest+Association.swift in Sources */,
 				563B8FAC24A1CE43007A48C9 /* DatabasePublishers.swift in Sources */,
 				5605F1691C672E4000235C62 /* NSString.swift in Sources */,
 				560D92401C672C3E00F4F92B /* DatabaseValueConvertible.swift in Sources */,
