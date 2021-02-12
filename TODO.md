@@ -15,6 +15,8 @@
 
 ## Features
 
+- [ ] GRDB 6: decoding errors
+- [ ] GRDB 6: conflict resolution in persistence methods
 - [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commmit and the end of the editing session.
     * Create an edition SQLite connection with an open transaction (a new kind of DatabaseWriter with a save() method)
     * All other writes will fail with SQLITE_BUSY. Unless they are schedules in a target dispatch queue which is paused during the edition.
