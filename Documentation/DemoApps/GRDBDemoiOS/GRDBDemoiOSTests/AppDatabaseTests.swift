@@ -144,34 +144,6 @@ class AppDatabaseTests: XCTestCase {
         XCTAssertEqual(players, [player])
     }
     
-    func test_observePlayerCount() throws {
-        // Given a players database that contains one player
-        let dbQueue = DatabaseQueue()
-        let appDatabase = try AppDatabase(dbQueue)
-        var player = Player(id: nil, name: "Arthur", score: 100)
-        try dbQueue.write { db in
-            try player.insert(db)
-        }
-        
-        // When we observe the player count and wait for the first value
-        let exp = expectation(description: "Player count")
-        var count: Int?
-        let cancellable = appDatabase.observePlayerCount(
-            onError: { error in
-                XCTFail("Unexpected error \(error)")
-            },
-            onChange: {
-                count = $0
-                exp.fulfill()
-            })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 1, handler: nil)
-        }
-        
-        // Then that first value is one
-        XCTAssertEqual(count, 1)
-    }
-    
     func test_observePlayersOrderedByName() throws {
         // Given a players database that contains two players
         let dbQueue = DatabaseQueue()
