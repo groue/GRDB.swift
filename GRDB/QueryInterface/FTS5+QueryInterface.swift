@@ -21,7 +21,7 @@ extension TableRequest where Self: FilteredRequest {
             return none()
         }
         let alias = TableAlias()
-        let matchExpression = SQLExpressionTableMatch(alias: alias, pattern: pattern.databaseValue)
+        let matchExpression = SQLExpression.tableMatch(alias, pattern.sqlExpression)
         return self.aliased(alias).filter(matchExpression)
     }
 }

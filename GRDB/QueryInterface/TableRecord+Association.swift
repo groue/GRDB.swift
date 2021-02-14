@@ -254,7 +254,9 @@ extension TableRecord {
         on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
     -> JoinAssociation<Self, Destination>
     {
-        JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
+        JoinAssociation(
+            to: cte.relationForAll,
+            condition: .expression { condition($0, $1).sqlExpression })
     }
     
     /// Creates an association to a common table expression that you can join

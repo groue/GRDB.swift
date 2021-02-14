@@ -102,7 +102,7 @@ extension SelectionRequest {
     ///         .select(literal: SQLLiteral(sql: "email"))
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        select(sqlLiteral.sqlSelectable)
+        select(sqlLiteral.sqlSelection)
     }
     
     /// Creates a request which appends *selection*.
@@ -317,7 +317,7 @@ extension TableRequest where Self: OrderedRequest {
     public func orderByPrimaryKey() -> Self {
         let tableName = self.databaseTableName
         return order { db in
-            try db.primaryKey(tableName).columns.map { Column($0) }
+            try db.primaryKey(tableName).columns.map(SQLExpression.column)
         }
     }
 }
@@ -501,7 +501,7 @@ extension OrderedRequest {
     ///         .order(sql: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        order(sqlLiteral.sqlOrderingTerm)
+        order(sqlLiteral.sqlOrdering)
     }
 }
 

@@ -23,9 +23,8 @@ public protocol DatabaseValueConvertible: SQLExpressible {
 }
 
 extension DatabaseValueConvertible {
-    /// :nodoc:
     public var sqlExpression: SQLExpression {
-        databaseValue
+        .databaseValue(databaseValue)
     }
 }
 

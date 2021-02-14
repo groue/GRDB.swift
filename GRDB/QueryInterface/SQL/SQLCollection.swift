@@ -1,13 +1,54 @@
-// MARK: - SQLCollection
-
-/// Implementation details of `SQLCollection`.
+/// The right-hand side of the `IN` or `NOT IN` SQL operators
 ///
-/// :nodoc:
-public protocol _SQLCollection {
+/// See https://sqlite.org/lang_expr.html#the_in_and_not_in_operators
+public struct SQLCollection {
+    private var impl: Impl
+    
+    private enum Impl {
+        /// An array collection
+        ///
+        ///     id IN (1, 2, 3)
+        ///           ~~~~~~~~~
+        case array([SQLExpression])
+        
+        /// A subquery
+        ///
+        ///     score IN (SELECT ...)
+        ///              ~~~~~~~~~~~~
+        case subquery(SQLSubquery)
+        
+        /// A table
+        ///
+        ///     score IN table
+        ///              ~~~~~
+        case table(String)
+    }
+    
+    static func array(_ expressions: [SQLExpression]) -> Self {
+        self.init(impl: .array(expressions))
+    }
+    
+    static func subquery(_ subquery: SQLSubquery) -> Self {
+        self.init(impl: .subquery(subquery))
+    }
+    
+    static func table(_ tableName: String) -> Self {
+        self.init(impl: .table(tableName))
+    }
+}
+
+extension SQLCollection {
     /// Returns a qualified collection.
-    ///
-    /// :nodoc:
-    func _qualifiedCollection(with alias: TableAlias) -> SQLCollection
+    func qualified(with alias: TableAlias) -> SQLCollection {
+        switch impl {
+        case .subquery,
+             .table:
+            return self
+            
+        case let .array(expressions):
+            return .array(expressions.map { $0.qualified(with: alias) })
+        }
+    }
     
     /// The expressions in the collection, if known.
     ///
@@ -18,88 +59,63 @@ public protocol _SQLCollection {
     ///     let request = Player.filter(keys: [1, 2, 3])
     ///     let regionObservation = DatabaseRegionObservation(tracking: request)
     ///     let valueObservation = ValueObservation.tracking(request.fetchAll)
-    ///
-    /// :nodoc:
-    var _collectionExpressions: [SQLExpression]? { get }
+    var collectionExpressions: [SQLExpression]? {
+        switch impl {
+        case .subquery,
+             .table:
+            return nil
+            
+        case let .array(expressions):
+            return expressions
+        }
+    }
     
     /// Returns an SQL string that represents the collection.
     ///
     /// - parameter context: An SQL generation context which accepts
     ///   statement arguments.
-    func _collectionSQL(_ context: SQLGenerationContext) throws -> String
-}
-
-/// SQLCollection is the protocol for types that can be checked for inclusion.
-public protocol SQLCollection: _SQLCollection {
-    /// Returns an expression that check whether the collection contains
-    /// the expression.
-    func contains(_ value: SQLExpressible) -> SQLExpression
-}
-
-// MARK: - SQLExpressionsArray
-
-/// SQLExpressionsArray wraps an array of expressions
-///
-///     SQLExpressionsArray([1, 2, 3])
-///
-/// :nodoc:
-struct SQLExpressionsArray: SQLCollection {
-    let expressions: [SQLExpression]
-    
-    var _collectionExpressions: [SQLExpression]? { expressions }
-    
-    func _collectionSQL(_ context: SQLGenerationContext) throws -> String {
-        try "("
-            + expressions
-            .map { try $0._expressionSQL(context, wrappedInParenthesis: false) }
-            .joined(separator: ", ")
-            + ")"
-    }
-    
-    func contains(_ value: SQLExpressible) -> SQLExpression {
-        guard let expression = expressions.first else {
-            return false.databaseValue
-        }
-        
-        // With SQLite, `expr IN (NULL)` never succeeds.
-        //
-        // We must not provide special handling of NULL, because we can not
-        // guess if our `expressions` array contains a value evaluates to NULL.
-        
-        if expressions.count == 1 {
-            // Output `expr = value` instead of `expr IN (value)`, because it
-            // looks nicer. And make sure we do not produce 'expr IS NULL'.
-            return SQLExpressionEqual(.equal, value.sqlExpression, expression)
-        }
-        
-        return SQLExpressionContains(value, self)
-    }
-    
-    func _qualifiedCollection(with alias: TableAlias) -> SQLCollection {
-        SQLExpressionsArray(expressions: expressions.map { $0._qualifiedExpression(with: alias) })
-    }
-}
-
-// MARK: - SQLTableCollection
-
-/// SQLTableCollection aims at generating `value IN table` expressions.
-///
-/// :nodoc:
-enum SQLTableCollection: SQLCollection {
-    case tableName(String)
-    
-    var _collectionExpressions: [SQLExpression]? { nil }
-    
-    func _collectionSQL(_ context: SQLGenerationContext) throws -> String {
-        switch self {
-        case let .tableName(tableName):
+    func sql(_ context: SQLGenerationContext) throws -> String {
+        switch impl {
+        case let .array(expressions):
+            return try "("
+                + expressions.map { try $0.sql(context) }.joined(separator: ", ")
+                + ")"
+            
+        case let .subquery(subquery):
+            return try "("
+                + subquery.sql(context)
+                + ")"
+            
+        case let .table(tableName):
             return tableName.quotedDatabaseIdentifier
         }
     }
     
-    func contains(_ value: SQLExpressible) -> SQLExpression {
-        return SQLExpressionContains(value, self)
+    /// Returns an expression that check whether the collection contains
+    /// the expression.
+    func contains(_ value: SQLExpression) -> SQLExpression {
+        switch impl {
+        case .subquery,
+             .table:
+            return .in(value, self)
+            
+        case let .array(expressions):
+            guard let expression = expressions.first else {
+                return false.sqlExpression
+            }
+            
+            // With SQLite, `expr IN (NULL)` never succeeds.
+            //
+            // We must not provide special handling of NULL, because we can not
+            // guess if our `expressions` array contains a value evaluates to NULL.
+            
+            if expressions.count == 1 {
+                // Output `expr = value` instead of `expr IN (value)`, because it
+                // looks nicer. And make sure we do not produce 'expr IS NULL'.
+                return .compare(.equal, value, expression)
+            }
+            
+            return .in(value, self)
+        }
     }
-    
-    func _qualifiedCollection(with alias: TableAlias) -> SQLCollection { self }
 }

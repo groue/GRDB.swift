@@ -195,7 +195,10 @@ extension FilteredRequest {
 }
 
 /// :nodoc:
-extension SQLExpressionLiteral {
+@available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
+struct SQLExpressionLiteral: SQLSpecificExpressible {
+    var sqlExpression: SQLExpression { preconditionFailure() }
+    
     @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
     public var sql: String { preconditionFailure() }
     

@@ -31,23 +31,23 @@ extension SQLQuery: Refinable {
 
 extension SQLQuery: SelectionRequest {
     func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        map(\.relation) { $0.select(selection) }
+        map(\.relation) { $0.select { try selection($0).map(\.sqlSelection) } }
     }
     
     func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        map(\.relation) { $0.annotated(with: selection) }
+        map(\.relation) { $0.annotated { try selection($0).map(\.sqlSelection) } }
     }
 }
 
 extension SQLQuery: FilteredRequest {
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        map(\.relation) { $0.filter(predicate) }
+        map(\.relation) { $0.filter { try predicate($0).sqlExpression } }
     }
 }
 
 extension SQLQuery: OrderedRequest {
     func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        map(\.relation) { $0.order(orderings) }
+        map(\.relation) { $0.order { try orderings($0).map(\.sqlOrdering) } }
     }
     
     func reversed() -> Self {
@@ -95,6 +95,12 @@ extension SQLQuery: _JoinableRequest {
     }
 }
 
+extension SQLQuery: SQLSubqueryable {
+    var sqlSubquery: SQLSubquery {
+        .query(self)
+    }
+}
+
 extension SQLQuery {
     func fetchCount(_ db: Database) throws -> Int {
         guard groupPromise == nil && limit == nil && ctes.isEmpty else {
@@ -112,16 +118,16 @@ extension SQLQuery {
         let selection = try relation.selectionPromise.resolve(db)
         GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
         if selection.count == 1 {
-            guard let count = selection[0]._count(distinct: isDistinct) else {
+            guard let count = selection[0].count(distinct: isDistinct) else {
                 return try fetchTrivialCount(db)
             }
             var countQuery = self.unordered()
             countQuery.isDistinct = false
             switch count {
             case .all:
-                countQuery = countQuery.select(SQLExpressionCount(AllColumns()))
+                countQuery = countQuery.select(SQLExpression.count(.allColumns))
             case .distinct(let expression):
-                countQuery = countQuery.select(SQLExpressionCountDistinct(expression))
+                countQuery = countQuery.select(SQLExpression.countDistinct(expression))
             }
             return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         } else {
@@ -134,15 +140,14 @@ extension SQLQuery {
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
-            let countQuery = unordered().select(SQLExpressionCount(AllColumns()))
+            let countQuery = unordered().select(SQLExpression.count(.allColumns))
             return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         }
     }
     
     // SELECT COUNT(*) FROM (self)
     func fetchTrivialCount(_ db: Database) throws -> Int {
-        let request = QueryInterfaceRequest<Void>(query: unordered())
-        let countRequest: SQLRequest<Int> = "SELECT COUNT(*) FROM (\(request))"
+        let countRequest: SQLRequest<Int> = "SELECT COUNT(*) FROM (\(unordered()))"
         return try countRequest.fetchOne(db)!
     }
 }

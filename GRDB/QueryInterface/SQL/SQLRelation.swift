@@ -158,7 +158,7 @@ struct SQLRelation {
     }
     
     var source: SQLSource
-    var selectionPromise: DatabasePromise<[SQLSelectable]> = DatabasePromise(value: [])
+    var selectionPromise: DatabasePromise<[SQLSelection]> = DatabasePromise(value: [])
     // Filter is an array of expressions that we'll join with the AND operator.
     // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
     // `((a AND b) AND c)`.
@@ -190,7 +190,7 @@ extension SQLRelation {
     /// Convenience factory methods which selects all rows from a table.
     static func all(
         fromTable tableName: String,
-        selection: @escaping (Database) -> [SQLSelectable] = { _ in [AllColumns()] })
+        selection: @escaping (Database) -> [SQLSelection] = { _ in [.allColumns] })
     -> Self
     {
         SQLRelation(
@@ -200,21 +200,21 @@ extension SQLRelation {
 }
 
 extension SQLRelation: Refinable {
-    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+    func select(_ selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
         with(\.selectionPromise, DatabasePromise(selection))
     }
     
     // Convenience
-    func select(_ selection: [SQLSelectable]) -> Self {
+    func select(_ selection: [SQLSelection]) -> Self {
         select { _ in selection }
     }
     
     /// Removes all selections from chidren
-    func selectOnly(_ selection: [SQLSelectable]) -> Self {
+    func selectOnly(_ selection: [SQLSelection]) -> Self {
         select(selection).map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
     }
     
-    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
         map(\.selectionPromise) { selectionPromise in
             DatabasePromise { db in
                 try selectionPromise.resolve(db) + selection(db)
@@ -223,11 +223,11 @@ extension SQLRelation: Refinable {
     }
     
     // Convenience
-    func annotated(with selection: [SQLSelectable]) -> Self {
+    func annotated(with selection: [SQLSelection]) -> Self {
         annotated(with: { _ in selection })
     }
     
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
         with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
     
@@ -434,13 +434,13 @@ extension SQLRelation {
     /// SQLRelation.Ordering provides the order clause to SQLRelation.
     struct Ordering {
         private enum Element {
-            case terms(DatabasePromise<[SQLOrderingTerm]>)
+            case terms(DatabasePromise<[SQLOrdering]>)
             case ordering(SQLRelation.Ordering)
             
             var reversed: Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { $0.map(\._reversed) })
+                    return .terms(terms.map { $0.map(\.reversed) })
                 case .ordering(let ordering):
                     return .ordering(ordering.reversed)
                 }
@@ -449,13 +449,13 @@ extension SQLRelation {
             func qualified(with alias: TableAlias) -> Element {
                 switch self {
                 case .terms(let terms):
-                    return .terms(terms.map { $0.map { $0._qualifiedOrdering(with: alias) } })
+                    return .terms(terms.map { $0.map { $0.qualified(with: alias) } })
                 case .ordering(let ordering):
                     return .ordering(ordering.qualified(with: alias))
                 }
             }
             
-            func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
+            func resolve(_ db: Database) throws -> [SQLOrdering] {
                 switch self {
                 case .terms(let terms):
                     return try terms.resolve(db)
@@ -481,7 +481,7 @@ extension SQLRelation {
                 isReversed: false)
         }
         
-        init(orderings: @escaping (Database) throws -> [SQLOrderingTerm]) {
+        init(orderings: @escaping (Database) throws -> [SQLOrdering]) {
             self.init(
                 elements: [.terms(DatabasePromise(orderings))],
                 isReversed: false)
@@ -505,7 +505,7 @@ extension SQLRelation {
                 isReversed: isReversed)
         }
         
-        func resolve(_ db: Database) throws -> [SQLOrderingTerm] {
+        func resolve(_ db: Database) throws -> [SQLOrdering] {
             if isReversed {
                 return try elements.flatMap { try $0.reversed.resolve(db) }
             } else {
@@ -555,11 +555,11 @@ enum SQLAssociationCondition {
     ///         player[Column("id")] == bonus[Column("playerID")]
     ///     })
     ///     Player.with(bonus).joining(required: association)
-    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpression)
     
     /// The condition that does not constrain the two associated tables
     /// in any way.
-    static let none = expression({ _, _ in true })
+    static let none = expression({ _, _ in true.sqlExpression })
     
     func reversed(to destinationTable: String) -> SQLAssociationCondition {
         switch self {
@@ -578,7 +578,7 @@ enum SQLAssociationCondition {
     {
         switch self {
         case let .expression(condition):
-            return [condition(leftAlias, rightAlias).sqlExpression]
+            return [condition(leftAlias, rightAlias)]
         case let .foreignKey(foreignKey):
             return try foreignKey
                 .joinMapping(db, from: leftAlias.tableName)
@@ -707,7 +707,10 @@ extension JoinMapping {
                         .map({ mapping -> SQLExpression in
                             let leftValue = leftRow.databaseValue(at: mapping.leftIndex)
                             // Force `=` operator, because SQLite doesn't match foreign keys on NULL
-                            return SQLExpressionEqual(.equal, mapping.rightColumn, leftValue)
+                            return SQLExpression.compare(
+                                .equal,
+                                mapping.rightColumn.sqlExpression,
+                                leftValue.sqlExpression)
                         })
                         .joined(operator: .and)
                 })
@@ -728,11 +731,7 @@ extension JoinMapping {
     /// - Returns: An array of SQL expression that should be joined with
     ///   the AND operator and qualified with the right table.
     func joinExpressions(leftAlias: TableAlias, rightAlias: TableAlias) -> [SQLExpression] {
-        map {
-            let right = SQLQualifiedColumn($0.right, alias: rightAlias)
-            let left = SQLQualifiedColumn($0.left, alias: leftAlias)
-            return right == left
-        }
+        map { rightAlias[$0.right] == leftAlias[$0.left] }
     }
 }
 
@@ -813,7 +812,7 @@ extension SQLRelation {
         }
         
         // replace selection unless empty
-        let mergedSelectionPromise = DatabasePromise { db -> [SQLSelectable] in
+        let mergedSelectionPromise = DatabasePromise { db -> [SQLSelection] in
             let otherSelection = try other.selectionPromise.resolve(db)
             if otherSelection.isEmpty {
                 return try self.selectionPromise.resolve(db)

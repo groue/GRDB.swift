@@ -1361,19 +1361,19 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
                 CREATE TABLE compoundPrimaryKeyRecord (a INTEGER, b INTEGER, PRIMARY KEY (a, b));
                 """)
             
-            try assertEqualSQL(db, IntegerPrimaryKeyRecord.select(SQLExpressionFastPrimaryKey()), """
+            try assertEqualSQL(db, IntegerPrimaryKeyRecord.select(SQLExpression.fastPrimaryKey), """
                 SELECT "id" FROM "integerPrimaryKeyRecord"
                 """)
-            try assertEqualSQL(db, UUIDRecord.select(SQLExpressionFastPrimaryKey()), """
+            try assertEqualSQL(db, UUIDRecord.select(SQLExpression.fastPrimaryKey), """
                 SELECT "rowid" FROM "uuidRecord"
                 """)
-            try assertEqualSQL(db, UUIDRecordWithoutRowID.select(SQLExpressionFastPrimaryKey()), """
+            try assertEqualSQL(db, UUIDRecordWithoutRowID.select(SQLExpression.fastPrimaryKey), """
                 SELECT "uuid" FROM "uuidRecordWithoutRowID"
                 """)
-            try assertEqualSQL(db, RowIDRecord.select(SQLExpressionFastPrimaryKey()), """
+            try assertEqualSQL(db, RowIDRecord.select(SQLExpression.fastPrimaryKey), """
                 SELECT "rowid" FROM "rowIDRecord"
                 """)
-            try assertEqualSQL(db, CompoundPrimaryKeyRecord.select(SQLExpressionFastPrimaryKey()), """
+            try assertEqualSQL(db, CompoundPrimaryKeyRecord.select(SQLExpression.fastPrimaryKey), """
                 SELECT "rowid" FROM "compoundPrimaryKeyRecord"
                 """)
         }

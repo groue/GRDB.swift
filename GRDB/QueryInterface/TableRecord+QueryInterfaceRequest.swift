@@ -3,7 +3,7 @@ extension TableRecord {
     // MARK: Request Derivation
     
     static var relationForAll: SQLRelation {
-        .all(fromTable: databaseTableName, selection: { _ in databaseSelection })
+        .all(fromTable: databaseTableName, selection: { _ in databaseSelection.map(\.sqlSelection) })
     }
     
     /// Creates a request which fetches all records.
