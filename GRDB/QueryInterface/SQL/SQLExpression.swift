@@ -1146,7 +1146,7 @@ extension SQLExpression {
     }
 }
 
-extension Sequence where Element: SQLExpressible {
+extension Sequence where Element: SQLSpecificExpressible {
     /// Returns an expression by joining all elements with an associative SQL
     /// binary operator.
     ///
@@ -1170,7 +1170,7 @@ extension Sequence where Element: SQLExpressible {
     }
 }
 
-extension Sequence where Element == SQLExpressible {
+extension Sequence where Element == SQLSpecificExpressible {
     /// Returns an expression by joining all elements with an associative SQL
     /// binary operator.
     ///
