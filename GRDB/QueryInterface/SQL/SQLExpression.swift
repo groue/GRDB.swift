@@ -1419,19 +1419,9 @@ struct SQLUnaryOperator: Hashable {
 /// like `Column`.
 ///
 /// See https://github.com/groue/GRDB.swift/#the-query-interface
-public protocol SQLExpressible: SQLSelectable, SQLOrderingTerm {
+public protocol SQLExpressible {
     /// Returns an SQL expression.
     var sqlExpression: SQLExpression { get }
-}
-
-extension SQLExpressible {
-    public var sqlSelection: SQLSelection {
-        .expression(sqlExpression)
-    }
-    
-    public var sqlOrdering: SQLOrdering {
-        .expression(sqlExpression)
-    }
 }
 
 /// `SQLSpecificExpressible` is a protocol for all database-specific types that
@@ -1443,7 +1433,7 @@ extension SQLExpressible {
 /// and it adopts `SQLSpecificExpressible`.
 ///
 /// On the other side, `Int` adopts `SQLExpressible`.
-public protocol SQLSpecificExpressible: SQLExpressible {
+public protocol SQLSpecificExpressible: SQLExpressible, SQLSelectable, SQLOrderingTerm {
     // SQLExpressible can be adopted by Swift standard types, and user
     // types, through the DatabaseValueConvertible protocol which inherits
     // from SQLExpressible.
@@ -1462,6 +1452,16 @@ public protocol SQLSpecificExpressible: SQLExpressible {
     // - ==(SQLExpressible, SQLSpecificExpressible)
     // - ==(SQLSpecificExpressible, SQLExpressible)
     // - ==(SQLSpecificExpressible, SQLSpecificExpressible)
+}
+
+extension SQLSpecificExpressible {
+    public var sqlSelection: SQLSelection {
+        .expression(sqlExpression)
+    }
+    
+    public var sqlOrdering: SQLOrdering {
+        .expression(sqlExpression)
+    }
 }
 
 extension SQLExpression: SQLSpecificExpressible {
