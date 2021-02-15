@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- [Next Release](#next-release)
+- `5.4.x` Releases - [5.4.0](#540)
 - `5.3.x` Releases - [5.3.0](#530)
 - `5.2.x` Releases - [5.2.0](#520)
 - `5.1.x` Releases - [5.1.0](#510)
@@ -69,7 +69,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [0.110.0](#01100), ...
 
-## Next Release
+## 5.4.0
+
+Released February 15, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.3.0...v5.4.0)
 
 - **Breaking Change**: The query interface was refactored and some types such as `SQLExpression` are no longer a protocol.
     
