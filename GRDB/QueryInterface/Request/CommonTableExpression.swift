@@ -36,7 +36,7 @@ extension CommonTableExpression {
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter request: A request.
-    public init<Request: FetchRequest>(
+    public init<Request: SQLSubqueryable>(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
@@ -46,7 +46,7 @@ extension CommonTableExpression {
             tableName: tableName,
             cte: SQLCTE(
                 columns: columns,
-                requestPromise: DatabasePromise(value: request),
+                sqlSubquery: request.sqlSubquery,
                 isRecursive: recursive))
     }
     
@@ -113,7 +113,8 @@ extension CommonTableExpression {
 
 extension CommonTableExpression {
     var relationForAll: SQLRelation {
-        .all(fromTable: tableName, selection: { _ in [AllColumns(cte: cte)] })
+        let cte = self.cte
+        return .all(fromTable: tableName, selection: { _ in [.allCTEColumns(cte)] })
     }
     
     /// Creates a request for all rows of the common table expression.
@@ -157,7 +158,7 @@ extension CommonTableExpression {
     ///     // name IN playerName
     ///     playerNameCTE.contains(Column("name"))
     public func contains(_ element: SQLExpressible) -> SQLExpression {
-        SQLTableCollection.tableName(tableName).contains(element)
+        SQLCollection.table(tableName).contains(element.sqlExpression)
     }
 }
 
@@ -174,13 +175,14 @@ struct SQLCTE {
     ///
     ///     -- Column id
     ///     WITH t(id) AS (SELECT 1) ...
+    ///            ~~
     var columns: [String]?
     
-    /// The common table expression request.
+    /// The common table expression subquery.
     ///
     ///     WITH t AS (SELECT ...)
     ///                ~~~~~~~~~~
-    var requestPromise: DatabasePromise<_FetchRequest>
+    var sqlSubquery: SQLSubquery
     
     /// Whether this common table expression needs a `WITH RECURSIVE`
     /// sql clause.
@@ -193,7 +195,7 @@ struct SQLCTE {
             return columns.count
         }
         
-        return try requestPromise.resolve(db)._selectedColumnCount(db)
+        return try sqlSubquery.columnsCount(db)
     }
 }
 
@@ -214,7 +216,9 @@ extension CommonTableExpression {
         on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
-        JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
+        JoinAssociation(
+            to: cte.relationForAll,
+            condition: .expression { condition($0, $1).sqlExpression })
     }
     
     /// Creates an association to a common table expression that you can join
@@ -248,7 +252,9 @@ extension CommonTableExpression {
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
-        JoinAssociation(to: Destination.relationForAll, condition: .expression(condition))
+        JoinAssociation(
+            to: Destination.relationForAll,
+            condition: .expression { condition($0, $1).sqlExpression })
     }
     
     /// Creates an association to a table record that you can join

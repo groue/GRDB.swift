@@ -1,4 +1,3 @@
-
 /// A ForeignKey helps building associations when GRDB can't infer a foreign
 /// key from the database schema.
 ///

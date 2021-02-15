@@ -33,6 +33,8 @@ extension Color32 : SQLExpressible { }
 extension Color64 : SQLExpressible { }
 extension Color : SQLExpressible { }
 extension Grape : SQLExpressible { }
+extension Wrapper: SQLOrderingTerm where RawValue: SQLOrderingTerm { }
+extension Wrapper: SQLSelectable where RawValue: SQLSelectable { }
 extension Wrapper: SQLExpressible where RawValue: SQLExpressible { }
 
 extension Color32 : DatabaseValueConvertible { }

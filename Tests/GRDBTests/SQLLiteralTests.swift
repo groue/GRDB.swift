@@ -484,7 +484,7 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             let set: Set = [1]
             let array = ["foo", "bar", "baz"]
-            let expressions = [Column("a"), Column("b") + 2]
+            let expressions: [SQLExpressible] = [Column("a"), Column("b") + 2]
             let query: SQLLiteral = """
                 SELECT * FROM player
                 WHERE teamId IN \(set)

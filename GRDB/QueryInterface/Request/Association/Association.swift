@@ -127,7 +127,7 @@ extension Association {
     ///         .select { db in [Column("color") }
     ///     var request = Player.including(required: association)
     public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        mapDestinationRelation { $0.select(selection) }
+        mapDestinationRelation { $0.select { try selection($0).map(\.sqlSelection) } }
     }
     
     /// Creates an association which appends *selection*.
@@ -144,7 +144,7 @@ extension Association {
     ///         .annotated(with: { db in [Column("name")] })
     ///     var request = Player.including(required: association)
     public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        mapDestinationRelation { $0.annotated(with: selection) }
+        mapDestinationRelation { $0.annotated { try selection($0).map(\.sqlSelection) } }
     }
     
     /// Creates an association with the provided *predicate promise* added to
@@ -188,7 +188,7 @@ extension Association {
     ///         .order{ _ in [Column("name")] }
     ///     var request = Player.including(required: association)
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        mapDestinationRelation { $0.order(orderings) }
+        mapDestinationRelation { $0.order { try orderings($0).map(\.sqlOrdering) } }
     }
     
     /// Creates an association that reverses applied orderings.

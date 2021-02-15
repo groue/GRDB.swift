@@ -6,7 +6,7 @@
 ///
 /// When the schema does not define any foreign key, we can still infer complete
 /// mapping from partial information and primary keys.
-struct SQLForeignKeyRequest: Equatable {
+struct SQLForeignKeyRequest {
     let originTable: String
     let destinationTable: String
     let originColumns: [String]?
