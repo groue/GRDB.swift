@@ -1,3 +1,5 @@
+// MARK: - Associations to TableRecord
+
 extension TableRecord {
     /// Creates a "Belongs To" association between Self and the destination
     /// type, based on a database foreign key.
@@ -60,8 +62,12 @@ extension TableRecord {
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
     -> BelongsToAssociation<Self, Destination>
+    where Destination: TableRecord
     {
-        BelongsToAssociation(key: key, using: foreignKey)
+        BelongsToAssociation(
+            to: Destination.relationForAll,
+            key: key,
+            using: foreignKey)
     }
     
     /// Creates a "Has many" association between Self and the destination type,
@@ -125,10 +131,153 @@ extension TableRecord {
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
     -> HasManyAssociation<Self, Destination>
+    where Destination: TableRecord
     {
-        HasManyAssociation(key: key, using: foreignKey)
+        HasManyAssociation(
+            to: Destination.relationForAll,
+            key: key,
+            using: foreignKey)
     }
     
+    /// Creates a "Has one" association between Self and the destination type,
+    /// based on a database foreign key.
+    ///
+    ///     struct Demographics: TableRecord { ... }
+    ///     struct Country: TableRecord {
+    ///         static let demographics = hasOne(Demographics.self)
+    ///     }
+    ///
+    /// The association will let you define requests that load both the source
+    /// and the destination type:
+    ///
+    ///     // A request for all countries with their demographic profile:
+    ///     let request = Country.including(optional: Country.demographics)
+    ///
+    /// To consume those requests, define a type that adopts both the
+    /// FetchableRecord and Decodable protocols:
+    ///
+    ///     struct CountryInfo: FetchableRecord, Decodable {
+    ///         var country: Country
+    ///         var demographics: Demographics?
+    ///     }
+    ///
+    ///     let countryInfos = try dbQueue.read { db in
+    ///         return try CountryInfo.fetchAll(db, request)
+    ///     }
+    ///     for countryInfo in countryInfos {
+    ///         print("\(countryInfo.country.name) has \(countryInfo.demographics.population) citizens")
+    ///     }
+    ///
+    /// It is recommended that you define, alongside the static association, a
+    /// property with the same name:
+    ///
+    ///     struct Country: TableRecord, EncodableRecord {
+    ///         static let demographics = hasOne(Demographics.self)
+    ///         var demographics: QueryInterfaceRequest<Demographics> {
+    ///             return request(for: Country.demographics)
+    ///         }
+    ///     }
+    ///
+    /// This property will let you navigate from the source type to the
+    /// destination type:
+    ///
+    ///     try dbQueue.read { db in
+    ///         let country: Country = ...
+    ///         let demographics = try country.demographics.fetchOne(db) // Demographics?
+    ///     }
+    ///
+    /// - parameters:
+    ///     - destination: The record type at the other side of the association.
+    ///     - key: An eventual decoding key for the association. By default, it
+    ///       is `destination.databaseTableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide an
+    ///       explicit foreign key when GRDB can't infer one from the database
+    ///       schema. This happens when the schema does not define any foreign
+    ///       key from the destination table, or when the schema defines several
+    ///       foreign keys from the destination table.
+    public static func hasOne<Destination>(
+        _ destination: Destination.Type,
+        key: String? = nil,
+        using foreignKey: ForeignKey? = nil)
+    -> HasOneAssociation<Self, Destination>
+    where Destination: TableRecord
+    {
+        HasOneAssociation(
+            to: Destination.relationForAll,
+            key: key,
+            using: foreignKey)
+    }
+}
+
+// MARK: - Associations to CommonTableExpression
+
+extension TableRecord {
+    /// Creates an association to a common table expression that you can join
+    /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of the common
+    /// table expression.
+    ///
+    /// For example, you can build a request that fetches all chats with their
+    /// latest message:
+    ///
+    ///     let latestMessageRequest = Message
+    ///         .annotated(with: max(Column("date")))
+    ///         .group(Column("chatID"))
+    ///
+    ///     let latestMessageCTE = CommonTableExpression<Void>(
+    ///         named: "latestMessage",
+    ///         request: latestMessageRequest)
+    ///
+    ///     let latestMessage = Chat.association(
+    ///         to: latestMessageCTE,
+    ///         on: { chat, latestMessage in
+    ///             chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         })
+    ///
+    ///     // WITH latestMessage AS
+    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
+    ///     // SELECT chat.*, latestMessage.*
+    ///     // FROM chat
+    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
+    ///     let request = Chat
+    ///         .with(latestMessageCTE)
+    ///         .including(optional: latestMessage)
+    ///
+    /// - parameter cte: A common table expression.
+    /// - parameter condition: A function that returns the joining clause.
+    /// - parameter left: A `TableAlias` for the left table.
+    /// - parameter right: A `TableAlias` for the right table.
+    /// - returns: An association to the common table expression.
+    public static func association<Destination>(
+        to cte: CommonTableExpression<Destination>,
+        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+    -> JoinAssociation<Self, Destination>
+    {
+        JoinAssociation(
+            to: cte.relationForAll,
+            condition: .expression { condition($0, $1).sqlExpression })
+    }
+    
+    /// Creates an association to a common table expression that you can join
+    /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of the common
+    /// table expression.
+    ///
+    /// - parameter cte: A common table expression.
+    /// - returns: An association to the common table expression.
+    public static func association<Destination>(
+        to cte: CommonTableExpression<Destination>)
+    -> JoinAssociation<Self, Destination>
+    {
+        JoinAssociation(to: cte.relationForAll, condition: .none)
+    }
+}
+
+// MARK: - "Through" Associations
+
+extension TableRecord {
     /// Creates a "Has Many Through" association between Self and the
     /// destination type.
     ///
@@ -209,71 +358,6 @@ extension TableRecord {
         } else {
             return association
         }
-    }
-    
-    /// Creates a "Has one" association between Self and the destination type,
-    /// based on a database foreign key.
-    ///
-    ///     struct Demographics: TableRecord { ... }
-    ///     struct Country: TableRecord {
-    ///         static let demographics = hasOne(Demographics.self)
-    ///     }
-    ///
-    /// The association will let you define requests that load both the source
-    /// and the destination type:
-    ///
-    ///     // A request for all countries with their demographic profile:
-    ///     let request = Country.including(optional: Country.demographics)
-    ///
-    /// To consume those requests, define a type that adopts both the
-    /// FetchableRecord and Decodable protocols:
-    ///
-    ///     struct CountryInfo: FetchableRecord, Decodable {
-    ///         var country: Country
-    ///         var demographics: Demographics?
-    ///     }
-    ///
-    ///     let countryInfos = try dbQueue.read { db in
-    ///         return try CountryInfo.fetchAll(db, request)
-    ///     }
-    ///     for countryInfo in countryInfos {
-    ///         print("\(countryInfo.country.name) has \(countryInfo.demographics.population) citizens")
-    ///     }
-    ///
-    /// It is recommended that you define, alongside the static association, a
-    /// property with the same name:
-    ///
-    ///     struct Country: TableRecord, EncodableRecord {
-    ///         static let demographics = hasOne(Demographics.self)
-    ///         var demographics: QueryInterfaceRequest<Demographics> {
-    ///             return request(for: Country.demographics)
-    ///         }
-    ///     }
-    ///
-    /// This property will let you navigate from the source type to the
-    /// destination type:
-    ///
-    ///     try dbQueue.read { db in
-    ///         let country: Country = ...
-    ///         let demographics = try country.demographics.fetchOne(db) // Demographics?
-    ///     }
-    ///
-    /// - parameters:
-    ///     - destination: The record type at the other side of the association.
-    ///     - key: An eventual decoding key for the association. By default, it
-    ///       is `destination.databaseTableName`.
-    ///     - foreignKey: An eventual foreign key. You need to provide an
-    ///       explicit foreign key when GRDB can't infer one from the database
-    ///       schema. This happens when the schema does not define any foreign
-    ///       key from the destination table, or when the schema defines several
-    ///       foreign keys from the destination table.
-    public static func hasOne<Destination>(
-        _ destination: Destination.Type,
-        key: String? = nil,
-        using foreignKey: ForeignKey? = nil)
-    -> HasOneAssociation<Self, Destination>
-    {
-        HasOneAssociation(key: key, using: foreignKey)
     }
     
     /// Creates a "Has One Through" association between Self and the
@@ -359,114 +443,7 @@ extension TableRecord {
     }
 }
 
-/// A ForeignKey helps building associations when GRDB can't infer a foreign
-/// key from the database schema.
-///
-/// Sometimes the database schema does not define any foreign key between two
-/// tables. And sometimes, there are several foreign keys from a table
-/// to another:
-///
-///     | Table book   |       | Table person |
-///     | ------------ |       | ------------ |
-///     | id           |   +-->• id           |
-///     | authorId     •---+   | name         |
-///     | translatorId •---+
-///     | title        |
-///
-/// When this happens, associations can't be automatically inferred from the
-/// database schema. GRDB will complain with a fatal error such as "Ambiguous
-/// foreign key from book to person", or "Could not infer foreign key from book
-/// to person".
-///
-/// Your help is needed. You have to instruct GRDB which foreign key to use:
-///
-///     struct Book: TableRecord {
-///         // Define foreign keys
-///         static let authorForeignKey = ForeignKey(["authorId"]))
-///         static let translatorForeignKey = ForeignKey(["translatorId"]))
-///
-///         // Use foreign keys to define associations:
-///         static let author = belongsTo(Person.self, using: authorForeignKey)
-///         static let translator = belongsTo(Person.self, using: translatorForeignKey)
-///     }
-///
-/// Foreign keys are always defined from the table that contains the columns at
-/// the origin of the foreign key. Person's symmetric HasMany associations reuse
-/// Book's foreign keys:
-///
-///     struct Person: TableRecord {
-///         static let writtenBooks = hasMany(Book.self, using: Book.authorForeignKey)
-///         static let translatedBooks = hasMany(Book.self, using: Book.translatorForeignKey)
-///     }
-///
-/// Foreign keys can also be defined from query interface columns:
-///
-///     struct Book: TableRecord {
-///         enum Columns: String, ColumnExpression {
-///             case id, title, authorId, translatorId
-///         }
-///
-///         static let authorForeignKey = ForeignKey([Columns.authorId]))
-///         static let translatorForeignKey = ForeignKey([Columns.translatorId]))
-///     }
-///
-/// When the destination table of a foreign key does not define any primary key,
-/// you need to provide the full definition of a foreign key:
-///
-///     struct Book: TableRecord {
-///         static let authorForeignKey = ForeignKey(["authorId"], to: ["id"]))
-///         static let author = belongsTo(Person.self, using: authorForeignKey)
-///     }
-public struct ForeignKey {
-    var originColumns: [String]
-    var destinationColumns: [String]?
-    
-    /// Creates a ForeignKey intended to define a record association.
-    ///
-    ///     struct Book: TableRecord {
-    ///         // Define foreign keys
-    ///         static let authorForeignKey = ForeignKey(["authorId"]))
-    ///         static let translatorForeignKey = ForeignKey(["translatorId"]))
-    ///
-    ///         // Use foreign keys to define associations:
-    ///         static let author = belongsTo(Person.self, using: authorForeignKey)
-    ///         static let translator = belongsTo(Person.self, using: translatorForeignKey)
-    ///     }
-    ///
-    /// - parameter originColumns: The columns at the origin of the foreign key.
-    /// - parameter destinationColumns: The columns at the destination of the
-    /// foreign key. When nil (the default), GRDB automatically uses the
-    /// primary key.
-    public init(_ originColumns: [String], to destinationColumns: [String]? = nil) {
-        self.originColumns = originColumns
-        self.destinationColumns = destinationColumns
-    }
-    
-    /// Creates a ForeignKey intended to define a record association.
-    ///
-    ///     struct Book: TableRecord {
-    ///         // Define columns
-    ///         enum Columns: String, ColumnExpression {
-    ///             case id, title, authorId, translatorId
-    ///         }
-    ///
-    ///         // Define foreign keys
-    ///         static let authorForeignKey = ForeignKey([Columns.authorId]))
-    ///         static let translatorForeignKey = ForeignKey([Columns.translatorId]))
-    ///
-    ///         // Use foreign keys to define associations:
-    ///         static let author = belongsTo(Person.self, using: authorForeignKey)
-    ///         static let translator = belongsTo(Person.self, using: translatorForeignKey)
-    ///     }
-    ///
-    /// - parameter originColumns: The columns at the origin of the foreign key.
-    /// - parameter destinationColumns: The columns at the destination of the
-    /// foreign key. When nil (the default), GRDB automatically uses the
-    /// primary key.
-    public init(_ originColumns: [ColumnExpression], to destinationColumns: [ColumnExpression]? = nil) {
-        self.init(originColumns.map(\.name), to: destinationColumns?.map(\.name))
-    }
-}
+// MARK: - Request for associated records
 
 extension TableRecord where Self: EncodableRecord {
     /// Creates a request that fetches the associated record(s).
@@ -491,15 +468,14 @@ extension TableRecord where Self: EncodableRecord {
             // TODO: find a use case?
             fatalError("Not implemented: request association without any foreign key")
             
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
+        case let .foreignKey(foreignKey):
             let destinationRelation = association
                 ._sqlAssociation
                 .map(\.pivot.relation, { pivotRelation in
                     pivotRelation.filter { db in
                         // Filter the pivot on self
-                        try foreignKeyRequest
-                            .fetchForeignKeyMapping(db)
-                            .joinMapping(originIsLeft: originIsLeft)
+                        try foreignKey
+                            .joinMapping(db, from: Self.databaseTableName)
                             .joinExpression(leftRows: [PersistenceContainer(db, self)])
                     }
                 })
@@ -509,10 +485,9 @@ extension TableRecord where Self: EncodableRecord {
     }
 }
 
+// MARK: - Joining Methods
+
 extension TableRecord {
-    
-    // MARK: - Associations
-    
     /// Creates a request that prefetches an association.
     public static func including<A: AssociationToMany>(all association: A)
     -> QueryInterfaceRequest<Self>
@@ -560,9 +535,11 @@ extension TableRecord {
     {
         all().joining(required: association)
     }
-    
-    // MARK: - Association Aggregates
-    
+}
+
+// MARK: - Aggregates
+
+extension TableRecord {
     /// Creates a request with *aggregates* appended to the selection.
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount

@@ -133,7 +133,7 @@ extension TableRecord {
     public static func numberOfSelectedColumns(_ db: Database) throws -> Int {
         let alias = TableAlias(tableName: databaseTableName)
         return try databaseSelection
-            .map { try $0._qualifiedSelectable(with: alias)._columnCount(db) }
+            .map { try $0.sqlSelection.qualified(with: alias).columnCount(db) }
             .reduce(0, +)
     }
 }

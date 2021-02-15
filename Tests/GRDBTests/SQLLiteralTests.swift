@@ -484,7 +484,7 @@ extension SQLLiteralTests {
         try makeDatabaseQueue().inDatabase { db in
             let set: Set = [1]
             let array = ["foo", "bar", "baz"]
-            let expressions = [Column("a"), Column("b") + 2]
+            let expressions: [SQLExpressible] = [Column("a"), Column("b") + 2]
             let query: SQLLiteral = """
                 SELECT * FROM player
                 WHERE teamId IN \(set)
@@ -735,6 +735,29 @@ extension SQLLiteralTests {
                 try assertEqualSQL(db, request, """
                     SELECT * FROM "player" WHERE (DATE("createdAt")) = '2020-01-23'
                     """)
+            }
+        }
+    }
+    
+    func testCollationInterpolation() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            do {
+                // Database.CollationName
+                let query: SQLLiteral = "SELECT * FROM player ORDER BY email COLLATION \(.nocase)"
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT * FROM player ORDER BY email COLLATION NOCASE
+                    """)
+                XCTAssertEqual(arguments, [])
+            }
+            do {
+                // DatabaseCollation
+                let query: SQLLiteral = "SELECT * FROM player ORDER BY name COLLATION \(.localizedCompare)"
+                let (sql, arguments) = try query.build(db)
+                XCTAssertEqual(sql, """
+                    SELECT * FROM player ORDER BY name COLLATION swiftLocalizedCompare
+                    """)
+                XCTAssertEqual(arguments, [])
             }
         }
     }

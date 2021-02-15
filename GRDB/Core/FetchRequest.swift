@@ -1,53 +1,5 @@
 // MARK: - FetchRequest
 
-/// Implementation details of `FetchRequest`.
-///
-/// :nodoc:
-public protocol _FetchRequest {
-    /// The number of columns selected by the request.
-    ///
-    /// This method makes it possible to find the columns of a CTE in a request
-    /// that includes a CTE association:
-    ///
-    ///     // WITH cte AS (SELECT 1 AS a, 2 AS b)
-    ///     // SELECT player.*, cte.*
-    ///     // FROM player
-    ///     // JOIN cte
-    ///     let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1 AS a, 2 AS b")
-    ///     let request = Player
-    ///         .with(cte)
-    ///         .including(required: Player.association(to: cte))
-    ///     let row = try Row.fetchOne(db, request)!
-    ///
-    ///     // We know that "SELECT 1 AS a, 2 AS b" selects two columns,
-    ///     // so we can find cte columns in the row:
-    ///     row.scopes["cte"] // [a:1, b:2]
-    ///
-    /// :nodoc:
-    func _selectedColumnCount(_ db: Database) throws -> Int
-    
-    /// Returns the request SQL.
-    ///
-    /// This method makes it possible to embed a request as a subquery:
-    ///
-    ///     // SELECT *
-    ///     // FROM "player"
-    ///     // WHERE "score" = (SELECT MAX("score") FROM "player")
-    ///     let maxScore = Player.select(max(Column("score")))
-    ///     let players = try Player
-    ///         .filter(Column("score") == maxScore)
-    ///         .fetchAll(db)
-    ///
-    /// - parameter context: An SQL generation context.
-    /// - parameter singleResult: A hint that a single result row will be
-    ///   consumed. Implementations can optionally use it to optimize the
-    ///   generated SQL, for example by adding a `LIMIT 1` SQL clause.
-    /// - returns: An SQL string.
-    ///
-    /// :nodoc:
-    func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String
-}
-
 /// The protocol for all requests that fetch database rows, and tell how those
 /// rows should be interpreted.
 ///
@@ -58,7 +10,7 @@ public protocol _FetchRequest {
 ///     try request.fetchSet(db)    // Set<Player>
 ///     try request.fetchOne(db)    // Player?
 ///     try request.fetchCount(db)  // Int
-public protocol FetchRequest: _FetchRequest, DatabaseRegionConvertible, SQLExpression, SQLCollection {
+public protocol FetchRequest: SQLSubqueryable, DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
     
@@ -84,45 +36,12 @@ public protocol FetchRequest: _FetchRequest, DatabaseRegionConvertible, SQLExpre
 }
 
 extension FetchRequest {
-    // MARK: DatabaseRegionConvertible
-    
     /// Returns the database region that the request feeds from.
     ///
     /// - parameter db: A database connection.
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
         try makePreparedRequest(db, forSingleResult: false).statement.databaseRegion
     }
-    
-    // MARK: SQLCollection
-    
-    /// :nodoc:
-    public var _collectionExpressions: [SQLExpression]? { nil }
-    
-    /// :nodoc:
-    public func _collectionSQL(_ context: SQLGenerationContext) throws -> String {
-        try "("
-            + _requestSQL(context, forSingleResult: false)
-            + ")"
-    }
-    
-    public func contains(_ value: SQLExpressible) -> SQLExpression {
-        SQLExpressionContains(value, self)
-    }
-    
-    /// :nodoc:
-    public func _qualifiedCollection(with alias: TableAlias) -> SQLCollection { self }
-    
-    // MARK: SQLExpression
-    
-    /// :nodoc:
-    public func _expressionSQL(_ context: SQLGenerationContext, wrappedInParenthesis: Bool) throws -> String {
-        try "("
-            + _requestSQL(context, forSingleResult: false)
-            + ")"
-    }
-    
-    /// :nodoc:
-    public func _qualifiedExpression(with alias: TableAlias) -> SQLExpression { self }
 }
 
 // MARK: - PreparedRequest
@@ -174,6 +93,10 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         self.adapter = adapter
     }
     
+    public var sqlSubquery: SQLSubquery {
+        base.sqlSubquery
+    }
+    
     public func fetchCount(_ db: Database) throws -> Int {
         try base.fetchCount(db)
     }
@@ -192,16 +115,6 @@ public struct AdaptedFetchRequest<Base: FetchRequest>: FetchRequest {
         }
         
         return preparedRequest
-    }
-    
-    /// :nodoc:
-    public func _selectedColumnCount(_ db: Database) throws -> Int {
-        try base._selectedColumnCount(db)
-    }
-    
-    /// :nodoc:
-    public func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
-        try base._requestSQL(context, forSingleResult: singleResult)
     }
 }
 
@@ -222,9 +135,8 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
         AnyFetchRequest<RowDecoder>(request: request)
     }
     
-    /// :nodoc:
-    public func _selectedColumnCount(_ db: Database) throws -> Int {
-        try request._selectedColumnCount(db)
+    public var sqlSubquery: SQLSubquery {
+        request.sqlSubquery
     }
     
     public func fetchCount(_ db: Database) throws -> Int {
@@ -237,11 +149,6 @@ public struct AnyFetchRequest<RowDecoder>: FetchRequest {
     throws -> PreparedRequest
     {
         try request.makePreparedRequest(db, forSingleResult: singleResult)
-    }
-    
-    /// :nodoc:
-    public func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
-        try request._requestSQL(context, forSingleResult: singleResult)
     }
 }
 
@@ -258,7 +165,7 @@ extension AnyFetchRequest {
 private class FetchRequestEraser: FetchRequest {
     typealias RowDecoder = Void
     
-    func _selectedColumnCount(_ db: Database) throws -> Int {
+    var sqlSubquery: SQLSubquery {
         fatalError("subclass must override")
     }
     
@@ -267,10 +174,6 @@ private class FetchRequestEraser: FetchRequest {
     }
     
     func fetchCount(_ db: Database) throws -> Int {
-        fatalError("subclass must override")
-    }
-    
-    func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
         fatalError("subclass must override")
     }
 }
@@ -282,8 +185,8 @@ private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequ
         self.request = request
     }
     
-    override func _selectedColumnCount(_ db: Database) throws -> Int {
-        try request._selectedColumnCount(db)
+    override var sqlSubquery: SQLSubquery {
+        request.sqlSubquery
     }
     
     override func fetchCount(_ db: Database) throws -> Int {
@@ -292,9 +195,5 @@ private final class ConcreteFetchRequestEraser<Request: FetchRequest>: FetchRequ
     
     override func makePreparedRequest(_ db: Database, forSingleResult singleResult: Bool) throws -> PreparedRequest {
         try request.makePreparedRequest(db, forSingleResult: singleResult)
-    }
-    
-    override func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
-        try request._requestSQL(context, forSingleResult: singleResult)
     }
 }

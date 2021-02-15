@@ -36,7 +36,7 @@ extension CommonTableExpression {
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
     /// - parameter request: A request.
-    public init<Request: FetchRequest>(
+    public init<Request: SQLSubqueryable>(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
@@ -46,7 +46,7 @@ extension CommonTableExpression {
             tableName: tableName,
             cte: SQLCTE(
                 columns: columns,
-                requestPromise: DatabasePromise(value: request),
+                sqlSubquery: request.sqlSubquery,
                 isRecursive: recursive))
     }
     
@@ -113,9 +113,8 @@ extension CommonTableExpression {
 
 extension CommonTableExpression {
     var relationForAll: SQLRelation {
-        SQLRelation(
-            source: SQLSource(tableName: tableName, alias: nil),
-            selectionPromise: DatabasePromise(value: [AllColumns(cte: cte)]))
+        let cte = self.cte
+        return .all(fromTable: tableName, selection: { _ in [.allCTEColumns(cte)] })
     }
     
     /// Creates a request for all rows of the common table expression.
@@ -159,7 +158,7 @@ extension CommonTableExpression {
     ///     // name IN playerName
     ///     playerNameCTE.contains(Column("name"))
     public func contains(_ element: SQLExpressible) -> SQLExpression {
-        SQLTableCollection.tableName(tableName).contains(element)
+        SQLCollection.table(tableName).contains(element.sqlExpression)
     }
 }
 
@@ -176,13 +175,14 @@ struct SQLCTE {
     ///
     ///     -- Column id
     ///     WITH t(id) AS (SELECT 1) ...
+    ///            ~~
     var columns: [String]?
     
-    /// The common table expression request.
+    /// The common table expression subquery.
     ///
     ///     WITH t AS (SELECT ...)
     ///                ~~~~~~~~~~
-    var requestPromise: DatabasePromise<_FetchRequest>
+    var sqlSubquery: SQLSubquery
     
     /// Whether this common table expression needs a `WITH RECURSIVE`
     /// sql clause.
@@ -195,69 +195,7 @@ struct SQLCTE {
             return columns.count
         }
         
-        return try requestPromise.resolve(db)._selectedColumnCount(db)
-    }
-}
-
-extension TableRecord {
-    /// Creates an association to a common table expression that you can join
-    /// or include in another request.
-    ///
-    /// The key of the returned association is the table name of the common
-    /// table expression.
-    ///
-    /// For example, you can build a request that fetches all chats with their
-    /// latest message:
-    ///
-    ///     let latestMessageRequest = Message
-    ///         .annotated(with: max(Column("date")))
-    ///         .group(Column("chatID"))
-    ///
-    ///     let latestMessageCTE = CommonTableExpression<Void>(
-    ///         named: "latestMessage",
-    ///         request: latestMessageRequest)
-    ///
-    ///     let latestMessage = Chat.association(
-    ///         to: latestMessageCTE,
-    ///         on: { chat, latestMessage in
-    ///             chat[Column("id")] == latestMessage[Column("chatID")]
-    ///         })
-    ///
-    ///     // WITH latestMessage AS
-    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
-    ///     // SELECT chat.*, latestMessage.*
-    ///     // FROM chat
-    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
-    ///     let request = Chat
-    ///         .with(latestMessageCTE)
-    ///         .including(optional: latestMessage)
-    ///
-    /// - parameter cte: A common table expression.
-    /// - parameter condition: A function that returns the joining clause.
-    /// - parameter left: A `TableAlias` for the left table.
-    /// - parameter right: A `TableAlias` for the right table.
-    /// - returns: An association to the common table expression.
-    public static func association<Destination>(
-        to cte: CommonTableExpression<Destination>,
-        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
-    -> JoinAssociation<Self, Destination>
-    {
-        JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
-    }
-    
-    /// Creates an association to a common table expression that you can join
-    /// or include in another request.
-    ///
-    /// The key of the returned association is the table name of the common
-    /// table expression.
-    ///
-    /// - parameter cte: A common table expression.
-    /// - returns: An association to the common table expression.
-    public static func association<Destination>(
-        to cte: CommonTableExpression<Destination>)
-    -> JoinAssociation<Self, Destination>
-    {
-        JoinAssociation(to: cte.relationForAll, condition: .none)
+        return try sqlSubquery.columnsCount(db)
     }
 }
 
@@ -278,7 +216,9 @@ extension CommonTableExpression {
         on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
     -> JoinAssociation<RowDecoder, Destination>
     {
-        JoinAssociation(to: cte.relationForAll, condition: .expression(condition))
+        JoinAssociation(
+            to: cte.relationForAll,
+            condition: .expression { condition($0, $1).sqlExpression })
     }
     
     /// Creates an association to a common table expression that you can join
@@ -312,7 +252,9 @@ extension CommonTableExpression {
     -> JoinAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
-        JoinAssociation(to: Destination.relationForAll, condition: .expression(condition))
+        JoinAssociation(
+            to: Destination.relationForAll,
+            condition: .expression { condition($0, $1).sqlExpression })
     }
     
     /// Creates an association to a table record that you can join
@@ -331,7 +273,7 @@ extension CommonTableExpression {
     }
 }
 
-// MARK: - QueryInterfaceRequest
+// MARK: - With
 
 extension QueryInterfaceRequest {
     /// Returns a request which embeds the common table expression.

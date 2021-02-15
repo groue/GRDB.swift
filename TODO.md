@@ -5,7 +5,7 @@
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
 - [ ] https://github.com/groue/GRDB.swift/issues/514
 - [ ] Test NOT TESTED methods
-
+- [ ] Get inspiration from the templates at https://github.com/woocommerce/woocommerce-ios/tree/develop/.github (https://github.com/woocommerce/woocommerce-ios/pull/3523)
 
 ## Documentation
 
@@ -15,6 +15,11 @@
 
 ## Features
 
+- [ ] GRDB 6: decoding errors
+- [ ] GRDB 6: conflict resolution in persistence methods
+- [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commmit and the end of the editing session.
+    * Create an edition SQLite connection with an open transaction (a new kind of DatabaseWriter with a save() method)
+    * All other writes will fail with SQLITE_BUSY. Unless they are schedules in a target dispatch queue which is paused during the edition.
 - [ ] Can we use generated columns to makes it convenient to index on inserted JSON objects? https://github.com/apple/swift-package-manager/pull/3090#issuecomment-740091760
 - [ ] DatabaseMigrator.publisher(in:)
 - [ ] Look at [@FetchRequest](https://developer.apple.com/documentation/swiftui/fetchrequest): managed object context is stored in the environment, and error processing happens somewhere else (where?).

@@ -6,7 +6,7 @@
 ///
 /// When the schema does not define any foreign key, we can still infer complete
 /// mapping from partial information and primary keys.
-struct SQLForeignKeyRequest: Equatable {
+struct SQLForeignKeyRequest {
     let originTable: String
     let destinationTable: String
     let originColumns: [String]?
@@ -88,6 +88,29 @@ typealias JoinMapping = [(left: String, right: String)]
 
 extension ForeignKeyMapping {
     /// Orient the foreign key mapping for a SQL join.
+    ///
+    /// - parameter originIsLeft: Whether the table at the origin of a
+    ///   foreign key is on the left of a JOIN clause.
+    ///
+    ///     For example, the two requests below use the same
+    ///     `ForeignKeyMapping` from `book.authorID` (origin of the foreign key)
+    ///     to `author.id` (destination).
+    ///
+    ///     In the first request, the book origin is on the left of the
+    ///     join clause:
+    ///
+    ///         // SELECT book.*, author.*
+    ///         // FROM book
+    ///         // JOIN author ON author.id = book.authorID
+    ///         Book.including(required: Book.author)
+    ///
+    ///     In the second request, the book origin is on the right of the
+    ///     join clause:
+    ///
+    ///         // SELECT author.*, book.*
+    ///         // FROM author
+    ///         // JOIN book ON book.authorID = author.id
+    ///         Author.including(required: Author.books)
     func joinMapping(originIsLeft: Bool) -> JoinMapping {
         if originIsLeft {
             return map { (left: $0.origin, right: $0.destination) }

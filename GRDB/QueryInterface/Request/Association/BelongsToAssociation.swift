@@ -58,7 +58,7 @@
 ///     }
 ///
 /// See ForeignKey for more information.
-public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord>: AssociationToOne {
+public struct BelongsToAssociation<Origin, Destination>: AssociationToOne {
     /// :nodoc:
     public typealias OriginRowDecoder = Origin
     
@@ -74,29 +74,28 @@ public struct BelongsToAssociation<Origin: TableRecord, Destination: TableRecord
     }
     
     init(
+        to destinationRelation: SQLRelation,
         key: String?,
         using foreignKey: ForeignKey?)
     {
-        let foreignKeyRequest = SQLForeignKeyRequest(
-            originTable: Origin.databaseTableName,
-            destinationTable: Destination.databaseTableName,
-            foreignKey: foreignKey)
+        let destinationTable = destinationRelation.source.tableName
         
-        let condition = SQLAssociationCondition.foreignKey(
-            request: foreignKeyRequest,
+        let foreignKeyCondition = SQLForeignKeyCondition(
+            destinationTable: destinationTable,
+            foreignKey: foreignKey,
             originIsLeft: true)
         
         let associationKey: SQLAssociationKey
         if let key = key {
             associationKey = .fixedSingular(key)
         } else {
-            associationKey = .inflected(Destination.databaseTableName)
+            associationKey = .inflected(destinationTable)
         }
         
         _sqlAssociation = _SQLAssociation(
             key: associationKey,
-            condition: condition,
-            relation: Destination.relationForAll,
+            condition: .foreignKey(foreignKeyCondition),
+            relation: destinationRelation,
             cardinality: .toOne)
     }
 }

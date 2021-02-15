@@ -41,6 +41,10 @@ extension QueryInterfaceRequest {
 extension QueryInterfaceRequest: Refinable { }
 
 extension QueryInterfaceRequest: FetchRequest {
+    public var sqlSubquery: SQLSubquery {
+        .query(query)
+    }
+    
     public func fetchCount(_ db: Database) throws -> Int {
         try query.fetchCount(db)
     }
@@ -55,21 +59,11 @@ extension QueryInterfaceRequest: FetchRequest {
         let associations = query.relation.prefetchedAssociations
         if associations.isEmpty == false {
             // Eager loading of prefetched associations
-            preparedRequest = preparedRequest.with(\.supplementaryFetch) { db, rows in
-                try prefetch(db, associations: associations, into: rows, from: self)
+            preparedRequest = preparedRequest.with(\.supplementaryFetch) { [query] db, rows in
+                try prefetch(db, associations: associations, from: query, into: rows)
             }
         }
         return preparedRequest
-    }
-    
-    /// :nodoc:
-    public func _selectedColumnCount(_ db: Database) throws -> Int {
-        try SQLQueryGenerator(query: query).columnsCount(db)
-    }
-    
-    /// :nodoc:
-    public func _requestSQL(_ context: SQLGenerationContext, forSingleResult singleResult: Bool) throws -> String {
-        try SQLQueryGenerator(query: query, forSingleResult: singleResult).requestSQL(context)
     }
 }
 
@@ -169,7 +163,7 @@ extension QueryInterfaceRequest: SelectionRequest {
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
-        select(sqlLiteral.sqlSelectable, as: type)
+        select(sqlLiteral.sqlSelection, as: type)
     }
     
     /// Creates a request which appends *selection promise*.
@@ -355,6 +349,57 @@ extension QueryInterfaceRequest {
     }
 }
 
+// MARK: - Aggregates
+
+extension QueryInterfaceRequest {
+    
+    private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
+        var request = self
+        let expressionPromise = aggregate.prepare(&request)
+        if let key = aggregate.key {
+            return request.annotated(with: { db in try [expressionPromise.resolve(db).forKey(key)] })
+        } else {
+            return request.annotated(with: { db in try [expressionPromise.resolve(db)] })
+        }
+    }
+    
+    /// Creates a request which appends *aggregates* to the current selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.all()
+    ///     request = request.annotated(with: Player.books.count)
+    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest {
+        annotated(with: aggregates)
+    }
+    
+    /// Creates a request which appends *aggregates* to the current selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.all()
+    ///     request = request.annotated(with: [Player.books.count])
+    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest {
+        aggregates.reduce(self) { request, aggregate in
+            request.annotated(with: aggregate)
+        }
+    }
+    
+    /// Creates a request which appends the provided aggregate *predicate* to
+    /// the eventual set of already applied predicates.
+    ///
+    ///     // SELECT player.*
+    ///     // FROM player LEFT JOIN book ...
+    ///     // HAVING COUNT(DISTINCT book.id) = 0
+    ///     var request = Player.all()
+    ///     request = request.having(Player.books.isEmpty)
+    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest {
+        var request = self
+        let expressionPromise = predicate.prepare(&request)
+        return request.having(expressionPromise.resolve)
+    }
+}
+
 // MARK: - Batch Delete
 
 extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
@@ -449,12 +494,10 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
 ///     }
 public struct ColumnAssignment {
     var column: ColumnExpression
-    var value: SQLExpressible
+    var value: SQLExpression
     
     func sql(_ context: SQLGenerationContext) throws -> String {
-        try column._expressionSQL(context, wrappedInParenthesis: false)
-            + " = "
-            + value.sqlExpression._expressionSQL(context, wrappedInParenthesis: false)
+        try column.sqlExpression.sql(context) + " = " + value.sql(context)
     }
 }
 
@@ -471,7 +514,7 @@ extension ColumnExpression {
     ///         try Player.updateAll(db, Column("score").set(to: 0))
     ///     }
     public func set(to value: SQLExpressible?) -> ColumnAssignment {
-        ColumnAssignment(column: self, value: value ?? DatabaseValue.null)
+        ColumnAssignment(column: self, value: value?.sqlExpression ?? .null)
     }
 }
 
@@ -530,19 +573,19 @@ public func /= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 // MARK: - Eager loading of hasMany associations
 
 // CAUTION: Keep this code in sync with prefetchedRegion(_:_:)
-/// Append rows from prefetched associations into the `baseRows` argument.
+/// Append rows from prefetched associations into the `originRows` argument.
 ///
 /// - parameter db: A database connection.
 /// - parameter associations: Prefetched associations.
-/// - parameter baseRows: The rows that need to be extended with prefetched rows.
-/// - parameter baseRequest: The request that was used to fetch `baseRows`.
-private func prefetch<RowDecoder>(
+/// - parameter originRows: The rows that need to be extended with prefetched rows.
+/// - parameter originQuery: The query that was used to fetch `originRows`.
+private func prefetch(
     _ db: Database,
     associations: [_SQLAssociation],
-    into baseRows: [Row],
-    from baseRequest: QueryInterfaceRequest<RowDecoder>) throws
+    from originQuery: SQLQuery,
+    into originRows: [Row]) throws
 {
-    guard let firstBaseRow = baseRows.first else {
+    guard let firstOriginRow = originRows.first else {
         // No rows -> no prefetch
         return
     }
@@ -554,10 +597,9 @@ private func prefetch<RowDecoder>(
             // are not prefetched with including(all:)
             fatalError("Not implemented: prefetch association without any foreign key")
             
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            let pivotMapping = try foreignKeyRequest
-                .fetchForeignKeyMapping(db)
-                .joinMapping(originIsLeft: originIsLeft)
+        case let .foreignKey(pivotForeignKey):
+            let originTable = originQuery.relation.source.tableName
+            let pivotMapping = try pivotForeignKey.joinMapping(db, from: originTable)
             let pivotColumns = pivotMapping.map(\.right)
             let leftColumns = pivotMapping.map(\.left)
             
@@ -587,7 +629,7 @@ private func prefetch<RowDecoder>(
             // Otherwise, we fallback to the `(a = ? AND b = ?) OR ...`
             // condition (the one that may fail if there are too many
             // base rows).
-            let usesCommonTableExpression = pivotMapping.count > 1 && SQLRowValue.isAvailable
+            let usesCommonTableExpression = pivotMapping.count > 1 && SQLExpression.rowValuesAreAvailable
             
             let prefetchRequest: QueryInterfaceRequest<Row>
             if usesCommonTableExpression {
@@ -605,24 +647,25 @@ private func prefetch<RowDecoder>(
                 //      FROM country
                 //      JOIN passport ON passport.countryCode = country.code
                 //                    AND (passport.a, passport.b) IN grdb_base
-                let baseRequest = baseRequest.map(\.query.relation) { baseRelation in
+                let originQuery = originQuery.map(\.relation) { baseRelation in
                     // Ordering and including(all:) children are
                     // useless, and we only need pivoting columns:
                     baseRelation
                         .unordered()
                         .removingChildrenForPrefetchedAssociations()
-                        .selectOnly(leftColumns.map(Column.init))
+                        .selectOnly(leftColumns.map { SQLExpression.column($0).sqlSelection })
                 }
-                let baseCTE = CommonTableExpression<Void>(
+                let originCTE = CommonTableExpression<Void>(
                     named: "grdb_base",
-                    request: baseRequest)
-                let pivotFilter = baseCTE.contains(SQLRowValue(pivotColumns.map(Column.init)))
+                    request: originQuery)
+                let pivotRowValue = SQLExpression.rowValue(pivotColumns.map(SQLExpression.column))!
+                let pivotFilter = originCTE.contains(pivotRowValue)
                 
                 prefetchRequest = makePrefetchRequest(
                     for: association,
                     filteringPivotWith: pivotFilter,
                     annotatedWith: pivotColumns)
-                    .with(baseCTE)
+                    .with(originCTE)
             } else {
                 // HasMany: Author.including(all: Author.books)
                 //
@@ -636,7 +679,7 @@ private func prefetch<RowDecoder>(
                 //      FROM country
                 //      JOIN passport ON passport.countryCode = country.code
                 //                    AND passport.citizenId IN (1, 2, 3)
-                let pivotFilter = pivotMapping.joinExpression(leftRows: baseRows)
+                let pivotFilter = pivotMapping.joinExpression(leftRows: originRows)
                 
                 prefetchRequest = makePrefetchRequest(
                     for: association,
@@ -646,9 +689,9 @@ private func prefetch<RowDecoder>(
             
             let prefetchedRows = try prefetchRequest.fetchAll(db)
             let prefetchedGroups = prefetchedRows.grouped(byDatabaseValuesOnColumns: pivotColumns.map { "grdb_\($0)" })
-            let groupingIndexes = firstBaseRow.indexes(forColumns: leftColumns)
+            let groupingIndexes = firstOriginRow.indexes(forColumns: leftColumns)
             
-            for row in baseRows {
+            for row in originRows {
                 let groupingKey = groupingIndexes.map { row.impl.databaseValue(atUncheckedIndex: $0) }
                 let prefetchedRows = prefetchedGroups[groupingKey, default: []]
                 row.prefetchedRows.setRows(prefetchedRows, forKeyPath: association.keyPath)
@@ -703,7 +746,12 @@ func makePrefetchRequest(
 
 // CAUTION: Keep this code in sync with prefetch(_:associations:in:)
 /// Returns the region of prefetched associations
-func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws -> DatabaseRegion {
+func prefetchedRegion(
+    _ db: Database,
+    associations: [_SQLAssociation],
+    from originTable: String)
+throws -> DatabaseRegion
+{
     try associations.reduce(into: DatabaseRegion()) { (region, association) in
         switch association.pivot.condition {
         case .expression:
@@ -711,10 +759,8 @@ func prefetchedRegion(_ db: Database, associations: [_SQLAssociation]) throws ->
             // are not prefetched with including(all:)
             fatalError("Not implemented: prefetch association without any foreign key")
             
-        case let .foreignKey(request: foreignKeyRequest, originIsLeft: originIsLeft):
-            let pivotMapping = try foreignKeyRequest
-                .fetchForeignKeyMapping(db)
-                .joinMapping(originIsLeft: originIsLeft)
+        case let .foreignKey(pivotForeignKey):
+            let pivotMapping = try pivotForeignKey.joinMapping(db, from: originTable)
             let prefetchRegion = try prefetchedRegion(db, association: association, pivotMapping: pivotMapping)
             region.formUnion(prefetchRegion)
         }

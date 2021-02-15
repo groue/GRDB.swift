@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.4.x` Releases - [5.4.0](#540)
 - `5.3.x` Releases - [5.3.0](#530)
 - `5.2.x` Releases - [5.2.0](#520)
 - `5.1.x` Releases - [5.1.0](#510)
@@ -68,6 +69,38 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [0.110.0](#01100), ...
 
+## 5.4.0
+
+Released February 15, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.3.0...v5.4.0)
+
+- **Breaking Change**: The query interface was refactored and some types such as `SQLExpression` are no longer a protocol.
+    
+    This may break some applications that rely on Swift type inference, such as in the following example:
+    
+    ```swift
+    // No longer compiles
+    let values = [Column("score"), Column("score") + Column("bonus")]
+    ```
+    
+    The fix is to add an explicit declaration of the desired type:
+    
+    ```swift
+    // A possible fix
+    let values: [SQLExpressible] = [Column("score"), Column("score") + Column("bonus")]
+    ```
+    
+    Occurrences of such code breakage should be very rare.
+    
+- **New**: [SQL Interpolation](Documentation/SQLInterpolation.md) supports embedding collations into SQL literals:
+    
+    ```swift
+    let request: SQLRequest<Player> = "SELECT * FROM player ORDER BY email COLLATION \(.nocase)"
+    let request: SQLRequest<Player> = "SELECT * FROM player ORDER BY name COLLATION \(.localizedCompare)"
+    ```
+    
+- **Documentation update**: [Adding support for missing SQL functions or operators](README.md#adding-support-for-missing-sql-functions-or-operators) explains how to extend the query interface when needed.
+
+- **Documentation update**: The [Demo Applications](Documentation/DemoApps/) now provide tests for the database access layer.
 
 ## 5.3.0
 

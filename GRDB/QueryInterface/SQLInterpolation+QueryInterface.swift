@@ -57,7 +57,7 @@ extension SQLInterpolation {
     {
         let alias = TableAlias(name: tableAlias ?? T.databaseTableName)
         elements.append(contentsOf: T.databaseSelection
-                            .map { CollectionOfOne(.selectable($0._qualifiedSelectable(with: alias))) }
+                            .map { CollectionOfOne(.selection($0.sqlSelection.qualified(with: alias))) }
                             .joined(separator: CollectionOfOne(.sql(", "))))
     }
     
@@ -72,7 +72,7 @@ extension SQLInterpolation {
     public mutating func appendInterpolation<T>(_ selection: T)
     where T: SQLSelectable
     {
-        elements.append(.selectable(selection))
+        elements.append(.selection(selection.sqlSelection))
     }
     
     /// Appends the selectable SQL, or NULL if it is nil.
@@ -84,7 +84,7 @@ extension SQLInterpolation {
     @_disfavoredOverload
     public mutating func appendInterpolation(_ selection: SQLSelectable?) {
         if let selection = selection {
-            elements.append(.selectable(selection))
+            elements.append(.selection(selection.sqlSelection))
         } else {
             appendLiteral("NULL")
         }
@@ -101,7 +101,7 @@ extension SQLInterpolation {
     public mutating func appendInterpolation<T>(_ orderingTerm: T)
     where T: SQLOrderingTerm
     {
-        elements.append(.orderingTerm(orderingTerm))
+        elements.append(.ordering(orderingTerm.sqlOrdering))
     }
     
     /// Appends the ordering SQL.
@@ -112,22 +112,10 @@ extension SQLInterpolation {
     ///         """
     @_disfavoredOverload
     public mutating func appendInterpolation(_ orderingTerm: SQLOrderingTerm) {
-        elements.append(.orderingTerm(orderingTerm))
+        elements.append(.ordering(orderingTerm.sqlOrdering))
     }
     
     // MARK: - SQLExpressible
-    
-    /// Appends the expression SQL.
-    ///
-    ///     // SELECT name FROM player
-    ///     let request: SQLRequest<String> = """
-    ///         SELECT \(Column("name")) FROM player
-    ///         """
-    public mutating func appendInterpolation<T>(_ expressible: T)
-    where T: SQLExpressible
-    {
-        elements.append(.expression(expressible.sqlExpression))
-    }
     
     /// Appends the expression SQL.
     ///
@@ -193,7 +181,7 @@ extension SQLInterpolation {
         appendInterpolation(Column(key.stringValue))
     }
     
-    // MARK: - SQLRequestProtocol
+    // MARK: - FetchRequest
     
     /// Appends the request SQL (not wrapped inside parentheses).
     ///
@@ -205,10 +193,10 @@ extension SQLInterpolation {
     ///     let request: SQLRequest<Player> = """
     ///         SELECT * FROM player WHERE score = (\(subquery))
     ///         """
-    public mutating func appendInterpolation<T>(_ request: T)
-    where T: FetchRequest & SQLExpression
+    public mutating func appendInterpolation<T>(_ subquery: T)
+    where T: SQLSubqueryable & SQLExpressible & SQLSelectable & SQLOrderingTerm
     {
-        elements.append(.subquery(DatabasePromise(value: request)))
+        elements.append(.subquery(subquery.sqlSubquery))
     }
     
     // MARK: - Sequence
@@ -231,7 +219,14 @@ extension SQLInterpolation {
     public mutating func appendInterpolation<T>(_ sequence: T)
     where T: Sequence, T.Element: SQLExpressible
     {
-        appendInterpolation(sequence.lazy.map(\.sqlExpression))
+        let e: [SQLLiteral.Element] = sequence.map { .expression($0.sqlExpression) }
+        if e.isEmpty {
+            appendLiteral("(SELECT NULL WHERE NULL)")
+        } else {
+            appendLiteral("(")
+            elements.append(contentsOf: e.map(CollectionOfOne.init(_:)).joined(separator: CollectionOfOne(.sql(","))))
+            appendLiteral(")")
+        }
     }
     
     /// Appends a sequence of expressions, wrapped in parentheses.
@@ -250,16 +245,9 @@ extension SQLInterpolation {
     ///         SELECT * FROM player WHERE a IN \(expressions)
     ///         """
     public mutating func appendInterpolation<T>(_ sequence: T)
-    where T: Sequence, T.Element == SQLExpression
+    where T: Sequence, T.Element == SQLExpressible
     {
-        let e: [SQLLiteral.Element] = sequence.map { .expression($0.sqlExpression) }
-        if e.isEmpty {
-            appendLiteral("(SELECT NULL WHERE NULL)")
-        } else {
-            appendLiteral("(")
-            elements.append(contentsOf: e.map(CollectionOfOne.init(_:)).joined(separator: CollectionOfOne(.sql(","))))
-            appendLiteral(")")
-        }
+        appendInterpolation(sequence.lazy.map(\.sqlExpression))
     }
     
     // When a value is both an expression and a sequence of expressions,
@@ -271,7 +259,7 @@ extension SQLInterpolation {
         elements.append(.expression(expressible.sqlExpression))
     }
     
-    // MARK: Common Table Expressions
+    // MARK: - Common Table Expressions
     
     /// Appends the table name of the common table expression.
     ///
@@ -302,7 +290,29 @@ extension SQLInterpolation {
         }
         
         elements.append(.sql(" AS ("))
-        elements.append(.subquery(cte.cte.requestPromise))
+        elements.append(.subquery(cte.cte.sqlSubquery))
         elements.append(.sql(")"))
+    }
+    
+    // MARK: - Collations
+    
+    /// Appends the name of the collation.
+    ///
+    ///     let request: SQLRequest<Player> = """
+    ///         SELECT * FROM player
+    ///         ORDER BY name COLLATING \(DatabaseCollation.localizedCaseInsensitiveCompare)
+    ///         """
+    public mutating func appendInterpolation(_ collation: DatabaseCollation) {
+        elements.append(.sql(collation.name))
+    }
+    
+    /// Appends the name of the collation.
+    ///
+    ///     let request: SQLRequest<Player> = """
+    ///         SELECT * FROM player
+    ///         ORDER BY email COLLATING \(.nocase)
+    ///         """
+    public mutating func appendInterpolation(_ collation: Database.CollationName) {
+        elements.append(.sql(collation.rawValue))
     }
 }

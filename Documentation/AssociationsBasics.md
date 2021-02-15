@@ -941,7 +941,21 @@ The pattern is always the same: you start from a base request, that you extend w
     
     Another way to describe the difference is that `required` filters the fetched results in order to discard missing associated records, when `optional` does not filter anything, and lets missing values pass through.
     
-    Finally, readers who speak SQL may compare `optional` with left joins, and `required` with inner joins.
+    Finally, readers who speak SQL may compare `optional` with left joins, and `required` with inner joins:
+    
+    ```swift
+    // SELECT book.* FROM book LEFT JOIN author ON author.id = book.authorID
+    Book.joining(optional: Book.author)
+    
+    // SELECT book.* FROM book JOIN author ON author.id = book.authorID
+    Book.joining(required: Book.author)
+    
+    // SELECT book.*, author.* FROM book LEFT JOIN author ON author.id = book.authorID
+    Book.including(optional: Book.author)
+    
+    // SELECT book.*, author.* FROM book JOIN author ON author.id = book.authorID
+    Book.including(required: Book.author)
+    ```
 
 
 ## Combining Associations

@@ -669,6 +669,24 @@ public struct PrimaryKeyInfo {
             return tableHasRowID
         }
     }
+    
+    /// The name of the fastest primary key column
+    ///
+    /// Returns nil for WITHOUT ROWID tables with a multi-columns primary key
+    var fastPrimaryKeyColumn: String? {
+        if let rowIDColumn = rowIDColumn {
+            // Prefer the user-provided name of the rowid
+            return rowIDColumn
+        } else if tableHasRowID {
+            // Prefer the rowid
+            return Column.rowID.name
+        } else if columns.count == 1 {
+            // WITHOUT ROWID table: use primary key column
+            return columns[0]
+        } else {
+            return nil
+        }
+    }
 }
 
 /// You get foreign keys from table names, with the
