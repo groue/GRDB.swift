@@ -207,7 +207,13 @@ extension SQLRelation: Refinable {
     
     /// Removes all selections from chidren
     func selectOnly(_ selection: [SQLSelection]) -> Self {
-        select(selection).map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
+        self
+            .select(selection)
+            .map(\.children) { children in
+                children.mapValues { child in
+                    child.map(\.relation) { $0.selectOnly([]) }
+                }
+            }
     }
     
     func annotated(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
@@ -221,6 +227,23 @@ extension SQLRelation: Refinable {
     // Convenience
     func annotated(with selection: [SQLSelection]) -> Self {
         annotated(with: { _ in selection })
+    }
+    
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+        map(\.filterPromise) { promise in
+            DatabasePromise { db in
+                if let filter = try promise.resolve(db) {
+                    return try filter && predicate(db)
+                } else {
+                    return try predicate(db)
+                }
+            }
+        }
+    }
+    
+    // Convenience
+    func filter(_ predicate: SQLExpression) -> Self {
+        filter { _ in predicate }
     }
     
     func order(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
@@ -238,20 +261,6 @@ extension SQLRelation: Refinable {
     
     func qualified(with alias: TableAlias) -> Self {
         map(\.source) { $0.qualified(with: alias) }
-    }
-}
-
-extension SQLRelation: FilteredRequest {
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        map(\.filterPromise) { promise in
-            DatabasePromise { db in
-                if let filter = try promise.resolve(db) {
-                    return try filter && predicate(db)
-                } else {
-                    return try predicate(db).sqlExpression
-                }
-            }
-        }
     }
 }
 
@@ -389,7 +398,7 @@ extension SQLRelation {
     }
 }
 
-extension SQLRelation: _JoinableRequest {
+extension SQLRelation {
     func _including(all association: _SQLAssociation) -> Self {
         appendingChild(for: association, kind: .allPrefetched)
     }

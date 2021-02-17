@@ -160,7 +160,7 @@ extension Association {
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        mapDestinationRelation { $0.filter(predicate) }
+        mapDestinationRelation { $0.filter { try predicate($0).sqlExpression } }
     }
     
     /// Creates an association with the provided *orderings promise*.
