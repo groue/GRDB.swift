@@ -29,7 +29,7 @@ The CTE request can be provided as a [query interface request]:
 
 ```swift
 // WITH playerName AS (SELECT name FROM player) ...
-let playerNameCTE = CommonTableExpression<Void>(
+let playerNameCTE = CommonTableExpression(
     named: "playerName", 
     request: Player.select(Column("name")))
 ```
@@ -40,18 +40,18 @@ You can feed a CTE with raw SQL as well (second and third examples use [SQL Inte
 let name = "O'Brien"
 
 // WITH playerName AS (SELECT 'O''Brien') ...
-let playerNameCTE = CommonTableExpression<Void>(
+let playerNameCTE = CommonTableExpression(
     named: "playerName",
     sql: "SELECT ?", arguments: [name])
 
 // WITH playerName AS (SELECT 'O''Brien') ...
-let playerNameCTE = CommonTableExpression<Void>(
+let playerNameCTE = CommonTableExpression(
     named: "playerName",
     literal: "SELECT \(name)")
 
 // WITH playerName AS (SELECT 'O''Brien') ...
 let request: SQLRequest<String> = "SELECT \(name)"
-let playerNameCTE = CommonTableExpression<Void>(
+let playerNameCTE = CommonTableExpression(
     named: "playerName",
     request: requests)
 ```
@@ -60,7 +60,7 @@ All CTEs can be provided with explicit column names:
 
 ```swift
 // WITH pair(a, b) AS (SELECT 1, 2) ...
-let pairCTE = CommonTableExpression<Void>(
+let pairCTE = CommonTableExpression(
     named: "pair", 
     columns: ["a", "b"], 
     sql: "SELECT 1, 2")
@@ -71,7 +71,7 @@ Recursive CTEs need the `recursive` flag. The example below selects all integers
 ```swift
 // WITH RECURSIVE counter(x) AS
 //   (VALUES(1) UNION ALL SELECT x+1 FROM counter WHERE x<1000)
-let counterCTE = CommonTableExpression<Int>(
+let counterCTE = CommonTableExpression(
     recursive: true,
     named: "counter",
     columns: ["x"],
@@ -83,8 +83,6 @@ let counterCTE = CommonTableExpression<Int>(
 ```
 
 > :point_up: **Note**: many recursive CTEs use the `UNION ALL` SQL operator. The query interface does not provide any Swift support for it, so you'll generally have to write SQL in your definitions of recursive CTEs.
-
-As you can see in all above examples, `CommonTableExpression` is a generic type: `CommonTableExpression<Void>`, `CommonTableExpression<Int>`. The generic argument (`Void`, `Int`) turns useful when you [join common table expressions](#associations-to-common-table-expressions), or when you [fetch values directly from a common table expression](#fetch-values-from-common-table-expressions). Otherwise, you can just use `Void`.
 
 
 ## Embed Common Table Expressions in Requests
@@ -103,7 +101,7 @@ We first build a `CommonTableExpression`:
 
 ```swift
 let name = "O'Brien"
-let playerNameCTE = CommonTableExpression<Void>(
+let playerNameCTE = CommonTableExpression(
     named: "playerName", 
     literal: "SELECT \(name)")
 ```
@@ -184,11 +182,34 @@ try Player
 
 In the previous chapter, a common table expression was embedded as a subquery, with the `CommonTableExpression.all()` method.
 
-`all()` builds a regular [query interface request] that you can filter, sort, etc, like all query interface requests. You can also fetch from it, but only as long as it is provided with the definition of the CTE.
+`all()` builds a regular [query interface request] that you can filter, sort, etc, like all query interface requests.
 
-This will generally give requests of the form `cte.all().with(cte)`. In SQL, this would give: `WITH cte AS (...) SELECT * FROM cte`.
+You can also fetch from it, but only as long as it is provided with the definition of the CTE. This will generally give requests of the form `cte.all().with(cte)`. In SQL, this would give: `WITH cte AS (...) SELECT * FROM cte`:
 
-The generic type of `CommonTableExpression<...>` now turns out useful, so that you can fetch the desired outcome (database [rows](../README.md#row-queries), simple [values](../README.md#value-queries), or custom [records](../README.md#records)).
+```swift
+let cte = CommonTableExpression(...)
+let request = cte.all().with(cte)
+```
+
+This request, of type `QueryInterfaceRequest<Void>`, doesn't quite know what to fetch and how. You must help it so that it can actually fetch database [rows](../README.md#row-queries), simple [values](../README.md#value-queries), or custom [records](../README.md#records). You have two possible options:
+
+1. Use the `asRequest(of:)` method:
+    
+    ```swift
+    let cte = CommonTableExpression(...)
+    let request = cte.all().with(cte).asRequest(of: Player.self)
+    //                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    let players = try request.fetchAll(db)
+    ```
+
+2. Provide the fetched type to the cte itself:
+    
+    ```swift
+    let cte = CommonTableExpression<Player>(...)
+    //                             ~~~~~~~~
+    let request = cte.all().with(cte)
+    let players = try request.fetchAll(db)
+    ```
 
 For example, let's fetch a range of integer:
 
@@ -213,17 +234,6 @@ let values = try dbQueue.read { db in
     try counterRequest(range: 3...7).fetchAll(db)
 }
 print(values) // prints "[3, 4, 5, 6, 7]"
-```
-
-When you have to fetch from a `CommonTableExpression` which does not have the desired generic type, you can still use the `asRequest(of:)` method:
-
-```swift
-let cte: CommonTableExpression<Void> = ...
-let rows: [Row] = try dbQueue.read { db in
-    try cte.all().with(cte)
-        .asRequest(of: Row.self)
-        .fetchAll(db)
-}
 ```
 
 
@@ -337,7 +347,7 @@ We can now define the CTE for the latest messages:
 ```swift
 // WITH latestMessage AS
 //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
-let latestMessageCTE = CommonTableExpression<Void>(
+let latestMessageCTE = CommonTableExpression(
     named: "latestMessage",
     request: latestMessageRequest)
 ```
@@ -378,9 +388,9 @@ And we can fetch the data that feeds our application screen:
 let chatInfos: [ChatInfos] = try dbQueue.read(request.fetchAll)
 ```
 
-> :bulb: **Tip**: the joining methods are generally type-safe: they won't allow you to join apples to oranges. This works when associations have a *precise* type. In this context, our go-to `CommonTableExpression<Void>` CTEs can work against type safety. So when you want to define associations between several CTEs, and make sure the compiler will notice wrong uses of those associations, tag your `CommonTableExpression` with a type instead of `Void`.
+> :bulb: **Tip**: the joining methods are generally type-safe: they won't allow you to join apples to oranges. This works when associations have a *precise* type. In this context, anonymous `CommonTableExpression` CTEs can work against type safety. When you want to define associations between several CTEs, and make sure the compiler will notice wrong uses of those associations, tag your common table expressions with an explicit type: `CommonTableExpression<SomeType>`.
 >
-> You can use an existing record type, or an ad-hoc enum. For example:
+> To do so, you can use an existing record type, or an ad-hoc enum. For example:
 >
 > ```swift
 > enum CTE1 { }
@@ -389,9 +399,9 @@ let chatInfos: [ChatInfos] = try dbQueue.read(request.fetchAll)
 > enum CTE2 { }
 > let cte2 = CommonTableExpression<CTE2>(...)
 >
-> let assoc1 = BaseRecord.association(to: cte1, on: ...)
-> let assoc2 = cte1.association(to: cte2, on: ...)
-> let assoc3 = cte2.association(to: FarRecord.self, on: ...)
+> let assoc1 = BaseRecord.association(to: cte1, on: ...)     // from BaseRecord to CTE1
+> let assoc2 = cte1.association(to: cte2, on: ...)           // from CTE1 to CTE2
+> let assoc3 = cte2.association(to: FarRecord.self, on: ...) // from CTE2 to FarRecord
 >
 > // WITH ...
 > // SELECT base.* FROM base
@@ -400,12 +410,14 @@ let chatInfos: [ChatInfos] = try dbQueue.read(request.fetchAll)
 > // JOIN far ON ...
 > let request = BaseRecord
 >     .with(cte1).with(cte2)
->     .joining(required: assoc1
->         .joining(required: assoc2
->             .joining(required: assoc3)))
+>     .joining(required: assoc1.                     // OK
+>         .joining(required: assoc2.                 // OK
+>             .joining(required: assoc3)))           // OK
 >
 > // Compiler error
-> let request = BaseRecord.joining(required: assoc2)
+> let request = BaseRecord
+>     .joining(required: assoc2)                     // Not OK
+>     .joining(required: assoc3)                     // Not OK
 > ```
 
 [query interface request]: ../README.md#requests
