@@ -259,8 +259,8 @@ extension SQLRelation: Refinable {
             .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.unordered() }) } })
     }
     
-    func qualified(with alias: TableAlias) -> Self {
-        map(\.source) { $0.qualified(with: alias) }
+    func aliased(_ alias: TableAlias) -> Self {
+        map(\.source) { $0.aliased(alias) }
     }
 }
 
@@ -426,7 +426,7 @@ struct SQLSource {
     var tableName: String
     var alias: TableAlias?
     
-    func qualified(with alias: TableAlias) -> SQLSource {
+    func aliased(_ alias: TableAlias) -> SQLSource {
         if let sourceAlias = self.alias {
             alias.becomeProxy(of: sourceAlias)
             return self

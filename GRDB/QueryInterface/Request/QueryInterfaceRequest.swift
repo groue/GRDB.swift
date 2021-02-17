@@ -300,7 +300,7 @@ extension QueryInterfaceRequest: TableRequest {
     ///         .aliased(playerAlias)
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
     public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
-        map(\.query) { $0.qualified(with: alias) }
+        map(\.query) { $0.aliased(alias) }
     }
 }
 
@@ -737,7 +737,7 @@ func makePrefetchRequest(
     let pivotAlias = TableAlias()
     
     let prefetchRelation = association
-        .map(\.pivot.relation, { $0.qualified(with: pivotAlias).filter(pivotFilter) })
+        .map(\.pivot.relation, { $0.aliased(pivotAlias).filter(pivotFilter) })
         .destinationRelation()
         .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
     

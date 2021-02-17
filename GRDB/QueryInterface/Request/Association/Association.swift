@@ -285,7 +285,7 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        mapDestinationRelation { $0.qualified(with: alias) }
+        mapDestinationRelation { $0.aliased(alias) }
     }
 }
 
