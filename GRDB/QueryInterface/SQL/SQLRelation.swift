@@ -13,21 +13,19 @@
 ///            • selection
 ///
 /// Other SQL clauses such as GROUP BY, LIMIT are defined one level up, in the
-/// SQLQuery type.
+/// `SQLQuery` type.
 ///
 /// ## Promises
 ///
-/// Filter and ordering are actually "promises", which are only resolved
-/// when a database connection is available. This is how we can implement
-/// requests such as `Record.filter(key: 1)` or `Record.orderByPrimaryKey()`:
-/// both need a database connection in order to introspect the primary key.
+/// Selection, filter, and ordering are "promises" which are resolved when a
+/// database connection is available. This is how we can implement requests such
+/// as `Record.filter(key: 1)` or `Record.orderByPrimaryKey()`: both need a
+/// database connection in order to introspect the primary key. For example:
 ///
-///     // SELECT * FROM player
-///     // WHERE continent = 'EU'
-///     // ORDER BY code -- primary key infered from the database schema
-///     Country
-///         .filter(Column("continent") == "EU")
-///         .orderByPrimaryKey()
+///     // SELECT * FROM country ORDER BY code
+///     //                       ~~~~~~~~~~~~~
+///     // primary key infered from the database schema
+///     Country.orderByPrimaryKey()
 ///
 /// ## Children
 ///
@@ -159,13 +157,11 @@ struct SQLRelation {
     
     var source: SQLSource
     var selectionPromise: DatabasePromise<[SQLSelection]> = DatabasePromise(value: [])
-    // Filter is an array of expressions that we'll join with the AND operator.
-    // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
-    // `((a AND b) AND c)`.
-    var filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
+    var filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil)
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     var children: OrderedDictionary<String, Child> = [:]
     
+    /// All prefetched associations (`including(all:)`), recursively
     var prefetchedAssociations: [_SQLAssociation] {
         children.flatMap { key, child -> [_SQLAssociation] in
             switch child.kind {
@@ -247,9 +243,13 @@ extension SQLRelation: Refinable {
 
 extension SQLRelation: FilteredRequest {
     func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        map(\.filtersPromise) { filtersPromise in
+        map(\.filterPromise) { promise in
             DatabasePromise { db in
-                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
+                if let filter = try promise.resolve(db) {
+                    return try filter && predicate(db)
+                } else {
+                    return try predicate(db).sqlExpression
+                }
             }
         }
     }
@@ -555,11 +555,11 @@ enum SQLAssociationCondition {
     ///         player[Column("id")] == bonus[Column("playerID")]
     ///     })
     ///     Player.with(bonus).joining(required: association)
-    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpression)
+    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpression?)
     
     /// The condition that does not constrain the two associated tables
     /// in any way.
-    static let none = expression({ _, _ in true.sqlExpression })
+    static let none = expression({ _, _ in nil })
     
     func reversed(to destinationTable: String) -> SQLAssociationCondition {
         switch self {
@@ -570,19 +570,19 @@ enum SQLAssociationCondition {
         }
     }
     
-    func joinExpressions(
+    func joinExpression(
         _ db: Database,
         leftAlias: TableAlias,
         rightAlias: TableAlias)
-    throws -> [SQLExpression]
+    throws -> SQLExpression?
     {
         switch self {
         case let .expression(condition):
-            return [condition(leftAlias, rightAlias)]
+            return condition(leftAlias, rightAlias)
         case let .foreignKey(foreignKey):
             return try foreignKey
                 .joinMapping(db, from: leftAlias.tableName)
-                .joinExpressions(leftAlias: leftAlias, rightAlias: rightAlias)
+                .joinExpression(leftAlias: leftAlias, rightAlias: rightAlias)
         }
     }
 }
@@ -718,7 +718,7 @@ extension JoinMapping {
         }
     }
     
-    /// Resolves the condition into SQL expressions which involve both left
+    /// Resolves the condition into an SQL expression which involve both left
     /// and right tables.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)
@@ -728,10 +728,8 @@ extension JoinMapping {
     ///   JOIN operator.
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
-    /// - Returns: An array of SQL expression that should be joined with
-    ///   the AND operator and qualified with the right table.
-    func joinExpressions(leftAlias: TableAlias, rightAlias: TableAlias) -> [SQLExpression] {
-        map { rightAlias[$0.right] == leftAlias[$0.left] }
+    func joinExpression(leftAlias: TableAlias, rightAlias: TableAlias) -> SQLExpression {
+        map { rightAlias[$0.right] == leftAlias[$0.left] }.joined(operator: .and)
     }
 }
 
@@ -791,8 +789,12 @@ extension SQLRelation {
             return nil
         }
         
-        let mergedFiltersPromise = DatabasePromise<[SQLExpression]> { db in
-            try self.filtersPromise.resolve(db) + other.filtersPromise.resolve(db)
+        let mergedFilterPromise = DatabasePromise<SQLExpression?> { db in
+            switch try (self.filterPromise.resolve(db), other.filterPromise.resolve(db)) {
+            case let (lhs?, rhs?): return lhs && rhs
+            case let (nil, expr?), let (expr?, nil): return expr
+            case (nil, nil): return nil
+            }
         }
         
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
@@ -827,7 +829,7 @@ extension SQLRelation {
         return SQLRelation(
             source: mergedSource,
             selectionPromise: mergedSelectionPromise,
-            filtersPromise: mergedFiltersPromise,
+            filterPromise: mergedFilterPromise,
             ordering: mergedOrdering,
             children: mergedChildren)
     }
