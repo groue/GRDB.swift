@@ -6,13 +6,47 @@ public struct CommonTableExpression<RowDecoder> {
     /// For example:
     ///
     ///     // WITH answer AS (SELECT 42) ...
-    ///     let answer = CommonTableExpression<Void>(
+    ///     let answer = CommonTableExpression(
     ///         named: "answer",
     ///         sql: "SELECT 42")
     ///     answer.tableName // "answer"
     public var tableName: String
     
     var cte: SQLCTE
+    
+    /// Creates a common table expression from a request.
+    ///
+    /// For example:
+    ///
+    ///     // WITH p AS (SELECT * FROM player) ...
+    ///     let p = CommonTableExpression<Void>(
+    ///         named: "p",
+    ///         request: Player.all())
+    ///
+    ///     // WITH p AS (SELECT * FROM player) ...
+    ///     let p = CommonTableExpression<Void>(
+    ///         named: "p",
+    ///         request: SQLRequest<Player>(sql: "SELECT * FROM player"))
+    ///
+    /// - parameter recursive: Whether this common table expression needs a
+    ///   `WITH RECURSIVE` sql clause.
+    /// - parameter tableName: The table name of the common table expression.
+    /// - parameter columns: The columns of the common table expression. If nil,
+    ///   the columns are the columns of the request.
+    /// - parameter request: A request.
+    private init<Request: SQLSubqueryable>(
+        recursive: Bool = false,
+        named tableName: String,
+        columns: [String]? = nil,
+        request: Request,
+        type: RowDecoder.Type)
+    {
+        self.tableName = tableName
+        self.cte = SQLCTE(
+            columns: columns,
+            sqlSubquery: request.sqlSubquery,
+            isRecursive: recursive)
+    }
 }
 
 extension CommonTableExpression {
@@ -43,11 +77,11 @@ extension CommonTableExpression {
         request: Request)
     {
         self.init(
-            tableName: tableName,
-            cte: SQLCTE(
-                columns: columns,
-                sqlSubquery: request.sqlSubquery,
-                isRecursive: recursive))
+            recursive: recursive,
+            named: tableName,
+            columns: columns,
+            request: request,
+            type: RowDecoder.self)
     }
     
     /// Creates a common table expression from an SQL string and
@@ -79,7 +113,8 @@ extension CommonTableExpression {
             recursive: recursive,
             named: tableName,
             columns: columns,
-            request: SQLRequest<Void>(sql: sql, arguments: arguments))
+            request: SQLRequest<Void>(sql: sql, arguments: arguments),
+            type: RowDecoder.self)
     }
     
     /// Creates a common table expression from an `SQLLiteral`.
@@ -107,7 +142,106 @@ extension CommonTableExpression {
             recursive: recursive,
             named: tableName,
             columns: columns,
-            request: SQLRequest<Void>(literal: sqlLiteral))
+            request: SQLRequest<Void>(literal: sqlLiteral),
+            type: RowDecoder.self)
+    }
+}
+
+extension CommonTableExpression where RowDecoder == Void {
+    /// Creates a common table expression from a request.
+    ///
+    /// For example:
+    ///
+    ///     // WITH p AS (SELECT * FROM player) ...
+    ///     let p = CommonTableExpression(
+    ///         named: "p",
+    ///         request: Player.all())
+    ///
+    ///     // WITH p AS (SELECT * FROM player) ...
+    ///     let p = CommonTableExpression(
+    ///         named: "p",
+    ///         request: SQLRequest<Player>(sql: "SELECT * FROM player"))
+    ///
+    /// - parameter recursive: Whether this common table expression needs a
+    ///   `WITH RECURSIVE` sql clause.
+    /// - parameter tableName: The table name of the common table expression.
+    /// - parameter columns: The columns of the common table expression. If nil,
+    ///   the columns are the columns of the request.
+    /// - parameter request: A request.
+    public init<Request: SQLSubqueryable>(
+        recursive: Bool = false,
+        named tableName: String,
+        columns: [String]? = nil,
+        request: Request)
+    {
+        self.init(
+            recursive: recursive,
+            named: tableName,
+            columns: columns,
+            request: request,
+            type: Void.self)
+    }
+    
+    /// Creates a common table expression from an SQL string and
+    /// optional arguments.
+    ///
+    /// For example:
+    ///
+    ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
+    ///     let p = CommonTableExpression(
+    ///         named: "p",
+    ///         sql: "SELECT * FROM player WHERE name = ?",
+    ///         arguments: ["O'Brien"])
+    ///
+    /// - parameter recursive: Whether this common table expression needs a
+    ///   `WITH RECURSIVE` sql clause.
+    /// - parameter tableName: The table name of the common table expression.
+    /// - parameter columns: The columns of the common table expression. If nil,
+    ///   the columns are the columns of the request.
+    /// - parameter sql: An SQL query.
+    /// - parameter arguments: Statement arguments.
+    public init(
+        recursive: Bool = false,
+        named tableName: String,
+        columns: [String]? = nil,
+        sql: String,
+        arguments: StatementArguments = StatementArguments())
+    {
+        self.init(
+            recursive: recursive,
+            named: tableName,
+            columns: columns,
+            request: SQLRequest<Void>(sql: sql, arguments: arguments),
+            type: Void.self)
+    }
+    
+    /// Creates a common table expression from an `SQLLiteral`.
+    ///
+    /// For example:
+    ///
+    ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
+    ///     let p = CommonTableExpression(
+    ///         named: "p",
+    ///         literal: "SELECT * FROM player WHERE name = \("O'Brien")")
+    ///
+    /// - parameter recursive: Whether this common table expression needs a
+    ///   `WITH RECURSIVE` sql clause.
+    /// - parameter tableName: The table name of the common table expression.
+    /// - parameter columns: The columns of the common table expression. If nil,
+    ///   the columns are the columns of the request.
+    /// - parameter sqlLiteral: An SQLLiteral.
+    public init(
+        recursive: Bool = false,
+        named tableName: String,
+        columns: [String]? = nil,
+        literal sqlLiteral: SQLLiteral)
+    {
+        self.init(
+            recursive: recursive,
+            named: tableName,
+            columns: columns,
+            request: SQLRequest<Void>(literal: sqlLiteral),
+            type: Void.self)
     }
 }
 
@@ -137,7 +271,7 @@ extension CommonTableExpression {
     ///     // WITH answer AS (SELECT 42 AS value)
     ///     // SELECT * FROM player
     ///     // WHERE score = (SELECT * FROM answer)
-    ///     let answer = CommonTableExpression<Void>(
+    ///     let answer = CommonTableExpression(
     ///         named: "answer",
     ///         sql: "SELECT 42 AS value")
     ///     let players = try Player
@@ -151,7 +285,7 @@ extension CommonTableExpression {
     /// An SQL expression that checks the inclusion of an expression in a
     /// common table expression.
     ///
-    ///     let playerNameCTE = CommonTableExpression<Void>(
+    ///     let playerNameCTE = CommonTableExpression(
     ///         named: "playerName",
     ///         request: Player.select(Column("name"))
     ///
@@ -288,7 +422,7 @@ extension QueryInterfaceRequest {
     ///         .annotated(with: max(Column("date")))
     ///         .group(Column("chatID"))
     ///
-    ///     let latestMessageCTE = CommonTableExpression<Void>(
+    ///     let latestMessageCTE = CommonTableExpression(
     ///         named: "latestMessage",
     ///         request: latestMessageRequest)
     ///
@@ -327,7 +461,7 @@ extension TableRecord {
     ///         .annotated(with: max(Column("date")))
     ///         .group(Column("chatID"))
     ///
-    ///     let latestMessageCTE = CommonTableExpression<Void>(
+    ///     let latestMessageCTE = CommonTableExpression(
     ///         named: "latestMessage",
     ///         request: latestMessageRequest)
     ///
