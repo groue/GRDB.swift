@@ -255,8 +255,13 @@ extension SQLRelation: Refinable {
     }
     
     func unordered() -> Self {
-        self.with(\.ordering, SQLRelation.Ordering())
-            .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.unordered() }) } })
+        self
+            .with(\.ordering, SQLRelation.Ordering())
+            .map(\.children) { children in
+                children.mapValues { child in
+                    child.map(\.relation) { $0.unordered() }
+                }
+            }
     }
     
     func aliased(_ alias: TableAlias) -> Self {
