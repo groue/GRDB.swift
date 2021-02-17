@@ -199,7 +199,7 @@ This request, of type `QueryInterfaceRequest<Void>`, doesn't quite know what to 
     let cte = CommonTableExpression(...)
     let request = cte.all().with(cte).asRequest(of: Player.self)
     //                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-    let players = try request.fetchAll(db)
+    let players = try request.fetchAll(db) // [Player]
     ```
 
 2. Provide the fetched type to the cte itself:
@@ -208,7 +208,7 @@ This request, of type `QueryInterfaceRequest<Void>`, doesn't quite know what to 
     let cte = CommonTableExpression<Player>(...)
     //                             ~~~~~~~~
     let request = cte.all().with(cte)
-    let players = try request.fetchAll(db)
+    let players = try request.fetchAll(db) // [Player]
     ```
 
 For example, let's fetch a range of integer:
