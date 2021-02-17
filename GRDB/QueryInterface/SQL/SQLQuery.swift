@@ -26,25 +26,30 @@ extension SQLQuery: Refinable {
     }
 }
 
-extension SQLQuery: SelectionRequest {
-    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        map(\.relation) { $0.select { try selection($0).map(\.sqlSelection) } }
+extension SQLQuery {
+    func select(_ selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+        map(\.relation) { $0.select(selection) }
     }
     
-    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
-        map(\.relation) { $0.annotated { try selection($0).map(\.sqlSelection) } }
+    // Convenience
+    func select(_ expressions: SQLExpression...) -> Self {
+        select { _ in expressions.map { .expression($0) } }
+    }
+    
+    func annotated(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
+        map(\.relation) { $0.annotated(with: selection) }
     }
 }
 
-extension SQLQuery: FilteredRequest {
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        map(\.relation) { $0.filter { try predicate($0).sqlExpression } }
+extension SQLQuery {
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+        map(\.relation) { $0.filter(predicate) }
     }
 }
 
-extension SQLQuery: OrderedRequest {
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self {
-        map(\.relation) { $0.order { try orderings($0).map(\.sqlOrdering) } }
+extension SQLQuery {
+    func order(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
+        map(\.relation) { $0.order(orderings) }
     }
     
     func reversed() -> Self {
@@ -56,25 +61,25 @@ extension SQLQuery: OrderedRequest {
     }
 }
 
-extension SQLQuery: AggregatingRequest {
-    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self {
-        with(\.groupPromise, DatabasePromise { db in try expressions(db).map(\.sqlExpression) })
+extension SQLQuery {
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
+        with(\.groupPromise, DatabasePromise(expressions))
     }
     
-    func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+    func having(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
         map(\.havingExpressionPromise) { promise in
             DatabasePromise { db in
                 if let filter = try promise.resolve(db) {
                     return try filter && predicate(db)
                 } else {
-                    return try predicate(db).sqlExpression
+                    return try predicate(db)
                 }
             }
         }
     }
 }
 
-extension SQLQuery: _JoinableRequest {
+extension SQLQuery{
     func _including(all association: _SQLAssociation) -> Self {
         map(\.relation) { $0._including(all: association) }
     }
@@ -93,12 +98,6 @@ extension SQLQuery: _JoinableRequest {
     
     func _joining(required association: _SQLAssociation) -> Self {
         map(\.relation) { $0._joining(required: association) }
-    }
-}
-
-extension SQLQuery: SQLSubqueryable {
-    var sqlSubquery: SQLSubquery {
-        .query(self)
     }
 }
 
@@ -126,9 +125,9 @@ extension SQLQuery {
             countQuery.isDistinct = false
             switch count {
             case .all:
-                countQuery = countQuery.select(SQLExpression.count(.allColumns))
+                countQuery = countQuery.select(.count(.allColumns))
             case .distinct(let expression):
-                countQuery = countQuery.select(SQLExpression.countDistinct(expression))
+                countQuery = countQuery.select(.countDistinct(expression))
             }
             return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         } else {
@@ -148,7 +147,7 @@ extension SQLQuery {
     
     // SELECT COUNT(*) FROM (self)
     func fetchTrivialCount(_ db: Database) throws -> Int {
-        let countRequest: SQLRequest<Int> = "SELECT COUNT(*) FROM (\(unordered()))"
+        let countRequest: SQLRequest<Int> = "SELECT COUNT(*) FROM (\(SQLSubquery.query(unordered())))"
         return try countRequest.fetchOne(db)!
     }
 }
