@@ -72,31 +72,27 @@
 ///         // JOIN author ON author.id = book.id AND author.country = 'FR'
 ///         Book.including(required: Book.author.filter(Column("country") == "FR"))
 ///
-/// - `.allPrefetched`:
+/// - `.all`:
 ///
-///     Such children are prefetched using several SQL requests:
+///     Such children are prefetched using an extra SQL request:
 ///
-///         // SELECT * FROM countries WHERE continent = 'EU'
-///         // SELECT * FROM passport WHERE countryCode IN ('BE', 'DE', 'FR', ...)
-///         Country
-///             .filter(Column("continent") == "EU")
-///             .including(all: Country.passports)
+///         // SELECT * FROM countries;
+///         // SELECT * FROM passport
+///         //  WHERE countryCode IN ('BE', 'DE', 'FR', ...);
+///         Country.including(all: Country.passports)
 ///
-/// - `.allNotPrefetched`:
+/// - `.bridge`:
 ///
 ///     Such children are not joined, and not prefetched. They are used as
 ///     intermediate children towards a prefetched child. In the example
-///     below, the country relation has a `.allNotPrefetched` child to
-///     passports, and the passport relation has a `.allPrefetched` child
-///     to citizens.
+///     below, the country relation has a `.bridge` child to passports, and the
+///     passport relation has an `.all` child to citizens.
 ///
-///         // SELECT * FROM countries WHERE continent = 'EU'
+///         // SELECT * FROM countries;
 ///         // SELECT citizens.* FROM citizens
 ///         // JOIN passport ON passport.citizenId = citizens.id
-///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...)
-///         Country
-///             .filter(Column("continent") == "EU")
-///             .including(all: Country.citizens)
+///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...);
+///         Country.including(all: Country.citizens)
 struct SQLRelation {
     struct Child: Refinable {
         enum Kind {
@@ -105,9 +101,9 @@ struct SQLRelation {
             // Record.including(required: association)
             case oneRequired
             // Record.including(all: association)
-            case allPrefetched
+            case all
             // Record.including(all: associationThroughPivot)
-            case allNotPrefetched
+            case bridge
         }
         
         var kind: Kind
@@ -122,7 +118,7 @@ struct SQLRelation {
             switch kind {
             case .oneOptional, .oneRequired:
                 return true
-            case .allPrefetched, .allNotPrefetched:
+            case .all, .bridge:
                 return false
             }
         }
@@ -134,7 +130,7 @@ struct SQLRelation {
             switch kind {
             case .oneOptional, .oneRequired:
                 cardinality = .toOne
-            case .allPrefetched, .allNotPrefetched:
+            case .all, .bridge:
                 cardinality = .toMany
             }
             
@@ -156,9 +152,9 @@ struct SQLRelation {
     var prefetchedAssociations: [_SQLAssociation] {
         children.flatMap { key, child -> [_SQLAssociation] in
             switch child.kind {
-            case .allPrefetched:
+            case .all:
                 return [child.makeAssociationForKey(key)]
-            case .oneOptional, .oneRequired, .allNotPrefetched:
+            case .oneOptional, .oneRequired, .bridge:
                 return child.relation.prefetchedAssociations.map { association in
                     // Remove redundant pivot child
                     let pivotKey = association.pivot.keyName
@@ -303,9 +299,9 @@ extension SQLRelation {
         // child, which may be joined (singular), or prefetched (plural).
         //
         // We prefer the cardinality of the child kind, but for the specific
-        // case of prefetched has-many-through associations (kind
-        // `.allNotPrefetched`), where we use the cardinality of
-        // the association.
+        // case of the `.bridge` child kind, involved in prefetched
+        // has-many-through associations, where we user the cardinality of
+        // the association instead.
         //
         // By prefering the cardinality of the child kind in general, we make it
         // possible to join to a plural association and decode it in a singular
@@ -346,9 +342,9 @@ extension SQLRelation {
         switch kind {
         case .oneOptional, .oneRequired:
             isSingular = true
-        case .allPrefetched:
+        case .all:
             isSingular = false
-        case .allNotPrefetched:
+        case .bridge:
             isSingular = association.destination.cardinality.isSingular
         }
         let childKey = association.destination.key.name(singular: isSingular)
@@ -395,10 +391,11 @@ extension SQLRelation {
             .appendingChild(child, forKey: childKey)
         
         switch kind {
-        case .oneRequired, .oneOptional, .allNotPrefetched:
+        case .oneRequired, .oneOptional, .bridge:
             return appendingChild(for: reducedAssociation, kind: kind)
-        case .allPrefetched:
-            // Intermediate steps of indirect associations are not prefetched.
+        case .all:
+            // Intermediate steps of an indirect association are not prefetched:
+            // use the `.bridge` kind.
             //
             // For example, the request below prefetches citizens, not
             // intermediate passports:
@@ -408,7 +405,7 @@ extension SQLRelation {
             //          static let citizens = hasMany(Citizens.self, through: passports, using: Passport.citizen)
             //      }
             //      let request = Country.including(all: Country.citizens)
-            return appendingChild(for: reducedAssociation, kind: .allNotPrefetched)
+            return appendingChild(for: reducedAssociation, kind: .bridge)
         }
     }
     
@@ -440,7 +437,7 @@ extension SQLRelation {
     func removingChildrenForPrefetchedAssociations() -> Self {
         filteringChildren {
             switch $0.kind {
-            case .allPrefetched, .allNotPrefetched: return false
+            case .all, .bridge: return false
             case .oneRequired, .oneOptional: return true
             }
         }
@@ -449,7 +446,7 @@ extension SQLRelation {
 
 extension SQLRelation {
     func _including(all association: _SQLAssociation) -> Self {
-        appendingChild(for: association, kind: .allPrefetched)
+        appendingChild(for: association, kind: .all)
     }
     
     func _including(optional association: _SQLAssociation) -> Self {
@@ -982,28 +979,28 @@ extension SQLRelation.Child.Kind {
             //   .including(optional: association)
             return .oneOptional
             
-        case (.allPrefetched, .allPrefetched):
+        case (.all, .all):
             // Equivalent to Record.including(all: association):
             //
             // Record
             //   .including(all: association)
             //   .including(all: association)
-            return .allPrefetched
+            return .all
             
-        case (.allPrefetched, .allNotPrefetched),
-             (.allNotPrefetched, .allPrefetched):
+        case (.all, .bridge),
+             (.bridge, .all):
             // Record
             //   .including(all: associationToDestinationThroughPivot)
             //   .including(all: associationToPivot)
             fatalError("Not implemented: merging a direct association and an indirect one with including(all:)")
             
-        case (.allNotPrefetched, .allNotPrefetched):
+        case (.bridge, .bridge):
             // Equivalent to Record.including(all: association)
             //
             // Record
             //   .including(all: association)
             //   .including(all: association)
-            return .allNotPrefetched
+            return .bridge
             
         default:
             // Likely a programmer error:

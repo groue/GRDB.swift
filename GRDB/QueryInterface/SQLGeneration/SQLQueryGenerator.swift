@@ -714,7 +714,7 @@ private struct SQLQualifiedJoin: Refinable {
                 self = .innerJoin
             case .oneOptional:
                 self = .leftJoin
-            case .allPrefetched, .allNotPrefetched:
+            case .all, .bridge:
                 // Eager loading of to-many associations is not implemented with joins
                 return nil
             }
