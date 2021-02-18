@@ -108,15 +108,6 @@ struct SQLRelation {
             case allPrefetched
             // Record.including(all: associationThroughPivot)
             case allNotPrefetched
-            
-            var isSingular: Bool {
-                switch self {
-                case .oneOptional, .oneRequired:
-                    return true
-                case .allPrefetched, .allNotPrefetched:
-                    return false
-                }
-            }
         }
         
         var kind: Kind
@@ -303,12 +294,65 @@ extension SQLRelation {
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
     func appendingChild(for association: _SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
-        // Preserve association cardinality in intermediate steps of
-        // including(all:), and force desired cardinality otherwize
-        let isSingular = (kind == .allNotPrefetched)
-            ? association.destination.cardinality.isSingular
-            : kind.isSingular
+        // Our goal here is to append a child with a correct (singular or
+        // plural) key, so that the user can decode it later under the expected
+        // name.
+        //
+        // To know if the child key should be singular or plural, we look at the
+        // association, which may be to-one or to-many, and at the kind of the
+        // child, which may be joined (singular), or prefetched (plural).
+        //
+        // We prefer the cardinality of the child kind, but for the specific
+        // case of prefetched has-many-through associations (kind
+        // `.allNotPrefetched`), where we use the cardinality of
+        // the association.
+        //
+        // By prefering the cardinality of the child kind in general, we make it
+        // possible to join to a plural association and decode it in a singular
+        // key. In the example below, we have a singular kind `.oneRequired`,
+        // a plural to-many association, and we use a singular key:
+        //
+        //      // Decode a Player in the singular "player" key
+        //      //
+        //      // SELECT team.*, player.*
+        //      // FROM team
+        //      // JOIN player ON player.teamID = team.id
+        //      Team.joining(required: Team.players)
+        //
+        // The exception for has-many-through associations exists because the
+        // pivot of the association may be singular, and may conflict with a
+        // plural association with the same association key, as in the example
+        // below:
+        //
+        // We want the child for the "captain" in the following request to be
+        // registered under the singular "player" key, and not the plural
+        // "players" key, so that it does not conflict with the other child
+        // named "players" (we can not have two distinct children with the
+        // same key):
+        //
+        //     struct Team: TableRecord {
+        //         static let players = hasMany(Player.self)
+        //         static let captain = hasOne(Player.self).filter(Column("isCaptain") == true)
+        //         static let captainAwards = hasMany(Award.self, through: captain, using: Player.awards)
+        //     }
+        //     struct Player: TableRecord {
+        //         static let awards = hasMany(Award.self)
+        //     }
+        //     struct Award: TableRecord { }
+        //     let request = Team
+        //         .including(all: Team.captainAwards) // child "player" (with an "awards" child inside)
+        //         .including(all: Team.players)       // child "players"
+        let isSingular: Bool
+        switch kind {
+        case .oneOptional, .oneRequired:
+            isSingular = true
+        case .allPrefetched:
+            isSingular = false
+        case .allNotPrefetched:
+            isSingular = association.destination.cardinality.isSingular
+        }
         let childKey = association.destination.key.name(singular: isSingular)
+        
         let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
