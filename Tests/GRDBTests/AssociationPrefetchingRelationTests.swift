@@ -376,7 +376,7 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                     XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: true))
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .oneOptional)
-                                    XCTAssertEqual(relation.children[1].key, key1.name(singular: false))
+                                    XCTAssertEqual(relation.children[1].key, key1.name(singular: cardinality1.isSingular))
                                     XCTAssertEqual(relation.children[1].value.kind, .bridge)
                                     XCTAssertEqual(relation.children[1].value.relation.children.count, 1)
                                     XCTAssertEqual(relation.children[1].value.relation.children[0].key, key2.name(singular: false))
@@ -494,7 +494,7 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                     XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: true))
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .oneRequired)
-                                    XCTAssertEqual(relation.children[1].key, key1.name(singular: false))
+                                    XCTAssertEqual(relation.children[1].key, key1.name(singular: cardinality1.isSingular))
                                     XCTAssertEqual(relation.children[1].value.kind, .bridge)
                                     XCTAssertEqual(relation.children[1].value.relation.children.count, 1)
                                     XCTAssertEqual(relation.children[1].value.relation.children[0].key, key2.name(singular: false))
@@ -514,6 +514,24 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                 XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
                                 XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: false))
                                 XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .all)
+                            }
+                            
+                            #warning("TODO: here we see the problem: it should be possible to merge association1 when it is singular.")
+                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
+                            // ~~~~~~~~~~~~~~~~~~~~~~~~
+                            if !cardinality1.isSingular && key1.name(singular: true) != key1.name(singular: false) {
+                                let relation = relation._joining(optional: association1)
+                                XCTAssertEqual(relation.children.count, 2)
+                                // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
+                                //                                                           ~~~~~~~~~~~~~~~~~~~~~~~
+                                XCTAssertEqual(relation.children[0].key, key1.name(singular: cardinality1.isSingular))
+                                XCTAssertEqual(relation.children[0].value.kind, .bridge)
+                                XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
+                                XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: false))
+                                XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .all)
+                                XCTAssertEqual(relation.children[1].key, key1.name(singular: true))
+                                XCTAssertEqual(relation.children[1].value.kind, .oneOptional)
+                                XCTAssertEqual(relation.children[1].value.relation.children.count, 0)
                             }
                         }
                     }
@@ -601,6 +619,18 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].key, key3.name(singular: true))
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].value.kind, .oneOptional)
                                         }
+                                        do {
+                                            let relation = relation._joining(optional: association1)
+                                            XCTAssertEqual(relation.children.count, 1)
+                                            XCTAssertEqual(relation.children[0].key, key1.name(singular: true))
+                                            XCTAssertEqual(relation.children[0].value.kind, .oneOptional)
+                                            XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: true))
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .oneOptional)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children.count, 1)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].key, key3.name(singular: true))
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].value.kind, .oneOptional)
+                                        }
                                     }
                                     
                                     for relation in [
@@ -608,6 +638,18 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                         relation._including(required: association),
                                     ] {
                                         do {
+                                            XCTAssertEqual(relation.children.count, 1)
+                                            XCTAssertEqual(relation.children[0].key, key1.name(singular: true))
+                                            XCTAssertEqual(relation.children[0].value.kind, .oneRequired)
+                                            XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: true))
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .oneRequired)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children.count, 1)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].key, key3.name(singular: true))
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].value.kind, .oneRequired)
+                                        }
+                                        do {
+                                            let relation = relation._joining(optional: association1)
                                             XCTAssertEqual(relation.children.count, 1)
                                             XCTAssertEqual(relation.children[0].key, key1.name(singular: true))
                                             XCTAssertEqual(relation.children[0].value.kind, .oneRequired)
@@ -636,6 +678,28 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children.count, 1)
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].key, key3.name(singular: false))
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].value.kind, .all)
+                                        }
+                                        #warning("TODO: here we see the problem: it should be possible to merge association1 when it is singular.")
+                                        // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
+                                        // ~~~~~~~~~~~~~~~~~~~~~~~~
+                                        if !cardinality1.isSingular && key1.name(singular: true) != key1.name(singular: false) {
+                                            let relation = relation._joining(optional: association1)
+                                            XCTAssertEqual(relation.children.count, 2)
+                                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
+                                            //                                                           ~~~~~~~~~~~~~~~~~~~~~~~
+                                            XCTAssertEqual(relation.children[0].key, key1.name(singular: cardinality1.isSingular))
+                                            XCTAssertEqual(relation.children[0].value.kind, .bridge)
+                                            XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
+                                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
+                                            //                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: cardinality2.isSingular))
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .bridge)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children.count, 1)
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].key, key3.name(singular: false))
+                                            XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].value.kind, .all)
+                                            XCTAssertEqual(relation.children[1].key, key1.name(singular: true))
+                                            XCTAssertEqual(relation.children[1].value.kind, .oneOptional)
+                                            XCTAssertEqual(relation.children[1].value.relation.children.count, 0)
                                         }
                                     }
                                 }
