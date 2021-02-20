@@ -225,7 +225,7 @@ extension TableRecord {
     ///         .annotated(with: max(Column("date")))
     ///         .group(Column("chatID"))
     ///
-    ///     let latestMessageCTE = CommonTableExpression<Void>(
+    ///     let latestMessageCTE = CommonTableExpression(
     ///         named: "latestMessage",
     ///         request: latestMessageRequest)
     ///

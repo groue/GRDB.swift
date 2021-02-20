@@ -29,7 +29,7 @@ extension SQLSubquery {
     ///     // SELECT player.*, cte.*
     ///     // FROM player
     ///     // JOIN cte
-    ///     let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1 AS a, 2 AS b")
+    ///     let cte = CommonTableExpression(named: "cte", sql: "SELECT 1 AS a, 2 AS b")
     ///     let request = Player
     ///         .with(cte)
     ///         .including(required: Player.association(to: cte))

@@ -182,16 +182,19 @@ try Player
 
 In the previous chapter, a common table expression was embedded as a subquery, with the `CommonTableExpression.all()` method.
 
-`all()` builds a regular [query interface request] that you can filter, sort, etc, like all query interface requests.
+`cte.all()` builds a regular [query interface request] that you can filter, sort, etc, like all query interface requests.
 
-You can also fetch from it, but only as long as it is provided with the definition of the CTE. This will generally give requests of the form `cte.all().with(cte)`. In SQL, this would give: `WITH cte AS (...) SELECT * FROM cte`:
+You can also fetch from `cte.all()`, as long as the request is given the definition of the CTE: `cte.all().with(cte)`. In SQL, this would give: `WITH cte AS (...) SELECT * FROM cte`:
+
+This request, of type `QueryInterfaceRequest<Row>`, can fetch raw database [rows](../README.md#row-queries):
 
 ```swift
 let cte = CommonTableExpression(...)
 let request = cte.all().with(cte)
+let rows = try request.fetchAll(db) // [Row]
 ```
 
-This request, of type `QueryInterfaceRequest<Void>`, doesn't quite know what to fetch and how. You must help it so that it can actually fetch database [rows](../README.md#row-queries), simple [values](../README.md#value-queries), or custom [records](../README.md#records). You have two possible options:
+In order to fetch something else, such as simple [values](../README.md#value-queries), or custom [records](../README.md#records), you have two possible options:
 
 1. Use the `asRequest(of:)` method:
     
@@ -210,32 +213,6 @@ This request, of type `QueryInterfaceRequest<Void>`, doesn't quite know what to 
     let request = cte.all().with(cte)
     let players = try request.fetchAll(db) // [Player]
     ```
-
-For example, let's fetch a range of integer:
-
-```swift
-func counterRequest(range: ClosedRange<Int>) -> QueryInterfaceRequest<Int> {
-    // WITH RECURSIVE counter(x) AS
-    //   (VALUES(...) UNION ALL SELECT x+1 FROM counter WHERE x<...)
-    // SELECT * FROM counter
-    let counter = CommonTableExpression<Int>(
-        recursive: true,
-        named: "counter",
-        columns: ["x"],
-        literal: """
-            VALUES(\(range.lowerBound)) \
-            UNION ALL \
-            SELECT x+1 FROM counter WHERE x < \(range.upperBound)
-            """)
-    return counter.all().with(counter)
-}
-
-let values = try dbQueue.read { db in
-    try counterRequest(range: 3...7).fetchAll(db)
-}
-print(values) // prints "[3, 4, 5, 6, 7]"
-```
-
 
 ## Associations to Common Table Expressions
 

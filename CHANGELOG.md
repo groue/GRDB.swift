@@ -73,11 +73,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Development Branch
 
-- **New**: You can now define common table expressions without the `<Void>` generic qualifier:
+- **New**: You can now define common table expressions without any generic qualifier (which defaults to `Row`):
 
-    ```diff
-    -let cte = CommonTableExpression<Void>(...)
-    +let cte = CommonTableExpression(...)
+    ```swift
+    let cte = CommonTableExpression(...)
     ```
     
     The [Common Table Expressions Guide](Documentation/CommonTableExpressions.md) was updated accordingly.

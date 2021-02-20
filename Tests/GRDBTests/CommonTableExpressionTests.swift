@@ -3,15 +3,20 @@ import GRDB
 
 class CommonTableExpressionTests: GRDBTestCase {
     func testInitializers() {
-        // Implicit Void
-        _ = CommonTableExpression(named: "foo", sql: "")
-        _ = CommonTableExpression(named: "foo", literal: "")
-        _ = CommonTableExpression(named: "foo", request: SQLRequest<Void>(""))
-        
-        // Explicit Void
-        _ = CommonTableExpression<Void>(named: "foo", sql: "")
-        _ = CommonTableExpression<Void>(named: "foo", literal: "")
-        _ = CommonTableExpression<Void>(named: "foo", request: SQLRequest<Void>(""))
+        // Implicit generic RowDecoder type is Row
+        func acceptRowCTE(_ cte: CommonTableExpression<Row>) { }
+        do {
+            let cte = CommonTableExpression(named: "foo", sql: "")
+            acceptRowCTE(cte)
+        }
+        do {
+            let cte = CommonTableExpression(named: "foo", literal: "")
+            acceptRowCTE(cte)
+        }
+        do {
+            let cte = CommonTableExpression(named: "foo", request: SQLRequest<Void>(""))
+            acceptRowCTE(cte)
+        }
         
         // Explicit type
         struct S { }
@@ -361,7 +366,8 @@ class CommonTableExpressionTests: GRDBTestCase {
     func testFetchFromCTE() throws {
         try makeDatabaseQueue().read { db in
             do {
-                let answer = CommonTableExpression<Row>(
+                // Default row decoder is Row
+                let answer = CommonTableExpression(
                     named: "answer",
                     sql: "SELECT 42 AS value")
                 let row = try answer.all().with(answer).fetchOne(db)

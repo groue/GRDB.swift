@@ -655,7 +655,7 @@ private func prefetch(
                         .removingChildrenForPrefetchedAssociations()
                         .selectOnly(leftColumns.map { SQLExpression.column($0).sqlSelection })
                 }
-                let originCTE = CommonTableExpression<Void>(
+                let originCTE = CommonTableExpression(
                     named: "grdb_base",
                     request: SQLSubquery.query(originQuery))
                 let pivotRowValue = SQLExpression.rowValue(pivotColumns.map(SQLExpression.column))!

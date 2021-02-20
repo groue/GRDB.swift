@@ -147,7 +147,7 @@ extension CommonTableExpression {
     }
 }
 
-extension CommonTableExpression where RowDecoder == Void {
+extension CommonTableExpression where RowDecoder == Row {
     /// Creates a common table expression from a request.
     ///
     /// For example:
@@ -179,7 +179,7 @@ extension CommonTableExpression where RowDecoder == Void {
             named: tableName,
             columns: columns,
             request: request,
-            type: Void.self)
+            type: Row.self)
     }
     
     /// Creates a common table expression from an SQL string and
@@ -212,7 +212,7 @@ extension CommonTableExpression where RowDecoder == Void {
             named: tableName,
             columns: columns,
             request: SQLRequest<Void>(sql: sql, arguments: arguments),
-            type: Void.self)
+            type: Row.self)
     }
     
     /// Creates a common table expression from an `SQLLiteral`.
@@ -241,7 +241,7 @@ extension CommonTableExpression where RowDecoder == Void {
             named: tableName,
             columns: columns,
             request: SQLRequest<Void>(literal: sqlLiteral),
-            type: Void.self)
+            type: Row.self)
     }
 }
 
