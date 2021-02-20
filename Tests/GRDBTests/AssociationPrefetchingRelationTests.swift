@@ -366,8 +366,6 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: true))
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .oneRequired)
                                 }
-                                // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                // ~~~~~~~~~~~~~~~~~~~~~~~~
                                 if !cardinality1.isSingular && key1.name(singular: true) != key1.name(singular: false) {
                                     let relation = relation._including(all: association)
                                     XCTAssertEqual(relation.children.count, 2)
@@ -484,8 +482,6 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: true))
                                     XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .oneRequired)
                                 }
-                                // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                // ~~~~~~~~~~~~~~~~~~~~~~~~
                                 if !cardinality1.isSingular && key1.name(singular: true) != key1.name(singular: false) {
                                     let relation = relation._including(all: association)
                                     XCTAssertEqual(relation.children.count, 2)
@@ -507,8 +503,6 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                             let relation = relation._including(all: association)
                             do {
                                 XCTAssertEqual(relation.children.count, 1)
-                                // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                //                                                           ~~~~~~~~~~~~~~~~~~~~~~~
                                 XCTAssertEqual(relation.children[0].key, key1.name(singular: cardinality1.isSingular))
                                 XCTAssertEqual(relation.children[0].value.kind, .bridge)
                                 XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
@@ -516,14 +510,10 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                 XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .all)
                             }
                             
-                            #warning("TODO: here we see the problem: it should be possible to merge association1 when it is singular.")
-                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                            // ~~~~~~~~~~~~~~~~~~~~~~~~
+                            // TODO: here we see the problem: it should be possible to merge association1 when it is singular.
                             if !cardinality1.isSingular && key1.name(singular: true) != key1.name(singular: false) {
                                 let relation = relation._joining(optional: association1)
                                 XCTAssertEqual(relation.children.count, 2)
-                                // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                //                                                           ~~~~~~~~~~~~~~~~~~~~~~~
                                 XCTAssertEqual(relation.children[0].key, key1.name(singular: cardinality1.isSingular))
                                 XCTAssertEqual(relation.children[0].value.kind, .bridge)
                                 XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
@@ -666,32 +656,22 @@ class AssociationPrefetchingRelationTests: GRDBTestCase {
                                         let relation = relation._including(all: association)
                                         do {
                                             XCTAssertEqual(relation.children.count, 1)
-                                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                            //                                                           ~~~~~~~~~~~~~~~~~~~~~~~
                                             XCTAssertEqual(relation.children[0].key, key1.name(singular: cardinality1.isSingular))
                                             XCTAssertEqual(relation.children[0].value.kind, .bridge)
                                             XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
-                                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                            //                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: cardinality2.isSingular))
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .bridge)
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children.count, 1)
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].key, key3.name(singular: false))
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children[0].value.kind, .all)
                                         }
-                                        #warning("TODO: here we see the problem: it should be possible to merge association1 when it is singular.")
-                                        // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                        // ~~~~~~~~~~~~~~~~~~~~~~~~
+                                        // TODO: here we see the problem: it should be possible to merge association1 when it is singular.
                                         if !cardinality1.isSingular && key1.name(singular: true) != key1.name(singular: false) {
                                             let relation = relation._joining(optional: association1)
                                             XCTAssertEqual(relation.children.count, 2)
-                                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                            //                                                           ~~~~~~~~~~~~~~~~~~~~~~~
                                             XCTAssertEqual(relation.children[0].key, key1.name(singular: cardinality1.isSingular))
                                             XCTAssertEqual(relation.children[0].value.kind, .bridge)
                                             XCTAssertEqual(relation.children[0].value.relation.children.count, 1)
-                                            // TODO: what is the purpose of the name of the `.bridge` children, from the point of view of the user?
-                                            //                                                                                      ~~~~~~~~~~~~~~~~~~~~~~~
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].key, key2.name(singular: cardinality2.isSingular))
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.kind, .bridge)
                                             XCTAssertEqual(relation.children[0].value.relation.children[0].value.relation.children.count, 1)
