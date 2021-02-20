@@ -190,7 +190,7 @@ extension DatabaseQueue {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func read<T>(_ block: (Database) throws -> T) throws -> T {
         try writer.sync { db in
             try db.readOnly { try block(db) }
         }

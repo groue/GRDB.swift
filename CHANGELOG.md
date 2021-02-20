@@ -82,6 +82,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     
     The [Common Table Expressions Guide](Documentation/CommonTableExpressions.md) was updated accordingly.
 
+- **Fixed**: `DatabaseQueue.read` is now declared `throws` instead of `rethrows`.
+
 ## 5.4.0
 
 Released February 15, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.3.0...v5.4.0)
