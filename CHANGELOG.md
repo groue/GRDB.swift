@@ -81,6 +81,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     
     The [Common Table Expressions Guide](Documentation/CommonTableExpressions.md) was updated accordingly.
 
+- **New**: `DatabaseQueue` reading methods are now wrapped in a deferred transaction. This guarantees snapshot isolation in case of concurrent writes performed by external connections, and makes `DatabaseQueue` a type suitable for shared databases.
+
 - **Fixed**: `DatabaseQueue.read` is now declared `throws` instead of `rethrows`.
 
 ## 5.4.0
