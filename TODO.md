@@ -15,9 +15,7 @@
 
 ## Features
 
-- [ ] Paranoid: always assume there are external connections.
-    - [X] Wrap DatabaseQueue.read in a transaction
-    - [ ] deprecate DatabaseQueue.inDatabase (use unsafeWriteWithoutTransaction or unsafeRead instead).
+- [ ] Grab all FTS tokens in a string
 - [ ] GRDB 6: decoding errors
 - [ ] GRDB 6: conflict resolution in persistence methods
 - [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commmit and the end of the editing session.
