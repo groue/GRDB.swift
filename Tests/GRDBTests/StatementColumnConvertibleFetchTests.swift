@@ -1,6 +1,7 @@
 import XCTest
 import GRDB
 
+#warning("TODO: test decoding error")
 // A type that adopts DatabaseValueConvertible and StatementColumnConvertible
 private struct Fetched: DatabaseValueConvertible, StatementColumnConvertible, Hashable {
     let int: Int

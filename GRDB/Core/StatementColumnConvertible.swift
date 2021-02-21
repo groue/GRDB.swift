@@ -18,30 +18,28 @@
 ///             score = row["score"]              // there
 ///         }
 ///     }
-///
-/// `StatementColumnConvertible` is already adopted by all Swift integer types,
-/// `Float`, `Double`, `String`, and `Bool`.
 public protocol StatementColumnConvertible {
     
-    /// Initializes a value from a raw SQLite statement pointer.
+    /// Initializes a value from a raw SQLite statement pointer, if possible.
     ///
     /// For example, here is the how Int64 adopts StatementColumnConvertible:
     ///
     ///     extension Int64: StatementColumnConvertible {
-    ///         init(sqliteStatement: SQLiteStatement, index: Int32) {
+    ///         init?(sqliteStatement: SQLiteStatement, index: Int32) {
     ///             self = sqlite3_column_int64(sqliteStatement, index)
     ///         }
     ///     }
     ///
-    /// This initializer is never called for NULL database values: don't perform
-    /// any extra check.
+    /// This initializer is never called for NULL database values. Just return
+    /// `nil` for failed conversions: GRDB will interpret a nil result as a
+    /// decoding failure.
     ///
     /// See https://www.sqlite.org/c3ref/column_blob.html for more information.
     ///
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    init(sqliteStatement: SQLiteStatement, index: Int32)
+    init?(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
 /// A cursor of database values extracted from a single column.
@@ -92,7 +90,11 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecode(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            // TODO GRDB6: don't crash on decoding errors
+            return try! Value.fastDecode(
+                from: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }
@@ -150,7 +152,11 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecodeIfPresent(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            // TODO GRDB6: don't crash on decoding errors
+            return try! Value.fastDecodeIfPresent(
+                from: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }

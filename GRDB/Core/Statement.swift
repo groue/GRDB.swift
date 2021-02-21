@@ -244,7 +244,7 @@ public class Statement {
         // It looks like sqlite3_bind_xxx() functions do not access the file system.
         // They should thus succeed, unless a GRDB bug: there is no point throwing any error.
         guard code == SQLITE_OK else {
-            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql).description)
+            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql))
         }
     }
     
@@ -255,7 +255,7 @@ public class Statement {
         // no point throwing any error.
         let code = sqlite3_clear_bindings(sqliteStatement)
         guard code == SQLITE_OK else {
-            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql).description)
+            fatalError(DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql))
         }
     }
     

@@ -52,6 +52,11 @@ func GRDBPrecondition(
     }
 }
 
+@inlinable
+func fatalError(_ error: Error) -> Never {
+    try! { throw error }()
+}
+
 // Workaround Swift inconvenience around factory methods of non-final classes
 func cast<T, U>(_ value: T) -> U? {
     value as? U

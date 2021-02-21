@@ -1,242 +1,62 @@
-// MARK: - Conversion Context and Errors
-
-/// A type that helps the user understanding value conversion errors
-struct ValueConversionContext: Refinable {
-    private enum Column {
-        case columnIndex(Int)
-        case columnName(String)
-    }
-    
-    var row: Row?
-    var sql: String?
-    var arguments: StatementArguments?
-    private var column: Column?
-    
-    func atColumn(_ columnIndex: Int) -> Self {
-        with(\.column, .columnIndex(columnIndex))
-    }
-    
-    func atColumn(_ columnName: String) -> Self {
-        with(\.column, .columnName(columnName))
-    }
-    
-    var columnIndex: Int? {
-        guard let column = column else { return nil }
-        switch column {
-        case .columnIndex(let index):
-            return index
-        case .columnName(let name):
-            return row?.index(forColumn: name)
-        }
-    }
-    
-    var columnName: String? {
-        guard let column = column else { return nil }
-        switch column {
-        case .columnIndex(let index):
-            guard let row = row else { return nil }
-            return Array(row.columnNames)[index]
-        case .columnName(let name):
-            return name
-        }
-    }
-}
-
-extension ValueConversionContext {
-    init(_ statement: SelectStatement) {
-        self.init(
-            row: Row(statement: statement).copy(),
-            sql: statement.sql,
-            arguments: statement.arguments,
-            column: nil)
-    }
-    
-    init(_ row: Row) {
-        if let statement = row.statement {
-            self.init(
-                row: row.copy(),
-                sql: statement.sql,
-                arguments: statement.arguments,
-                column: nil)
-        } else if let sqliteStatement = row.sqliteStatement {
-            let sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
-            self.init(
-                row: row.copy(),
-                sql: sql,
-                arguments: nil,
-                column: nil)
-        } else {
-            self.init(
-                row: row.copy(),
-                sql: nil,
-                arguments: nil,
-                column: nil)
-        }
-    }
-}
-
-/// The canonical conversion error message
-///
-/// - parameter dbValue: nil means "missing column"
-func conversionErrorMessage<T>(
-    to: T.Type,
-    from dbValue: DatabaseValue?,
-    conversionContext: ValueConversionContext?)
--> String
-{
-    var message: String
-    var extras: [String] = []
-    
-    if let dbValue = dbValue {
-        message = "could not convert database value \(dbValue) to \(T.self)"
-        if let columnName = conversionContext?.columnName {
-            extras.append("column: `\(columnName)`")
-        }
-        if let columnIndex = conversionContext?.columnIndex {
-            extras.append("column index: \(columnIndex)")
-        }
-    } else {
-        message = "could not read \(T.self) from missing column"
-        if let columnName = conversionContext?.columnName {
-            message += " `\(columnName)`"
-        }
-    }
-    
-    if let row = conversionContext?.row {
-        extras.append("row: \(row)")
-    }
-    
-    if let sql = conversionContext?.sql {
-        extras.append("sql: `\(sql)`")
-        if let arguments = conversionContext?.arguments, arguments.isEmpty == false {
-            extras.append("arguments: \(arguments)")
-        }
-    }
-    
-    if extras.isEmpty == false {
-        message += " (" + extras.joined(separator: ", ") + ")"
-    }
-    return message
-}
-
-/// The canonical conversion fatal error
-///
-/// - parameter dbValue: nil means "missing column", for consistency with (row["missing"] as DatabaseValue? == nil)
-func fatalConversionError<T>(
-    to: T.Type,
-    from dbValue: DatabaseValue?,
-    conversionContext: ValueConversionContext?,
-    file: StaticString = #file,
-    line: UInt = #line)
--> Never
-{
-    fatalError(
-        conversionErrorMessage(
-            to: T.self,
-            from: dbValue,
-            conversionContext: conversionContext),
-        file: file,
-        line: line)
-}
-
-@usableFromInline
-func fatalConversionError<T>(
-    to: T.Type,
-    from dbValue: DatabaseValue?,
-    in row: Row,
-    atColumn columnName: String,
-    file: StaticString = #file,
-    line: UInt = #line)
--> Never
-{
-    fatalConversionError(
-        to: T.self,
-        from: dbValue,
-        conversionContext: ValueConversionContext(row).atColumn(columnName))
-}
-
-@usableFromInline
-func fatalConversionError<T>(
-    to: T.Type,
-    sqliteStatement: SQLiteStatement,
-    index: Int32,
-    file: StaticString = #file,
-    line: UInt = #line)
--> Never
-{
-    let row = Row(sqliteStatement: sqliteStatement)
-    fatalConversionError(
-        to: T.self,
-        from: DatabaseValue(sqliteStatement: sqliteStatement, index: index),
-        conversionContext: ValueConversionContext(row).atColumn(Int(index)))
-}
-
-@usableFromInline
-func fatalConversionError<T>(
-    to: T.Type,
-    from dbValue: DatabaseValue?,
-    sqliteStatement: SQLiteStatement,
-    index: Int32,
-    file: StaticString = #file,
-    line: UInt = #line)
--> Never
-{
-    let row = Row(sqliteStatement: sqliteStatement)
-    fatalConversionError(
-        to: T.self,
-        from: dbValue,
-        conversionContext: ValueConversionContext(row).atColumn(Int(index)))
-}
-
 // MARK: - DatabaseValueConvertible
 
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible {
     @usableFromInline
-    static func decode(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self {
+    static func decode(
+        from sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self
+    {
         let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
         if let value = fromDatabaseValue(dbValue) {
             return value
         } else {
-            fatalConversionError(to: Self.self, from: dbValue, sqliteStatement: sqliteStatement, index: index)
+            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
         }
     }
-    
+
     static func decode(
         from dbValue: DatabaseValue,
-        conversionContext: @autoclosure () -> ValueConversionContext?)
-    -> Self
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self
     {
         if let value = fromDatabaseValue(dbValue) {
             return value
         } else {
-            fatalConversionError(to: Self.self, from: dbValue, conversionContext: conversionContext())
+            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
         }
     }
-    
+
     @usableFromInline
-    static func decode(from row: Row, atUncheckedIndex index: Int) -> Self {
-        decode(
+    static func decode(from row: Row, atUncheckedIndex index: Int) throws -> Self {
+        try decode(
             from: row.impl.databaseValue(atUncheckedIndex: index),
-            conversionContext: ValueConversionContext(row).atColumn(index))
+            context: RowDecodingContext(row: row, key: .columnIndex(index)))
     }
-    
+
     @usableFromInline
-    static func decodeIfPresent(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
+    static func decodeIfPresent(
+        from sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self?
+    {
         let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
         if let value = fromDatabaseValue(dbValue) {
             return value
         } else if dbValue.isNull {
             return nil
         } else {
-            fatalConversionError(to: Self.self, from: dbValue, sqliteStatement: sqliteStatement, index: index)
+            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
         }
     }
-    
+
     static func decodeIfPresent(
         from dbValue: DatabaseValue,
-        conversionContext: @autoclosure () -> ValueConversionContext?)
-    -> Self?
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self?
     {
         // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
         if let value = fromDatabaseValue(dbValue) {
@@ -244,15 +64,15 @@ extension DatabaseValueConvertible {
         } else if dbValue.isNull {
             return nil
         } else {
-            fatalConversionError(to: Self.self, from: dbValue, conversionContext: conversionContext())
+            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
         }
     }
-    
+
     @usableFromInline
-    static func decodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
-        decodeIfPresent(
+    static func decodeIfPresent(from row: Row, atUncheckedIndex index: Int) throws -> Self? {
+        try decodeIfPresent(
             from: row.impl.databaseValue(atUncheckedIndex: index),
-            conversionContext: ValueConversionContext(row).atColumn(index))
+            context: RowDecodingContext(row: row, key: .columnIndex(index)))
     }
 }
 
@@ -261,35 +81,70 @@ extension DatabaseValueConvertible {
 /// Lossless conversions from database values and rows
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     @inlinable
-    static func fastDecode(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self {
-        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-            fatalConversionError(to: Self.self, sqliteStatement: sqliteStatement, index: index)
+    static func fastDecode(
+        from sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self
+    {
+        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL,
+              let value = self.init(sqliteStatement: sqliteStatement, index: index)
+        else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                context: context(),
+                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
         }
-        return self.init(sqliteStatement: sqliteStatement, index: index)
+        return value
     }
-    
+
     @inlinable
-    static func fastDecode(from row: Row, atUncheckedIndex index: Int) -> Self {
+    static func fastDecode(
+        from row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Self
+    {
         if let sqliteStatement = row.sqliteStatement {
-            return fastDecode(from: sqliteStatement, atUncheckedIndex: Int32(index))
+            return try fastDecode(
+                from: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
         }
-        return row.fastDecode(Self.self, atUncheckedIndex: index)
+        return try row.fastDecode(Self.self, atUncheckedIndex: index)
     }
-    
+
     @inlinable
-    static func fastDecodeIfPresent(from sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
+    static func fastDecodeIfPresent(
+        from sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self?
+    {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
         }
-        return self.init(sqliteStatement: sqliteStatement, index: index)
-    }
-    
-    @inlinable
-    static func fastDecodeIfPresent(from row: Row, atUncheckedIndex index: Int) -> Self? {
-        if let sqliteStatement = row.sqliteStatement {
-            return fastDecodeIfPresent(from: sqliteStatement, atUncheckedIndex: Int32(index))
+        guard let value = self.init(sqliteStatement: sqliteStatement, index: index) else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                context: context(),
+                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
         }
-        return row.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
+        return value
+    }
+
+    @inlinable
+    static func fastDecodeIfPresent(
+        from row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Self?
+    {
+        if let sqliteStatement = row.sqliteStatement {
+            return try fastDecodeIfPresent(
+                from: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        return try row.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
     }
 }
 
@@ -299,17 +154,17 @@ extension Row {
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
-    -> Value
+    throws -> Value
     {
-        impl.fastDecode(type, atUncheckedIndex: index)
+        try impl.fastDecode(type, atUncheckedIndex: index)
     }
-    
+
     @usableFromInline
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
-    -> Value?
+    throws -> Value?
     {
-        impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
+        try impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }
 }
