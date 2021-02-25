@@ -612,7 +612,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 // TODO GRDB6: _ = try String.fetchAll(statement)
                 _ = try Row.fetchCursor(statement)
-                    .map { try $0.fastDecode(String.self, atUncheckedIndex: 0) }
+                    .map { try String.fastDecode(fromRow: $0, atUncheckedIndex: 0) }
                     .next()
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
@@ -714,7 +714,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 // TODO GRDB6: _ = try Int8.fetchAll(statement)
                 _ = try Row.fetchCursor(statement)
-                    .map { try $0.fastDecode(Int8.self, atUncheckedIndex: 0) }
+                    .map { try Int8.fastDecode(fromRow: $0, atUncheckedIndex: 0) }
                     .next()
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
@@ -796,7 +796,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 // TODO GRDB6: _ = try Value.fetchAll(statement)
                 _ = try Row.fetchCursor(statement)
-                    .map { try $0.decode(Value.self, atIndex: 0) }
+                    .map { try Value.decode(fromRow: $0, atUncheckedIndex: 0) }
                     .next()
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
@@ -822,7 +822,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 // TODO GRDB6: _ = try Value.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 _ = try Row.fetchCursor(statement)
-                    .map { try $0.decode(Value.self, atIndex: 1) }
+                    .map { try Value.decode(fromRow: $0, atUncheckedIndex: 1) }
                     .next()
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {

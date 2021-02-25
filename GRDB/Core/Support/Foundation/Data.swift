@@ -32,3 +32,76 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
         }
     }
 }
+
+// MARK: - Conversions
+
+extension Data {
+    @inlinable
+    static func fastDecodeNoCopy(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Data
+    {
+        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+            throw RowDecodingError.valueMismatch(
+                Data.self,
+                context: context(),
+                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+        }
+        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+            return Data()
+        }
+        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
+    }
+    
+    @inlinable
+    static func fastDecodeNoCopy(
+        fromRow row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Data
+    {
+        if let sqliteStatement = row.sqliteStatement {
+            return try fastDecodeNoCopy(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        // Support for fast decoding from adapted rows
+        return try row.fastDecodeDataNoCopy(atUncheckedIndex: index)
+    }
+
+    @inlinable
+    static func fastDecodeNoCopyIfPresent(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Data?
+    {
+        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+            return nil
+        }
+        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+            return Data()
+        }
+        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
+    }
+
+    @inlinable
+    static func fastDecodeNoCopyIfPresent(
+        fromRow row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Data?
+    {
+        if let sqliteStatement = row.sqliteStatement {
+            return try fastDecodeNoCopyIfPresent(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        // Support for fast decoding from adapted rows
+        return try row.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
+    }
+}

@@ -68,6 +68,42 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
         }
     }
+    
+    func testScopedRowExtraction() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let adapter = ScopeAdapter(["nested": SuffixRowAdapter(fromIndex: 0)])
+            var rows = try Row.fetchCursor(db, sql: "SELECT NULL", adapter: adapter)
+            while let row = try rows.next() {
+                let one: Fetched? = row.scopes["nested"]![0]
+                XCTAssertTrue(one == nil)
+            }
+            rows = try Row.fetchCursor(db, sql: "SELECT 1", adapter: adapter)
+            while let row = try rows.next() {
+                let one: Fetched? = row.scopes["nested"]![0]
+                XCTAssertEqual(one!.int, 1)
+                XCTAssertEqual(one!.fast, true)
+            }
+            rows = try Row.fetchCursor(db, sql: "SELECT 1 AS int", adapter: adapter)
+            while let row = try rows.next() {
+                let one: Fetched? = row.scopes["nested"]!["int"]
+                XCTAssertEqual(one!.int, 1)
+                XCTAssertEqual(one!.fast, true)
+            }
+            rows = try Row.fetchCursor(db, sql: "SELECT 1", adapter: adapter)
+            while let row = try rows.next() {
+                let one: Fetched = row.scopes["nested"]![0]
+                XCTAssertEqual(one.int, 1)
+                XCTAssertEqual(one.fast, true)
+            }
+            rows = try Row.fetchCursor(db, sql: "SELECT 1 AS int", adapter: adapter)
+            while let row = try rows.next() {
+                let one: Fetched = row.scopes["nested"]!["int"]
+                XCTAssertEqual(one.int, 1)
+                XCTAssertEqual(one.fast, true)
+            }
+        }
+    }
 
     // MARK: - StatementColumnConvertible.fetch
 

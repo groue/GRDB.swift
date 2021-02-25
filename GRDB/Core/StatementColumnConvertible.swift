@@ -42,6 +42,82 @@ public protocol StatementColumnConvertible {
     init?(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
+// MARK: - Conversions
+
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+    @inlinable
+    static func fastDecode(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self
+    {
+        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL,
+              let value = self.init(sqliteStatement: sqliteStatement, index: index)
+        else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                context: context(),
+                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+        }
+        return value
+    }
+
+    @inlinable
+    static func fastDecode(
+        fromRow row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Self
+    {
+        if let sqliteStatement = row.sqliteStatement {
+            return try fastDecode(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        // Support for fast decoding from adapted rows
+        return try row.fastDecode(Self.self, atUncheckedIndex: index)
+    }
+
+    @inlinable
+    static func fastDecodeIfPresent(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self?
+    {
+        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
+            return nil
+        }
+        guard let value = self.init(sqliteStatement: sqliteStatement, index: index) else {
+            #warning("TODO: don't put the DatabaseValue in the inlined code")
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                context: context(),
+                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+        }
+        return value
+    }
+
+    @inlinable
+    static func fastDecodeIfPresent(
+        fromRow row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Self?
+    {
+        if let sqliteStatement = row.sqliteStatement {
+            return try fastDecodeIfPresent(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        // Support for fast decoding from adapted rows
+        return try row.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
+    }
+}
+
+// MARK: - Cursors
+
 /// A cursor of database values extracted from a single column.
 /// For example:
 ///
@@ -92,7 +168,7 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
         case SQLITE_ROW:
             // TODO GRDB6: don't crash on decoding errors
             return try! Value.fastDecode(
-                from: _sqliteStatement,
+                fromStatement: _sqliteStatement,
                 atUncheckedIndex: _columnIndex,
                 context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
@@ -154,7 +230,7 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
         case SQLITE_ROW:
             // TODO GRDB6: don't crash on decoding errors
             return try! Value.fastDecodeIfPresent(
-                from: _sqliteStatement,
+                fromStatement: _sqliteStatement,
                 atUncheckedIndex: _columnIndex,
                 context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
@@ -169,7 +245,6 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
 ///
 /// See DatabaseValueConvertible for more information.
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-    
     
     // MARK: Fetching From SelectStatement
     

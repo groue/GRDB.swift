@@ -712,7 +712,7 @@ extension Row {
         atIndex index: Int)
     throws -> Value?
     {
-        try Value.decodeIfPresent(from: self, atUncheckedIndex: checkedIndex(index))
+        try Value.decodeIfPresent(fromRow: self, atUncheckedIndex: checkedIndex(index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -728,7 +728,7 @@ extension Row {
         atIndex index: Int)
     throws -> Value
     {
-        try Value.decode(from: self, atUncheckedIndex: checkedIndex(index))
+        try Value.decode(fromRow: self, atUncheckedIndex: checkedIndex(index))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -748,7 +748,7 @@ extension Row {
         guard let index = index(forColumn: columnName) else {
             return nil
         }
-        return try Value.decodeIfPresent(from: self, atUncheckedIndex: index)
+        return try Value.decodeIfPresent(fromRow: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -768,7 +768,7 @@ extension Row {
         guard let index = index(forColumn: columnName) else {
             throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
         }
-        return try Value.decode(from: self, atUncheckedIndex: index)
+        return try Value.decode(fromRow: self, atUncheckedIndex: index)
     }
 }
 
@@ -793,7 +793,7 @@ extension Row {
         atIndex index: Int)
     throws -> Value?
     {
-        try Value.fastDecodeIfPresent(from: self, atUncheckedIndex: checkedIndex(index))
+        try Value.fastDecodeIfPresent(fromRow: self, atUncheckedIndex: checkedIndex(index))
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -813,7 +813,7 @@ extension Row {
         atIndex index: Int)
     throws -> Value
     {
-        try Value.fastDecode(from: self, atUncheckedIndex: checkedIndex(index))
+        try Value.fastDecode(fromRow: self, atUncheckedIndex: checkedIndex(index))
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -837,7 +837,7 @@ extension Row {
         guard let index = index(forColumn: columnName) else {
             return nil
         }
-        return try Value.fastDecodeIfPresent(from: self, atUncheckedIndex: index)
+        return try Value.fastDecodeIfPresent(fromRow: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -861,7 +861,27 @@ extension Row {
         guard let index = index(forColumn: columnName) else {
             throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
         }
-        return try Value.fastDecode(from: self, atUncheckedIndex: index)
+        return try Value.fastDecode(fromRow: self, atUncheckedIndex: index)
+    }
+    
+    // Support for fast decoding in scoped rows
+    @usableFromInline
+    func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int)
+    throws -> Value
+    {
+        try impl.fastDecode(type, atUncheckedIndex: index)
+    }
+    
+    // Support for fast decoding in scoped rows
+    @usableFromInline
+    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
+        _ type: Value.Type,
+        atUncheckedIndex index: Int)
+    throws -> Value?
+    {
+        try impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }
 }
 
@@ -930,6 +950,18 @@ extension Row {
             throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
         }
         return try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
+    }
+    
+    // Support for fast decoding in scoped rows
+    @usableFromInline
+    func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
+        try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
+    }
+    
+    // Support for fast decoding in scoped rows
+    @usableFromInline
+    func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
+        try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
     }
 }
 
@@ -2091,7 +2123,7 @@ extension RowImpl {
     {
         // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
         return try Value.decode(
-            from: databaseValue(atUncheckedIndex: index),
+            fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
     
@@ -2102,21 +2134,21 @@ extension RowImpl {
     {
         // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
         return try Value.decodeIfPresent(
-            from: databaseValue(atUncheckedIndex: index),
+            fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
     
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
         // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
         return try Data.decode(
-            from: databaseValue(atUncheckedIndex: index),
+            fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
     
     func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
         // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
         return try Data.decodeIfPresent(
-            from: databaseValue(atUncheckedIndex: index),
+            fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
 }
@@ -2231,7 +2263,7 @@ private struct StatementRowImpl: RowImpl {
     throws -> Value
     {
         try Value.fastDecode(
-            from: sqliteStatement,
+            fromStatement: sqliteStatement,
             atUncheckedIndex: Int32(index),
             context: RowDecodingContext(statement: statement, index: index))
     }
@@ -2242,7 +2274,7 @@ private struct StatementRowImpl: RowImpl {
     throws -> Value?
     {
         try Value.fastDecodeIfPresent(
-            from: sqliteStatement,
+            fromStatement: sqliteStatement,
             atUncheckedIndex: Int32(index),
             context: RowDecodingContext(statement: statement, index: index))
     }

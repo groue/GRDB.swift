@@ -498,7 +498,7 @@ struct AdaptedRowImpl: RowImpl {
     throws -> Value
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try Value.fastDecode(from: base, atUncheckedIndex: mappedIndex)
+        return try Value.fastDecode(fromRow: base, atUncheckedIndex: mappedIndex)
     }
     
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -507,7 +507,7 @@ struct AdaptedRowImpl: RowImpl {
     throws -> Value?
     {
         let mappedIndex = mapping.baseColumnIndex(atMappingIndex: index)
-        return try Value.fastDecodeIfPresent(from: base, atUncheckedIndex: mappedIndex)
+        return try Value.fastDecodeIfPresent(fromRow: base, atUncheckedIndex: mappedIndex)
     }
     
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
