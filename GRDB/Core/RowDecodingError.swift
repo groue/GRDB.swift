@@ -58,7 +58,6 @@ enum RowDecodingError: Error {
     
     /// Convenience method that builds the
     /// `could not decode <Type> from database value <value>` error message.
-    @usableFromInline
     static func valueMismatch(
         _ type: Any.Type,
         context: RowDecodingContext,
@@ -70,6 +69,22 @@ enum RowDecodingError: Error {
             RowDecodingError.Context(decodingContext: context, debugDescription: """
                 could not decode \(type) from database value \(databaseValue)
                 """))
+    }
+    
+    /// Convenience method that builds the
+    /// `could not decode <Type> from database value <value>` error message.
+    @usableFromInline
+    static func valueMismatch(
+        _ type: Any.Type,
+        sqliteStatement: SQLiteStatement,
+        index: Int32,
+        context: RowDecodingContext)
+    -> Self
+    {
+        valueMismatch(
+            type,
+            context: context,
+            databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
     }
     
     /// Convenience method that builds the

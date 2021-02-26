@@ -57,8 +57,9 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         else {
             throw RowDecodingError.valueMismatch(
                 Self.self,
-                context: context(),
-                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+                sqliteStatement: sqliteStatement,
+                index: index,
+                context: context())
         }
         return value
     }
@@ -90,11 +91,11 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
             return nil
         }
         guard let value = self.init(sqliteStatement: sqliteStatement, index: index) else {
-            #warning("TODO: don't put the DatabaseValue in the inlined code")
             throw RowDecodingError.valueMismatch(
                 Self.self,
-                context: context(),
-                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+                sqliteStatement: sqliteStatement,
+                index: index,
+                context: context())
         }
         return value
     }

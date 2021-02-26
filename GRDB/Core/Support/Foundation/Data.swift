@@ -46,8 +46,9 @@ extension Data {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             throw RowDecodingError.valueMismatch(
                 Data.self,
-                context: context(),
-                databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
+                sqliteStatement: sqliteStatement,
+                index: index,
+                context: context())
         }
         guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
             return Data()
