@@ -56,7 +56,13 @@ extension DatabaseValueConvertible {
 
     @usableFromInline
     static func decode(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self {
-        try decode(
+        if let sqliteStatement = row.sqliteStatement {
+            return try decode(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        return try decode(
             fromDatabaseValue: row.impl.databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: row, key: .columnIndex(index)))
     }
@@ -95,7 +101,13 @@ extension DatabaseValueConvertible {
 
     @usableFromInline
     static func decodeIfPresent(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self? {
-        try decodeIfPresent(
+        if let sqliteStatement = row.sqliteStatement {
+            return try decodeIfPresent(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        return try decodeIfPresent(
             fromDatabaseValue: row.impl.databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: row, key: .columnIndex(index)))
     }
