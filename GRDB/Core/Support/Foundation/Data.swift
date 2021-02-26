@@ -78,7 +78,7 @@ extension Data {
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
         context: @autoclosure () -> RowDecodingContext)
-    throws -> Data?
+    -> Data?
     {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
             return nil
@@ -97,7 +97,7 @@ extension Data {
     throws -> Data?
     {
         if let sqliteStatement = row.sqliteStatement {
-            return try fastDecodeNoCopyIfPresent(
+            return fastDecodeNoCopyIfPresent(
                 fromStatement: sqliteStatement,
                 atUncheckedIndex: Int32(index),
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
