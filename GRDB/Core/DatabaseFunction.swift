@@ -130,7 +130,7 @@ public final class DatabaseFunction: Hashable {
         
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
-            fatalError(DatabaseError(resultCode: code, message: db.lastErrorMessage).description)
+            fatalError(DatabaseError(resultCode: code, message: db.lastErrorMessage))
         }
     }
     
@@ -146,7 +146,7 @@ public final class DatabaseFunction: Hashable {
         
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.
-            fatalError(DatabaseError(resultCode: code, message: db.lastErrorMessage).description)
+            fatalError(DatabaseError(resultCode: code, message: db.lastErrorMessage))
         }
     }
     

@@ -96,13 +96,10 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = Int(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: Int.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = Int(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -125,13 +122,10 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = Int8(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: Int8.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = Int8(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -154,13 +148,10 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = Int16(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: Int16.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = Int16(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -183,13 +174,10 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = Int32(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: Int32.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = Int32(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -245,13 +233,10 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = UInt(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: UInt.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = UInt(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -274,13 +259,10 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = UInt8(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: UInt8.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = UInt8(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -303,13 +285,10 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = UInt16(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: UInt16.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = UInt16(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -332,13 +311,10 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = UInt32(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: UInt32.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = UInt32(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
@@ -361,13 +337,10 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     @inlinable
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
-        if let v = UInt64(exactly: int64) {
-            self = v
-        } else {
-            fatalConversionError(to: UInt64.self, sqliteStatement: sqliteStatement, index: index)
-        }
+        guard let v = UInt64(exactly: int64) else { return nil }
+        self = v
     }
     
     /// Returns a value that can be stored in the database.
