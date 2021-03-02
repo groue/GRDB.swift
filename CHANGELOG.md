@@ -85,6 +85,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **Fixed**: `DatabaseQueue.read` is now declared `throws` instead of `rethrows`.
 
+- **Fixed**: [#930](https://github.com/groue/GRDB.swift/pull/930): Fix SQL generation for `COLLATE`, `IN`, `NOT IN`
+
 ## 5.4.0
 
 Released February 15, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.3.0...v5.4.0)
