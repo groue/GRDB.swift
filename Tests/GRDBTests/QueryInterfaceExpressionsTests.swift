@@ -165,6 +165,16 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testContainsWithCollation() throws {
         let dbQueue = try makeDatabaseQueue()
         
+        try dbQueue.read { db in
+            // Reminder of the SQLite behavior
+            // https://sqlite.org/datatype3.html#assigning_collating_sequences_from_sql
+            // > If an explicit collating sequence is required on an IN operator
+            // > it should be applied to the left operand, like this:
+            // > "x COLLATE nocase IN (y,z, ...)".
+            try XCTAssertFalse(Bool.fetchOne(db, sql: "SELECT 'arthur' IN ('ARTHUR') COLLATE NOCASE")!)
+            try XCTAssertTrue(Bool.fetchOne(db, sql: "SELECT 'arthur' COLLATE NOCASE IN ('ARTHUR')")!)
+        }
+        
         // Array.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(["arthur", "barbara"].contains(Col.name.collating(.nocase)))),
