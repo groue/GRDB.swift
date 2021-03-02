@@ -178,22 +178,26 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         // Array.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(["arthur", "barbara"].contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE \"name\" IN ('arthur', 'barbara') COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((["arthur", "barbara"] as [SQLExpressible]).contains(Col.name.collating(.nocase)))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE \"name\" IN ('arthur', 'barbara') COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
         
         // Sequence.contains(): = operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE \"name\" = \"name\" COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) = \"name\"")
         
         // Sequence.contains(): false
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(EmptyCollection<Int>().contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE 0 COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE 0")
 
         // ClosedInterval: BETWEEN operator
         let closedInterval = "A"..."z"
