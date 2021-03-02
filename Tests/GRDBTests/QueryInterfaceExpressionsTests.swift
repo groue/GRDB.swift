@@ -181,6 +181,10 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
         
         XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!["arthur", "barbara"].contains(Col.name.collating(.nocase)))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) NOT IN ('arthur', 'barbara')")
+        
+        XCTAssertEqual(
             sql(dbQueue, tableRequest.filter((["arthur", "barbara"] as [SQLExpressible]).contains(Col.name.collating(.nocase)))),
             "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
         
