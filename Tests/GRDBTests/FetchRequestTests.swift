@@ -44,10 +44,19 @@ class FetchRequestTests: GRDBTestCase {
                 t.column("id", .integer).primaryKey()
             }
             
-            let derivedExpression = request.contains(0)
-            let sqlRequest: SQLRequest<Row> = "SELECT \(derivedExpression)"
-            let statement = try sqlRequest.makePreparedRequest(db, forSingleResult: false).statement
-            XCTAssertEqual(statement.sql, "SELECT ? IN (SELECT id FROM table1)")
+            do {
+                let derivedExpression = request.contains(0)
+                let sqlRequest: SQLRequest<Row> = "SELECT \(derivedExpression)"
+                let statement = try sqlRequest.makePreparedRequest(db, forSingleResult: false).statement
+                XCTAssertEqual(statement.sql, "SELECT ? IN (SELECT id FROM table1)")
+            }
+            
+            do {
+                let derivedExpression = request.contains("arthur".databaseValue.collating(.nocase))
+                let sqlRequest: SQLRequest<Row> = "SELECT \(derivedExpression)"
+                let statement = try sqlRequest.makePreparedRequest(db, forSingleResult: false).statement
+                XCTAssertEqual(statement.sql, "SELECT (? COLLATE NOCASE) IN (SELECT id FROM table1)")
+            }
         }
     }
     

@@ -165,25 +165,43 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
     func testContainsWithCollation() throws {
         let dbQueue = try makeDatabaseQueue()
         
+        try dbQueue.read { db in
+            // Reminder of the SQLite behavior
+            // https://sqlite.org/datatype3.html#assigning_collating_sequences_from_sql
+            // > If an explicit collating sequence is required on an IN operator
+            // > it should be applied to the left operand, like this:
+            // > "x COLLATE nocase IN (y,z, ...)".
+            try XCTAssertFalse(Bool.fetchOne(db, sql: "SELECT 'arthur' IN ('ARTHUR') COLLATE NOCASE")!)
+            try XCTAssertTrue(Bool.fetchOne(db, sql: "SELECT 'arthur' COLLATE NOCASE IN ('ARTHUR')")!)
+        }
+        
         // Array.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(["arthur", "barbara"].contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE \"name\" IN ('arthur', 'barbara') COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!["arthur", "barbara"].contains(Col.name.collating(.nocase)))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) NOT IN ('arthur', 'barbara')")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((["arthur", "barbara"] as [SQLExpressible]).contains(Col.name.collating(.nocase)))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
         
         // Sequence.contains(): IN operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE \"name\" IN ('arthur', 'barbara') COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
         
         // Sequence.contains(): = operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE \"name\" = \"name\" COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) = \"name\"")
         
         // Sequence.contains(): false
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(EmptyCollection<Int>().contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE 0 COLLATE NOCASE")
+            "SELECT * FROM \"readers\" WHERE 0")
 
         // ClosedInterval: BETWEEN operator
         let closedInterval = "A"..."z"
