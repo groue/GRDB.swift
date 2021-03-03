@@ -190,9 +190,16 @@ extension DatabaseQueue {
     ///
     /// - parameter block: A block that accesses the database.
     /// - throws: The error thrown by the block.
-    public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
+    public func read<T>(_ block: (Database) throws -> T) throws -> T {
         try writer.sync { db in
-            try db.readOnly { try block(db) }
+            // The transaction guarantees snapshot isolation against eventual
+            // external connection.
+            var result: T?
+            try db.inTransaction(.deferred) {
+                result = try db.readOnly { try block(db) }
+                return .commit
+            }
+            return result!
         }
     }
     
@@ -214,6 +221,9 @@ extension DatabaseQueue {
     public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
         writer.async { db in
             do {
+                // The transaction guarantees snapshot isolation against eventual
+                // external connection.
+                try db.beginTransaction(.deferred)
                 try db.beginReadOnly()
             } catch {
                 block(.failure(error))
@@ -224,6 +234,7 @@ extension DatabaseQueue {
             
             // Ignore error because we can not notify it.
             try? db.endReadOnly()
+            try? db.commit()
         }
     }
     
@@ -236,6 +247,9 @@ extension DatabaseQueue {
             }
             
             do {
+                // The transaction guarantees snapshot isolation against eventual
+                // external connection.
+                try db.beginTransaction(.deferred)
                 try db.beginReadOnly()
             } catch {
                 block(.failure(error))
@@ -246,6 +260,7 @@ extension DatabaseQueue {
             
             // Ignore error because we can not notify it.
             try? db.endReadOnly()
+            try? db.commit()
         }
     }
     
@@ -289,9 +304,14 @@ extension DatabaseQueue {
             try writer.execute { db in
                 // ... and that no transaction is opened.
                 GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
-                return try db.readOnly {
-                    try block(db)
+                // The transaction guarantees snapshot isolation against eventual
+                // external connection.
+                var result: T?
+                try db.inTransaction(.deferred) {
+                    result = try db.readOnly { try block(db) }
+                    return .commit
                 }
+                return result!
             }
         })
     }
@@ -306,6 +326,7 @@ extension DatabaseQueue {
             GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
             
             do {
+                try db.beginTransaction(.deferred)
                 try db.beginReadOnly()
             } catch {
                 block(.failure(error))
@@ -316,6 +337,7 @@ extension DatabaseQueue {
             
             // Ignore error because we can not notify it.
             try? db.endReadOnly()
+            try? db.commit()
         }
     }
     

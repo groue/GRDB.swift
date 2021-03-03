@@ -15,6 +15,7 @@
 
 ## Features
 
+- [ ] Grab all FTS tokens in a string
 - [ ] GRDB 6: decoding errors
 - [ ] GRDB 6: conflict resolution in persistence methods
 - [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commmit and the end of the editing session.

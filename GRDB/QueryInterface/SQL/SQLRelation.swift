@@ -13,21 +13,19 @@
 ///            • selection
 ///
 /// Other SQL clauses such as GROUP BY, LIMIT are defined one level up, in the
-/// SQLQuery type.
+/// `SQLQuery` type.
 ///
 /// ## Promises
 ///
-/// Filter and ordering are actually "promises", which are only resolved
-/// when a database connection is available. This is how we can implement
-/// requests such as `Record.filter(key: 1)` or `Record.orderByPrimaryKey()`:
-/// both need a database connection in order to introspect the primary key.
+/// Selection, filter, and ordering are "promises" which are resolved when a
+/// database connection is available. This is how we can implement requests such
+/// as `Record.filter(key: 1)` or `Record.orderByPrimaryKey()`: both need a
+/// database connection in order to introspect the primary key. For example:
 ///
-///     // SELECT * FROM player
-///     // WHERE continent = 'EU'
-///     // ORDER BY code -- primary key infered from the database schema
-///     Country
-///         .filter(Column("continent") == "EU")
-///         .orderByPrimaryKey()
+///     // SELECT * FROM country ORDER BY code
+///     //                       ~~~~~~~~~~~~~
+///     // primary key infered from the database schema
+///     Country.orderByPrimaryKey()
 ///
 /// ## Children
 ///
@@ -74,31 +72,27 @@
 ///         // JOIN author ON author.id = book.id AND author.country = 'FR'
 ///         Book.including(required: Book.author.filter(Column("country") == "FR"))
 ///
-/// - `.allPrefetched`:
+/// - `.all`:
 ///
-///     Such children are prefetched using several SQL requests:
+///     Such children are prefetched using an extra SQL request:
 ///
-///         // SELECT * FROM countries WHERE continent = 'EU'
-///         // SELECT * FROM passport WHERE countryCode IN ('BE', 'DE', 'FR', ...)
-///         Country
-///             .filter(Column("continent") == "EU")
-///             .including(all: Country.passports)
+///         // SELECT * FROM countries;
+///         // SELECT * FROM passport
+///         //  WHERE countryCode IN ('BE', 'DE', 'FR', ...);
+///         Country.including(all: Country.passports)
 ///
-/// - `.allNotPrefetched`:
+/// - `.bridge`:
 ///
 ///     Such children are not joined, and not prefetched. They are used as
 ///     intermediate children towards a prefetched child. In the example
-///     below, the country relation has a `.allNotPrefetched` child to
-///     passports, and the passport relation has a `.allPrefetched` child
-///     to citizens.
+///     below, the country relation has a `.bridge` child to passports, and the
+///     passport relation has an `.all` child to citizens.
 ///
-///         // SELECT * FROM countries WHERE continent = 'EU'
+///         // SELECT * FROM countries;
 ///         // SELECT citizens.* FROM citizens
 ///         // JOIN passport ON passport.citizenId = citizens.id
-///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...)
-///         Country
-///             .filter(Column("continent") == "EU")
-///             .including(all: Country.citizens)
+///         //              AND passport.countryCode IN ('BE', 'DE', 'FR', ...);
+///         Country.including(all: Country.citizens)
 struct SQLRelation {
     struct Child: Refinable {
         enum Kind {
@@ -107,18 +101,9 @@ struct SQLRelation {
             // Record.including(required: association)
             case oneRequired
             // Record.including(all: association)
-            case allPrefetched
+            case all
             // Record.including(all: associationThroughPivot)
-            case allNotPrefetched
-            
-            var isSingular: Bool {
-                switch self {
-                case .oneOptional, .oneRequired:
-                    return true
-                case .allPrefetched, .allNotPrefetched:
-                    return false
-                }
-            }
+            case bridge
         }
         
         var kind: Kind
@@ -133,7 +118,7 @@ struct SQLRelation {
             switch kind {
             case .oneOptional, .oneRequired:
                 return true
-            case .allPrefetched, .allNotPrefetched:
+            case .all, .bridge:
                 return false
             }
         }
@@ -145,7 +130,7 @@ struct SQLRelation {
             switch kind {
             case .oneOptional, .oneRequired:
                 cardinality = .toOne
-            case .allPrefetched, .allNotPrefetched:
+            case .all, .bridge:
                 cardinality = .toMany
             }
             
@@ -159,19 +144,17 @@ struct SQLRelation {
     
     var source: SQLSource
     var selectionPromise: DatabasePromise<[SQLSelection]> = DatabasePromise(value: [])
-    // Filter is an array of expressions that we'll join with the AND operator.
-    // This gives nicer output in generated SQL: `(a AND b AND c)` instead of
-    // `((a AND b) AND c)`.
-    var filtersPromise: DatabasePromise<[SQLExpression]> = DatabasePromise(value: [])
+    var filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil)
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     var children: OrderedDictionary<String, Child> = [:]
     
+    /// All prefetched associations (`including(all:)`), recursively
     var prefetchedAssociations: [_SQLAssociation] {
         children.flatMap { key, child -> [_SQLAssociation] in
             switch child.kind {
-            case .allPrefetched:
+            case .all:
                 return [child.makeAssociationForKey(key)]
-            case .oneOptional, .oneRequired, .allNotPrefetched:
+            case .oneOptional, .oneRequired, .bridge:
                 return child.relation.prefetchedAssociations.map { association in
                     // Remove redundant pivot child
                     let pivotKey = association.pivot.keyName
@@ -211,7 +194,13 @@ extension SQLRelation: Refinable {
     
     /// Removes all selections from chidren
     func selectOnly(_ selection: [SQLSelection]) -> Self {
-        select(selection).map(\.children, { $0.mapValues { $0.map(\.relation, { $0.selectOnly([]) }) } })
+        self
+            .select(selection)
+            .map(\.children) { children in
+                children.mapValues { child in
+                    child.map(\.relation) { $0.selectOnly([]) }
+                }
+            }
     }
     
     func annotated(with selection: @escaping (Database) throws -> [SQLSelection]) -> Self {
@@ -227,6 +216,23 @@ extension SQLRelation: Refinable {
         annotated(with: { _ in selection })
     }
     
+    func filter(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+        map(\.filterPromise) { promise in
+            DatabasePromise { db in
+                if let filter = try promise.resolve(db) {
+                    return try filter && predicate(db)
+                } else {
+                    return try predicate(db)
+                }
+            }
+        }
+    }
+    
+    // Convenience
+    func filter(_ predicate: SQLExpression) -> Self {
+        filter { _ in predicate }
+    }
+    
     func order(_ orderings: @escaping (Database) throws -> [SQLOrdering]) -> Self {
         with(\.ordering, SQLRelation.Ordering(orderings: orderings))
     }
@@ -236,22 +242,17 @@ extension SQLRelation: Refinable {
     }
     
     func unordered() -> Self {
-        self.with(\.ordering, SQLRelation.Ordering())
-            .map(\.children, { $0.mapValues { $0.map(\.relation, { $0.unordered() }) } })
+        self
+            .with(\.ordering, SQLRelation.Ordering())
+            .map(\.children) { children in
+                children.mapValues { child in
+                    child.map(\.relation) { $0.unordered() }
+                }
+            }
     }
     
-    func qualified(with alias: TableAlias) -> Self {
-        map(\.source) { $0.qualified(with: alias) }
-    }
-}
-
-extension SQLRelation: FilteredRequest {
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        map(\.filtersPromise) { filtersPromise in
-            DatabasePromise { db in
-                try filtersPromise.resolve(db) + [predicate(db).sqlExpression]
-            }
-        }
+    func aliased(_ alias: TableAlias) -> Self {
+        map(\.source) { $0.aliased(alias) }
     }
 }
 
@@ -289,12 +290,65 @@ extension SQLRelation {
     /// as HasManyThrough, which have any number of pivot relations between the
     /// origin and the destination.
     func appendingChild(for association: _SQLAssociation, kind: SQLRelation.Child.Kind) -> Self {
-        // Preserve association cardinality in intermediate steps of
-        // including(all:), and force desired cardinality otherwize
-        let isSingular = (kind == .allNotPrefetched)
-            ? association.destination.cardinality.isSingular
-            : kind.isSingular
+        // Our goal here is to append a child with a correct (singular or
+        // plural) key, so that the user can decode it later under the expected
+        // name.
+        //
+        // To know if the child key should be singular or plural, we look at the
+        // association, which may be to-one or to-many, and at the kind of the
+        // child, which may be joined (singular), or prefetched (plural).
+        //
+        // We prefer the cardinality of the child kind, but for the specific
+        // case of the `.bridge` child kind, involved in prefetched
+        // has-many-through associations, where we user the cardinality of
+        // the association instead.
+        //
+        // By prefering the cardinality of the child kind in general, we make it
+        // possible to join to a plural association and decode it in a singular
+        // key. In the example below, we have a singular kind `.oneRequired`,
+        // a plural to-many association, and we use a singular key:
+        //
+        //      // Decode a Player in the singular "player" key
+        //      //
+        //      // SELECT team.*, player.*
+        //      // FROM team
+        //      // JOIN player ON player.teamID = team.id
+        //      Team.joining(required: Team.players)
+        //
+        // The exception for has-many-through associations exists because the
+        // pivot of the association may be singular, and may conflict with a
+        // plural association with the same association key, as in the example
+        // below:
+        //
+        // We want the child for the "captain" in the following request to be
+        // registered under the singular "player" key, and not the plural
+        // "players" key, so that it does not conflict with the other child
+        // named "players" (we can not have two distinct children with the
+        // same key):
+        //
+        //     struct Team: TableRecord {
+        //         static let players = hasMany(Player.self)
+        //         static let captain = hasOne(Player.self).filter(Column("isCaptain") == true)
+        //         static let captainAwards = hasMany(Award.self, through: captain, using: Player.awards)
+        //     }
+        //     struct Player: TableRecord {
+        //         static let awards = hasMany(Award.self)
+        //     }
+        //     struct Award: TableRecord { }
+        //     let request = Team
+        //         .including(all: Team.captainAwards) // child "player" (with an "awards" child inside)
+        //         .including(all: Team.players)       // child "players"
+        let isSingular: Bool
+        switch kind {
+        case .oneOptional, .oneRequired:
+            isSingular = true
+        case .all:
+            isSingular = false
+        case .bridge:
+            isSingular = association.destination.cardinality.isSingular
+        }
         let childKey = association.destination.key.name(singular: isSingular)
+        
         let child = SQLRelation.Child(
             kind: kind,
             condition: association.destination.condition,
@@ -337,10 +391,11 @@ extension SQLRelation {
             .appendingChild(child, forKey: childKey)
         
         switch kind {
-        case .oneRequired, .oneOptional, .allNotPrefetched:
+        case .oneRequired, .oneOptional, .bridge:
             return appendingChild(for: reducedAssociation, kind: kind)
-        case .allPrefetched:
-            // Intermediate steps of indirect associations are not prefetched.
+        case .all:
+            // Intermediate steps of an indirect association are not prefetched:
+            // use the `.bridge` kind.
             //
             // For example, the request below prefetches citizens, not
             // intermediate passports:
@@ -350,7 +405,7 @@ extension SQLRelation {
             //          static let citizens = hasMany(Citizens.self, through: passports, using: Passport.citizen)
             //      }
             //      let request = Country.including(all: Country.citizens)
-            return appendingChild(for: reducedAssociation, kind: .allNotPrefetched)
+            return appendingChild(for: reducedAssociation, kind: .bridge)
         }
     }
     
@@ -382,16 +437,16 @@ extension SQLRelation {
     func removingChildrenForPrefetchedAssociations() -> Self {
         filteringChildren {
             switch $0.kind {
-            case .allPrefetched, .allNotPrefetched: return false
+            case .all, .bridge: return false
             case .oneRequired, .oneOptional: return true
             }
         }
     }
 }
 
-extension SQLRelation: _JoinableRequest {
+extension SQLRelation {
     func _including(all association: _SQLAssociation) -> Self {
-        appendingChild(for: association, kind: .allPrefetched)
+        appendingChild(for: association, kind: .all)
     }
     
     func _including(optional association: _SQLAssociation) -> Self {
@@ -417,7 +472,7 @@ struct SQLSource {
     var tableName: String
     var alias: TableAlias?
     
-    func qualified(with alias: TableAlias) -> SQLSource {
+    func aliased(_ alias: TableAlias) -> SQLSource {
         if let sourceAlias = self.alias {
             alias.becomeProxy(of: sourceAlias)
             return self
@@ -555,11 +610,11 @@ enum SQLAssociationCondition {
     ///         player[Column("id")] == bonus[Column("playerID")]
     ///     })
     ///     Player.with(bonus).joining(required: association)
-    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpression)
+    case expression((_ left: TableAlias, _ right: TableAlias) -> SQLExpression?)
     
     /// The condition that does not constrain the two associated tables
     /// in any way.
-    static let none = expression({ _, _ in true.sqlExpression })
+    static let none = expression({ _, _ in nil })
     
     func reversed(to destinationTable: String) -> SQLAssociationCondition {
         switch self {
@@ -570,19 +625,19 @@ enum SQLAssociationCondition {
         }
     }
     
-    func joinExpressions(
+    func joinExpression(
         _ db: Database,
         leftAlias: TableAlias,
         rightAlias: TableAlias)
-    throws -> [SQLExpression]
+    throws -> SQLExpression?
     {
         switch self {
         case let .expression(condition):
-            return [condition(leftAlias, rightAlias)]
+            return condition(leftAlias, rightAlias)
         case let .foreignKey(foreignKey):
             return try foreignKey
                 .joinMapping(db, from: leftAlias.tableName)
-                .joinExpressions(leftAlias: leftAlias, rightAlias: rightAlias)
+                .joinExpression(leftAlias: leftAlias, rightAlias: rightAlias)
         }
     }
 }
@@ -718,7 +773,7 @@ extension JoinMapping {
         }
     }
     
-    /// Resolves the condition into SQL expressions which involve both left
+    /// Resolves the condition into an SQL expression which involve both left
     /// and right tables.
     ///
     ///     SELECT * FROM left JOIN right ON (right.a = left.b)
@@ -728,10 +783,8 @@ extension JoinMapping {
     ///   JOIN operator.
     /// - parameter rightAlias: A TableAlias for the table on the right of the
     ///   JOIN operator.
-    /// - Returns: An array of SQL expression that should be joined with
-    ///   the AND operator and qualified with the right table.
-    func joinExpressions(leftAlias: TableAlias, rightAlias: TableAlias) -> [SQLExpression] {
-        map { rightAlias[$0.right] == leftAlias[$0.left] }
+    func joinExpression(leftAlias: TableAlias, rightAlias: TableAlias) -> SQLExpression {
+        map { rightAlias[$0.right] == leftAlias[$0.left] }.joined(operator: .and)
     }
 }
 
@@ -791,8 +844,12 @@ extension SQLRelation {
             return nil
         }
         
-        let mergedFiltersPromise = DatabasePromise<[SQLExpression]> { db in
-            try self.filtersPromise.resolve(db) + other.filtersPromise.resolve(db)
+        let mergedFilterPromise = DatabasePromise<SQLExpression?> { db in
+            switch try (self.filterPromise.resolve(db), other.filterPromise.resolve(db)) {
+            case let (lhs?, rhs?): return lhs && rhs
+            case let (nil, expr?), let (expr?, nil): return expr
+            case (nil, nil): return nil
+            }
         }
         
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
@@ -827,7 +884,7 @@ extension SQLRelation {
         return SQLRelation(
             source: mergedSource,
             selectionPromise: mergedSelectionPromise,
-            filtersPromise: mergedFiltersPromise,
+            filterPromise: mergedFilterPromise,
             ordering: mergedOrdering,
             children: mergedChildren)
     }
@@ -922,28 +979,28 @@ extension SQLRelation.Child.Kind {
             //   .including(optional: association)
             return .oneOptional
             
-        case (.allPrefetched, .allPrefetched):
+        case (.all, .all):
             // Equivalent to Record.including(all: association):
             //
             // Record
             //   .including(all: association)
             //   .including(all: association)
-            return .allPrefetched
+            return .all
             
-        case (.allPrefetched, .allNotPrefetched),
-             (.allNotPrefetched, .allPrefetched):
+        case (.all, .bridge),
+             (.bridge, .all):
             // Record
             //   .including(all: associationToDestinationThroughPivot)
             //   .including(all: associationToPivot)
             fatalError("Not implemented: merging a direct association and an indirect one with including(all:)")
             
-        case (.allNotPrefetched, .allNotPrefetched):
+        case (.bridge, .bridge):
             // Equivalent to Record.including(all: association)
             //
             // Record
             //   .including(all: association)
             //   .including(all: association)
-            return .allNotPrefetched
+            return .bridge
             
         default:
             // Likely a programmer error:

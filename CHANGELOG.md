@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.5.x` Releases - [5.5.0](#550)
 - `5.4.x` Releases - [5.4.0](#540)
 - `5.3.x` Releases - [5.3.0](#530)
 - `5.2.x` Releases - [5.2.0](#520)
@@ -68,6 +69,25 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 #### 0.x Releases
 
 - [0.110.0](#01100), ...
+
+
+## 5.5.0
+
+Released March 3, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.4.0...v5.5.0)
+
+- **New**: You can now define common table expressions without any generic qualifier (which defaults to `Row`):
+
+    ```swift
+    let cte = CommonTableExpression(...)
+    ```
+    
+    The [Common Table Expressions Guide](Documentation/CommonTableExpressions.md) was updated accordingly.
+
+- **New**: `DatabaseQueue` reading methods are now wrapped in a deferred transaction. This guarantees snapshot isolation in case of concurrent writes performed by external connections, and makes `DatabaseQueue` a type suitable for shared databases.
+
+- **Fixed**: `DatabaseQueue.read` is now declared `throws` instead of `rethrows`.
+
+- **Fixed**: [#930](https://github.com/groue/GRDB.swift/pull/930): Fix SQL generation for `COLLATE`, `IN`, `NOT IN`
 
 ## 5.4.0
 

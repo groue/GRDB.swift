@@ -28,6 +28,93 @@ extension DatabaseValueConvertible {
     }
 }
 
+// MARK: - Conversions
+
+extension DatabaseValueConvertible {
+    static func decode(
+        fromDatabaseValue dbValue: DatabaseValue,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self
+    {
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else {
+            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
+        }
+    }
+    
+    @usableFromInline
+    static func decode(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self
+    {
+        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        return try decode(fromDatabaseValue: dbValue, context: context())
+    }
+
+    @usableFromInline
+    static func decode(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self {
+        if let sqliteStatement = row.sqliteStatement {
+            return try decode(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        return try decode(
+            fromDatabaseValue: row.impl.databaseValue(atUncheckedIndex: index),
+            context: RowDecodingContext(row: row, key: .columnIndex(index)))
+    }
+
+    static func decodeIfPresent(
+        fromDatabaseValue dbValue: DatabaseValue,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self?
+    {
+        // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else if dbValue.isNull {
+            return nil
+        } else {
+            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
+        }
+    }
+
+    @usableFromInline
+    static func decodeIfPresent(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self?
+    {
+        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
+        if let value = fromDatabaseValue(dbValue) {
+            return value
+        } else if dbValue.isNull {
+            return nil
+        } else {
+            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
+        }
+    }
+
+    @usableFromInline
+    static func decodeIfPresent(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self? {
+        if let sqliteStatement = row.sqliteStatement {
+            return try decodeIfPresent(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        return try decodeIfPresent(
+            fromDatabaseValue: row.impl.databaseValue(atUncheckedIndex: index),
+            context: RowDecodingContext(row: row, key: .columnIndex(index)))
+    }
+}
+
+// MARK: - Cursors
+
 /// A cursor of database values extracted from a single column.
 /// For example:
 ///
@@ -76,7 +163,11 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor 
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.decode(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            // TODO GRDB6: don't crash on decoding errors
+            return try! Value.decode(
+                fromStatement: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }
@@ -131,7 +222,11 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible>:
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.decodeIfPresent(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            // TODO GRDB6: don't crash on decoding errors
+            return try! Value.decodeIfPresent(
+                fromStatement: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }

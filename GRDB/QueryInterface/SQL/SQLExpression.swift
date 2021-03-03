@@ -981,26 +981,6 @@ extension SQLExpression {
 }
 
 extension SQLExpression {
-    /// Returns true iff the expression is trivially true.
-    ///
-    /// When in doubt, returns false.
-    ///
-    /// This property helps clearing up the JOIN clauses.
-    var isTrue: Bool {
-        switch impl {
-        case .databaseValue(true.databaseValue):
-            return true
-            
-        case let .collated(expression, _):
-            return expression.isTrue
-            
-        default:
-            return false
-        }
-    }
-}
-
-extension SQLExpression {
     /// Returns a qualified expression
     func qualified(with alias: TableAlias) -> SQLExpression {
         switch impl {

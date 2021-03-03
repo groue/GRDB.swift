@@ -135,7 +135,7 @@ class DatabaseQueueTests: GRDBTestCase {
             try dbQueue.write { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
-            dbQueue.read { _ in
+            try dbQueue.read { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
         }
@@ -185,7 +185,7 @@ class DatabaseQueueTests: GRDBTestCase {
             try dbQueue.write { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
-            dbQueue.read { _ in
+            try dbQueue.read { _ in
                 dispatchPrecondition(condition: .onQueue(targetQueue))
             }
         }

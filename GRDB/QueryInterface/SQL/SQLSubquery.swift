@@ -29,7 +29,7 @@ extension SQLSubquery {
     ///     // SELECT player.*, cte.*
     ///     // FROM player
     ///     // JOIN cte
-    ///     let cte = CommonTableExpression<Void>(named: "cte", sql: "SELECT 1 AS a, 2 AS b")
+    ///     let cte = CommonTableExpression(named: "cte", sql: "SELECT 1 AS a, 2 AS b")
     ///     let request = Player
     ///         .with(cte)
     ///         .including(required: Player.association(to: cte))
@@ -110,7 +110,17 @@ extension SQLSubqueryable {
     ///     // 1000 IN (SELECT score FROM player)
     ///     let request = Player.select(Column("score"), as: Int.self)
     ///     let condition = request.contains(1000)
-    public func contains(_ value: SQLExpressible) -> SQLExpression {
-        SQLCollection.subquery(sqlSubquery).contains(value.sqlExpression)
+    public func contains(_ element: SQLExpressible) -> SQLExpression {
+        SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
+    }
+    
+    /// Returns an expression that checks the inclusion of the expression in
+    /// the subquery.
+    ///
+    ///     // name COLLATE NOCASE IN (SELECT name FROM player)
+    ///     let request = Player.select(Column("name"), as: String.self)
+    ///     let condition = request.contains(Column("name").collating(.nocase))
+    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
+        SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
     }
 }

@@ -160,7 +160,7 @@ extension Association {
     ///     let association = Player.team.filter { db in true }
     ///     var request = Player.including(required: association)
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
-        mapDestinationRelation { $0.filter(predicate) }
+        mapDestinationRelation { $0.filter { try predicate($0).sqlExpression } }
     }
     
     /// Creates an association with the provided *orderings promise*.
@@ -285,7 +285,7 @@ extension Association {
     ///         .including(required: Player.team.aliased(teamAlias))
     ///         .filter(sql: "custom.color = ?", arguments: ["red"])
     public func aliased(_ alias: TableAlias) -> Self {
-        mapDestinationRelation { $0.qualified(with: alias) }
+        mapDestinationRelation { $0.aliased(alias) }
     }
 }
 

@@ -264,7 +264,7 @@ extension SQLInterpolation {
     /// Appends the table name of the common table expression.
     ///
     ///     // WITH "cte" AS (...) SELECT * FROM "cte"
-    ///     let cte = CommonTableExpression<Void>(named: "cte", ...)
+    ///     let cte = CommonTableExpression(named: "cte", ...)
     ///     let request: SQLRequest<Row> = """
     ///         WITH \(definitionFor: cte) SELECT * FROM \(cte)
     ///         """
@@ -275,7 +275,7 @@ extension SQLInterpolation {
     /// Appends the definition of the common table expression.
     ///
     ///     // WITH "cte" AS (...) SELECT * FROM "cte"
-    ///     let cte = CommonTableExpression<Void>(named: "cte", ...)
+    ///     let cte = CommonTableExpression(named: "cte", ...)
     ///     let request: SQLRequest<Row> = """
     ///         WITH \(definitionFor: cte) SELECT * FROM \(cte)
     ///         """

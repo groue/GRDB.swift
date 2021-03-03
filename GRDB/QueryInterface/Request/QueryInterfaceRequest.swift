@@ -83,7 +83,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         .select { db in [Column("id")] }
     ///         .select { db in [Column("email")] }
     public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
-        map(\.query) { $0.select(selection) }
+        map(\.query) { $0.select { try selection($0).map(\.sqlSelection) } }
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -97,7 +97,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
-        map(\.query, { $0.select(selection) }).asRequest(of: RowDecoder.self)
+        select(selection).asRequest(of: RowDecoder.self)
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -174,7 +174,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: { db in [Column("name")] })
     public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
-        map(\.query) { $0.annotated(with: selection) }
+        map(\.query) { $0.annotated { try selection($0).map(\.sqlSelection) } }
     }
 }
 
@@ -186,7 +186,7 @@ extension QueryInterfaceRequest: FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
-        map(\.query) { $0.filter(predicate) }
+        map(\.query) { $0.filter { try predicate($0).sqlExpression } }
     }
 }
 
@@ -205,7 +205,7 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest {
-        map(\.query) { $0.order(orderings) }
+        map(\.query) { $0.order { try orderings($0).map(\.sqlOrdering) } }
     }
     
     /// Creates a request that reverses applied orderings.
@@ -236,13 +236,13 @@ extension QueryInterfaceRequest: OrderedRequest {
 extension QueryInterfaceRequest: AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
     public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
-        map(\.query) { $0.group(expressions) }
+        map(\.query) { $0.group { try expressions($0).map(\.sqlExpression) } }
     }
     
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
-        map(\.query) { $0.having(predicate) }
+        map(\.query) { $0.having { try predicate($0).sqlExpression } }
     }
 }
 
@@ -300,7 +300,7 @@ extension QueryInterfaceRequest: TableRequest {
     ///         .aliased(playerAlias)
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
     public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
-        map(\.query) { $0.qualified(with: alias) }
+        map(\.query) { $0.aliased(alias) }
     }
 }
 
@@ -655,9 +655,9 @@ private func prefetch(
                         .removingChildrenForPrefetchedAssociations()
                         .selectOnly(leftColumns.map { SQLExpression.column($0).sqlSelection })
                 }
-                let originCTE = CommonTableExpression<Void>(
+                let originCTE = CommonTableExpression(
                     named: "grdb_base",
-                    request: originQuery)
+                    request: SQLSubquery.query(originQuery))
                 let pivotRowValue = SQLExpression.rowValue(pivotColumns.map(SQLExpression.column))!
                 let pivotFilter = originCTE.contains(pivotRowValue)
                 
@@ -737,7 +737,7 @@ func makePrefetchRequest(
     let pivotAlias = TableAlias()
     
     let prefetchRelation = association
-        .map(\.pivot.relation, { $0.qualified(with: pivotAlias).filter(pivotFilter) })
+        .map(\.pivot.relation, { $0.aliased(pivotAlias).filter(pivotFilter) })
         .destinationRelation()
         .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
     

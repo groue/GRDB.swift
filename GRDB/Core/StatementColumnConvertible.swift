@@ -18,31 +18,106 @@
 ///             score = row["score"]              // there
 ///         }
 ///     }
-///
-/// `StatementColumnConvertible` is already adopted by all Swift integer types,
-/// `Float`, `Double`, `String`, and `Bool`.
 public protocol StatementColumnConvertible {
     
-    /// Initializes a value from a raw SQLite statement pointer.
+    /// Initializes a value from a raw SQLite statement pointer, if possible.
     ///
     /// For example, here is the how Int64 adopts StatementColumnConvertible:
     ///
     ///     extension Int64: StatementColumnConvertible {
-    ///         init(sqliteStatement: SQLiteStatement, index: Int32) {
+    ///         init?(sqliteStatement: SQLiteStatement, index: Int32) {
     ///             self = sqlite3_column_int64(sqliteStatement, index)
     ///         }
     ///     }
     ///
-    /// This initializer is never called for NULL database values: don't perform
-    /// any extra check.
+    /// This initializer is never called for NULL database values. Just return
+    /// `nil` for failed conversions: GRDB will interpret a nil result as a
+    /// decoding failure.
     ///
     /// See https://www.sqlite.org/c3ref/column_blob.html for more information.
     ///
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    init(sqliteStatement: SQLiteStatement, index: Int32)
+    init?(sqliteStatement: SQLiteStatement, index: Int32)
 }
+
+// MARK: - Conversions
+
+extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+    @inlinable
+    static func fastDecode(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self
+    {
+        guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL,
+              let value = self.init(sqliteStatement: sqliteStatement, index: index)
+        else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                sqliteStatement: sqliteStatement,
+                index: index,
+                context: context())
+        }
+        return value
+    }
+
+    @inlinable
+    static func fastDecode(
+        fromRow row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Self
+    {
+        if let sqliteStatement = row.sqliteStatement {
+            return try fastDecode(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        // Support for fast decoding from adapted rows
+        return try row.fastDecode(Self.self, atUncheckedIndex: index)
+    }
+
+    @inlinable
+    static func fastDecodeIfPresent(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Self?
+    {
+        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
+            return nil
+        }
+        guard let value = self.init(sqliteStatement: sqliteStatement, index: index) else {
+            throw RowDecodingError.valueMismatch(
+                Self.self,
+                sqliteStatement: sqliteStatement,
+                index: index,
+                context: context())
+        }
+        return value
+    }
+
+    @inlinable
+    static func fastDecodeIfPresent(
+        fromRow row: Row,
+        atUncheckedIndex index: Int)
+    throws -> Self?
+    {
+        if let sqliteStatement = row.sqliteStatement {
+            return try fastDecodeIfPresent(
+                fromStatement: sqliteStatement,
+                atUncheckedIndex: Int32(index),
+                context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        }
+        // Support for fast decoding from adapted rows
+        return try row.fastDecodeIfPresent(Self.self, atUncheckedIndex: index)
+    }
+}
+
+// MARK: - Cursors
 
 /// A cursor of database values extracted from a single column.
 /// For example:
@@ -92,7 +167,11 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecode(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            // TODO GRDB6: don't crash on decoding errors
+            return try! Value.fastDecode(
+                fromStatement: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }
@@ -150,7 +229,11 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
             _done = true
             return nil
         case SQLITE_ROW:
-            return Value.fastDecodeIfPresent(from: _sqliteStatement, atUncheckedIndex: _columnIndex)
+            // TODO GRDB6: don't crash on decoding errors
+            return try! Value.fastDecodeIfPresent(
+                fromStatement: _sqliteStatement,
+                atUncheckedIndex: _columnIndex,
+                context: RowDecodingContext(statement: _statement, index: Int(_columnIndex)))
         case let code:
             try _statement.didFail(withResultCode: code)
         }
@@ -163,7 +246,6 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
 ///
 /// See DatabaseValueConvertible for more information.
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-    
     
     // MARK: Fetching From SelectStatement
     

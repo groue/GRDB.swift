@@ -503,10 +503,10 @@ extension Sequence where Self.Iterator.Element: SQLExpressible {
     /// An SQL expression that checks the inclusion of an expression in
     /// a sequence.
     ///
-    ///     // name IN ('A', 'B') COLLATE NOCASE
+    ///     // (name COLLATE NOCASE) IN ('A', 'B')
     ///     ["A", "B"].contains(Column("name").collating(.nocase))
     public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
-        .collated(contains(element.expression), element.collationName)
+        SQLCollection.array(map(\.sqlExpression)).contains(element.sqlExpression)
     }
 }
 
@@ -523,10 +523,10 @@ extension Sequence where Self.Iterator.Element == SQLExpressible {
     /// An SQL expression that checks the inclusion of an expression in
     /// a sequence.
     ///
-    ///     // name IN ('A', 'B') COLLATE NOCASE
+    ///     // (name COLLATE NOCASE) IN ('A', 'B')
     ///     ["A", "B"].contains(Column("name").collating(.nocase))
     public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
-        .collated(contains(element.expression), element.collationName)
+        SQLCollection.array(map(\.sqlExpression)).contains(element.sqlExpression)
     }
 }
 

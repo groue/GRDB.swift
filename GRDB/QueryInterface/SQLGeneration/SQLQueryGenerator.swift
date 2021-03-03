@@ -3,7 +3,7 @@ struct SQLQueryGenerator: Refinable {
     fileprivate private(set) var relation: SQLQualifiedRelation
     private let isDistinct: Bool
     private let groupPromise: DatabasePromise<[SQLExpression]>?
-    private let havingExpressionsPromise: DatabasePromise<[SQLExpression]>
+    private let havingExpressionPromise: DatabasePromise<SQLExpression?>
     private let limit: SQLLimit?
     private let singleResult: Bool
     private let ctes: OrderedDictionary<String, SQLCTE>
@@ -49,7 +49,7 @@ struct SQLQueryGenerator: Refinable {
         groupPromise = query.groupPromise?.map {
             $0.map { $0.qualified(with: sourceAlias) }
         }
-        havingExpressionsPromise = query.havingExpressionsPromise.map {
+        havingExpressionPromise = query.havingExpressionPromise.map {
             $0.map { $0.qualified(with: sourceAlias) }
         }
         
@@ -88,12 +88,10 @@ struct SQLQueryGenerator: Refinable {
             }
         }
         
-        let filters = try relation.filtersPromise.resolve(context.db)
-        if filters.isEmpty == false {
+        let filter = try relation.filterPromise.resolve(context.db)
+        if let filter = filter {
             sql += " WHERE "
-            sql += try filters
-                .joined(operator: .and)
-                .sql(context)
+            sql += try filter.sql(context)
         }
         
         let groupExpressions = try groupPromise?.resolve(context.db) ?? []
@@ -104,12 +102,9 @@ struct SQLQueryGenerator: Refinable {
                 .joined(separator: ", ")
         }
         
-        let havingExpressions = try havingExpressionsPromise.resolve(context.db)
-        if havingExpressions.isEmpty == false {
+        if let havingExpression = try havingExpressionPromise.resolve(context.db) {
             sql += " HAVING "
-            sql += try havingExpressions
-                .joined(operator: .and)
-                .sql(context)
+            sql += try havingExpression.sql(context)
         }
         
         let orderings = try relation.ordering.resolve(context.db)
@@ -124,7 +119,7 @@ struct SQLQueryGenerator: Refinable {
         if try singleResult && !expectsSingleResult(
             context.db,
             selection: selection,
-            filters: filters,
+            filter: filter,
             groupExpressions: groupExpressions)
         {
             limit = SQLLimit(limit: 1, offset: limit?.offset)
@@ -204,8 +199,9 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // The filter knows better
-        let filter = try relation.filtersPromise.resolve(db).joined(operator: .and)
-        guard let rowIDs = try filter.identifyingRowIDs(db, for: relation.source.alias) else {
+        guard let filter = try relation.filterPromise.resolve(db),
+              let rowIDs = try filter.identifyingRowIDs(db, for: relation.source.alias)
+        else {
             return selectedRegion
         }
         
@@ -219,7 +215,7 @@ struct SQLQueryGenerator: Refinable {
     private func expectsSingleResult(
         _ db: Database,
         selection: [SQLSelection],
-        filters: [SQLExpression],
+        filter: SQLExpression?,
         groupExpressions: [SQLExpression])
     throws -> Bool
     {
@@ -230,14 +226,12 @@ struct SQLQueryGenerator: Refinable {
         
         // Do we filter on a unique key?
         let tableName = relation.source.tableName
-        if try db.tableExists(tableName) { // skip views
-            let identifyingColums = try filters
-                .joined(operator: .and)
-                .identifyingColums(db, for: relation.source.alias)
-            if try db.table(tableName, hasUniqueKey: identifyingColums) {
-                // Filter by unique key: guaranteed single row!
-                return true
-            }
+        if try db.tableExists(tableName), // skip views
+           let identifyingColums = try filter?.identifyingColums(db, for: relation.source.alias),
+           try db.table(tableName, hasUniqueKey: identifyingColums)
+        {
+            // Filter by unique key: guaranteed single row!
+            return true
         }
         
         // Do we aggregate without grouping?
@@ -261,12 +255,9 @@ struct SQLQueryGenerator: Refinable {
             var sql = try commonTableExpressionsPrefix(context)
             sql += try "DELETE FROM " + relation.source.sql(context)
             
-            let filters = try relation.filtersPromise.resolve(db)
-            if filters.isEmpty == false {
+            if let filter = try relation.filterPromise.resolve(db) {
                 sql += " WHERE "
-                sql += try filters
-                    .joined(operator: .and)
-                    .sql(context)
+                sql += try filter.sql(context)
             }
             
             if let limit = limit {
@@ -350,12 +341,9 @@ struct SQLQueryGenerator: Refinable {
                 .map { try $0.sql(context) }
                 .joined(separator: ", ")
             
-            let filters = try relation.filtersPromise.resolve(db)
-            if filters.isEmpty == false {
+            if let filter = try relation.filterPromise.resolve(db) {
                 sql += " WHERE "
-                sql += try filters
-                    .joined(operator: .and)
-                    .sql(context)
+                sql += try filter.sql(context)
             }
             
             if let limit = limit {
@@ -576,8 +564,8 @@ private struct SQLQualifiedRelation {
     ///
     ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
     ///                                        |
-    ///                                        • filtersPromise
-    let filtersPromise: DatabasePromise<[SQLExpression]>
+    ///                                        • filterPromise
+    let filterPromise: DatabasePromise<SQLExpression?>
     
     /// The ordering of source, not including ordering of joined relations
     private let sourceOrdering: SQLRelation.Ordering
@@ -615,7 +603,7 @@ private struct SQLQualifiedRelation {
         sourceSelectionPromise = relation.selectionPromise.map {
             $0.map { $0.qualified(with: sourceAlias) }
         }
-        filtersPromise = relation.filtersPromise.map {
+        filterPromise = relation.filterPromise.map {
             $0.map { $0.qualified(with: sourceAlias) }
         }
         sourceOrdering = relation.ordering.qualified(with: sourceAlias)
@@ -726,7 +714,7 @@ private struct SQLQualifiedJoin: Refinable {
                 self = .innerJoin
             case .oneOptional:
                 self = .leftJoin
-            case .allPrefetched, .allNotPrefetched:
+            case .all, .bridge:
                 // Eager loading of to-many associations is not implemented with joins
                 return nil
             }
@@ -780,19 +768,20 @@ private struct SQLQualifiedJoin: Refinable {
         // JOIN table...
         var sql = try "\(kind.rawValue) \(relation.source.sql(context))"
         
-        // ... ON <join conditions>
+        // ... ON <join conditions> AND <other filters>
         let rightAlias = relation.source.alias
-        var conditions = try condition.joinExpressions(context.db,
-                                                       leftAlias: leftAlias,
-                                                       rightAlias: rightAlias)
+        var conditions: [SQLExpression] = []
         
-        // ... AND <other filters>
-        conditions += try relation.filtersPromise
-            .resolve(context.db)
-            .map { $0.qualified(with: rightAlias) }
+        if let expression = try condition.joinExpression(context.db,
+                                                         leftAlias: leftAlias,
+                                                         rightAlias: rightAlias)
+        {
+            conditions.append(expression)
+        }
         
-        // Avoid generating on ON clause for trivially true conditions
-        conditions = conditions.filter { !$0.isTrue }
+        if let filter = try relation.filterPromise.resolve(context.db) {
+            conditions.append(filter.qualified(with: rightAlias))
+        }
         
         if conditions.isEmpty == false {
             sql += " ON "

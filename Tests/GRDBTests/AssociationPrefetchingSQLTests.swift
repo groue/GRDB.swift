@@ -937,8 +937,8 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                 // This request is an example of what users are unlikely to
                 // want, because of the shared key between the two different
                 // pivot associations.
-                // However, A.hasMany(C.self) does not conflict. Thos is an
-                // indirect proof that it feeds an association kt, "as", which
+                // However, A.hasMany(C.self) does not conflict. This is an
+                // indirect proof that it feeds an association key, "as", which
                 // is distinc from "a" (A.hasOne(C.self)).
                 let request = A
                     .including(all: A
