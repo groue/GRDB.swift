@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- [Development Branch](#development-branch)
+- `5.5.x` Releases - [5.5.0](#550)
 - `5.4.x` Releases - [5.4.0](#540)
 - `5.3.x` Releases - [5.3.0](#530)
 - `5.2.x` Releases - [5.2.0](#520)
@@ -71,7 +71,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
-## Development Branch
+## 5.5.0
+
+Released March 3, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.4.0...v5.5.0)
 
 - **New**: You can now define common table expressions without any generic qualifier (which defaults to `Row`):
 
