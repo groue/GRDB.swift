@@ -120,7 +120,7 @@ where
                 }
                 
             case .waitingForRequest, .subscribed, .finished:
-                preconditionFailure()
+                break
             }
         }
     }
