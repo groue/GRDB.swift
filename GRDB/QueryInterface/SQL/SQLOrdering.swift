@@ -29,27 +29,27 @@ public struct SQLOrdering {
         case literal(SQLLiteral)
     }
     
-    static func expression(_ expression: SQLExpression) -> SQLOrdering {
+    public static func expression(_ expression: SQLExpression) -> SQLOrdering {
         self.init(impl: .expression(expression))
     }
     
-    static func asc(_ expression: SQLExpression) -> SQLOrdering {
+    public static func asc(_ expression: SQLExpression) -> SQLOrdering {
         self.init(impl: .asc(expression))
     }
     
-    static func desc(_ expression: SQLExpression) -> SQLOrdering {
+    public static func desc(_ expression: SQLExpression) -> SQLOrdering {
         self.init(impl: .desc(expression))
     }
     
-    static func ascNullsLast(_ expression: SQLExpression) -> SQLOrdering {
+    public static func ascNullsLast(_ expression: SQLExpression) -> SQLOrdering {
         self.init(impl: .ascNullsLast(expression))
     }
     
-    static func descNullsFirst(_ expression: SQLExpression) -> SQLOrdering {
+    public static func descNullsFirst(_ expression: SQLExpression) -> SQLOrdering {
         self.init(impl: .descNullsFirst(expression))
     }
     
-    static func literal(_ sqlLiteral: SQLLiteral) -> SQLOrdering {
+    public static func literal(_ sqlLiteral: SQLLiteral) -> SQLOrdering {
         self.init(impl: .literal(sqlLiteral))
     }
 }
