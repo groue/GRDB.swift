@@ -119,8 +119,22 @@ where
                     subscription.request(currentDemand)
                 }
                 
-            case .waitingForRequest, .subscribed, .finished:
+            case .waitingForRequest, .subscribed:
                 preconditionFailure()
+                
+            case .finished:
+                // We receive the upstream subscription requested by
+                // `upstream.receive(subscriber: self)` above.
+                //
+                // But self has been cancelled since, so let's cancel this
+                // upstream subscription that has turned purposeless.
+                //
+                // This cancellation avoids the bug described in
+                // https://github.com/groue/GRDB.swift/pull/932
+                // TODO: write a regression test.
+                sideEffect = {
+                    subscription.cancel()
+                }
             }
         }
     }
