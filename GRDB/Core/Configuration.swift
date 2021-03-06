@@ -108,6 +108,9 @@ public struct Configuration {
     /// The function argument is run when an SQLite connection is opened,
     /// before the connection is made available for database access methods.
     ///
+    /// This method can be called several times. The preparation functions are
+    /// run in the same order.
+    ///
     /// For example:
     ///
     ///     var config = Configuration()
@@ -115,8 +118,21 @@ public struct Configuration {
     ///         try db.execute(sql: "PRAGMA kdf_iter = 10000")
     ///     }
     ///
-    /// This method can be called several times. The setup functions are run in
-    /// the same order.
+    /// When you use a `DatabasePool`, preparation functions are called for
+    /// the writer connection and all reader connections. You can distinguish
+    /// them by querying `db.configuration.readonly`:
+    ///
+    ///     var config = Configuration()
+    ///     config.prepareDatabase { db in
+    ///         if db.configuration.readonly {
+    ///             // reader connection
+    ///         } else {
+    ///             // writer connection
+    ///         }
+    ///     }
+    ///
+    /// On newly created databases, `DatabasePool` the WAL mode is activated
+    /// after the preparation functions have run.
     public mutating func prepareDatabase(_ setup: @escaping (Database) throws -> Void) {
         setups.append(setup)
     }
