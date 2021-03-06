@@ -95,21 +95,14 @@ public struct SQLExpression {
         ///     <expression> COLLATE <collation>
         indirect case collated(SQLExpression, Database.CollationName)
         
-        /// The `COUNT` function.
-        ///
-        ///     COUNT(*)
-        ///     COUNT(<selection>)
-        indirect case count(SQLSelection)
-        
-        /// The `COUNT(DISTINCT)` function.
-        ///
-        ///     COUNT(DISTINCT <expression>)
-        indirect case countDistinct(SQLExpression)
+        /// The `COUNT(*)` expression.
+        case countAll
         
         /// A function call.
         ///
         ///     <function>(<argument>, ...)
-        case function(String, [SQLExpression])
+        ///     <function>(DISTINCT <argument>)
+        case function(String, aggregate: Bool, distinct: Bool, arguments: [SQLExpression])
         
         /// An expression that checks for zero or positive values.
         ///
@@ -148,7 +141,7 @@ public struct SQLExpression {
         /// Fuels `!expression`
         case falsey
     }
-
+    
     /// `AssociativeBinaryOperator` is an associative binary operator,
     /// such as `+`, `*`, `AND`, etc.
     ///
@@ -251,7 +244,7 @@ public struct SQLExpression {
             strictlyAssociative: true,
             bijective: true)
     }
-
+    
     /// `BinaryOperator` is an SQLite binary operator, such as `>`, `=`, etc.
     ///
     /// See also `AssociativeBinaryOperator` and `EqualityOperator`.
@@ -323,7 +316,7 @@ public struct SQLExpression {
             }
         }
     }
-
+    
     /// `UnaryOperator` is a SQLite unary operator.
     struct UnaryOperator: Hashable {
         /// The SQL operator
@@ -546,26 +539,48 @@ extension SQLExpression {
     
     // MARK: Functions
     
+    /// The `COUNT(*)` expression.
+    static let countAll = SQLExpression(impl: .countAll)
+    
     /// The `COUNT` function.
     ///
-    ///     COUNT(*)
-    ///     COUNT(<selection>)
-    static func count(_ selection: SQLSelection) -> Self {
-        self.init(impl: .count(selection))
+    ///     COUNT(<expression>)
+    static func count(_ expression: SQLExpression) -> Self {
+        .aggregate("COUNT", [expression])
     }
     
     /// The `COUNT(DISTINCT)` function.
     ///
     ///     COUNT(DISTINCT <expression>)
     static func countDistinct(_ expression: SQLExpression) -> Self {
-        self.init(impl: .countDistinct(expression))
+        .distinctAggregate("COUNT", expression)
     }
     
     /// A function call.
     ///
     ///     <function>(<argument>, ...)
-    static func function(_ name: String, _ expressions: [SQLExpression]) -> Self {
-        self.init(impl: .function(name, expressions))
+    ///
+    /// - warning: for aggregate functions, call one of:
+    ///     - `SQLExpression.aggregate(_:_:)`,
+    ///     - `SQLExpression.distinctAggregate(_:_:)`,
+    ///     - `SQLExpression.countDistinct(_:)`
+    ///     - `SQLExpression.countAll`.
+    static func function(_ name: String, _ arguments: [SQLExpression]) -> Self {
+        self.init(impl: .function(name, aggregate: false, distinct: false, arguments: arguments))
+    }
+    
+    /// An aggregate function call.
+    ///
+    ///     <aggregate>(<argument>, ...)
+    static func aggregate(_ name: String, _ arguments: [SQLExpression]) -> Self {
+        self.init(impl: .function(name, aggregate: true, distinct: false, arguments: arguments))
+    }
+    
+    /// A distinct aggregate function call.
+    ///
+    ///     <aggregate>(DISTINCT <argument>)
+    static func distinctAggregate(_ name: String, _ argument: SQLExpression) -> Self {
+        self.init(impl: .function(name, aggregate: true, distinct: true, arguments: [argument]))
     }
     
     /// An expression that checks for zero or positive values.
@@ -674,15 +689,15 @@ extension SQLExpression {
         case let .collated(expression, _):
             return try expression.column(db, for: alias, acceptsBijection: acceptsBijection)
             
-        case let .function(name, expressions):
+        case let .function(name, aggregate: false, distinct: false, arguments: arguments):
             guard acceptsBijection else {
                 return nil
             }
             let name = name.uppercased()
-            if ["HEX", "QUOTE"].contains(name) && expressions.count == 1 {
-                return try expressions[0].column(db, for: alias, acceptsBijection: acceptsBijection)
-            } else if name == "IFNULL" && expressions.count == 2 && expressions[1].isConstantInRequest {
-                return try expressions[0].column(db, for: alias, acceptsBijection: acceptsBijection)
+            if ["HEX", "QUOTE"].contains(name) && arguments.count == 1 {
+                return try arguments[0].column(db, for: alias, acceptsBijection: acceptsBijection)
+            } else if name == "IFNULL" && arguments.count == 2 && arguments[1].isConstantInRequest {
+                return try arguments[0].column(db, for: alias, acceptsBijection: acceptsBijection)
             } else {
                 return nil
             }
@@ -844,16 +859,15 @@ extension SQLExpression {
             }
             return resultSQL
             
-        case let .count(selection):
-            return try "COUNT(\(selection.countedSQL(context)))"
+        case .countAll:
+            return "COUNT(*)"
             
-        case let .countDistinct(expression):
-            return try "COUNT(DISTINCT \(expression.sql(context)))"
-            
-        case let .function(name, expressions):
+        case let .function(name, aggregate: aggregate, distinct: distinct, arguments: arguments):
+            assert(!distinct || aggregate, "distinct requires aggregate")
+            assert(!distinct || arguments.count == 1, "distinct requires a single argument")
             return try name
-                + "("
-                + expressions.map { try $0.sql(context) }.joined(separator: ", ")
+                + (distinct ? "(DISTINCT " : "(")
+                + arguments.map { try $0.sql(context) }.joined(separator: ", ")
                 + ")"
             
         case let .isEmpty(expression, isNegated: isNegated):
@@ -1279,15 +1293,15 @@ extension SQLExpression {
              let .collated(expression, _):
             return expression.isConstantInRequest
             
-        case let .function(name, expressions):
+        case let .function(name, aggregate: false, distinct: false, arguments: arguments):
             let name = name.uppercased()
-            guard ((name == "MAX" || name == "MIN") && expressions.count > 1)
+            guard ((name == "MAX" || name == "MIN") && arguments.count > 1)
                     || Self.knownPureFunctions.contains(name)
             else {
                 return false // Don't know - assume not constant
             }
             
-            return expressions.allSatisfy(\.isConstantInRequest)
+            return arguments.allSatisfy(\.isConstantInRequest)
             
         default:
             return false
@@ -1348,14 +1362,12 @@ extension SQLExpression {
         case let .collated(expression, collationName):
             return .collated(expression.qualified(with: alias), collationName)
             
-        case let .count(selection):
-            return .count(selection.qualified(with: alias))
+        case .countAll:
+            return .countAll
             
-        case let .countDistinct(expression):
-            return .countDistinct(expression.qualified(with: alias))
-            
-        case let .function(name, expressions):
-            return .function(name, expressions.map { $0.qualified(with: alias) })
+        case let .function(name, aggregate: aggregate, distinct: distinct, arguments: arguments):
+            return SQLExpression(impl: .function(name, aggregate: aggregate, distinct: distinct,
+                                                 arguments: arguments.map { $0.qualified(with: alias) }))
             
         case let .isEmpty(expression, isNegated: isNegated):
             return .isEmpty(expression.qualified(with: alias), isNegated: isNegated)
@@ -1414,22 +1426,9 @@ extension SQLExpression {
             
             return false
             
-        case .count,
-             .countDistinct:
+        case .countAll,
+             .function(_, aggregate: true, distinct: _, arguments: _):
             return true
-            
-        case let .function(name, expressions):
-            let name = name.uppercased()
-            if ["MIN", "MAX"].contains(name) && expressions.count == 1 {
-                return true
-            } else if ["AVG", "COUNT", "SUM", "TOTAL"].contains(name) && expressions.count == 1 {
-                return true
-            } else if name == "GROUP_CONCAT" && (expressions.count == 1 || expressions.count == 2) {
-                return true
-            } else {
-                // Return true if all arguments are aggregates?
-                return false
-            }
             
         default:
             return false

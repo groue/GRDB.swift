@@ -38,8 +38,8 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
-        let expression = SQLExpression.countDistinct(.fastPrimaryKey)
-        return makeAggregate(expression).forKey("\(key.singularizedName)Count")
+        makeAggregate(.countDistinct(.fastPrimaryKey))
+            .forKey("\(key.singularizedName)Count")
     }
     
     /// Creates an aggregate that is true if there exists no associated records.
@@ -58,8 +58,8 @@ extension AssociationToMany {
     ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
-        let expression = SQLExpression.isEmpty(.countDistinct(.fastPrimaryKey))
-        return makeAggregate(expression).forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
+        makeAggregate(.isEmpty(.countDistinct(.fastPrimaryKey)))
+            .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
     /// Creates an aggregate which evaluate to the average value of the given
@@ -80,7 +80,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.average(Column("score")) > 100).fetchAll(db)
     public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("AVG", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("AVG", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -107,7 +107,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.max(Column("score")) < 100).fetchAll(db)
     public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("MAX", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("MAX", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -134,7 +134,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.min(Column("score")) > 100).fetchAll(db)
     public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("MIN", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("MIN", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -161,7 +161,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
     public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("SUM", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("SUM", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")

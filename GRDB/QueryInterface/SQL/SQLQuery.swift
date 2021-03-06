@@ -123,7 +123,7 @@ extension SQLQuery {
             countQuery.isDistinct = false
             switch count {
             case .all:
-                countQuery = countQuery.select(.count(.allColumns))
+                countQuery = countQuery.select(.countAll)
             case .distinct(let expression):
                 countQuery = countQuery.select(.countDistinct(expression))
             }
@@ -138,7 +138,7 @@ extension SQLQuery {
             // SELECT expr1, expr2, ... FROM tableName ...
             // ->
             // SELECT COUNT(*) FROM tableName ...
-            let countQuery = unordered().select(SQLExpression.count(.allColumns))
+            let countQuery = unordered().select(.countAll)
             return try QueryInterfaceRequest(query: countQuery).fetchOne(db)!
         }
     }

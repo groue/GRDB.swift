@@ -3,15 +3,12 @@
 public struct SQLSelection {
     private var impl: Impl
     
+    /// The private implementation of the public `SQLSelection`.
     private enum Impl {
-        /// All columns
-        ///
-        ///     SELECT *
+        /// All columns: `*`
         case allColumns
         
-        /// All columns from a table
-        ///
-        ///     SELECT player.*
+        /// All columns, qualified: `player.*`
         case qualifiedAllColumns(TableAlias)
         
         // As long as the CTE is embedded here, the following request will fail
@@ -28,48 +25,55 @@ public struct SQLSelection {
         // - prefer `annotated(with:)` when she wants to extend the selection.
         //
         // TODO: Make `cteRequestOrAssociation.select(AllColumns())` possible.
-        /// All columns from a common table expression
+        /// All columns of a common table expression
         case allCTEColumns(SQLCTE)
         
+        /// All columns of a common table expression, qualified
         case qualifiedAllCTEColumns(SQLCTE, TableAlias)
         
         /// An expression
-        ///
-        ///     SELECT id
-        ///     SELECT LENGTH(name)
         case expression(SQLExpression)
         
         /// An aliased expression
         ///
-        ///     SELECT score + bonud AS totalScore
+        ///     <expression> AS name
         case aliasedExpression(SQLExpression, String)
         
         /// A literal SQL selection
         case literal(SQLLiteral)
     }
     
+    /// All columns: `*`
     static let allColumns = SQLSelection(impl: .allColumns)
     
+    /// All columns, qualified: `player.*`
     static func qualifiedAllColumns(_ alias: TableAlias) -> Self {
         self.init(impl: .qualifiedAllColumns(alias))
     }
     
+    /// All columns of a common table expression
     static func allCTEColumns(_ cte: SQLCTE) -> Self {
         self.init(impl: .allCTEColumns(cte))
     }
     
+    /// All columns of a common table expression, qualified
     static func qualifiedAllCTEColumns(_ cte: SQLCTE, _ alias: TableAlias) -> Self {
         self.init(impl: .qualifiedAllCTEColumns(cte, alias))
     }
     
+    /// An expression
     static func expression(_ expression: SQLExpression) -> Self {
         self.init(impl: .expression(expression))
     }
     
+    /// An aliased expression
+    ///
+    ///     <expression> AS name
     static func aliasedExpression(_ expression: SQLExpression, _ name: String) -> Self {
         self.init(impl: .aliasedExpression(expression, name))
     }
     
+    /// A literal SQL selection
     static func literal(_ sqlLiteral: SQLLiteral) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
@@ -104,9 +108,29 @@ extension SQLSelection {
                 """)
         }
     }
-}
-
-extension SQLSelection {
+    
+    /// Support for `count(selection)`.
+    /// TODO: deprecate `count(selection)`, and get rid of this property.
+    var countExpression: SQLExpression {
+        switch impl {
+        case .allColumns,
+             .allCTEColumns:
+            return .countAll
+            
+        case .qualifiedAllColumns,
+             .qualifiedAllCTEColumns:
+            // COUNT(player.*) is not valid SQL
+            fatalError("Uncountable selection")
+            
+        case let .expression(expression),
+             let .aliasedExpression(expression, _):
+            return .count(expression)
+            
+        case let .literal(sqlLiteral):
+            return .count(sqlLiteral.sqlExpression)
+        }
+    }
+    
     /// If the selection can be counted, return how to count it.
     func count(distinct: Bool) -> SQLCount? {
         switch impl {
@@ -182,9 +206,7 @@ extension SQLSelection {
                 """)
         }
     }
-}
-
-extension SQLSelection {
+    
     /// Returns the SQL that feeds the selection of a `SELECT` statement.
     ///
     /// For example:
@@ -221,9 +243,7 @@ extension SQLSelection {
             return try sqlLiteral.sql(context)
         }
     }
-}
-
-extension SQLSelection {
+    
     /// Returns true if the selection is an aggregate.
     ///
     /// When in doubt, returns false.
@@ -252,9 +272,7 @@ extension SQLSelection {
             return false
         }
     }
-}
-
-extension SQLSelection {
+    
     /// Returns a qualified selection
     func qualified(with alias: TableAlias) -> SQLSelection {
         switch impl {

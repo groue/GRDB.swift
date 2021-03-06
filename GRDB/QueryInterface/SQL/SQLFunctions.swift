@@ -1,15 +1,3 @@
-// MARK: - Custom Functions
-
-extension DatabaseFunction {
-    /// Returns an SQL expression that applies the function.
-    ///
-    /// See https://github.com/groue/GRDB.swift/#sql-functions
-    public func callAsFunction(_ arguments: SQLExpressible...) -> SQLExpression {
-        .function(name, arguments.map(\.sqlExpression))
-    }
-}
-
-
 // MARK: - ABS(...)
 
 /// Returns an expression that evaluates the `ABS` SQL function.
@@ -28,18 +16,19 @@ public func abs(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // AVG(length)
 ///     average(Column("length"))
 public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
-    .function("AVG", [value.sqlExpression])
+    .aggregate("AVG", [value.sqlExpression])
 }
 
 
 // MARK: - COUNT(...)
 
+// TODO: deprecate, replace with count(expression)
 /// Returns an expression that evaluates the `COUNT` SQL function.
 ///
 ///     // COUNT(email)
 ///     count(Column("email"))
 public func count(_ counted: SQLSelectable) -> SQLExpression {
-    .count(counted.sqlSelection)
+    counted.sqlSelection.countExpression
 }
 
 
@@ -83,7 +72,7 @@ public func length(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // MAX(score)
 ///     max(Column("score"))
 public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
-    .function("MAX", [value.sqlExpression])
+    .aggregate("MAX", [value.sqlExpression])
 }
 
 
@@ -94,7 +83,7 @@ public func max(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // MIN(score)
 ///     min(Column("score"))
 public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
-    .function("MIN", [value.sqlExpression])
+    .aggregate("MIN", [value.sqlExpression])
 }
 
 
@@ -105,7 +94,7 @@ public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
 ///     // SUM(amount)
 ///     sum(Column("amount"))
 public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
-    .function("SUM", [value.sqlExpression])
+    .aggregate("SUM", [value.sqlExpression])
 }
 
 
