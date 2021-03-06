@@ -15,6 +15,7 @@
 
 ## Features
 
+- [ ] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation
 - [ ] Grab all FTS tokens in a string
 - [ ] GRDB 6: decoding errors
 - [ ] GRDB 6: conflict resolution in persistence methods
