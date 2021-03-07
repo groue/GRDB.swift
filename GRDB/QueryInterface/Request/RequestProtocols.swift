@@ -600,11 +600,11 @@ public protocol AggregateJoinableRequest: AggregatingRequest & JoinableRequest &
 extension AggregateJoinableRequest {
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> Self {
         var request = self
-        let expressionPromise = aggregate.prepare(&request)
+        let expression = aggregate.prepare(&request)
         if let key = aggregate.key {
-            return request.annotated(with: { db in try [expressionPromise.resolve(db).forKey(key)] })
+            return request.annotated(with: expression.forKey(key))
         } else {
-            return request.annotated(with: { db in try [expressionPromise.resolve(db)] })
+            return request.annotated(with: expression)
         }
     }
     
@@ -640,7 +640,7 @@ extension AggregateJoinableRequest {
     ///     request = request.having(Player.books.isEmpty)
     public func having(_ predicate: AssociationAggregate<RowDecoder>) -> Self {
         var request = self
-        let expressionPromise = predicate.prepare(&request)
-        return request.having(expressionPromise.resolve)
+        let expression = predicate.prepare(&request)
+        return request.having(expression)
     }
 }
