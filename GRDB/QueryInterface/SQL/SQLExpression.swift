@@ -1106,8 +1106,7 @@ extension SQLExpression {
     /// optimize queries with indices on boolean columns and expressions.
     /// See https://github.com/groue/GRDB.swift/issues/816
     ///
-    /// This method is a customization point, so that some specific expressions
-    /// can produce idiomatic SQL.
+    /// Some specific expressions can produce idiomatic SQL.
     ///
     /// For example, the `like(_)` expression:
     ///
