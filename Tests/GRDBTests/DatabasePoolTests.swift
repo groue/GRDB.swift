@@ -52,4 +52,27 @@ class DatabasePoolTests: GRDBTestCase {
         XCTAssertFalse(fm.fileExists(atPath: path + "-wal"))
         XCTAssertFalse(fm.fileExists(atPath: path + "-shm"))
     }
+    
+    // Regression test
+    func testIssue931() throws {
+        dbConfiguration.prepareDatabase { db in
+            var flag: CInt = 0
+            let code = withUnsafeMutablePointer(to: &flag) { flagP in
+                sqlite3_file_control(db.sqliteConnection, nil, SQLITE_FCNTL_PERSIST_WAL, flagP)
+            }
+            guard code == SQLITE_OK else {
+                throw DatabaseError(resultCode: ResultCode(rawValue: code))
+            }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("v1", migrate: { _ in })
+        migrator.eraseDatabaseOnSchemaChange = true
+        try migrator.migrate(dbQueue)
+        
+        // Trigger #931: the migrator creates a temporary database and
+        // calls `sqlite3_file_control` as part of the preparation function.
+        try migrator.migrate(dbQueue)
+    }
 }
