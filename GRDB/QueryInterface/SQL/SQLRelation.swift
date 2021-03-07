@@ -141,13 +141,13 @@ struct SQLRelation {
     
     var source: SQLSource
     var selectionPromise: DatabasePromise<[SQLSelection]>
+    #warning("TODO: turn into DatabasePromise<[SQLExpression]>? like havingExpressionPromise")
     var filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil)
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     var children: OrderedDictionary<String, Child> = [:]
     
     // Properties below MUST NOT be used when joining to-one associations
     #warning("TODO: make sure a precondition failure prevents those to be defined on to-one associations")
-    #warning("TODO: merge")
     var isDistinct: Bool = false
     var groupPromise: DatabasePromise<[SQLExpression]>?
     var havingExpressionPromise: DatabasePromise<SQLExpression>?
@@ -932,11 +932,13 @@ extension PersistenceContainer: ColumnAddressable {
 extension SQLRelation {
     /// Returns nil if relations can't be merged (conflict in source, joins...)
     func merged(with other: SQLRelation) -> Self? {
+        // Source
         guard let mergedSource = source.merged(with: other.source) else {
             // can't merge
             return nil
         }
         
+        // Filter: merge with AND
         let mergedFilterPromise = DatabasePromise<SQLExpression?> { db in
             switch try (self.filterPromise.resolve(db), other.filterPromise.resolve(db)) {
             case let (lhs?, rhs?): return lhs && rhs
@@ -945,6 +947,7 @@ extension SQLRelation {
             }
         }
         
+        // Children: merge recursively
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
         for (key, child) in children {
             if let otherChild = other.children[key] {
@@ -961,7 +964,7 @@ extension SQLRelation {
             mergedChildren.appendValue(child, forKey: key)
         }
         
-        // replace selection unless empty
+        // Selection: replace unless empty
         let mergedSelectionPromise = DatabasePromise { db -> [SQLSelection] in
             let otherSelection = try other.selectionPromise.resolve(db)
             if otherSelection.isEmpty {
@@ -971,15 +974,45 @@ extension SQLRelation {
             }
         }
         
-        // replace ordering unless empty
+        // Ordering: prefer other
         let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
+        
+        // Distinct
+        let mergedDistinct = isDistinct || other.isDistinct
+        
+        // Grouping: prefer other
+        let mergedGroupPromise = other.groupPromise ?? groupPromise
+        
+        // Having: merge with AND
+        let mergedHavingExpressionPromise: DatabasePromise<SQLExpression>?
+        switch (havingExpressionPromise, other.havingExpressionPromise) {
+        case let (lhs?, rhs?):
+            mergedHavingExpressionPromise = DatabasePromise {
+                try lhs.resolve($0) && rhs.resolve($0)
+            }
+        case let (nil, promise?), let (promise?, nil):
+            mergedHavingExpressionPromise = promise
+        case (nil, nil):
+            mergedHavingExpressionPromise = nil
+        }
+        
+        // Limit: prefer other
+        let mergedLimit = other.limit ?? limit
+        
+        // CTEs: merge & prefer other
+        let mergedCTEs = ctes.merging(other.ctes, uniquingKeysWith: { (_, other) in other })
         
         return SQLRelation(
             source: mergedSource,
             selectionPromise: mergedSelectionPromise,
             filterPromise: mergedFilterPromise,
             ordering: mergedOrdering,
-            children: mergedChildren)
+            children: mergedChildren,
+            isDistinct: mergedDistinct,
+            groupPromise: mergedGroupPromise,
+            havingExpressionPromise: mergedHavingExpressionPromise,
+            limit: mergedLimit,
+            ctes: mergedCTEs)
     }
 }
 
