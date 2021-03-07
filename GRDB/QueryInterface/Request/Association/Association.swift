@@ -336,4 +336,23 @@ extension AssociationToMany {
         let associationKey = SQLAssociationKey.fixedPlural(key)
         return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
     }
+    
+    /// Creates an association for returns distinct rows.
+    public func distinct() -> Self {
+        mapDestinationRelation { $0.with(\.isDistinct, true) }
+    }
+    
+    /// Creates an association that fetches *limit* rows, starting at *offset*.
+    ///
+    /// Any previous limit is replaced.
+    public func limit(_ limit: Int, offset: Int? = nil) -> Self {
+        mapDestinationRelation { $0.with(\.limit, SQLLimit(limit: limit, offset: offset)) }
+    }
+    
+    /// Returns an association that embeds the common table expression.
+    ///
+    /// See `QueryInterfaceRequest.with(_:)` for more information.
+    public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
+        mapDestinationRelation { $0.with(\.ctes[cte.tableName], cte.cte) }
+    }
 }
