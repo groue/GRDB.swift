@@ -75,6 +75,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Development Branch
 
 - **Fixed**: [#933](https://github.com/groue/GRDB.swift/pull/933): Fix DatabaseMigrator.eraseDatabaseOnSchemaChange in the context of shared databases
+- **Fixed**: [#934](https://github.com/groue/GRDB.swift/pull/934): Fix a crash in the ValueObservation publisher
 
 ## 5.5.0
 
