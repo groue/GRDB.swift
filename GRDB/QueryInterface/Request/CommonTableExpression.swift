@@ -444,7 +444,7 @@ extension QueryInterfaceRequest {
     /// - parameter cte: A common table expression.
     /// - returns: A request.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
-        with(\.query.ctes[cte.tableName], cte.cte)
+        with(\.relation.ctes[cte.tableName], cte.cte)
     }
 }
 

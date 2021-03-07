@@ -2,23 +2,20 @@
 /// terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology),
 /// is "a set of tuples sharing the same attributes; a set of columns and rows."
 ///
-/// SQLRelation is defined with a selection, a source table of query, and an
-/// eventual filter and ordering.
-///
-///     SELECT ... FROM ... WHERE ... ORDER BY ...
-///            |        |         |            |
-///            |        |         |            • ordering
-///            |        |         • filter
-///            |        • source
-///            • selection
-///
-/// Other SQL clauses such as GROUP BY, LIMIT are defined one level up, in the
-/// `SQLQuery` type.
+///     WITH ...     -- ctes
+///     SELECT ...   -- selectionPromise
+///     FROM ...     -- source
+///     JOIN ...     -- children
+///     WHERE ...    -- filterPromise
+///     GROUP BY ... -- groupPromise
+///     HAVING ...   -- havingExpressionPromise
+///     ORDER BY ... -- ordering
+///     LIMIT ...    -- limit
 ///
 /// ## Promises
 ///
-/// Selection, filter, and ordering are "promises" which are resolved when a
-/// database connection is available. This is how we can implement requests such
+/// Most relation elements are "promises" which are resolved when a database
+/// connection is available. This is how we can implement requests such
 /// as `Record.filter(key: 1)` or `Record.orderByPrimaryKey()`: both need a
 /// database connection in order to introspect the primary key. For example:
 ///
@@ -29,7 +26,7 @@
 ///
 /// ## Children
 ///
-/// Relations may also have children. A child is a link to another relation, and
+/// Relations have children. A child is a link to another relation, and
 /// provide support for joins and prefetched relations.
 ///
 /// Relations and their children constitute a tree of relations, which the user
@@ -143,30 +140,19 @@ struct SQLRelation {
     }
     
     var source: SQLSource
-    var selectionPromise: DatabasePromise<[SQLSelection]> = DatabasePromise(value: [])
+    var selectionPromise: DatabasePromise<[SQLSelection]>
     var filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil)
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     var children: OrderedDictionary<String, Child> = [:]
     
-    /// All prefetched associations (`including(all:)`), recursively
-    var prefetchedAssociations: [_SQLAssociation] {
-        children.flatMap { key, child -> [_SQLAssociation] in
-            switch child.kind {
-            case .all:
-                return [child.makeAssociationForKey(key)]
-            case .oneOptional, .oneRequired, .bridge:
-                return child.relation.prefetchedAssociations.map { association in
-                    // Remove redundant pivot child
-                    let pivotKey = association.pivot.keyName
-                    let child = child.map(\.relation) { relation in
-                        assert(relation.children[pivotKey] != nil)
-                        return relation.removingChild(forKey: pivotKey)
-                    }
-                    return association.through(child.makeAssociationForKey(key))
-                }
-            }
-        }
-    }
+    // Properties below MUST NOT be used when joining to-one associations
+    #warning("TODO: make sure a precondition failure prevents those to be defined on to-one associations")
+    #warning("TODO: merge")
+    var isDistinct: Bool = false
+    var groupPromise: DatabasePromise<[SQLExpression]>?
+    var havingExpressionPromise: DatabasePromise<SQLExpression>?
+    var limit: SQLLimit?
+    var ctes: OrderedDictionary<String, SQLCTE> = [:]
 }
 
 extension SQLRelation {
@@ -190,6 +176,11 @@ extension SQLRelation: Refinable {
     // Convenience
     func select(_ selection: [SQLSelection]) -> Self {
         select { _ in selection }
+    }
+    
+    // Convenience
+    func select(_ expressions: SQLExpression...) -> Self {
+        select { _ in expressions.map { .expression($0) } }
     }
     
     /// Removes all selections from chidren
@@ -251,12 +242,48 @@ extension SQLRelation: Refinable {
             }
     }
     
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
+        with(\.groupPromise, DatabasePromise(expressions))
+    }
+    
+    func having(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+        map(\.havingExpressionPromise) { promise in
+            DatabasePromise { db in
+                if let filter = try promise?.resolve(db) {
+                    return try filter && predicate(db)
+                } else {
+                    return try predicate(db)
+                }
+            }
+        }
+    }
+    
     func aliased(_ alias: TableAlias) -> Self {
         map(\.source) { $0.aliased(alias) }
     }
 }
 
 extension SQLRelation {
+    /// All prefetched associations (`including(all:)`), recursively
+    var prefetchedAssociations: [_SQLAssociation] {
+        children.flatMap { key, child -> [_SQLAssociation] in
+            switch child.kind {
+            case .all:
+                return [child.makeAssociationForKey(key)]
+            case .oneOptional, .oneRequired, .bridge:
+                return child.relation.prefetchedAssociations.map { association in
+                    // Remove redundant pivot child
+                    let pivotKey = association.pivot.keyName
+                    let child = child.map(\.relation) { relation in
+                        assert(relation.children[pivotKey] != nil)
+                        return relation.removingChild(forKey: pivotKey)
+                    }
+                    return association.through(child.makeAssociationForKey(key))
+                }
+            }
+        }
+    }
+    
     /// Returns a relation extended with an association.
     ///
     /// This method provides support for public joining methods such
@@ -463,6 +490,72 @@ extension SQLRelation {
     
     func _joining(required association: _SQLAssociation) -> Self {
         appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
+    }
+}
+
+extension SQLRelation {
+    func fetchCount(_ db: Database) throws -> Int {
+        guard groupPromise == nil && limit == nil && ctes.isEmpty else {
+            // SELECT ... GROUP BY ...
+            // SELECT ... LIMIT ...
+            // WITH ... SELECT ...
+            return try fetchTrivialCount(db)
+        }
+    
+        if children.contains(where: { $0.value.impactsParentCount }) { // TODO: not tested
+            // SELECT ... FROM ... JOIN ...
+            return try fetchTrivialCount(db)
+        }
+    
+        let selection = try selectionPromise.resolve(db)
+        GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
+        if selection.count == 1 {
+            guard let count = selection[0].count(distinct: isDistinct) else {
+                return try fetchTrivialCount(db)
+            }
+            var countRelation = self.unordered()
+            countRelation.isDistinct = false
+            switch count {
+            case .all:
+                countRelation = countRelation.select(.countAll)
+            case .distinct(let expression):
+                countRelation = countRelation.select(.countDistinct(expression))
+            }
+            return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
+        } else {
+            // SELECT [DISTINCT] expr1, expr2, ... FROM tableName ...
+    
+            guard !isDistinct else {
+                return try fetchTrivialCount(db)
+            }
+    
+            // SELECT expr1, expr2, ... FROM tableName ...
+            // ->
+            // SELECT COUNT(*) FROM tableName ...
+            let countRelation = unordered().select(.countAll)
+            return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
+        }
+    }
+    
+    // SELECT COUNT(*) FROM (self)
+    private func fetchTrivialCount(_ db: Database) throws -> Int {
+        let countRequest: SQLRequest<Int> = "SELECT COUNT(*) FROM (\(SQLSubquery.relation(unordered())))"
+        return try countRequest.fetchOne(db)!
+    }
+}
+
+// MARK: - SQLLimit
+
+struct SQLLimit {
+    let limit: Int
+    let offset: Int?
+    
+    var sql: String {
+        if let offset = offset {
+            return "\(limit) OFFSET \(offset)"
+        } else {
+            return "\(limit)"
+        }
     }
 }
 
