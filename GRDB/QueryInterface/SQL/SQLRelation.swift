@@ -120,6 +120,31 @@ struct SQLRelation {
             }
         }
         
+        init(kind: SQLRelation.Child.Kind, condition: SQLAssociationCondition, relation: SQLRelation) {
+            switch kind {
+            case .oneOptional, .oneRequired, .bridge:
+                if relation.isDistinct {
+                    fatalError("Can't join an association that selects DISTINCT rows")
+                }
+                if relation.groupPromise != nil || relation.havingExpressionPromise != nil {
+                    fatalError("Can't join an association with a GROUP BY clause")
+                }
+                if relation.limit != nil {
+                    fatalError("Can't join an association with a LIMIT clause")
+                }
+                if relation.ctes.isEmpty == false {
+                    // TODO: maybe we could lift ctes up to the base relation
+                    fatalError("Not implemented: joining an association that embeds a common table expression")
+                }
+            case .all:
+                break
+            }
+            
+            self.kind = kind
+            self.condition = condition
+            self.relation = relation
+        }
+        
         fileprivate func makeAssociationForKey(_ key: String) -> _SQLAssociation {
             let key = SQLAssociationKey.fixed(key)
             
@@ -146,9 +171,9 @@ struct SQLRelation {
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     var children: OrderedDictionary<String, Child> = [:]
     
-    // Properties below MUST NOT be used when joining to-one associations
-    #warning("TODO: make sure a precondition failure prevents those to be defined on to-one associations")
-    var isDistinct: Bool = false
+    // Properties below MUST NOT be used when joining to-one associations.
+    // This is guaranteed by Child.init().
+    var isDistinct = false
     var groupPromise: DatabasePromise<[SQLExpression]>?
     var havingExpressionPromise: DatabasePromise<SQLExpression>?
     var limit: SQLLimit?
