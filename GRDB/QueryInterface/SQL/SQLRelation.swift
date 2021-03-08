@@ -203,10 +203,12 @@ extension SQLRelation: Refinable {
         select { _ in expressions.map { .expression($0) } }
     }
     
-    /// Removes all selections from chidren
+    /// Sets the selection, removes all selections from chidren, and clears the
+    /// `isDistinct` flag.
     func selectOnly(_ selection: [SQLSelection]) -> Self {
         self
             .select(selection)
+            .with(\.isDistinct, false)
             .map(\.children) { children in
                 children.mapValues { child in
                     child.map(\.relation) { $0.selectOnly([]) }

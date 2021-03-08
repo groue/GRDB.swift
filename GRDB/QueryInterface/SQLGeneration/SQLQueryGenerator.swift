@@ -524,8 +524,7 @@ private struct SQLQualifiedRelation {
     /// The selection from source, not including selection of joined relations
     private var sourceSelectionPromise: DatabasePromise<[SQLSelection]>
     
-    #warning("TODO: decide if selectOnly() should reset this flag")
-    let isDistinct: Bool
+    var isDistinct: Bool
 
     /// The full selection, including selection of joined relations
     var selectionPromise: DatabasePromise<[SQLSelection]> {
@@ -651,14 +650,20 @@ private struct SQLQualifiedRelation {
         return (adapter: adapter, endIndex: endIndex)
     }
     
-    /// Removes all selections from joins
+    /// Sets the selection, removes all selections from joins, and clears the
+    /// `isDistinct` flag.
     func selectOnly(_ selection: [SQLSelection]) -> Self {
         let sourceSelectionPromise = DatabasePromise(value: selection.map {
             $0.qualified(with: source.alias)
         })
         return self
             .with(\.sourceSelectionPromise, sourceSelectionPromise)
-            .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
+            .with(\.isDistinct, false)
+            .map(\.joins, { joins in
+                joins.mapValues { join in
+                    join.map(\.relation) { $0.selectOnly([]) }
+                }
+            })
     }
 }
 
@@ -718,11 +723,6 @@ private struct SQLQualifiedJoin: Refinable {
     
     func sql(_ context: SQLGenerationContext, leftAlias: TableAlias) throws -> String {
         try sql(context, leftAlias: leftAlias, allowingInnerJoin: true)
-    }
-    
-    /// Removes all selections from joins
-    func selectOnly(_ selection: [SQLSelection]) -> SQLQualifiedJoin {
-        map(\.relation) { $0.selectOnly(selection) }
     }
     
     private func sql(
