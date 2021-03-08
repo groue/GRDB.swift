@@ -46,7 +46,7 @@ struct SQLQueryGenerator: Refinable {
             }
         }
         
-        let filter = try relation.filterPromise.resolve(context.db)
+        let filter = try relation.filterPromise?.resolve(context.db)
         if let filter = filter {
             sql += " WHERE "
             sql += try filter.sql(context)
@@ -157,7 +157,7 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // The filter knows better
-        guard let filter = try relation.filterPromise.resolve(db),
+        guard let filter = try relation.filterPromise?.resolve(db),
               let rowIDs = try filter.identifyingRowIDs(db, for: relation.source.alias)
         else {
             return selectedRegion
@@ -213,7 +213,7 @@ struct SQLQueryGenerator: Refinable {
             var sql = try commonTableExpressionsPrefix(context)
             sql += try "DELETE FROM " + relation.source.sql(context)
             
-            if let filter = try relation.filterPromise.resolve(db) {
+            if let filter = try relation.filterPromise?.resolve(db) {
                 sql += " WHERE "
                 sql += try filter.sql(context)
             }
@@ -299,7 +299,7 @@ struct SQLQueryGenerator: Refinable {
                 .map { try $0.sql(context) }
                 .joined(separator: ", ")
             
-            if let filter = try relation.filterPromise.resolve(db) {
+            if let filter = try relation.filterPromise?.resolve(db) {
                 sql += " WHERE "
                 sql += try filter.sql(context)
             }
@@ -538,7 +538,7 @@ private struct SQLQualifiedRelation {
         }
     }
     
-    let filterPromise: DatabasePromise<SQLExpression?>
+    let filterPromise: DatabasePromise<SQLExpression>?
     
     /// The ordering of source, not including ordering of joined relations
     private let sourceOrdering: SQLRelation.Ordering
@@ -761,7 +761,7 @@ private struct SQLQualifiedJoin: Refinable {
             conditions.append(expression)
         }
         
-        if let filter = try relation.filterPromise.resolve(context.db) {
+        if let filter = try relation.filterPromise?.resolve(context.db) {
             conditions.append(filter.qualified(with: rightAlias))
         }
         

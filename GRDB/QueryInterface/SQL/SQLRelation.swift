@@ -162,8 +162,7 @@ struct SQLRelation {
     
     var source: SQLSource
     var selectionPromise: DatabasePromise<[SQLSelection]>
-    #warning("TODO: turn into DatabasePromise<[SQLExpression]>? like havingExpressionPromise")
-    var filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil)
+    var filterPromise: DatabasePromise<SQLExpression>?
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
     var ctes: OrderedDictionary<String, SQLCTE> = [:] // See also `allCTEs`
     var children: OrderedDictionary<String, Child> = [:]
@@ -231,7 +230,7 @@ extension SQLRelation: Refinable {
     func filter(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
         map(\.filterPromise) { promise in
             DatabasePromise { db in
-                if let filter = try promise.resolve(db) {
+                if let filter = try promise?.resolve(db) {
                     return try filter && predicate(db)
                 } else {
                     return try predicate(db)
@@ -972,12 +971,16 @@ extension SQLRelation {
         }
         
         // Filter: merge with AND
-        let mergedFilterPromise = DatabasePromise<SQLExpression?> { db in
-            switch try (self.filterPromise.resolve(db), other.filterPromise.resolve(db)) {
-            case let (lhs?, rhs?): return lhs && rhs
-            case let (nil, expr?), let (expr?, nil): return expr
-            case (nil, nil): return nil
+        let mergedFilterPromise: DatabasePromise<SQLExpression>?
+        switch (filterPromise, other.filterPromise) {
+        case let (lhs?, rhs?):
+            mergedFilterPromise = DatabasePromise {
+                try lhs.resolve($0) && rhs.resolve($0)
             }
+        case let (nil, promise?), let (promise?, nil):
+            mergedFilterPromise = promise
+        case (nil, nil):
+            mergedFilterPromise = nil
         }
         
         // Children: merge recursively
