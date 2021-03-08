@@ -25,7 +25,7 @@ GRDB Associations
     - [Filtering Associations]
     - [Sorting Associations]
     - [Ordered Associations]
-    - [Further Refinements to Asssociations to Many]
+    - [Further Refinements to Associations]
     - [Columns Selected by an Association]
     - [Table Aliases]
     - [Refining Association Requests]
@@ -781,7 +781,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Filtering Associations]
 - [Sorting Associations]
 - [Ordered Associations]
-- [Further Refinements to Asssociations to Many]
+- [Further Refinements to Associations]
 - [Columns Selected by an Association]
 - [Table Aliases]
 - [Refining Association Requests]
@@ -1245,9 +1245,9 @@ let teamInfos = try Team
     .fetchAll(db)
 ```
 
-## Further Refinements to Asssociations to Many
+## Further Refinements to Associations
 
-Associations included with the `including(all:)` method support more refinements:
+Associations support more refinements:
 
 ```swift
 struct AuthorInfo: FetchableRecord, Decodable {
@@ -1255,13 +1255,13 @@ struct AuthorInfo: FetchableRecord, Decodable {
     var books: [Book]
 }
 
-// Limit
+// Limit: all authors with their three most popular books
 let authorInfos = try Author
     .including(all: Author.books.order(Column("popularity").desc).limit(3))
     .asRequest(of: AuthorInfo.self)
     .fetchAll(db)
 
-// Association aggregates
+// Association aggregates: all authors with their awarded books
 let authorInfos = try Author
     .including(all: Author.books.having(Book.awards.isEmpty == false))
     .asRequest(of: AuthorInfo.self)
@@ -1277,7 +1277,7 @@ let authorInfos = try Author
 
 See [Association Aggregates] and [common table expressions] for more information.
 
-> :warning: **Warning**: Those refinements are only available with `including(all:)`. You will get a fatal error if you use them with other joining methods (`including(required:)`, etc.)
+> :warning: **Warning**: associations refined with `limit`, `group`, `having`, or association aggregates can only be used with `including(all:)`. You will get a fatal error if you use them with other joining methods: `including(required:)`, etc.
 
 ## Columns Selected by an Association
 
@@ -2490,7 +2490,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Choosing Between BelongsTo and HasOne]: #choosing-between-belongsto-and-hasone
 [Self Joins]: #self-joins
 [Ordered Associations]: #ordered-associations
-[Further Refinements to Asssociations to Many]: #further-refinements-to-asssociations-to-many
+[Further Refinements to Associations]: #further-refinements-to-associations
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
 [migration]: Migrations.md
