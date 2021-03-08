@@ -139,11 +139,7 @@ That's it. The `Author` type can read and write in the `author` database table. 
 > }
 > ```
 
-Since `Author` and `Book` can insert, update, and delete rows in the `author` and `book` database tables, they are *responsible for modifying those database tables*.
-
-Applying the **[Single Responsibility Principle]** has a consequence: don't even try to have an author responsible for its books. Don't add a `books: [Book]` property in Author. Don't let Author write in the `book` table. When a new fellow coworker joins your team and asks you "who is saving books in the database?", you don't want to answer "it depends." You want to confidently answer: "the Book type".
-
-> :bulb: **Tip**: Make sure each record type deals with one database table, and only one database table.
+Now that `Author` and `Book` can read and write in their own database tables, they are responsible for it. Make sure each record type deals with one database table, and only one database table!
 
 
 ## Define Record Requests
@@ -660,7 +656,6 @@ Instead, have a look at [Database Observation]:
 [Django]: https://docs.djangoproject.com/en/2.0/topics/db/
 [record protocols]: ../README.md#record-protocols-overview
 [Separation of Concerns]: https://en.wikipedia.org/wiki/Separation_of_concerns
-[Single Responsibility Principle]: https://en.wikipedia.org/wiki/Single_responsibility_principle
 [Single Source of Truth]: https://en.wikipedia.org/wiki/Single_source_of_truth
 [Divide and Conquer]: https://en.wikipedia.org/wiki/Divide_and_rule
 [Why Adopt GRDB?]: WhyAdoptGRDB.md
