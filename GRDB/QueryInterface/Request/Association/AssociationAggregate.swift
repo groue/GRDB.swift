@@ -257,9 +257,16 @@ extension AssociationAggregate: Refinable {
 
 // MARK: - AssociationAggregatePreparation
 
-/// An abstract class that workarounds the lack of generic closures in Swift.
+/// An abstract class that only exists as support for
+/// `AssociationAggregate.prepare(_:)`, which needs to prepare both query
+/// interface requests and associations through their conformance
+/// to `DerivableRequest`:
 ///
-/// It only exists as support for `AssociationAggregate.prepare(_:)`.
+///     aggregate.prepare(&request)
+///     aggregate.prepare(&association)
+///
+/// We could have used a generic closure instead of this class... if only Swift
+/// would support generic closures.
 private class AssociationAggregatePreparation<RowDecoder> {
     func prepare<Request>(_ request: inout Request) -> SQLExpression
     where Request: DerivableRequest, Request.RowDecoder == RowDecoder
@@ -269,6 +276,7 @@ private class AssociationAggregatePreparation<RowDecoder> {
 }
 
 // swiftlint:disable:next colon
+/// Prepares a request so that it can use association aggregates.
 private class BasePreparation<Association: AssociationToMany>:
     AssociationAggregatePreparation<Association.OriginRowDecoder>
 {
@@ -283,10 +291,19 @@ private class BasePreparation<Association: AssociationToMany>:
     override func prepare<Request>(_ request: inout Request) -> SQLExpression
     where Request: DerivableRequest, Request.RowDecoder == Association.OriginRowDecoder
     {
+        // The fundamental request that supports association aggregate:
+        //
+        //     SELECT parent.*
+        //     LEFT JOIN child ON child.parentID = parent.id
+        //     GROUP BY parent.id
         let tableAlias = TableAlias()
         request = request
             .joining(optional: association.aliased(tableAlias))
             .groupByPrimaryKey()
+        
+        // The fundamental request can now be annotated, or filtered in the
+        // having clause, with the association aggregate expression:
+        // MIN(child.score), COUNT(DISTINCT child.id), etc.
         return expression.qualified(with: tableAlias)
     }
 }
