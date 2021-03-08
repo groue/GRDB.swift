@@ -230,6 +230,86 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
         }
     }
     
+    func testIncludingAllHasManyScalar() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                        .hasMany(B.self)
+                        .select(Column("colb2"))
+                        .distinct()
+                        .order(Column("colb2")))
+                    .orderByPrimaryKey()
+                
+                // Array
+                do {
+                    struct Record: FetchableRecord, Decodable, Equatable {
+                        var a: A
+                        var bs: [Int64]
+                    }
+                    
+                    // Record.fetchAll
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                bs: [1]),
+                            Record(
+                                a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                bs: [2]),
+                            Record(
+                                a: A(row: ["cola1": 3, "cola2": "a3"]),
+                                bs: []),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            bs: [1]))
+                    }
+                }
+                
+                // Set
+                do {
+                    struct Record: FetchableRecord, Decodable, Equatable {
+                        var a: A
+                        var bs: Set<Int64>
+                    }
+                    
+                    // Record.fetchAll
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                bs: [1]),
+                            Record(
+                                a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                bs: [2]),
+                            Record(
+                                a: A(row: ["cola1": 3, "cola2": "a3"]),
+                                bs: []),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            bs: [1]))
+                    }
+                }
+            }
+        }
+    }
+
     func testIncludingAllHasManyIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in

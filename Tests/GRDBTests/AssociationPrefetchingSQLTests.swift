@@ -157,6 +157,37 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    func testIncludingAllHasManyScalar() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                                .hasMany(B.self)
+                                .select(Column("colb2"))
+                                .distinct()
+                                .order(Column("colb2")))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT DISTINCT "colb2", "colb2" AS "grdb_colb2" \
+                    FROM "b" \
+                    WHERE "colb2" IN (1, 2, 3) \
+                    ORDER BY "colb2"
+                    """])
+            }
+        }
+    }
+    
     func testIncludingAllHasManyWithCompoundForeignKey() throws {
         // We can use the CTE technique
         let dbQueue = try makeDatabaseQueue()
