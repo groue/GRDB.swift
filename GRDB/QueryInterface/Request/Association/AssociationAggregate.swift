@@ -215,7 +215,7 @@ public struct AssociationAggregate<RowDecoder> {
     ///   SQL selection, or in the HAVING clause.
     /// - It helps implementing aggregate operators such as `&&`, `+`, etc.
     func prepare<Request>(_ request: inout Request) -> SQLExpression
-    where Request: AggregateJoinableRequest, Request.RowDecoder == RowDecoder
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
     {
         preparation.prepare(&request)
     }
@@ -262,7 +262,7 @@ extension AssociationAggregate: Refinable {
 /// It only exists as support for `AssociationAggregate.prepare(_:)`.
 private class AssociationAggregatePreparation<RowDecoder> {
     func prepare<Request>(_ request: inout Request) -> SQLExpression
-    where Request: AggregateJoinableRequest, Request.RowDecoder == RowDecoder
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
     {
         fatalError("subclass must override")
     }
@@ -281,7 +281,7 @@ private class BasePreparation<Association: AssociationToMany>:
     }
     
     override func prepare<Request>(_ request: inout Request) -> SQLExpression
-    where Request: AggregateJoinableRequest, Request.RowDecoder == Association.OriginRowDecoder
+    where Request: DerivableRequest, Request.RowDecoder == Association.OriginRowDecoder
     {
         let tableAlias = TableAlias()
         request = request
@@ -305,7 +305,7 @@ private class MapPreparation<RowDecoder>: AssociationAggregatePreparation<RowDec
     }
     
     override func prepare<Request>(_ request: inout Request) -> SQLExpression
-    where Request: AggregateJoinableRequest, Request.RowDecoder == RowDecoder
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
     {
         transform(base.prepare(&request))
     }
@@ -335,7 +335,7 @@ private class CombinePreparation<RowDecoder>: AssociationAggregatePreparation<Ro
     }
     
     override func prepare<Request>(_ request: inout Request) -> SQLExpression
-    where Request: AggregateJoinableRequest, Request.RowDecoder == RowDecoder
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
     {
         let lhsExpression = lhs.prepare(&request)
         let rhsExpression = rhs.prepare(&request)

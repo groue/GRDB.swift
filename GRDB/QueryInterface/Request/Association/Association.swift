@@ -314,29 +314,7 @@ extension Association where Self: AggregatingRequest {
     }
 }
 
-// MARK: - AssociationToOne
-
-/// The base protocol for all associations that define a one-to-one connection.
-public protocol AssociationToOne: Association { }
-
-extension AssociationToOne {
-    public func forKey(_ key: String) -> Self {
-        let associationKey = SQLAssociationKey.fixedSingular(key)
-        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
-    }
-}
-
-// MARK: - AssociationToMany
-
-/// The base protocol for all associations that define a one-to-many connection.
-public protocol AssociationToMany: Association, AggregateJoinableRequest { }
-
-extension AssociationToMany {
-    public func forKey(_ key: String) -> Self {
-        let associationKey = SQLAssociationKey.fixedPlural(key)
-        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
-    }
-    
+extension Association where Self: DerivableRequest {
     /// Creates an association for returns distinct rows.
     public func distinct() -> Self {
         mapDestinationRelation { $0.with(\.isDistinct, true) }
@@ -354,5 +332,29 @@ extension AssociationToMany {
     /// See `QueryInterfaceRequest.with(_:)` for more information.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         mapDestinationRelation { $0.with(\.ctes[cte.tableName], cte.cte) }
+    }
+}
+
+// MARK: - AssociationToOne
+
+/// The base protocol for all associations that define a one-to-one connection.
+public protocol AssociationToOne: Association { }
+
+extension AssociationToOne {
+    public func forKey(_ key: String) -> Self {
+        let associationKey = SQLAssociationKey.fixedSingular(key)
+        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
+    }
+}
+
+// MARK: - AssociationToMany
+
+/// The base protocol for all associations that define a one-to-many connection.
+public protocol AssociationToMany: Association { }
+
+extension AssociationToMany {
+    public func forKey(_ key: String) -> Self {
+        let associationKey = SQLAssociationKey.fixedPlural(key)
+        return .init(sqlAssociation: _sqlAssociation.forDestinationKey(associationKey))
     }
 }

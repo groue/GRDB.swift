@@ -298,71 +298,21 @@ extension QueryInterfaceRequest: TableRequest {
     }
 }
 
-extension QueryInterfaceRequest: DerivableRequest where RowDecoder: TableRecord { }
-extension QueryInterfaceRequest: AggregateJoinableRequest where RowDecoder: TableRecord { }
-
-extension QueryInterfaceRequest {
-    /// Creates a request which returns distinct rows.
-    ///
-    ///     // SELECT DISTINCT * FROM player
-    ///     var request = Player.all()
-    ///     request = request.distinct()
-    ///
-    ///     // SELECT DISTINCT name FROM player
-    ///     var request = Player.select(Column("name"))
-    ///     request = request.distinct()
+extension QueryInterfaceRequest: DerivableRequest {
     public func distinct() -> QueryInterfaceRequest {
         with(\.relation.isDistinct, true)
     }
     
-    /// Creates a request which fetches *limit* rows, starting at *offset*.
-    ///
-    ///     // SELECT * FROM player LIMIT 1
-    ///     var request = Player.all()
-    ///     request = request.limit(1)
-    ///
-    /// Any previous limit is replaced.
-    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest {
+    public func limit(_ limit: Int, offset: Int?) -> QueryInterfaceRequest {
         with(\.relation.limit, SQLLimit(limit: limit, offset: offset))
     }
     
-    /// Returns a request which embeds the common table expression.
-    ///
-    /// If a common table expression with the same table name had already been
-    /// embedded, it is replaced by the new one.
-    ///
-    /// For example, you can build a request that fetches all chats with their
-    /// latest message:
-    ///
-    ///     let latestMessageRequest = Message
-    ///         .annotated(with: max(Column("date")))
-    ///         .group(Column("chatID"))
-    ///
-    ///     let latestMessageCTE = CommonTableExpression(
-    ///         named: "latestMessage",
-    ///         request: latestMessageRequest)
-    ///
-    ///     let latestMessage = Chat.association(
-    ///         to: latestMessageCTE,
-    ///         on: { chat, latestMessage in
-    ///             chat[Column("id")] == latestMessage[Column("chatID")]
-    ///         })
-    ///
-    ///     // WITH latestMessage AS
-    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
-    ///     // SELECT chat.*, latestMessage.*
-    ///     // FROM chat
-    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
-    ///     let request = Chat.all()
-    ///         .with(latestMessageCTE)
-    ///         .including(optional: latestMessage)
-    ///
-    /// - parameter cte: A common table expression.
-    /// - returns: A request.
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
         with(\.relation.ctes[cte.tableName], cte.cte)
     }
-    
+}
+
+extension QueryInterfaceRequest {
     /// Creates a request bound to type RowDecoder.
     ///
     /// The returned request can fetch if the type RowDecoder is fetchable (Row,
