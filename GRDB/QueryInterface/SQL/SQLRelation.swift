@@ -132,10 +132,6 @@ struct SQLRelation {
                 if relation.limit != nil {
                     fatalError("Can't join an association with a LIMIT clause")
                 }
-                if relation.ctes.isEmpty == false {
-                    // TODO: maybe we could lift ctes up to the base relation
-                    fatalError("Not implemented: joining an association that embeds a common table expression")
-                }
             case .all:
                 break
             }
@@ -169,6 +165,7 @@ struct SQLRelation {
     #warning("TODO: turn into DatabasePromise<[SQLExpression]>? like havingExpressionPromise")
     var filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil)
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
+    var ctes: OrderedDictionary<String, SQLCTE> = [:] // See also `allCTEs`
     var children: OrderedDictionary<String, Child> = [:]
     
     // Properties below MUST NOT be used when joining to-one associations.
@@ -177,7 +174,6 @@ struct SQLRelation {
     var groupPromise: DatabasePromise<[SQLExpression]>?
     var havingExpressionPromise: DatabasePromise<SQLExpression>?
     var limit: SQLLimit?
-    var ctes: OrderedDictionary<String, SQLCTE> = [:]
 }
 
 extension SQLRelation {
@@ -305,6 +301,18 @@ extension SQLRelation {
                     }
                     return association.through(child.makeAssociationForKey(key))
                 }
+            }
+        }
+    }
+    
+    /// All common table expressions, including those of joined children.
+    var allCTEs: OrderedDictionary<String, SQLCTE> {
+        children.values.reduce(into: ctes) { (ctes, child) in
+            switch child.kind {
+            case .all, .bridge:
+                break
+            case .oneOptional, .oneRequired:
+                ctes.merge(child.relation.allCTEs, uniquingKeysWith: { (_, new) in new })
             }
         }
     }
@@ -1032,12 +1040,12 @@ extension SQLRelation {
             selectionPromise: mergedSelectionPromise,
             filterPromise: mergedFilterPromise,
             ordering: mergedOrdering,
+            ctes: mergedCTEs,
             children: mergedChildren,
             isDistinct: mergedDistinct,
             groupPromise: mergedGroupPromise,
             havingExpressionPromise: mergedHavingExpressionPromise,
-            limit: mergedLimit,
-            ctes: mergedCTEs)
+            limit: mergedLimit)
     }
 }
 

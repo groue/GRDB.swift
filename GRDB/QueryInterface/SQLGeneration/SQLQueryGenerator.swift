@@ -588,7 +588,7 @@ private struct SQLQualifiedRelation {
         // Copy other flags
         limit = relation.limit
         isDistinct = relation.isDistinct
-        ctes = relation.ctes
+        ctes = relation.allCTEs
     }
     
     /// See SQLQueryGenerator.rowAdapter(_:)

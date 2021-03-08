@@ -119,6 +119,36 @@ struct OrderedDictionary<Key: Hashable, Value> {
         return OrderedDictionary(keys: keys, dictionary: dictionary)
     }
     
+    mutating func merge<S>(
+        _ other: S,
+        uniquingKeysWith combine: (Value, Value) throws -> Value)
+    rethrows
+    where S: Sequence, S.Element == (Key, Value)
+    {
+        for (key, value) in other {
+            if let current = self[key] {
+                self[key] = try combine(current, value)
+            } else {
+                self[key] = value
+            }
+        }
+    }
+    
+    mutating func merge<S>(
+        _ other: S,
+        uniquingKeysWith combine: (Value, Value) throws -> Value)
+    rethrows
+    where S: Sequence, S.Element == (key: Key, value: Value)
+    {
+        for (key, value) in other {
+            if let current = self[key] {
+                self[key] = try combine(current, value)
+            } else {
+                self[key] = value
+            }
+        }
+    }
+    
     func merging<S>(
         _ other: S,
         uniquingKeysWith combine: (Value, Value) throws -> Value)
@@ -126,13 +156,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     where S: Sequence, S.Element == (Key, Value)
     {
         var result = self
-        for (key, value) in other {
-            if let current = result[key] {
-                result[key] = try combine(current, value)
-            } else {
-                result[key] = value
-            }
-        }
+        try result.merge(other, uniquingKeysWith: combine)
         return result
     }
     
@@ -143,13 +167,7 @@ struct OrderedDictionary<Key: Hashable, Value> {
     where S: Sequence, S.Element == (key: Key, value: Value)
     {
         var result = self
-        for (key, value) in other {
-            if let current = result[key] {
-                result[key] = try combine(current, value)
-            } else {
-                result[key] = value
-            }
-        }
+        try result.merge(other, uniquingKeysWith: combine)
         return result
     }
 }
