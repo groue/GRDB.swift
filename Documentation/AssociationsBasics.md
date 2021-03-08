@@ -25,6 +25,7 @@ GRDB Associations
     - [Filtering Associations]
     - [Sorting Associations]
     - [Ordered Associations]
+    - [Further Refinements to Asssociations to Many]
     - [Columns Selected by an Association]
     - [Table Aliases]
     - [Refining Association Requests]
@@ -780,6 +781,7 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Filtering Associations]
 - [Sorting Associations]
 - [Ordered Associations]
+- [Further Refinements to Asssociations to Many]
 - [Columns Selected by an Association]
 - [Table Aliases]
 - [Refining Association Requests]
@@ -855,14 +857,22 @@ Before we describe them in detail, let's see a few requests they can build:
 let request = Author
     .including(all: Author.books)
 
+/// All authors with their three most popular books
+let request = Author
+    .including(all: Author.books.order(Column("popularity").desc).limit(3))
+
+/// All authors with their awarded books
+let request = Author
+    .including(all: Author.books.having(Book.awards.isEmpty == false))
+
 /// All books with their respective author
 let request = Book
     .including(required: Book.author)
 
 /// All books with their respective author, sorted by title
 let request = Book
-    .order(Column("title"))
     .including(required: Book.author)
+    .order(Column("title"))
 
 /// All books written by a French author
 let request = Book
@@ -1235,6 +1245,39 @@ let teamInfos = try Team
     .fetchAll(db)
 ```
 
+## Further Refinements to Asssociations to Many
+
+Associations included with the `including(all:)` method support more refinements:
+
+```swift
+struct AuthorInfo: FetchableRecord, Decodable {
+    var author: Author
+    var books: [Book]
+}
+
+// Limit
+let authorInfos = try Author
+    .including(all: Author.books.order(Column("popularity").desc).limit(3))
+    .asRequest(of: AuthorInfo.self)
+    .fetchAll(db)
+
+// Association aggregates
+let authorInfos = try Author
+    .including(all: Author.books.having(Book.awards.isEmpty == false))
+    .asRequest(of: AuthorInfo.self)
+    .fetchAll(db)
+
+// Common table expressions
+let cte = CommonTableExpression(...)
+let authorInfos = try Author
+    .including(all: Author.books.with(cte)...)
+    .asRequest(of: AuthorInfo.self)
+    .fetchAll(db)
+```
+
+See [Association Aggregates] and [common table expressions] for more information.
+
+> :warning: **Warning**: Those refinements are only available with `including(all:)`. You will get a fatal error if you use them with other joining methods (`including(required:)`, etc.)
 
 ## Columns Selected by an Association
 
@@ -2447,6 +2490,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Choosing Between BelongsTo and HasOne]: #choosing-between-belongsto-and-hasone
 [Self Joins]: #self-joins
 [Ordered Associations]: #ordered-associations
+[Further Refinements to Asssociations to Many]: #further-refinements-to-asssociations-to-many
 [The Types of Associations]: #the-types-of-associations
 [FetchableRecord]: ../README.md#fetchablerecord-protocols
 [migration]: Migrations.md

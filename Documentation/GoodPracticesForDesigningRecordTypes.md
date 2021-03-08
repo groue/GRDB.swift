@@ -166,7 +166,7 @@ extension Author {
 }
 ```
 
-Otherwise, declare a plain String enum that conforms to the ColumnExpression protocol:
+Otherwise, declare a plain `String` enum that conforms to the `ColumnExpression` protocol:
 
 ```swift
 // For a non-codable record
@@ -180,29 +180,30 @@ extension Author {
 
 > :bulb: **Tip**: Define commonly used requests in a constrained extension of the `DerivableRequest` protocol.
 
-The `DerivableRequest` protocol generally lets you filter, sort, and join or include associations (we'll talk about associations in the [Compose Records] chapter below).
-
-Here is how you define those requests:
+The `DerivableRequest` protocol generally lets you filter, sort, leverage associations (we'll talk about associations in the [Compose Records] chapter below), etc.
 
 ```swift
-// Some requests of Author --------------------v
+// Author requests         ~~~~~~~~~~~~~~~~~~~~~~~~~~
 extension DerivableRequest where RowDecoder == Author {
-	
-    /// Returns a request for all authors ordered by name, in a localized
-    /// case-insensitive fashion
+    /// Order authors by name, in a localized case-insensitive fashion
     func orderByName() -> Self {
         let name = Author.Columns.name
         return order(name.collating(.localizedCaseInsensitiveCompare))
     }
     
-    /// Returns a request for all authors from a country
+    /// Filters authors from a country
     func filter(country: String) -> Self {
         filter(Author.Columns.country == country)
+    }
+    
+    /// Filters authors with at least one book
+    func havingBooks() -> Self {
+        having(Author.books.isEmpty == false)
     }
 }
 ```
 
-Those methods defined on the `DerivableRequest` protocol hide intimate database details. They allow you to compose database requests in a fluent style:
+Those methods encapsulate intimate database details, and allow you to compose database requests in a fluent and legible style:
 
 ```swift
 try dbQueue.read { db in
@@ -214,71 +215,34 @@ try dbQueue.read { db in
         .filter(country: "France")
         .fetchAll(db)
         
-    let sortedSpanishAuthors: [Author] = try Author.all()
+    let sortedSpanishAuthorsHavingBooks: [Author] = try Author.all()
         .filter(country: "Spain")
+        .havingBooks()
         .orderByName()
         .fetchAll(db)
 }
 ```
 
-Those customized request methods are also available on record associations, because associations conform to the `DerivableRequest` protocol:
+Because they are defined in an extension of the `DerivableRequest` protocol, our customized methods can decorate `Author` requests, as in the examples just above, but also associations to `Author`:
 
 ```swift
-// Some requests of Book
+// Book requests
 extension DerivableRequest where RowDecoder == Book {
-    /// Returns a request for all books from a country
-    func filter(authorCountry: String) -> Self {
+    /// Filters books from a country
+    func filter(country: String) -> Self {
         // A book is from a country if it can be
-        // joined with an author from that country:
-        // ---------------------------v
+        // joined to an author from that country:
+        //                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         joining(required: Book.author.filter(country: authorCountry))
     }
 }
 
 try dbQueue.read { db in
-    let italianBooks = try Book.all()
-        .filter(authorCountry: "Italy")
+    let italianBooks: [Book] = try Book.all()
+        .filter(country: "Italy")
         .fetchAll(db)
 }
 ```
-
-Not *every requests* can be expressed on `DerivableRequest`. For example, [Association Aggregates] are out of scope. When this happens, define your requests in a constrained extension to `QueryInterfaceRequest`:
-
-```swift
-// More requests of Author -------------------------v
-extension QueryInterfaceRequest where RowDecoder == Author {
-    /// Returns a request for all authors with at least one book
-    func havingBooks() -> QueryInterfaceRequest<Author> {
-        having(Author.books.isEmpty == false)
-    }
-}
-```
-
-Those requests defined on `QueryInterfaceRequest` still compose fluently:
-
-```swift
-try dbQueue.read { db in
-    let sortedFrenchAuthorsHavingBooks = try Author.all()
-        .filter(country: "France")
-        .havingBooks() // <-
-        .orderByName()
-        .fetchAll(db)
-}
-```
-
-Finally, when it happens that a request only makes sense when defined on the Record type itself, just go ahead and define a static method or property of your Record type:
-
-```swift
-extension MySingletonRecord {
-    /// The one any only record stored in the database
-    static let shared = all().limit(1)
-}
-
-let singleton = try dbQueue.read { db
-    try MySingletonRecord.shared.fetchOne(db)
-}
-```
-
 
 ## Compose Records
 
