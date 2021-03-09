@@ -25,8 +25,8 @@ GRDB Associations
     - [Filtering Associations]
     - [Sorting Associations]
     - [Ordered Associations]
-    - [Further Refinements to Associations]
     - [Columns Selected by an Association]
+    - [Further Refinements to Associations]
     - [Table Aliases]
     - [Refining Association Requests]
 - [Fetching Values from Associations]
@@ -781,8 +781,8 @@ Fetch requests do not visit the database until you fetch values from them. This 
 - [Filtering Associations]
 - [Sorting Associations]
 - [Ordered Associations]
-- [Further Refinements to Associations]
 - [Columns Selected by an Association]
+- [Further Refinements to Associations]
 - [Table Aliases]
 - [Refining Association Requests]
 
@@ -1245,6 +1245,32 @@ let teamInfos = try Team
     .fetchAll(db)
 ```
 
+## Columns Selected by an Association
+
+By default, associated records include all their columns:
+
+```swift
+// SELECT book.*, author.*
+// FROM book
+// JOIN author ON author.id = book.authorId
+let request = Book.including(required: Book.author)
+```
+
+**The selection can be changed for each individual request, or for all requests including a given type.**
+
+To specify the selection of an associated record in a specific request, use the `select` method:
+
+```swift
+// SELECT book.*, author.id, author.name
+// FROM book
+// JOIN author ON author.id = book.authorId
+let restrictedAuthor = Book.author.select(Column("id"), Column("name"))
+let request = Book.including(required: restrictedAuthor)
+```
+
+To specify the default selection for all inclusions of a given type, see [Columns Selected by a Request](../README.md#columns-selected-by-a-request).
+
+
 ## Further Refinements to Associations
 
 Associations support more refinements:
@@ -1361,31 +1387,6 @@ Associations support more refinements:
     ```
 
 > :warning: **Warning**: associations refined with `limit`, `distinct`, `group`, `having`, or association aggregates can only be used with `including(all:)`. You will get a fatal error if you use them with other joining methods: `including(required:)`, etc.
-
-## Columns Selected by an Association
-
-By default, associated records include all their columns:
-
-```swift
-// SELECT book.*, author.*
-// FROM book
-// JOIN author ON author.id = book.authorId
-let request = Book.including(required: Book.author)
-```
-
-**The selection can be changed for each individual request, or for all requests including a given type.**
-
-To specify the selection of an associated record in a specific request, use the `select` method:
-
-```swift
-// SELECT book.*, author.id, author.name
-// FROM book
-// JOIN author ON author.id = book.authorId
-let restrictedAuthor = Book.author.select(Column("id"), Column("name"))
-let request = Book.including(required: restrictedAuthor)
-```
-
-To specify the default selection for all inclusions of a given type, see [Columns Selected by a Request](../README.md#columns-selected-by-a-request).
 
 
 ## Table Aliases
