@@ -127,7 +127,7 @@ struct SQLRelation {
                     fatalError("Can't join an association that selects DISTINCT rows")
                 }
                 if relation.groupPromise != nil || relation.havingExpressionPromise != nil {
-                    fatalError("Can't join an association with a GROUP BY clause")
+                    fatalError("Not implemented: join an association with a GROUP BY clause")
                 }
                 if relation.limit != nil {
                     fatalError("Can't join an association with a LIMIT clause")
