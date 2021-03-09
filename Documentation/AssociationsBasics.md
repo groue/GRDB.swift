@@ -1321,7 +1321,7 @@ Associations support more refinements:
     Fetch all authors with the year of their latest book for each kind (novels, poems, plays, etc):
     
     ```swift
-    struct BookKindInfo: Decodable, FetchableRecord {
+    struct BookKindInfo: Decodable {
         var kind: Book.Kind
         var maxYear: Int
     }
