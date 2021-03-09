@@ -1249,35 +1249,118 @@ let teamInfos = try Team
 
 Associations support more refinements:
 
-```swift
-struct AuthorInfo: FetchableRecord, Decodable {
-    var author: Author
-    var books: [Book]
-}
+- `limit`
+    
+    Fetch all authors with their three most popular books:
+    
+    ```swift
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book]
+    }
+    
+    let mostPopularBooks = Author.books
+        .order(Column("popularity").desc)
+        .limit(3)
+    
+    let authorInfos: [AuthorInfo] = try Author
+        .including(all: mostPopularBooks)
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
+    ```
 
-// Limit: all authors with their three most popular books
-let authorInfos = try Author
-    .including(all: Author.books.order(Column("popularity").desc).limit(3))
-    .asRequest(of: AuthorInfo.self)
-    .fetchAll(db)
+- `distinct`
+    
+    Fetch all authors with the kinds of books they write (novels, poems, plays, etc):
+    
+    ```swift
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author
+        var bookKinds: Set<Book.Kind>
+    }
+    
+    let distinctBookKinds = Author.books
+        .select(Column("kind"))
+        .distinct()
+        .forKey("bookKinds")
+    
+    let authorInfos: [AuthorInfo] = try Author
+        .including(all: distinctBookKinds)
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
+    ```
 
-// Association aggregates: all authors with their awarded books
-let authorInfos = try Author
-    .including(all: Author.books.having(Book.awards.isEmpty == false))
-    .asRequest(of: AuthorInfo.self)
-    .fetchAll(db)
+- `group`, `having`
+    
+    Fetch all authors with the year of their latest book for each kind (novels, poems, plays, etc):
+    
+    ```swift
+    struct BookKindInfo: Decodable, FetchableRecord {
+        var kind: Book.Kind
+        var maxYear: Int
+    }
+    
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author
+        var bookKindInfos: [BookKindInfo]
+    }
+    
+    let bookKindInfos = Author.books
+        .select(
+            Column("kind"),
+            max(Column("year")).forKey("maxYear"))
+        .group(Column("kind"))
+        .forKey("bookKindInfos")
+    
+    let authorInfos: [AuthorInfo] = try Author
+        .including(all: bookKindInfos)
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
+    ```
 
-// Common table expressions
-let cte = CommonTableExpression(...)
-let authorInfos = try Author
-    .including(all: Author.books.with(cte)...)
-    .asRequest(of: AuthorInfo.self)
-    .fetchAll(db)
-```
+- [Association Aggregates]
+    
+    Fetch all authors with their awarded books:
+    
+    ```swift
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var awardedBooks: [Book]
+    }
+    
+    let awardedBooks = Author.books
+        .having(Book.awards.isEmpty == false)
+        .forKey("awardedBooks")
+    
+    let authorInfos: [AuthorInfo] = try Author
+        .including(all: awardedBooks)
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
+    ```
 
-See [Association Aggregates] and [common table expressions] for more information.
+- [Common Table Expressions]
+    
+    Association can use their own CTEs:
+    
+    ```swift
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var specialBooks: [Book]
+    }
+    
+    let specialCTE = CommonTableExpression(...)
+    let specialBooks = Author.books
+        .with(specialCTE)
+        ... // use the CTE in the book association
+        .forKey("specialBooks")
+    
+    let authorInfos = try Author
+        .including(all: specialBooks)
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
+    ```
 
-> :warning: **Warning**: associations refined with `limit`, `group`, `having`, or association aggregates can only be used with `including(all:)`. You will get a fatal error if you use them with other joining methods: `including(required:)`, etc.
+> :warning: **Warning**: associations refined with `limit`, `distinct`, `group`, `having`, or association aggregates can only be used with `including(all:)`. You will get a fatal error if you use them with other joining methods: `including(required:)`, etc.
 
 ## Columns Selected by an Association
 
@@ -2541,4 +2624,5 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [ValueObservation]: ../README.md#valueobservation
 [FAQ]: ../README.md#faq-associations
 [common table expressions]: CommonTableExpressions.md
+[Common Table Expressions]: CommonTableExpressions.md
 [Associations to Common Table Expressions]: CommonTableExpressions.md#associations-to-common-table-expressions
