@@ -84,7 +84,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **Documentation update**: The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) guide has a simpler [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter, now that the `DerivableRequest` protocol has access to `limit`, `distinct`, `group`, `having`, association aggregates, and common table expressions.
 
-- **Documentation update**: The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) guide has a simpler [Record Types Hide Intimate Database Details](Documentation/GoodPracticesForDesigningRecordTypes.md#record-types-hide-intimate-database-details) chapter.
+- **Documentation update**: The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) guide has a new chapter: [Record Types Hide Intimate Database Details](Documentation/GoodPracticesForDesigningRecordTypes.md#record-types-hide-intimate-database-details).
 
 ## 5.5.0
 
