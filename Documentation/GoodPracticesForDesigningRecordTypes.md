@@ -180,7 +180,7 @@ Let's look at three examples:
     extension Book.Kind: DatabaseValueConvertible { }
     ```
     
-    > :bulb: Thanks to its enum property, the `Book` record prevents unknown book kinds from entering the database.
+    > :bulb: Records can pick the best suited [Value] type for their column properties (Bool, Int, String, Date, etc.) Thanks to its enum property, the `Book` record prevents unknown book kinds from entering the database.
 
 2. GPS coordinates are usually stored in two distinct `latitude` and `longitude` columns. But the standard way to deal with such coordinate is a single `CLLocationCoordinate2D` struct.
 
@@ -775,3 +775,4 @@ Instead, have a look at [Database Observation]:
 [Codable Record]: ../README.md#codable-records
 [CodingKeys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
 [Combine Support]: Combine.md
+[Value]: ../README.md#values
