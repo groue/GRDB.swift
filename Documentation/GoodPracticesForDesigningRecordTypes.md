@@ -224,7 +224,7 @@ Let's look at three examples:
     
     > :bulb: Private properties allow records to choose both their best database representation, and at the same time, their best Swift interface.
 
-**Generally speaking**, record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy.
+**Generally speaking**, record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy. When needed, you can even [validate values](../README.md#customizing-the-persistence-methods) before they enter the database.
 
 
 ## Define Record Requests
