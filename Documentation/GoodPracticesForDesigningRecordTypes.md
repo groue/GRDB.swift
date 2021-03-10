@@ -174,7 +174,7 @@ Let's look at three examples:
     }
     ```
     
-    In order to make it possible to use `Book.Kind` in book requests, we add this conformance:
+    In order to make it possible to use `Book.Kind` in book requests (see [Define Record Requests] below), we add this conformance:
     
     ```swift
     extension Book.Kind: DatabaseValueConvertible { }
