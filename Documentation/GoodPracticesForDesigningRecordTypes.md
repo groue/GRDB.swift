@@ -147,7 +147,7 @@ Now that `Author` and `Book` can read and write in their own database tables, th
 
 The application uses `Book` and `Author` as regular structs, using their properties. Each of those properties matches a column in the database (`Book.title`, `Author.id`), and is defined with a Swift type that is natively supported by SQLite (`String`, `Int`, etc.)
 
-Sometimes, it happens that raw database columns name and types are not a very good fit for the application.
+Sometimes, it happens that raw database column names and types are not a very good fit for the application.
 
 Let's look at three examples:
 
@@ -180,7 +180,7 @@ Let's look at three examples:
     extension Book.Kind: DatabaseValueConvertible { }
     ```
     
-    > :bulb: Thanks to the enum property, it is impossible to store unknown book kinds into the database.
+    > :bulb: Thanks to its enum property, the `Book` record prevents unknown book kinds from entering the database.
 
 2. GPS coordinates are usually stored in two distinct `latitude` and `longitude` columns. But the standard way to deal with such coordinate is a single `CLLocationCoordinate2D` struct.
 
@@ -205,9 +205,9 @@ Let's look at three examples:
     }
     ```
     
-    > :bulb: Thanks to the `coordinate` property, the application 
+    > :bulb: Private properties make it possible to hide raw columns from the rest of the application.
 
-3. The record below exposes a `price: Decimal` ($12.00), and hides the integer column that stores a quantity of cents (1200). Integer columns allow SQLite to compute exact sums of prices when needed:
+3. The record below exposes a `price: Decimal` property ($12.00), backed by an integer column that stores a quantity of cents (1200). An integer column is preferred because it allows SQLite to compute exact sums of prices.
     
     ```swift
     struct Product: Codable {
@@ -221,8 +221,10 @@ Let's look at three examples:
         }
     }
     ```
+    
+    > :bulb: Private properties allow records to choose both their best database representation, and at the same time, their best Swift interface.
 
-> :bulb: Record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy.
+**Generally speaking**, record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy.
 
 
 ## Define Record Requests
