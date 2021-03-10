@@ -170,7 +170,7 @@ struct Place: Codable {
 }
 ```
 
-Such encapsulation of raw columns can happen in many other cases. A second example? The record blow exposes a `price: Decimal` ($12.00), and hides the integer column that stores a quantity of cents (1200) (this allows SQLite to compute exact sums of prices):
+Such encapsulation of raw columns can happen in many other cases. A second example? The record below exposes a `price: Decimal` ($12.00), and hides the integer column that stores a quantity of cents (1200) (this allows SQLite to compute exact sums of prices):
     
 ```swift
 struct Product: Codable {
