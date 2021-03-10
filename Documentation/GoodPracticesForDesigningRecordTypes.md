@@ -9,6 +9,7 @@ To support this guide, we'll design a simple library application that lets the u
 
 - [Trust SQLite More Than Yourself]
 - [Persistable Record Types are Responsible for Their Tables]
+- [Record Types Hide Intimate Database Details]
 - [Define Record Requests]
 - [Compose Records]
 - [How to Design Database Managers]
@@ -140,6 +141,51 @@ That's it. The `Author` type can read and write in the `author` database table. 
 > ```
 
 Now that `Author` and `Book` can read and write in their own database tables, they are responsible for it. Make sure each record type deals with one database table, and only one database table!
+
+
+## Record Types Hide Intimate Database Details
+
+The application uses `Book` and `Author` as regular structs, using their properties. In our case, it happens that each of those properties matches a column in the database: `Book.title`, `Author.id`, etc.
+
+It happens that raw database columns are not a very good fit. For example, GPS coordinates are stored in two distinct latitude and longitude columns, but the standard way to deal with such coordinatee is a single `CLLocationCoordinate2D` struct.
+
+When this happens, keep column properties private, and provide sensible accessors instead:
+
+```swift
+struct Place: Codable {
+    var id: Int64?
+    var name: String
+    private var latitude: CLLocationDegrees
+    private var longitude: CLLocationDegrees
+    
+    var coordinate: CLLocationCoordinate2D {
+        get {
+            CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+        }
+        set {
+            latitude = newValue.latitude
+            longitude = newValue.longitude
+        }
+    }
+}
+```
+
+Such encapsulation of raw columns can happen in many other cases. A second example? The record blow exposes a `price: Decimal` ($12.00), and hides the integer column that stores a quantity of cents (1200) (this allows SQLite to compute exact sums of prices):
+    
+```swift
+struct Product: Codable {
+    var id: Int64?
+    var name: String
+    private var priceCents: Int
+    
+    var price: Decimal {
+        get { Decimal(priceCents) / 100 }
+        set { cents = NSDecimalNumber(decimal: newValue * 100).intValue }
+    }
+}
+```
+
+Record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy.
 
 
 ## Define Record Requests
@@ -672,6 +718,7 @@ Instead, have a look at [Database Observation]:
 [TransactionObserver]: ../README.md#transactionobserver-protocol
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
+[Record Types Hide Intimate Database Details]: #record-types-hide-intimate-database-details
 [Define Record Requests]: #define-record-requests
 [Compose Records]: #compose-records
 [How to Design Database Managers]: #how-to-design-database-managers
