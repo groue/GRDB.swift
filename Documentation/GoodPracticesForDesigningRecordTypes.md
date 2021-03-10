@@ -145,47 +145,84 @@ Now that `Author` and `Book` can read and write in their own database tables, th
 
 ## Record Types Hide Intimate Database Details
 
-The application uses `Book` and `Author` as regular structs, using their properties. In our case, it happens that each of those properties matches a column in the database: `Book.title`, `Author.id`, etc.
+The application uses `Book` and `Author` as regular structs, using their properties. Each of those properties matches a column in the database (`Book.title`, `Author.id`), and is defined with a Swift type that is natively supported by SQLite (`String`, `Int`, etc.)
 
-It happens that raw database columns are not a very good fit. For example, GPS coordinates are stored in two distinct latitude and longitude columns, but the standard way to deal with such coordinate is a single `CLLocationCoordinate2D` struct.
+Sometimes, it happens that raw database columns name and types are not a very good fit for the application.
 
-When this happens, keep column properties private, and provide sensible accessors instead:
+Let's look at three examples:
 
-```swift
-struct Place: Codable {
-    var id: Int64?
-    var name: String
-    private var latitude: CLLocationDegrees
-    private var longitude: CLLocationDegrees
+1. Authors write books, and more specifically novels, poems, essays, or theatre plays. Let's add a `kind` column in the database. For easy debugging of the database contents, a book kind is represented as a string ("novel", "essay", etc.):
+
+    ```swift
+    try db.create(table: "book") { t in
+        ...
+        t.column("kind", .text).notNull()
+    }
+    ```
     
-    var coordinate: CLLocationCoordinate2D {
-        get {
-            CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+    In Swift, it is not a good practice to use `String` for the type of the `Book.kind` property. We want an enum instead:
+    
+    ```swift
+    struct Book: Codable {
+        enum Kind: String, Codable {
+            case novel, poems, essay, play
         }
-        set {
-            latitude = newValue.latitude
-            longitude = newValue.longitude
+        var id: Int64?
+        var authorId: Int64
+        var title: String
+        var kind: Kind
+    }
+    ```
+    
+    In order to make it possible to use `Book.Kind` in book requests, we add this conformance:
+    
+    ```swift
+    extension Book.Kind: DatabaseValueConvertible { }
+    ```
+    
+    > :bulb: Thanks to the enum property, it is impossible to store unknown book kinds into the database.
+
+2. GPS coordinates are usually stored in two distinct `latitude` and `longitude` columns. But the standard way to deal with such coordinate is a single `CLLocationCoordinate2D` struct.
+
+    When this happens, keep column properties private, and provide sensible accessors instead:
+    
+    ```swift
+    struct Place: Codable {
+        var id: Int64?
+        var name: String
+        private var latitude: CLLocationDegrees
+        private var longitude: CLLocationDegrees
+        
+        var coordinate: CLLocationCoordinate2D {
+            get {
+                CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+            }
+            set {
+                latitude = newValue.latitude
+                longitude = newValue.longitude
+            }
         }
     }
-}
-```
+    ```
+    
+    > :bulb: Thanks to the `coordinate` property, the application 
 
-Such encapsulation of raw columns can happen in many other cases. A second example? The record below exposes a `price: Decimal` ($12.00), and hides the integer column that stores a quantity of cents (1200). Integer columns allow SQLite to compute exact sums of prices when needed:
+3. The record below exposes a `price: Decimal` ($12.00), and hides the integer column that stores a quantity of cents (1200). Integer columns allow SQLite to compute exact sums of prices when needed:
     
-```swift
-struct Product: Codable {
-    var id: Int64?
-    var name: String
-    private var priceCents: Int
-    
-    var price: Decimal {
-        get { Decimal(priceCents) / 100 }
-        set { cents = NSDecimalNumber(decimal: newValue * 100).intValue }
+    ```swift
+    struct Product: Codable {
+        var id: Int64?
+        var name: String
+        private var priceCents: Int
+        
+        var price: Decimal {
+            get { Decimal(priceCents) / 100 }
+            set { priceCents = NSDecimalNumber(decimal: newValue * 100).intValue }
+        }
     }
-}
-```
+    ```
 
-Record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy.
+> :bulb: Record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy.
 
 
 ## Define Record Requests
@@ -243,6 +280,20 @@ extension DerivableRequest where RowDecoder == Author {
         having(Author.books.isEmpty == false)
     }
 }
+
+// Book requests           ~~~~~~~~~~~~~~~~~~~~~~~~
+extension DerivableRequest where RowDecoder == Book {
+    /// Filters books by kind
+    func filter(kind: Book.Kind) -> Self {
+        filter(Book.Columns.kind == kind)
+    }
+    
+    /// Filters books from a country
+    func filter(country: String) -> Self {
+        // Books have no country column. But their author does:
+        joining(required: Book.author.filter(country: authorCountry))
+    }
+}
 ```
 
 Those methods encapsulate intimate database details, and allow you to compose database requests in a fluent and legible style:
@@ -265,20 +316,9 @@ try dbQueue.read { db in
 }
 ```
 
-Because they are defined in an extension of the `DerivableRequest` protocol, our customized methods can decorate `Author` requests, as in the examples just above, but also associations to `Author`:
+Because they are defined in an extension of the `DerivableRequest` protocol, our customized methods can decorate both requests and associations. See how the implementation of `filter(country:)` for books, above, uses the `filter(country:)` for authors.
 
 ```swift
-// Book requests
-extension DerivableRequest where RowDecoder == Book {
-    /// Filters books from a country
-    func filter(country: String) -> Self {
-        // A book is from a country if it can be
-        // joined to an author from that country:
-        //                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        joining(required: Book.author.filter(country: authorCountry))
-    }
-}
-
 try dbQueue.read { db in
     let italianBooks: [Book] = try Book.all()
         .filter(country: "Italy")
