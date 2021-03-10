@@ -147,7 +147,7 @@ Now that `Author` and `Book` can read and write in their own database tables, th
 
 The application uses `Book` and `Author` as regular structs, using their properties. In our case, it happens that each of those properties matches a column in the database: `Book.title`, `Author.id`, etc.
 
-It happens that raw database columns are not a very good fit. For example, GPS coordinates are stored in two distinct latitude and longitude columns, but the standard way to deal with such coordinatee is a single `CLLocationCoordinate2D` struct.
+It happens that raw database columns are not a very good fit. For example, GPS coordinates are stored in two distinct latitude and longitude columns, but the standard way to deal with such coordinate is a single `CLLocationCoordinate2D` struct.
 
 When this happens, keep column properties private, and provide sensible accessors instead:
 
