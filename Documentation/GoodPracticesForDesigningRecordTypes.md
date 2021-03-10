@@ -160,7 +160,7 @@ Let's look at three examples:
     }
     ```
     
-    In Swift, it is not a good practice to use `String` for the type of the `Book.kind` property. We want an enum instead:
+    In Swift, it is not a good practice to use `String` for the type of the `kind` property. We want an enum instead:
     
     ```swift
     struct Book: Codable {
