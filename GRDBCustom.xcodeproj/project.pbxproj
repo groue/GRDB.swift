@@ -256,8 +256,6 @@
 		5656A8942295BD56001FF3FF /* SQLFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A84C2295BD56001FF3FF /* SQLFunctions.swift */; };
 		5656A8972295BD56001FF3FF /* SQLRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A84E2295BD56001FF3FF /* SQLRelation.swift */; };
 		5656A8982295BD56001FF3FF /* SQLRelation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A84E2295BD56001FF3FF /* SQLRelation.swift */; };
-		5656A89B2295BD56001FF3FF /* SQLQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A8502295BD56001FF3FF /* SQLQuery.swift */; };
-		5656A89C2295BD56001FF3FF /* SQLQuery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A8502295BD56001FF3FF /* SQLQuery.swift */; };
 		5656A8A72295BF44001FF3FF /* DatabasePromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A8A52295BF44001FF3FF /* DatabasePromise.swift */; };
 		5656A8A82295BF44001FF3FF /* DatabasePromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A8A52295BF44001FF3FF /* DatabasePromise.swift */; };
 		5657AABB1D107001006283EF /* NSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AAB81D107001006283EF /* NSData.swift */; };
@@ -907,7 +905,6 @@
 		5656A84A2295BD56001FF3FF /* Column.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Column.swift; sourceTree = "<group>"; };
 		5656A84C2295BD56001FF3FF /* SQLFunctions.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLFunctions.swift; sourceTree = "<group>"; };
 		5656A84E2295BD56001FF3FF /* SQLRelation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRelation.swift; sourceTree = "<group>"; };
-		5656A8502295BD56001FF3FF /* SQLQuery.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLQuery.swift; sourceTree = "<group>"; };
 		5656A8A52295BF44001FF3FF /* DatabasePromise.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabasePromise.swift; sourceTree = "<group>"; };
 		5657AAB81D107001006283EF /* NSData.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NSData.swift; sourceTree = "<group>"; };
 		5657AB0E1D10899D006283EF /* URL.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = URL.swift; sourceTree = "<group>"; };
@@ -1549,7 +1546,6 @@
 				5656A84C2295BD56001FF3FF /* SQLFunctions.swift */,
 				5656A8462295BD56001FF3FF /* SQLOperators.swift */,
 				5656A8452295BD56001FF3FF /* SQLOrdering.swift */,
-				5656A8502295BD56001FF3FF /* SQLQuery.swift */,
 				5656A84E2295BD56001FF3FF /* SQLRelation.swift */,
 				568ECB0C25D904CA00B71526 /* SQLSelection.swift */,
 				568ECB3425D91CEE00B71526 /* SQLSubquery.swift */,
@@ -2355,7 +2351,6 @@
 				F3BA80141CFB2876003DC1BA /* DatabaseValueConvertible.swift in Sources */,
 				5656A8702295BD56001FF3FF /* Association.swift in Sources */,
 				563B8F9C249E74E5007A48C9 /* Trace.swift in Sources */,
-				5656A89C2295BD56001FF3FF /* SQLQuery.swift in Sources */,
 				5698AD261DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				5656A85C2295BD56001FF3FF /* TableDefinition.swift in Sources */,
 				5656A8562295BD56001FF3FF /* FTS5+QueryInterface.swift in Sources */,
@@ -2713,7 +2708,6 @@
 				F3BA80701CFB2E55003DC1BA /* DatabaseValueConvertible.swift in Sources */,
 				5656A86F2295BD56001FF3FF /* Association.swift in Sources */,
 				563B8F9B249E74E5007A48C9 /* Trace.swift in Sources */,
-				5656A89B2295BD56001FF3FF /* SQLQuery.swift in Sources */,
 				5698AD231DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				5656A85B2295BD56001FF3FF /* TableDefinition.swift in Sources */,
 				5656A8552295BD56001FF3FF /* FTS5+QueryInterface.swift in Sources */,

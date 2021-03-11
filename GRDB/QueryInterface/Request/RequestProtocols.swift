@@ -590,4 +590,118 @@ extension JoinableRequest {
 // MARK: - DerivableRequest
 
 /// The base protocol for all requests that can be refined.
-public protocol DerivableRequest: FilteredRequest, JoinableRequest, OrderedRequest, SelectionRequest, TableRequest { }
+public protocol DerivableRequest: AggregatingRequest, FilteredRequest,
+                                  JoinableRequest, OrderedRequest,
+                                  SelectionRequest, TableRequest
+{
+    /// Creates a request which returns distinct rows.
+    ///
+    ///     // SELECT DISTINCT * FROM player
+    ///     var request = Player.all()
+    ///     request = request.distinct()
+    ///
+    ///     // SELECT DISTINCT name FROM player
+    ///     var request = Player.select(Column("name"))
+    ///     request = request.distinct()
+    func distinct() -> Self
+    
+    /// Creates a request which fetches *limit* rows, starting at *offset*.
+    ///
+    ///     // SELECT * FROM player LIMIT 10 OFFSET 20
+    ///     var request = Player.all()
+    ///     request = request.limit(10, offset: 20)
+    ///
+    /// Any previous limit is replaced.
+    func limit(_ limit: Int, offset: Int?) -> Self
+    
+    /// Returns a request which embeds the common table expression.
+    ///
+    /// If a common table expression with the same table name had already been
+    /// embedded, it is replaced by the new one.
+    ///
+    /// For example, you can build a request that fetches all chats with their
+    /// latest message:
+    ///
+    ///     let latestMessageRequest = Message
+    ///         .annotated(with: max(Column("date")))
+    ///         .group(Column("chatID"))
+    ///
+    ///     let latestMessageCTE = CommonTableExpression(
+    ///         named: "latestMessage",
+    ///         request: latestMessageRequest)
+    ///
+    ///     let latestMessage = Chat.association(
+    ///         to: latestMessageCTE,
+    ///         on: { chat, latestMessage in
+    ///             chat[Column("id")] == latestMessage[Column("chatID")]
+    ///         })
+    ///
+    ///     // WITH latestMessage AS
+    ///     //   (SELECT *, MAX(date) FROM message GROUP BY chatID)
+    ///     // SELECT chat.*, latestMessage.*
+    ///     // FROM chat
+    ///     // LEFT JOIN latestMessage ON chat.id = latestMessage.chatID
+    ///     let request = Chat.all()
+    ///         .with(latestMessageCTE)
+    ///         .including(optional: latestMessage)
+    func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self
+}
+
+extension DerivableRequest {
+    /// Creates a request which fetches *limit* rows.
+    ///
+    ///     // SELECT * FROM player LIMIT 1
+    ///     var request = Player.all()
+    ///     request = request.limit(1)
+    ///
+    /// Any previous limit is replaced.
+    public func limit(_ limit: Int) -> Self {
+        self.limit(limit, offset: nil)
+    }
+    
+    private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> Self {
+        var request = self
+        let expression = aggregate.prepare(&request)
+        if let key = aggregate.key {
+            return request.annotated(with: expression.forKey(key))
+        } else {
+            return request.annotated(with: expression)
+        }
+    }
+    
+    /// Creates a request which appends *aggregates* to the current selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.all()
+    ///     request = request.annotated(with: Player.books.count)
+    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> Self {
+        annotated(with: aggregates)
+    }
+    
+    /// Creates a request which appends *aggregates* to the current selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     var request = Player.all()
+    ///     request = request.annotated(with: [Player.books.count])
+    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> Self {
+        aggregates.reduce(self) { request, aggregate in
+            request.annotated(with: aggregate)
+        }
+    }
+    
+    /// Creates a request which appends the provided aggregate *predicate* to
+    /// the eventual set of already applied predicates.
+    ///
+    ///     // SELECT player.*
+    ///     // FROM player LEFT JOIN book ...
+    ///     // HAVING COUNT(DISTINCT book.id) = 0
+    ///     var request = Player.all()
+    ///     request = request.having(Player.books.isEmpty)
+    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> Self {
+        var request = self
+        let expression = predicate.prepare(&request)
+        return request.having(expression)
+    }
+}

@@ -51,7 +51,8 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
     
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         guard let key = codingPath.last else {
-            fatalError("single value decoding from database row is not supported")
+            // Decoding an array of scalars from rows: pick the first column
+            return ColumnDecoder<R>(row: row, columnIndex: 0, codingPath: codingPath)
         }
         guard let index = row.index(forColumn: key.stringValue) else {
             // Don't use DecodingError.keyNotFound:

@@ -2,23 +2,20 @@
 /// terminology](https://en.wikipedia.org/wiki/Relational_database#Terminology),
 /// is "a set of tuples sharing the same attributes; a set of columns and rows."
 ///
-/// SQLRelation is defined with a selection, a source table of query, and an
-/// eventual filter and ordering.
-///
-///     SELECT ... FROM ... WHERE ... ORDER BY ...
-///            |        |         |            |
-///            |        |         |            • ordering
-///            |        |         • filter
-///            |        • source
-///            • selection
-///
-/// Other SQL clauses such as GROUP BY, LIMIT are defined one level up, in the
-/// `SQLQuery` type.
+///     WITH ...     -- ctes
+///     SELECT ...   -- selectionPromise
+///     FROM ...     -- source
+///     JOIN ...     -- children
+///     WHERE ...    -- filterPromise
+///     GROUP BY ... -- groupPromise
+///     HAVING ...   -- havingExpressionPromise
+///     ORDER BY ... -- ordering
+///     LIMIT ...    -- limit
 ///
 /// ## Promises
 ///
-/// Selection, filter, and ordering are "promises" which are resolved when a
-/// database connection is available. This is how we can implement requests such
+/// Most relation elements are "promises" which are resolved when a database
+/// connection is available. This is how we can implement requests such
 /// as `Record.filter(key: 1)` or `Record.orderByPrimaryKey()`: both need a
 /// database connection in order to introspect the primary key. For example:
 ///
@@ -29,7 +26,7 @@
 ///
 /// ## Children
 ///
-/// Relations may also have children. A child is a link to another relation, and
+/// Relations have children. A child is a link to another relation, and
 /// provide support for joins and prefetched relations.
 ///
 /// Relations and their children constitute a tree of relations, which the user
@@ -123,6 +120,27 @@ struct SQLRelation {
             }
         }
         
+        init(kind: SQLRelation.Child.Kind, condition: SQLAssociationCondition, relation: SQLRelation) {
+            switch kind {
+            case .oneOptional, .oneRequired, .bridge:
+                if relation.isDistinct {
+                    fatalError("Can't join an association that selects DISTINCT rows")
+                }
+                if relation.groupPromise != nil || relation.havingExpressionPromise != nil {
+                    fatalError("Not implemented: join an association with a GROUP BY clause")
+                }
+                if relation.limit != nil {
+                    fatalError("Can't join an association with a LIMIT clause")
+                }
+            case .all:
+                break
+            }
+            
+            self.kind = kind
+            self.condition = condition
+            self.relation = relation
+        }
+        
         fileprivate func makeAssociationForKey(_ key: String) -> _SQLAssociation {
             let key = SQLAssociationKey.fixed(key)
             
@@ -143,30 +161,18 @@ struct SQLRelation {
     }
     
     var source: SQLSource
-    var selectionPromise: DatabasePromise<[SQLSelection]> = DatabasePromise(value: [])
-    var filterPromise: DatabasePromise<SQLExpression?> = DatabasePromise(value: nil)
+    var selectionPromise: DatabasePromise<[SQLSelection]>
+    var filterPromise: DatabasePromise<SQLExpression>?
     var ordering: SQLRelation.Ordering = SQLRelation.Ordering()
+    var ctes: OrderedDictionary<String, SQLCTE> = [:] // See also `allCTEs`
     var children: OrderedDictionary<String, Child> = [:]
     
-    /// All prefetched associations (`including(all:)`), recursively
-    var prefetchedAssociations: [_SQLAssociation] {
-        children.flatMap { key, child -> [_SQLAssociation] in
-            switch child.kind {
-            case .all:
-                return [child.makeAssociationForKey(key)]
-            case .oneOptional, .oneRequired, .bridge:
-                return child.relation.prefetchedAssociations.map { association in
-                    // Remove redundant pivot child
-                    let pivotKey = association.pivot.keyName
-                    let child = child.map(\.relation) { relation in
-                        assert(relation.children[pivotKey] != nil)
-                        return relation.removingChild(forKey: pivotKey)
-                    }
-                    return association.through(child.makeAssociationForKey(key))
-                }
-            }
-        }
-    }
+    // Properties below MUST NOT be used when joining to-one associations.
+    // This is guaranteed by Child.init().
+    var isDistinct = false
+    var groupPromise: DatabasePromise<[SQLExpression]>?
+    var havingExpressionPromise: DatabasePromise<SQLExpression>?
+    var limit: SQLLimit?
 }
 
 extension SQLRelation {
@@ -192,10 +198,17 @@ extension SQLRelation: Refinable {
         select { _ in selection }
     }
     
-    /// Removes all selections from chidren
+    // Convenience
+    func select(_ expressions: SQLExpression...) -> Self {
+        select { _ in expressions.map { .expression($0) } }
+    }
+    
+    /// Sets the selection, removes all selections from chidren, and clears the
+    /// `isDistinct` flag.
     func selectOnly(_ selection: [SQLSelection]) -> Self {
         self
             .select(selection)
+            .with(\.isDistinct, false)
             .map(\.children) { children in
                 children.mapValues { child in
                     child.map(\.relation) { $0.selectOnly([]) }
@@ -219,7 +232,7 @@ extension SQLRelation: Refinable {
     func filter(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
         map(\.filterPromise) { promise in
             DatabasePromise { db in
-                if let filter = try promise.resolve(db) {
+                if let filter = try promise?.resolve(db) {
                     return try filter && predicate(db)
                 } else {
                     return try predicate(db)
@@ -251,12 +264,60 @@ extension SQLRelation: Refinable {
             }
     }
     
+    func group(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
+        with(\.groupPromise, DatabasePromise(expressions))
+    }
+    
+    func having(_ predicate: @escaping (Database) throws -> SQLExpression) -> Self {
+        map(\.havingExpressionPromise) { promise in
+            DatabasePromise { db in
+                if let filter = try promise?.resolve(db) {
+                    return try filter && predicate(db)
+                } else {
+                    return try predicate(db)
+                }
+            }
+        }
+    }
+    
     func aliased(_ alias: TableAlias) -> Self {
         map(\.source) { $0.aliased(alias) }
     }
 }
 
 extension SQLRelation {
+    /// All prefetched associations (`including(all:)`), recursively
+    var prefetchedAssociations: [_SQLAssociation] {
+        children.flatMap { key, child -> [_SQLAssociation] in
+            switch child.kind {
+            case .all:
+                return [child.makeAssociationForKey(key)]
+            case .oneOptional, .oneRequired, .bridge:
+                return child.relation.prefetchedAssociations.map { association in
+                    // Remove redundant pivot child
+                    let pivotKey = association.pivot.keyName
+                    let child = child.map(\.relation) { relation in
+                        assert(relation.children[pivotKey] != nil)
+                        return relation.removingChild(forKey: pivotKey)
+                    }
+                    return association.through(child.makeAssociationForKey(key))
+                }
+            }
+        }
+    }
+    
+    /// All common table expressions, including those of joined children.
+    var allCTEs: OrderedDictionary<String, SQLCTE> {
+        children.values.reduce(into: ctes) { (ctes, child) in
+            switch child.kind {
+            case .all, .bridge:
+                break
+            case .oneOptional, .oneRequired:
+                ctes.merge(child.relation.allCTEs, uniquingKeysWith: { (_, new) in new })
+            }
+        }
+    }
+    
     /// Returns a relation extended with an association.
     ///
     /// This method provides support for public joining methods such
@@ -463,6 +524,72 @@ extension SQLRelation {
     
     func _joining(required association: _SQLAssociation) -> Self {
         appendingChild(for: association.map(\.destination.relation, { $0.select([]) }), kind: .oneRequired)
+    }
+}
+
+extension SQLRelation {
+    func fetchCount(_ db: Database) throws -> Int {
+        guard groupPromise == nil && limit == nil && ctes.isEmpty else {
+            // SELECT ... GROUP BY ...
+            // SELECT ... LIMIT ...
+            // WITH ... SELECT ...
+            return try fetchTrivialCount(db)
+        }
+    
+        if children.contains(where: { $0.value.impactsParentCount }) { // TODO: not tested
+            // SELECT ... FROM ... JOIN ...
+            return try fetchTrivialCount(db)
+        }
+    
+        let selection = try selectionPromise.resolve(db)
+        GRDBPrecondition(!selection.isEmpty, "Can't generate SQL with empty selection")
+        if selection.count == 1 {
+            guard let count = selection[0].count(distinct: isDistinct) else {
+                return try fetchTrivialCount(db)
+            }
+            var countRelation = self.unordered()
+            countRelation.isDistinct = false
+            switch count {
+            case .all:
+                countRelation = countRelation.select(.countAll)
+            case .distinct(let expression):
+                countRelation = countRelation.select(.countDistinct(expression))
+            }
+            return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
+        } else {
+            // SELECT [DISTINCT] expr1, expr2, ... FROM tableName ...
+    
+            guard !isDistinct else {
+                return try fetchTrivialCount(db)
+            }
+    
+            // SELECT expr1, expr2, ... FROM tableName ...
+            // ->
+            // SELECT COUNT(*) FROM tableName ...
+            let countRelation = unordered().select(.countAll)
+            return try QueryInterfaceRequest(relation: countRelation).fetchOne(db)!
+        }
+    }
+    
+    // SELECT COUNT(*) FROM (self)
+    private func fetchTrivialCount(_ db: Database) throws -> Int {
+        let countRequest: SQLRequest<Int> = "SELECT COUNT(*) FROM (\(SQLSubquery.relation(unordered())))"
+        return try countRequest.fetchOne(db)!
+    }
+}
+
+// MARK: - SQLLimit
+
+struct SQLLimit {
+    let limit: Int
+    let offset: Int?
+    
+    var sql: String {
+        if let offset = offset {
+            return "\(limit) OFFSET \(offset)"
+        } else {
+            return "\(limit)"
+        }
     }
 }
 
@@ -839,19 +966,26 @@ extension PersistenceContainer: ColumnAddressable {
 extension SQLRelation {
     /// Returns nil if relations can't be merged (conflict in source, joins...)
     func merged(with other: SQLRelation) -> Self? {
+        // Source
         guard let mergedSource = source.merged(with: other.source) else {
             // can't merge
             return nil
         }
         
-        let mergedFilterPromise = DatabasePromise<SQLExpression?> { db in
-            switch try (self.filterPromise.resolve(db), other.filterPromise.resolve(db)) {
-            case let (lhs?, rhs?): return lhs && rhs
-            case let (nil, expr?), let (expr?, nil): return expr
-            case (nil, nil): return nil
+        // Filter: merge with AND
+        let mergedFilterPromise: DatabasePromise<SQLExpression>?
+        switch (filterPromise, other.filterPromise) {
+        case let (lhs?, rhs?):
+            mergedFilterPromise = DatabasePromise {
+                try lhs.resolve($0) && rhs.resolve($0)
             }
+        case let (nil, promise?), let (promise?, nil):
+            mergedFilterPromise = promise
+        case (nil, nil):
+            mergedFilterPromise = nil
         }
         
+        // Children: merge recursively
         var mergedChildren: OrderedDictionary<String, SQLRelation.Child> = [:]
         for (key, child) in children {
             if let otherChild = other.children[key] {
@@ -868,7 +1002,7 @@ extension SQLRelation {
             mergedChildren.appendValue(child, forKey: key)
         }
         
-        // replace selection unless empty
+        // Selection: replace unless empty
         let mergedSelectionPromise = DatabasePromise { db -> [SQLSelection] in
             let otherSelection = try other.selectionPromise.resolve(db)
             if otherSelection.isEmpty {
@@ -878,15 +1012,45 @@ extension SQLRelation {
             }
         }
         
-        // replace ordering unless empty
+        // Ordering: prefer other
         let mergedOrdering = other.ordering.isEmpty ? ordering : other.ordering
+        
+        // Distinct
+        let mergedDistinct = isDistinct || other.isDistinct
+        
+        // Grouping: prefer other
+        let mergedGroupPromise = other.groupPromise ?? groupPromise
+        
+        // Having: merge with AND
+        let mergedHavingExpressionPromise: DatabasePromise<SQLExpression>?
+        switch (havingExpressionPromise, other.havingExpressionPromise) {
+        case let (lhs?, rhs?):
+            mergedHavingExpressionPromise = DatabasePromise {
+                try lhs.resolve($0) && rhs.resolve($0)
+            }
+        case let (nil, promise?), let (promise?, nil):
+            mergedHavingExpressionPromise = promise
+        case (nil, nil):
+            mergedHavingExpressionPromise = nil
+        }
+        
+        // Limit: prefer other
+        let mergedLimit = other.limit ?? limit
+        
+        // CTEs: merge & prefer other
+        let mergedCTEs = ctes.merging(other.ctes, uniquingKeysWith: { (_, other) in other })
         
         return SQLRelation(
             source: mergedSource,
             selectionPromise: mergedSelectionPromise,
             filterPromise: mergedFilterPromise,
             ordering: mergedOrdering,
-            children: mergedChildren)
+            ctes: mergedCTEs,
+            children: mergedChildren,
+            isDistinct: mergedDistinct,
+            groupPromise: mergedGroupPromise,
+            havingExpressionPromise: mergedHavingExpressionPromise,
+            limit: mergedLimit)
     }
 }
 

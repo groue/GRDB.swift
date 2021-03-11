@@ -118,6 +118,58 @@ struct OrderedDictionary<Key: Hashable, Value> {
         let keys = self.keys.filter(dictionary.keys.contains)
         return OrderedDictionary(keys: keys, dictionary: dictionary)
     }
+    
+    mutating func merge<S>(
+        _ other: S,
+        uniquingKeysWith combine: (Value, Value) throws -> Value)
+    rethrows
+    where S: Sequence, S.Element == (Key, Value)
+    {
+        for (key, value) in other {
+            if let current = self[key] {
+                self[key] = try combine(current, value)
+            } else {
+                self[key] = value
+            }
+        }
+    }
+    
+    mutating func merge<S>(
+        _ other: S,
+        uniquingKeysWith combine: (Value, Value) throws -> Value)
+    rethrows
+    where S: Sequence, S.Element == (key: Key, value: Value)
+    {
+        for (key, value) in other {
+            if let current = self[key] {
+                self[key] = try combine(current, value)
+            } else {
+                self[key] = value
+            }
+        }
+    }
+    
+    func merging<S>(
+        _ other: S,
+        uniquingKeysWith combine: (Value, Value) throws -> Value)
+    rethrows -> OrderedDictionary<Key, Value>
+    where S: Sequence, S.Element == (Key, Value)
+    {
+        var result = self
+        try result.merge(other, uniquingKeysWith: combine)
+        return result
+    }
+    
+    func merging<S>(
+        _ other: S,
+        uniquingKeysWith combine: (Value, Value) throws -> Value)
+    rethrows -> OrderedDictionary<Key, Value>
+    where S: Sequence, S.Element == (key: Key, value: Value)
+    {
+        var result = self
+        try result.merge(other, uniquingKeysWith: combine)
+        return result
+    }
 }
 
 extension OrderedDictionary: Collection {

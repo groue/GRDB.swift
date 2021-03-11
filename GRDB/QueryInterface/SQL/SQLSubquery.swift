@@ -6,16 +6,16 @@ public struct SQLSubquery {
         /// A literal SQL query
         case literal(SQLLiteral)
         
-        /// A query interface query
-        case query(SQLQuery)
+        /// A query interface relation
+        case relation(SQLRelation)
     }
     
     static func literal(_ sqlLiteral: SQLLiteral) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
     
-    static func query(_ query: SQLQuery) -> Self {
-        self.init(impl: .query(query))
+    static func relation(_ relation: SQLRelation) -> Self {
+        self.init(impl: .relation(relation))
     }
 }
 
@@ -48,8 +48,8 @@ extension SQLSubquery {
             let statement = try db.cachedSelectStatement(sql: sql)
             return statement.columnCount
             
-        case let .query(query):
-            return try SQLQueryGenerator(query: query).columnsCount(db)
+        case let .relation(relation):
+            return try SQLQueryGenerator(relation: relation).columnsCount(db)
         }
     }
 }
@@ -77,8 +77,8 @@ extension SQLSubquery {
         case let .literal(sqlLiteral):
             return try sqlLiteral.sql(context)
             
-        case let .query(query):
-            return try SQLQueryGenerator(query: query, forSingleResult: false).requestSQL(context)
+        case let .relation(relation):
+            return try SQLQueryGenerator(relation: relation).requestSQL(context)
         }
     }
 }

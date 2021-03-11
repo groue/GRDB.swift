@@ -72,13 +72,12 @@ extension Association {
 }
 
 extension Association {
-    private func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
+    fileprivate func mapDestinationRelation(_ transform: (SQLRelation) -> SQLRelation) -> Self {
         .init(sqlAssociation: _sqlAssociation.map(\.destination.relation, transform))
     }
 }
 
 extension Association {
-    
     /// The association key defines how rows fetched from this association
     /// should be consumed.
     ///
@@ -104,6 +103,67 @@ extension Association {
     ///         let team: Team = row["custom"]
     ///     }
     var key: SQLAssociationKey { _sqlAssociation.destination.key }
+    
+    /// Creates an association with the given key.
+    ///
+    /// This new key helps Decodable records decode rows fetched from the
+    /// resulting association:
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     struct PlayerInfo: FetchableRecord, Decodable {
+    ///         let player: Player
+    ///         let team: Team
+    ///
+    ///         static func all() -> QueryInterfaceRequest<PlayerInfo> {
+    ///             return Player
+    ///                 .including(required: Player.team.forKey(CodingKeys.team))
+    ///                 .asRequest(of: PlayerInfo.self)
+    ///         }
+    ///     }
+    ///
+    ///     let playerInfos = PlayerInfo.all().fetchAll(db)
+    ///     print(playerInfos.first?.team)
+    public func forKey(_ codingKey: CodingKey) -> Self {
+        forKey(codingKey.stringValue)
+    }
+    
+    /// Creates an association that allows you to define expressions that target
+    /// a specific database table.
+    ///
+    /// In the example below, the "team.color = 'red'" condition in the where
+    /// clause could be not achieved without table aliases.
+    ///
+    ///     struct Player: TableRecord {
+    ///         static let team = belongsTo(Team.self)
+    ///     }
+    ///
+    ///     // SELECT player.*, team.*
+    ///     // JOIN team ON ...
+    ///     // WHERE team.color = 'red'
+    ///     let teamAlias = TableAlias()
+    ///     let request = Player
+    ///         .including(required: Player.team.aliased(teamAlias))
+    ///         .filter(teamAlias[Column("color")] == "red")
+    ///
+    /// When you give a name to a table alias, you can reliably inject sql
+    /// snippets in your requests:
+    ///
+    ///     // SELECT player.*, custom.*
+    ///     // JOIN team custom ON ...
+    ///     // WHERE custom.color = 'red'
+    ///     let teamAlias = TableAlias(name: "custom")
+    ///     let request = Player
+    ///         .including(required: Player.team.aliased(teamAlias))
+    ///         .filter(sql: "custom.color = ?", arguments: ["red"])
+    public func aliased(_ alias: TableAlias) -> Self {
+        mapDestinationRelation { $0.aliased(alias) }
+    }
+}
+
+extension Association where Self: SelectionRequest {
     
     /// Creates an association which selects *selection*.
     ///
@@ -146,7 +206,9 @@ extension Association {
     public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self {
         mapDestinationRelation { $0.annotated { try selection($0).map(\.sqlSelection) } }
     }
-    
+}
+
+extension Association where Self: FilteredRequest {
     /// Creates an association with the provided *predicate promise* added to
     /// the eventual set of already applied predicates.
     ///
@@ -162,7 +224,9 @@ extension Association {
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
         mapDestinationRelation { $0.filter { try predicate($0).sqlExpression } }
     }
-    
+}
+
+extension Association where Self: OrderedRequest {
     /// Creates an association with the provided *orderings promise*.
     ///
     ///     struct Player: TableRecord {
@@ -229,71 +293,45 @@ extension Association {
     public func unordered() -> Self {
         mapDestinationRelation { $0.unordered() }
     }
-    
-    /// Creates an association with the given key.
-    ///
-    /// This new key helps Decodable records decode rows fetched from the
-    /// resulting association:
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     struct PlayerInfo: FetchableRecord, Decodable {
-    ///         let player: Player
-    ///         let team: Team
-    ///
-    ///         static func all() -> QueryInterfaceRequest<PlayerInfo> {
-    ///             return Player
-    ///                 .including(required: Player.team.forKey(CodingKeys.team))
-    ///                 .asRequest(of: PlayerInfo.self)
-    ///         }
-    ///     }
-    ///
-    ///     let playerInfos = PlayerInfo.all().fetchAll(db)
-    ///     print(playerInfos.first?.team)
-    public func forKey(_ codingKey: CodingKey) -> Self {
-        forKey(codingKey.stringValue)
-    }
-    
-    /// Creates an association that allows you to define expressions that target
-    /// a specific database table.
-    ///
-    /// In the example below, the "team.color = 'red'" condition in the where
-    /// clause could be not achieved without table aliases.
-    ///
-    ///     struct Player: TableRecord {
-    ///         static let team = belongsTo(Team.self)
-    ///     }
-    ///
-    ///     // SELECT player.*, team.*
-    ///     // JOIN team ON ...
-    ///     // WHERE team.color = 'red'
-    ///     let teamAlias = TableAlias()
-    ///     let request = Player
-    ///         .including(required: Player.team.aliased(teamAlias))
-    ///         .filter(teamAlias[Column("color")] == "red")
-    ///
-    /// When you give a name to a table alias, you can reliably inject sql
-    /// snippets in your requests:
-    ///
-    ///     // SELECT player.*, custom.*
-    ///     // JOIN team custom ON ...
-    ///     // WHERE custom.color = 'red'
-    ///     let teamAlias = TableAlias(name: "custom")
-    ///     let request = Player
-    ///         .including(required: Player.team.aliased(teamAlias))
-    ///         .filter(sql: "custom.color = ?", arguments: ["red"])
-    public func aliased(_ alias: TableAlias) -> Self {
-        mapDestinationRelation { $0.aliased(alias) }
+}
+
+extension Association where Self: TableRequest {
+    public var databaseTableName: String {
+        _sqlAssociation.destination.relation.source.tableName
     }
 }
 
-// TableRequest
-extension Association {
-    /// :nodoc:
-    public var databaseTableName: String {
-        _sqlAssociation.destination.relation.source.tableName
+extension Association where Self: AggregatingRequest {
+    /// Creates an association grouped according to *expressions promise*.
+    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self {
+        mapDestinationRelation { $0.group { try expressions($0).map(\.sqlExpression) } }
+    }
+    
+    /// Creates an association with the provided *predicate promise* added to
+    /// the eventual set of already applied predicates.
+    public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self {
+        mapDestinationRelation { $0.having { try predicate($0).sqlExpression } }
+    }
+}
+
+extension Association where Self: DerivableRequest {
+    /// Creates an association for returns distinct rows.
+    public func distinct() -> Self {
+        mapDestinationRelation { $0.with(\.isDistinct, true) }
+    }
+    
+    /// Creates an association that fetches *limit* rows, starting at *offset*.
+    ///
+    /// Any previous limit is replaced.
+    public func limit(_ limit: Int, offset: Int? = nil) -> Self {
+        mapDestinationRelation { $0.with(\.limit, SQLLimit(limit: limit, offset: offset)) }
+    }
+    
+    /// Returns an association that embeds the common table expression.
+    ///
+    /// See `QueryInterfaceRequest.with(_:)` for more information.
+    public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
+        mapDestinationRelation { $0.with(\.ctes[cte.tableName], cte.cte) }
     }
 }
 
