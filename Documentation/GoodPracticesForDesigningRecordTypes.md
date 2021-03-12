@@ -356,7 +356,8 @@ extension DerivableRequest where RowDecoder == Book {
 }
 
 try dbQueue.read { db in
-    let italianBooks: [Book] = try Book.all()
+    let italianNovels: [Book] = try Book.all()
+        .filter(kind: .novel)
         .filter(authorCountry: "Italy")
         .fetchAll(db)
 }
