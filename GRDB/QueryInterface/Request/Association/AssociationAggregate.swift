@@ -275,10 +275,9 @@ private class AssociationAggregatePreparation<RowDecoder> {
     }
 }
 
-// swiftlint:disable:next colon
 /// Prepares a request so that it can use association aggregates.
 private class BasePreparation<Association: AssociationToMany>:
-    AssociationAggregatePreparation<Association.OriginRowDecoder>
+    AssociationAggregatePreparation<Association.OriginRowDecoder>  // swiftlint:disable:previous colon
 {
     private let association: Association
     private let expression: SQLExpression
