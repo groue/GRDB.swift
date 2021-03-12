@@ -14,7 +14,7 @@ This guide helps you implementing a single-row table with GRDB, with recommendat
 
 ## The Single-Row Table
 
-As always with GRDB, everything starts at level of the database schema. Putting the robust SQLite on our side is always a good idea, because we have to write less code, and this helps shipping less bugs.
+As always with GRDB, everything starts at the level of the database schema. Putting the robust SQLite on our side is always a good idea, because we have to write less code, and this helps shipping less bugs.
 
 We want to instruct SQLite that our table must never contain more than one row. We will never have to wonder what to do if we were unlucky enough to find two rows with conflicting values in this table.
 
