@@ -267,7 +267,7 @@ extension Author {
 }
 ```
 
-Those columns let you define more interesting requests:
+Those columns let you define requests:
 
 ```swift
 try dbQueue.read { db in
@@ -279,13 +279,6 @@ try dbQueue.read { db in
     // French authors
     let frenchAuthors: [Author] = try Author.all()
         .filter(Author.Columns.country == "France")
-        .fetchAll(db)
-    
-    // French authors who wrote at least one book, ordered by name
-    let frenchAuthors: [Author] = try Author.all()
-        .filter(Author.Columns.country == "France")
-        .having(Author.books.isEmpty == false)
-        .order(Author.Columns.name.collating(.localizedCaseInsensitiveCompare))
         .fetchAll(db)
 }
 ```
