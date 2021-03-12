@@ -5,7 +5,9 @@ Let's talk about database tables that should contain a single row.
 
 Such tables can store configuration values, user preferences, and generally some global application state. They are a suitable alternative to `UserDefaults` in some applications, especially when configuration refers to values found in other database tables, and database integrity is a concern.
 
-This guide helps you implementing a single-row table with GRDB, with recommendations on the database schema, migrations, and the design of a [record] type.
+An alternative way to store such configuration is a table of key-value pairs: two columns, and one row for each configuration value. This technique works, but it has a few drawbacks: you will have to deal with the various types of configuration values (strings, integers, dates, etc), and you won't be able to define foreign keys. This is why we won't explore key-value tables.
+
+This guide helps you implementing a single-row table with GRDB, with recommendations on the database schema, migrations, and the design of a matching [record] type.
 
 - [The Single-Row Table]
 - [The Single-Row Record]
