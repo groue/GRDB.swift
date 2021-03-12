@@ -4455,8 +4455,8 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     SQLite arithmetic operators are derived from their Swift equivalent:
     
     ```swift
-    // SELECT ((temperature * 1.8) + 32) AS farenheit FROM planet
-    Planet.select((temperatureColumn * 1.8 + 32).forKey("farenheit"))
+    // SELECT ((temperature * 1.8) + 32) AS fahrenheit FROM planet
+    Planet.select((temperatureColumn * 1.8 + 32).forKey("fahrenheit"))
     ```
     
     > :point_up: **Note**: an expression like `nameColumn + "rrr"` will be interpreted by SQLite as a numerical addition (with funny results), not as a string concatenation. See the `concat` operator below.
