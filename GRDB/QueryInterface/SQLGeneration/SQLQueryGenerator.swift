@@ -1,12 +1,7 @@
 /// SQLQueryGenerator is able to generate an SQL SELECT query.
 struct SQLQueryGenerator: Refinable {
     fileprivate private(set) var relation: SQLQualifiedRelation
-    private let isDistinct: Bool
-    private let groupPromise: DatabasePromise<[SQLExpression]>?
-    private let havingExpressionPromise: DatabasePromise<SQLExpression?>
-    private let limit: SQLLimit?
     private let singleResult: Bool
-    private let ctes: OrderedDictionary<String, SQLCTE>
     // For database region
     private let prefetchedAssociations: [_SQLAssociation]
     
@@ -15,49 +10,12 @@ struct SQLQueryGenerator: Refinable {
     /// - parameter singleResult: A hint as to whether the query should be
     ///   optimized for a single result.
     init(
-        query: SQLQuery,
+        relation: SQLRelation,
         forSingleResult singleResult: Bool = false)
     {
-        // To generate SQL, we need a "qualified" relation, where all tables,
-        // expressions, etc, are identified with table aliases.
-        //
-        // All those aliases let us disambiguate tables at the SQL level, and
-        // prefix columns names. For example, the following request...
-        //
-        //      Book.filter(Column("kind") == Book.Kind.novel)
-        //          .including(optional: Book.author)
-        //          .including(optional: Book.translator)
-        //          .annotated(with: Book.awards.count)
-        //
-        // ... generates the following SQL, where all identifiers are correctly
-        // disambiguated and qualified:
-        //
-        //      SELECT book.*, person1.*, person2.*, COUNT(DISTINCT award.id)
-        //      FROM book
-        //      LEFT JOIN person person1 ON person1.id = book.authorId
-        //      LEFT JOIN person person2 ON person2.id = book.translatorId
-        //      LEFT JOIN award ON award.bookId = book.id
-        //      GROUP BY book.id
-        //      WHERE book.kind = 'novel'
-        relation = SQLQualifiedRelation(query.relation)
-        
-        // Qualify group expressions and having clause with the relation alias.
-        //
-        // This turns `GROUP BY id` INTO `GROUP BY book.id`, and
-        // `HAVING MAX(year) < 2000` INTO `HAVING MAX(book.year) < 2000`.
-        let sourceAlias = relation.source.alias
-        groupPromise = query.groupPromise?.map {
-            $0.map { $0.qualified(with: sourceAlias) }
-        }
-        havingExpressionPromise = query.havingExpressionPromise.map {
-            $0.map { $0.qualified(with: sourceAlias) }
-        }
-        
-        limit = query.limit
-        isDistinct = query.isDistinct
+        self.relation = SQLQualifiedRelation(relation)
+        self.prefetchedAssociations = relation.prefetchedAssociations
         self.singleResult = singleResult
-        prefetchedAssociations = query.relation.prefetchedAssociations
-        ctes = query.ctes
     }
     
     func requestSQL(_ context: SQLGenerationContext) throws -> String {
@@ -66,7 +24,7 @@ struct SQLQueryGenerator: Refinable {
         var sql = try commonTableExpressionsPrefix(context)
         sql += "SELECT"
         
-        if isDistinct {
+        if relation.isDistinct {
             sql += " DISTINCT"
         }
         
@@ -88,13 +46,13 @@ struct SQLQueryGenerator: Refinable {
             }
         }
         
-        let filter = try relation.filterPromise.resolve(context.db)
+        let filter = try relation.filterPromise?.resolve(context.db)
         if let filter = filter {
             sql += " WHERE "
             sql += try filter.sql(context)
         }
         
-        let groupExpressions = try groupPromise?.resolve(context.db) ?? []
+        let groupExpressions = try relation.groupPromise?.resolve(context.db) ?? []
         if !groupExpressions.isEmpty {
             sql += " GROUP BY "
             sql += try groupExpressions
@@ -102,7 +60,7 @@ struct SQLQueryGenerator: Refinable {
                 .joined(separator: ", ")
         }
         
-        if let havingExpression = try havingExpressionPromise.resolve(context.db) {
+        if let havingExpression = try relation.havingExpressionPromise?.resolve(context.db) {
             sql += " HAVING "
             sql += try havingExpression.sql(context)
         }
@@ -115,8 +73,8 @@ struct SQLQueryGenerator: Refinable {
                 .joined(separator: ", ")
         }
         
-        var limit = self.limit
-        if try singleResult && !expectsSingleResult(
+        var limit = relation.limit
+        if try limit == nil && singleResult && !expectsSingleResult(
             context.db,
             selection: selection,
             filter: filter,
@@ -199,7 +157,7 @@ struct SQLQueryGenerator: Refinable {
         }
         
         // The filter knows better
-        guard let filter = try relation.filterPromise.resolve(db),
+        guard let filter = try relation.filterPromise?.resolve(db),
               let rowIDs = try filter.identifyingRowIDs(db, for: relation.source.alias)
         else {
             return selectedRegion
@@ -255,12 +213,12 @@ struct SQLQueryGenerator: Refinable {
             var sql = try commonTableExpressionsPrefix(context)
             sql += try "DELETE FROM " + relation.source.sql(context)
             
-            if let filter = try relation.filterPromise.resolve(db) {
+            if let filter = try relation.filterPromise?.resolve(db) {
                 sql += " WHERE "
                 sql += try filter.sql(context)
             }
             
-            if let limit = limit {
+            if let limit = relation.limit {
                 let orderings = try relation.ordering.resolve(db)
                 if !orderings.isEmpty {
                     sql += " ORDER BY "
@@ -341,12 +299,12 @@ struct SQLQueryGenerator: Refinable {
                 .map { try $0.sql(context) }
                 .joined(separator: ", ")
             
-            if let filter = try relation.filterPromise.resolve(db) {
+            if let filter = try relation.filterPromise?.resolve(db) {
                 sql += " WHERE "
                 sql += try filter.sql(context)
             }
             
-            if let limit = limit {
+            if let limit = relation.limit {
                 let orderings = try relation.ordering.resolve(db)
                 if !orderings.isEmpty {
                     sql += " ORDER BY "
@@ -416,15 +374,15 @@ struct SQLQueryGenerator: Refinable {
     }
     
     private func commonTableExpressionsPrefix(_ context: SQLGenerationContext) throws -> String {
-        if ctes.isEmpty {
+        if relation.ctes.isEmpty {
             return ""
         }
         
         var sql = "WITH "
-        if ctes.values.contains(where: \.isRecursive) {
+        if relation.ctes.values.contains(where: \.isRecursive) {
             sql += "RECURSIVE "
         }
-        sql += try ctes
+        sql += try relation.ctes
             .map { tableName, cte in
                 var columnsSQL = ""
                 if let columns = cte.columns, !columns.isEmpty {
@@ -457,7 +415,7 @@ struct SQLQueryGenerator: Refinable {
     private func grouping(_ db: Database) throws -> GroupingInfo {
         // Empty group clause: no grouping
         // SELECT * FROM player
-        guard let groupExpressions = try groupPromise?.resolve(db), groupExpressions.isEmpty == false else {
+        guard let groupExpressions = try relation.groupPromise?.resolve(db), groupExpressions.isEmpty == false else {
             return .none
         }
         
@@ -518,15 +476,40 @@ struct SQLQueryGenerator: Refinable {
     }
 }
 
-/// A "qualified" relation, where all tables are identified with a table alias.
+/// To generate SQL, we need a "qualified" relation, where all tables,
+/// expressions, etc, are qualified with table aliases.
 ///
-///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
-///            |        |        |         |            |
-///            |        |        |         |            • ordering
-///            |        |        |         • filterPromise
-///            |        |        • joins
-///            |        • source
-///            • selectionPromise
+/// All those aliases let us disambiguate tables at the SQL level, and
+/// prefix columns names. For example, the following request...
+///
+///      Book.filter(Column("kind") == Book.Kind.novel)
+///          .including(optional: Book.author)
+///          .including(optional: Book.translator)
+///          .annotated(with: Book.awards.count)
+///
+/// ... generates the following SQL, where all identifiers are correctly
+/// disambiguated and qualified:
+///
+///      SELECT book.*, person1.*, person2.*, COUNT(DISTINCT award.id)
+///      FROM book
+///      LEFT JOIN person person1 ON person1.id = book.authorId
+///      LEFT JOIN person person2 ON person2.id = book.translatorId
+///      LEFT JOIN award ON award.bookId = book.id
+///      GROUP BY book.id
+///      WHERE book.kind = 'novel'
+///
+/// `SQLQualifiedRelation` contains the following information:
+///
+///     WITH ...     -- ctes
+///     SELECT ...   -- selectionPromise
+///     FROM ...     -- source
+///     JOIN ...     -- joins
+///     WHERE ...    -- filterPromise
+///     GROUP BY ... -- groupPromise
+///     HAVING ...   -- havingExpressionPromise
+///     ORDER BY ... -- ordering
+///     LIMIT ...    -- limit
+
 private struct SQLQualifiedRelation {
     /// All aliases, including aliases of joined relations
     var allAliases: [TableAlias] {
@@ -536,20 +519,14 @@ private struct SQLQualifiedRelation {
     }
     
     /// The source
-    ///
-    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
-    ///                     |
-    ///                     • source
     let source: SQLQualifiedSource
     
     /// The selection from source, not including selection of joined relations
     private var sourceSelectionPromise: DatabasePromise<[SQLSelection]>
     
+    var isDistinct: Bool
+
     /// The full selection, including selection of joined relations
-    ///
-    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
-    ///            |
-    ///            • selectionPromise
     var selectionPromise: DatabasePromise<[SQLSelection]> {
         DatabasePromise { db in
             let selection = try self.sourceSelectionPromise.resolve(db)
@@ -560,34 +537,24 @@ private struct SQLQualifiedRelation {
         }
     }
     
-    /// The filtering clause
-    ///
-    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
-    ///                                        |
-    ///                                        • filterPromise
-    let filterPromise: DatabasePromise<SQLExpression?>
+    let filterPromise: DatabasePromise<SQLExpression>?
     
     /// The ordering of source, not including ordering of joined relations
     private let sourceOrdering: SQLRelation.Ordering
     
     /// The full ordering, including orderings of joined relations
-    ///
-    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
-    ///                                                     |
-    ///                                                     • ordering
     var ordering: SQLRelation.Ordering {
         joins.reduce(sourceOrdering) {
             $0.appending($1.value.relation.ordering)
         }
     }
     
-    /// The joins
-    ///
-    ///     SELECT ... FROM ... JOIN ... WHERE ... ORDER BY ...
-    ///                              |
-    ///                              • joins
     private(set) var joins: OrderedDictionary<String, SQLQualifiedJoin>
-    
+    let groupPromise: DatabasePromise<[SQLExpression]>?
+    let havingExpressionPromise: DatabasePromise<SQLExpression>?
+    let limit: SQLLimit?
+    let ctes: OrderedDictionary<String, SQLCTE>
+
     init(_ relation: SQLRelation) {
         // Qualify the source, so that it be disambiguated with an SQL alias
         // if needed (when a select query uses the same table several times).
@@ -596,9 +563,8 @@ private struct SQLQualifiedRelation {
         // this SQLQualifiedRelation generates SQL.
         source = SQLQualifiedSource(relation.source)
         
-        // Qualify all joins, selection, filter, and ordering, so that all
-        // identifiers can be correctly disambiguated and qualified.
-        joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
+        // Qualify all selection, filter, etc, so that all identifiers
+        // can be correctly disambiguated and qualified.
         let sourceAlias = source.alias
         sourceSelectionPromise = relation.selectionPromise.map {
             $0.map { $0.qualified(with: sourceAlias) }
@@ -607,6 +573,21 @@ private struct SQLQualifiedRelation {
             $0.map { $0.qualified(with: sourceAlias) }
         }
         sourceOrdering = relation.ordering.qualified(with: sourceAlias)
+        groupPromise = relation.groupPromise?.map {
+            $0.map { $0.qualified(with: sourceAlias) }
+        }
+        havingExpressionPromise = relation.havingExpressionPromise.map {
+            $0.map { $0.qualified(with: sourceAlias) }
+        }
+        
+        // Turns relation children into joins. `including(all:)` children are
+        // discarded on the way.
+        joins = relation.children.compactMapValues { SQLQualifiedJoin($0) }
+        
+        // Copy other flags
+        limit = relation.limit
+        isDistinct = relation.isDistinct
+        ctes = relation.allCTEs
     }
     
     /// See SQLQueryGenerator.rowAdapter(_:)
@@ -669,14 +650,20 @@ private struct SQLQualifiedRelation {
         return (adapter: adapter, endIndex: endIndex)
     }
     
-    /// Removes all selections from joins
+    /// Sets the selection, removes all selections from joins, and clears the
+    /// `isDistinct` flag.
     func selectOnly(_ selection: [SQLSelection]) -> Self {
         let sourceSelectionPromise = DatabasePromise(value: selection.map {
             $0.qualified(with: source.alias)
         })
         return self
             .with(\.sourceSelectionPromise, sourceSelectionPromise)
-            .map(\.joins, { $0.mapValues { $0.selectOnly([]) } })
+            .with(\.isDistinct, false)
+            .map(\.joins, { joins in
+                joins.mapValues { join in
+                    join.map(\.relation) { $0.selectOnly([]) }
+                }
+            })
     }
 }
 
@@ -738,11 +725,6 @@ private struct SQLQualifiedJoin: Refinable {
         try sql(context, leftAlias: leftAlias, allowingInnerJoin: true)
     }
     
-    /// Removes all selections from joins
-    func selectOnly(_ selection: [SQLSelection]) -> SQLQualifiedJoin {
-        map(\.relation) { $0.selectOnly(selection) }
-    }
-    
     private func sql(
         _ context: SQLGenerationContext,
         leftAlias: TableAlias,
@@ -779,7 +761,7 @@ private struct SQLQualifiedJoin: Refinable {
             conditions.append(expression)
         }
         
-        if let filter = try relation.filterPromise.resolve(context.db) {
+        if let filter = try relation.filterPromise?.resolve(context.db) {
             conditions.append(filter.qualified(with: rightAlias))
         }
         

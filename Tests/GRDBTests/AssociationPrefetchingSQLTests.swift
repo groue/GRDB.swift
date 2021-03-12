@@ -157,6 +157,37 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    func testIncludingAllHasManyScalar() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            // Plain request
+            do {
+                let request = A
+                    .including(all: A
+                                .hasMany(B.self)
+                                .select(Column("colb2"))
+                                .distinct()
+                                .order(Column("colb2")))
+                    .orderByPrimaryKey()
+                
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+                
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "a" ORDER BY "cola1"
+                    """,
+                    """
+                    SELECT DISTINCT "colb2", "colb2" AS "grdb_colb2" \
+                    FROM "b" \
+                    WHERE "colb2" IN (1, 2, 3) \
+                    ORDER BY "colb2"
+                    """])
+            }
+        }
+    }
+    
     func testIncludingAllHasManyWithCompoundForeignKey() throws {
         // We can use the CTE technique
         let dbQueue = try makeDatabaseQueue()
@@ -1720,6 +1751,205 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
         }
     }
     
+    func testAggregate() throws {
+        struct Award: TableRecord { }
+        struct Player: TableRecord {
+            static let awards = hasMany(Award.self)
+        }
+        struct Team: TableRecord {
+            static let players = hasMany(Player.self)
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("teamId")
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("playerId")
+                t.column("parentId", .integer).references("team")
+                t.column("score")
+                t.column("category")
+            }
+            try db.create(table: "award") { t in
+                t.autoIncrementedPrimaryKey("awardId")
+                t.column("playerId", .integer).references("player")
+            }
+            try db.execute(sql: "INSERT INTO team DEFAULT VALUES")
+            
+            do {
+                // Group an association
+                sqlQueries.removeAll()
+                let association = Team.players.select(max(Column("score"))).group(Column("category"))
+                let request = Team.including(all: association)
+                _ = try Row.fetchAll(db, request)
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "team"
+                    """,
+                    """
+                    SELECT MAX("score"), "parentId" AS "grdb_parentId" \
+                    FROM "player" \
+                    WHERE "parentId" = 1 \
+                    GROUP BY "category"
+                    """])
+            }
+            
+            do {
+                // Filter an association with an association aggregate
+                sqlQueries.removeAll()
+                let association = Team.players.having(Player.awards.isEmpty)
+                let request = Team.including(all: association)
+                _ = try Row.fetchAll(db, request)
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "team"
+                    """,
+                    """
+                    SELECT "player".*, "player"."parentId" AS "grdb_parentId" \
+                    FROM "player" \
+                    LEFT JOIN "award" ON "award"."playerId" = "player"."playerId" \
+                    WHERE "player"."parentId" = 1 \
+                    GROUP BY "player"."playerId" \
+                    HAVING COUNT(DISTINCT "award"."awardId") = 0
+                    """])
+            }
+            
+            do {
+                // Annotate an association with an association aggregate
+                sqlQueries.removeAll()
+                let association = Team.players.annotated(with: Player.awards.count)
+                let request = Team.including(all: association)
+                _ = try Row.fetchAll(db, request)
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "team"
+                    """,
+                    """
+                    SELECT "player".*, COUNT(DISTINCT "award"."awardId") AS "awardCount", "player"."parentId" AS "grdb_parentId" \
+                    FROM "player" \
+                    LEFT JOIN "award" ON "award"."playerId" = "player"."playerId" \
+                    WHERE "player"."parentId" = 1 \
+                    GROUP BY "player"."playerId"
+                    """])
+            }
+        }
+    }
+    
+    func testDistinct() throws {
+        struct Player: TableRecord { }
+        struct Team: TableRecord {
+            static let players = hasMany(Player.self)
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("teamId")
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("playerId")
+                t.column("parentId", .integer).references("team")
+            }
+            try db.execute(sql: "INSERT INTO team DEFAULT VALUES")
+            
+            do {
+                sqlQueries.removeAll()
+                let association = Team.players.distinct()
+                let request = Team.including(all: association)
+                _ = try Row.fetchAll(db, request)
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "team"
+                    """,
+                    """
+                    SELECT DISTINCT *, "parentId" AS "grdb_parentId" \
+                    FROM "player" \
+                    WHERE "parentId" = 1
+                    """])
+            }
+        }
+    }
+    
+    func testLimit() throws {
+        struct Player: TableRecord { }
+        struct Team: TableRecord {
+            static let players = hasMany(Player.self)
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("teamId")
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("playerId")
+                t.column("parentId", .integer).references("team")
+            }
+            try db.execute(sql: "INSERT INTO team DEFAULT VALUES")
+            
+            do {
+                sqlQueries.removeAll()
+                let association = Team.players.limit(10, offset: 5)
+                let request = Team.including(all: association)
+                _ = try Row.fetchAll(db, request)
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "team"
+                    """,
+                    """
+                    SELECT *, "parentId" AS "grdb_parentId" \
+                    FROM "player" \
+                    WHERE "parentId" = 1 \
+                    LIMIT 10 OFFSET 5
+                    """])
+            }
+        }
+    }
+    
+    func testCTE() throws {
+        struct Player: TableRecord { }
+        struct Team: TableRecord {
+            static let players = hasMany(Player.self)
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("teamId")
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("playerId")
+                t.column("parentId", .integer).references("team")
+            }
+            try db.execute(sql: "INSERT INTO team DEFAULT VALUES")
+            
+            do {
+                sqlQueries.removeAll()
+                let cte = CommonTableExpression(named: "cte", sql: "SELECT 42")
+                let association = Team.players.with(cte).filter(Column("playerId") == cte.all())
+                let request = Team.including(all: association)
+                _ = try Row.fetchAll(db, request)
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "team"
+                    """,
+                    """
+                    WITH "cte" AS (SELECT 42) \
+                    SELECT *, "parentId" AS "grdb_parentId" \
+                    FROM "player" \
+                    WHERE ("playerId" = (SELECT * FROM "cte")) AND ("parentId" = 1)
+                    """])
+            }
+        }
+    }
+
     // Return SELECT queries, but omit schema queries.
     private func isSelectQuery(_ query: String) -> Bool {
         return query.contains("SELECT") && !query.contains("sqlite_") && !query.contains("pragma_table_xinfo")

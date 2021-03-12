@@ -1,25 +1,8 @@
 import Foundation
 
-typealias AssociationAggregatePreparation<RowDecoder> =
-    (inout QueryInterfaceRequest<RowDecoder>)
-    -> DatabasePromise<SQLExpression>
-
 extension AssociationToMany {
-    private func makeAggregate(_ expressionPromise: DatabasePromise<SQLExpression>)
-    -> AssociationAggregate<OriginRowDecoder>
-    {
-        AssociationAggregate { request in
-            let tableAlias = TableAlias()
-            request = request
-                .joining(optional: self.aliased(tableAlias))
-                .groupByPrimaryKey()
-            return expressionPromise.map { tableAlias[$0] }
-        }
-    }
-    
-    // Convenience
     private func makeAggregate(_ expression: SQLExpression) -> AssociationAggregate<OriginRowDecoder> {
-        makeAggregate(DatabasePromise(value: expression))
+        AssociationAggregate(preparation: BasePreparation(association: self, expression: expression))
     }
     
     /// The number of associated records.
@@ -38,8 +21,8 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.count() > 10).fetchAll(db)
     public var count: AssociationAggregate<OriginRowDecoder> {
-        let expression = SQLExpression.countDistinct(.fastPrimaryKey)
-        return makeAggregate(expression).forKey("\(key.singularizedName)Count")
+        makeAggregate(.countDistinct(.fastPrimaryKey))
+            .forKey("\(key.singularizedName)Count")
     }
     
     /// Creates an aggregate that is true if there exists no associated records.
@@ -58,8 +41,8 @@ extension AssociationToMany {
     ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
     ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
-        let expression = SQLExpression.isEmpty(.countDistinct(.fastPrimaryKey))
-        return makeAggregate(expression).forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
+        makeAggregate(.isEmpty(.countDistinct(.fastPrimaryKey)))
+            .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
     }
     
     /// Creates an aggregate which evaluate to the average value of the given
@@ -80,7 +63,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.average(Column("score")) > 100).fetchAll(db)
     public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("AVG", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("AVG", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -107,7 +90,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.max(Column("score")) < 100).fetchAll(db)
     public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("MAX", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("MAX", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -134,7 +117,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.min(Column("score")) > 100).fetchAll(db)
     public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("MIN", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("MIN", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
@@ -161,7 +144,7 @@ extension AssociationToMany {
     ///
     ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
     public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.function("SUM", [expression.sqlExpression]))
+        let aggregate = makeAggregate(.aggregate("SUM", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
@@ -194,9 +177,13 @@ extension AssociationToMany {
 ///     // Won't compile because Fruit is not Author.
 ///     let request = Fruit.annotated(with: bookCount)
 public struct AssociationAggregate<RowDecoder> {
-    /// Extend the request with the associated records used to compute the
-    /// aggregate, and return an expression promise which resolves to the
-    /// aggregated value.
+    fileprivate let preparation: AssociationAggregatePreparation<RowDecoder>
+    
+    /// The SQL name for the value of this aggregate. See forKey(_:).
+    var key: String? = nil
+    
+    /// Extends the request with the associated records used to compute the
+    /// aggregate, and returns the aggregated expression.
     ///
     /// For example:
     ///
@@ -208,7 +195,7 @@ public struct AssociationAggregate<RowDecoder> {
     ///     var request = Author.all()
     ///
     ///     let aggregate = Author.books.count
-    ///     let expressionPromise = aggregate.prepare(&request)
+    ///     let expression = aggregate.prepare(&request)
     ///
     ///     // The request has been extended with associated records:
     ///     //
@@ -220,17 +207,18 @@ public struct AssociationAggregate<RowDecoder> {
     ///     // The aggregated value:
     ///     //
     ///     //  COUNT(DISTINCT book.id)
-    ///     try expressionPromise.resolve(db)
+    ///     expression
     ///
-    /// The aggregated value is not right away embedded in the extended request:
+    /// The aggregated expression is not embedded in the extended request:
     ///
-    /// - We don't know yet if the aggregated value will be used in the
+    /// - We don't know yet if the aggregated expression will be used in the
     ///   SQL selection, or in the HAVING clause.
     /// - It helps implementing aggregate operators such as `&&`, `+`, etc.
-    let prepare: AssociationAggregatePreparation<RowDecoder>
-    
-    /// The SQL name for the value of this aggregate. See forKey(_:).
-    var key: String? = nil
+    func prepare<Request>(_ request: inout Request) -> SQLExpression
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
+    {
+        preparation.prepare(&request)
+    }
 }
 
 extension AssociationAggregate: Refinable {
@@ -265,12 +253,109 @@ extension AssociationAggregate: Refinable {
     public func forKey(_ key: CodingKey) -> Self {
         forKey(key.stringValue)
     }
+}
+
+// MARK: - AssociationAggregatePreparation
+
+/// An abstract class that only exists as support for
+/// `AssociationAggregate.prepare(_:)`, which needs to prepare both query
+/// interface requests and associations through their conformance
+/// to `DerivableRequest`:
+///
+///     aggregate.prepare(&request)
+///     aggregate.prepare(&association)
+///
+/// We could have used a generic closure instead of this class... if only Swift
+/// would support generic closures.
+private class AssociationAggregatePreparation<RowDecoder> {
+    func prepare<Request>(_ request: inout Request) -> SQLExpression
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
+    {
+        fatalError("subclass must override")
+    }
+}
+
+/// Prepares a request so that it can use association aggregates.
+private class BasePreparation<Association: AssociationToMany>:
+    AssociationAggregatePreparation<Association.OriginRowDecoder>  // swiftlint:disable:previous colon
+{
+    private let association: Association
+    private let expression: SQLExpression
     
+    init(association: Association, expression: SQLExpression) {
+        self.association = association
+        self.expression = expression
+    }
+    
+    override func prepare<Request>(_ request: inout Request) -> SQLExpression
+    where Request: DerivableRequest, Request.RowDecoder == Association.OriginRowDecoder
+    {
+        // The fundamental request that supports association aggregate:
+        //
+        //     SELECT parent.*
+        //     LEFT JOIN child ON child.parentID = parent.id
+        //     GROUP BY parent.id
+        let tableAlias = TableAlias()
+        request = request
+            .joining(optional: association.aliased(tableAlias))
+            .groupByPrimaryKey()
+        
+        // The fundamental request can now be annotated, or filtered in the
+        // having clause, with the association aggregate expression:
+        // MIN(child.score), COUNT(DISTINCT child.id), etc.
+        return expression.qualified(with: tableAlias)
+    }
+}
+
+/// Transforms the expression of an aggregate.
+private class MapPreparation<RowDecoder>: AssociationAggregatePreparation<RowDecoder> {
+    private let base: AssociationAggregatePreparation<RowDecoder>
+    private let transform: (SQLExpression) -> SQLExpression
+    
+    init(
+        base: AssociationAggregatePreparation<RowDecoder>,
+        transform: @escaping (SQLExpression) -> SQLExpression)
+    {
+        self.base = base
+        self.transform = transform
+    }
+    
+    override func prepare<Request>(_ request: inout Request) -> SQLExpression
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
+    {
+        transform(base.prepare(&request))
+    }
+}
+
+extension AssociationAggregate {
     /// Transforms the expression, and does not preserve key.
-    fileprivate func map(_ transform: @escaping (SQLExpression) throws -> SQLExpression) -> Self {
-        AssociationAggregate { request in
-            self.prepare(&request).map(transform)
-        }
+    fileprivate func map(_ transform: @escaping (SQLExpression) -> SQLExpression) -> Self {
+        AssociationAggregate(preparation: MapPreparation(base: preparation, transform: transform))
+    }
+}
+
+/// Combines the expressions of two aggregates.
+private class CombinePreparation<RowDecoder>: AssociationAggregatePreparation<RowDecoder> {
+    private let lhs: AssociationAggregatePreparation<RowDecoder>
+    private let rhs: AssociationAggregatePreparation<RowDecoder>
+    private let combine: (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression
+    
+    init(
+        _ lhs: AssociationAggregatePreparation<RowDecoder>,
+        _ rhs: AssociationAggregatePreparation<RowDecoder>,
+        combine: @escaping (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression)
+    {
+        self.lhs = lhs
+        self.rhs = rhs
+        self.combine = combine
+    }
+    
+    override func prepare<Request>(_ request: inout Request) -> SQLExpression
+    where Request: DerivableRequest, Request.RowDecoder == RowDecoder
+    {
+        let lhsExpression = lhs.prepare(&request)
+        let rhsExpression = rhs.prepare(&request)
+        return combine(lhsExpression, rhsExpression)
     }
 }
 
@@ -278,18 +363,10 @@ extension AssociationAggregate: Refinable {
 private func combine<RowDecoder>(
     _ lhs: AssociationAggregate<RowDecoder>,
     _ rhs: AssociationAggregate<RowDecoder>,
-    with combineExpressions : @escaping (_ lhs: SQLExpression, _ rhs: SQLExpression) throws -> SQLExpression)
+    with combine: @escaping (_ lhs: SQLExpression, _ rhs: SQLExpression) -> SQLExpression)
 -> AssociationAggregate<RowDecoder>
 {
-    AssociationAggregate { request in
-        let lhsPromise = lhs.prepare(&request)
-        let rhsPromise = rhs.prepare(&request)
-        return DatabasePromise { db in
-            try combineExpressions(
-                lhsPromise.resolve(db),
-                rhsPromise.resolve(db))
-        }
-    }
+    AssociationAggregate(preparation: CombinePreparation(lhs.preparation, rhs.preparation, combine: combine))
 }
 
 // MARK: - Logical Operators (AND, OR, NOT)

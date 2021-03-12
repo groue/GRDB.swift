@@ -1,3 +1,5 @@
+import Foundation
+
 /// A DatabaseMigrator registers and applies database migrations.
 ///
 /// Migrations are named blocks of SQL statements that are guaranteed to be
@@ -130,27 +132,46 @@ public struct DatabaseMigrator {
                         return .commit
                     }
                     
-                    if let lastAppliedIdentifier = migrations.lazy
-                        .map({ $0.identifier })
+                    if let lastAppliedIdentifier = migrations
+                        .map(\.identifier)
                         .last(where: { appliedIdentifiers.contains($0) })
                     {
-                        // Database has been partially migrated.
+                        // Some migrations were already applied.
                         //
-                        // Create a temporary witness database (on disk, just in case
-                        // migrations would involve a lot of data).
-                        var witnessConfiguration = writer.configuration
-                        witnessConfiguration.targetQueue = nil // Avoid deadlocks
-                        witnessConfiguration.label = "GRDB.DatabaseMigrator.temporary"
-                        let witness = try DatabaseQueue(path: "", configuration: witnessConfiguration)
+                        // Let's migrate a temporary database up to the same
+                        // level, and compare the database schemas. If they
+                        // differ, we'll erase the database.
+                        let tmpSchema: SchemaInfo = try {
+                            // Make sure the temporary database is configured
+                            // just as the migrated database
+                            var tmpConfig = writer.configuration
+                            tmpConfig.targetQueue = nil // Avoid deadlocks
+                            tmpConfig.label = "GRDB.DatabaseMigrator.temporary"
+                            
+                            // Create the temporary database on disk, just in
+                            // case migrations would involve a lot of data.
+                            //
+                            // SQLite supports temporary on-disk databases, but
+                            // those are not guaranteed to accept the
+                            // preparation functions provided by the user.
+                            //
+                            // See https://github.com/groue/GRDB.swift/issues/931
+                            // for an issue created by such databases.
+                            //
+                            // So let's create a "regular" temporary database:
+                            let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                                .appendingPathComponent(ProcessInfo().globallyUniqueString)
+                            defer {
+                                try? FileManager().removeItem(at: tmpURL)
+                            }
+                            let tmpDatabase = try DatabaseQueue(path: tmpURL.path, configuration: tmpConfig)
+                            return try tmpDatabase.writeWithoutTransaction { db in
+                                try runMigrations(db, upTo: lastAppliedIdentifier)
+                                return try db.schema()
+                            }
+                        }()
                         
-                        // Grab schema of migrated witness database
-                        let witnessSchema: SchemaInfo = try witness.writeWithoutTransaction { db in
-                            try runMigrations(db, upTo: lastAppliedIdentifier)
-                            return try db.schema()
-                        }
-                        
-                        // Erase database if we detect a schema change
-                        if try db.schema() != witnessSchema {
+                        if try db.schema() != tmpSchema {
                             needsErase = true
                             return .commit
                         }

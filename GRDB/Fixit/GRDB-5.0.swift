@@ -226,8 +226,8 @@ extension SQLLiteral {
     public var arguments: StatementArguments { preconditionFailure() }
 }
 
-@available(*, unavailable, renamed: "SQLAssociativeBinaryOperator")
-typealias SQLLogicalBinaryOperator = SQLAssociativeBinaryOperator
+@available(*, unavailable, renamed: "SQLExpression.AssociativeBinaryOperator")
+typealias SQLLogicalBinaryOperator = SQLExpression.AssociativeBinaryOperator
 
 extension SQLRequest {
     @available(*, unavailable, renamed: "RowDecoder")

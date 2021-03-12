@@ -107,6 +107,18 @@ public final class DatabaseFunction: Hashable {
         self.kind = .aggregate { Aggregate() }
     }
     
+    /// Returns an SQL expression that applies the function.
+    ///
+    /// See https://github.com/groue/GRDB.swift/#sql-functions
+    public func callAsFunction(_ arguments: SQLExpressible...) -> SQLExpression {
+        switch kind {
+        case .aggregate:
+            return .function(name, arguments.map(\.sqlExpression))
+        case .function:
+            return .aggregate(name, arguments.map(\.sqlExpression))
+        }
+    }
+
     /// Calls sqlite3_create_function_v2
     /// See https://sqlite.org/c3ref/create_function.html
     func install(in db: Database) {

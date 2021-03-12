@@ -9,16 +9,37 @@
 //
 //===----------------------------------------------------------------------===//
 
-// MARK: - Array, Sequence, Dictionary, Set extensions
+// MARK: - RangeReplaceableCollection, Sequence, Dictionary, Set extensions
 
-extension Array {
-    /// Creates an array containing the elements of a cursor.
+extension RangeReplaceableCollection {
+    /// Creates a collection containing the elements of a cursor.
     ///
-    ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'bar'")
-    ///     let strings = try Array(cursor) // ["foo", "bar"]
+    ///     // [String]
+    ///     let cursor = try String.fetchCursor(db, ...)
+    ///     let strings = try Array(cursor)
+    ///
+    /// - parameter cursor: The cursor whose elements feed the collection.
     @inlinable
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
+        while let element = try cursor.next() {
+            append(element)
+        }
+    }
+    
+    /// Creates a collection containing the elements of a cursor.
+    ///
+    ///     // [String]
+    ///     let cursor = try String.fetchCursor(db, ...)
+    ///     let strings = try Array(cursor, minimumCapacity: 100)
+    ///
+    /// - parameter cursor: The cursor whose elements feed the collection.
+    /// - parameter minimumCapacity: Prepares the returned collection to store
+    ///   the specified number of elements.
+    @inlinable
+    public init<C: Cursor>(_ cursor: C, minimumCapacity: Int) throws where C.Element == Element {
+        self.init()
+        reserveCapacity(minimumCapacity)
         while let element = try cursor.next() {
             append(element)
         }
@@ -29,18 +50,137 @@ extension Dictionary {
     /// Creates a new dictionary whose keys are the groupings returned by the
     /// given closure and whose values are arrays of the elements that returned
     /// each key.
-    public init<C: Cursor>(grouping values: C, by keyForValue: (C.Element) throws -> Key)
+    ///
+    ///     // [Int64: [Player]]
+    ///     let cursor = try Player.fetchCursor(db)
+    ///     let dictionary = try Dictionary(grouping: cursor, by: { $0.teamID })
+    ///
+    /// - parameter cursor: A cursor of values to group into a dictionary.
+    /// - parameter keyForValue: A closure that returns a key for each element
+    ///   in the cursor.
+    public init<C: Cursor>(grouping cursor: C, by keyForValue: (C.Element) throws -> Key)
     throws where Value == [C.Element]
     {
         self.init()
-        while let value = try values.next() {
+        while let value = try cursor.next() {
             try self[keyForValue(value), default: []].append(value)
+        }
+    }
+    
+    /// Creates a new dictionary whose keys are the groupings returned by the
+    /// given closure and whose values are arrays of the elements that returned
+    /// each key.
+    ///
+    ///     // [Int64: [Player]]
+    ///     let cursor = try Player.fetchCursor(db)
+    ///     let dictionary = try Dictionary(
+    ///         minimumCapacity: 100,
+    ///         grouping: cursor,
+    ///         by: { $0.teamID })
+    ///
+    /// - parameter minimumCapacity: The minimum number of key-value pairs that
+    ///   the newly created dictionary should be able to store without
+    ///   reallocating its storage buffer.
+    /// - parameter cursor: A cursor of values to group into a dictionary.
+    /// - parameter keyForValue: A closure that returns a key for each element
+    ///   in the cursor.
+    public init<C: Cursor>(minimumCapacity: Int, grouping cursor: C, by keyForValue: (C.Element) throws -> Key)
+    throws where Value == [C.Element]
+    {
+        self.init(minimumCapacity: minimumCapacity)
+        while let value = try cursor.next() {
+            try self[keyForValue(value), default: []].append(value)
+        }
+    }
+    
+    /// Creates a new dictionary from the key-value pairs in the given cursor.
+    ///
+    /// You use this initializer to create a dictionary when you have a cursor
+    /// of key-value tuples with unique keys. Passing a cursor with duplicate
+    /// keys to this initializer results in a fatal error.
+    ///
+    ///     // [Int64: Player]
+    ///     let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
+    ///     let playerByID = try Dictionary(uniqueKeysWithValues: cursor)
+    ///
+    /// - parameter keysAndValues: A cursor of key-value pairs to use for the
+    ///   new dictionary. Every key in `keysAndValues` must be unique.
+    /// - precondition: The cursor must not have duplicate keys.
+    public init<C: Cursor>(uniqueKeysWithValues keysAndValues: C)
+    throws where C.Element == (Key, Value)
+    {
+        self.init()
+        while let (key, value) = try keysAndValues.next() {
+            if updateValue(value, forKey: key) != nil {
+                fatalError("Duplicate values for key: '\(String(describing: key))'")
+            }
+        }
+    }
+    
+    /// Creates a new dictionary from the key-value pairs in the given cursor.
+    ///
+    /// You use this initializer to create a dictionary when you have a cursor
+    /// of key-value tuples with unique keys. Passing a cursor with duplicate
+    /// keys to this initializer results in a fatal error.
+    ///
+    ///     // [Int64: Player]
+    ///     let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
+    ///     let playerByID = try Dictionary(
+    ///         minimumCapacity: 100,
+    ///         uniqueKeysWithValues: cursor)
+    ///
+    /// - parameter minimumCapacity: The minimum number of key-value pairs that
+    ///   the newly created dictionary should be able to store without
+    ///   reallocating its storage buffer.
+    /// - parameter keysAndValues: A cursor of key-value pairs to use for the
+    ///   new dictionary. Every key in `keysAndValues` must be unique.
+    /// - precondition: The cursor must not have duplicate keys.
+    public init<C: Cursor>(minimumCapacity: Int, uniqueKeysWithValues keysAndValues: C)
+    throws where C.Element == (Key, Value)
+    {
+        self.init(minimumCapacity: minimumCapacity)
+        while let (key, value) = try keysAndValues.next() {
+            if updateValue(value, forKey: key) != nil {
+                fatalError("Duplicate values for key: '\(String(describing: key))'")
+            }
+        }
+    }
+}
+
+extension Set {
+    /// Creates a set containing the elements of a cursor.
+    ///
+    ///     // Set<String>
+    ///     let cursor = try String.fetchCursor(db, ...)
+    ///     let strings = try Set(cursor)
+    ///
+    /// - parameter cursor: A cursor of values to gather into a set.
+    public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
+        self.init()
+        while let element = try cursor.next() {
+            insert(element)
+        }
+    }
+    
+    /// Creates a set containing the elements of a cursor.
+    ///
+    ///     // Set<String>
+    ///     let cursor = try String.fetchCursor(db, ...)
+    ///     let strings = try Set(cursor, minimumCapacity: 100)
+    ///
+    /// - parameter cursor: A cursor of values to gather into a set.
+    /// - parameter minimumCapacity: The minimum number of elements that the
+    ///   newly created set should be able to store without reallocating its
+    ///   storage buffer.
+    public init<C: Cursor>(_ cursor: C, minimumCapacity: Int) throws where C.Element == Element {
+        self.init(minimumCapacity: minimumCapacity)
+        while let element = try cursor.next() {
+            insert(element)
         }
     }
 }
 
 extension Sequence {
-    
     /// Returns a cursor over the concatenated results of mapping transform
     /// over self.
     public func flatMap<SegmentOfResult: Cursor>(
@@ -48,19 +188,6 @@ extension Sequence {
     -> FlattenCursor<MapCursor<AnyCursor<Iterator.Element>, SegmentOfResult>>
     {
         AnyCursor(self).flatMap(transform)
-    }
-}
-
-extension Set {
-    /// Creates a set containing the elements of a cursor.
-    ///
-    ///     let cursor = try String.fetchCursor(db, sql: "SELECT 'foo' UNION ALL SELECT 'foo'")
-    ///     let strings = try Set(cursor) // ["foo"]
-    public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
-        self.init()
-        while let element = try cursor.next() {
-            insert(element)
-        }
     }
 }
 

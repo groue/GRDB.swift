@@ -619,4 +619,164 @@ class CommonTableExpressionTests: GRDBTestCase {
                 """)
         }
     }
+    
+    func testAssociation() throws {
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("teamId", .integer).references("team")
+            }
+            try db.create(table: "award") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("playerId", .integer).references("player")
+            }
+            struct Team: TableRecord { }
+            struct Player: TableRecord {
+                static let team = belongsTo(Team.self)
+            }
+            struct Award: TableRecord {
+                static let player = belongsTo(Player.self)
+                static let team = hasOne(Team.self, through: player, using: Player.team)
+            }
+
+            do {
+                // CTE on association
+                let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                let request = Award
+                    .joining(optional: Award.player.with(cte))
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, """
+                    WITH "cte" AS (SELECT 1) \
+                    SELECT "award".* \
+                    FROM "award" \
+                    LEFT JOIN "player" ON "player"."id" = "award"."playerId"
+                    """)
+            }
+
+            do {
+                // CTE on hasOneThrough association
+                let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                let request = Award
+                    .joining(optional: Award.team.with(cte))
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, """
+                    WITH "cte" AS (SELECT 1) \
+                    SELECT "award".* \
+                    FROM "award" \
+                    LEFT JOIN "player" ON "player"."id" = "award"."playerId" \
+                    LEFT JOIN "team" ON "team"."id" = "player"."teamId"
+                    """)
+            }
+
+            do {
+                // CTE on pivot of hasOneThrough association
+                let cte = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                let team = Award.hasOne(Team.self, through: Award.player.with(cte), using: Player.team)
+                let request = Award
+                    .joining(optional: team)
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, """
+                    WITH "cte" AS (SELECT 1) \
+                    SELECT "award".* \
+                    FROM "award" \
+                    LEFT JOIN "player" ON "player"."id" = "award"."playerId" \
+                    LEFT JOIN "team" ON "team"."id" = "player"."teamId"
+                    """)
+            }
+            
+            do {
+                // Distinct CTEs on association and main request
+                let cte1 = CommonTableExpression(named: "cte1", sql: "SELECT 1")
+                let cte2 = CommonTableExpression(named: "cte2", sql: "SELECT 2")
+                let request = Award
+                    .with(cte1)
+                    .joining(optional: Award.player.with(cte2))
+                _ = try Row.fetchAll(db, request)
+                XCTAssertEqual(lastSQLQuery, """
+                    WITH "cte1" AS (SELECT 1), \
+                    "cte2" AS (SELECT 2) \
+                    SELECT "award".* \
+                    FROM "award" \
+                    LEFT JOIN "player" ON "player"."id" = "award"."playerId"
+                    """)
+            }
+            
+            do {
+                // Conflicting CTEs. The rule is: the last one wins.
+                
+                do {
+                    // Conflicting CTE on association and main request
+                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let request = Award
+                        .with(cte1)
+                        .joining(optional: Award.player.with(cte2))
+                    _ = try Row.fetchAll(db, request)
+                    XCTAssertEqual(lastSQLQuery, """
+                        WITH "cte" AS (SELECT 2) \
+                        SELECT "award".* \
+                        FROM "award" \
+                        LEFT JOIN "player" ON "player"."id" = "award"."playerId"
+                        """)
+                }
+                
+                do {
+                    // Conflicting CTE on two associations
+                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let request = Award
+                        .joining(optional: Award.player.with(cte1))
+                        .joining(optional: Award.team.with(cte2))
+                    _ = try Row.fetchAll(db, request)
+                    XCTAssertEqual(lastSQLQuery, """
+                        WITH "cte" AS (SELECT 2) \
+                        SELECT "award".* \
+                        FROM "award" \
+                        LEFT JOIN "player" ON "player"."id" = "award"."playerId" \
+                        LEFT JOIN "team" ON "team"."id" = "player"."teamId"
+                        """)
+                }
+                
+                do {
+                    // Conflicting CTE on two associations
+                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let request = Award
+                        .joining(optional: Award.team.with(cte1))
+                        .joining(optional: Award.player.with(cte2))
+                    _ = try Row.fetchAll(db, request)
+                    // There's a trick here. The last CTE wins, and the last cte
+                    // is cte1: it is plugged on top of Award.player, where cte2
+                    // is attached.
+                    XCTAssertEqual(lastSQLQuery, """
+                        WITH "cte" AS (SELECT 1) \
+                        SELECT "award".* \
+                        FROM "award" \
+                        LEFT JOIN "player" ON "player"."id" = "award"."playerId" \
+                        LEFT JOIN "team" ON "team"."id" = "player"."teamId"
+                        """)
+                }
+                
+                do {
+                    // Conflicting CTE on two associations
+                    let cte1 = CommonTableExpression(named: "cte", sql: "SELECT 1")
+                    let cte2 = CommonTableExpression(named: "cte", sql: "SELECT 2")
+                    let request = Award
+                        .joining(optional: Award.player.forKey("player1").with(cte1))
+                        .joining(optional: Award.player.forKey("player2").with(cte2))
+                    _ = try Row.fetchAll(db, request)
+                    XCTAssertEqual(lastSQLQuery, """
+                        WITH "cte" AS (SELECT 2) \
+                        SELECT "award".* \
+                        FROM "award" \
+                        LEFT JOIN "player" "player1" ON "player1"."id" = "award"."playerId" \
+                        LEFT JOIN "player" "player2" ON "player2"."id" = "award"."playerId"
+                        """)
+                }
+            }
+        }
+    }
 }
