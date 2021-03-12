@@ -815,9 +815,11 @@ try dbQueue.read { db in
 
 - **Cursors are granted with direct access to SQLite,** unlike arrays and sets that have to take the time to copy database values. If you look after extra performance, you may prefer cursors.
 
-- **Cursors can feed Swift collections**:
+- **Cursors can feed Swift collections.**
     
-    Arrays and all types conforming to `RangeReplaceableCollection`:
+    You will most of the time use `fetchAll` or `fetchSet` when you want an array or a set. For more specific needs, you may prefer one of the initializers below. All of them accept an extra optional `minimumCapacity` argument which helps optimizing your app when you have an idea of the number of elements in a cursor (the built-in `fetchAll` and `fetchSet` do not perform such an optimization).
+    
+    **Arrays** and all types conforming to `RangeReplaceableCollection`:
     
     ```swift
     // [String]
@@ -825,7 +827,7 @@ try dbQueue.read { db in
     let array = try Array(cursor)
     ```
     
-    Sets:
+    **Sets**:
     
     ```swift
     // Set<Int>
@@ -833,7 +835,7 @@ try dbQueue.read { db in
     let set = try Set(cursor)
     ```
     
-    Dictionaries:
+    **Dictionaries**:
     
     ```swift
     // [Int64: [Player]]
@@ -844,8 +846,6 @@ try dbQueue.read { db in
     let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
     let dictionary = try Dictionary(uniqueKeysWithValues: cursor)
     ```
-    
-    > :bulb: **Tip**: all those initializers accept an extra `minimumCapacity` argument which helps optimizing your app when you have an idea of the number of elements fetched by the cursor.
 
 - **Cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/5.5/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
     
