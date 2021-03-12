@@ -815,6 +815,38 @@ try dbQueue.read { db in
 
 - **Cursors are granted with direct access to SQLite,** unlike arrays and sets that have to take the time to copy database values. If you look after extra performance, you may prefer cursors.
 
+- **Cursors can feed Swift collections**:
+    
+    Arrays and all types conforming to `RangeReplaceableCollection`:
+    
+    ```swift
+    // [String]
+    let cursor = try String.fetchCursor(db, ...)
+    let array = try Array(cursor)
+    ```
+    
+    Sets:
+    
+    ```swift
+    // Set<Int>
+    let cursor = try Int.fetchCursor(db, ...)
+    let set = try Set(cursor)
+    ```
+    
+    Dictionaries:
+    
+    ```swift
+    // [Int64: [Player]]
+    let cursor = try Player.fetchCursor(db)
+    let dictionary = try Dictionary(grouping: cursor, by: { $0.teamID })
+    
+    // [Int64: Player]
+    let cursor = try Player.fetchCursor(db).map { ($0.id, $0) }
+    let dictionary = try Dictionary(uniqueKeysWithValues: cursor)
+    ```
+    
+    > :bulb: **Tip**: all those initializers accept an extra `minimumCapacity` argument which helps optimizing your app when you have an idea of the number of elements fetched by the cursor.
+
 - **Cursors adopt the [Cursor](http://groue.github.io/GRDB.swift/docs/5.5/Protocols/Cursor.html) protocol, which looks a lot like standard [lazy sequences](https://developer.apple.com/reference/swift/lazysequenceprotocol) of Swift.** As such, cursors come with many convenience methods: `compactMap`, `contains`, `dropFirst`, `dropLast`, `drop(while:)`, `enumerated`, `filter`, `first`, `flatMap`, `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`, `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`, `suffix`:
     
     ```swift
@@ -830,12 +862,8 @@ try dbQueue.read { db in
         .map { row in
             CLLocationCoordinate2D(latitude: row[0], longitude: row[1])
         }
-    
-    // Turn cursors into arrays or sets:
-    let array = try Array(cursor)
-    let set = try Set(cursor)
     ```
-    
+
 - **Cursors are not Swift sequences.** That's because Swift sequences can't handle iteration errors, when reading SQLite results may fail at any time.
 
 - **Cursors require a little care**:

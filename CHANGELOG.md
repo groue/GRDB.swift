@@ -80,6 +80,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **New**: [#936](https://github.com/groue/GRDB.swift/pull/936): Complete Associations and the DerivableRequest Protocol
 
+- **New**: Database cursors can feed more standard Swift collections: `Array(cursor, minimumCapacity: ...)`, `Dictionary(uniqueKeysWithValues: cursor)`, etc` (see [Cursors](README.md#cursors)).
+
 - **Documentation update**: The [Associations Guide](Documentation/AssociationsBasics.md) has gained a new [Further Refinements to Associations](Documentation/AssociationsBasics.md#further-refinements-to-associations) chapter which shows the new association methods brought by [#936](https://github.com/groue/GRDB.swift/pull/936).
 
 - **Documentation update**: The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) guide has an updated [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter, now that the `DerivableRequest` protocol has access to `limit`, `distinct`, `group`, `having`, association aggregates, and common table expressions.
