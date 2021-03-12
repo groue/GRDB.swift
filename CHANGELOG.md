@@ -82,9 +82,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **Documentation update**: The [Associations Guide](Documentation/AssociationsBasics.md) has gained a new [Further Refinements to Associations](Documentation/AssociationsBasics.md#further-refinements-to-associations) chapter which shows the new association methods brought by [#936](https://github.com/groue/GRDB.swift/pull/936).
 
-- **Documentation update**: The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) guide has a simpler [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter, now that the `DerivableRequest` protocol has access to `limit`, `distinct`, `group`, `having`, association aggregates, and common table expressions.
+- **Documentation update**: The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) guide has an updated [Define Record Requests](Documentation/GoodPracticesForDesigningRecordTypes.md#define-record-requests) chapter, now that the `DerivableRequest` protocol has access to `limit`, `distinct`, `group`, `having`, association aggregates, and common table expressions.
 
 - **Documentation update**: The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) guide has a new chapter: [Record Types Hide Intimate Database Details](Documentation/GoodPracticesForDesigningRecordTypes.md#record-types-hide-intimate-database-details).
+
+- **Documentation update**: A new [Single-Row Tables](Documentation/SingleRowTables.md) guide provides guidance for designing tables that store configuration values, user preferences, and generally some global application state.
 
 ## 5.5.0
 

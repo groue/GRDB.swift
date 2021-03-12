@@ -10,6 +10,7 @@ To support this guide, we'll design a simple library application that lets the u
 - [Trust SQLite More Than Yourself]
 - [Persistable Record Types are Responsible for Their Tables]
 - [Record Types Hide Intimate Database Details]
+- [Singleton Records]
 - [Define Record Requests]
 - [Compose Records]
 - [How to Design Database Managers]
@@ -225,6 +226,13 @@ Let's look at three examples:
     > :bulb: Private properties allow records to choose both their best database representation, and at the same time, their best Swift interface.
 
 **Generally speaking**, record types are the dedicated place, in your code, where you can transform raw database values into well-suited types that the rest of the application will enjoy. When needed, you can even [validate values](../README.md#customizing-the-persistence-methods) before they enter the database.
+
+
+## Singleton Records
+
+**Singleton Records** are records that store configuration values, user preferences, and generally some global application state. They are backed by a database table that contains a single row.
+
+The recommended setup for such records is described in the [Single-Row Tables](SingleRowTables.md) guide. Go check it, and come back after!
 
 
 ## Define Record Requests
@@ -761,6 +769,7 @@ Instead, have a look at [Database Observation]:
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
 [Record Types Hide Intimate Database Details]: #record-types-hide-intimate-database-details
+[Singleton Records]: #singleton-records
 [Define Record Requests]: #define-record-requests
 [Compose Records]: #compose-records
 [How to Design Database Managers]: #how-to-design-database-managers
