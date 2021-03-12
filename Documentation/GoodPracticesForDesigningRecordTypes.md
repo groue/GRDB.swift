@@ -267,9 +267,34 @@ extension Author {
 }
 ```
 
+Those columns let you define more interesting requests:
+
+```swift
+try dbQueue.read { db in
+    // Order authors by name, in a localized case-insensitive fashion
+    let sortedAuthors: [Author] = try Author.all()
+        .order(Author.Columns.name.collating(.localizedCaseInsensitiveCompare))
+        .fetchAll(db)
+    
+    // French authors
+    let frenchAuthors: [Author] = try Author.all()
+        .filter(Author.Columns.country == "France")
+        .fetchAll(db)
+    
+    // French authors who wrote at least one book, ordered by name
+    let frenchAuthors: [Author] = try Author.all()
+        .filter(Author.Columns.country == "France")
+        .having(Author.books.isEmpty == false)
+        .order(Author.Columns.name.collating(.localizedCaseInsensitiveCompare))
+        .fetchAll(db)
+}
+```
+
 > :bulb: **Tip**: Define commonly used requests in a constrained extension of the `DerivableRequest` protocol.
 
-The `DerivableRequest` protocol generally lets you filter, sort, leverage associations (we'll talk about associations in the [Compose Records] chapter below), etc.
+When you find yourself build similar requests over and over in your application, you may want to define a reusable and composable request vocabulary. This will avoid repetition in your app, ease refactoring, and enable testability.
+
+To do so, extend the `DerivableRequest` protocol. It generally lets you filter, sort, leverage associations (we'll talk about associations in the [Compose Records] chapter below), etc:
 
 ```swift
 // Author requests         ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -288,20 +313,6 @@ extension DerivableRequest where RowDecoder == Author {
     /// Filters authors with at least one book
     func havingBooks() -> Self {
         having(Author.books.isEmpty == false)
-    }
-}
-
-// Book requests           ~~~~~~~~~~~~~~~~~~~~~~~~
-extension DerivableRequest where RowDecoder == Book {
-    /// Filters books by kind
-    func filter(kind: Book.Kind) -> Self {
-        filter(Book.Columns.kind == kind)
-    }
-    
-    /// Filters books from a country
-    func filter(country: String) -> Self {
-        // Books have no country column. But their author does:
-        joining(required: Book.author.filter(country: authorCountry))
     }
 }
 ```
@@ -326,14 +337,44 @@ try dbQueue.read { db in
 }
 ```
 
-Because they are defined in an extension of the `DerivableRequest` protocol, our customized methods can decorate both requests and associations. See how the implementation of `filter(country:)` for books, above, uses the `filter(country:)` for authors.
+Because they are defined in an extension of the `DerivableRequest` protocol, our customized methods can decorate both requests and associations. See how the implementation of `filter(authorCountry:)` for books, below, uses the `filter(country:)` for authors:
 
 ```swift
+// Book requests           ~~~~~~~~~~~~~~~~~~~~~~~~
+extension DerivableRequest where RowDecoder == Book {
+    /// Filters books by kind
+    func filter(kind: Book.Kind) -> Self {
+        filter(Book.Columns.kind == kind)
+    }
+    
+    /// Filters books from a country
+    func filter(authorCountry: String) -> Self {
+        // Books do not have any country column. But their author has one.
+        // A book is from a country if it can be joined to an author from this country:
+        joining(required: Book.author.filter(country: authorCountry))
+    }
+}
+
 try dbQueue.read { db in
     let italianBooks: [Book] = try Book.all()
-        .filter(country: "Italy")
+        .filter(authorCountry: "Italy")
         .fetchAll(db)
 }
+```
+
+Extensions to the `DerivableRequest` protocol can not change the type of requests. This has to be expressed in an extension to `QueryInterfaceRequest`. For example:
+
+```swift
+// Author requests              ~~~~~~~~~~~~~~~~~~~~~~~~~~
+extension QueryInterfaceRequest where RowDecoder == Author {
+    // Selects author ids
+    func id() -> QueryInterfaceRequest<Int64> {
+        select(Author.Columns.id)
+    }
+}
+
+// IDs of French authors
+let ids: [Int64] = try Author.all().filter(country: "France").id().fetchAll(db)
 ```
 
 ## Compose Records
