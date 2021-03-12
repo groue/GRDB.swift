@@ -285,7 +285,7 @@ try dbQueue.read { db in
 
 > :bulb: **Tip**: Define commonly used requests in a constrained extension of the `DerivableRequest` protocol.
 
-When you find yourself build similar requests over and over in your application, you may want to define a reusable and composable request vocabulary. This will avoid repetition in your app, ease refactoring, and enable testability.
+When you find yourself build similar requests over and over in your application, you may want to define a reusable and composable request vocabulary. This will avoid repetition in your app, ease refactoring, and enable [testability](DemoApps/GRDBDemoiOS/GRDBDemoiOSTests/PlayerTests.swift).
 
 To do so, extend the `DerivableRequest` protocol. It generally lets you filter, sort, leverage associations (we'll talk about associations in the [Compose Records] chapter below), etc:
 
