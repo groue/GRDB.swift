@@ -143,7 +143,7 @@ class ValueObservationTests: GRDBTestCase {
     
     // MARK: - Snapshot Optimization
     
-    func testDisallowedSnapshotOptimizationWithAsyncScheduler() throws {
+    func testDoubleInitialFetchWithAsyncScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -183,7 +183,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
-    func testDisallowedSnapshotOptimizationWithImmediateScheduler() throws {
+    func testDoubleInitialFetchWithImmediateScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -223,7 +223,7 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
-    func testAllowedSnapshotOptimizationWithAsyncScheduler() throws {
+    func testSingleInitialFetchWithAsyncScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -247,7 +247,6 @@ class ValueObservationTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
         }
         
-        #if SQLITE_ENABLE_SNAPSHOT
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
         var observedCounts: [Int] = []
@@ -263,26 +262,9 @@ class ValueObservationTests: GRDBTestCase {
             waitForExpectations(timeout: 2, handler: nil)
             XCTAssertEqual(observedCounts, [0, 1])
         }
-        #else
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .async(onQueue: .main),
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-            })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0, 1])
-        }
-        #endif
     }
     
-    func testAllowedSnapshotOptimizationWithImmediateScheduler() throws {
+    func testSingleInitialFetchWithImmediateScheduler() throws {
         let dbPool = try makeDatabasePool()
         try dbPool.write { db in
             try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
@@ -306,7 +288,6 @@ class ValueObservationTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
         }
         
-        #if SQLITE_ENABLE_SNAPSHOT
         let expectation = self.expectation(description: "")
         expectation.expectedFulfillmentCount = 2
         var observedCounts: [Int] = []
@@ -322,23 +303,6 @@ class ValueObservationTests: GRDBTestCase {
             waitForExpectations(timeout: 2, handler: nil)
             XCTAssertEqual(observedCounts, [0, 1])
         }
-        #else
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .immediate,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-            })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0, 1])
-        }
-        #endif
     }
     
     // MARK: - Cancellation
