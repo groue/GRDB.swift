@@ -873,6 +873,13 @@ extension DatabasePool: DatabaseReader {
         // tracked database region (we have no way to know).
         //
         // 3. Install the transaction observer.
+        //
+        // When `SQLITE_ENABLE_SNAPSHOT` is not available, we perform a similar
+        // but weaker check. We compare the number of transaction commits
+        // performed between this method, and the first access to the writer
+        // database. Whenever this number has changed, we perform the second
+        // fetch, even if the actual changes are unrelated to the tracked
+        // database region (we have no way to know).
         
         #if SQLITE_ENABLE_SNAPSHOT
         if scheduler.immediateInitialValue() {
@@ -906,11 +913,16 @@ extension DatabasePool: DatabaseReader {
                 }
         }
         #else
+        // Grab `attemptedCommitCount` *before* reader transaction has started,
+        // so that it describes a state of the database from before the
+        // beginning of snapshot isolation. We are guaranteed to read an initial
+        // value from this state, or from a later state.
+        let attemptedCommitCount = self.writer.attemptedCommitCount
         if scheduler.immediateInitialValue() {
             do {
                 let initialValue = try read(observer.fetchInitialValue)
                 onChange(initialValue)
-                addObserver(observer: observer)
+                addObserver(observer: observer, from: attemptedCommitCount)
             } catch {
                 observer.complete()
                 observation.events.didFail?(error)
@@ -923,7 +935,7 @@ extension DatabasePool: DatabaseReader {
                 do {
                     let initialValue = try observer.fetchInitialValue(dbResult.get())
                     observer.notifyChange(initialValue)
-                    self.addObserver(observer: observer)
+                    self.addObserver(observer: observer, from: attemptedCommitCount)
                 } catch {
                     observer.notifyErrorAndComplete(error)
                 }
@@ -947,7 +959,7 @@ extension DatabasePool: DatabaseReader {
             do {
                 // Transaction is needed for version snapshotting
                 try db.inTransaction(.deferred) {
-                    // Keep DatabaseSnaphot alive until we have compared
+                    // Keep `initialSnapshot` alive until we have compared
                     // database versions. It prevents database checkpointing,
                     // and keeps versions (`sqlite3_snapshot`) valid
                     // and comparable.
@@ -976,15 +988,25 @@ extension DatabasePool: DatabaseReader {
     }
     #else
     // Support for _addConcurrent(observation:)
-    private func addObserver<Reducer: ValueReducer>(observer: ValueObserver<Reducer>) {
+    private func addObserver<Reducer: ValueReducer>(
+        observer: ValueObserver<Reducer>,
+        from attemptedCommitCount: Int)
+    {
         _weakAsyncWriteWithoutTransaction { db in
             guard let db = db else { return }
             if observer.isCompleted { return }
             
             do {
-                observer.events.databaseDidChange?()
-                if let value = try observer.fetchValue(db) {
-                    observer.notifyChange(value)
+                // If no commit did happen since the observation was started,
+                // then we are sure the database was not modified, and we do not
+                // have to perform a second fetch. Otherwise, we have to suppose
+                // the commits may have modified the observed value.
+                let fetchNeeded = db.observationBroker.attemptedCommitCount > attemptedCommitCount
+                if fetchNeeded {
+                    observer.events.databaseDidChange?()
+                    if let value = try observer.fetchValue(db) {
+                        observer.notifyChange(value)
+                    }
                 }
                 
                 // Now we can start observation

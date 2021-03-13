@@ -174,6 +174,13 @@ class DatabaseObservationBroker {
             }
         }
     }
+    #if !SQLITE_ENABLE_SNAPSHOT
+    /// The number of attempted SQLite commits
+    ///
+    /// This counter is incremented on each `sqlite3_commit_hook` callback: it
+    /// is allows DatabasePool to optimize its ValueObservation support.
+    @LockedBox private(set) var attemptedCommitCount = 0
+    #endif
     
     init(_ database: Database) {
         self.database = database
@@ -585,6 +592,9 @@ class DatabaseObservationBroker {
             let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
             do {
                 try broker.databaseWillCommit()
+                #if !SQLITE_ENABLE_SNAPSHOT
+                broker.$attemptedCommitCount.increment()
+                #endif
                 broker.transactionState = .commit
                 // Next step: updateStatementDidExecute()
                 return 0

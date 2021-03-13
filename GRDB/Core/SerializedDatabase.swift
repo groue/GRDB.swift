@@ -11,6 +11,13 @@ final class SerializedDatabase {
     /// The path to the database file
     var path: String
     
+    /// The number of attempted SQLite commits.
+    ///
+    /// See `DatabaseObservationBroker.attemptedCommitCount`
+    var attemptedCommitCount: Int {
+        db.observationBroker.attemptedCommitCount
+    }
+    
     /// The dispatch queue
     private let queue: DispatchQueue
     
