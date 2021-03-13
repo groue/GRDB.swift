@@ -20,7 +20,7 @@ As always with GRDB, everything starts at the level of the database schema. Putt
 
 We want to instruct SQLite that our table must never contain more than one row. We will never have to wonder what to do if we were unlucky enough to find two rows with conflicting values in this table.
 
-SQLite is not able to guarantee that the table is never empty, so we have to deal with two cases: either the table is empty, either it contains a row.
+SQLite is not able to guarantee that the table is never empty, so we have to deal with two cases: either the table is empty, or it contains one row.
 
 Those two cases can create a nagging question for the application. By default, inserts fail when the row already exists, and updates fail when the table is empty. In order to avoid those errors, we will have the app perform an insert in case of a failed update (in the [The Single-Row Record] chapter). And we instruct SQLite to just replace the eventual existing row in case of conflicting inserts:
 
@@ -185,7 +185,7 @@ try db.create(table: "appConfiguration") { t in
     // Single row guarantee
     t.column("id", .integer).primaryKey(onConflict: .replace).check { $0 == 1 }
     
-    // The configuration colums
+    // The configuration columns
     t.column("flag", .boolean).notNull()
     // ... other columns
 }
