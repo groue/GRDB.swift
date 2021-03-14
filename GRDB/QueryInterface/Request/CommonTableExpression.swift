@@ -117,14 +117,16 @@ extension CommonTableExpression {
             type: RowDecoder.self)
     }
     
-    /// Creates a common table expression from an `SQLLiteral`.
+    /// Creates a common table expression from an SQL *literal*.
     ///
-    /// For example:
+    /// Literals allow you to safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
+    ///     let name = "O'Brien"
     ///     let p = CommonTableExpression<Void>(
     ///         named: "p",
-    ///         literal: "SELECT * FROM player WHERE name = \("O'Brien")")
+    ///         literal: "SELECT * FROM player WHERE name = \(name)")
     ///
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.
@@ -215,14 +217,16 @@ extension CommonTableExpression where RowDecoder == Row {
             type: Row.self)
     }
     
-    /// Creates a common table expression from an `SQLLiteral`.
+    /// Creates a common table expression from an SQL *literal*.
     ///
-    /// For example:
+    /// Literals allow you to safely embed raw values in your SQL queries,
+    /// without any risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
+    ///     let name = "O'Brien"
     ///     let p = CommonTableExpression(
     ///         named: "p",
-    ///         literal: "SELECT * FROM player WHERE name = \("O'Brien")")
+    ///         literal: "SELECT * FROM player WHERE name = \(name)")
     ///
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.

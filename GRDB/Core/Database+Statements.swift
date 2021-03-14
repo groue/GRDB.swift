@@ -126,18 +126,12 @@ extension Database {
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
-    ///     try db.execute(literal: SQLLiteral(
-    ///         sql: "INSERT INTO player (name) VALUES (:name)",
-    ///         arguments: ["name": "Arthur"]))
-    ///
-    ///     try db.execute(literal: SQLLiteral(sql: """
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// Literals allow you to safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
+    ///
+    ///     try db.execute(literal: """
+    ///         INSERT INTO player (name) VALUES (\("Arthur"))
+    ///         """)
     ///
     ///     try db.execute(literal: """
     ///         INSERT INTO player (name) VALUES (\("Arthur"));

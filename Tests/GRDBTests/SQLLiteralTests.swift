@@ -146,7 +146,7 @@ class SQLLiteralTests: GRDBTestCase {
                 let columnLiteral = SQLLiteral(Column("name"))
                 let suffixLiteral = SQLLiteral("O'Brien".databaseValue)
                 let literal = [columnLiteral, suffixLiteral].joined(separator: " || ")
-                let request = Player.aliased(TableAlias(name: "p")).select(literal.sqlExpression)
+                let request = Player.aliased(TableAlias(name: "p")).select(literal)
                 try assertEqualSQL(db, request, """
                     SELECT "p"."name" || 'O''Brien' FROM "player" "p"
                     """)
@@ -155,7 +155,7 @@ class SQLLiteralTests: GRDBTestCase {
             do {
                 // Test qualification of interpolated literal
                 let literal: SQLLiteral = "\(Column("name")) || 'foo'"
-                let request = Player.aliased(TableAlias(name: "p")).select(literal.sqlExpression)
+                let request = Player.aliased(TableAlias(name: "p")).select(literal)
                 try assertEqualSQL(db, request, """
                     SELECT "p"."name" || 'foo' FROM "player" "p"
                     """)
@@ -683,7 +683,7 @@ extension SQLLiteralTests {
             
             do {
                 let alteredNameLiteral = SQLLiteral("\(nameColumn) || \("O'Brien")")
-                let alteredNameColumn = alteredNameLiteral.sqlExpression.forKey("alteredName")
+                let alteredNameColumn = alteredNameLiteral.forKey("alteredName")
                 let request = baseRequest.select(alteredNameColumn)
                 try assertEqualSQL(db, request, """
                     SELECT "p"."name" || 'O''Brien' AS "alteredName" FROM "player" "p"
@@ -703,7 +703,7 @@ extension SQLLiteralTests {
                 // Test of documentation
                 let date = "2020-01-23"
                 let createdAt = Column("createdAt")
-                let creationDate = SQLLiteral("DATE(\(createdAt))").sqlExpression
+                let creationDate = SQLLiteral("DATE(\(createdAt))")
                 let request = Player.filter(creationDate == date)
                 try assertEqualSQL(db, request, """
                     SELECT * FROM "player" WHERE (DATE("createdAt")) = '2020-01-23'

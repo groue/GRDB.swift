@@ -49,18 +49,12 @@ public struct SQLRequest<RowDecoder> {
     
     /// Creates a request from an SQLLiteral, and optional row adapter.
     ///
-    ///     let request = SQLRequest<String>(literal: SQLLiteral(sql: """
-    ///         SELECT name FROM player
-    ///         """))
-    ///     let request = SQLRequest<Player>(literal: SQLLiteral(sql: """
-    ///         SELECT * FROM player WHERE name = ?
-    ///         """, arguments: ["O'Brien"]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// Literals allow you to safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
+    ///     let name = "O'brien"
     ///     let request = SQLRequest<Player>(literal: """
-    ///         SELECT * FROM player WHERE name = \("O'brien")
+    ///         SELECT * FROM player WHERE name = \(name)
     ///         """)
     ///
     /// - parameters:
@@ -73,27 +67,6 @@ public struct SQLRequest<RowDecoder> {
         self.init(literal: sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
     }
     
-    /// Creates a request from an SQLLiteral, and optional row adapter.
-    ///
-    ///     let request = SQLRequest<String>(literal: SQLLiteral(sql: """
-    ///         SELECT name FROM player
-    ///         """))
-    ///     let request = SQLRequest<Player>(literal: SQLLiteral(sql: """
-    ///         SELECT * FROM player WHERE name = ?
-    ///         """, arguments: ["O'Brien"]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
-    ///
-    ///     let request = SQLRequest<Player>(literal: """
-    ///         SELECT * FROM player WHERE name = \("O'brien")
-    ///         """)
-    ///
-    /// - parameters:
-    ///     - sqlLiteral: An SQLLiteral.
-    ///     - adapter: Optional RowAdapter.
-    ///     - cache: The eventual cache
-    /// - returns: A SQLRequest
     init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
         self.sqlLiteral = sqlLiteral
         self.adapter = adapter

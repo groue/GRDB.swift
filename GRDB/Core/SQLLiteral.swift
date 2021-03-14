@@ -165,21 +165,32 @@ extension SQLLiteral {
     }
 }
 
-extension SQLLiteral {
+extension SQLLiteral: SQLSpecificExpressible {
     /// Creates a literal SQL expression.
     ///
-    ///     SQLLiteral(sql: "1 + 2").sqlExpression
-    ///     SQLLiteral(sql: "? + ?", arguments: [1, 2]).sqlExpression
-    ///     SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]).sqlExpression
+    /// Use this property when you need an explicit `SQLExpression`.
+    /// For example:
+    ///
+    ///     func date(_ value: SQLExpressible) -> SQLExpression {
+    ///         SQLLiteral("DATE(\(value))").sqlExpression
+    ///     }
+    ///
+    ///     // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+    ///     let createdAt = Column("createdAt")
+    ///     let request = Player.filter(date(createdAt) == "2020-01-23")
     public var sqlExpression: SQLExpression {
         .literal(self)
     }
-    
-    var sqlSelection: SQLSelection {
+}
+
+extension SQLLiteral: SQLSelectable {
+    public var sqlSelection: SQLSelection {
         .literal(self)
     }
-    
-    var sqlOrdering: SQLOrdering {
+}
+
+extension SQLLiteral: SQLOrderingTerm {
+    public var sqlOrdering: SQLOrdering {
         .literal(self)
     }
 }

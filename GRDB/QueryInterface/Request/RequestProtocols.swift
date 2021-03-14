@@ -72,19 +72,12 @@ extension SelectionRequest {
     ///         .select(sql: "id")
     ///         .select(sql: "email")
     public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        select(literal: SQLLiteral(sql: sql, arguments: arguments))
+        select(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects an SQL *literal*.
     ///
-    ///     // SELECT id, email, score + 1000 FROM player
-    ///     let bonus = 1000
-    ///     var request = Player.all()
-    ///     request = request.select(literal: SQLLiteral(sql: """
-    ///         id, email, score + ?
-    ///         """, arguments: [bonus]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// Literals allow you to safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
     ///     // SELECT id, email, score + 1000 FROM player
@@ -99,10 +92,10 @@ extension SelectionRequest {
     ///     // SELECT email FROM player
     ///     request
     ///         .select(...)
-    ///         .select(literal: SQLLiteral(sql: "email"))
+    ///         .select(literal: "email")
     public func select(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        select(sqlLiteral.sqlSelection)
+        select(sqlLiteral)
     }
     
     /// Creates a request which appends *selection*.
@@ -173,26 +166,22 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        filter(literal: SQLLiteral(sql: sql, arguments: arguments))
+        filter(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
     ///
-    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
-    ///     var request = Player.all()
-    ///     request = request.filter(literal: SQLLiteral(sql: """
-    ///         email = ?
-    ///         """, arguments: ["arthur@example.com"])
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
+    /// Literals allow you to safely embed raw values in your SQL queries,
     /// without any risk of syntax errors or SQL injection:
     ///
+    ///     // SELECT * FROM player WHERE name = 'O''Brien'
+    ///     let name = "O'Brien"
     ///     var request = Player.all()
-    ///     request = request.filter(literal: "name = \("O'Brien")")
+    ///     request = request.filter(literal: "email = \(email)")
     public func filter(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        filter(sqlLiteral.sqlExpression)
+        filter(sqlLiteral)
     }
     
     /// Creates a request that matches nothing.
@@ -367,13 +356,13 @@ extension AggregatingRequest {
     
     /// Creates a request with a new grouping.
     public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        group(literal: SQLLiteral(sql: sql, arguments: arguments))
+        group(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with a new grouping.
     public func group(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        group(sqlLiteral.sqlExpression)
+        group(sqlLiteral)
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -385,14 +374,14 @@ extension AggregatingRequest {
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        having(literal: SQLLiteral(sql: sql, arguments: arguments))
+        having(SQLLiteral(sql: sql, arguments: arguments))
     }
     
-    /// Creates a request with the provided *sql* added to the
+    /// Creates a request with the provided SQL *literal* added to the
     /// eventual set of already applied predicates.
     public func having(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        having(sqlLiteral.sqlExpression)
+        having(sqlLiteral)
     }
 }
 
@@ -484,24 +473,24 @@ extension OrderedRequest {
     ///         .order(sql: "email")
     ///         .order(sql: "name")
     public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        order(literal: SQLLiteral(sql: sql, arguments: arguments))
+        order(SQLLiteral(sql: sql, arguments: arguments))
     }
     
     /// Creates a request sorted according to an SQL *literal*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     var request = Player.all()
-    ///     request = request.order(sql: "name")
+    ///     request = request.order(literal: "name")
     ///
     /// Any previous ordering is replaced:
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     request
-    ///         .order(sql: "email")
-    ///         .order(sql: "name")
+    ///         .order(literal: "email")
+    ///         .order(literal: "name")
     public func order(literal sqlLiteral: SQLLiteral) -> Self {
         // NOT TESTED
-        order(sqlLiteral.sqlOrdering)
+        order(sqlLiteral)
     }
 }
 
