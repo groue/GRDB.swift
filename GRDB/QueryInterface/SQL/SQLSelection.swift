@@ -81,12 +81,15 @@ public struct SQLSelection {
 
 extension SQLSelection {
     /// Returns the number of columns in the selection.
-    func columnCount(_ db: Database) throws -> Int {
+    ///
+    /// Returns nil when the number of columns is unknown.
+    func columnCount(_ db: Database) throws -> Int? {
         switch impl {
         case .allColumns:
-            // Likely a GRDB bug
-            fatalError("Can't compute number of columns without an alias")
-            
+            // Likely a GRDB bug: we can't count the number of columns in an
+            // unqualified table.
+            return nil
+        
         case let .qualifiedAllColumns(alias):
             return try db.columns(in: alias.tableName).count
             
@@ -101,11 +104,9 @@ extension SQLSelection {
             return 1
             
         case .literal:
-            fatalError("""
-                Selection literals don't known how many columns they contain. \
-                To resolve this error, select one or several literal expressions instead. \
-                See SQLLiteral.sqlExpression.
-                """)
+            // We do not embed any SQL parser: we can't count the number of
+            // columns in a literal selection.
+            return nil
         }
     }
     
@@ -294,6 +295,29 @@ extension SQLSelection {
             
         case let .literal(sqlLiteral):
             return .literal(sqlLiteral.qualified(with: alias))
+        }
+    }
+}
+
+extension Array where Element == SQLSelection {
+    /// Returns the number of columns in the selection.
+    ///
+    /// This method raises a fatal error if the selection contains a literal,
+    ///
+    /// See `SQLSelection.columnCount(_:)` for testability.
+    func columnCount(_ db: Database) throws -> Int {
+        try reduce(0) { acc, selection in
+            guard let count = try selection.columnCount(db) else {
+                // Found an SQL literal:
+                // - Player.select(sql: "id, name, score")
+                // - Player.select(literal: "id, name, score")
+                fatalError("""
+                    Selection literals don't known how many columns they contain. \
+                    To resolve this error, select one or several expressions instead.
+                    """)
+            }
+            
+            return acc + count
         }
     }
 }

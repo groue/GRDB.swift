@@ -102,9 +102,7 @@ struct SQLQueryGenerator: Refinable {
         try relation
             .selectionPromise
             .resolve(db)
-            .reduce(0) {
-                try $0 + $1.columnCount(db)
-            }
+            .columnCount(db)
     }
     
     /// Returns a select statement
@@ -608,9 +606,7 @@ private struct SQLQualifiedRelation {
         
         // The number of columns in source selection. Columns selected by joined
         // relations are appended after.
-        let sourceSelectionWidth = try sourceSelectionPromise.resolve(db).reduce(0) {
-            try $0 + $1.columnCount(db)
-        }
+        let sourceSelectionWidth = try sourceSelectionPromise.resolve(db).columnCount(db)
         
         // Recursively build adapters for each joined relation with a selection.
         // Name them according to the join keys.
