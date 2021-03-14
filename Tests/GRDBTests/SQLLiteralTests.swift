@@ -767,4 +767,64 @@ extension SQLLiteralTests {
         XCTAssertTrue(SQLLiteral(sql: "").isEmpty)
         XCTAssertTrue(SQLLiteral("").isEmpty)
     }
+    
+    func testProtocolResolution() {
+        // SQLLiteral can feed ordering, selection, and expressions.
+        acceptOrderingTerm(SQLLiteral(""))
+        acceptSelectable(SQLLiteral(""))
+        acceptSpecificExpressible(SQLLiteral(""))
+        acceptExpressible(SQLLiteral(""))
+        
+        // SQLLiteral can build complex expressions and orderings
+        _ = SQLLiteral("") + 1
+        _ = SQLLiteral("").desc
+        
+        // Swift String literals are interpreted as String, even when SQLLiteral
+        // is an accepted type.
+        //
+        // should not compile: XCTAssertEqual(acceptOrderingTerm(""), String(describing: String.self))
+        // should not compile: XCTAssertEqual(acceptSelectable(""), String(describing: String.self))
+        // should not compile: XCTAssertEqual(acceptSpecificExpressible(""), String(describing: String.self))
+        XCTAssertEqual(acceptExpressible(""), String(describing: String.self))
+        
+        // When a literal can be interpreted as an ordering, a selection, or an
+        // expression, then the expression interpretation is favored.
+        // This test targets TableAlias subscript.
+        //
+        // should not compile: XCTAssertEqual(overloaded(""), "a")
+        XCTAssertEqual(overloaded(SQLLiteral("")), "SQLSpecificExpressible")
+    }
+}
+
+// Support for testProtocolResolution()
+@discardableResult
+private func acceptOrderingTerm(_ x: SQLOrderingTerm) -> String {
+    String(describing: type(of: x))
+}
+
+@discardableResult
+private func acceptSelectable(_ x: SQLSelectable) -> String {
+    String(describing: type(of: x))
+}
+
+@discardableResult
+private func acceptSpecificExpressible(_ x: SQLSpecificExpressible) -> String {
+    String(describing: type(of: x))
+}
+
+@discardableResult
+private func acceptExpressible(_ x: SQLExpressible) -> String {
+    String(describing: type(of: x))
+}
+
+private func overloaded(_ x: SQLOrderingTerm) -> String {
+    "SQLOrderingTerm"
+}
+
+private func overloaded(_ x: SQLSelectable) -> String {
+    "SQLSelectable"
+}
+
+private func overloaded(_ x: SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> String {
+    "SQLSpecificExpressible"
 }
