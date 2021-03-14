@@ -143,25 +143,37 @@ For example:
 let request = Player.filter(literal: "name = \("O'Brien")")
 ```
 
-You can also build literal expressions from other expressions. For example, let's call the `DATE` SQLite function on a query interface column:
+You can also build literals from other expressions. For example, let's call the `DATE` SQLite function on a query interface column:
 
 ```swift
-// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+// SELECT * FROM player WHERE DATE(createdAt) = '2020-01-23'
 let createdAt = Column("createdAt")
-let creationDay = SQLLiteral("DATE(\(createdAt))").sqlExpression
+let creationDay = SQLLiteral("DATE(\(createdAt))")
 let request = Player.filter(creationDay == "2020-01-23")
 ```
 
-Such literal expressions can be returned by Swift functions:
+Such literals play well with the query interface, even when several tables are involved with [associations](AssociationsBasics.md):
 
 ```swift
-func date(_ value: SQLExpressible) -> SQLExpression {
-    SQLLiteral("DATE(\(value))").sqlExpression
+// SELECT player.*, team.*
+// FROM player
+// JOIN team ON team.id = player.teamID
+// WHERE DATE(player.createdAt) = '2020-01-23'
+//       ~~~~~~~~~~~~~~~~~~~~~~
+//       automatic table disambiguation
+let request = Player
+    .filter(creationDay == "2020-01-23")
+    .including(required: Player.team)
+```
+
+This allows you to define Swift functions that you can use in all circumstances:
+
+```swift
+func date(_ expression: SQLExpressible) -> SQLExpression {
+    SQLLiteral("DATE(\(expression))").sqlExpression
 }
 
-// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
-let createdAt = Column("createdAt")
-let request = Player.filter(date(createdAt) == "2020-01-23")
+let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
 ```
 
 
