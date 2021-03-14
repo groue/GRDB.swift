@@ -538,6 +538,21 @@ extension SQLLiteralTests {
         }
     }
     
+    func testSQLLiteralInterpolation2() throws {
+        // Since SQLLiteral conforms to SQLExpressible, make sure it is NOT
+        // interpreted as an expression when embedded in another literal.
+        let literal: SQLLiteral = "\("foo") \(SQLLiteral("bar \("baz".dropFirst())"))"
+        XCTAssertEqual(literal.elements.count, 4)
+        switch literal.elements[0] { case .expression:      break; default: XCTFail("Expected expression") }
+        switch literal.elements[1] { case .sql(" ", []):    break; default: XCTFail("Expected sql") }
+        switch literal.elements[2] { case .sql("bar ", []): break; default: XCTFail("Expected sql") }
+        switch literal.elements[3] { case .expression:      break; default: XCTFail("Expected expression") }
+        
+        let (sql, arguments) = try makeDatabaseQueue().read(literal.build)
+        XCTAssertEqual(sql, "? bar ?")
+        XCTAssertEqual(arguments, ["foo", "az"])
+    }
+    
     func testSQLRequestInterpolation() throws {
         try makeDatabaseQueue().inDatabase { db in
             let subquery: SQLRequest<Int> = "SELECT MAX(score) - \(10) FROM player"
