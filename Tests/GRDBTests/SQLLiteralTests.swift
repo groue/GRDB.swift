@@ -783,7 +783,7 @@ extension SQLLiteralTests {
         XCTAssertTrue(SQLLiteral("").isEmpty)
     }
     
-    func testProtocolResolution() {
+    func testProtocolResolution() throws {
         // SQLLiteral can feed ordering, selection, and expressions.
         acceptOrderingTerm(SQLLiteral(""))
         acceptSelectable(SQLLiteral(""))
@@ -808,6 +808,28 @@ extension SQLLiteralTests {
         //
         // should not compile: XCTAssertEqual(overloaded(""), "a")
         XCTAssertEqual(overloaded(SQLLiteral("")), "SQLSpecificExpressible")
+        
+        // In practice:
+        try makeDatabaseQueue().write { db in
+            struct Player: TableRecord { }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name")
+                t.column("score")
+            }
+            let statement = try Player
+                .select(SQLLiteral("id"), SQLLiteral("score").forKey("theScore"))
+                .filter(SQLLiteral("name = \("O'Brien")") && SQLLiteral("score > 1000"))
+                .order(SQLLiteral("score ASC"), SQLLiteral("name").desc)
+                .makePreparedRequest(db)
+                .statement
+            XCTAssertEqual(statement.sql, """
+                SELECT id, score AS "theScore" \
+                FROM "player" \
+                WHERE (name = ?) AND (score > 1000) ORDER BY score ASC, name DESC
+                """)
+            XCTAssertEqual(statement.arguments, ["O'Brien"])
+        }
     }
 }
 
