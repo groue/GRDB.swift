@@ -85,6 +85,17 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
         .order(SQLLiteral("score DESC"), ...)
     ```
 
+- Table creation DSL now supports columns and constraints defined with raw SQL String or [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral):
+    
+    ```swift
+    try db.create(table: "player") do { t in
+        t.column(sql: "id INTEGER PRIMARY KEY AUTOINCREMENT")
+        t.column(litral: "name TEXT DEFAULT \("Anonymous")")
+        t.constraint(sql: "CHECK (LENGTH(name) > 0)")
+        t.constraint(literal: "CHECK (LENGTH(name) <= \(100))")
+    }
+    ```
+
 ## 5.6.0
 
 Released March 12, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.5.0...v5.6.0)
