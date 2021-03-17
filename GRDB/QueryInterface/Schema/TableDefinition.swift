@@ -578,6 +578,7 @@ public final class TableAlteration {
     
     private enum TableAlterationKind {
         case add(ColumnDefinition)
+        case addColumnLiteral(SQLLiteral)
         case rename(old: String, new: String)
     }
     
@@ -604,6 +605,30 @@ public final class TableAlteration {
         let column = ColumnDefinition(name: name, type: type)
         alterations.append(.add(column))
         return column
+    }
+    
+    /// Appends a table column defined with raw SQL.
+    ///
+    ///     // ALTER TABLE player ADD COLUMN name TEXT
+    ///     try db.alter(table: "player") { t in
+    ///         t.addColumn(sql: "name TEXT")
+    ///     }
+    public func addColumn(sql: String) {
+        alterations.append(.addColumnLiteral(SQLLiteral(sql: sql)))
+    }
+    
+    /// Appends a table column defined with an SQL *literal*.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     // ALTER TABLE player ADD COLUMN name TEXT DEFAULT 'Anonymous'
+    ///     let defaultName = "Anonymous"
+    ///     try db.alter(table: "player") { t in
+    ///         t.addColumn(literal: "name TEXT DEFAULT \(defaultName)")
+    ///     }
+    public func addColumn(literal: SQLLiteral) {
+        alterations.append(.addColumnLiteral(literal))
     }
     
     #if GRDBCUSTOMSQLITE || GRDBCIPHER
@@ -658,6 +683,17 @@ public final class TableAlteration {
                 if let indexDefinition = column.indexDefinition(in: name, ifNotExists: false) {
                     try statements.append(indexDefinition.sql(db))
                 }
+                
+            case let .addColumnLiteral(sqlLiteral):
+                var chunks: [String] = []
+                chunks.append("ALTER TABLE")
+                chunks.append(name.quotedDatabaseIdentifier)
+                chunks.append("ADD COLUMN")
+                let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+                try chunks.append(sqlLiteral.sql(context))
+                let statement = chunks.joined(separator: " ")
+                statements.append(statement)
+                
             case let .rename(oldName, newName):
                 var chunks: [String] = []
                 chunks.append("ALTER TABLE")
