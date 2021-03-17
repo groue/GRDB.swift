@@ -177,15 +177,38 @@ public final class TableDefinition {
         var deferred: Bool
     }
     
+    private enum ColumnItem {
+        case definition(ColumnDefinition)
+        case literal(SQLLiteral)
+        
+        var columnDefinition: ColumnDefinition? {
+            switch self {
+            case let .definition(def): return def
+            case .literal: return nil
+            }
+        }
+        
+        func sql(_ db: Database, tableName: String, primaryKeyColumns: [String]?) throws -> String {
+            switch self {
+            case let .definition(def):
+                return try def.sql(db, tableName: tableName, primaryKeyColumns: primaryKeyColumns)
+            case let .literal(sqlLiteral):
+                let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+                return try sqlLiteral.sql(context)
+            }
+        }
+    }
+    
     private let name: String
     private let temporary: Bool
     private let ifNotExists: Bool
     private let withoutRowID: Bool
-    private var columns: [ColumnDefinition] = []
+    private var columns: [ColumnItem] = []
     private var primaryKeyConstraint: KeyConstraint?
     private var uniqueKeyConstraints: [KeyConstraint] = []
     private var foreignKeyConstraints: [ForeignKeyConstraint] = []
     private var checkConstraints: [SQLExpression] = []
+    private var literalConstraints: [SQLLiteral] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
         self.name = name
@@ -245,8 +268,33 @@ public final class TableDefinition {
     @discardableResult
     public func column(_ name: String, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
         let column = ColumnDefinition(name: name, type: type)
-        columns.append(column)
+        columns.append(.definition(column))
         return column
+    }
+    
+    /// Appends a table column defined with raw SQL.
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.column(sql: "name TEXT")
+    ///     }
+    public func column(sql: String) {
+        columns.append(.literal(SQLLiteral(sql: sql)))
+    }
+    
+    /// Appends a table column defined with an SQL *literal*.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     // CREATE TABLE player (
+    ///     //   name TEXT DEFAULT 'Anonymous'
+    ///     // )
+    ///     let defaultName = "Anonymous"
+    ///     try db.create(table: "player") { t in
+    ///         t.column(literal: "name TEXT DEFAULT \(defaultName)")
+    ///     }
+    public func column(literal: SQLLiteral) {
+        columns.append(.literal(literal))
     }
     
     /// Defines the table primary key.
@@ -358,6 +406,38 @@ public final class TableDefinition {
         checkConstraints.append(SQLLiteral(sql: sql).sqlExpression)
     }
     
+    /// Appends a table constraint defined with raw SQL.
+    ///
+    ///     // CREATE TABLE player (
+    ///     //   ...
+    ///     //   CHECK (score >= 0)
+    ///     // )
+    ///     try db.create(table: "player") { t in
+    ///         ...
+    ///         t.constraint(sql: "CHECK (score >= 0)")
+    ///     }
+    public func constraint(sql: String) {
+        literalConstraints.append(SQLLiteral(sql: sql))
+    }
+    
+    /// Appends a table constraint defined with an SQL *literal*.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     // CREATE TABLE player (
+    ///     //   ...
+    ///     //   CHECK (score >= 0)
+    ///     // )
+    ///     let minScore = 0
+    ///     try db.create(table: "player") { t in
+    ///         ...
+    ///         t.constraint(literal: "CHECK (score >= \(minScore))")
+    ///     }
+    public func constraint(literal: SQLLiteral) {
+        literalConstraints.append(literal)
+    }
+    
     fileprivate func sql(_ db: Database) throws -> String {
         var statements: [String] = []
         
@@ -376,8 +456,8 @@ public final class TableDefinition {
             let primaryKeyColumns: [String]
             if let (columns, _) = primaryKeyConstraint {
                 primaryKeyColumns = columns
-            } else if let index = columns.firstIndex(where: { $0.primaryKey != nil }) {
-                primaryKeyColumns = [columns[index].name]
+            } else if let column = columns.lazy.compactMap(\.columnDefinition).first(where: { $0.primaryKey != nil }) {
+                primaryKeyColumns = [column.name]
             } else {
                 // WITHOUT ROWID optimization requires a primary key. If the
                 // user sets withoutRowID, but does not define a primary key,
@@ -461,6 +541,11 @@ public final class TableDefinition {
                     items.append(chunks.joined(separator: " "))
                 }
                 
+                for literal in literalConstraints {
+                    let context = SQLGenerationContext(db, argumentsSink: .forRawSQL)
+                    try items.append(literal.sql(context))
+                }
+                
                 chunks.append("(\(items.joined(separator: ", ")))")
             }
             
@@ -471,7 +556,7 @@ public final class TableDefinition {
         }
         
         let indexStatements = try columns
-            .compactMap { $0.indexDefinition(in: name, ifNotExists: ifNotExists) }
+            .compactMap { $0.columnDefinition?.indexDefinition(in: name, ifNotExists: ifNotExists) }
             .map { try $0.sql(db) }
         statements.append(contentsOf: indexStatements)
         return statements.joined(separator: "; ")

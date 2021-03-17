@@ -35,6 +35,21 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testColumnLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Simple table creation
+            try db.create(table: "test") { t in
+                t.column(sql: "a TEXT")
+                t.column(literal: "b TEXT DEFAULT \("O'Brien")")
+            }
+            
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (a TEXT, b TEXT DEFAULT 'O''Brien')
+                """)
+        }
+    }
+    
     func testUntypedColumn() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -430,6 +445,28 @@ class TableDefinitionTests: GRDBTestCase {
                 XCTFail()
             } catch {
             }
+        }
+    }
+    
+    func testConstraintLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Simple table creation
+            try db.create(table: "test") { t in
+                t.constraint(sql: "CHECK (a + b < 10)")
+                t.constraint(sql: "CHECK (a + b < \(20))")
+                t.column("a", .integer)
+                t.column("b", .integer)
+            }
+            
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (\
+                "a" INTEGER, \
+                "b" INTEGER, \
+                CHECK (a + b < 10), \
+                CHECK (a + b < 20)\
+                )
+                """)
         }
     }
     
