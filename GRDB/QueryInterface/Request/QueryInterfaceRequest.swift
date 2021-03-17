@@ -128,8 +128,8 @@ extension QueryInterfaceRequest: SelectionRequest {
     /// Creates a request which selects an SQL *literal*, and fetches values of
     /// type *type*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
     ///     // SELECT IFNULL(name, 'Anonymous') FROM player
     ///     let defaultName = "Anonymous"

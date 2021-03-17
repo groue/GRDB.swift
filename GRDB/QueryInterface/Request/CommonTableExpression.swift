@@ -119,8 +119,8 @@ extension CommonTableExpression {
     
     /// Creates a common table expression from an SQL *literal*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
     ///     let name = "O'Brien"
@@ -219,8 +219,8 @@ extension CommonTableExpression where RowDecoder == Row {
     
     /// Creates a common table expression from an SQL *literal*.
     ///
-    /// Literals allow you to safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
     ///     let name = "O'Brien"

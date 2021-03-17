@@ -126,8 +126,8 @@ extension Database {
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
-    /// Literals allow you to safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
     ///     try db.execute(literal: """
     ///         INSERT INTO player (name) VALUES (\("Arthur"))

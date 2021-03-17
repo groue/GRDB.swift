@@ -49,8 +49,8 @@ public struct SQLRequest<RowDecoder> {
     
     /// Creates a request from an SQLLiteral, and optional row adapter.
     ///
-    /// Literals allow you to safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
     ///     let name = "O'brien"
     ///     let request = SQLRequest<Player>(literal: """
