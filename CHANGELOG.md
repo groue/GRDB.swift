@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- [Development Branch](#development-branch)
 - `5.6.x` Releases - [5.6.0](#560)
 - `5.5.x` Releases - [5.5.0](#550)
 - `5.4.x` Releases - [5.4.0](#540)
@@ -71,6 +72,18 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [0.110.0](#01100), ...
 
+
+## Development Branch
+
+- [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral) can now be directly used as an expression, an ordering term, or a selection item.:
+    
+    ```swift
+    let name = "O'Brien"
+    let request = Player
+        .select(SQLLiteral("id, score"), ...)
+        .filter(SQLLiteral("name = \(name)") && ...)
+        .order(SQLLiteral("score DESC"), ...)
+    ```
 
 ## 5.6.0
 
