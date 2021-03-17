@@ -4029,6 +4029,15 @@ For extra index options, see [Create Indexes](#create-indexes) below.
     t.column("score", .integer).check(sql: "score > 0")
 ```
 
+Columns can also be defined with a raw sql String, or an [SQLLiteral] in which can safely embed raw values without any risk of syntax errors or SQL injection:
+
+```swift
+    t.column(sql: "name TEXT")
+    
+    let defaultName: String = ...
+    t.column(literal: "name TEXT DEFAULT \(defaultName)")
+```
+
 Other **table constraints** can involve several columns:
 
 ```swift
@@ -4046,6 +4055,10 @@ Other **table constraints** can involve several columns:
     
     // CHECK (a + b < 10)
     t.check(sql: "a + b < 10")
+    
+    // Raw SQL constraints
+    t.constraint(sql: "CHECK (a + b < 10)")
+    t.constraint(literal: "CHECK (a + b < \(10))")
 ```
 
 [Generated columns](https://sqlite.org/gencol.html) are available with a [custom SQLite build]:
@@ -8186,3 +8199,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [FAQ]: #faq
 [Database Observation]: #database-changes-observation
 [SQLRequest]: http://groue.github.io/GRDB.swift/docs/5.6/Structs/SQLRequest.html
+[SQLLiteral]: Documentation/SQLInterpolation.md#sqlliteral
