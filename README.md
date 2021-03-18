@@ -1744,8 +1744,8 @@ selectStatement.arguments = ["Arthur"]
 Alternatively, you can create a prepared statement with [SQL Interpolation]:
 
 ```swift
-let updateStatement = try db.makeUpdateStatement(literal: "...")
-let selectStatement = try db.makeSelectStatement(literal: "...")
+let updateStatement = try db.makeUpdateStatement(literal: "INSERT ...")
+let selectStatement = try db.makeSelectStatement(literal: "SELECT ...")
 //                                               ~~~~~~~
 ```
 
