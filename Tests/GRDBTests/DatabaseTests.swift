@@ -253,6 +253,58 @@ class DatabaseTests : GRDBTestCase {
         }
     }
 
+    func testSelectStatementLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            
+            let statement = try db.makeSelectStatement(literal: "SELECT * FROM persons")
+            let rows = try Row.fetchAll(statement)
+            XCTAssertEqual(rows.count, 2)
+        }
+    }
+
+    func testSelectStatementLiteralWithArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            
+            let statement = try db.makeSelectStatement(literal: "SELECT * FROM persons WHERE name = \("Arthur")")
+            let rows = try Row.fetchAll(statement)
+            XCTAssertEqual(rows.count, 1)
+        }
+    }
+    
+    func testSelectStatementLiteralWithArrayBinding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            
+            let statement = try db.makeSelectStatement(literal: "SELECT * FROM persons WHERE name = ?")
+            let rows = try Row.fetchAll(statement, arguments: ["Arthur"])
+            XCTAssertEqual(rows.count, 1)
+        }
+    }
+
+    func testSelectStatementLiteralWithDictionaryBinding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE persons (name TEXT, age INT)")
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
+            try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Barbara", "age": nil])
+            
+            let statement = try db.makeSelectStatement(literal: "SELECT * FROM persons WHERE name = :name")
+            let rows = try Row.fetchAll(statement, arguments: ["name": "Arthur"])
+            XCTAssertEqual(rows.count, 1)
+        }
+    }
+
     func testRowValueAtIndex() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
