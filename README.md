@@ -1741,7 +1741,17 @@ updateStatement.arguments = ["name": "Arthur", "score": 1000]
 selectStatement.arguments = ["Arthur"]
 ```
 
-After arguments are set, you can execute the prepared statement:
+Alternatively, you can create a statement with an [SQLLiteral] in which can safely embed raw values without any risk of syntax errors or SQL injection:
+
+```swift
+let name = "O'Brien"
+let score = 1000
+let updateStatement = try db.makeUpdateStatement(literal: """
+    INSERT INTO player (name, score) VALUES (\(name), \(score))
+    """)
+```
+
+Update statements can be executed:
 
 ```swift
 try updateStatement.execute()
