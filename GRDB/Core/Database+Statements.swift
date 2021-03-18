@@ -19,6 +19,37 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
+    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - returns: An SelectStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
+    ///
+    ///         // OK
+    ///         try makeSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > ?
+    ///             """)
+    ///         try makeSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > \(1000)
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try makeSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player
+    ///             WHERE color = ? AND score > \(1000)
+    ///             """)
+    public func makeSelectStatement(literal sqlLiteral: SQLLiteral) throws -> SelectStatement {
+        let (sql, arguments) = try sqlLiteral.build(self)
+        let statement = try makeSelectStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
+    }
+    
+    /// Returns a new prepared statement that can be reused.
+    ///
     ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
