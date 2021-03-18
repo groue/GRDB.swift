@@ -90,7 +90,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     ```swift
     try db.create(table: "player") do { t in
         t.column(sql: "id INTEGER PRIMARY KEY AUTOINCREMENT")
-        t.column(litral: "name TEXT DEFAULT \("Anonymous")")
+        t.column(literal: "name TEXT DEFAULT \("Anonymous")")
         t.constraint(sql: "CHECK (LENGTH(name) > 0)")
         t.constraint(literal: "CHECK (LENGTH(name) <= \(100))")
     }
