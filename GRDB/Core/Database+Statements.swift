@@ -71,17 +71,29 @@ extension Database {
     /// - parameter sqlLiteral: An SQLLiteral.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    /// - precondition: The literal does not contain any value argument.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
     ///
     ///         // OK
-    ///         try makeUpdateStatement(literal: "UPDATE \(Player.self) ...")
+    ///         try makeUpdateStatement(literal: """
+    ///             UPDATE player SET name = ?
+    ///             """)
+    ///         try makeUpdateStatement(literal: """
+    ///             UPDATE player SET name = \("O'Brien")
+    ///             """)
     ///
     ///         // NOT OK
-    ///         try makeUpdateStatement(literal: "... VALUES (\(name), ...)")
+    ///         try makeUpdateStatement(literal: """
+    ///             UPDATE player SET name = ?, score = \(10)
+    ///             """)
     public func makeUpdateStatement(literal sqlLiteral: SQLLiteral) throws -> UpdateStatement {
         let (sql, arguments) = try sqlLiteral.build(self)
-        GRDBPrecondition(arguments.isEmpty, "Arguments are not supported on statement creation")
-        return try makeUpdateStatement(sql: sql)
+        let statement = try makeUpdateStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
     }
     
     /// Returns a new prepared statement that can be reused.
