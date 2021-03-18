@@ -1741,14 +1741,12 @@ updateStatement.arguments = ["name": "Arthur", "score": 1000]
 selectStatement.arguments = ["Arthur"]
 ```
 
-Alternatively, you can create a statement with an [SQLLiteral] in which can safely embed raw values without any risk of syntax errors or SQL injection:
+Alternatively, you can create a prepared statement with [SQL Interpolation]:
 
 ```swift
-let name = "O'Brien"
-let score = 1000
-let updateStatement = try db.makeUpdateStatement(literal: """
-    INSERT INTO player (name, score) VALUES (\(name), \(score))
-    """)
+let updateStatement = try db.makeUpdateStatement(literal: "...")
+let selectStatement = try db.makeSelectStatement(literal: "...")
+//                                               ~~~~~~~
 ```
 
 Update statements can be executed:
