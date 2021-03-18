@@ -96,6 +96,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     }
     ```
 
+- Prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
+    
+    ```swift
+    let updateStatement = try db.makeUpdateStatement(literal: "INSERT ...")
+    let selectStatement = try db.makeSelectStatement(literal: "SELECT ...")
+    //                                               ~~~~~~~
+    ```
+
 ## 5.6.0
 
 Released March 12, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.5.0...v5.6.0)
