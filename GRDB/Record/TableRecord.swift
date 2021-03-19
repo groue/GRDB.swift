@@ -133,9 +133,10 @@ extension TableRecord {
     public static func numberOfSelectedColumns(_ db: Database) throws -> Int {
         // The alias makes it possible to count the columns in `SELECT *`:
         let alias = TableAlias(tableName: databaseTableName)
+        let context = SQLGenerationContext(db)
         return try databaseSelection
             .map { $0.sqlSelection.qualified(with: alias) }
-            .columnCount(db)
+            .columnCount(context)
     }
 }
 

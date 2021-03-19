@@ -38,7 +38,7 @@ extension SQLSubquery {
     ///     // We know that "SELECT 1 AS a, 2 AS b" selects two columns,
     ///     // so we can find cte columns in the row:
     ///     row.scopes["cte"] // [a:1, b:2]
-    func columnsCount(_ db: Database) throws -> Int {
+    func columnCount(_ db: Database) throws -> Int {
         switch impl {
         case let .literal(sqlLiteral):
             // Compile request. We can freely use the statement cache because we
@@ -49,7 +49,7 @@ extension SQLSubquery {
             return statement.columnCount
             
         case let .relation(relation):
-            return try SQLQueryGenerator(relation: relation).columnsCount(db)
+            return try SQLQueryGenerator(relation: relation).columnCount(db)
         }
     }
 }

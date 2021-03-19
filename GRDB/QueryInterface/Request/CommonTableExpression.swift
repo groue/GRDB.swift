@@ -251,8 +251,7 @@ extension CommonTableExpression where RowDecoder == Row {
 
 extension CommonTableExpression {
     var relationForAll: SQLRelation {
-        let cte = self.cte
-        return .all(fromTable: tableName, selection: { _ in [.allCTEColumns(cte)] })
+        .all(fromTable: tableName)
     }
     
     /// Creates a request for all rows of the common table expression.
@@ -327,13 +326,13 @@ struct SQLCTE {
     var isRecursive: Bool
     
     /// The number of columns in the common table expression.
-    func columnsCount(_ db: Database) throws -> Int {
+    func columnCount(_ db: Database) throws -> Int {
         if let columns = columns {
             // No need to hit the database
             return columns.count
         }
         
-        return try sqlSubquery.columnsCount(db)
+        return try sqlSubquery.columnCount(db)
     }
 }
 
