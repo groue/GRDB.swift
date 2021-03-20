@@ -123,4 +123,14 @@ extension SQLSubqueryable {
     public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
         SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
     }
+    
+    /// Returns an expression that is true if and only if the subquery would
+    /// return one or more rows.
+    ///
+    ///     // EXISTS (SELECT * FROM player WHERE name = 'Arthur')
+    ///     let request = Player.filter(Column("name") == "Arthur")
+    ///     let condition = request.exists()
+    public func exists() -> SQLExpression {
+        .exists(sqlSubquery)
+    }
 }

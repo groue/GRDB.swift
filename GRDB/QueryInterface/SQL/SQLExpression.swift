@@ -61,6 +61,11 @@ public struct SQLExpression {
         /// - precondition: expressions.count > 1
         case associativeBinary(AssociativeBinaryOperator, [SQLExpression])
         
+        /// The `EXISTS` and `NOT EXISTS` operators.
+        ///
+        ///     EXISTS (<subquery>)
+        case exists(SQLSubquery, isNegated: Bool)
+        
         /// The `IN` and `NOT IN` operators.
         ///
         ///     <expression> IN <collection>
@@ -470,6 +475,13 @@ extension SQLExpression {
         return self.init(impl: .associativeBinary(op, expressions))
     }
     
+    /// The `EXISTS` operator.
+    ///
+    ///     EXISTS (<subquery>)
+    static func exists(_ subquery: SQLSubquery) -> Self {
+        self.init(impl: .exists(subquery, isNegated: false))
+    }
+    
     /// The `IN` and `NOT IN` operators.
     ///
     ///     <expression> IN <collection>
@@ -794,6 +806,16 @@ extension SQLExpression {
             }
             let joiner = " \(op.sql) "
             var resultSQL = expressionSQLs.joined(separator: joiner)
+            if wrappedInParenthesis {
+                resultSQL = "(\(resultSQL))"
+            }
+            return resultSQL
+            
+        case let .exists(subquery, isNegated: isNegated):
+            var resultSQL = try """
+                \(isNegated ? "NOT EXISTS" : "EXISTS") \
+                (\(subquery.sql(context)))
+                """
             if wrappedInParenthesis {
                 resultSQL = "(\(resultSQL))"
             }
@@ -1179,6 +1201,18 @@ extension SQLExpression {
                 }
             }
             
+        case let .exists(subquery, isNegated: isNegated):
+            switch test {
+            case .true:
+                return .compare(.equal, self, true.sqlExpression)
+                
+            case .false:
+                return .compare(.equal, self, false.sqlExpression)
+                
+            case .falsey:
+                return SQLExpression(impl: .exists(subquery, isNegated: !isNegated))
+            }
+            
         case let .in(expression, collection, isNegated: isNegated):
             switch test {
             case .true:
@@ -1313,7 +1347,8 @@ extension SQLExpression {
         case .databaseValue,
              .qualifiedColumn,
              .qualifiedFastPrimaryKey,
-             .subquery:
+             .subquery,
+             .exists:
             return self
             
         case let .column(name):
