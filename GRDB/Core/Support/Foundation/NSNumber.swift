@@ -71,6 +71,17 @@ extension NSNumber: DatabaseValueConvertible {
             return self.init(value: int64)
         case .double(let double):
             return self.init(value: double)
+        case let .string(string):
+            if let t = self as? NSDecimalNumber.Type {
+                // NumberFormatter can't exactly decode "18446744073709551615"
+                // NSDecimalNumber(string:) does.
+                return (t.init(string: string) as! Self)
+            } else {
+                let formatter = NumberFormatter()
+                formatter.numberStyle = .decimal
+                formatter.locale = Locale(identifier: "en_US_POSIX")
+                return formatter.number(from: string) as? Self
+            }
         default:
             return nil
         }

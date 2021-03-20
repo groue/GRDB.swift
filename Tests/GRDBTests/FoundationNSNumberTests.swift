@@ -132,4 +132,24 @@ class FoundationNSNumberTests: GRDBTestCase {
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_Blob))
     }
     
+    func testNSNumberDecodingFromText() throws {
+        func test(_ value: String, isDecodedAs number: NSNumber) throws {
+            let decodedFromDatabaseValue = NSNumber.fromDatabaseValue(value.databaseValue)
+            XCTAssertEqual(decodedFromDatabaseValue, number)
+
+            let decodedFromDatabase = try DatabaseQueue().read { db in
+                try NSNumber.fetchOne(db, sql: "SELECT ?", arguments: [value])
+            }
+            XCTAssertEqual(decodedFromDatabase, number)
+        }
+        try test("0", isDecodedAs: NSNumber(value: 0))
+        try test("0.25", isDecodedAs: NSNumber(value: 0.25))
+        try test("1", isDecodedAs: NSNumber(value: 1))
+        try test("-1", isDecodedAs: NSNumber(value: -1))
+        try test("9223372036854775807", isDecodedAs: NSNumber(value: 9223372036854775807))
+        try test("9223372036854775806", isDecodedAs: NSNumber(value: 9223372036854775806))
+        try test("-9223372036854775807", isDecodedAs: NSNumber(value: -9223372036854775807))
+        try test("-9223372036854775808", isDecodedAs: NSNumber(value: -9223372036854775808))
+        try test("18446744073709551615", isDecodedAs: NSNumber(value: UInt64(18446744073709551615)))
+    }
 }
