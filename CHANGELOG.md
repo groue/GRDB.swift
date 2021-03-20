@@ -75,7 +75,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Development Branch
 
-- [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral) can now be directly used as an expression, an ordering term, or a selection item.:
+- **New**: [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral) can now be directly used as an expression, an ordering term, or a selection item.:
     
     ```swift
     let name = "O'Brien"
@@ -85,7 +85,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
         .order(SQLLiteral("score DESC"), ...)
     ```
 
-- Table creation DSL now supports columns and constraints defined with raw SQL String or [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral):
+- **New**: Table creation DSL now supports columns and constraints defined with raw SQL String or [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral):
     
     ```swift
     try db.create(table: "player") do { t in
@@ -96,7 +96,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     }
     ```
 
-- Prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
+- **New**: Prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
     
     ```swift
     let updateStatement = try db.makeUpdateStatement(literal: "INSERT ...")
@@ -104,7 +104,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     //                                               ~~~~~~~
     ```
 
-- [DatabaseMigrator](Documentation/Migrations.md#asynchronous-migrations) can now asynchronously migrate a database. A Combine publisher is also available.
+- **New**: [DatabaseMigrator](Documentation/Migrations.md#asynchronous-migrations) can now asynchronously migrate a database. A Combine publisher is also available.
+
+- **New**: Added suppport for the `EXISTS` and `NOT EXISTS` subquery operators. See the updated [SQL Operators](README.md#sql-operators) documentation.
 
 ## 5.6.0
 
