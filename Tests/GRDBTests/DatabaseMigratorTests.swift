@@ -3,20 +3,23 @@ import GRDB
 
 class DatabaseMigratorTests : GRDBTestCase {
     
-    func testEmptyMigrator() throws {
-        let migrator = DatabaseMigrator()
-        
-        // Sync
-        do {
-            let dbQueue = try makeDatabaseQueue()
-            try migrator.migrate(dbQueue)
+    func testEmptyMigratorSync() throws {
+        func test(writer: DatabaseWriter) throws {
+            let migrator = DatabaseMigrator()
+            try migrator.migrate(writer)
         }
         
-        // Async
-        do {
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    func testEmptyMigratorAsync() throws {
+        func test(writer: DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
-            let dbQueue = try makeDatabaseQueue()
-            migrator.asyncMigrate(dbQueue, completion: { db, error in
+            let migrator = DatabaseMigrator()
+            migrator.asyncMigrate(writer, completion: { db, error in
                 // No migration error
                 XCTAssertNil(error)
                 // Write access
@@ -25,61 +28,111 @@ class DatabaseMigratorTests : GRDBTestCase {
             })
             waitForExpectations(timeout: 1, handler: nil)
         }
+        
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    func testMigratorDatabaseQueue() throws {
-        var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPersons") { db in
-            try db.execute(sql: """
-                CREATE TABLE persons (
-                    id INTEGER PRIMARY KEY,
-                    name TEXT)
-                """)
-        }
-        migrator.registerMigration("createPets") { db in
-            try db.execute(sql: """
-                CREATE TABLE pets (
-                    id INTEGER PRIMARY KEY,
-                    masterID INTEGER NOT NULL
-                             REFERENCES persons(id)
-                             ON DELETE CASCADE ON UPDATE CASCADE,
-                    name TEXT)
-                """)
+    func testEmptyMigratorPublisher() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
         }
         
-        var migrator2 = migrator
-        migrator2.registerMigration("destroyPersons") { db in
-            try db.execute(sql: "DROP TABLE pets")
+        func test(writer: DatabaseWriter) throws {
+            let migrator = DatabaseMigrator()
+            let publisher = migrator.migratePublisher(writer)
+            let recorder = publisher.record()
+            try wait(for: recorder.single, timeout: 1)
         }
         
-        // Sync
-        do {
-            let dbQueue = try makeDatabaseQueue()
-            try migrator.migrate(dbQueue)
-            try dbQueue.inDatabase { db in
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    func testNonEmptyMigratorSync() throws {
+        func test(writer: DatabaseWriter) throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("createPersons") { db in
+                try db.execute(sql: """
+                    CREATE TABLE persons (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT)
+                    """)
+            }
+            migrator.registerMigration("createPets") { db in
+                try db.execute(sql: """
+                    CREATE TABLE pets (
+                        id INTEGER PRIMARY KEY,
+                        masterID INTEGER NOT NULL
+                                 REFERENCES persons(id)
+                                 ON DELETE CASCADE ON UPDATE CASCADE,
+                        name TEXT)
+                    """)
+            }
+            
+            var migrator2 = migrator
+            migrator2.registerMigration("destroyPersons") { db in
+                try db.execute(sql: "DROP TABLE pets")
+            }
+            
+            try migrator.migrate(writer)
+            try writer.read { db in
                 XCTAssertTrue(try db.tableExists("persons"))
                 XCTAssertTrue(try db.tableExists("pets"))
             }
             
-            try migrator2.migrate(dbQueue)
-            try dbQueue.inDatabase { db in
+            try migrator2.migrate(writer)
+            try writer.read { db in
                 XCTAssertTrue(try db.tableExists("persons"))
                 XCTAssertFalse(try db.tableExists("pets"))
             }
         }
         
-        // Async
-        do {
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    func testNonEmptyMigratorAsync() throws {
+        func test(writer: DatabaseWriter) throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("createPersons") { db in
+                try db.execute(sql: """
+                    CREATE TABLE persons (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT)
+                    """)
+            }
+            migrator.registerMigration("createPets") { db in
+                try db.execute(sql: """
+                    CREATE TABLE pets (
+                        id INTEGER PRIMARY KEY,
+                        masterID INTEGER NOT NULL
+                                 REFERENCES persons(id)
+                                 ON DELETE CASCADE ON UPDATE CASCADE,
+                        name TEXT)
+                    """)
+            }
+            
+            var migrator2 = migrator
+            migrator2.registerMigration("destroyPersons") { db in
+                try db.execute(sql: "DROP TABLE pets")
+            }
+            
             let expectation = self.expectation(description: "")
-            let dbQueue = try makeDatabaseQueue()
-            migrator.asyncMigrate(dbQueue, completion: { (db, error) in
+            migrator.asyncMigrate(writer, completion: { (db, error) in
                 // No migration error
                 XCTAssertNil(error)
                 
                 XCTAssertTrue(try! db.tableExists("persons"))
                 XCTAssertTrue(try! db.tableExists("pets"))
                 
-                migrator2.asyncMigrate(dbQueue, completion: { db, error in
+                migrator2.asyncMigrate(writer, completion: { db, error in
                     // No migration error
                     XCTAssertNil(error)
                     
@@ -90,129 +143,228 @@ class DatabaseMigratorTests : GRDBTestCase {
             })
             waitForExpectations(timeout: 1, handler: nil)
         }
+        
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    func testMigratorDatabasePool() throws {
-        var migrator = DatabaseMigrator()
-        migrator.registerMigration("createPersons") { db in
-            try db.execute(sql: """
-                CREATE TABLE persons (
-                    id INTEGER PRIMARY KEY,
-                    name TEXT)
-                """)
-        }
-        migrator.registerMigration("createPets") { db in
-            try db.execute(sql: """
-                CREATE TABLE pets (
-                    id INTEGER PRIMARY KEY,
-                    masterID INTEGER NOT NULL
-                             REFERENCES persons(id)
-                             ON DELETE CASCADE ON UPDATE CASCADE,
-                    name TEXT)
-                """)
+    func testNonEmptyMigratorPublisher() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
         }
         
-        var migrator2 = migrator
-        migrator2.registerMigration("destroyPersons") { db in
-            try db.execute(sql: "DROP TABLE pets")
-        }
-        
-        // Sync
-        do {
-            let dbPool = try makeDatabasePool()
-            try migrator.migrate(dbPool)
-            try dbPool.read { db in
-                XCTAssertTrue(try db.tableExists("persons"))
-                XCTAssertTrue(try db.tableExists("pets"))
+        func test(writer: DatabaseWriter) throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("createPersons") { db in
+                try db.execute(sql: """
+                    CREATE TABLE persons (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT)
+                    """)
+            }
+            migrator.registerMigration("createPets") { db in
+                try db.execute(sql: """
+                    CREATE TABLE pets (
+                        id INTEGER PRIMARY KEY,
+                        masterID INTEGER NOT NULL
+                                 REFERENCES persons(id)
+                                 ON DELETE CASCADE ON UPDATE CASCADE,
+                        name TEXT)
+                    """)
             }
             
-            try migrator2.migrate(dbPool)
-            try dbPool.read { db in
-                XCTAssertTrue(try db.tableExists("persons"))
-                XCTAssertFalse(try db.tableExists("pets"))
+            var migrator2 = migrator
+            migrator2.registerMigration("destroyPersons") { db in
+                try db.execute(sql: "DROP TABLE pets")
+            }
+            
+            do {
+                let publisher = migrator.migratePublisher(writer)
+                let recorder = publisher.record()
+                try wait(for: recorder.single, timeout: 1)
+                try writer.read { db in
+                    XCTAssertTrue(try db.tableExists("persons"))
+                    XCTAssertTrue(try db.tableExists("pets"))
+                }
+            }
+            
+            do {
+                let publisher = migrator2.migratePublisher(writer)
+                let recorder = publisher.record()
+                try wait(for: recorder.single, timeout: 1)
+                try writer.read { db in
+                    XCTAssertTrue(try db.tableExists("persons"))
+                    XCTAssertFalse(try db.tableExists("pets"))
+                }
             }
         }
         
-        // Async
-        do {
-            let expectation = self.expectation(description: "")
-            let dbPool = try makeDatabasePool()
-            migrator.asyncMigrate(dbPool, completion: { (db, error) in
-                // No migration error
-                XCTAssertNil(error)
-                
-                XCTAssertTrue(try! db.tableExists("persons"))
-                XCTAssertTrue(try! db.tableExists("pets"))
-                
-                migrator2.asyncMigrate(dbPool, completion: { db, error in
-                    // No migration error
-                    XCTAssertNil(error)
-                    
-                    XCTAssertTrue(try! db.tableExists("persons"))
-                    XCTAssertFalse(try! db.tableExists("pets"))
-                    expectation.fulfill()
-                })
-            })
-            waitForExpectations(timeout: 1, handler: nil)
-        }
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
-    
-    func testMigrateUpTo() throws {
-        var migrator = DatabaseMigrator()
-        migrator.registerMigration("a") { db in
-            try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY)")
-        }
-        migrator.registerMigration("b") { db in
-            try db.execute(sql: "CREATE TABLE b (id INTEGER PRIMARY KEY)")
-        }
-        migrator.registerMigration("c") { db in
-            try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY)")
+
+    func testMigratorPublisherIsAsynchronous() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
         }
         
-        // Sync
-        do {
-            let dbQueue = try makeDatabaseQueue()
+        func test(writer: DatabaseWriter) throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("first", migrate: { _ in })
+            let expectation = self.expectation(description: "")
+            let semaphore = DispatchSemaphore(value: 0)
+            let cancellable = migrator.migratePublisher(writer).sink(
+                receiveCompletion: { _ in },
+                receiveValue: { _ in
+                    semaphore.wait()
+                    expectation.fulfill()
+                })
+            
+            semaphore.signal()
+            waitForExpectations(timeout: 1, handler: nil)
+            cancellable.cancel()
+        }
+        
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    func testMigratorPublisherDefaultScheduler() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        func test(writer: DatabaseWriter) {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("first", migrate: { _ in })
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 2 // value + completion
+            let cancellable = migrator.migratePublisher(writer).sink(
+                receiveCompletion: { completion in
+                    dispatchPrecondition(condition: .onQueue(.main))
+                    expectation.fulfill()
+                },
+                receiveValue: { _ in
+                    dispatchPrecondition(condition: .onQueue(.main))
+                    expectation.fulfill()
+                })
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            cancellable.cancel()
+        }
+        
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    func testMigratorPublisherCustomScheduler() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        func test(writer: DatabaseWriter) {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("first", migrate: { _ in })
+            let queue = DispatchQueue(label: "test")
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 2 // value + completion
+            let cancellable = migrator.migratePublisher(writer, receiveOn: queue).sink(
+                receiveCompletion: { completion in
+                    dispatchPrecondition(condition: .onQueue(queue))
+                    expectation.fulfill()
+                },
+                receiveValue: { _ in
+                    dispatchPrecondition(condition: .onQueue(queue))
+                    expectation.fulfill()
+                })
+            
+            waitForExpectations(timeout: 1, handler: nil)
+            cancellable.cancel()
+        }
+        
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+
+    func testMigrateUpToSync() throws {
+        func test(writer: DatabaseWriter) throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("a") { db in
+                try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY)")
+            }
+            migrator.registerMigration("b") { db in
+                try db.execute(sql: "CREATE TABLE b (id INTEGER PRIMARY KEY)")
+            }
+            migrator.registerMigration("c") { db in
+                try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY)")
+            }
             
             // one step
-            try migrator.migrate(dbQueue, upTo: "a")
-            try dbQueue.inDatabase { db in
+            try migrator.migrate(writer, upTo: "a")
+            try writer.read { db in
                 XCTAssertTrue(try db.tableExists("a"))
                 XCTAssertFalse(try db.tableExists("b"))
             }
             
             // zero step
-            try migrator.migrate(dbQueue, upTo: "a")
-            try dbQueue.inDatabase { db in
+            try migrator.migrate(writer, upTo: "a")
+            try writer.read { db in
                 XCTAssertTrue(try db.tableExists("a"))
                 XCTAssertFalse(try db.tableExists("b"))
             }
             
             // two steps
-            try migrator.migrate(dbQueue, upTo: "c")
-            try dbQueue.inDatabase { db in
+            try migrator.migrate(writer, upTo: "c")
+            try writer.read { db in
                 XCTAssertTrue(try db.tableExists("a"))
                 XCTAssertTrue(try db.tableExists("b"))
                 XCTAssertTrue(try db.tableExists("c"))
             }
             
             // zero step
-            try migrator.migrate(dbQueue, upTo: "c")
-            try migrator.migrate(dbQueue)
+            try migrator.migrate(writer, upTo: "c")
+            try migrator.migrate(writer)
             
             // fatal error: undefined migration: "missing"
-            // try migrator.migrate(dbQueue, upTo: "missing")
+            // try migrator.migrate(writer, upTo: "missing")
             
             // fatal error: database is already migrated beyond migration "b"
-            // try migrator.migrate(dbQueue, upTo: "b")
+            // try migrator.migrate(writer, upTo: "b")
         }
         
-        // Async
-        do {
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    func testMigrateUpToAsync() throws {
+        func test(writer: DatabaseWriter) throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("a") { db in
+                try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY)")
+            }
+            migrator.registerMigration("b") { db in
+                try db.execute(sql: "CREATE TABLE b (id INTEGER PRIMARY KEY)")
+            }
+            migrator.registerMigration("c") { db in
+                try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY)")
+            }
+            
             let expectation = self.expectation(description: "")
-            let dbQueue = try makeDatabaseQueue()
             
             // one step
-            migrator.asyncMigrate(dbQueue, upTo: "a", completion: { db, error in
+            migrator.asyncMigrate(writer, upTo: "a", completion: { db, error in
                 // No migration error
                 XCTAssertNil(error)
                 
@@ -220,7 +372,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 XCTAssertFalse(try! db.tableExists("b"))
                 
                 // zero step
-                migrator.asyncMigrate(dbQueue, upTo: "a", completion: { db, error in
+                migrator.asyncMigrate(writer, upTo: "a", completion: { db, error in
                     // No migration error
                     XCTAssertNil(error)
                     
@@ -228,7 +380,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     XCTAssertFalse(try! db.tableExists("b"))
                     
                     // two steps
-                    migrator.asyncMigrate(dbQueue, upTo: "c", completion: { db, error in
+                    migrator.asyncMigrate(writer, upTo: "c", completion: { db, error in
                         // No migration error
                         XCTAssertNil(error)
                         
@@ -237,11 +389,11 @@ class DatabaseMigratorTests : GRDBTestCase {
                         XCTAssertTrue(try! db.tableExists("c"))
                         
                         // zero step
-                        migrator.asyncMigrate(dbQueue, upTo: "c", completion: { db, error in
+                        migrator.asyncMigrate(writer, upTo: "c", completion: { db, error in
                             // No migration error
                             XCTAssertNil(error)
                             
-                            migrator.asyncMigrate(dbQueue, completion: { db, error in
+                            migrator.asyncMigrate(writer, completion: { db, error in
                                 // No migration error
                                 XCTAssertNil(error)
                                 
@@ -254,6 +406,11 @@ class DatabaseMigratorTests : GRDBTestCase {
             
             waitForExpectations(timeout: 1, handler: nil)
         }
+        
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
     func testMigrationFailureTriggersRollback() throws {
