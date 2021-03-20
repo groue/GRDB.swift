@@ -49,6 +49,45 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         XCTAssertEqual(storage(NSDecimalNumber(string: "-9223372036854775809")), .double)
     }
     
+    func testNSDecimalNumberDatabaseRoundTrip() throws {
+        let dbQueue = try makeDatabaseQueue()
+        func roundTrip(_ value: NSDecimalNumber) throws -> Bool {
+            guard let back = try dbQueue.inDatabase({ try NSDecimalNumber.fetchOne($0, sql: "SELECT ?", arguments: [value]) }) else {
+                XCTFail()
+                return false
+            }
+            return back == value
+        }
+        
+        XCTAssertTrue(try roundTrip(NSDecimalNumber(value: Int32.min + 1)))
+        XCTAssertTrue(try roundTrip(NSDecimalNumber(value: Double(10000000.01))))
+    }
+    
+    func testNSDecimalNumberDatabaseValueRoundTrip() {
+        func roundTrip(_ value: NSDecimalNumber) -> Bool
+        {
+            let dbValue = value.databaseValue
+            guard let back = NSDecimalNumber.fromDatabaseValue(dbValue) else
+            {
+                XCTFail("Failed to convert from DatabaseValue to NSDecimalNumber")
+                return false
+            }
+            return back.isEqual(to: value)
+        }
+        
+        XCTAssertTrue(roundTrip(NSDecimalNumber(value: Int32.min + 1)))
+        XCTAssertTrue(roundTrip(NSDecimalNumber(value: Double(10000000.01))))
+    }
+    
+    func testNSDecimalNumberFromDatabaseValueFailure() {
+        let databaseValue_Null = DatabaseValue.null
+        let databaseValue_String = "foo".databaseValue
+        let databaseValue_Blob = "bar".data(using: .utf8)!.databaseValue
+        XCTAssertNil(NSDecimalNumber.fromDatabaseValue(databaseValue_Null))
+        XCTAssertNil(NSDecimalNumber.fromDatabaseValue(databaseValue_String))
+        XCTAssertNil(NSDecimalNumber.fromDatabaseValue(databaseValue_Blob))
+    }
+    
     func testNSDecimalNumberDecodingFromInt64() throws {
         func test(_ value: Int64, isDecodedAs number: NSDecimalNumber) throws {
             XCTAssertEqual(NSDecimalNumber(value: value), number)

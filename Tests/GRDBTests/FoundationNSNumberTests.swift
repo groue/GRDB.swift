@@ -107,7 +107,6 @@ class FoundationNSNumberTests: GRDBTestCase {
     }
     
     func testNSNumberDatabaseValueRoundTrip() {
-        
         func roundTrip(_ value: NSNumber) -> Bool
         {
             let dbValue = value.databaseValue
@@ -133,23 +132,23 @@ class FoundationNSNumberTests: GRDBTestCase {
     }
     
     func testNSNumberDecodingFromText() throws {
-        func test(_ value: String, isDecodedAs number: NSNumber) throws {
-            let decodedFromDatabaseValue = NSNumber.fromDatabaseValue(value.databaseValue)
+        func test(_ value: String, isDecodedAs number: NSDecimalNumber) throws {
+            let decodedFromDatabaseValue = NSNumber.fromDatabaseValue(value.databaseValue) as? NSDecimalNumber
             XCTAssertEqual(decodedFromDatabaseValue, number)
 
             let decodedFromDatabase = try DatabaseQueue().read { db in
-                try NSNumber.fetchOne(db, sql: "SELECT ?", arguments: [value])
+                try NSNumber.fetchOne(db, sql: "SELECT ?", arguments: [value]) as? NSDecimalNumber
             }
             XCTAssertEqual(decodedFromDatabase, number)
         }
-        try test("0", isDecodedAs: NSNumber(value: 0))
-        try test("0.25", isDecodedAs: NSNumber(value: 0.25))
-        try test("1", isDecodedAs: NSNumber(value: 1))
-        try test("-1", isDecodedAs: NSNumber(value: -1))
-        try test("9223372036854775807", isDecodedAs: NSNumber(value: 9223372036854775807))
-        try test("9223372036854775806", isDecodedAs: NSNumber(value: 9223372036854775806))
-        try test("-9223372036854775807", isDecodedAs: NSNumber(value: -9223372036854775807))
-        try test("-9223372036854775808", isDecodedAs: NSNumber(value: -9223372036854775808))
-        try test("18446744073709551615", isDecodedAs: NSNumber(value: UInt64(18446744073709551615)))
+        try test("0", isDecodedAs: NSDecimalNumber(value: 0))
+        try test("0.25", isDecodedAs: NSDecimalNumber(value: 0.25))
+        try test("1", isDecodedAs: NSDecimalNumber(value: 1))
+        try test("-1", isDecodedAs: NSDecimalNumber(value: -1))
+        try test("9223372036854775807", isDecodedAs: NSDecimalNumber(value: 9223372036854775807))
+        try test("9223372036854775806", isDecodedAs: NSDecimalNumber(value: 9223372036854775806))
+        try test("-9223372036854775807", isDecodedAs: NSDecimalNumber(value: -9223372036854775807))
+        try test("-9223372036854775808", isDecodedAs: NSDecimalNumber(value: -9223372036854775808))
+        try test("18446744073709551615", isDecodedAs: NSDecimalNumber(value: UInt64(18446744073709551615)))
     }
 }
