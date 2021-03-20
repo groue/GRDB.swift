@@ -141,33 +141,11 @@ public struct DatabaseMigrator {
         _ writer: DatabaseWriter,
         completion: @escaping (Database, Error?) -> Void)
     {
-        if let lastMigration = migrations.last {
-            asyncMigrate(writer, upTo: lastMigration.identifier, completion: completion)
-        } else {
-            writer.asyncBarrierWriteWithoutTransaction { db in
-                completion(db, nil)
-            }
-        }
-    }
-    
-    /// Iterate migrations in the same order as they were registered, up to the
-    /// provided target. If a migration has not yet been applied, its block is
-    /// executed in a transaction.
-    ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
-    ///   where migrations should apply.
-    /// - parameter targetIdentifier: The identifier of a registered migration.
-    /// - parameter completion: A closure that is called in a protected dispatch
-    ///   queue that can write in the database, with the eventual
-    ///   migration error.
-    public func asyncMigrate(
-        _ writer: DatabaseWriter,
-        upTo targetIdentifier: String,
-        completion: @escaping (Database, Error?) -> Void)
-    {
         writer.asyncBarrierWriteWithoutTransaction { db in
             do {
-                try migrate(db, upTo: targetIdentifier)
+                if let lastMigration = migrations.last {
+                    try migrate(db, upTo: lastMigration.identifier)
+                }
                 completion(db, nil)
             } catch {
                 completion(db, error)

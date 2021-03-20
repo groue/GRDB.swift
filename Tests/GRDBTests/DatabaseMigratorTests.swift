@@ -296,7 +296,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
 
-    func testMigrateUpToSync() throws {
+    func testMigrateUpTo() throws {
         func test(writer: DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
             migrator.registerMigration("a") { db in
@@ -340,71 +340,6 @@ class DatabaseMigratorTests : GRDBTestCase {
             
             // fatal error: database is already migrated beyond migration "b"
             // try migrator.migrate(writer, upTo: "b")
-        }
-        
-        try Test(test)
-            .run { DatabaseQueue() }
-            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
-            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
-    }
-    
-    func testMigrateUpToAsync() throws {
-        func test(writer: DatabaseWriter) throws {
-            var migrator = DatabaseMigrator()
-            migrator.registerMigration("a") { db in
-                try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY)")
-            }
-            migrator.registerMigration("b") { db in
-                try db.execute(sql: "CREATE TABLE b (id INTEGER PRIMARY KEY)")
-            }
-            migrator.registerMigration("c") { db in
-                try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY)")
-            }
-            
-            let expectation = self.expectation(description: "")
-            
-            // one step
-            migrator.asyncMigrate(writer, upTo: "a", completion: { db, error in
-                // No migration error
-                XCTAssertNil(error)
-                
-                XCTAssertTrue(try! db.tableExists("a"))
-                XCTAssertFalse(try! db.tableExists("b"))
-                
-                // zero step
-                migrator.asyncMigrate(writer, upTo: "a", completion: { db, error in
-                    // No migration error
-                    XCTAssertNil(error)
-                    
-                    XCTAssertTrue(try! db.tableExists("a"))
-                    XCTAssertFalse(try! db.tableExists("b"))
-                    
-                    // two steps
-                    migrator.asyncMigrate(writer, upTo: "c", completion: { db, error in
-                        // No migration error
-                        XCTAssertNil(error)
-                        
-                        XCTAssertTrue(try! db.tableExists("a"))
-                        XCTAssertTrue(try! db.tableExists("b"))
-                        XCTAssertTrue(try! db.tableExists("c"))
-                        
-                        // zero step
-                        migrator.asyncMigrate(writer, upTo: "c", completion: { db, error in
-                            // No migration error
-                            XCTAssertNil(error)
-                            
-                            migrator.asyncMigrate(writer, completion: { db, error in
-                                // No migration error
-                                XCTAssertNil(error)
-                                
-                                expectation.fulfill()
-                            })
-                        })
-                    })
-                })
-            })
-            
-            waitForExpectations(timeout: 1, handler: nil)
         }
         
         try Test(test)
