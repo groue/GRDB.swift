@@ -108,6 +108,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **New**: Added suppport for the `EXISTS` and `NOT EXISTS` subquery operators. See the updated [SQL Operators](README.md#sql-operators) documentation.
 
+- **New**: `Foundation.Decimal` can now be stored in the database, and all Foundation number types can be decoded from database strings. See the [NSNumber, NSDecimalNumber, and Decimal](README.md#nsnumber-nsdecimalnumber-and-decimal) chapter for details.
+
 ## 5.6.0
 
 Released March 12, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.5.0...v5.6.0)
