@@ -35,7 +35,6 @@
 - [ ] Support for more kinds of joins: https://github.com/groue/GRDB.swift/issues/740
 - [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
 - [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
-- [ ] Support Subqueries: WHERE EXISTS (SELECT ...)
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
