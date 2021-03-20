@@ -1,3 +1,6 @@
+#if canImport(Combine)
+import Combine
+#endif
 import Foundation
 
 /// A DatabaseMigrator registers and applies database migrations.
@@ -359,3 +362,79 @@ public struct DatabaseMigrator {
         try runMigrations(db, upTo: targetIdentifier)
     }
 }
+
+#if canImport(Combine)
+extension DatabaseMigrator {
+    // MARK: - Publishing Migrations
+    
+    /// Returns a Publisher that asynchronously migrates a database.
+    ///
+    ///     let migrator: DatabaseMigrator = ...
+    ///     let dbQueue: DatabaseQueue = ...
+    ///     let publisher = migrator.migratePublisher(dbQueue)
+    ///
+    /// It completes on the main dispatch queue.
+    ///
+    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    ///   where migrations should apply.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func migratePublisher(_ writer: DatabaseWriter) -> DatabasePublishers.Migrate {
+        migratePublisher(writer, receiveOn: DispatchQueue.main)
+    }
+    
+    /// Returns a Publisher that asynchronously migrates a database.
+    ///
+    ///     let migrator: DatabaseMigrator = ...
+    ///     let dbQueue: DatabaseQueue = ...
+    ///     let publisher = migrator.migratePublisher(dbQueue, receiveOn: DispatchQueue.global())
+    ///
+    /// It completes on `scheduler`.
+    ///
+    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    ///   where migrations should apply.
+    /// - parameter scheduler: A Combine Scheduler.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func migratePublisher<S>(_ writer: DatabaseWriter, receiveOn scheduler: S)
+    -> DatabasePublishers.Migrate
+    where S: Scheduler
+    {
+        DatabasePublishers.Migrate(
+            upstream: OnDemandFuture { promise in
+                asyncMigrate(writer) { _, error in
+                    if let error = error {
+                        promise(.failure(error))
+                    } else {
+                        promise(.success(()))
+                    }
+                }
+            }
+            .eraseToAnyPublisher()
+            .receiveValues(on: scheduler)
+            .eraseToAnyPublisher()
+        )
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension DatabasePublishers {
+    /// A publisher that writes into the database. It publishes exactly
+    /// one element, or an error.
+    ///
+    /// See:
+    ///
+    /// - `DatabaseWriter.writePublisher(updates:)`.
+    /// - `DatabaseWriter.writePublisher(updates:thenRead:)`.
+    /// - `DatabaseWriter.writePublisher(receiveOn:updates:)`.
+    /// - `DatabaseWriter.writePublisher(receiveOn:updates:thenRead:)`.
+    public struct Migrate: Publisher {
+        public typealias Output = Void
+        public typealias Failure = Error
+        
+        fileprivate let upstream: AnyPublisher<Void, Error>
+        
+        public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
+            upstream.receive(subscriber: subscriber)
+        }
+    }
+}
+#endif
