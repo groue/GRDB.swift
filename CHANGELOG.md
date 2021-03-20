@@ -104,6 +104,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     //                                               ~~~~~~~
     ```
 
+- [DatabaseMigrator](Documentation/Migrations.md#asynchronous-migrations) can now asynchronously migrate a database. A Combine publisher is also available.
+
 ## 5.6.0
 
 Released March 12, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.5.0...v5.6.0)
