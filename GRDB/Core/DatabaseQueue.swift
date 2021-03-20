@@ -408,6 +408,17 @@ extension DatabaseQueue {
         try writer.sync(updates)
     }
     
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Eventual concurrent database accesses are postponed until the updates
+    /// are completed.
+    ///
+    /// - parameter updates: The updates to the database.
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        writer.async(updates)
+    }
+    
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///

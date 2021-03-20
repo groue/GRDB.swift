@@ -71,6 +71,16 @@ public protocol DatabaseWriter: DatabaseReader {
     func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
     
     /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Updates are guaranteed an exclusive access to the database. They wait
+    /// until all pending writes and reads are completed. They postpone all
+    /// other writes and reads until they are completed.
+    ///
+    /// - parameter updates: The updates to the database.
+    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
+    
+    /// Asynchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction.
     ///
     /// If the updates throw an error, the transaction is rollbacked.
@@ -618,6 +628,10 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try base.barrierWriteWithoutTransaction(updates)
+    }
+    
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        base.asyncBarrierWriteWithoutTransaction(updates)
     }
     
     public func asyncWrite<T>(

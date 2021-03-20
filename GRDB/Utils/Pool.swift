@@ -129,4 +129,13 @@ final class Pool<T> {
             return try barrier()
         }
     }
+    
+    /// Asynchronously runs the `barrier` function when no element is used, and
+    /// before any other element is dequeued.
+    func asyncBarrier(execute barrier: @escaping () -> Void) {
+        barrierQueue.async(flags: [.barrier]) {
+            self.itemsGroup.wait()
+            barrier()
+        }
+    }
 }
