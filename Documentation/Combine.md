@@ -47,6 +47,19 @@ let newPlayerCount = dbQueue.writePublisher { db -> Int in
 </details>
 
 <details>
+  <summary><strong>Asynchronously migrate the database</strong></summary>
+  
+This publisher migrates a database:
+
+```swift
+// DatabasePublishers.Migrate
+let migrator: DatabaseMigrator = ...
+let publisher = migrator.migratePublisher(dbQueue)
+```
+
+</details>
+
+<details>
   <summary><strong>Observe changes in database values</strong></summary>
 
 This publisher delivers fresh values whenever the database changes:
@@ -99,11 +112,12 @@ let cancellable = publisher.sink(
 
 # Asynchronous Database Access
 
-GRDB provide publishers that perform asynchronous database accesses.
+GRDB provide publishers that perform asynchronous database accesses:
 
 - [`readPublisher(receiveOn:value:)`]
 - [`writePublisher(receiveOn:updates:)`]
 - [`writePublisher(receiveOn:updates:thenRead:)`]
+- [`migratePublisher(_:receiveOn:)`]
 
 
 #### `DatabaseReader.readPublisher(receiveOn:value:)`
@@ -125,7 +139,7 @@ When you use a [database pool], reads are generally non-blocking, unless the max
 
 This publisher can be subscribed from any thread. A new database access starts on every subscription.
 
-The fetched value is published on the main queue, unless you provide a specific scheduler to the `receiveOn` argument.
+The fetched value is published on the main queue, unless you provide a specific [scheduler] to the `receiveOn` argument.
 
 
 #### `DatabaseWriter.writePublisher(receiveOn:updates:)`
@@ -321,6 +335,7 @@ See [DatabaseRegionObservation] for more information.
 [`readPublisher(receiveOn:value:)`]: #databasereaderreadpublisherreceiveonvalue
 [`writePublisher(receiveOn:updates:)`]: #databasewriterwritepublisherreceiveonupdates
 [`writePublisher(receiveOn:updates:thenRead:)`]: #databasewriterwritepublisherreceiveonupdatesthenread
+[`migratePublisher(_:receiveOn:)`]: Migrations.md#asynchronous-migrations
 [configured]: ../README.md#databasepool-configuration
 [database pool]: ../README.md#database-pools
 [database queue]: ../README.md#database-queues

@@ -119,4 +119,26 @@ migrator.registerMigration("AddNotNullCheckOnName") { db in
 }
 ```
 
+## Asynchronous Migrations
 
+`DatabaseMigrator` provides two ways to migrate a database in an asynchronous way.
+
+The `asyncMigrate(_:completion:)` method:
+
+```swift
+// Completes in a protected dispatch queue that can write in the database
+migrator.asyncMigrate(dbQueue, completion: { db, error in
+    if let error = error {
+        // Some error occurred during migrations
+    }
+})
+```
+
+The `migratePublisher(_:receiveOn:)` [Combine](https://developer.apple.com/documentation/combine) publisher:
+
+```swift
+// DatabasePublishers.Migrate
+let publisher = migrator.migratePublisher(dbQueue)
+```
+
+This publisher completes on the main queue, unless you provide a specific [scheduler](https://developer.apple.com/documentation/combine/scheduler) to the `receiveOn` argument.
