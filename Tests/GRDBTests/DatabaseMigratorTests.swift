@@ -5,13 +5,29 @@ class DatabaseMigratorTests : GRDBTestCase {
     
     func testEmptyMigrator() throws {
         let migrator = DatabaseMigrator()
-        let dbQueue = try makeDatabaseQueue()
-        try migrator.migrate(dbQueue)
+        
+        // Sync
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+        }
+        
+        // Async
+        do {
+            let expectation = self.expectation(description: "")
+            let dbQueue = try makeDatabaseQueue()
+            migrator.asyncMigrate(dbQueue, completion: { db, error in
+                // No migration error
+                XCTAssertNil(error)
+                // Write access
+                try! db.execute(sql: "CREATE TABLE t(a)")
+                expectation.fulfill()
+            })
+            waitForExpectations(timeout: 1, handler: nil)
+        }
     }
     
     func testMigratorDatabaseQueue() throws {
-        let dbQueue = try makeDatabaseQueue()
-        
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(sql: """
@@ -31,26 +47,52 @@ class DatabaseMigratorTests : GRDBTestCase {
                 """)
         }
         
-        try migrator.migrate(dbQueue)
-        try dbQueue.inDatabase { db in
-            XCTAssertTrue(try db.tableExists("persons"))
-            XCTAssertTrue(try db.tableExists("pets"))
-        }
-        
-        migrator.registerMigration("destroyPersons") { db in
+        var migrator2 = migrator
+        migrator2.registerMigration("destroyPersons") { db in
             try db.execute(sql: "DROP TABLE pets")
         }
         
-        try migrator.migrate(dbQueue)
-        try dbQueue.inDatabase { db in
-            XCTAssertTrue(try db.tableExists("persons"))
-            XCTAssertFalse(try db.tableExists("pets"))
+        // Sync
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("pets"))
+            }
+            
+            try migrator2.migrate(dbQueue)
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("pets"))
+            }
+        }
+        
+        // Async
+        do {
+            let expectation = self.expectation(description: "")
+            let dbQueue = try makeDatabaseQueue()
+            migrator.asyncMigrate(dbQueue, completion: { (db, error) in
+                // No migration error
+                XCTAssertNil(error)
+                
+                XCTAssertTrue(try! db.tableExists("persons"))
+                XCTAssertTrue(try! db.tableExists("pets"))
+                
+                migrator2.asyncMigrate(dbQueue, completion: { db, error in
+                    // No migration error
+                    XCTAssertNil(error)
+                    
+                    XCTAssertTrue(try! db.tableExists("persons"))
+                    XCTAssertFalse(try! db.tableExists("pets"))
+                    expectation.fulfill()
+                })
+            })
+            waitForExpectations(timeout: 1, handler: nil)
         }
     }
     
     func testMigratorDatabasePool() throws {
-        let dbPool = try makeDatabasePool()
-        
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPersons") { db in
             try db.execute(sql: """
@@ -70,26 +112,52 @@ class DatabaseMigratorTests : GRDBTestCase {
                 """)
         }
         
-        try migrator.migrate(dbPool)
-        try dbPool.read { db in
-            XCTAssertTrue(try db.tableExists("persons"))
-            XCTAssertTrue(try db.tableExists("pets"))
-        }
-        
-        migrator.registerMigration("destroyPersons") { db in
+        var migrator2 = migrator
+        migrator2.registerMigration("destroyPersons") { db in
             try db.execute(sql: "DROP TABLE pets")
         }
         
-        try migrator.migrate(dbPool)
-        try dbPool.read { db in
-            XCTAssertTrue(try db.tableExists("persons"))
-            XCTAssertFalse(try db.tableExists("pets"))
+        // Sync
+        do {
+            let dbPool = try makeDatabasePool()
+            try migrator.migrate(dbPool)
+            try dbPool.read { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("pets"))
+            }
+            
+            try migrator2.migrate(dbPool)
+            try dbPool.read { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("pets"))
+            }
+        }
+        
+        // Async
+        do {
+            let expectation = self.expectation(description: "")
+            let dbPool = try makeDatabasePool()
+            migrator.asyncMigrate(dbPool, completion: { (db, error) in
+                // No migration error
+                XCTAssertNil(error)
+                
+                XCTAssertTrue(try! db.tableExists("persons"))
+                XCTAssertTrue(try! db.tableExists("pets"))
+                
+                migrator2.asyncMigrate(dbPool, completion: { db, error in
+                    // No migration error
+                    XCTAssertNil(error)
+                    
+                    XCTAssertTrue(try! db.tableExists("persons"))
+                    XCTAssertFalse(try! db.tableExists("pets"))
+                    expectation.fulfill()
+                })
+            })
+            waitForExpectations(timeout: 1, handler: nil)
         }
     }
     
     func testMigrateUpTo() throws {
-        let dbQueue = try makeDatabaseQueue()
-        
         var migrator = DatabaseMigrator()
         migrator.registerMigration("a") { db in
             try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY)")
@@ -101,37 +169,91 @@ class DatabaseMigratorTests : GRDBTestCase {
             try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY)")
         }
         
-        // one step
-        try migrator.migrate(dbQueue, upTo: "a")
-        try dbQueue.inDatabase { db in
-            XCTAssertTrue(try db.tableExists("a"))
-            XCTAssertFalse(try db.tableExists("b"))
+        // Sync
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            
+            // one step
+            try migrator.migrate(dbQueue, upTo: "a")
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try db.tableExists("a"))
+                XCTAssertFalse(try db.tableExists("b"))
+            }
+            
+            // zero step
+            try migrator.migrate(dbQueue, upTo: "a")
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try db.tableExists("a"))
+                XCTAssertFalse(try db.tableExists("b"))
+            }
+            
+            // two steps
+            try migrator.migrate(dbQueue, upTo: "c")
+            try dbQueue.inDatabase { db in
+                XCTAssertTrue(try db.tableExists("a"))
+                XCTAssertTrue(try db.tableExists("b"))
+                XCTAssertTrue(try db.tableExists("c"))
+            }
+            
+            // zero step
+            try migrator.migrate(dbQueue, upTo: "c")
+            try migrator.migrate(dbQueue)
+            
+            // fatal error: undefined migration: "missing"
+            // try migrator.migrate(dbQueue, upTo: "missing")
+            
+            // fatal error: database is already migrated beyond migration "b"
+            // try migrator.migrate(dbQueue, upTo: "b")
         }
         
-        // zero step
-        try migrator.migrate(dbQueue, upTo: "a")
-        try dbQueue.inDatabase { db in
-            XCTAssertTrue(try db.tableExists("a"))
-            XCTAssertFalse(try db.tableExists("b"))
+        // Async
+        do {
+            let expectation = self.expectation(description: "")
+            let dbQueue = try makeDatabaseQueue()
+            
+            // one step
+            migrator.asyncMigrate(dbQueue, upTo: "a", completion: { db, error in
+                // No migration error
+                XCTAssertNil(error)
+                
+                XCTAssertTrue(try! db.tableExists("a"))
+                XCTAssertFalse(try! db.tableExists("b"))
+                
+                // zero step
+                migrator.asyncMigrate(dbQueue, upTo: "a", completion: { db, error in
+                    // No migration error
+                    XCTAssertNil(error)
+                    
+                    XCTAssertTrue(try! db.tableExists("a"))
+                    XCTAssertFalse(try! db.tableExists("b"))
+                    
+                    // two steps
+                    migrator.asyncMigrate(dbQueue, upTo: "c", completion: { db, error in
+                        // No migration error
+                        XCTAssertNil(error)
+                        
+                        XCTAssertTrue(try! db.tableExists("a"))
+                        XCTAssertTrue(try! db.tableExists("b"))
+                        XCTAssertTrue(try! db.tableExists("c"))
+                        
+                        // zero step
+                        migrator.asyncMigrate(dbQueue, upTo: "c", completion: { db, error in
+                            // No migration error
+                            XCTAssertNil(error)
+                            
+                            migrator.asyncMigrate(dbQueue, completion: { db, error in
+                                // No migration error
+                                XCTAssertNil(error)
+                                
+                                expectation.fulfill()
+                            })
+                        })
+                    })
+                })
+            })
+            
+            waitForExpectations(timeout: 1, handler: nil)
         }
-        
-        // two steps
-        try migrator.migrate(dbQueue, upTo: "c")
-        try dbQueue.inDatabase { db in
-            XCTAssertTrue(try db.tableExists("a"))
-            XCTAssertTrue(try db.tableExists("b"))
-            XCTAssertTrue(try db.tableExists("c"))
-        }
-        
-        // zero step
-        try migrator.migrate(dbQueue, upTo: "c")
-        try migrator.migrate(dbQueue)
-        
-        // fatal error: undefined migration: "missing"
-        // try migrator.migrate(dbQueue, upTo: "missing")
-        
-        // fatal error: database is already migrated beyond migration "b"
-        // try migrator.migrate(dbQueue, upTo: "b")
     }
     
     func testMigrationFailureTriggersRollback() throws {
@@ -147,22 +269,46 @@ class DatabaseMigratorTests : GRDBTestCase {
             try db.execute(sql: "INSERT INTO pets (masterId, name) VALUES (?, ?)", arguments: [123, "Bobby"])
         }
         
-        let dbQueue = try makeDatabaseQueue()
+        // Sync
         do {
-            try migrator.migrate(dbQueue)
-            XCTFail("Expected error")
-        } catch let error as DatabaseError {
-            // The first migration should be committed.
-            // The second migration should be rollbacked.
-            
-            XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
-            XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-            XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
-            
-            let names = try dbQueue.inDatabase { db in
-                try String.fetchAll(db, sql: "SELECT name FROM persons")
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch let error as DatabaseError {
+                // The first migration should be committed.
+                // The second migration should be rollbacked.
+                
+                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+                
+                let names = try dbQueue.inDatabase { db in
+                    try String.fetchAll(db, sql: "SELECT name FROM persons")
+                }
+                XCTAssertEqual(names, ["Arthur"])
             }
-            XCTAssertEqual(names, ["Arthur"])
+        }
+        
+        // Async
+        do {
+            let expectation = self.expectation(description: "")
+            let dbQueue = try makeDatabaseQueue()
+            migrator.asyncMigrate(dbQueue, completion: { db, error in
+                // The first migration should be committed.
+                // The second migration should be rollbacked.
+                
+                let error = error as! DatabaseError
+                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
+                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+                
+                let names = try! String.fetchAll(db, sql: "SELECT name FROM persons")
+                XCTAssertEqual(names, ["Arthur"])
+                
+                expectation.fulfill()
+            })
+            waitForExpectations(timeout: 1, handler: nil)
         }
     }
     
@@ -326,7 +472,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             try XCTAssertFalse(dbQueue.read(migrator.hasBeenSuperseded))
         }
     }
-
+    
     func testMergedMigrators() throws {
         // Migrate a database
         var migrator1 = DatabaseMigrator()
