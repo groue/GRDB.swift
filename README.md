@@ -571,7 +571,7 @@ SQLite API
 - [Values](#values)
     - [Data](#data-and-memory-savings)
     - [Date and DateComponents](#date-and-datecomponents)
-    - [NSNumber and NSDecimalNumber](#nsnumber-and-nsdecimalnumber)
+    - [NSNumber, NSDecimalNumber, and Decimal](#nsnumber-nsdecimalnumber-and-decimal)
     - [Swift enums](#swift-enums)
     - [Custom Value Types](#custom-value-types)
 - [Transactions and Savepoints](#transactions-and-savepoints)
@@ -1201,7 +1201,7 @@ GRDB ships with built-in support for the following value types:
 
 - **Swift Standard Library**: Bool, Double, Float, all signed and unsigned integer types, String, [Swift enums](#swift-enums).
     
-- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), NSNull, [NSNumber](#nsnumber-and-nsdecimalnumber), NSString, URL, [UUID](#uuid).
+- **Foundation**: [Data](#data-and-memory-savings), [Date](#date-and-datecomponents), [DateComponents](#date-and-datecomponents), [Decimal](#nsnumber-nsdecimalnumber-and-decimal), NSNull, [NSNumber](#nsnumber-nsdecimalnumber-and-decimal), NSString, URL, [UUID](#uuid).
     
 - **CoreGraphics**: CGFloat.
 
@@ -1375,21 +1375,68 @@ dbComponents.dateComponents // DateComponents
 ```
 
 
-### NSNumber and NSDecimalNumber
+### NSNumber, NSDecimalNumber, and Decimal
 
-**NSNumber** can be stored and fetched from the database just like other [values](#values). Floating point NSNumbers are stored as Double. Integer and boolean, as Int64. Integers that don't fit Int64 won't be stored: you'll get a fatal error instead. Be cautious when an NSNumber contains an UInt64, for example.
+**NSNumber** and **Decimal** can be stored and fetched from the database just like other [values](#values).
 
-NSDecimalNumber deserves a longer discussion:
+Here is how GRDB supports the various data types supported by SQLite:
 
-**SQLite has no support for decimal numbers.** Given the table below, SQLite will actually store integers or doubles:
+|                 |    Integer     |     Double     |     String     |
+|:--------------- |:--------------:|:--------------:|:--------------:|
+| NSNumber        | Read / Write ¹ | Read / Write ¹ |                |
+| NSDecimalNumber | Read / Write ¹ | Read / Write ¹ |     Read ³     |
+| Decimal         |     Read ³     |     Read ³     | Read / Write ² |
+
+¹ `NSNumber` is stored as a database 64-bit integer or double. Integers that don't fit `Int64` won't be stored: be cautious with large `UInt64` values, because you'll get a fatal error. `NSDecimalNumber` behaves the same as its superclass `NSNumber`: it stores a database integer, or a double, with a potential precision loss for non-integer values:
+
+```swift
+// INSERT INTO transfer VALUES (10)
+try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSNumber(value: 10)])
+
+// INSERT INTO transfer VALUES (12.34)
+try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSNumber(value: 12.34)])
+
+// INSERT INTO transfer VALUES (10)
+try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSDecimalNumber(value: 10)])
+
+// INSERT INTO transfer VALUES (12.34)
+try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSDecimalNumber(string: "12.34")])
+```
+
+² `Decimal` is stored as a database string:
+
+```swift
+// INSERT INTO transfer VALUES ('10')
+try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [Decimal(10)])
+```
+
+³ All types decode integer, double and string database values. Strings are always decoded as a decimal number (`NSDecimalNumber` or `Decimal`):
+
+```swift
+let number = try NSNumber.fetchOne(db, sql: "SELECT 1")             // NSNumber
+let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT 1")      // NSDecimalNumber
+let number = try Decimal.fetchOne(db, sql: "SELECT 1")              // Decimal
+
+let number = try NSNumber.fetchOne(db, sql: "SELECT 1.23")          // NSNumber
+let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT 1.23")   // NSDecimalNumber
+let number = try Decimal.fetchOne(db, sql: "SELECT 1.23")           // Decimal
+
+let number = try NSNumber.fetchOne(db, sql: "SELECT '1.23'")        // NSDecimalNumber
+let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT '1.23'") // NSDecimalNumber
+let number = try Decimal.fetchOne(db, sql: "SELECT '1.23'")         // Decimal
+```
+
+> :warning: **Warning**: The behavior of numbers that are not normal (NaNs, infinites, etc.) is currently unspecified (both in reads and writes).
+
+**SQLite has no support for decimal numbers.** Given the table below, SQLite will gladly accept to store integers, doubles or strings in the `amount` column, but no proper decimal numbers:
 
 ```sql
 CREATE TABLE transfer (
-    amount DECIMAL(10,5) -- will store integer or double, actually
+    amount DECIMAL(10,5) -- will store anything but decimal numbers, actually
 )
 ```
 
-This means that computations will not be exact:
+When you store non-integer values `amount` column, computations will not be exact:
 
 ```swift
 try db.execute(sql: "INSERT INTO transfer (amount) VALUES (0.1)")
@@ -8191,6 +8238,10 @@ This chapter has [moved](Documentation/FullTextSearch.md).
 #### Migrations
 
 This chapter has [moved](Documentation/Migrations.md).
+
+#### NSNumber and NSDecimalNumber
+
+This chapter has [moved](#nsnumber-nsdecimalnumber-and-decimal)
 
 #### Persistable Protocol
 
