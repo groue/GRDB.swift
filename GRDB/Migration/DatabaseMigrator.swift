@@ -395,15 +395,10 @@ extension DatabaseMigrator {
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    /// A publisher that writes into the database. It publishes exactly
+    /// A publisher that migrates a database. It publishes exactly
     /// one element, or an error.
     ///
-    /// See:
-    ///
-    /// - `DatabaseWriter.writePublisher(updates:)`.
-    /// - `DatabaseWriter.writePublisher(updates:thenRead:)`.
-    /// - `DatabaseWriter.writePublisher(receiveOn:updates:)`.
-    /// - `DatabaseWriter.writePublisher(receiveOn:updates:thenRead:)`.
+    /// See `DatabaseMigrator.migratePublisher(_:receiveOn:)`.
     public struct Migrate: Publisher {
         public typealias Output = Void
         public typealias Failure = Error
