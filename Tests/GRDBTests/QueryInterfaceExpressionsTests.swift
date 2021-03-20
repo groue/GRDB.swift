@@ -251,6 +251,40 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         }
     }
     
+    func testSubqueryExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            let alias = TableAlias(name: "r")
+            let subquery = tableRequest.filter(Col.age > alias[Col.age])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.aliased(alias).filter(subquery.exists())),
+                """
+                SELECT "r".* FROM "readers" "r" WHERE EXISTS (SELECT * FROM "readers" WHERE "age" > "r"."age")
+                """)
+        }
+        
+        do {
+            let alias = TableAlias(name: "r")
+            let subquery = tableRequest.filter(Col.age > alias[Col.age])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.aliased(alias).filter(!subquery.exists())),
+                """
+                SELECT "r".* FROM "readers" "r" WHERE NOT EXISTS (SELECT * FROM "readers" WHERE "age" > "r"."age")
+                """)
+        }
+        
+        do {
+            let alias = TableAlias(name: "r")
+            let subquery = SQLRequest<Row>("SELECT * FROM readers WHERE age > \(alias[Col.age])")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.aliased(alias).filter(subquery.exists())),
+                """
+                SELECT "r".* FROM "readers" "r" WHERE EXISTS (SELECT * FROM readers WHERE age > "r"."age")
+                """)
+        }
+    }
+
     func testGreaterThan() throws {
         let dbQueue = try makeDatabaseQueue()
         
