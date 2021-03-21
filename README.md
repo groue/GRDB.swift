@@ -85,6 +85,45 @@ Companion libraries that enhance and extend GRDB:
 ## Usage
 
 <details open>
+  <summary>In a glance</summary>
+  
+**5 easy steps from nothing to the first fetch of your precious data:**
+
+```swift
+import GRDB
+
+// 1. Open a database connection
+let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
+
+// 2. Define the database schema
+try dbQueue.write { db in
+    try db.create(table: "player") { t in
+        t.autoIncrementedPrimaryKey("id")
+        t.column("name", .text).notNull()
+        t.column("score", .integer).notNull()
+    }
+}
+
+// 3. Define a record type
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var id: Int64
+    var name: String
+    var score: Int
+}
+
+// 4. Insert values
+try dbQueue.write { db in
+    try Player(id: 1, name: "Arthur", score: 100).insert(db)
+    try Player(id: 2, name: "Barbara", score: 1000).insert(db)
+}
+
+// 5. Fetch values
+let players = try dbQueue.read(Player.fetchAll) // [Player]
+```
+
+</details>
+
+<details>
   <summary>Connect to an SQLite database</summary>
 
 ```swift
@@ -102,7 +141,7 @@ See [Database Connections](#database-connections)
 </details>
 
 <details>
-    <summary>Execute SQL statements</summary>
+    <summary>Execute raw SQL statements</summary>
 
 ```swift
 try dbQueue.write { db in
@@ -135,7 +174,7 @@ See [Executing Updates](#executing-updates)
 </details>
 
 <details>
-    <summary>Fetch database rows and values</summary>
+    <summary>Fetch raw database rows and values</summary>
 
 ```swift
 try dbQueue.read { db in
