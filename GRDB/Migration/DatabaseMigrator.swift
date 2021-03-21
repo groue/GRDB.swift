@@ -143,8 +143,8 @@ public struct DatabaseMigrator {
     {
         writer.asyncBarrierWriteWithoutTransaction { db in
             do {
-                if let lastMigration = migrations.last {
-                    try migrate(db, upTo: lastMigration.identifier)
+                if let lastMigration = self.migrations.last {
+                    try self.migrate(db, upTo: lastMigration.identifier)
                 }
                 completion(db, nil)
             } catch {
@@ -378,7 +378,7 @@ extension DatabaseMigrator {
     {
         DatabasePublishers.Migrate(
             upstream: OnDemandFuture { promise in
-                asyncMigrate(writer) { _, error in
+                self.asyncMigrate(writer) { _, error in
                     if let error = error {
                         promise(.failure(error))
                     } else {
