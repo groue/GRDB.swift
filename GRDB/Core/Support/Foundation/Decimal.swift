@@ -16,7 +16,8 @@ extension Decimal: DatabaseValueConvertible {
         case .double(let double):
             return self.init(double)
         case let .string(string):
-            return self.init(string: string)
+            // Must match NSNumber.fromDatabaseValue(_:)
+            return self.init(string: string, locale: posixLocale)
         default:
             return nil
         }
@@ -32,10 +33,14 @@ extension Decimal: StatementColumnConvertible {
         case SQLITE_FLOAT:
             self.init(sqlite3_column_double(sqliteStatement, index))
         case SQLITE_TEXT:
-            self.init(string: String(cString: sqlite3_column_text(sqliteStatement, index)!))
+            self.init(
+                string: String(cString: sqlite3_column_text(sqliteStatement, index)!),
+                locale: posixLocale)
         default:
             return nil
         }
     }
 }
+
+private let posixLocale = Locale(identifier: "en_US_POSIX")
 #endif
