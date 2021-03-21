@@ -15,6 +15,7 @@
 
 ## Features
 
+- [ ] Direct access to statement for bindings
 - [ ] Breaking: make `fetchOne(key:)` type-safe (have a single dedicated primary key type)
 - [ ] Property wrapper that decodes dictionaries (but how to tell the key column?)
 - [X] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation. Result: no, it does not look it returns values that are comparable between two distinct SQLite connections (from the initial reader, and from the writer thhat starts the observation)
@@ -49,7 +50,6 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Allow concurrent reads from a snapshot
-- [ ] Decode NSDecimalNumber from text database values
 - [ ] Check https://sqlite.org/sqlar.html
 - [ ] FTS: prefix queries
 - [ ] More schema alterations
