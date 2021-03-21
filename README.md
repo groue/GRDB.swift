@@ -85,9 +85,7 @@ Companion libraries that enhance and extend GRDB:
 ## Usage
 
 <details open>
-  <summary>In a glance</summary>
-  
-**5 easy steps from nothing to the first fetch of your precious data:**
+  <summary>5 easy steps from nothing to the first fetch of your precious data</summary>
 
 ```swift
 import GRDB
