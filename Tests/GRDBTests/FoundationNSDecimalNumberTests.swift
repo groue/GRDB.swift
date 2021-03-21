@@ -36,6 +36,13 @@ class FoundationNSDecimalNumberTests: GRDBTestCase {
         // 0
         XCTAssertEqual(storage(NSDecimalNumber.zero), .integer)
         
+        // 1
+        XCTAssertEqual(storage(NSDecimalNumber(string: "1")), .integer)
+        XCTAssertEqual(storage(NSDecimalNumber(string: "1.0")), .integer)
+        
+        // 1.5
+        XCTAssertEqual(storage(NSDecimalNumber(string: "1.5")), .double)
+        
         // Int64.min + 1
         XCTAssertEqual(storage(NSDecimalNumber(string: "-9223372036854775807")), .integer)
         
