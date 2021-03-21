@@ -1381,86 +1381,60 @@ dbComponents.dateComponents // DateComponents
 
 Here is how GRDB supports the various data types supported by SQLite:
 
-|                 |    Integer     |     Double     |     String     |
-|:--------------- |:--------------:|:--------------:|:--------------:|
-| NSNumber        | Read / Write ¹ | Read / Write ¹ |                |
-| NSDecimalNumber | Read / Write ¹ | Read / Write ¹ |     Read ³     |
-| Decimal         |     Read ³     |     Read ³     | Read / Write ² |
+|                 |    Integer   |     Double   |    String    |
+|:--------------- |:------------:|:------------:|:------------:|
+| NSNumber        | Read / Write | Read / Write |     Read     |
+| NSDecimalNumber | Read / Write | Read / Write |     Read     |
+| Decimal         |     Read     |     Read     | Read / Write |
 
-¹ `NSNumber` is stored as a database 64-bit integer or double. Integers that don't fit `Int64` won't be stored: be cautious with large `UInt64` values, because you'll get a fatal error. `NSDecimalNumber` behaves the same as its superclass `NSNumber`: it stores a database integer, or a double, with a potential precision loss for non-integer values:
+- All three types can decode database integers and doubles:
 
-```swift
-// INSERT INTO transfer VALUES (10)
-try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSNumber(value: 10)])
+    ```swift
+    let number = try NSNumber.fetchOne(db, sql: "SELECT 10")            // NSNumber
+    let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT 1.23")   // NSDecimalNumber
+    let number = try Decimal.fetchOne(db, sql: "SELECT -100")           // Decimal
+    ```
+    
+- All three types can decode database strings containing decimal numbers:
 
-// INSERT INTO transfer VALUES (12.34)
-try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSNumber(value: 12.34)])
+    ```swift
+    let number = try NSNumber.fetchOne(db, sql: "SELECT '10'")          // NSDecimalNumber
+    let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT '1.23'") // NSDecimalNumber
+    let number = try Decimal.fetchOne(db, sql: "SELECT '-100'")         // Decimal
+    ```
 
-// INSERT INTO transfer VALUES (10)
-try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSDecimalNumber(value: 10)])
+- `NSNumber` and `NSDecimalNumber` send 64-bit signed integers and doubles in the database:
 
-// INSERT INTO transfer VALUES (12.34)
-try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSDecimalNumber(string: "12.34")])
-```
+    ```swift
+    // INSERT INTO transfer VALUES (10)
+    try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSNumber(value: 10)])
+    
+    // INSERT INTO transfer VALUES (10.0)
+    try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSNumber(value: 10.0)])
+    
+    // INSERT INTO transfer VALUES (10)
+    try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSDecimalNumber(string: "10.0")])
+    
+    // INSERT INTO transfer VALUES (10.5)
+    try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [NSDecimalNumber(string: "10.5")])
+    ```
+    
+    > :warning: **Warning**: since SQLite does not support decimal numbers, sending a non-integer `NSDecimalNumber` can result in a loss of precision during the conversion to double.
+    >
+    > Instead of sending non-integer `NSDecimalNumber` to the database, you may prefer:
+    >
+    > - Send `Decimal` instead (those store decimal strings in the database).
+    > - Send integers instead (for example, store amounts of cents instead of amounts of Euros).
 
-² `Decimal` is stored as a database string:
+- `Decimal` sends decimal strings in the database:
 
-```swift
-// INSERT INTO transfer VALUES ('10')
-try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [Decimal(10)])
-```
-
-³ All types decode integer, double and string database values. Strings are always decoded as a decimal number (`NSDecimalNumber` or `Decimal`):
-
-```swift
-let number = try NSNumber.fetchOne(db, sql: "SELECT 1")             // NSNumber
-let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT 1")      // NSDecimalNumber
-let number = try Decimal.fetchOne(db, sql: "SELECT 1")              // Decimal
-
-let number = try NSNumber.fetchOne(db, sql: "SELECT 1.23")          // NSNumber
-let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT 1.23")   // NSDecimalNumber
-let number = try Decimal.fetchOne(db, sql: "SELECT 1.23")           // Decimal
-
-let number = try NSNumber.fetchOne(db, sql: "SELECT '1.23'")        // NSDecimalNumber
-let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT '1.23'") // NSDecimalNumber
-let number = try Decimal.fetchOne(db, sql: "SELECT '1.23'")         // Decimal
-```
-
-> :warning: **Warning**: The behavior of numbers that are not normal (NaNs, infinites, etc.) is currently unspecified (both in reads and writes).
-
-**SQLite has no support for decimal numbers.** Given the table below, SQLite will gladly accept to store integers, doubles or strings in the `amount` column, but no proper decimal numbers:
-
-```sql
-CREATE TABLE transfer (
-    amount DECIMAL(10,5) -- will store anything but decimal numbers, actually
-)
-```
-
-When you store non-integer values `amount` column, computations will not be exact:
-
-```swift
-try db.execute(sql: "INSERT INTO transfer (amount) VALUES (0.1)")
-try db.execute(sql: "INSERT INTO transfer (amount) VALUES (0.2)")
-let sum = try NSDecimalNumber.fetchOne(db, sql: "SELECT SUM(amount) FROM transfer")!
-
-// Yikes! 0.3000000000000000512
-print(sum)
-```
-
-Don't blame SQLite or GRDB, and instead store your decimal numbers differently.
-
-A classic technique is to store *integers* instead, since SQLite performs exact computations of integers. For example, don't store Euros, but store cents instead:
-
-```swift
-// Write
-let amount = NSDecimalNumber(string: "0.10")
-let integerAmount = amount.multiplying(byPowerOf10: 2).int64Value
-try db.execute(sql: "INSERT INTO transfer (amount) VALUES (?)", arguments: [integerAmount])
-
-// Read
-let integerAmount = try Int64.fetchOne(db, sql: "SELECT SUM(amount) FROM transfer")!
-let amount = NSDecimalNumber(value: integerAmount).multiplying(byPowerOf10: -2) // 0.10
-```
+    ```swift
+    // INSERT INTO transfer VALUES ('10')
+    try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [Decimal(10)])
+    
+    // INSERT INTO transfer VALUES ('10.5')
+    try db.execute(sql: "INSERT INTO transfer VALUES (?)", arguments: [Decimal(string: "10.5")!])
+    ```
 
 
 ### UUID
