@@ -53,7 +53,6 @@
 - [ ] Check https://sqlite.org/sqlar.html
 - [ ] FTS: prefix queries
 - [ ] More schema alterations
-- [ ] DatabasePool.databaseSchemaIsLocked = true (should forbid schema changes, and never reset dbPool readers' caches). Or can we invalidate reader's cache automatically from the writer connection?
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
 
 
