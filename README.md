@@ -81,7 +81,7 @@ GRDB ships with:
 ## Usage
 
 <details open>
-  <summary>5 easy steps from nothing to the first fetch of your precious data</summary>
+  <summary>Start using the database in four easy steps</summary>
 
 ```swift
 import GRDB
@@ -105,13 +105,12 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     var score: Int
 }
 
-// 4. Insert values
+// 4. Access the database
 try dbQueue.write { db in
     try Player(id: 1, name: "Arthur", score: 100).insert(db)
     try Player(id: 2, name: "Barbara", score: 1000).insert(db)
 }
 
-// 5. Fetch values
 let players = try dbQueue.read(Player.fetchAll) // [Player]
 ```
 
