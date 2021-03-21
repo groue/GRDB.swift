@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta http-equiv="refresh" content="0; URL=https://github.com/groue/GRDB.swift">
     <title>GRDB.swift</title>
     <link rel="stylesheet" href="style.css">
   </head>
@@ -10,92 +11,8 @@
       <h1>GRDB</h1>
       <p>A toolkit for SQLite databases, with a focus on application development</p>
       <p>
-        <img src="https://img.shields.io/badge/swift-5.2-orange.svg?style=flat" alt="Swift version 5.2">
-        <img src="https://img.shields.io/cocoapods/p/GRDB.swift.svg" alt="Supported platforms">
-        <img src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000" alt="MIT License">
-        <a href="https://travis-ci.org/groue/GRDB.swift"><img src="https://travis-ci.org/groue/GRDB.swift.svg?branch=master" alt="Build Status"></a>
-      </p>
-      <p>
         <a class="button" href="https://github.com/groue/GRDB.swift">View on Github</a>
       </p>
     </header>
-    
-    <section>
-      <p>
-        <strong>Latest release</strong>: March 12, 2021 • version 5.6.0 • <a href="https://github.com/groue/GRDB.swift/blob/master/CHANGELOG.md">Release Notes</a>
-      </p>
-      <p>
-        <strong>Requirements</strong>: iOS 10.0+ / OSX 10.10+ / watchOS 2.0+ • Swift 5.2+ / Xcode 11.4+
-      </p>
-      <p>
-        <strong>Links</strong>:
-        <a href="https://github.com/groue/GRDB.swift/blob/master/README.md#features">Features</a> •
-        <a href="https://github.com/groue/GRDB.swift/blob/master/README.md#documentation">Documentation</a> •
-        <a href="https://github.com/groue/GRDB.swift/blob/master/README.md#general-guides--good-practices">General Guides &amp; Good Practices</a> •
-        <a href="docs/5.6/index.html">Reference</a>
-      </p>
-      <p>
-        <strong>Contact</strong>: <a href="https://twitter.com/groue">@groue</a>
-      </p>
-    </section>
-    
-    <section>
-      <h2>What is this?</h2>
-      <p>GRDB provides raw access to SQL and advanced SQLite features, because one sometimes enjoys a sharp tool. It has robust concurrency primitives, so that multi-threaded applications can efficiently use their databases. It grants your application models with persistence and fetching methods, so that you don't have to deal with SQL and raw database rows when you don't want to.</p>
-      <p>Compared to <a href="https://github.com/stephencelis/SQLite.swift">SQLite.swift</a> or <a href="https://github.com/ccgus/fmdb">FMDB</a>, GRDB can spare you a lot of glue code. Compared to <a href="https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/CoreData/">Core Data</a> or <a href="http://realm.io">Realm</a>, it can simplify your multi-threaded applications.</p>
-    </section>
-    
-    <section>
-      <h2>How does it look like?</h2>
-      <ul class="toggles">
-        <li>
-          <input class="toggle" type="checkbox" id="usage_connect" checked>
-          <label for="usage_connect">Connect to SQLite database</label>
-          <div>
-            <script src="https://gist.github.com/groue/b43623818e875c1b71d7927e88080679.js"></script>
-          </div>
-        </li>
-        <li>
-          <input class="toggle" type="checkbox" id="usage_sql_execute">
-          <label for="usage_sql_execute">Execute SQL statements</label>
-          <div>
-            <script src="https://gist.github.com/groue/4b7a64f3649016520e3ea03060729d13.js"></script>
-          </div>
-        </li>
-        <li>
-          <input class="toggle" type="checkbox" id="usage_sql_fetch">
-          <label for="usage_sql_fetch">Fetch raw database rows and values with SQL</label>
-          <div>
-            <script src="https://gist.github.com/groue/76fa9a18cebd71c738830c7ff958a9bb.js"></script>
-          </div>
-        </li>
-        <li>
-          <input class="toggle" type="checkbox" id="usage_records_persistence">
-          <label for="usage_records_persistence">Store custom models aka "records"</label>
-          <div>
-            <script src="https://gist.github.com/groue/230f324dcd5287238f2cb8e06ffe8314.js"></script>
-          </div>
-        </li>
-        <li>
-          <input class="toggle" type="checkbox" id="usage_records_fetch">
-          <label for="usage_records_fetch">Fetch records with the Swift query interface</label>
-          <div>
-            <script src="https://gist.github.com/groue/ea9ae96701d119b3d0773cb2af2ace01.js"></script>
-          </div>
-        </li>
-      </ul>
-      <p>See more GRDB sample code on <a href="https://github.com/groue/GRDB.swift">Github</a>.</p>
-    </section>
-    
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-94006502-1', 'auto');
-      ga('send', 'pageview');
-
-    </script>
   </body>
 </html>
