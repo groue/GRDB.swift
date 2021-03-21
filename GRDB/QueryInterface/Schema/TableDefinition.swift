@@ -179,7 +179,7 @@ public final class TableDefinition {
     
     private enum ColumnItem {
         case definition(ColumnDefinition)
-        case literal(SQLLiteral)
+        case literal(SQL)
         
         var columnDefinition: ColumnDefinition? {
             switch self {
@@ -208,7 +208,7 @@ public final class TableDefinition {
     private var uniqueKeyConstraints: [KeyConstraint] = []
     private var foreignKeyConstraints: [ForeignKeyConstraint] = []
     private var checkConstraints: [SQLExpression] = []
-    private var literalConstraints: [SQLLiteral] = []
+    private var literalConstraints: [SQL] = []
     
     init(name: String, temporary: Bool, ifNotExists: Bool, withoutRowID: Bool) {
         self.name = name
@@ -278,7 +278,7 @@ public final class TableDefinition {
     ///         t.column(sql: "name TEXT")
     ///     }
     public func column(sql: String) {
-        columns.append(.literal(SQLLiteral(sql: sql)))
+        columns.append(.literal(SQL(sql: sql)))
     }
     
     /// Appends a table column defined with an SQL *literal*.
@@ -293,7 +293,7 @@ public final class TableDefinition {
     ///     try db.create(table: "player") { t in
     ///         t.column(literal: "name TEXT DEFAULT \(defaultName)")
     ///     }
-    public func column(literal: SQLLiteral) {
+    public func column(literal: SQL) {
         columns.append(.literal(literal))
     }
     
@@ -403,7 +403,7 @@ public final class TableDefinition {
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
-        checkConstraints.append(SQLLiteral(sql: sql).sqlExpression)
+        checkConstraints.append(SQL(sql: sql).sqlExpression)
     }
     
     /// Appends a table constraint defined with raw SQL.
@@ -417,7 +417,7 @@ public final class TableDefinition {
     ///         t.constraint(sql: "CHECK (score >= 0)")
     ///     }
     public func constraint(sql: String) {
-        literalConstraints.append(SQLLiteral(sql: sql))
+        literalConstraints.append(SQL(sql: sql))
     }
     
     /// Appends a table constraint defined with an SQL *literal*.
@@ -434,7 +434,7 @@ public final class TableDefinition {
     ///         ...
     ///         t.constraint(literal: "CHECK (score >= \(minScore))")
     ///     }
-    public func constraint(literal: SQLLiteral) {
+    public func constraint(literal: SQL) {
         literalConstraints.append(literal)
     }
     
@@ -578,7 +578,7 @@ public final class TableAlteration {
     
     private enum TableAlterationKind {
         case add(ColumnDefinition)
-        case addColumnLiteral(SQLLiteral)
+        case addColumnLiteral(SQL)
         case rename(old: String, new: String)
     }
     
@@ -614,7 +614,7 @@ public final class TableAlteration {
     ///         t.addColumn(sql: "name TEXT")
     ///     }
     public func addColumn(sql: String) {
-        alterations.append(.addColumnLiteral(SQLLiteral(sql: sql)))
+        alterations.append(.addColumnLiteral(SQL(sql: sql)))
     }
     
     /// Appends a table column defined with an SQL *literal*.
@@ -627,7 +627,7 @@ public final class TableAlteration {
     ///     try db.alter(table: "player") { t in
     ///         t.addColumn(literal: "name TEXT DEFAULT \(defaultName)")
     ///     }
-    public func addColumn(literal: SQLLiteral) {
+    public func addColumn(literal: SQL) {
         alterations.append(.addColumnLiteral(literal))
     }
     
@@ -874,7 +874,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func check(sql: String) -> Self {
-        checkConstraints.append(SQLLiteral(sql: sql).sqlExpression)
+        checkConstraints.append(SQL(sql: sql).sqlExpression)
         return self
     }
     
@@ -906,7 +906,7 @@ public final class ColumnDefinition {
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func defaults(sql: String) -> Self {
-        defaultExpression = SQLLiteral(sql: sql).sqlExpression
+        defaultExpression = SQL(sql: sql).sqlExpression
         return self
     }
     
@@ -966,7 +966,7 @@ public final class ColumnDefinition {
         _ qualification: GeneratedColumnQualification = .virtual)
     -> Self
     {
-        let expression = SQLLiteral(sql: sql).sqlExpression
+        let expression = SQL(sql: sql).sqlExpression
         generatedColumnConstraint = GeneratedColumnConstraint(
             expression: expression,
             qualification: qualification)

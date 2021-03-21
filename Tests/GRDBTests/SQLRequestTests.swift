@@ -50,7 +50,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLLiteralInitializer() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<String>(literal: SQLLiteral(sql: """
+            let request = SQLRequest<String>(literal: SQL(sql: """
                 SELECT ?
                 """, arguments: ["O'Brien"]))
             
@@ -103,7 +103,7 @@ class SQLRequestTests: GRDBTestCase {
     
     func testSQLInterpolation() throws {
         // This test assumes SQLRequest interpolation is based on
-        // SQLInterpolation, just like SQLLiteral. We thus test much less
+        // SQLInterpolation, just like `SQL` literal. We thus test much less
         // cases.
         struct Player: Codable, TableRecord, FetchableRecord, PersistableRecord {
             var id: Int64
@@ -135,7 +135,7 @@ class SQLRequestTests: GRDBTestCase {
             
             // The test pass if this method compiles.
             static func complexRequest() -> SQLRequest<Player> {
-                let query: SQLLiteral = "SELECT * FROM \(self)"
+                let query: SQL = "SELECT * FROM \(self)"
                 return SQLRequest(literal: query)
             }
         }

@@ -19,7 +19,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     /// - returns: An SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
@@ -38,7 +38,7 @@ extension Database {
     ///             SELECT COUNT(*) FROM player
     ///             WHERE color = ? AND score > \(1000)
     ///             """)
-    public func makeSelectStatement(literal sqlLiteral: SQLLiteral) throws -> SelectStatement {
+    public func makeSelectStatement(literal sqlLiteral: SQL) throws -> SelectStatement {
         let (sql, arguments) = try sqlLiteral.build(self)
         let statement = try makeSelectStatement(sql: sql)
         if arguments.isEmpty == false {
@@ -99,7 +99,7 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
@@ -117,7 +117,7 @@ extension Database {
     ///         try makeUpdateStatement(literal: """
     ///             UPDATE player SET name = ?, score = \(10)
     ///             """)
-    public func makeUpdateStatement(literal sqlLiteral: SQLLiteral) throws -> UpdateStatement {
+    public func makeUpdateStatement(literal sqlLiteral: SQL) throws -> UpdateStatement {
         let (sql, arguments) = try sqlLiteral.build(self)
         let statement = try makeUpdateStatement(sql: sql)
         if arguments.isEmpty == false {
@@ -182,7 +182,7 @@ extension Database {
     ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments = StatementArguments()) throws {
-        try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
+        try execute(literal: SQL(sql: sql, arguments: arguments))
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
@@ -202,9 +202,9 @@ extension Database {
     ///
     /// This method may throw a DatabaseError.
     ///
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(literal sqlLiteral: SQLLiteral) throws {
+    public func execute(literal sqlLiteral: SQL) throws {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.

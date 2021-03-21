@@ -35,7 +35,7 @@ public struct SQLExpression {
         case subquery(SQLSubquery)
         
         /// A literal SQL expression
-        case literal(SQLLiteral)
+        case literal(SQL)
         
         /// The `BETWEEN` and `NOT BETWEEN` operators.
         ///
@@ -407,7 +407,7 @@ extension SQLExpression {
     }
     
     /// A literal SQL expression.
-    static func literal(_ sqlLiteral: SQLLiteral) -> Self {
+    static func literal(_ sqlLiteral: SQL) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
     

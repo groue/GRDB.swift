@@ -18,7 +18,7 @@ let expectedSQL = """
     ORDER BY t1.id
     """
 
-let testedLiteral: SQLLiteral = """
+let testedLiteral: SQL = """
     SELECT
         \(columnsOf: T1.self),
         \(columnsOf: T2.self, tableAlias: "t2Left"),

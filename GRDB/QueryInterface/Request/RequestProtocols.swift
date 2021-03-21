@@ -72,7 +72,7 @@ extension SelectionRequest {
     ///         .select(sql: "id")
     ///         .select(sql: "email")
     public func select(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        select(SQLLiteral(sql: sql, arguments: arguments))
+        select(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects an SQL *literal*.
@@ -93,7 +93,7 @@ extension SelectionRequest {
     ///     request
     ///         .select(...)
     ///         .select(literal: "email")
-    public func select(literal sqlLiteral: SQLLiteral) -> Self {
+    public func select(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         select(sqlLiteral)
     }
@@ -166,7 +166,7 @@ extension FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter(sql: "email = ?", arguments: ["arthur@example.com"])
     public func filter(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        filter(SQLLiteral(sql: sql, arguments: arguments))
+        filter(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -179,7 +179,7 @@ extension FilteredRequest {
     ///     let name = "O'Brien"
     ///     var request = Player.all()
     ///     request = request.filter(literal: "email = \(email)")
-    public func filter(literal sqlLiteral: SQLLiteral) -> Self {
+    public func filter(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         filter(sqlLiteral)
     }
@@ -356,11 +356,11 @@ extension AggregatingRequest {
     
     /// Creates a request with a new grouping.
     public func group(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        group(SQLLiteral(sql: sql, arguments: arguments))
+        group(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with a new grouping.
-    public func group(literal sqlLiteral: SQLLiteral) -> Self {
+    public func group(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         group(sqlLiteral)
     }
@@ -374,12 +374,12 @@ extension AggregatingRequest {
     /// Creates a request with the provided *sql* added to the
     /// eventual set of already applied predicates.
     public func having(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        having(SQLLiteral(sql: sql, arguments: arguments))
+        having(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided SQL *literal* added to the
     /// eventual set of already applied predicates.
-    public func having(literal sqlLiteral: SQLLiteral) -> Self {
+    public func having(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         having(sqlLiteral)
     }
@@ -473,7 +473,7 @@ extension OrderedRequest {
     ///         .order(sql: "email")
     ///         .order(sql: "name")
     public func order(sql: String, arguments: StatementArguments = StatementArguments()) -> Self {
-        order(SQLLiteral(sql: sql, arguments: arguments))
+        order(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request sorted according to an SQL *literal*.
@@ -488,7 +488,7 @@ extension OrderedRequest {
     ///     request
     ///         .order(literal: "email")
     ///         .order(literal: "name")
-    public func order(literal sqlLiteral: SQLLiteral) -> Self {
+    public func order(literal sqlLiteral: SQL) -> Self {
         // NOT TESTED
         order(sqlLiteral)
     }

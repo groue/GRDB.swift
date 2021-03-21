@@ -4058,7 +4058,7 @@ For extra index options, see [Create Indexes](#create-indexes) below.
     t.column("score", .integer).check(sql: "score > 0")
 ```
 
-Columns can also be defined with a raw sql String, or an [SQLLiteral] in which can safely embed raw values without any risk of syntax errors or SQL injection:
+Columns can also be defined with a raw sql String, or an [SQL literal] in which can safely embed raw values without any risk of syntax errors or SQL injection:
 
 ```swift
     t.column(sql: "name TEXT")
@@ -4761,7 +4761,7 @@ For example, you can add support for the `DATE` function, thanks to [SQL Interpo
 
 ```swift
 func date(_ value: SQLExpressible) -> SQLExpression {
-    SQLLiteral("DATE(\(value))").sqlExpression
+    SQL("DATE(\(value))").sqlExpression
 }
 
 // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
@@ -8269,4 +8269,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [FAQ]: #faq
 [Database Observation]: #database-changes-observation
 [SQLRequest]: http://groue.github.io/GRDB.swift/docs/5.6/Structs/SQLRequest.html
-[SQLLiteral]: Documentation/SQLInterpolation.md#sqlliteral
+[SQL literal]: Documentation/SQLInterpolation.md#sql-literal

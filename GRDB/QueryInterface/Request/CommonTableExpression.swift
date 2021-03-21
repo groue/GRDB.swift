@@ -133,12 +133,12 @@ extension CommonTableExpression {
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     public init(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
-        literal sqlLiteral: SQLLiteral)
+        literal sqlLiteral: SQL)
     {
         self.init(
             recursive: recursive,
@@ -233,12 +233,12 @@ extension CommonTableExpression where RowDecoder == Row {
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     public init(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
-        literal sqlLiteral: SQLLiteral)
+        literal sqlLiteral: SQL)
     {
         self.init(
             recursive: recursive,

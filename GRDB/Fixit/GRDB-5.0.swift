@@ -183,8 +183,8 @@ extension QueryInterfaceRequest {
 }
 
 extension SQLExpression {
-    @available(*, unavailable, message: "Use SQLLiteral initializer instead")
-    public var sqlLiteral: SQLLiteral
+    @available(*, unavailable, message: "Use SQL initializer instead")
+    public var sqlLiteral: SQL
     { preconditionFailure() }
 }
 
@@ -195,28 +195,31 @@ extension FilteredRequest {
 }
 
 /// :nodoc:
-@available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
+@available(*, unavailable, message: "Build literal expressions with SQL.sqlExpression instead.")
 struct SQLExpressionLiteral: SQLSpecificExpressible {
     var sqlExpression: SQLExpression { preconditionFailure() }
     
-    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
+    @available(*, unavailable, message: "Build literal expressions with SQL.sqlExpression instead.")
     public var sql: String { preconditionFailure() }
     
-    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
+    @available(*, unavailable, message: "Build literal expressions with SQL.sqlExpression instead.")
     public var arguments: StatementArguments { preconditionFailure() }
     
-    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
+    @available(*, unavailable, message: "Build literal expressions with SQL.sqlExpression instead.")
     public init(sql: String, arguments: StatementArguments = StatementArguments())
     { preconditionFailure() }
     
-    @available(*, unavailable, message: "Build literal expressions with SQLLiteral.sqlExpression instead.")
-    public init(literal sqlLiteral: SQLLiteral)
+    @available(*, unavailable, message: "Build literal expressions with SQL.sqlExpression instead.")
+    public init(literal sqlLiteral: SQL)
     { preconditionFailure() }
 }
 
-extension SQLLiteral {
+@available(*, deprecated, renamed: "SQL")
+public typealias SQLiteral = SQL
+
+extension SQL {
     @available(*, unavailable, message: "Use SQL interpolation instead.")
-    public func mapSQL(_ transform: @escaping (String) -> String) -> SQLLiteral
+    public func mapSQL(_ transform: @escaping (String) -> String) -> SQL
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use the build(_:) method instead.")

@@ -122,7 +122,7 @@ extension QueryInterfaceRequest: SelectionRequest {
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
-        select(SQLLiteral(sql: sql, arguments: arguments), as: type)
+        select(SQL(sql: sql, arguments: arguments), as: type)
     }
     
     /// Creates a request which selects an SQL *literal*, and fetches values of
@@ -138,7 +138,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         as: String.self)
     ///     let name: String? = try request.fetchOne(db)
     public func select<RowDecoder>(
-        literal sqlLiteral: SQLLiteral,
+        literal sqlLiteral: SQL,
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {

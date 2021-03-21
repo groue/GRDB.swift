@@ -44,7 +44,7 @@ extension TableRecord {
         arguments: StatementArguments = StatementArguments())
     -> QueryInterfaceRequest<Self>
     {
-        all().select(SQLLiteral(sql: sql, arguments: arguments))
+        all().select(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request which selects an SQL *literal*.
@@ -57,7 +57,7 @@ extension TableRecord {
     ///     let request = Player.select(literal: """
     ///         id, email, score + \(bonus)
     ///         """)
-    public static func select(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
+    public static func select(literal sqlLiteral: SQL) -> QueryInterfaceRequest<Self> {
         all().select(sqlLiteral)
     }
     
@@ -107,7 +107,7 @@ extension TableRecord {
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
-        all().select(SQLLiteral(sql: sql, arguments: arguments), as: type)
+        all().select(SQL(sql: sql, arguments: arguments), as: type)
     }
     
     /// Creates a request which selects an SQL *literal*, and fetches values of
@@ -123,7 +123,7 @@ extension TableRecord {
     ///         as: String.self)
     ///     let name: String? = try request.fetchOne(db)
     public static func select<RowDecoder>(
-        literal sqlLiteral: SQLLiteral,
+        literal sqlLiteral: SQL,
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -223,7 +223,7 @@ extension TableRecord {
         arguments: StatementArguments = StatementArguments())
     -> QueryInterfaceRequest<Self>
     {
-        filter(SQLLiteral(sql: sql, arguments: arguments))
+        filter(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request with the provided *predicate* added to the
@@ -235,7 +235,7 @@ extension TableRecord {
     ///     // SELECT * FROM player WHERE name = 'O''Brien'
     ///     let name = "O'Brien"
     ///     let request = Player.filter(literal: "email = \(email)")
-    public static func filter(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
+    public static func filter(literal sqlLiteral: SQL) -> QueryInterfaceRequest<Self> {
         // NOT TESTED
         all().filter(sqlLiteral)
     }
@@ -278,14 +278,14 @@ extension TableRecord {
         arguments: StatementArguments = StatementArguments())
     -> QueryInterfaceRequest<Self>
     {
-        all().order(SQLLiteral(sql: sql, arguments: arguments))
+        all().order(SQL(sql: sql, arguments: arguments))
     }
     
     /// Creates a request sorted according to an SQL *literal*.
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order(literal: "name")
-    public static func order(literal sqlLiteral: SQLLiteral) -> QueryInterfaceRequest<Self> {
+    public static func order(literal sqlLiteral: SQL) -> QueryInterfaceRequest<Self> {
         all().order(sqlLiteral)
     }
     

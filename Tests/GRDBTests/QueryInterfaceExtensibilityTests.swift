@@ -2,7 +2,7 @@ import XCTest
 import GRDB
 
 private func cast<T: SQLExpressible>(_ value: T, as type: Database.ColumnType) -> SQLExpression {
-    SQLLiteral("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
+    SQL("CAST(\(value) AS \(sql: type.rawValue))").sqlExpression
 }
 
 class QueryInterfaceExtensibilityTests: GRDBTestCase {

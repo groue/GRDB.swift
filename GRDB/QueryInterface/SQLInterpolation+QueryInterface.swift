@@ -219,7 +219,7 @@ extension SQLInterpolation {
     public mutating func appendInterpolation<T>(_ sequence: T)
     where T: Sequence, T.Element: SQLExpressible
     {
-        let e: [SQLLiteral.Element] = sequence.map { .expression($0.sqlExpression) }
+        let e: [SQL.Element] = sequence.map { .expression($0.sqlExpression) }
         if e.isEmpty {
             appendLiteral("(SELECT NULL WHERE NULL)")
         } else {

@@ -4,13 +4,13 @@ public struct SQLSubquery {
     
     private enum Impl {
         /// A literal SQL query
-        case literal(SQLLiteral)
+        case literal(SQL)
         
         /// A query interface relation
         case relation(SQLRelation)
     }
     
-    static func literal(_ sqlLiteral: SQLLiteral) -> Self {
+    static func literal(_ sqlLiteral: SQL) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
     

@@ -84,8 +84,8 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
             try XCTAssertEqual(SQLExpression.isEmpty(alias[Column("a")]).column(db, for: alias, acceptsBijection: true), nil)
             
             // SQLExpressionLiteral
-            try XCTAssertEqual(SQLLiteral("\(alias[Column("a")]) * 2").sqlExpression.column(db, for: alias, acceptsBijection: false), nil)
-            try XCTAssertEqual(SQLLiteral("\(alias[Column("a")]) * 2").sqlExpression.column(db, for: alias, acceptsBijection: true), nil)
+            try XCTAssertEqual(SQL("\(alias[Column("a")]) * 2").sqlExpression.column(db, for: alias, acceptsBijection: false), nil)
+            try XCTAssertEqual(SQL("\(alias[Column("a")]) * 2").sqlExpression.column(db, for: alias, acceptsBijection: true), nil)
 
             // SQLExpressionNot
             try XCTAssertEqual((!alias[Column("a")]).column(db, for: alias, acceptsBijection: false), nil)
@@ -304,7 +304,7 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
         XCTAssertFalse(SQLExpression.isEmpty(Column("a").sqlExpression).isConstantInRequest)
 
         // SQLExpressionLiteral
-        XCTAssertFalse(SQLLiteral("1").sqlExpression.isConstantInRequest)
+        XCTAssertFalse(SQL("1").sqlExpression.isConstantInRequest)
         
         // SQLExpressionNot
         XCTAssertTrue((!(true.databaseValue)).isConstantInRequest)

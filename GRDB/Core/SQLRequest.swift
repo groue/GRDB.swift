@@ -15,7 +15,7 @@ public struct SQLRequest<RowDecoder> {
     /// The request adapter
     public var adapter: RowAdapter?
     
-    private(set) var sqlLiteral: SQLLiteral
+    private(set) var sqlLiteral: SQL
     let cache: Cache?
     
     /// Creates a request from an SQL string, optional arguments, and
@@ -42,12 +42,12 @@ public struct SQLRequest<RowDecoder> {
         cached: Bool = false)
     {
         self.init(
-            literal: SQLLiteral(sql: sql, arguments: arguments),
+            literal: SQL(sql: sql, arguments: arguments),
             adapter: adapter,
             fromCache: cached ? .public : nil)
     }
     
-    /// Creates a request from an SQLLiteral, and optional row adapter.
+    /// Creates a request from an `SQL` literal, and optional row adapter.
     ///
     /// Literals allow you to safely embed raw values in your SQL, without any
     /// risk of syntax errors or SQL injection:
@@ -58,16 +58,16 @@ public struct SQLRequest<RowDecoder> {
     ///         """)
     ///
     /// - parameters:
-    ///     - sqlLiteral: An SQLLiteral.
+    ///     - sqlLiteral: An `SQL` literal.
     ///     - adapter: Optional RowAdapter.
     ///     - cached: Defaults to false. If true, the request reuses a cached
     ///       prepared statement.
     /// - returns: A SQLRequest
-    public init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, cached: Bool = false) {
+    public init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, cached: Bool = false) {
         self.init(literal: sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
     }
     
-    init(literal sqlLiteral: SQLLiteral, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
+    init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
         self.sqlLiteral = sqlLiteral
         self.adapter = adapter
         self.cache = cache
@@ -122,6 +122,6 @@ extension SQLRequest: ExpressibleByStringInterpolation {
     
     /// :nodoc:
     public init(stringInterpolation sqlInterpolation: SQLInterpolation) {
-        self.init(literal: SQLLiteral(stringInterpolation: sqlInterpolation))
+        self.init(literal: SQL(stringInterpolation: sqlInterpolation))
     }
 }

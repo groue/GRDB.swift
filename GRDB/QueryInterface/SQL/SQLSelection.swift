@@ -20,7 +20,7 @@ public struct SQLSelection {
         case aliasedExpression(SQLExpression, String)
         
         /// A literal SQL selection
-        case literal(SQLLiteral)
+        case literal(SQL)
     }
     
     /// All columns: `*`
@@ -44,7 +44,7 @@ public struct SQLSelection {
     }
     
     /// A literal SQL selection
-    static func literal(_ sqlLiteral: SQLLiteral) -> Self {
+    static func literal(_ sqlLiteral: SQL) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
 }
@@ -161,7 +161,7 @@ extension SQLSelection {
             fatalError("""
                 Selection literals can't be counted. \
                 To resolve this error, select one or several literal expressions instead. \
-                See SQLLiteral.sqlExpression.
+                See SQL.sqlExpression.
                 """)
         }
     }

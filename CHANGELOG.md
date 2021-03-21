@@ -75,17 +75,19 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Development Branch
 
-- **New**: [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral) can now be directly used as an expression, an ordering term, or a selection item.:
+- **New**: `SQLLiteral` has more use cases than initialy expected, and is renamed `SQL`.
+
+- **New**: [`SQL` literal](Documentation/SQLInterpolation.md#sql-literal) can now be directly used as an expression, an ordering term, or a selection item.:
     
     ```swift
     let name = "O'Brien"
     let request = Player
-        .select(SQLLiteral("id, score"), ...)
-        .filter(SQLLiteral("name = \(name)") && ...)
-        .order(SQLLiteral("score DESC"), ...)
+        .select(SQL("id, score"), ...)
+        .filter(SQL("name = \(name)") && ...)
+        .order(SQL("score DESC"), ...)
     ```
 
-- **New**: Table creation DSL now supports columns and constraints defined with raw SQL String or [SQLLiteral](Documentation/SQLInterpolation.md#sqlliteral):
+- **New**: Table creation DSL now supports columns and constraints defined with raw SQL String or [SQL literal](Documentation/SQLInterpolation.md#sql-literal):
     
     ```swift
     try db.create(table: "player") do { t in
