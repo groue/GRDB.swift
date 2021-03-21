@@ -124,7 +124,7 @@ let players = try dbQueue.read(Player.fetchAll) // [Player]
 </details>
 
 <details>
-  <summary>Connect to an SQLite database</summary>
+  <summary>Activate the WAL mode</summary>
 
 ```swift
 import GRDB
@@ -141,7 +141,7 @@ See [Database Connections](#database-connections)
 </details>
 
 <details>
-    <summary>Execute raw SQL statements</summary>
+    <summary>Access to raw SQL</summary>
 
 ```swift
 try dbQueue.write { db in
@@ -174,7 +174,7 @@ See [Executing Updates](#executing-updates)
 </details>
 
 <details>
-    <summary>Fetch raw database rows and values</summary>
+    <summary>Access to raw database rows and values</summary>
 
 ```swift
 try dbQueue.read { db in
@@ -203,7 +203,7 @@ See [Fetch Queries](#fetch-queries)
 </details>
 
 <details>
-    <summary>Store custom models aka "records"</summary>
+    <summary>Database model types aka "records"</summary>
 
 ```swift
 struct Place {
@@ -245,7 +245,7 @@ See [Records](#records)
 </details>
 
 <details>
-    <summary>Fetch records and values with the Swift query interface</summary>
+    <summary>Query the database with the Swift query interface</summary>
 
 ```swift
 try dbQueue.read { db in
@@ -274,7 +274,7 @@ See the [Query Interface](#the-query-interface)
 </details>
 
 <details>
-    <summary>Be notified of database changes</summary>
+    <summary>Database changes notifications</summary>
 
 ```swift
 // Define the observed value
@@ -287,7 +287,11 @@ let cancellable = observation.start(
     in: dbQueue,
     onError: { error in ... }
     onChange: { (places: [Place]) in print("Fresh places: \(places)") })
+```
 
+Ready-made support for Combine and RxSwift:
+
+```swift
 // Start observation (Combine)
 let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
