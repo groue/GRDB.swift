@@ -5503,6 +5503,8 @@ Tracked changes include changes performed by the [query interface](#the-query-in
     
     </details>
     
+    > :point_up: **Note**: ValueObservation does not report changes to internal system tables (such as `sqlite_master`). Tracking [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables will raise a fatal error "Tracking WITHOUT ROWID table is not supported".
+    
 3. Start the observation in order to be notified of changes:
     
     ```swift
