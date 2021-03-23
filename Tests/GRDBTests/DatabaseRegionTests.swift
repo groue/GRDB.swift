@@ -824,4 +824,17 @@ class DatabaseRegionTests : GRDBTestCase {
             }
         }
     }
+
+    func testCheckingWithoutRowid() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE TABLE foo (name TEXT PRIMARY KEY) WITHOUT ROWID")
+            try db.execute(sql: "CREATE TABLE bar (id INTEGER PRIMARY KEY, name TEXT)")
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT foo.name FROM foo JOIN bar ON foo.name == bar.name")
+                let tables = try statement.databaseRegion.tablesWithoutRowid(db)
+                XCTAssertEqual(tables, ["foo"])
+            }
+        }
+    }
 }
