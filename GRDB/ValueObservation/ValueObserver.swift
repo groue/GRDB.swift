@@ -218,7 +218,18 @@ extension ValueObserver {
         // TransactionObserver protocol. By removing them from the observed
         // region, we optimize our TransactionObserver conformance.
         observedRegion = try region.ignoringViews(db).ignoringInternalSQLiteTables()
-        
+
+        let withoutRowid = try observedRegion?.tablesWithoutRowid(db) ?? []
+        if !withoutRowid.isEmpty {
+            fatalError("""
+                The sqlite3_update_hook() interface does not fire callbacks for changes to a WITHOUT ROWID table.
+                This observation contains the following tables that cannot be observed:
+                    \(withoutRowid.joined(separator: ", "))
+
+                See https://www.sqlite.org/withoutrowid.html for more information.
+            """)
+        }
+
         return result
     }
 }
