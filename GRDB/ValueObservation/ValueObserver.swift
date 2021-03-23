@@ -221,13 +221,15 @@ extension ValueObserver {
 
         let withoutRowid = try observedRegion?.tablesWithoutRowid(db) ?? []
         if !withoutRowid.isEmpty {
+            // https://www.sqlite.org/withoutrowid.html
+            // > The sqlite3_update_hook() interface does not fire callbacks for
+            // > changes to a WITHOUT ROWID table.
+            //
+            // This prevents us from observing those tables, and there is no
+            // workaround. It is thus a programmer error:
             fatalError("""
-                The sqlite3_update_hook() interface does not fire callbacks for changes to a WITHOUT ROWID table.
-                This observation contains the following tables that cannot be observed:
-                    \(withoutRowid.joined(separator: ", "))
-
-                See https://www.sqlite.org/withoutrowid.html for more information.
-            """)
+                Tracking WITHOUT ROWID table is not supported: \(withoutRowid.joined(separator: ", "))
+                """)
         }
 
         return result
