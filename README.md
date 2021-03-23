@@ -275,7 +275,7 @@ let observation = ValueObservation.tracking { db in
     try Place.fetchAll(db)
 }
 
-// Start observation (Vanilla GRDB)
+// Start observation
 let cancellable = observation.start(
     in: dbQueue,
     onError: { error in ... }
@@ -285,12 +285,12 @@ let cancellable = observation.start(
 Ready-made support for Combine and RxSwift:
 
 ```swift
-// Start observation (Combine)
+// Combine
 let cancellable = observation.publisher(in: dbQueue).sink(
     receiveCompletion: { completion in ... },
     receiveValue: { (places: [Place]) in print("Fresh places: \(places)") })
 
-// Start observation (RxSwift)
+// RxSwift
 let disposable = observation.rx.observe(in: dbQueue).subscribe(
     onNext: { (places: [Place]) in print("Fresh places: \(places)") },
     onError: { error in ... })
