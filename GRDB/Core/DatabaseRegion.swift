@@ -169,6 +169,20 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         }
         return DatabaseRegion(tableRegions: filteredRegions)
     }
+
+    /// Returns an array containing the names of any tables in the region that
+    /// were created with WITHOUT ROWID.
+    func tablesWithoutRowid(_ db: Database) throws -> [String] {
+        guard let tableRegions = tableRegions else { return [] }
+        var tables: [String] = []
+        for (table, _) in tableRegions {
+            let pkInfo = try db.primaryKey(table)
+            if !pkInfo.tableHasRowID {
+                tables.append(table)
+            }
+        }
+        return tables
+    }
 }
 
 extension DatabaseRegion {
