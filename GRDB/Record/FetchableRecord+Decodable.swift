@@ -229,12 +229,11 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         }
         
         func superDecoder() throws -> Decoder {
-            // Not sure
-            return decoder
+            decoder
         }
         
         func superDecoder(forKey key: Key) throws -> Decoder {
-            fatalError("not implemented")
+            decoder
         }
         
         // Helper methods
