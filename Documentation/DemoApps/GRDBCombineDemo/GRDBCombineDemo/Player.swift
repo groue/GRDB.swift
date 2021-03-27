@@ -2,7 +2,8 @@ import GRDB
 
 /// The Player struct.
 ///
-/// Identifiable conformance supports SwiftUI list animations.
+/// Identifiable conformance supports SwiftUI list animations, and type-safe
+/// GRDB primary key methods.
 /// Equatable conformance supports tests.
 struct Player: Identifiable, Equatable {
     /// The player id.
