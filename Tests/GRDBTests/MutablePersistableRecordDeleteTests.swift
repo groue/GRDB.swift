@@ -9,7 +9,11 @@ private struct Hacker : MutablePersistableRecord {
 private struct Person : MutablePersistableRecord {
     static let databaseTableName = "persons"
     func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+    var id: Int64
 }
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Person: Identifiable { }
 
 private struct Citizenship : MutablePersistableRecord {
     static let databaseTableName = "citizenships"
@@ -149,6 +153,14 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             
             try Person.filter(keys: [1, 2]).deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2)")
+
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                try Person.filter(id: 1).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" = 1")
+                
+                try Person.filter(ids: [1, 2]).deleteAll(db)
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (1, 2)")
+            }
 
             try Person.filter(sql: "id = 1").deleteAll(db)
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE id = 1")

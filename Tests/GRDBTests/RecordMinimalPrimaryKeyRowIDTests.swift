@@ -4,7 +4,8 @@ import GRDB
 // MinimalRowID is the most tiny class with a RowID primary key which supports
 // read and write operations of Record.
 class MinimalRowID : Record, Hashable {
-    var id: Int64!
+    /// Test optional ID type
+    var id: Int64?
     
     init(id: Int64? = nil) {
         self.id = id
@@ -42,6 +43,9 @@ class MinimalRowID : Record, Hashable {
         hasher.combine(id)
     }
 }
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension MinimalRowID: Identifiable { }
 
 class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
@@ -120,7 +124,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalRowIDs")
-                XCTAssertEqual(key, ["id": record.id.databaseValue])
+                XCTAssertEqual(key, ["id": record.id!.databaseValue])
             }
         }
     }
@@ -149,7 +153,7 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
                 // Expected PersistenceError.recordNotFound
                 XCTAssertEqual(databaseTableName, "minimalRowIDs")
-                XCTAssertEqual(key, ["id": record.id.databaseValue])
+                XCTAssertEqual(key, ["id": record.id!.databaseValue])
             }
         }
     }
@@ -476,6 +480,22 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let ids: [Int64] = []
+                    let cursor = try MinimalRowID.fetchCursor(db, ids: ids)
+                    try XCTAssertNil(cursor.next())
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let cursor = try MinimalRowID.fetchCursor(db, ids: ids)
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+            }
         }
     }
     
@@ -498,6 +518,21 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let fetchedRecords = try MinimalRowID.fetchAll(db, keys: ids)
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let ids: [Int64] = []
+                    let fetchedRecords = try MinimalRowID.fetchAll(db, ids: ids)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let fetchedRecords = try MinimalRowID.fetchAll(db, ids: ids)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                }
             }
         }
     }
@@ -522,6 +557,21 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let ids: [Int64] = []
+                    let fetchedRecords = try MinimalRowID.fetchSet(db, ids: ids)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let fetchedRecords = try MinimalRowID.fetchSet(db, ids: ids)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                }
+            }
         }
     }
     
@@ -541,6 +591,22 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let fetchedRecord = try MinimalRowID.fetchOne(db, key: record.id)!
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE \"id\" = \(record.id!)")
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    // nil id
+                    let id: Int64? = nil
+                    let fetchedRecord = try MinimalRowID.fetchOne(db, id: id)
+                    XCTAssertTrue(fetchedRecord == nil)
+                }
+                
+                do {
+                    // non-nil id
+                    let fetchedRecord = try MinimalRowID.fetchOne(db, id: record.id!)!
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE \"id\" = \(record.id!)")
+                }
             }
         }
     }
@@ -569,6 +635,22 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let ids: [Int64] = []
+                    let cursor = try MinimalRowID.filter(ids: ids).fetchCursor(db)
+                    try XCTAssertNil(cursor.next())
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let cursor = try MinimalRowID.filter(ids: ids).fetchCursor(db)
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+            }
         }
     }
     
@@ -591,6 +673,21 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let fetchedRecords = try MinimalRowID.filter(keys: ids).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let ids: [Int64] = []
+                    let fetchedRecords = try MinimalRowID.filter(ids: ids).fetchAll(db)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let fetchedRecords = try MinimalRowID.filter(ids: ids).fetchAll(db)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                }
             }
         }
     }
@@ -615,6 +712,21 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let ids: [Int64] = []
+                    let fetchedRecords = try MinimalRowID.filter(ids: ids).fetchSet(db)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let ids = [record1.id!, record2.id!]
+                    let fetchedRecords = try MinimalRowID.filter(ids: ids).fetchSet(db)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map(\.id)), Set(ids))
+                }
+            }
         }
     }
     
@@ -634,6 +746,22 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
                 let fetchedRecord = try MinimalRowID.filter(key: record.id).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.id == record.id)
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE \"id\" = \(record.id!)")
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    // nil id
+                    let id: Int64? = nil
+                    let fetchedRecord = try MinimalRowID.filter(id: id).fetchOne(db)
+                    XCTAssertTrue(fetchedRecord == nil)
+                }
+                
+                do {
+                    // non-nil id
+                    let fetchedRecord = try MinimalRowID.filter(id: record.id!).fetchOne(db)!
+                    XCTAssertTrue(fetchedRecord.id == record.id)
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalRowIDs\" WHERE \"id\" = \(record.id!)")
+                }
             }
         }
     }

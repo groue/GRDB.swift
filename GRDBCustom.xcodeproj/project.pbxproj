@@ -487,6 +487,8 @@
 		56D507651F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */; };
 		56D51D021EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */; };
 		56D51D051EA789FA0074638A /* FetchableRecord+TableRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */; };
+		56DA7D03260FAA1B00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7D02260FAA1A00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */; };
+		56DA7D04260FAA1B00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7D02260FAA1A00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */; };
 		56DAA2D51DE99DAB006E10C8 /* DatabaseCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */; };
 		56DAA2D91DE99DAB006E10C8 /* DatabaseCursorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */; };
 		56DAA2DD1DE9C827006E10C8 /* Cursor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DAA2DA1DE9C827006E10C8 /* Cursor.swift */; };
@@ -1077,6 +1079,7 @@
 		56CEB4F91EAA2F4D00BFAF62 /* FTS4.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FTS4.swift; sourceTree = "<group>"; };
 		56D5075D1F6BAE8600AE1C5B /* PrimaryKeyInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrimaryKeyInfoTests.swift; sourceTree = "<group>"; };
 		56D51CFF1EA789FA0074638A /* FetchableRecord+TableRecord.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FetchableRecord+TableRecord.swift"; sourceTree = "<group>"; };
+		56DA7D02260FAA1A00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordMinimalNonOptionalPrimaryKeySingleTests.swift; sourceTree = "<group>"; };
 		56DAA2D11DE99DAB006E10C8 /* DatabaseCursorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCursorTests.swift; sourceTree = "<group>"; };
 		56DAA2DA1DE9C827006E10C8 /* Cursor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Cursor.swift; sourceTree = "<group>"; };
 		56DE7B101C3D93ED00861EB8 /* StatementArgumentsTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StatementArgumentsTests.swift; sourceTree = "<group>"; };
@@ -1304,6 +1307,7 @@
 				56A2382D1B9C74A90082EB20 /* RecordCopyTests.swift */,
 				56A2382F1B9C74A90082EB20 /* RecordEditedTests.swift */,
 				56A238321B9C74A90082EB20 /* RecordInitializersTests.swift */,
+				56DA7D02260FAA1A00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */,
 				56A238261B9C74A90082EB20 /* RecordMinimalPrimaryKeyRowIDTests.swift */,
 				56A238271B9C74A90082EB20 /* RecordMinimalPrimaryKeySingleTests.swift */,
 				6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */,
@@ -2539,6 +2543,7 @@
 				563EF443216131F5007DAACD /* AssociationAggregateTests.swift in Sources */,
 				56419C8524A51D6F004967E1 /* Support.swift in Sources */,
 				5653EB7920961FB200F46237 /* AssociationChainRowScopesTests.swift in Sources */,
+				56DA7D04260FAA1B00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */,
 				56419C9B24A51D7F004967E1 /* PublisherExpectation.swift in Sources */,
 				F3BA81201CFB3063003DC1BA /* RecordPrimaryKeyMultipleTests.swift in Sources */,
 				5653EB7120961FB200F46237 /* AssociationTableAliasTestsSQLTests.swift in Sources */,
@@ -2897,6 +2902,7 @@
 				563EF442216131F5007DAACD /* AssociationAggregateTests.swift in Sources */,
 				56419C8024A51D6E004967E1 /* Support.swift in Sources */,
 				5653EB7820961FB200F46237 /* AssociationChainRowScopesTests.swift in Sources */,
+				56DA7D03260FAA1B00A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */,
 				56419C9124A51D7D004967E1 /* PublisherExpectation.swift in Sources */,
 				F3BA80AE1CFB2FA6003DC1BA /* DatabaseRegionTests.swift in Sources */,
 				5653EB7020961FB200F46237 /* AssociationTableAliasTestsSQLTests.swift in Sources */,
