@@ -255,6 +255,25 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         
         do {
+            try dbQueue.write { db in
+                try db.create(table: "team") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                }
+                try db.create(table: "player") { t in
+                    t.column("teamID", .integer).references("team")
+                }
+                struct Player: TableRecord { }
+                struct Team: TableRecord { }
+                let teamAlias = TableAlias()
+                let player = Player.filter(Column("teamID") == teamAlias[Column("id")])
+                let teams = Team.aliased(teamAlias).filter(player.exists())
+                try assertEqualSQL(db, teams, """
+                    SELECT * FROM "team" WHERE EXISTS (SELECT * FROM "player" WHERE "teamID" = "team"."id")
+                    """)
+            }
+        }
+        
+        do {
             let alias = TableAlias(name: "r")
             let subquery = tableRequest.filter(Col.age > alias[Col.age])
             XCTAssertEqual(

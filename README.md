@@ -4655,36 +4655,42 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     To check if a subquery would return rows, call the `exists` method:
     
     ```swift
-    let alias = TableAlias(name: "coach")
+    // Teams that have at least one other player
+    //
+    //  SELECT * FROM team
+    //  WHERE EXISTS (SELECT * FROM player WHERE teamID = team.id)
+    let teamAlias = TableAlias()
+    let player = Player.filter(Column("teamID") == teamAlias[Column("id")])
+    let teams = Team.aliased(teamAlias).filter(player.exists())
     
+    // Teams that have no player
+    //
+    //  SELECT * FROM team
+    //  WHERE NOT EXISTS (SELECT * FROM player WHERE teamID = team.id)
+    let teams = Team.aliased(teamAlias).filter(!player.exists())
+    ```
+    
+    In the above example, you use a `TableAlias` in order to let a subquery refer to a column from another table.
+    
+    In the next example, which involves the same table twice, the table alias requires an explicit disambiguation with `TableAlias(name:)`:
+    
+    ```swift    
     // Players who coach at least one other player
     //
     //  SELECT coach.* FROM player coach
     //  WHERE EXISTS (SELECT * FROM player WHERE coachId = coach.id)
-    Player
-        .aliased(alias)
-        .filter(Player.filter(Column("coachId") == alias[Column("id")]).exists())
-    
-    // Players who do not coach any other player
-    //
-    // SELECT coach.* FROM player coach
-    // WHERE NOT EXISTS (SELECT * FROM player WHERE coachId = coach.id)
-    Player
-        .aliased(alias)
-        .filter(!Player.filter(Column("coachId") == alias[Column("id")]).exists())
+    let coachAlias = TableAlias(name: "coach")
+    let coachedPlayer = Player.filter(Column("coachId") == coachAlias[Column("id")])
+    let coaches = Player.aliased(coachAlias).filter(coachedPlayer.exists())
     ```
     
-    See how you use `TableAlias` in order to let a subquery refer to a column from another table.
-    
-    Since the above example involves the same table twice, it requires an explicit disambiguation with `TableAlias(name:)`. A future GRDB version may automatically perform this disambiguation.
-    
-    Subqueries can also be expressed as SQL, with [SQL Interpolation]:
+    Finally, subqueries can also be expressed as SQL, with [SQL Interpolation]:
     
     ```swift
     // SELECT coach.* FROM player coach
     // WHERE EXISTS (SELECT * FROM player WHERE coachId = coach.id)
-    let subquery = SQLRequest<Row>("SELECT * FROM player WHERE coachId = \(alias[Column("id")])")
-    Player.aliased(alias).filter(subquery.exists())
+    let coachedPlayer = SQLRequest<Row>("SELECT * FROM player WHERE coachId = \(coachAlias[Column("id")])")
+    let coaches = Player.aliased(coachAlias).filter(coachedPlayer.exists())
     ```
     
 - `LIKE`
