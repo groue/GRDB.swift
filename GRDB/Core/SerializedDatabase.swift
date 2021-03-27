@@ -17,7 +17,6 @@ final class SerializedDatabase {
     init(
         path: String,
         configuration: Configuration = Configuration(),
-        schemaCache: DatabaseSchemaCache,
         defaultLabel: String,
         purpose: String? = nil)
     throws
@@ -47,8 +46,7 @@ final class SerializedDatabase {
         self.db = try Database(
             path: path,
             description: identifier,
-            configuration: config,
-            schemaCache: schemaCache)
+            configuration: config)
         self.queue = configuration.makeDispatchQueue(label: identifier)
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {

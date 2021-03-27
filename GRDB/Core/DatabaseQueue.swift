@@ -36,7 +36,6 @@ public final class DatabaseQueue: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabaseQueue")
         
         setupSuspension()
@@ -60,7 +59,6 @@ public final class DatabaseQueue: DatabaseWriter {
         writer = try! SerializedDatabase(
             path: ":memory:",
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabaseQueue")
     }
     

@@ -42,7 +42,6 @@ public final class DatabasePool: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabasePool",
             purpose: "writer")
         
@@ -60,7 +59,6 @@ public final class DatabasePool: DatabaseWriter {
             return try SerializedDatabase(
                 path: path,
                 configuration: readerConfiguration,
-                schemaCache: DatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
         })

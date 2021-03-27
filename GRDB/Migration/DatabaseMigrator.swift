@@ -318,11 +318,11 @@ public struct DatabaseMigrator {
                         let tmpDatabase = try DatabaseQueue(path: tmpURL.path, configuration: tmpConfig)
                         return try tmpDatabase.writeWithoutTransaction { db in
                             try runMigrations(db, upTo: lastAppliedIdentifier)
-                            return try db.schema()
+                            return try db.schema(.main)
                         }
                     }()
                     
-                    if try db.schema() != tmpSchema {
+                    if try db.schema(.main) != tmpSchema {
                         needsErase = true
                         return .commit
                     }

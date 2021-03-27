@@ -13,16 +13,16 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         
         try dbPool.write { db in
             // Assert that the writer cache is empty
-            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") == nil)
         }
         
         try dbPool.read { db in
             // Assert that a reader cache is empty
-            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") == nil)
         }
         
         try dbPool.read { db in
@@ -32,16 +32,16 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = try db.indexes(on: "items")
             
             // Assert that reader cache is warm
-            XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") != nil)
         }
         
         try dbPool.read { db in
             // Assert that reader cache is still warm
-            XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") != nil)
         }
         
         try dbPool.write { db in
@@ -51,16 +51,16 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = try db.indexes(on: "items")
             
             // Assert that writer cache is warm
-            XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") != nil)
         }
         
         try dbPool.write { db in
             // Assert that writer cache is still warm
-            XCTAssertTrue(db.schemaCache.primaryKey("items") != nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") != nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") != nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") != nil)
         }
         
         try dbPool.write { db in
@@ -68,16 +68,16 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             try db.execute(sql: "DROP TABLE items")
             
             // Assert that the writer cache is cleared
-            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") == nil)
         }
         
         try dbPool.read { db in
             // Assert that reader cache is cleared
-            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") == nil)
         }
         
         try dbPool.read { db in
@@ -161,16 +161,16 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key
-                XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
+                XCTAssertNotNil(db.schemaCache[.main].primaryKey("foo"))
                 s1.signal()
                 _ = s2.wait(timeout: .distantFuture)
                 try db.execute(sql: "DROP TABLE foo")
                 // cache does not contain the primary key
-                XCTAssertNil(db.schemaCache.primaryKey("foo"))
+                XCTAssertNil(db.schemaCache[.main].primaryKey("foo"))
                 s3.signal()
                 _ = s4.wait(timeout: .distantFuture)
                 // cache does not contain the primary key
-                XCTAssertNil(db.schemaCache.primaryKey("foo"))
+                XCTAssertNil(db.schemaCache[.main].primaryKey("foo"))
             }
         }
         let block2 = { () in
@@ -181,11 +181,11 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
                 // warm cache
                 _ = try db.primaryKey("foo")
                 // cache contains the primary key
-                XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
+                XCTAssertNotNil(db.schemaCache[.main].primaryKey("foo"))
                 s2.signal()
                 _ = s3.wait(timeout: .distantFuture)
                 // cache contains the primary key
-                XCTAssertNotNil(db.schemaCache.primaryKey("foo"))
+                XCTAssertNotNil(db.schemaCache[.main].primaryKey("foo"))
                 // warm cache if needed
                 _ = try db.primaryKey("foo")
                 s4.signal()
@@ -207,9 +207,9 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
         
         try dbPool.unsafeRead { db in
             // Assert that a cache is empty
-            XCTAssertTrue(db.schemaCache.primaryKey("items") == nil)
-            XCTAssertTrue(db.schemaCache.columns(in: "items") == nil)
-            XCTAssertTrue(db.schemaCache.indexes(on: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].columns(in: "items") == nil)
+            XCTAssertTrue(db.schemaCache[.main].indexes(on: "items") == nil)
             
             // Warm cache in a reader
             _ = try db.primaryKey("items")
@@ -217,9 +217,9 @@ class DatabasePoolSchemaCacheTests : GRDBTestCase {
             _ = try db.indexes(on: "items")
             
             // Assert that a reader cache is warmed
-            XCTAssertFalse(db.schemaCache.primaryKey("items") == nil)
-            XCTAssertFalse(db.schemaCache.columns(in: "items") == nil)
-            XCTAssertFalse(db.schemaCache.indexes(on: "items") == nil)
+            XCTAssertFalse(db.schemaCache[.main].primaryKey("items") == nil)
+            XCTAssertFalse(db.schemaCache[.main].columns(in: "items") == nil)
+            XCTAssertFalse(db.schemaCache[.main].indexes(on: "items") == nil)
         }
     }
 }

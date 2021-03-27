@@ -349,13 +349,13 @@ class DatabaseSnapshotTests: GRDBTestCase {
         let snapshot = try dbPool.makeSnapshot()
         try snapshot.read { db in
             // Schema cache is updated
-            XCTAssertNil(db.schemaCache.primaryKey("t"))
+            XCTAssertNil(db.schemaCache[.main].primaryKey("t"))
             _ = try db.primaryKey("t")
-            XCTAssertNotNil(db.schemaCache.primaryKey("t"))
+            XCTAssertNotNil(db.schemaCache[.main].primaryKey("t"))
         }
         snapshot.read { db in
             // Schema cache is not cleared between reads
-            XCTAssertNotNil(db.schemaCache.primaryKey("t"))
+            XCTAssertNotNil(db.schemaCache[.main].primaryKey("t"))
         }
     }
 }
