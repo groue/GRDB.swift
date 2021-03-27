@@ -253,8 +253,15 @@ extension Database {
         // Not need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
         do {
-            #warning("TODO: change query in order to better understand why it enters the error log")
-            _ = try makeSelectStatement(sql: "SELECT rowid FROM \(table.quotedDatabaseIdentifier)")
+            // Use a distinctive alias so that we better understand in the
+            // future why this query appears in the error log.
+            // https://github.com/groue/GRDB.swift/issues/945#issuecomment-804896196
+            //
+            // TODO: find a way to know if a table is WITHOUT ROWID without
+            // generating an error.
+            _ = try makeSelectStatement(sql: """
+                SELECT rowid AS checkWithoutRowidOptimization FROM \(table.quotedDatabaseIdentifier)
+                """)
             return true
         } catch DatabaseError.SQLITE_ERROR {
             return false
