@@ -140,7 +140,7 @@ That's it. The `Author` type can read and write in the `author` database table. 
 >     print(author.id!) // Guaranteed non-nil id
 > }
 > ```
-<
+>
 > :bulb: **Tip**: When the database table has a single-column primary key, have your record type adopt the standard [Identifiable] protocol. This allows GRDB to define type-safe id-related methods:
 >
 > ```swift
