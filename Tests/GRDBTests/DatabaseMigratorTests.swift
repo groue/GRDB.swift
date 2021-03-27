@@ -207,7 +207,34 @@ class DatabaseMigratorTests : GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
 
-    func testMigratorPublisherIsAsynchronous() throws {
+    func testEmptyMigratorPublisherIsAsynchronous() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        func test(writer: DatabaseWriter) throws {
+            let migrator = DatabaseMigrator()
+            let expectation = self.expectation(description: "")
+            let semaphore = DispatchSemaphore(value: 0)
+            let cancellable = migrator.migratePublisher(writer).sink(
+                receiveCompletion: { _ in },
+                receiveValue: { _ in
+                    semaphore.wait()
+                    expectation.fulfill()
+                })
+            
+            semaphore.signal()
+            waitForExpectations(timeout: 1, handler: nil)
+            cancellable.cancel()
+        }
+        
+        try Test(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    func testNonEmptyMigratorPublisherIsAsynchronous() throws {
         guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
         }
