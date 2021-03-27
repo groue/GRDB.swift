@@ -223,7 +223,12 @@ public protocol TableRequest {
 
 extension TableRequest where Self: FilteredRequest {
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE ... id = 1
+    ///     let request = try Player...filter(key: 1)
+    ///
+    /// - parameter key: A primary key
     public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> Self {
         guard let key = key else {
             return none()
@@ -231,7 +236,12 @@ extension TableRequest where Self: FilteredRequest {
         return filter(keys: [key])
     }
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
+    ///     let request = try Player...filter(keys: [1, 2, 3])
+    ///
+    /// - parameter keys: A collection of primary keys
     public func filter<Sequence: Swift.Sequence>(keys: Sequence)
     -> Self
     where Sequence.Element: DatabaseValueConvertible
@@ -251,10 +261,15 @@ extension TableRequest where Self: FilteredRequest {
         }
     }
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Creates a request filtered by unique key.
+    ///
+    ///     // SELECT * FROM player WHERE ... email = 'arthur@example.com'
+    ///     let request = try Player...filter(key: ["email": "arthur@example.com"])
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
+    ///
+    /// - parameter key: A unique key
     public func filter(key: [String: DatabaseValueConvertible?]?) -> Self {
         guard let key = key else {
             return none()
@@ -262,10 +277,15 @@ extension TableRequest where Self: FilteredRequest {
         return filter(keys: [key])
     }
     
-    /// Creates a request with the provided primary key *predicate*.
+    /// Creates a request filtered by unique key.
+    ///
+    ///     // SELECT * FROM player WHERE ... email = 'arthur@example.com' OR ...
+    ///     let request = try Player...filter(keys: [["email": "arthur@example.com"], ...])
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
+    ///
+    /// - parameter keys: A collection of unique keys
     public func filter(keys: [[String: DatabaseValueConvertible?]]) -> Self {
         if keys.isEmpty {
             return none()
@@ -298,6 +318,37 @@ extension TableRequest where Self: FilteredRequest {
                 }
                 .joined(operator: .or)
         }
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension TableRequest
+where Self: FilteredRequest,
+      Self: JoinableRequest, // for RowDecoder
+      RowDecoder: Identifiable,
+      RowDecoder.ID: DatabaseValueConvertible
+{
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE ... id = 1
+    ///     let request = try Player...filter(id: 1)
+    ///
+    /// - parameter id: A primary key
+    public func filter(id: RowDecoder.ID?) -> Self {
+        filter(key: id)
+    }
+    
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
+    ///     let request = try Player...filter(ids: [1, 2, 3])
+    ///
+    /// - parameter ids: A collection of primary keys
+    public func filter<Collection: Swift.Collection>(ids: Collection)
+    -> Self
+    where Collection.Element == RowDecoder.ID
+    {
+        filter(keys: ids)
     }
 }
 
