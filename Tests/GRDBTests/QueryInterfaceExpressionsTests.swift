@@ -196,7 +196,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         // Sequence.contains(): = operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) = \"name\"")
+            "SELECT * FROM \"readers\" WHERE \"name\" = \"name\" COLLATE NOCASE")
         
         // Sequence.contains(): false
         XCTAssertEqual(

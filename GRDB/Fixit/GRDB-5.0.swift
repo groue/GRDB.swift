@@ -232,6 +232,9 @@ extension SQL {
 @available(*, unavailable, renamed: "SQLExpression.AssociativeBinaryOperator")
 typealias SQLLogicalBinaryOperator = SQLExpression.AssociativeBinaryOperator
 
+@available(*, deprecated, renamed: "SQLExpression")
+typealias SQLCollatedExpression = SQLExpression
+
 extension SQLRequest {
     @available(*, unavailable, renamed: "RowDecoder")
     typealias T = RowDecoder

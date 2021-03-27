@@ -422,11 +422,22 @@ extension SQLExpression {
         upperBound: SQLExpression,
         isNegated: Bool = false) -> Self
     {
-        self.init(impl: .between(
-                    expression: expression,
-                    lowerBound: lowerBound,
-                    upperBound: upperBound,
-                    isNegated: isNegated))
+        if case let .collated(expression, collationName) = expression.impl {
+            // Prefer: expression BETWEEN lowerBound AND upperBound COLLATE collation
+            // over:   (expression COLLATE collation) BETWEEN lowerBound AND upperBound
+            return collated(between(
+                                expression: expression,
+                                lowerBound: lowerBound,
+                                upperBound: upperBound,
+                                isNegated: isNegated),
+                            collationName)
+        } else {
+            return self.init(impl: .between(
+                                expression: expression,
+                                lowerBound: lowerBound,
+                                upperBound: upperBound,
+                                isNegated: isNegated))
+        }
     }
     
     /// A binary operator.
@@ -435,7 +446,17 @@ extension SQLExpression {
     ///     <lhs> <= <rhs>
     ///     <lhs> LIKE <rhs>
     static func binary(_ op: BinaryOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
-        self.init(impl: .binary(op, lhs, rhs))
+        if case let .collated(lhs, collationName) = lhs.impl {
+            // Prefer: lhs <= rhs COLLATE collation
+            // over:   (lhs COLLATE collation) <= rhs
+            return collated(binary(op, lhs, rhs), collationName)
+        } else if case let .collated(rhs, collationName) = rhs.impl {
+            // Prefer: lhs <= rhs COLLATE collation
+            // over:   lhs <= (rhs COLLATE collation)
+            return collated(binary(op, lhs, rhs), collationName)
+        } else {
+            return self.init(impl: .binary(op, lhs, rhs))
+        }
     }
     
     /// An associative binary operator.
@@ -508,7 +529,17 @@ extension SQLExpression {
     ///
     /// See also `SQLExpression.equal(_:_:)`.
     static func compare(_ op: EqualityOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
-        self.init(impl: .compare(op, lhs, rhs))
+        if case let .collated(lhs, collationName) = lhs.impl {
+            // Prefer: lhs = rhs COLLATE collation
+            // over:   (lhs COLLATE collation) = rhs
+            return collated(compare(op, lhs, rhs), collationName)
+        } else if case let .collated(rhs, collationName) = rhs.impl {
+            // Prefer: lhs = rhs COLLATE collation
+            // over:   lhs = (rhs COLLATE collation)
+            return collated(compare(op, lhs, rhs), collationName)
+        } else {
+            return self.init(impl: .compare(op, lhs, rhs))
+        }
     }
     
     /// An equality comparison. Null database values are checked with `IS NULL`.
@@ -521,10 +552,10 @@ extension SQLExpression {
         case let (impl, .databaseValue(.null)),
              let (.databaseValue(.null), impl):
             // ... IS NULL
-            return .compare(.is, SQLExpression(impl: impl), .null)
+            return compare(.is, SQLExpression(impl: impl), .null)
         default:
             // lhs = rhs
-            return .compare(.equal, lhs, rhs)
+            return compare(.equal, lhs, rhs)
         }
     }
     
@@ -558,14 +589,14 @@ extension SQLExpression {
     ///
     ///     COUNT(<expression>)
     static func count(_ expression: SQLExpression) -> Self {
-        .aggregate("COUNT", [expression])
+        aggregate("COUNT", [expression])
     }
     
     /// The `COUNT(DISTINCT)` function.
     ///
     ///     COUNT(DISTINCT <expression>)
     static func countDistinct(_ expression: SQLExpression) -> Self {
-        .distinctAggregate("COUNT", expression)
+        distinctAggregate("COUNT", expression)
     }
     
     /// A function call.
@@ -1679,8 +1710,8 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     ///     Player.filter(Column("email").collating(.nocase) == "contact@example.com")
-    public func collating(_ collation: Database.CollationName) -> SQLCollatedExpression {
-        SQLCollatedExpression(sqlExpression, collationName: collation)
+    public func collating(_ collation: Database.CollationName) -> SQLExpression {
+        .collated(sqlExpression, collation)
     }
     
     /// Returns a collated expression.
@@ -1688,7 +1719,7 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     ///     Player.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
-    public func collating(_ collation: DatabaseCollation) -> SQLCollatedExpression {
-        SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(rawValue: collation.name))
+    public func collating(_ collation: DatabaseCollation) -> SQLExpression {
+        .collated(sqlExpression, Database.CollationName(rawValue: collation.name))
     }
 }

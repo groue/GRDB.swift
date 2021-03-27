@@ -114,16 +114,6 @@ extension SQLSubqueryable {
         SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
     }
     
-    /// Returns an expression that checks the inclusion of the expression in
-    /// the subquery.
-    ///
-    ///     // name COLLATE NOCASE IN (SELECT name FROM player)
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let condition = request.contains(Column("name").collating(.nocase))
-    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
-        SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
-    }
-    
     /// Returns an expression that is true if and only if the subquery would
     /// return one or more rows.
     ///
