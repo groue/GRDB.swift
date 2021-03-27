@@ -4,12 +4,16 @@ import GRDB
 private struct Hacker : MutablePersistableRecord {
     static let databaseTableName = "hackers"
     func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
+    var id: Int64? // Optional
 }
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Hacker: Identifiable { }
 
 private struct Person : MutablePersistableRecord {
     static let databaseTableName = "persons"
     func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
-    var id: Int64
+    var id: Int64 // Non-optional
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
@@ -43,6 +47,13 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             XCTAssertTrue(deleted)
             XCTAssertEqual(try Hacker.fetchCount(db), 0)
             
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
+                deleted = try Hacker.deleteOne(db, id: 1)
+                XCTAssertTrue(deleted)
+                XCTAssertEqual(try Hacker.fetchCount(db), 0)
+            }
+            
             try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
             try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [2, "Barbara"])
             try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [3, "Craig"])
@@ -50,6 +61,15 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE \"rowid\" IN (2, 3, 4)")
             XCTAssertEqual(deletedCount, 2)
             XCTAssertEqual(try Hacker.fetchCount(db), 1)
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [2, "Barbara"])
+                try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [3, "Craig"])
+                let deletedCount = try Hacker.deleteAll(db, ids: [2, 3, 4])
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"hackers\" WHERE \"rowid\" IN (2, 3, 4)")
+                XCTAssertEqual(deletedCount, 2)
+                XCTAssertEqual(try Hacker.fetchCount(db), 1)
+            }
         }
     }
 
@@ -65,6 +85,13 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             XCTAssertTrue(deleted)
             XCTAssertEqual(try Person.fetchCount(db), 0)
             
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [1, "Arthur", "arthur@example.com"])
+                deleted = try Person.deleteOne(db, id: 1)
+                XCTAssertTrue(deleted)
+                XCTAssertEqual(try Person.fetchCount(db), 0)
+            }
+            
             try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [1, "Arthur", "arthur@example.com"])
             try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [2, "Barbara", "barbara@example.com"])
             try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [3, "Craig", "craig@example.com"])
@@ -72,6 +99,15 @@ class MutablePersistableRecordDeleteTests: GRDBTestCase {
             XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (2, 3, 4)")
             XCTAssertEqual(deletedCount, 2)
             XCTAssertEqual(try Person.fetchCount(db), 1)
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [2, "Barbara", "barbara@example.com"])
+                try db.execute(sql: "INSERT INTO persons (id, name, email) VALUES (?, ?, ?)", arguments: [3, "Craig", "craig@example.com"])
+                let deletedCount = try Person.deleteAll(db, ids: [2, 3, 4])
+                XCTAssertEqual(self.lastSQLQuery, "DELETE FROM \"persons\" WHERE \"id\" IN (2, 3, 4)")
+                XCTAssertEqual(deletedCount, 2)
+                XCTAssertEqual(try Person.fetchCount(db), 1)
+            }
         }
     }
 
