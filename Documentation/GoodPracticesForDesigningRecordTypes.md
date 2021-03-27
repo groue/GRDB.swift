@@ -146,7 +146,7 @@ That's it. The `Author` type can read and write in the `author` database table. 
 > ```swift
 > let authorID: Int64 = ...
 > let author: Author? = try dbQueue.read { db in
->     try Author.fetchOne(db, id: id)
+>     try Author.fetchOne(db, id: authorID)
 > }
 > ```
 
