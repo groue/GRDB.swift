@@ -243,7 +243,7 @@ See [Records](#records)
 ```swift
 try dbQueue.read { db in
     // Place?
-    let paris = try Place.fetchOne(db, key: 1)
+    let paris = try Place.fetchOne(db, id: 1)
     
     // Place?
     let berlin = try Place.filter(Column("title") == "Berlin").fetchOne(db)
@@ -2280,7 +2280,7 @@ Records
 
 ```swift
 try dbQueue.write { db in
-    if var place = try Place.fetchOne(db, key: 1) {
+    if var place = try Place.fetchOne(db, id: 1) {
         place.isFavorite = true
         try place.update(db)
     }
@@ -2352,7 +2352,7 @@ let bestPlayers = try Player                    // [Player]
     .limit(10)
     .fetchAll(db)
     
-let spain = try Country.fetchOne(db, key: "ES") // Country?
+let spain = try Country.fetchOne(db, id: "ES")  // Country?
 ```
 
 :point_right: Fetching from raw SQL is available for subclasses of the [Record](#record-class) class, and types that adopt the [FetchableRecord] protocol.
@@ -2365,7 +2365,7 @@ let spain = try Country.fetchOne(db, key: "ES") // Country?
 To update a record in the database, call the `update` method:
 
 ```swift
-if let player = try Player.fetchOne(db, key: 1) {
+if let player = try Player.fetchOne(db, id: 1) {
     player.score = 1000
     try player.update(db)
 }
@@ -2374,7 +2374,7 @@ if let player = try Player.fetchOne(db, key: 1) {
 It is possible to [avoid useless updates](#record-comparison):
 
 ```swift
-if var player = try Player.fetchOne(db, key: 1) {
+if var player = try Player.fetchOne(db, id: 1) {
     // does not hit the database if score has not changed
     try player.updateChanges(db) {
         $0.score = 1000
@@ -2399,12 +2399,18 @@ try Player
 To delete a record in the database, call the `delete` method:
 
 ```swift
-if let player = try Player.fetchOne(db, key: 1) {
-    try player.delete(db)
-}
+let player: Player = ...
+try player.delete(db)
 ```
 
-You can also delete by primary key, or any unique index:
+Record types that conform to the standard [Identifiable] protocol can use the type-safe methods `deleteOne(_:id:)` and  `deleteAll(_:ids:)`:
+
+```swift
+try Player.deleteOne(db, id: 1)
+try Country.deleteAll(db, ids: ["FR", "US"])
+```
+
+All types can use `deleteOne(_:key:)` and  `deleteAll(_:keys:)` that apply conditions on primary keys and unique keys:
 
 ```swift
 try Player.deleteOne(db, key: 1)
@@ -2486,7 +2492,7 @@ Details follow:
     struct Place: TableRecord, FetchableRecord { ... }
     try dbQueue.read { db in
         let places = try Place.order(Column("title")).fetchAll(db)
-        let paris = try Place.fetchOne(key: 1)
+        let paris = try Place.fetchOne(id: 1)
     }
     ```
 
@@ -2495,7 +2501,7 @@ Details follow:
     ```swift
     struct Place : PersistableRecord { ... }
     try dbQueue.write { db in
-        try Place.delete(db, key: 1)
+        try Place.delete(db, id: 1)
         try Place(...).insert(db)
     }
     ```
@@ -2636,31 +2642,7 @@ When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-proto
 let paris = try Place.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-TableRecord can also fetch records by primary key:
-
-```swift
-try Player.fetchOne(db, key: 1)              // Player?
-try Player.fetchAll(db, keys: [1, 2, 3])     // [Player]
-try Player.fetchSet(db, keys: [1, 2, 3])     // Set<Player>
-
-try Country.fetchOne(db, key: "FR")          // Country?
-try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
-try Country.fetchSet(db, keys: ["FR", "US"]) // Set<Country>
-```
-
-When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
-
-```swift
-// SELECT * FROM document WHERE rowid = 1
-try Document.fetchOne(db, key: 1)            // Document?
-```
-
-For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
-
-```swift
-// SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
-try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citizenship?
-```
+TableRecord can also fetch records by primary key and unique keys: see [Fetching by Key](#fetching-by-key).
 
 
 ## PersistableRecord Protocol
@@ -2782,7 +2764,9 @@ try place.exists(db)
 // Type methods
 try Place.updateAll(db, ...)               // UPDATE
 try Place.deleteAll(db)                    // DELETE
+try Place.deleteAll(db, ids:...)           // DELETE
 try Place.deleteAll(db, keys:...)          // DELETE
+try Place.deleteOne(db, id:...)            // DELETE
 try Place.deleteOne(db, key:...)           // DELETE
 ```
 
@@ -2982,11 +2966,11 @@ try dbQueue.write { db in
     
     // BAD: performs a blob-based query, fails to find the inserted player
     _ = try Player.filter(Column("uuid") == uuid).fetchOne(db)
-    _ = try Player.filter(key: uuid).fetchOne(db)
+    _ = try Player.filter(id: uuid).fetchOne(db)
     
     // GOOD: performs a string-based query, finds the inserted player
     _ = try Player.filter(Column("uuid") == uuid.uuidString).fetchOne(db)
-    _ = try Player.filter(key: uuid.uuidString).fetchOne(db)
+    _ = try Player.filter(id: uuid.uuidString).fetchOne(db)
 }
 ```
 
@@ -3167,7 +3151,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
     This method lets you compare two records:
 
     ```swift
-    if let oldPlayer = try Player.fetchOne(db, key: 42) {
+    if let oldPlayer = try Player.fetchOne(db, id: 42) {
         var newPlayer = oldPlayer
         newPlayer.score = 100
         if try newPlayer.updateChanges(db, from: oldPlayer) {
@@ -3183,7 +3167,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
     This method lets you update a record in place:
     
     ```swift
-    if var player = try Player.fetchOne(db, key: 42) {
+    if var player = try Player.fetchOne(db, id: 42) {
         let modified = try player.updateChanges(db) {
             $0.score = 100
         }
@@ -3201,7 +3185,7 @@ The `updateChanges` methods perform a database update of the changed columns onl
 
     ```swift
     // Record class only
-    if let player = try Player.fetchOne(db, key: 42) {
+    if let player = try Player.fetchOne(db, id: 42) {
         player.score = 100
         if try player.updateChanges(db) {
             print("player was modified, and updated in the database")
@@ -3401,10 +3385,10 @@ Some GRDB methods will automatically use this hidden column when a table has no 
 
 ```swift
 // SELECT * FROM event WHERE rowid = 1
-let event = try Event.fetchOne(db, key: 1)
+let event = try Event.fetchOne(db, id: 1)
 
 // DELETE FROM book WHERE rowid = 1
-try Book.deleteOne(db, key: 1)
+try Book.deleteOne(db, id: 1)
 ```
 
 
@@ -3793,8 +3777,10 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
 | `Type.deleteOne(db, key:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteOne(db, id:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.deleteAll(db)` | [PersistableRecord] | |
 | `Type.deleteAll(db, keys:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db, ids:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.filter(...).deleteAll(db)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Check Record Existence** | | |
 | `record.exists(db)` | [PersistableRecord] | |
@@ -3806,24 +3792,28 @@ This is the list of record methods, along with their required protocols. The [Re
 | **Fetch Record [Cursors](#cursors)** | | |
 | `Type.fetchCursor(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchCursor(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchCursor(db, ids:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchCursor(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchCursor(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchCursor(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Arrays** | | |
 | `Type.fetchAll(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchAll(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchAll(db, ids:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchAll(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchAll(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchAll(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Record Sets** | | |
 | `Type.fetchSet(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchSet(db, keys:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchSet(db, ids:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchSet(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchSet(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchSet(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Fetch Individual Records** | | |
 | `Type.fetchOne(db)` | [FetchableRecord] & [TableRecord] | |
 | `Type.fetchOne(db, key:...)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.fetchOne(db, id:...)` | [FetchableRecord] & [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
 | `Type.fetchOne(db, sql: sql)` | [FetchableRecord] | <a href="#list-of-record-methods-3">³</a> |
 | `Type.fetchOne(statement)` | [FetchableRecord] | <a href="#list-of-record-methods-4">⁴</a> |
 | `Type.filter(...).fetchOne(db)` | [FetchableRecord] & [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -3874,7 +3864,7 @@ This is the list of record methods, along with their required protocols. The [Re
 <a name="list-of-record-methods-1">¹</a> All unique keys are supported: primary keys (single-column, composite, [implicit RowID](#the-implicit-rowid-primary-key)) and unique indexes:
 
 ```swift
-try Player.fetchOne(db, key: 1)                               // Player?
+try Player.fetchOne(db, id: 1)                                // Player?
 try Player.fetchOne(db, key: ["email": "arthur@example.com"]) // Player?
 try Country.fetchAll(db, keys: ["FR", "US"])                  // [Country]
 ```
@@ -4277,6 +4267,18 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
+- `filter(id:)` and `filter(ids:)` are type-safe methods available on record types that conform to the standard [Identifiable] protocol:
+    
+    ```swift
+    // SELECT * FROM player WHERE id = 1
+    Player.filter(id: 1)
+    
+    // SELECT * FROM country WHERE isoCode IN ('FR', 'US')
+    Country.filter(ids: ["FR", "US"])
+    ```
+    
+    > :point_up: **Note**: `Identifiable` requires the record type to define an `id` property, but the name of the primary key column can be anything.
+    
 - `filter(key:)` and `filter(keys:)` apply conditions on primary keys and unique keys:
     
     ```swift
@@ -4880,67 +4882,40 @@ You can also change the request so that it knows the type it has to fetch:
     ```
 
 
-## Fetching By Key
+## Fetching by Key
 
-**Fetching records according to their primary key** is a very common task. It has a shortcut which accepts any single-column primary key:
+**Fetching records according to their primary key** is a common task.
+
+Record types that conform to the standard [Identifiable] protocol can use the type-safe methods `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
 
 ```swift
-// SELECT * FROM player WHERE id = 1
+try Player.fetchOne(db, id: 1)               // Player?
+try Country.fetchAll(db, ids: ["FR", "US"])  // [Countries]
+```
+
+All types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary keys and unique keys:
+
+```swift
 try Player.fetchOne(db, key: 1)              // Player?
-
-// SELECT * FROM player WHERE id IN (1, 2, 3)
-try Player.fetchAll(db, keys: [1, 2, 3])     // [Player]
-
-// SELECT * FROM country WHERE isoCode = 'FR'
-try Country.fetchOne(db, key: "FR")          // Country?
-
-// SELECT * FROM country WHERE isoCode IN ('FR', 'US')
 try Country.fetchAll(db, keys: ["FR", "US"]) // [Country]
+try Player.fetchOne(db, key: ["email": "arthur@example.com"])            // Player?
+try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citizenship?
 ```
 
 When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
 
 ```swift
 // SELECT * FROM document WHERE rowid = 1
-try Document.fetchOne(db, key: 1)            // Document?
+try Document.fetchOne(db, id: 1)             // Document?
 ```
 
-For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
+**When you want to build a request and plan to fetch from it later**, use a `filter` method:
 
 ```swift
-// SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
-try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"]) // Citizenship?
-
-// SELECT * FROM player WHERE email = 'arthur@example.com'
-try Player.fetchOne(db, key: ["email": "arthur@example.com"])              // Player?
-```
-
-**When you want to build a request and plan to fetch from it later**, use the `filter(key:)` and `filter(keys:)` methods:
-
-```swift
-// SELECT * FROM player WHERE id = 1
-let request = Player.filter(key: 1)
-let player = try request.fetchOne(db)    // Player?
-
-// SELECT * FROM player WHERE id IN (1, 2, 3)
-let request = Player.filter(keys: [1, 2, 3])
-let players = try request.fetchAll(db)   // [Player]
-
-// SELECT * FROM country WHERE isoCode = 'FR'
-let request = Country.filter(key: "FR")
-let country = try request.fetchOne(db)   // Country?
-
-// SELECT * FROM country WHERE isoCode IN ('FR', 'US')
-let request = Country.filter(keys: ["FR", "US"])
-let countries = try request.fetchAll(db) // [Country]
-
-// SELECT * FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
-let request = Citizenship.filter(key: ["citizenId": 1, "countryCode": "FR"])
-let citizenship = request.fetchOne(db)   // Citizenship?
-
-// SELECT * FROM player WHERE email = 'arthur@example.com'
+let request = Player.filter(id: 1)
+let request = Country.filter(ids: ["FR", "US"])
 let request = Player.filter(key: ["email": "arthur@example.com"])
-let player = try request.fetchOne(db)    // Player?
+let request = Citizenship.filter(key: ["citizenId": 1, "countryCode": "FR"])
 ```
 
 
@@ -4998,37 +4973,29 @@ try Player
 
 > :point_up: **Note** Deletion methods are only available for records that adopts the [PersistableRecord] protocol.
 
-**Deleting records according to their primary key** is also quite common. It has a shortcut which accepts any single-column primary key:
+**Deleting records according to their primary key** is a common task.
+
+Record types that conform to the standard [Identifiable] protocol can use the type-safe methods `deleteOne(_:id:)` and `deleteAll(_:ids:)`:
 
 ```swift
-// DELETE FROM player WHERE id = 1
+try Player.deleteOne(db, id: 1)
+try Country.deleteAll(db, ids: ["FR", "US"])
+```
+
+All types can use `deleteOne(_:key:)` and `deleteAll(_:keys:)` that apply conditions on primary keys and unique keys:
+
+```swift
 try Player.deleteOne(db, key: 1)
-
-// DELETE FROM player WHERE id IN (1, 2, 3)
-try Player.deleteAll(db, keys: [1, 2, 3])
-
-// DELETE FROM country WHERE isoCode = 'FR'
-try Country.deleteOne(db, key: "FR")
-
-// DELETE FROM country WHERE isoCode IN ('FR', 'US')
 try Country.deleteAll(db, keys: ["FR", "US"])
+try Player.deleteOne(db, key: ["email": "arthur@example.com"])
+try Citizenship.deleteOne(db, key: ["citizenId": 1, "countryCode": "FR"])
 ```
 
 When the table has no explicit primary key, GRDB uses the [hidden "rowid" column](#the-implicit-rowid-primary-key):
 
 ```swift
 // DELETE FROM document WHERE rowid = 1
-try Document.deleteOne(db, key: 1)
-```
-
-For multiple-column primary keys and unique keys defined by unique indexes, provide a dictionary:
-
-```swift
-// DELETE FROM citizenship WHERE citizenId = 1 AND countryCode = 'FR'
-try Citizenship.deleteOne(db, key: ["citizenId": 1, "countryCode": "FR"])
-
-// DELETE FROM player WHERE email = 'arthur@example.com'
-Player.deleteOne(db, key: ["email": "arthur@example.com"])
+try Document.deleteOne(db, id: 1)             // Document?
 ```
 
 
@@ -5054,9 +5021,9 @@ try Player
     .limit(10)
     .updateAll(db, Column("top").set(to: true))
 
-// UPDATE country SET population = 67848156 WHERE code = 'FR'
+// UPDATE country SET population = 67848156 WHERE id = 'FR'
 try Country
-    .filter(key: "FR")
+    .filter(id: "FR")
     .updateAll(db, Column("population").set(to: 67_848_156))
 ```
 
@@ -5775,7 +5742,7 @@ For example:
 ```swift
 // Turn an observation of Player? into an observation of UIImage?
 let observation = ValueObservation
-    .tracking { db in try Player.fetchOne(db, key: 42) }
+    .tracking { db in try Player.fetchOne(db, id: 42) }
     .map { player in player?.image }
 ```
 
@@ -5791,7 +5758,7 @@ For example:
 ```swift
 // An observation of distinct Player?
 let observation = ValueObservation
-    .tracking { db in try Player.fetchOne(db, key: 42) }
+    .tracking { db in try Player.fetchOne(db, id: 42) }
     .removeDuplicates()
 ```
 
@@ -5799,7 +5766,7 @@ let observation = ValueObservation
 
 ```swift
 // An observation of distinct Player?
-let request = Player.filter(key: 42)
+let request = Player.filter(id: 42)
 let observation = ValueObservation
     .tracking { db in try Row.fetchOne(db, request) }
     .removeDuplicates() // Row adopts Equatable
@@ -5958,7 +5925,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
     // Tracks the row with id 42 in the 'player' table (only)
     let observation = ValueObservation.trackingConstantRegion { db -> Player? in
-        try Player.fetchOne(db, key: 42)
+        try Player.fetchOne(db, id: 42)
     }
     
     // Tracks the 'score' column in the 'player' table (only)
@@ -5982,7 +5949,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     // Does not always track the same row in the player table.
     let observation = ValueObservation.tracking { db -> Player? in
         let pref = try Preference.fetchOne(db) ?? .default
-        return try Player.fetchOne(db, key: pref.favoritePlayerId)
+        return try Player.fetchOne(db, id: pref.favoritePlayerId)
     }
     
     // Only tracks the 'user' table if there are some blocked emails.
@@ -6769,7 +6736,7 @@ When you use [records](#records) and the [query interface](#the-query-interface)
 let id = 1
 let name = textField.text
 try dbQueue.write { db in
-    if var student = try Student.fetchOne(db, key: id) {
+    if var student = try Student.fetchOne(db, id: id) {
         student.name = name
         try student.update(db)
     }
@@ -8312,3 +8279,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Database Observation]: #database-changes-observation
 [SQLRequest]: http://groue.github.io/GRDB.swift/docs/5.6/Structs/SQLRequest.html
 [SQL literal]: Documentation/SQLInterpolation.md#sql-literal
+[Identifiable]: https://developer.apple.com/documentation/swift/identifiable
