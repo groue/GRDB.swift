@@ -111,7 +111,9 @@ try dbQueue.write { db in
     try Player(id: 2, name: "Barbara", score: 1000).insert(db)
 }
 
-let players = try dbQueue.read(Player.fetchAll) // [Player]
+let players: [Player] = try dbQueue.read { db in
+    try Player.fetchAll(db)
+}
 ```
 
 </details>
@@ -2365,27 +2367,23 @@ let spain = try Country.fetchOne(db, id: "ES")  // Country?
 To update a record in the database, call the `update` method:
 
 ```swift
-if let player = try Player.fetchOne(db, id: 1) {
-    player.score = 1000
-    try player.update(db)
-}
+var player: Player = ...
+player.score = 1000
+try player.update(db)
 ```
 
 It is possible to [avoid useless updates](#record-comparison):
 
 ```swift
-if var player = try Player.fetchOne(db, id: 1) {
-    // does not hit the database if score has not changed
-    try player.updateChanges(db) {
-        $0.score = 1000
-    }
+// does not hit the database if score has not changed
+try player.updateChanges(db) {
+    $0.score = 1000
 }
 ```
 
-For batch updates, execute an [SQL query](#executing-updates), or see the [query interface](#the-query-interface):
+See the [query interface](#the-query-interface) for batch updates:
 
 ```swift
-try db.execute(sql: "UPDATE player SET score = score + 1 WHERE team = 'red'")
 try Player
     .filter(Column("team") == "red")
     .updateAll(db, Column("score") += 1)
@@ -2403,25 +2401,12 @@ let player: Player = ...
 try player.delete(db)
 ```
 
-Record types that conform to the standard [Identifiable] protocol can use the type-safe methods `deleteOne(_:id:)` and  `deleteAll(_:ids:)`:
+You can also delete by primary key, unique key, or perform batch deletes (see [Delete Requests](#delete-requests)):
 
 ```swift
 try Player.deleteOne(db, id: 1)
-try Country.deleteAll(db, ids: ["FR", "US"])
-```
-
-All types can use `deleteOne(_:key:)` and  `deleteAll(_:keys:)` that apply conditions on primary keys and unique keys:
-
-```swift
-try Player.deleteOne(db, key: 1)
 try Player.deleteOne(db, key: ["email": "arthur@example.com"])
-try Country.deleteAll(db, keys: ["FR", "US"])
-```
-
-For batch deletes, execute an [SQL query](#executing-updates), or see the [query interface](#the-query-interface):
-
-```swift
-try db.execute(sql: "DELETE player WHERE email IS NULL")
+try Country.deleteAll(db, ids: ["FR", "US"])
 try Player
     .filter(Column("email") == nil)
     .deleteAll(db)
@@ -4279,7 +4264,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     
     > :point_up: **Note**: `Identifiable` requires the record type to define an `id` property, but the name of the primary key column can be anything.
     
-- `filter(key:)` and `filter(keys:)` apply conditions on primary keys and unique keys:
+- `filter(key:)` and `filter(keys:)` apply conditions on primary and unique keys:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -4899,7 +4884,7 @@ try Player.fetchOne(db, id: 1)               // Player?
 try Country.fetchAll(db, ids: ["FR", "US"])  // [Countries]
 ```
 
-All types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary keys and unique keys:
+All types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
 
 ```swift
 try Player.fetchOne(db, key: 1)              // Player?
@@ -4988,7 +4973,7 @@ try Player.deleteOne(db, id: 1)
 try Country.deleteAll(db, ids: ["FR", "US"])
 ```
 
-All types can use `deleteOne(_:key:)` and `deleteAll(_:keys:)` that apply conditions on primary keys and unique keys:
+All types can use `deleteOne(_:key:)` and `deleteAll(_:keys:)` that apply conditions on primary and unique keys:
 
 ```swift
 try Player.deleteOne(db, key: 1)
