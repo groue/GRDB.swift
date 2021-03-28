@@ -4143,7 +4143,7 @@ For extra index options, see [Create Indexes](#create-indexes) below.
     t.column("score", .integer).check(sql: "score > 0")
 ```
 
-Columns can also be defined with a raw sql String, or an [SQL literal] in which can safely embed raw values without any risk of syntax errors or SQL injection:
+Columns can also be defined with a raw sql String, or an [SQL literal] in which you can safely embed raw values without any risk of syntax errors or SQL injection:
 
 ```swift
     t.column(sql: "name TEXT")
