@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- [Development Branch](#development-branch)
+- `5.7.x` Releases - [5.7.0](#570)
 - `5.6.x` Releases - [5.6.0](#560)
 - `5.5.x` Releases - [5.5.0](#550)
 - `5.4.x` Releases - [5.4.0](#540)
@@ -73,7 +73,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 
-## Development Branch
+## 5.7.0
+
+Released March 28, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.6.0...v5.7.0)
 
 - **New**: [#947](https://github.com/groue/GRDB.swift/pull/947) by [@chrisballinger](https://github.com/chrisballinger): Allow access to Encoder from KeyedEncodingContainer
 
