@@ -121,7 +121,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **New**: Added support for the `EXISTS` and `NOT EXISTS` subquery operators. See the updated [SQL Operators](README.md#sql-operators) documentation.
 
-- **New**: `Foundation.Decimal` can now be stored in the database, and all Foundation number types can be decoded from database strings. See the [NSNumber, NSDecimalNumber, and Decimal](README.md#nsnumber-nsdecimalnumber-and-decimal) chapter for details.
+- **New**: `Foundation.Decimal` can now be stored in the database, and all Foundation number types can be decoded from decimal numbers stored as strings. See the [NSNumber, NSDecimalNumber, and Decimal](README.md#nsnumber-nsdecimalnumber-and-decimal) chapter for details.
 
 ## 5.6.0
 

@@ -1433,10 +1433,10 @@ Here is how GRDB supports the various data types supported by SQLite:
     let number = try Decimal.fetchOne(db, sql: "SELECT -100")           // Decimal
     ```
     
-- All three types can decode database strings containing decimal numbers:
+- All three types decode database strings as decimal numbers:
 
     ```swift
-    let number = try NSNumber.fetchOne(db, sql: "SELECT '10'")          // NSDecimalNumber
+    let number = try NSNumber.fetchOne(db, sql: "SELECT '10'")          // NSDecimalNumber (sic)
     let number = try NSDecimalNumber.fetchOne(db, sql: "SELECT '1.23'") // NSDecimalNumber
     let number = try Decimal.fetchOne(db, sql: "SELECT '-100'")         // Decimal
     ```
