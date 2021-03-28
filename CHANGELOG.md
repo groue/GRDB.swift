@@ -75,6 +75,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Development Branch
 
+- **New**: [#947](https://github.com/groue/GRDB.swift/pull/947) by [@chrisballinger](https://github.com/chrisballinger): Allow access to Encoder from KeyedEncodingContainer
+
 - **New**: Record types that adopt the standard [Identifiable](https://developer.apple.com/documentation/swift/identifiable) protocol have gained type-safe methods that deal with the primary key. For example:
     
     ```swift
