@@ -624,14 +624,6 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 do {
-                    // nil id
-                    let id: String? = nil
-                    let fetchedRecord = try MinimalSingle.fetchOne(db, id: id)
-                    XCTAssertTrue(fetchedRecord == nil)
-                }
-                
-                do {
-                    // non-nil id
                     let fetchedRecord = try MinimalSingle.fetchOne(db, id: record.UUID!)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
@@ -786,14 +778,6 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 do {
-                    // nil id
-                    let id: String? = nil
-                    let fetchedRecord = try MinimalSingle.filter(id: id).fetchOne(db)
-                    XCTAssertTrue(fetchedRecord == nil)
-                }
-                
-                do {
-                    // non-nil id
                     let fetchedRecord = try MinimalSingle.filter(id: record.UUID!).fetchOne(db)!
                     XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")

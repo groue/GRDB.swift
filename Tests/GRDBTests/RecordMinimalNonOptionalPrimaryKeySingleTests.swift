@@ -562,14 +562,6 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 do {
-                    // nil id
-                    let id: String? = nil
-                    let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.fetchOne(db, id: id)
-                    XCTAssertTrue(fetchedRecord == nil)
-                }
-                
-                do {
-                    // non-nil id
                     let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.fetchOne(db, id: record.id)!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")
@@ -717,14 +709,6 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 do {
-                    // nil id
-                    let id: String? = nil
-                    let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.filter(id: id).fetchOne(db)
-                    XCTAssertTrue(fetchedRecord == nil)
-                }
-                
-                do {
-                    // non-nil id
                     let fetchedRecord = try MinimalNonOptionalPrimaryKeySingle.filter(id: record.id).fetchOne(db)!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"id\" = '\(record.id)'")

@@ -697,14 +697,8 @@ extension MutablePersistableRecord where Self: Identifiable, ID: DatabaseValueCo
     ///     - id: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public static func deleteOne(_ db: Database, id: ID?)
-    throws -> Bool
-    {
-        guard let id = id else {
-            // Avoid hitting the database
-            return false
-        }
-        return try deleteAll(db, ids: [id]) > 0
+    public static func deleteOne(_ db: Database, id: ID) throws -> Bool {
+        try deleteAll(db, ids: [id]) > 0
     }
 }
 
@@ -767,14 +761,8 @@ where Self: Identifiable,
     ///     - id: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public static func deleteOne(_ db: Database, id: ID.Wrapped?)
-    throws -> Bool
-    {
-        guard let id = id else {
-            // Avoid hitting the database
-            return false
-        }
-        return try deleteAll(db, ids: [id]) > 0
+    public static func deleteOne(_ db: Database, id: ID.Wrapped) throws -> Bool {
+        try deleteAll(db, ids: [id]) > 0
     }
 }
 

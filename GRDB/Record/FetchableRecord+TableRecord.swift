@@ -202,14 +202,8 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     ///     - id: A primary key value.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, id: ID?)
-    throws -> Self?
-    {
-        guard let id = id else {
-            // Avoid hitting the database
-            return nil
-        }
-        return try filter(id: id).fetchOne(db)
+    public static func fetchOne(_ db: Database, id: ID) throws -> Self? {
+        try filter(id: id).fetchOne(db)
     }
 }
 
@@ -274,14 +268,8 @@ where Self: TableRecord & Identifiable,
     ///     - id: A primary key value.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, id: ID.Wrapped?)
-    throws -> Self?
-    {
-        guard let id = id else {
-            // Avoid hitting the database
-            return nil
-        }
-        return try filter(id: id).fetchOne(db)
+    public static func fetchOne(_ db: Database, id: ID.Wrapped) throws -> Self? {
+        try filter(id: id).fetchOne(db)
     }
 }
 

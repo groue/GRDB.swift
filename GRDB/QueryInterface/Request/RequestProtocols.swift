@@ -334,7 +334,7 @@ where Self: FilteredRequest,
     ///     let request = try Player...filter(id: 1)
     ///
     /// - parameter id: A primary key
-    public func filter(id: RowDecoder.ID?) -> Self {
+    public func filter(id: RowDecoder.ID) -> Self {
         filter(key: id)
     }
     
@@ -366,7 +366,7 @@ where Self: FilteredRequest,
     ///     let request = try Player...filter(id: 1)
     ///
     /// - parameter id: A primary key
-    public func filter(id: RowDecoder.ID.Wrapped?) -> Self {
+    public func filter(id: RowDecoder.ID.Wrapped) -> Self {
         filter(key: id)
     }
     

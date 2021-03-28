@@ -364,9 +364,7 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     let request = Player.filter(id: 1)
     ///
     /// - parameter id: A primary key
-    public static func filter(id: ID?)
-    -> QueryInterfaceRequest<Self>
-    {
+    public static func filter(id: ID) -> QueryInterfaceRequest<Self> {
         all().filter(id: id)
     }
     
@@ -392,9 +390,7 @@ extension TableRecord where Self: Identifiable, ID: _OptionalProtocol, ID.Wrappe
     ///     let request = Player.filter(id: 1)
     ///
     /// - parameter id: A primary key
-    public static func filter(id: ID.Wrapped?)
-    -> QueryInterfaceRequest<Self>
-    {
+    public static func filter(id: ID.Wrapped) -> QueryInterfaceRequest<Self> {
         all().filter(id: id)
     }
     

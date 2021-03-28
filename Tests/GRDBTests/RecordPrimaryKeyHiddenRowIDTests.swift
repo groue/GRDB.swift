@@ -689,13 +689,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 do {
-                    let id: Int64? = nil
-                    let fetchedRecord = try Person.fetchOne(db, id: id)
-                    XCTAssertTrue(fetchedRecord == nil)
-                }
-                
-                do {
-                    let fetchedRecord = try Person.fetchOne(db, id: record.id)!
+                    let fetchedRecord = try Person.fetchOne(db, id: record.id!)!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)
@@ -848,13 +842,7 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 do {
-                    let id: Int64? = nil
-                    let fetchedRecord = try Person.filter(id: id).fetchOne(db)
-                    XCTAssertTrue(fetchedRecord == nil)
-                }
-                
-                do {
-                    let fetchedRecord = try Person.filter(id: record.id).fetchOne(db)!
+                    let fetchedRecord = try Person.filter(id: record.id!).fetchOne(db)!
                     XCTAssertTrue(fetchedRecord.id == record.id)
                     XCTAssertTrue(fetchedRecord.name == record.name)
                     XCTAssertTrue(fetchedRecord.age == record.age)
