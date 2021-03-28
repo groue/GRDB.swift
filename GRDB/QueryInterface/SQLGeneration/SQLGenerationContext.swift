@@ -26,7 +26,7 @@ final class SQLGenerationContext {
     /// All gathered arguments
     var arguments: StatementArguments { argumentsSink.arguments }
     
-    /// Access to the database connection, the arguments sink, and resolved
+    /// Access to the database connection, the arguments sink, ctes, and resolved
     /// names of table aliases from outer contexts (useful in case of
     /// subquery generation).
     private let parent: Parent
@@ -41,38 +41,48 @@ final class SQLGenerationContext {
     
     private let resolvedNames: [TableAlias: String]
     private let ownAliases: Set<TableAlias>
+    private let ownCTEs: [String: SQLCTE]
     
     /// Creates a generation context.
     ///
     /// - parameter db: A database connection.
     /// - parameter argumentsSink: An arguments sink.
     /// - parameter aliases: An array of table aliases to disambiguate.
+    /// - parameter ctes: An dictionary of available CTEs.
     init(
         _ db: Database,
         argumentsSink: StatementArgumentsSink = StatementArgumentsSink(),
-        aliases: [TableAlias] = [])
+        aliases: [TableAlias] = [],
+        ctes: OrderedDictionary<String, SQLCTE> = [:])
     {
         self.parent = .none(db: db, argumentsSink: argumentsSink)
         self.resolvedNames = aliases.resolvedNames
         self.ownAliases = Set(aliases)
+        self.ownCTEs = Dictionary(uniqueKeysWithValues: ctes.lazy.map { ($0.lowercased(), $1) })
     }
     
     /// Creates a generation context.
     ///
     /// - parameter parent: A parent context.
     /// - parameter aliases: An array of table aliases to disambiguate.
+    /// - parameter ctes: An dictionary of available CTEs.
     private init(
         parent: SQLGenerationContext,
-        aliases: [TableAlias])
+        aliases: [TableAlias],
+        ctes: OrderedDictionary<String, SQLCTE>)
     {
         self.parent = .context(parent)
         self.resolvedNames = aliases.resolvedNames
         self.ownAliases = Set(aliases)
+        self.ownCTEs = Dictionary(uniqueKeysWithValues: ctes.lazy.map { ($0.lowercased(), $1) })
     }
     
     /// Returns a generation context suitable for subqueries.
-    func subqueryContext(aliases: [TableAlias] = []) -> SQLGenerationContext {
-        SQLGenerationContext(parent: self, aliases: aliases)
+    func subqueryContext(
+        aliases: [TableAlias] = [],
+        ctes: OrderedDictionary<String, SQLCTE> = [:]) -> SQLGenerationContext
+    {
+        SQLGenerationContext(parent: self, aliases: aliases, ctes: ctes)
     }
     
     /// Returns whether arguments could be appended.
@@ -123,6 +133,18 @@ final class SQLGenerationContext {
             return resolvedName
         }
         return nil
+    }
+    
+    func columnCount(in tableName: String) throws -> Int {
+        if let cte = ownCTEs[tableName.lowercased()] {
+            return try cte.columnCount(db)
+        }
+        switch parent {
+        case let .context(context):
+            return try context.columnCount(in: tableName)
+        case let .none(db: db, argumentsSink: _):
+            return try db.columns(in: tableName).count
+        }
     }
 }
 

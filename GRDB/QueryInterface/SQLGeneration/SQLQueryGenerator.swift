@@ -19,7 +19,7 @@ struct SQLQueryGenerator: Refinable {
     }
     
     func requestSQL(_ context: SQLGenerationContext) throws -> String {
-        let context = context.subqueryContext(aliases: relation.allAliases)
+        let context = context.subqueryContext(aliases: relation.allAliases, ctes: relation.ctes)
         
         var sql = try commonTableExpressionsPrefix(context)
         sql += "SELECT"
@@ -94,17 +94,15 @@ struct SQLQueryGenerator: Refinable {
     func makePreparedRequest(_ db: Database) throws -> PreparedRequest {
         try PreparedRequest(
             statement: makeSelectStatement(db),
-            adapter: rowAdapter(db))
+            adapter: rowAdapter(SQLGenerationContext(db, ctes: relation.ctes)))
     }
     
     /// The number of fetched columns.
-    func columnsCount(_ db: Database) throws -> Int {
+    func columnCount(_ db: Database) throws -> Int {
         try relation
             .selectionPromise
             .resolve(db)
-            .reduce(0) {
-                try $0 + $1.columnCount(db)
-            }
+            .columnCount(SQLGenerationContext(db, ctes: relation.ctes))
     }
     
     /// Returns a select statement
@@ -208,7 +206,7 @@ struct SQLQueryGenerator: Refinable {
                 return try makeTrivialDeleteStatement(db)
             }
             
-            let context = SQLGenerationContext(db, aliases: relation.allAliases)
+            let context = SQLGenerationContext(db, aliases: relation.allAliases, ctes: relation.ctes)
             
             var sql = try commonTableExpressionsPrefix(context)
             sql += try "DELETE FROM " + relation.source.sql(context)
@@ -247,7 +245,7 @@ struct SQLQueryGenerator: Refinable {
         let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
-        let subqueryContext = context.subqueryContext(aliases: relation.allAliases)
+        let subqueryContext = context.subqueryContext(aliases: relation.allAliases, ctes: relation.ctes)
         let primaryKey = SQLExpression.fastPrimaryKey
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
@@ -283,7 +281,7 @@ struct SQLQueryGenerator: Refinable {
                 return nil
             }
             
-            let context = SQLGenerationContext(db, aliases: relation.allAliases)
+            let context = SQLGenerationContext(db, aliases: relation.allAliases, ctes: relation.ctes)
             
             var sql = try commonTableExpressionsPrefix(context)
             sql += "UPDATE "
@@ -345,7 +343,7 @@ struct SQLQueryGenerator: Refinable {
         let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
-        let subqueryContext = context.subqueryContext(aliases: relation.allAliases)
+        let subqueryContext = context.subqueryContext(aliases: relation.allAliases, ctes: relation.ctes)
         let primaryKey = SQLExpression.fastPrimaryKey
         
         // UPDATE table...
@@ -471,8 +469,8 @@ struct SQLQueryGenerator: Refinable {
     ///         row.scopes["author"] // [id:12, name:"Herman Melville"]
     ///         let author: Author = row["author"]
     ///     }
-    private func rowAdapter(_ db: Database) throws -> RowAdapter? {
-        try relation.rowAdapter(db, fromIndex: 0)?.adapter
+    private func rowAdapter(_ context: SQLGenerationContext) throws -> RowAdapter? {
+        try relation.rowAdapter(context, fromIndex: 0)?.adapter
     }
 }
 
@@ -592,7 +590,6 @@ private struct SQLQualifiedRelation {
     
     /// See SQLQueryGenerator.rowAdapter(_:)
     ///
-    /// - parameter db: A database connection.
     /// - parameter startIndex: The index of the leftmost selected column of
     ///   this relation in a full SQL query. `startIndex` is 0 for the relation
     ///   at the root of a SQLQueryGenerator (as opposed to the
@@ -600,7 +597,11 @@ private struct SQLQualifiedRelation {
     /// - returns: An optional tuple made of a RowAdapter and the index past the
     ///   rightmost selected column of this relation. Nil is returned if this
     ///   relations does not need any row adapter.
-    func rowAdapter(_ db: Database, fromIndex startIndex: Int) throws -> (adapter: RowAdapter, endIndex: Int)? {
+    func rowAdapter(
+        _ context: SQLGenerationContext,
+        fromIndex startIndex: Int) throws
+    -> (adapter: RowAdapter, endIndex: Int)?
+    {
         // Root relation && no join => no need for any adapter
         if startIndex == 0 && joins.isEmpty {
             return nil
@@ -608,16 +609,14 @@ private struct SQLQualifiedRelation {
         
         // The number of columns in source selection. Columns selected by joined
         // relations are appended after.
-        let sourceSelectionWidth = try sourceSelectionPromise.resolve(db).reduce(0) {
-            try $0 + $1.columnCount(db)
-        }
+        let sourceSelectionWidth = try sourceSelectionPromise.resolve(context.db).columnCount(context)
         
         // Recursively build adapters for each joined relation with a selection.
         // Name them according to the join keys.
         var endIndex = startIndex + sourceSelectionWidth
         var scopes: [String: RowAdapter] = [:]
         for (key, join) in joins {
-            if let (joinAdapter, joinEndIndex) = try join.relation.rowAdapter(db, fromIndex: endIndex) {
+            if let (joinAdapter, joinEndIndex) = try join.relation.rowAdapter(context, fromIndex: endIndex) {
                 scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }

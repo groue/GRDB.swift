@@ -15,6 +15,8 @@
 
 ## Features
 
+- [ ] Direct access to statement for bindings
+- [ ] Breaking: make `fetchOne(key:)` type-safe (have a single dedicated primary key type)
 - [ ] Property wrapper that decodes dictionaries (but how to tell the key column?)
 - [X] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation. Result: no, it does not look it returns values that are comparable between two distinct SQLite connections (from the initial reader, and from the writer thhat starts the observation)
 - [ ] Grab all FTS tokens in a string
@@ -24,7 +26,6 @@
     * Create an edition SQLite connection with an open transaction (a new kind of DatabaseWriter with a save() method)
     * All other writes will fail with SQLITE_BUSY. Unless they are schedules in a target dispatch queue which is paused during the edition.
 - [ ] Can we use generated columns to makes it convenient to index on inserted JSON objects? https://github.com/apple/swift-package-manager/pull/3090#issuecomment-740091760
-- [ ] DatabaseMigrator.publisher(in:)
 - [ ] Look at [@FetchRequest](https://developer.apple.com/documentation/swiftui/fetchrequest): managed object context is stored in the environment, and error processing happens somewhere else (where?).
 - [ ] Handle SQLITE_LIMIT_VARIABLE_NUMBER in deleteAll(_:keys:) and similar APIs. https://www.sqlite.org/limits.html
 - [ ] Concurrent migrator / or not
@@ -35,7 +36,6 @@
 - [ ] Support for more kinds of joins: https://github.com/groue/GRDB.swift/issues/740
 - [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
 - [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
-- [ ] Support Subqueries: WHERE EXISTS (SELECT ...)
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
@@ -50,11 +50,9 @@
     - [ ] REGEXP https://www.sqlite.org/lang_expr.html
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Allow concurrent reads from a snapshot
-- [ ] Decode NSDecimalNumber from text database values
 - [ ] Check https://sqlite.org/sqlar.html
 - [ ] FTS: prefix queries
 - [ ] More schema alterations
-- [ ] DatabasePool.databaseSchemaIsLocked = true (should forbid schema changes, and never reset dbPool readers' caches). Or can we invalidate reader's cache automatically from the writer connection?
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
 
 

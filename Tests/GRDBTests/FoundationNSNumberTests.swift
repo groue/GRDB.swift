@@ -4,92 +4,132 @@ import GRDB
 class FoundationNSNumberTests: GRDBTestCase {
     
     func testNSNumberDatabaseValueToSwiftType() {
+        enum Storage {
+            case integer
+            case double
+        }
+        
+        func storage(_ n: NSNumber) -> Storage? {
+            switch n.databaseValue.storage {
+            case .int64:
+                return .integer
+            case .double:
+                return .double
+            default:
+                return nil
+            }
+        }
+        
         // case "c":
-        let number_char = NSNumber(value: Int8.min + 1)
-        XCTAssertEqual(String(cString: number_char.objCType), "c")
-        let dbv_char = number_char.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_char), Int64(Int8.min + 1))
+        do {
+            let number = NSNumber(value: Int8.min + 1)
+            XCTAssertEqual(String(cString: number.objCType), "c")
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(Int8.min + 1))
+        }
         
         // case "C":
-        let number_unsignedChar = NSNumber(value: UInt8.max - 1)
-//        XCTAssertEqual(String(cString: number_unsignedChar.objCType), "C") // get "s" instead of "C"
-        let dbv_unsignedChar = number_unsignedChar.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_unsignedChar), Int64(UInt8.max - 1))
+        do {
+            let number = NSNumber(value: UInt8.max - 1)
+            // XCTAssertEqual(String(cString: number.objCType), "C") // get "s" instead of "C"
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(UInt8.max - 1))
+        }
         
         // case "s":
-        let number_short = NSNumber(value: Int16.min + 1)
-        XCTAssertEqual(String(cString: number_short.objCType), "s")
-        let dbv_short = number_short.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_short), Int64(Int16.min + 1))
+        do {
+            let number = NSNumber(value: Int16.min + 1)
+            XCTAssertEqual(String(cString: number.objCType), "s")
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(Int16.min + 1))
+        }
         
         // case "S":
-        let number_unsignedShort = NSNumber(value: UInt16.max - 1)
-//        XCTAssertEqual(String(cString: number_unsignedShort.objCType), "S") // get "i" instead of "S"
-        let dbv_unsignedShort = number_unsignedShort.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_unsignedShort), Int64(UInt16.max - 1))
+        do {
+            let number = NSNumber(value: UInt16.max - 1)
+            // XCTAssertEqual(String(cString: number.objCType), "S") // get "i" instead of "S"
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(UInt16.max - 1))
+        }
         
         // case "i":
-        let number_int = NSNumber(value: Int32.min + 1)
-        XCTAssertEqual(String(cString: number_int.objCType), "i")
-        let dbv_int = number_int.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_int), Int64(Int32.min + 1))
+        do {
+            let number = NSNumber(value: Int32.min + 1)
+            XCTAssertEqual(String(cString: number.objCType), "i")
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(Int32.min + 1))
+        }
         
         // case "I":
-        let number_unsignedInt = NSNumber(value: UInt32.max - 1)
-//        XCTAssertEqual(String(cString: number_unsignedInt.objCType), "I") // get "q" instead of "I"
-        let dbv_unsignedInt = number_unsignedInt.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_unsignedInt), Int64(UInt32.max - 1))
+        do {
+            let number = NSNumber(value: UInt32.max - 1)
+            // XCTAssertEqual(String(cString: number.objCType), "I") // get "q" instead of "I"
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(UInt32.max - 1))
+        }
         
         // case "l":
-        let number_long = NSNumber(value: Int.min + 1)
-//        XCTAssertEqual(String(cString: number_long.objCType), "l") // get "q" instead of "l"
-        let dbv_long = number_long.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_long), Int64(Int.min + 1))
+        do {
+            let number = NSNumber(value: Int.min + 1)
+            // XCTAssertEqual(String(cString: number.objCType), "l") // get "q" instead of "l"
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(Int.min + 1))
+        }
         
         // case "L":
-        let number_unsignedLong = NSNumber(value: UInt(UInt32.max))
-//        XCTAssertEqual(String(cString: number_unsignedLong.objCType), "L") // get "q" instead of "L"
-        let dbv_unsignedLong = number_unsignedLong.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_unsignedLong), Int64(UInt32.max))
-        // fatal error: value can not be converted to Int64 because it is greater than Int64.max
-        // _ dbv_unsignedLong = NSNumber(value: UInt.max - 1).databaseValue
+        do {
+            let number = NSNumber(value: UInt(UInt32.max))
+            // XCTAssertEqual(String(cString: number.objCType), "L") // get "q" instead of "L"
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(UInt32.max))
+        }
         
         // case "q":
-        let number_longLong = NSNumber(value: Int64.min + 1)
-        XCTAssertEqual(String(cString: number_longLong.objCType), "q")
-        let dbv_longLong = number_longLong.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_longLong), Int64(Int64.min + 1))
+        do {
+            let number = NSNumber(value: Int64.min + 1)
+            XCTAssertEqual(String(cString: number.objCType), "q")
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64(Int64.min + 1))
+        }
         
         // case "Q":
-        let number_unsignedLongLong = NSNumber(value: UInt64(Int64.max))
-//        XCTAssertEqual(String(cString: number_unsignedLongLong.objCType), "Q") // get "q" instead of "Q"
-        let dbv_unsignedLongLong = number_unsignedLongLong.databaseValue
-        XCTAssertEqual(Int64.fromDatabaseValue(dbv_unsignedLongLong), Int64.max)
-        // fatal error: value can not be converted to Int64 because it is greater than Int64.max
-        // _ = NSNumber(value: UInt64.max - 1).databaseValue
+        do {
+            let number = NSNumber(value: UInt64(Int64.max))
+            // XCTAssertEqual(String(cString: number.objCType), "Q") // get "q" instead of "Q"
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Int64.fromDatabaseValue(number.databaseValue), Int64.max)
+        }
         
         // case "f":
-        let number_float = NSNumber(value: Float(3.14159))
-        XCTAssertEqual(String(cString: number_float.objCType), "f")
-        let dbv_float = number_float.databaseValue
-        XCTAssertEqual(Float.fromDatabaseValue(dbv_float), Float(3.14159))
+        do {
+            let number = NSNumber(value: Float(3))
+            XCTAssertEqual(String(cString: number.objCType), "f")
+            XCTAssertEqual(storage(number), .double)
+            XCTAssertEqual(Float.fromDatabaseValue(number.databaseValue), Float(3))
+        }
         
         // case "d":
-        let number_double = NSNumber(value: Double(10000000.01))
-        XCTAssertEqual(String(cString: number_double.objCType), "d")
-        let dbv_double = number_double.databaseValue
-        XCTAssertEqual(Double.fromDatabaseValue(dbv_double), Double(10000000.01))
+        do {
+            let number = NSNumber(value: 10.0)
+            XCTAssertEqual(String(cString: number.objCType), "d")
+            XCTAssertEqual(storage(number), .double)
+            XCTAssertEqual(Double.fromDatabaseValue(number.databaseValue), 10.0)
+        }
         
         // case "B":
-        let number_bool_true = NSNumber(value: true)
-        XCTAssertEqual(String(cString: number_bool_true.objCType), "c")
-        let dbv_bool_true = number_bool_true.databaseValue
-        XCTAssertEqual(Bool.fromDatabaseValue(dbv_bool_true), true)
+        do {
+            let number = NSNumber(value: true)
+            XCTAssertEqual(String(cString: number.objCType), "c")
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Bool.fromDatabaseValue(number.databaseValue), true)
+        }
         
-        let number_bool_false = NSNumber(value: false)
-        XCTAssertEqual(String(cString: number_bool_false.objCType), "c")
-        let dbv_bool_false = number_bool_false.databaseValue
-        XCTAssertEqual(Bool.fromDatabaseValue(dbv_bool_false), false)
+        do {
+            let number = NSNumber(value: false)
+            XCTAssertEqual(String(cString: number.objCType), "c")
+            XCTAssertEqual(storage(number), .integer)
+            XCTAssertEqual(Bool.fromDatabaseValue(number.databaseValue), false)
+        }
     }
     
     func testNSNumberDatabaseRoundTrip() throws {
@@ -107,7 +147,6 @@ class FoundationNSNumberTests: GRDBTestCase {
     }
     
     func testNSNumberDatabaseValueRoundTrip() {
-        
         func roundTrip(_ value: NSNumber) -> Bool
         {
             let dbValue = value.databaseValue
@@ -132,4 +171,24 @@ class FoundationNSNumberTests: GRDBTestCase {
         XCTAssertNil(NSNumber.fromDatabaseValue(databaseValue_Blob))
     }
     
+    func testNSNumberDecodingFromText() throws {
+        func test(_ value: String, isDecodedAs number: NSDecimalNumber) throws {
+            let decodedFromDatabaseValue = NSNumber.fromDatabaseValue(value.databaseValue) as? NSDecimalNumber
+            XCTAssertEqual(decodedFromDatabaseValue, number)
+
+            let decodedFromDatabase = try DatabaseQueue().read { db in
+                try NSNumber.fetchOne(db, sql: "SELECT ?", arguments: [value]) as? NSDecimalNumber
+            }
+            XCTAssertEqual(decodedFromDatabase, number)
+        }
+        try test("0", isDecodedAs: NSDecimalNumber(value: 0))
+        try test("0.25", isDecodedAs: NSDecimalNumber(value: 0.25))
+        try test("1", isDecodedAs: NSDecimalNumber(value: 1))
+        try test("-1", isDecodedAs: NSDecimalNumber(value: -1))
+        try test("9223372036854775807", isDecodedAs: NSDecimalNumber(value: 9223372036854775807))
+        try test("9223372036854775806", isDecodedAs: NSDecimalNumber(value: 9223372036854775806))
+        try test("-9223372036854775807", isDecodedAs: NSDecimalNumber(value: -9223372036854775807))
+        try test("-9223372036854775808", isDecodedAs: NSDecimalNumber(value: -9223372036854775808))
+        try test("18446744073709551615", isDecodedAs: NSDecimalNumber(value: UInt64(18446744073709551615)))
+    }
 }

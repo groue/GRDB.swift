@@ -387,16 +387,16 @@ let publisher = observation
     
     > :question: This change makes it possible to concatenate subqueries with the UNION operator.
 
-4. In order to extract raw SQL string from an [SQLLiteral], you now need a database connection:
+4. In order to extract raw SQL string from an [SQL literal], you now need a database connection:
 
     ```swift
-    let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
-    
     // BEFORE: GRDB 4
+    let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
     print(query.sql)       // prints "UPDATE player SET name = ? WHERE id = ?"
     print(query.arguments) // prints ["O'Brien", 42]
      
     // NEW: GRDB 5
+    let query: SQL = "UPDATE player SET name = \(name) WHERE id = \(id)"
     let (sql, arguments) = try dbQueue.read(query.build)
     print(sql)             // prints "UPDATE player SET name = ? WHERE id = ?"
     print(arguments)       // prints ["O'Brien", 42]
@@ -506,7 +506,7 @@ let publisher = observation
 [Custom SQL functions]: ../README.md#custom-sql-functions
 [Batch updates]: ../README.md#update-requests
 [SQL Interpolation]: SQLInterpolation.md
-[SQLLiteral]: SQLInterpolation.md#sqlliteral
+[SQL literal]: SQLInterpolation.md#sql-literal
 [SQLRequest]: ../README.md#custom-requests
 [QueryInterfaceRequest]: ../README.md#requests
 [Combine publishers]: Combine.md

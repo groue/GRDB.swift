@@ -42,7 +42,6 @@ public final class DatabasePool: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabasePool",
             purpose: "writer")
         
@@ -60,7 +59,6 @@ public final class DatabasePool: DatabaseWriter {
             return try SerializedDatabase(
                 path: path,
                 configuration: readerConfiguration,
-                schemaCache: DatabaseSchemaCache(),
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "reader.\(readerCount)")
         })
@@ -714,6 +712,22 @@ extension DatabasePool: DatabaseReader {
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try readerPool.barrier {
             try writer.sync(updates)
+        }
+    }
+    
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Updates are guaranteed an exclusive access to the database. They wait
+    /// until all pending writes and reads are completed. They postpone all
+    /// other writes and reads until they are completed.
+    ///
+    /// - important: Reads executed by concurrent *database snapshots* are not
+    ///   considered: they can run concurrently with the barrier updates.
+    /// - parameter updates: The updates to the database.
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        readerPool.asyncBarrier {
+            self.writer.sync(updates)
         }
     }
     

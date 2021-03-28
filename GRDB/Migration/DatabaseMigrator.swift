@@ -1,3 +1,6 @@
+#if canImport(Combine)
+import Combine
+#endif
 import Foundation
 
 /// A DatabaseMigrator registers and applies database migrations.
@@ -121,72 +124,32 @@ public struct DatabaseMigrator {
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
-            if eraseDatabaseOnSchemaChange {
-                var needsErase = false
-                try db.inTransaction(.deferred) {
-                    let appliedIdentifiers = try self.appliedIdentifiers(db)
-                    let knownIdentifiers = Set(migrations.map { $0.identifier })
-                    if !appliedIdentifiers.isSubset(of: knownIdentifiers) {
-                        // Database contains an unknown migration
-                        needsErase = true
-                        return .commit
-                    }
-                    
-                    if let lastAppliedIdentifier = migrations
-                        .map(\.identifier)
-                        .last(where: { appliedIdentifiers.contains($0) })
-                    {
-                        // Some migrations were already applied.
-                        //
-                        // Let's migrate a temporary database up to the same
-                        // level, and compare the database schemas. If they
-                        // differ, we'll erase the database.
-                        let tmpSchema: SchemaInfo = try {
-                            // Make sure the temporary database is configured
-                            // just as the migrated database
-                            var tmpConfig = writer.configuration
-                            tmpConfig.targetQueue = nil // Avoid deadlocks
-                            tmpConfig.label = "GRDB.DatabaseMigrator.temporary"
-                            
-                            // Create the temporary database on disk, just in
-                            // case migrations would involve a lot of data.
-                            //
-                            // SQLite supports temporary on-disk databases, but
-                            // those are not guaranteed to accept the
-                            // preparation functions provided by the user.
-                            //
-                            // See https://github.com/groue/GRDB.swift/issues/931
-                            // for an issue created by such databases.
-                            //
-                            // So let's create a "regular" temporary database:
-                            let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                                .appendingPathComponent(ProcessInfo().globallyUniqueString)
-                            defer {
-                                try? FileManager().removeItem(at: tmpURL)
-                            }
-                            let tmpDatabase = try DatabaseQueue(path: tmpURL.path, configuration: tmpConfig)
-                            return try tmpDatabase.writeWithoutTransaction { db in
-                                try runMigrations(db, upTo: lastAppliedIdentifier)
-                                return try db.schema()
-                            }
-                        }()
-                        
-                        if try db.schema() != tmpSchema {
-                            needsErase = true
-                            return .commit
-                        }
-                    }
-                    
-                    return .commit
+            try migrate(db, upTo: targetIdentifier)
+        }
+    }
+    
+    /// Iterate migrations in the same order as they were registered. If a
+    /// migration has not yet been applied, its block is executed in
+    /// a transaction.
+    ///
+    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    ///   where migrations should apply.
+    /// - parameter completion: A closure that is called in a protected dispatch
+    ///   queue that can write in the database, with the eventual
+    ///   migration error.
+    public func asyncMigrate(
+        _ writer: DatabaseWriter,
+        completion: @escaping (Database, Error?) -> Void)
+    {
+        writer.asyncBarrierWriteWithoutTransaction { db in
+            do {
+                if let lastMigration = self.migrations.last {
+                    try self.migrate(db, upTo: lastMigration.identifier)
                 }
-                
-                if needsErase {
-                    try db.erase()
-                }
+                completion(db, nil)
+            } catch {
+                completion(db, error)
             }
-            
-            // Migrate to target schema
-            try runMigrations(db, upTo: targetIdentifier)
         }
     }
     
@@ -307,4 +270,144 @@ public struct DatabaseMigrator {
             try migration.run(db)
         }
     }
+    
+    private func migrate(_ db: Database, upTo targetIdentifier: String) throws {
+        if eraseDatabaseOnSchemaChange {
+            var needsErase = false
+            try db.inTransaction(.deferred) {
+                let appliedIdentifiers = try self.appliedIdentifiers(db)
+                let knownIdentifiers = Set(migrations.map { $0.identifier })
+                if !appliedIdentifiers.isSubset(of: knownIdentifiers) {
+                    // Database contains an unknown migration
+                    needsErase = true
+                    return .commit
+                }
+                
+                if let lastAppliedIdentifier = migrations
+                    .map(\.identifier)
+                    .last(where: { appliedIdentifiers.contains($0) })
+                {
+                    // Some migrations were already applied.
+                    //
+                    // Let's migrate a temporary database up to the same
+                    // level, and compare the database schemas. If they
+                    // differ, we'll erase the database.
+                    let tmpSchema: SchemaInfo = try {
+                        // Make sure the temporary database is configured
+                        // just as the migrated database
+                        var tmpConfig = db.configuration
+                        tmpConfig.targetQueue = nil // Avoid deadlocks
+                        tmpConfig.label = "GRDB.DatabaseMigrator.temporary"
+                        
+                        // Create the temporary database on disk, just in
+                        // case migrations would involve a lot of data.
+                        //
+                        // SQLite supports temporary on-disk databases, but
+                        // those are not guaranteed to accept the
+                        // preparation functions provided by the user.
+                        //
+                        // See https://github.com/groue/GRDB.swift/issues/931
+                        // for an issue created by such databases.
+                        //
+                        // So let's create a "regular" temporary database:
+                        let tmpURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                            .appendingPathComponent(ProcessInfo().globallyUniqueString)
+                        defer {
+                            try? FileManager().removeItem(at: tmpURL)
+                        }
+                        let tmpDatabase = try DatabaseQueue(path: tmpURL.path, configuration: tmpConfig)
+                        return try tmpDatabase.writeWithoutTransaction { db in
+                            try runMigrations(db, upTo: lastAppliedIdentifier)
+                            return try db.schema(.main)
+                        }
+                    }()
+                    
+                    if try db.schema(.main) != tmpSchema {
+                        needsErase = true
+                        return .commit
+                    }
+                }
+                
+                return .commit
+            }
+            
+            if needsErase {
+                try db.erase()
+            }
+        }
+        
+        // Migrate to target schema
+        try runMigrations(db, upTo: targetIdentifier)
+    }
 }
+
+#if canImport(Combine)
+extension DatabaseMigrator {
+    // MARK: - Publishing Migrations
+    
+    /// Returns a Publisher that asynchronously migrates a database.
+    ///
+    ///     let migrator: DatabaseMigrator = ...
+    ///     let dbQueue: DatabaseQueue = ...
+    ///     let publisher = migrator.migratePublisher(dbQueue)
+    ///
+    /// It completes on the main dispatch queue.
+    ///
+    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    ///   where migrations should apply.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func migratePublisher(_ writer: DatabaseWriter) -> DatabasePublishers.Migrate {
+        migratePublisher(writer, receiveOn: DispatchQueue.main)
+    }
+    
+    /// Returns a Publisher that asynchronously migrates a database.
+    ///
+    ///     let migrator: DatabaseMigrator = ...
+    ///     let dbQueue: DatabaseQueue = ...
+    ///     let publisher = migrator.migratePublisher(dbQueue, receiveOn: DispatchQueue.global())
+    ///
+    /// It completes on `scheduler`.
+    ///
+    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
+    ///   where migrations should apply.
+    /// - parameter scheduler: A Combine Scheduler.
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func migratePublisher<S>(_ writer: DatabaseWriter, receiveOn scheduler: S)
+    -> DatabasePublishers.Migrate
+    where S: Scheduler
+    {
+        DatabasePublishers.Migrate(
+            upstream: OnDemandFuture { promise in
+                self.asyncMigrate(writer) { _, error in
+                    if let error = error {
+                        promise(.failure(error))
+                    } else {
+                        promise(.success(()))
+                    }
+                }
+            }
+            .eraseToAnyPublisher()
+            .receiveValues(on: scheduler)
+            .eraseToAnyPublisher()
+        )
+    }
+}
+
+@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+extension DatabasePublishers {
+    /// A publisher that migrates a database. It publishes exactly
+    /// one element, or an error.
+    ///
+    /// See `DatabaseMigrator.migratePublisher(_:receiveOn:)`.
+    public struct Migrate: Publisher {
+        public typealias Output = Void
+        public typealias Failure = Error
+        
+        fileprivate let upstream: AnyPublisher<Void, Error>
+        
+        public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
+            upstream.receive(subscriber: subscriber)
+        }
+    }
+}
+#endif

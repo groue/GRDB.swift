@@ -125,8 +125,36 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - Internal properties
     
     // Caches
+    struct SchemaCache {
+        /// The cache for the main schema
+        fileprivate var main = DatabaseSchemaCache()
+        
+        /// The cache for the temp schema
+        fileprivate var temp = DatabaseSchemaCache()
+        
+        subscript(schemaID: SchemaIdentifier) -> DatabaseSchemaCache { // internal so that it can be tested
+            get {
+                switch schemaID {
+                case .main: return main
+                case .temp: return temp
+                }
+            }
+            set {
+                switch schemaID {
+                case .main: main = newValue
+                case .temp: temp = newValue
+                }
+            }
+        }
+        
+        mutating func clear() {
+            main.clear()
+            temp.clear()
+        }
+    }
+    
     var _lastSchemaVersion: Int32? // Support for clearSchemaCacheIfNeeded()
-    var schemaCache: DatabaseSchemaCache    // internal so that it can be tested
+    var schemaCache = SchemaCache()
     lazy var internalStatementCache = StatementCache(database: self)
     lazy var publicStatementCache = StatementCache(database: self)
     
@@ -170,13 +198,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     init(
         path: String,
         description: String,
-        configuration: Configuration,
-        schemaCache: DatabaseSchemaCache) throws
+        configuration: Configuration) throws
     {
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.description = description
         self.configuration = configuration
-        self.schemaCache = schemaCache
     }
     
     deinit {

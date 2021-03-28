@@ -22,7 +22,7 @@ try dbQueue.write { db in
 SQL Interpolation is an answer to these troubles. It is available in Swift 5.
 
 - [Introduction]
-- [SQLLiteral]
+- [SQL Literal]
 - [SQL Interpolation and the Query Interface]
 - [SQL Interpolation and Record Protocols]
 - [SQL Interpolation Reference]
@@ -73,38 +73,38 @@ Plain SQL strings are indeed still available, and SQL interpolation only kicks i
     ```
 
 
-## SQLLiteral
+## SQL Literal
 
-**SQLLiteral** is the type that looks like a plain String, but profits from SQL interpolation:
+**`SQL`** is the type that looks like a plain String, but profits from SQL interpolation:
 
 ```swift
 try dbQueue.write { db in
-    let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
+    let query: SQL = "UPDATE player SET name = \(name) WHERE id = \(id)"
     try db.execute(literal: query)
 }
 ```
 
-**SQLLiteral is not a Swift String.** You can not use the `execute(literal:)` method with a String argument:
+**`SQL` is not a Swift String.** You can not use the `execute(literal:)` method with a String argument:
 
 ```swift
 try dbQueue.write { db in
     let query = "UPDATE player SET name = \(name) WHERE id = \(id)" // a regular String
     // Compiler error:
-    // Cannot convert value of type 'String' to expected argument type 'SQLLiteral'
+    // Cannot convert value of type 'String' to expected argument type 'SQL'
     try db.execute(literal: query)
 }
 ```
 
-SQLLiteral can build your queries step by step, with regular operators and methods:
+`SQL` can build your queries step by step, with regular operators and methods:
 
 ```swift
 // +, +=, append
-var query: SQLLiteral = "UPDATE player "
+var query: SQL = "UPDATE player "
 query += "SET name = \(name) "
 query.append(literal: "WHERE id = \(id)")
 
 // joined(), joined(separator:)
-let components: [SQLLiteral] = [
+let components: [SQL] = [
     "UPDATE player",
     "SET name = \(name)",
     "WHERE id = \(id)"
@@ -115,7 +115,7 @@ let query = components.joined(separator: " ")
 Extract the plain SQL string from a literal:
 
 ```swift
-let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
+let query: SQL = "UPDATE player SET name = \(name) WHERE id = \(id)"
 let (sql, arguments) = try dbQueue.read(query.build)
 print(sql)       // prints "UPDATE player SET name = ? WHERE id = ?"
 print(arguments) // prints ["O'Brien", 42]
@@ -124,17 +124,17 @@ print(arguments) // prints ["O'Brien", 42]
 Build a literal from a plain SQL string:
 
 ```swift
-let query = SQLLiteral(
+let query = SQL(
     sql: "UPDATE player SET name = ? WHERE id = ?",
     arguments: [name, id])
 ```
 
-SQLLiteral can embed any [value], as we have seen above, but not only. Please keep on reading the next chapter, or jump directly to the [SQL Interpolation Reference].
+`SQL` can embed any [value], as we have seen above, but not only. Please keep on reading the next chapter, or jump directly to the [SQL Interpolation Reference].
 
 
 ## SQL Interpolation and the Query Interface
 
-SQL Interpolation and SQLLiteral let you embed raw SQL snippets in [query interface requests].
+SQL Interpolation and `SQL` let you embed raw SQL snippets in [query interface requests].
 
 For example:
 
@@ -143,25 +143,37 @@ For example:
 let request = Player.filter(literal: "name = \("O'Brien")")
 ```
 
-You can also build literal expressions from other expressions. For example, let's call the `DATE` SQLite function on a query interface column:
+You can also build literals from other expressions. For example, let's call the `DATE` SQLite function on a query interface column:
 
 ```swift
-// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+// SELECT * FROM player WHERE DATE(createdAt) = '2020-01-23'
 let createdAt = Column("createdAt")
-let creationDay = SQLLiteral("DATE(\(createdAt))").sqlExpression
+let creationDay = SQL("DATE(\(createdAt))")
 let request = Player.filter(creationDay == "2020-01-23")
 ```
 
-Such literal expressions can be returned by Swift functions:
+Such literals play well with the query interface, even when several tables are involved with [associations](AssociationsBasics.md):
 
 ```swift
-func date(_ value: SQLExpressible) -> SQLExpression {
-    SQLLiteral("DATE(\(value))").sqlExpression
+// SELECT player.*, team.*
+// FROM player
+// JOIN team ON team.id = player.teamID
+// WHERE DATE(player.createdAt) = '2020-01-23'
+//       ~~~~~~~~~~~~~~~~~~~~~~
+//       automatic table disambiguation
+let request = Player
+    .filter(creationDay == "2020-01-23")
+    .including(required: Player.team)
+```
+
+This allows you to define Swift functions that you can use in all circumstances:
+
+```swift
+func date(_ expression: SQLExpressible) -> SQLExpression {
+    SQL("DATE(\(expression))").sqlExpression
 }
 
-// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
-let createdAt = Column("createdAt")
-let request = Player.filter(date(createdAt) == "2020-01-23")
+let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
 ```
 
 
@@ -334,7 +346,7 @@ Let's extend Player with database methods.
     extension Player: Decodable, FetchableRecord, TableRecord {
         /// A complex request
         static func complexRequest() -> SQLRequest<Player> {
-            let query: SQLLiteral = "SELECT \(columnsOf: self) "
+            let query: SQL = "SELECT \(columnsOf: self) "
             query += "FROM \(self) "
             query += "JOIN \(Team.self) ON ..."
             query += "GROUP BY ..."
@@ -343,7 +355,7 @@ Let's extend Player with database methods.
     }
     ```
     
-    This last request shows how to build an SQLRequest from an [SQLLiteral]. You will need SQLLiteral when the request can not be written in a single stroke.
+    This last request shows how to build an SQLRequest from an [SQL Literal]. You will need `SQL` when the request can not be written in a single stroke.
 
 
 
@@ -449,11 +461,11 @@ This chapter lists all kinds of supported interpolations.
     "WITH \(definitionFor: cte) SELECT * FROM \(cte)"
     ```
 
-- SQLLiteral:
+- `SQL` literal:
 
     ```swift
     // SELECT * FROM player WHERE name = 'O''Brien'
-    let condition: SQLLiteral = "name = \("O'Brien")"
+    let condition: SQL = "name = \("O'Brien")"
     "SELECT * FROM player WHERE \(literal: condition)"
     ```
 
@@ -468,7 +480,7 @@ This chapter lists all kinds of supported interpolations.
     ```
 
 [Introduction]: #introduction
-[SQLLiteral]: #sqlliteral
+[SQL Literal]: #sql-literal
 [SQL Interpolation and the Query Interface]: #sql-interpolation-and-the-query-interface
 [SQL Interpolation and Record Protocols]: #sql-interpolation-and-record-protocols
 [SQL Interpolation Reference]: #sql-interpolation-reference

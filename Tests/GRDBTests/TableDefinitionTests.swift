@@ -35,6 +35,21 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testColumnLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Simple table creation
+            try db.create(table: "test") { t in
+                t.column(sql: "a TEXT")
+                t.column(literal: "b TEXT DEFAULT \("O'Brien")")
+            }
+            
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (a TEXT, b TEXT DEFAULT 'O''Brien')
+                """)
+        }
+    }
+    
     func testUntypedColumn() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -433,6 +448,28 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testConstraintLiteral() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Simple table creation
+            try db.create(table: "test") { t in
+                t.constraint(sql: "CHECK (a + b < 10)")
+                t.constraint(sql: "CHECK (a + b < \(20))")
+                t.column("a", .integer)
+                t.column("b", .integer)
+            }
+            
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (\
+                "a" INTEGER, \
+                "b" INTEGER, \
+                CHECK (a + b < 10), \
+                CHECK (a + b < 20)\
+                )
+                """)
+        }
+    }
+    
     func testAutoReferences() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
@@ -523,12 +560,16 @@ class TableDefinitionTests: GRDBTestCase {
                 t.add(column: "c", .integer).notNull().defaults(to: 1)
                 t.add(column: "d", .text).references("alt")
                 t.add(column: "e")
+                t.addColumn(sql: "f TEXT")
+                t.addColumn(literal: "g TEXT DEFAULT \("O'Brien")")
             }
             
-            assertEqualSQL(sqlQueries[sqlQueries.count - 4], "ALTER TABLE \"test\" ADD COLUMN \"b\" TEXT")
-            assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"c\" INTEGER NOT NULL DEFAULT 1")
-            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"d\" TEXT REFERENCES \"alt\"(\"rowid\")")
-            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN \"e\"")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 6], "ALTER TABLE \"test\" ADD COLUMN \"b\" TEXT")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 5], "ALTER TABLE \"test\" ADD COLUMN \"c\" INTEGER NOT NULL DEFAULT 1")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 4], "ALTER TABLE \"test\" ADD COLUMN \"d\" TEXT REFERENCES \"alt\"(\"rowid\")")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" ADD COLUMN \"e\"")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN f TEXT")
+            assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" ADD COLUMN g TEXT DEFAULT 'O''Brien'")
         }
     }
     

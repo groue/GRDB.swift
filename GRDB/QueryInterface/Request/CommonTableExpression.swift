@@ -117,26 +117,28 @@ extension CommonTableExpression {
             type: RowDecoder.self)
     }
     
-    /// Creates a common table expression from an `SQLLiteral`.
+    /// Creates a common table expression from an SQL *literal*.
     ///
-    /// For example:
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
+    ///     let name = "O'Brien"
     ///     let p = CommonTableExpression<Void>(
     ///         named: "p",
-    ///         literal: "SELECT * FROM player WHERE name = \("O'Brien")")
+    ///         literal: "SELECT * FROM player WHERE name = \(name)")
     ///
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     public init(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
-        literal sqlLiteral: SQLLiteral)
+        literal sqlLiteral: SQL)
     {
         self.init(
             recursive: recursive,
@@ -215,26 +217,28 @@ extension CommonTableExpression where RowDecoder == Row {
             type: Row.self)
     }
     
-    /// Creates a common table expression from an `SQLLiteral`.
+    /// Creates a common table expression from an SQL *literal*.
     ///
-    /// For example:
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
     ///     // WITH p AS (SELECT * FROM player WHERE name = 'O''Brien') ...
+    ///     let name = "O'Brien"
     ///     let p = CommonTableExpression(
     ///         named: "p",
-    ///         literal: "SELECT * FROM player WHERE name = \("O'Brien")")
+    ///         literal: "SELECT * FROM player WHERE name = \(name)")
     ///
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.
     /// - parameter tableName: The table name of the common table expression.
     /// - parameter columns: The columns of the common table expression. If nil,
     ///   the columns are the columns of the request.
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     public init(
         recursive: Bool = false,
         named tableName: String,
         columns: [String]? = nil,
-        literal sqlLiteral: SQLLiteral)
+        literal sqlLiteral: SQL)
     {
         self.init(
             recursive: recursive,
@@ -247,8 +251,7 @@ extension CommonTableExpression where RowDecoder == Row {
 
 extension CommonTableExpression {
     var relationForAll: SQLRelation {
-        let cte = self.cte
-        return .all(fromTable: tableName, selection: { _ in [.allCTEColumns(cte)] })
+        .all(fromTable: tableName)
     }
     
     /// Creates a request for all rows of the common table expression.
@@ -323,13 +326,13 @@ struct SQLCTE {
     var isRecursive: Bool
     
     /// The number of columns in the common table expression.
-    func columnsCount(_ db: Database) throws -> Int {
+    func columnCount(_ db: Database) throws -> Int {
         if let columns = columns {
             // No need to hit the database
             return columns.count
         }
         
-        return try sqlSubquery.columnsCount(db)
+        return try sqlSubquery.columnCount(db)
     }
 }
 

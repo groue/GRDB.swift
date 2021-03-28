@@ -71,9 +71,15 @@ extension NSNumber: DatabaseValueConvertible {
             return self.init(value: int64)
         case .double(let double):
             return self.init(value: double)
+        case let .string(string):
+            // Must match Decimal.fromDatabaseValue(_:)
+            guard let decimal = Decimal(string: string, locale: posixLocale) else { return nil }
+            return NSDecimalNumber(decimal: decimal) as? Self
         default:
             return nil
         }
     }
 }
+
+private let posixLocale = Locale(identifier: "en_US_POSIX")
 #endif

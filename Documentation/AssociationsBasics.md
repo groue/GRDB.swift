@@ -89,7 +89,7 @@ struct BookInfo {
 
 let books = try Book.fetchAll(db)
 let bookInfos = books.map { book -> BookInfo in
-    let author = try Author.fetchOne(db, key: book.authorId)
+    let author = try Author.fetchOne(db, id: book.authorId)
     return BookInfo(book: book, author: author)
 }
 ```
@@ -1068,7 +1068,7 @@ let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 
 **You can filter associated records.**
 
-The `filter(_:)`, `filter(key:)` and `filter(keys:)` methods, that you already know for [filtering simple requests](../README.md#requests), can filter associated records as well:
+The `filter(_:)`, `filter(id:)`, `filter(ids:)`, `filter(key:)` and `filter(keys:)` methods, that you already know for [filtering simple requests](../README.md#requests), can filter associated records as well:
 
 ```swift
 // SELECT book.*

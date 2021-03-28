@@ -17,6 +17,9 @@ private struct Player: Codable, PersistableRecord, FetchableRecord {
     }
 }
 
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Player: Identifiable { }
+
 private enum Columns: String, ColumnExpression {
     case id, name, score, bonus
 }
@@ -53,6 +56,18 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                 UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
                 """)
             
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                try Player.filter(id: 1).updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0 WHERE "id" = 1
+                    """)
+                
+                try Player.filter(ids: [1, 2]).updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0 WHERE "id" IN (1, 2)
+                    """)
+            }
+
             try Player.filter(sql: "id = 1").updateAll(db, assignment)
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE "player" SET "score" = 0 WHERE id = 1

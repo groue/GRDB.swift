@@ -1,17 +1,17 @@
-/// SQLLiteral is a type which support [SQL
-/// Interpolation](https://github.com/groue/GRDB.swift/blob/master/Documentation/SQLInterpolation.md).
+/// `SQL` helps you build SQL literal with
+/// [SQL Interpolation](https://github.com/groue/GRDB.swift/blob/master/Documentation/SQLInterpolation.md).
 ///
 /// For example:
 ///
 ///     try dbQueue.write { db in
 ///         let name: String = ...
 ///         let id: Int64 = ...
-///         let query: SQLLiteral = "UPDATE player SET name = \(name) WHERE id = \(id)"
+///         let query: SQL = "UPDATE player SET name = \(name) WHERE id = \(id)"
 ///         try db.execute(literal: query)
 ///     }
-public struct SQLLiteral {
-    /// SQLLiteral is an array of elements which can be qualified with
-    /// table aliases.
+public struct SQL {
+    /// `SQL` is an array of elements which can be qualified with table
+    /// aliases. This is how `SQL` can blend well in the query interface.
     enum Element {
         // Can't be qualified with a table alias
         case sql(String, StatementArguments = StatementArguments())
@@ -75,23 +75,24 @@ public struct SQLLiteral {
         self.elements = elements
     }
     
-    /// Creates an SQLLiteral from a plain SQL string, and eventual arguments.
+    /// Creates an `SQL` literal from a plain SQL string, and
+    /// eventual arguments.
     ///
     /// For example:
     ///
-    ///     let query = SQLLiteral(
+    ///     let query = SQL(
     ///         sql: "UPDATE player SET name = ? WHERE id = ?",
     ///         arguments: [name, id])
     public init(sql: String, arguments: StatementArguments = StatementArguments()) {
         self.init(elements: [.sql(sql, arguments)])
     }
     
-    /// Creates an SQLLiteral from an SQL expression.
+    /// Creates an `SQL` literal from an SQL expression.
     ///
     /// For example:
     ///
-    ///     let columnLiteral = SQLLiteral(Column("username"))
-    ///     let suffixLiteral = SQLLiteral("@example.com".databaseValue)
+    ///     let columnLiteral = SQL(Column("username"))
+    ///     let suffixLiteral = SQL("@example.com".databaseValue)
     ///     let emailLiteral = [columnLiteral, suffixLiteral].joined(separator: " || ")
     ///     let request = User.select(emailLiteral.sqlExpression)
     ///     let emails = try String.fetchAll(db, request)
@@ -104,7 +105,7 @@ public struct SQLLiteral {
         elements.allSatisfy(\.isEmpty)
     }
     
-    /// Turn a SQLLiteral into raw SQL and arguments.
+    /// Turn a `SQL` literal into raw SQL and arguments.
     ///
     /// - parameter db: A database connection.
     /// - returns: A tuple made of a raw SQL string, and statement arguments.
@@ -119,112 +120,123 @@ public struct SQLLiteral {
         try elements.map { try $0.sql(context) }.joined()
     }
     
-    func qualified(with alias: TableAlias) -> SQLLiteral {
-        SQLLiteral(elements: elements.map { $0.qualified(with: alias) })
+    func qualified(with alias: TableAlias) -> SQL {
+        SQL(elements: elements.map { $0.qualified(with: alias) })
     }
 }
 
-extension SQLLiteral {
-    /// Returns the SQLLiteral produced by the concatenation of two literals.
+extension SQL {
+    /// Returns the `SQL` literal produced by the concatenation of two literals.
     ///
     ///     let name = "O'Brien"
-    ///     let selection: SQLLiteral = "SELECT * FROM player "
-    ///     let condition: SQLLiteral = "WHERE name = \(name)"
+    ///     let selection: SQL = "SELECT * FROM player "
+    ///     let condition: SQL = "WHERE name = \(name)"
     ///     let query = selection + condition
-    public static func + (lhs: SQLLiteral, rhs: SQLLiteral) -> SQLLiteral {
+    public static func + (lhs: SQL, rhs: SQL) -> SQL {
         var result = lhs
         result += rhs
         return result
     }
     
-    /// Appends an SQLLiteral to the receiver.
+    /// Appends an `SQL` literal to the receiver.
     ///
     ///     let name = "O'Brien"
-    ///     var query: SQLLiteral = "SELECT * FROM player "
+    ///     var query: SQL = "SELECT * FROM player "
     ///     query += "WHERE name = \(name)"
-    public static func += (lhs: inout SQLLiteral, rhs: SQLLiteral) {
+    public static func += (lhs: inout SQL, rhs: SQL) {
         lhs.elements += rhs.elements
     }
     
-    /// Appends an SQLLiteral to the receiver.
+    /// Appends an `SQL` literal to the receiver.
     ///
     ///     let name = "O'Brien"
-    ///     var query: SQLLiteral = "SELECT * FROM player "
+    ///     var query: SQL = "SELECT * FROM player "
     ///     query.append(literal: "WHERE name = \(name)")
-    public mutating func append(literal sqlLiteral: SQLLiteral) {
+    public mutating func append(literal sqlLiteral: SQL) {
         self += sqlLiteral
     }
     
     /// Appends a plain SQL string to the receiver, and eventual arguments.
     ///
     ///     let name = "O'Brien"
-    ///     var query: SQLLiteral = "SELECT * FROM player "
+    ///     var query: SQL = "SELECT * FROM player "
     ///     query.append(sql: "WHERE name = ?", arguments: [name])
     public mutating func append(sql: String, arguments: StatementArguments = StatementArguments()) {
-        self += SQLLiteral(sql: sql, arguments: arguments)
+        self += SQL(sql: sql, arguments: arguments)
     }
 }
 
-extension SQLLiteral {
+extension SQL: SQLSpecificExpressible {
     /// Creates a literal SQL expression.
     ///
-    ///     SQLLiteral(sql: "1 + 2").sqlExpression
-    ///     SQLLiteral(sql: "? + ?", arguments: [1, 2]).sqlExpression
-    ///     SQLLiteral(sql: ":one + :two", arguments: ["one": 1, "two": 2]).sqlExpression
+    /// Use this property when you need an explicit `SQLExpression`.
+    /// For example:
+    ///
+    ///     func date(_ value: SQLExpressible) -> SQLExpression {
+    ///         SQL("DATE(\(value))").sqlExpression
+    ///     }
+    ///
+    ///     // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+    ///     let createdAt = Column("createdAt")
+    ///     let request = Player.filter(date(createdAt) == "2020-01-23")
     public var sqlExpression: SQLExpression {
         .literal(self)
     }
-    
-    var sqlSelection: SQLSelection {
-        .literal(self)
-    }
-    
-    var sqlOrdering: SQLOrdering {
+}
+
+extension SQL: SQLSelectable {
+    public var sqlSelection: SQLSelection {
         .literal(self)
     }
 }
 
-extension Sequence where Element == SQLLiteral {
-    /// Returns the concatenated SQLLiteral of this sequence of literals,
+extension SQL: SQLOrderingTerm {
+    public var sqlOrdering: SQLOrdering {
+        .literal(self)
+    }
+}
+
+extension Sequence where Element == SQL {
+    /// Returns the concatenated `SQL` literal of this sequence of literals,
     /// inserting the given separator between each element.
     ///
-    ///     let components: [SQLLiteral] = [
+    ///     let components: [SQL] = [
     ///         "UPDATE player",
     ///         "SET name = \(name)",
     ///         "WHERE id = \(id)"
     ///     ]
     ///     let query = components.joined(separator: " ")
-    public func joined(separator: String = "") -> SQLLiteral {
+    public func joined(separator: String = "") -> SQL {
         if separator.isEmpty {
-            return SQLLiteral(elements: flatMap(\.elements))
+            return SQL(elements: flatMap(\.elements))
         } else {
-            return SQLLiteral(elements: Array(map(\.elements).joined(separator: CollectionOfOne(.sql(separator)))))
+            return SQL(elements: Array(map(\.elements).joined(separator: CollectionOfOne(.sql(separator)))))
         }
     }
 }
 
-extension Collection where Element == SQLLiteral {
-    /// Returns the concatenated SQLLiteral of this collection of literals,
+extension Collection where Element == SQL {
+    /// Returns the concatenated `SQL` literal of this collection of literals,
     /// inserting the given SQL separator between each element.
     ///
-    ///     let components: [SQLLiteral] = [
+    ///     let components: [SQL] = [
     ///         "UPDATE player",
     ///         "SET name = \(name)",
     ///         "WHERE id = \(id)"
     ///     ]
     ///     let query = components.joined(separator: " ")
-    public func joined(separator: String = "") -> SQLLiteral {
+    public func joined(separator: String = "") -> SQL {
         if separator.isEmpty {
-            return SQLLiteral(elements: flatMap(\.elements))
+            return SQL(elements: flatMap(\.elements))
         } else {
-            return SQLLiteral(elements: Array(map(\.elements).joined(separator: CollectionOfOne(.sql(separator)))))
+            return SQL(elements: Array(map(\.elements).joined(separator: CollectionOfOne(.sql(separator)))))
         }
     }
 }
 
 // MARK: - ExpressibleByStringInterpolation
 
-extension SQLLiteral: ExpressibleByStringInterpolation {
+extension SQL: ExpressibleByStringInterpolation {
     /// :nodoc
     public init(unicodeScalarLiteral: String) {
         self.init(sql: unicodeScalarLiteral, arguments: [])

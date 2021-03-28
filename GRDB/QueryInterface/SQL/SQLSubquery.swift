@@ -4,13 +4,13 @@ public struct SQLSubquery {
     
     private enum Impl {
         /// A literal SQL query
-        case literal(SQLLiteral)
+        case literal(SQL)
         
         /// A query interface relation
         case relation(SQLRelation)
     }
     
-    static func literal(_ sqlLiteral: SQLLiteral) -> Self {
+    static func literal(_ sqlLiteral: SQL) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
     
@@ -38,7 +38,7 @@ extension SQLSubquery {
     ///     // We know that "SELECT 1 AS a, 2 AS b" selects two columns,
     ///     // so we can find cte columns in the row:
     ///     row.scopes["cte"] // [a:1, b:2]
-    func columnsCount(_ db: Database) throws -> Int {
+    func columnCount(_ db: Database) throws -> Int {
         switch impl {
         case let .literal(sqlLiteral):
             // Compile request. We can freely use the statement cache because we
@@ -49,7 +49,7 @@ extension SQLSubquery {
             return statement.columnCount
             
         case let .relation(relation):
-            return try SQLQueryGenerator(relation: relation).columnsCount(db)
+            return try SQLQueryGenerator(relation: relation).columnCount(db)
         }
     }
 }
@@ -114,13 +114,13 @@ extension SQLSubqueryable {
         SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
     }
     
-    /// Returns an expression that checks the inclusion of the expression in
-    /// the subquery.
+    /// Returns an expression that is true if and only if the subquery would
+    /// return one or more rows.
     ///
-    ///     // name COLLATE NOCASE IN (SELECT name FROM player)
-    ///     let request = Player.select(Column("name"), as: String.self)
-    ///     let condition = request.contains(Column("name").collating(.nocase))
-    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
-        SQLCollection.subquery(sqlSubquery).contains(element.sqlExpression)
+    ///     // EXISTS (SELECT * FROM player WHERE name = 'Arthur')
+    ///     let request = Player.filter(Column("name") == "Arthur")
+    ///     let condition = request.exists()
+    public func exists() -> SQLExpression {
+        .exists(sqlSubquery)
     }
 }

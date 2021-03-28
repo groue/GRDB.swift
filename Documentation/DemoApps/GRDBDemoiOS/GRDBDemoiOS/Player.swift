@@ -2,8 +2,9 @@ import GRDB
 
 /// The Player struct.
 ///
+/// Identifiable conformance supports type-safe GRDB primary key methods.
 /// Hashable conformance supports table view updates
-struct Player: Hashable {
+struct Player: Identifiable, Hashable {
     /// The player id.
     ///
     /// Int64 is the recommended type for auto-incremented database ids.

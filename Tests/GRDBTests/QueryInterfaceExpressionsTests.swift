@@ -196,7 +196,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         // Sequence.contains(): = operator
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name.collating(.nocase)))),
-            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) = \"name\"")
+            "SELECT * FROM \"readers\" WHERE \"name\" = \"name\" COLLATE NOCASE")
         
         // Sequence.contains(): false
         XCTAssertEqual(
@@ -251,6 +251,59 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         }
     }
     
+    func testSubqueryExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        do {
+            try dbQueue.write { db in
+                try db.create(table: "team") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                }
+                try db.create(table: "player") { t in
+                    t.column("teamID", .integer).references("team")
+                }
+                struct Player: TableRecord { }
+                struct Team: TableRecord { }
+                let teamAlias = TableAlias()
+                let player = Player.filter(Column("teamID") == teamAlias[Column("id")])
+                let teams = Team.aliased(teamAlias).filter(player.exists())
+                try assertEqualSQL(db, teams, """
+                    SELECT * FROM "team" WHERE EXISTS (SELECT * FROM "player" WHERE "teamID" = "team"."id")
+                    """)
+            }
+        }
+        
+        do {
+            let alias = TableAlias(name: "r")
+            let subquery = tableRequest.filter(Col.age > alias[Col.age])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.aliased(alias).filter(subquery.exists())),
+                """
+                SELECT "r".* FROM "readers" "r" WHERE EXISTS (SELECT * FROM "readers" WHERE "age" > "r"."age")
+                """)
+        }
+        
+        do {
+            let alias = TableAlias(name: "r")
+            let subquery = tableRequest.filter(Col.age > alias[Col.age])
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.aliased(alias).filter(!subquery.exists())),
+                """
+                SELECT "r".* FROM "readers" "r" WHERE NOT EXISTS (SELECT * FROM "readers" WHERE "age" > "r"."age")
+                """)
+        }
+        
+        do {
+            let alias = TableAlias(name: "r")
+            let subquery = SQLRequest<Row>("SELECT * FROM readers WHERE age > \(alias[Col.age])")
+            XCTAssertEqual(
+                sql(dbQueue, tableRequest.aliased(alias).filter(subquery.exists())),
+                """
+                SELECT "r".* FROM "readers" "r" WHERE EXISTS (SELECT * FROM readers WHERE age > "r"."age")
+                """)
+        }
+    }
+
     func testGreaterThan() throws {
         let dbQueue = try makeDatabaseQueue()
         

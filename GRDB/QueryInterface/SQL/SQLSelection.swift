@@ -11,26 +11,6 @@ public struct SQLSelection {
         /// All columns, qualified: `player.*`
         case qualifiedAllColumns(TableAlias)
         
-        // As long as the CTE is embedded here, the following request will fail
-        // at runtime, in `columnCount(_:)`, because we can't access the number of
-        // columns in the CTE:
-        //
-        //     let association = Player.association(to: cte)
-        //     Player.including(required: association.select(AllColumns(), ...))
-        //
-        // The need for this should not be frequent. And the user has
-        // two workarounds:
-        //
-        // - provide explicit columns in the CTE definition.
-        // - prefer `annotated(with:)` when she wants to extend the selection.
-        //
-        // TODO: Make `cteRequestOrAssociation.select(AllColumns())` possible.
-        /// All columns of a common table expression
-        case allCTEColumns(SQLCTE)
-        
-        /// All columns of a common table expression, qualified
-        case qualifiedAllCTEColumns(SQLCTE, TableAlias)
-        
         /// An expression
         case expression(SQLExpression)
         
@@ -40,7 +20,7 @@ public struct SQLSelection {
         case aliasedExpression(SQLExpression, String)
         
         /// A literal SQL selection
-        case literal(SQLLiteral)
+        case literal(SQL)
     }
     
     /// All columns: `*`
@@ -49,16 +29,6 @@ public struct SQLSelection {
     /// All columns, qualified: `player.*`
     static func qualifiedAllColumns(_ alias: TableAlias) -> Self {
         self.init(impl: .qualifiedAllColumns(alias))
-    }
-    
-    /// All columns of a common table expression
-    static func allCTEColumns(_ cte: SQLCTE) -> Self {
-        self.init(impl: .allCTEColumns(cte))
-    }
-    
-    /// All columns of a common table expression, qualified
-    static func qualifiedAllCTEColumns(_ cte: SQLCTE, _ alias: TableAlias) -> Self {
-        self.init(impl: .qualifiedAllCTEColumns(cte, alias))
     }
     
     /// An expression
@@ -74,38 +44,33 @@ public struct SQLSelection {
     }
     
     /// A literal SQL selection
-    static func literal(_ sqlLiteral: SQLLiteral) -> Self {
+    static func literal(_ sqlLiteral: SQL) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
 }
 
 extension SQLSelection {
     /// Returns the number of columns in the selection.
-    func columnCount(_ db: Database) throws -> Int {
+    ///
+    /// Returns nil when the number of columns is unknown.
+    func columnCount(_ context: SQLGenerationContext) throws -> Int? {
         switch impl {
         case .allColumns:
-            // Likely a GRDB bug
-            fatalError("Can't compute number of columns without an alias")
+            // Likely a GRDB bug: we can't count the number of columns in an
+            // unqualified table.
+            return nil
             
         case let .qualifiedAllColumns(alias):
-            return try db.columns(in: alias.tableName).count
-            
-        case let .allCTEColumns(cte):
-            return try cte.columnsCount(db)
-            
-        case let .qualifiedAllCTEColumns(cte, _):
-            return try cte.columnsCount(db)
+            return try context.columnCount(in: alias.tableName)
             
         case .expression,
              .aliasedExpression:
             return 1
             
         case .literal:
-            fatalError("""
-                Selection literals don't known how many columns they contain. \
-                To resolve this error, select one or several literal expressions instead. \
-                See SQLLiteral.sqlExpression.
-                """)
+            // We do not embed any SQL parser: we can't count the number of
+            // columns in a literal selection.
+            return nil
         }
     }
     
@@ -113,12 +78,10 @@ extension SQLSelection {
     /// TODO: deprecate `count(selection)`, and get rid of this property.
     var countExpression: SQLExpression {
         switch impl {
-        case .allColumns,
-             .allCTEColumns:
+        case .allColumns:
             return .countAll
             
-        case .qualifiedAllColumns,
-             .qualifiedAllCTEColumns:
+        case .qualifiedAllColumns:
             // COUNT(player.*) is not valid SQL
             fatalError("Uncountable selection")
             
@@ -134,8 +97,7 @@ extension SQLSelection {
     /// If the selection can be counted, return how to count it.
     func count(distinct: Bool) -> SQLCount? {
         switch impl {
-        case .allColumns,
-             .allCTEColumns:
+        case .allColumns:
             // SELECT DISTINCT * FROM tableName ...
             if distinct {
                 // Can't count
@@ -147,8 +109,7 @@ extension SQLSelection {
             // SELECT COUNT(*) FROM tableName ...
             return .all
             
-        case .qualifiedAllColumns,
-             .qualifiedAllCTEColumns:
+        case .qualifiedAllColumns:
             return nil
             
         case let .expression(expression),
@@ -182,12 +143,10 @@ extension SQLSelection {
     ///   statement arguments.
     func countedSQL(_ context: SQLGenerationContext) throws -> String {
         switch impl {
-        case .allColumns,
-             .allCTEColumns:
+        case .allColumns:
             return "*"
             
-        case let .qualifiedAllColumns(alias),
-             let .qualifiedAllCTEColumns(_, alias):
+        case let .qualifiedAllColumns(alias):
             if context.qualifier(for: alias) != nil {
                 // SELECT COUNT(t.*) is invalid SQL
                 fatalError("Not implemented, or invalid query")
@@ -202,7 +161,7 @@ extension SQLSelection {
             fatalError("""
                 Selection literals can't be counted. \
                 To resolve this error, select one or several literal expressions instead. \
-                See SQLLiteral.sqlExpression.
+                See SQL.sqlExpression.
                 """)
         }
     }
@@ -222,12 +181,10 @@ extension SQLSelection {
     ///   statement arguments.
     func sql(_ context: SQLGenerationContext) throws -> String {
         switch impl {
-        case .allColumns,
-             .allCTEColumns:
+        case .allColumns:
             return "*"
             
-        case let .qualifiedAllColumns(alias),
-             let .qualifiedAllCTEColumns(_, alias):
+        case let .qualifiedAllColumns(alias):
             if let qualifier = context.qualifier(for: alias) {
                 return qualifier.quotedDatabaseIdentifier + ".*"
             }
@@ -276,15 +233,11 @@ extension SQLSelection {
     /// Returns a qualified selection
     func qualified(with alias: TableAlias) -> SQLSelection {
         switch impl {
-        case .qualifiedAllColumns,
-             .qualifiedAllCTEColumns:
+        case .qualifiedAllColumns:
             return self
             
         case .allColumns:
             return .qualifiedAllColumns(alias)
-            
-        case let .allCTEColumns(cte):
-            return .qualifiedAllCTEColumns(cte, alias)
             
         case let .expression(expression):
             return .expression(expression.qualified(with: alias))
@@ -294,6 +247,29 @@ extension SQLSelection {
             
         case let .literal(sqlLiteral):
             return .literal(sqlLiteral.qualified(with: alias))
+        }
+    }
+}
+
+extension Array where Element == SQLSelection {
+    /// Returns the number of columns in the selection.
+    ///
+    /// This method raises a fatal error if the selection contains a literal,
+    ///
+    /// See `SQLSelection.columnCount(_:)` for testability.
+    func columnCount(_ context: SQLGenerationContext) throws -> Int {
+        try reduce(0) { acc, selection in
+            guard let count = try selection.columnCount(context) else {
+                // Found an SQL literal:
+                // - Player.select(sql: "id, name, score")
+                // - Player.select(literal: "id, name, score")
+                fatalError("""
+                    Selection literals don't known how many columns they contain. \
+                    To resolve this error, select one or several expressions instead.
+                    """)
+            }
+            
+            return acc + count
         }
     }
 }

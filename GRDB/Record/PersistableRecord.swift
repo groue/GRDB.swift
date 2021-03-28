@@ -641,6 +641,131 @@ extension MutablePersistableRecord {
     }
 }
 
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension MutablePersistableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
+    
+    // MARK: - Deleting by Single-Column Primary Key
+    
+    /// Delete records identified by their primary keys; returns the number of
+    /// deleted rows.
+    ///
+    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
+    ///     try Player.deleteAll(db, ids: [1, 2, 3])
+    ///
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
+    ///     try Country.deleteAll(db, ids: ["FR", "US", "DE"])
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
+    ///     try Document.deleteAll(db, ids: [1, 2, 3])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - ids: A collection of primary keys.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
+    throws -> Int
+    where Collection: Swift.Collection, Collection.Element == ID
+    {
+        if ids.isEmpty {
+            // Avoid hitting the database
+            return 0
+        }
+        return try filter(ids: ids).deleteAll(db)
+    }
+    
+    /// Delete a record, identified by its primary key; returns whether a
+    /// database row was deleted.
+    ///
+    ///     // DELETE FROM player WHERE id = 123
+    ///     try Player.deleteOne(db, key: 123)
+    ///
+    ///     // DELETE FROM country WHERE code = 'FR'
+    ///     try Country.deleteOne(db, key: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid = 1
+    ///     try Document.deleteOne(db, key: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public static func deleteOne(_ db: Database, id: ID) throws -> Bool {
+        try deleteAll(db, ids: [id]) > 0
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension MutablePersistableRecord
+where Self: Identifiable,
+      ID: _OptionalProtocol,
+      ID.Wrapped: DatabaseValueConvertible
+{
+    // MARK: - Deleting by Single-Column Primary Key
+    
+    /// Delete records identified by their primary keys; returns the number of
+    /// deleted rows.
+    ///
+    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
+    ///     try Player.deleteAll(db, ids: [1, 2, 3])
+    ///
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
+    ///     try Country.deleteAll(db, ids: ["FR", "US", "DE"])
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
+    ///     try Document.deleteAll(db, ids: [1, 2, 3])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - ids: A collection of primary keys.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
+    throws -> Int
+    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
+    {
+        if ids.isEmpty {
+            // Avoid hitting the database
+            return 0
+        }
+        return try filter(ids: ids).deleteAll(db)
+    }
+    
+    /// Delete a record, identified by its primary key; returns whether a
+    /// database row was deleted.
+    ///
+    ///     // DELETE FROM player WHERE id = 123
+    ///     try Player.deleteOne(db, key: 123)
+    ///
+    ///     // DELETE FROM country WHERE code = 'FR'
+    ///     try Country.deleteOne(db, key: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid = 1
+    ///     try Document.deleteOne(db, key: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public static func deleteOne(_ db: Database, id: ID.Wrapped) throws -> Bool {
+        try deleteAll(db, ids: [id]) > 0
+    }
+}
+
 extension MutablePersistableRecord {
     
     // MARK: - Deleting by Key

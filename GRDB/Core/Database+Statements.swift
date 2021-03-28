@@ -19,6 +19,37 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
+    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - returns: An SelectStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
+    ///
+    ///         // OK
+    ///         try makeSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > ?
+    ///             """)
+    ///         try makeSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > \(1000)
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try makeSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player
+    ///             WHERE color = ? AND score > \(1000)
+    ///             """)
+    public func makeSelectStatement(literal sqlLiteral: SQL) throws -> SelectStatement {
+        let (sql, arguments) = try sqlLiteral.build(self)
+        let statement = try makeSelectStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
+    }
+    
+    /// Returns a new prepared statement that can be reused.
+    ///
     ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
@@ -64,6 +95,36 @@ extension Database {
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func makeUpdateStatement(sql: String) throws -> UpdateStatement {
         try makeUpdateStatement(sql: sql, prepFlags: 0)
+    }
+    
+    /// Returns a new prepared statement that can be reused.
+    ///
+    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - returns: An UpdateStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
+    ///
+    ///         // OK
+    ///         try makeUpdateStatement(literal: """
+    ///             UPDATE player SET name = ?
+    ///             """)
+    ///         try makeUpdateStatement(literal: """
+    ///             UPDATE player SET name = \("O'Brien")
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try makeUpdateStatement(literal: """
+    ///             UPDATE player SET name = ?, score = \(10)
+    ///             """)
+    public func makeUpdateStatement(literal sqlLiteral: SQL) throws -> UpdateStatement {
+        let (sql, arguments) = try sqlLiteral.build(self)
+        let statement = try makeUpdateStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -121,23 +182,17 @@ extension Database {
     ///     - arguments: Statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(sql: String, arguments: StatementArguments = StatementArguments()) throws {
-        try execute(literal: SQLLiteral(sql: sql, arguments: arguments))
+        try execute(literal: SQL(sql: sql, arguments: arguments))
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
-    ///     try db.execute(literal: SQLLiteral(
-    ///         sql: "INSERT INTO player (name) VALUES (:name)",
-    ///         arguments: ["name": "Arthur"]))
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
     ///
-    ///     try db.execute(literal: SQLLiteral(sql: """
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         INSERT INTO player (name) VALUES (?);
-    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"]))
-    ///
-    /// With Swift 5, you can safely embed raw values in your SQL queries,
-    /// without any risk of syntax errors or SQL injection:
+    ///     try db.execute(literal: """
+    ///         INSERT INTO player (name) VALUES (\("Arthur"))
+    ///         """)
     ///
     ///     try db.execute(literal: """
     ///         INSERT INTO player (name) VALUES (\("Arthur"));
@@ -147,9 +202,9 @@ extension Database {
     ///
     /// This method may throw a DatabaseError.
     ///
-    /// - parameter sqlLiteral: An SQLLiteral.
+    /// - parameter sqlLiteral: An `SQL` literal.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(literal sqlLiteral: SQLLiteral) throws {
+    public func execute(literal sqlLiteral: SQL) throws {
         // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
         // It adds support for arguments, and the tricky part is to consume
         // arguments as statements are executed.

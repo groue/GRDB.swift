@@ -64,7 +64,7 @@ extension AppDatabase {
     /// Delete the specified players
     func deletePlayers(ids: [Int64]) throws {
         try dbWriter.write { db in
-            _ = try Player.deleteAll(db, keys: ids)
+            _ = try Player.deleteAll(db, ids: ids)
         }
     }
     

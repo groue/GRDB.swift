@@ -124,13 +124,13 @@ struct SQLRelation {
             switch kind {
             case .oneOptional, .oneRequired, .bridge:
                 if relation.isDistinct {
-                    fatalError("Can't join an association that selects DISTINCT rows")
+                    fatalError("Not implemented: join an association that selects DISTINCT rows")
                 }
                 if relation.groupPromise != nil || relation.havingExpressionPromise != nil {
                     fatalError("Not implemented: join an association with a GROUP BY clause")
                 }
                 if relation.limit != nil {
-                    fatalError("Can't join an association with a LIMIT clause")
+                    fatalError("Not implemented: join an association with a LIMIT clause")
                 }
             case .all:
                 break

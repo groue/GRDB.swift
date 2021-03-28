@@ -251,6 +251,10 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     init(resultCode: CInt, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
     }
+    
+    static func noSuchTable(_ tableName: String) -> Self {
+        DatabaseError(message: "no such table: \(tableName)")
+    }
 }
 
 // Support for `catch DatabaseError.SQLITE_XXX`

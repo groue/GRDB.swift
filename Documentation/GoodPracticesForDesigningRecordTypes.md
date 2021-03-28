@@ -98,13 +98,13 @@ Define one record type per database table, and make it adopt a [PersistableRecor
 In this sample code, we'll use Codable structs, but there are [other ways](../README.md#examples-of-record-definitions) to define records.
 
 ```swift
-struct Author: Codable {
+struct Author: Codable, Identifiable {
     var id: Int64?
     var name: String
     var country: String?
 }
 
-struct Book: Codable {
+struct Book: Codable, Identifiable {
     var id: Int64?
     var authorId: Int64
     var title: String
@@ -138,6 +138,15 @@ That's it. The `Author` type can read and write in the `author` database table. 
 >     var author = Author(id: nil, name: "Hermann Melville", country: "United States")
 >     try author.insert(db)
 >     print(author.id!) // Guaranteed non-nil id
+> }
+> ```
+>
+> :bulb: **Tip**: When the database table has a single-column primary key, have your record type adopt the standard [Identifiable] protocol. This allows GRDB to define type-safe id-related methods:
+>
+> ```swift
+> let authorID: Int64 = ...
+> let author: Author? = try dbQueue.read { db in
+>     try Author.fetchOne(db, id: authorID)
 > }
 > ```
 
@@ -449,7 +458,7 @@ Granted with primitive and derived record types, your application will load the 
     let authorId = 123
     let authorInfo: AuthorInfo? = try dbQueue.read { db in
         let request = Author
-            .filter(key: authorId)
+            .filter(id: authorId)
             .including(all: Author.books)
         return try AuthorInfo.fetchOne(db, request)
     }
@@ -465,7 +474,7 @@ Granted with primitive and derived record types, your application will load the 
     let bookId = 123
     let bookInfo: BookInfo? = try dbQueue.read { db in
         let request = Book
-            .filter(key: bookId)
+            .filter(id: bookId)
             .including(required: Book.author)
         return try BookInfo.fetchOne(db, request)
     }
@@ -502,7 +511,7 @@ Those properties provide an alternative way to feed our application:
     }
     let authorId = 123
     let authorInfo: AuthorInfo? = try dbQueue.read { db in
-        guard let author = try Author.fetchOne(db, key: authorId) else {
+        guard let author = try Author.fetchOne(db, id: authorId) else {
             return nil
         }
         let books = try author.books.fetchAll(db)
@@ -521,7 +530,7 @@ Those properties provide an alternative way to feed our application:
     }
     let bookId = 123
     let bookInfo: BookInfo? = try dbQueue.read { db in
-        guard let book = try Book.fetchOne(db, key: bookId) else {
+        guard let book = try Book.fetchOne(db, id: bookId) else {
             return nil
         }
         guard let author = try book.author.fetchOne(db) else {
@@ -563,7 +572,7 @@ class NaiveLibraryManager {
     func author(id: Int64) -> Author? {
         do {
             return try dbQueue.read { db in
-                try Author.fetchOne(db, key: id)
+                try Author.fetchOne(db, id: id)
             }
         } catch {
             return nil
@@ -573,7 +582,7 @@ class NaiveLibraryManager {
     func book(id: Int64) -> Book? {
         do {
             return try dbQueue.read { db in
-                try Book.fetchOne(db, key: id)
+                try Book.fetchOne(db, id: id)
             }
         } catch {
             return nil
@@ -622,13 +631,13 @@ class ImprovedLibraryManager {
     
     func author(id: Int64) throws -> Author? {
         try dbQueue.read { db in
-            try Author.fetchOne(db, key: id)
+            try Author.fetchOne(db, id: id)
         }
     }
     
     func book(id: Int64) throws -> Book? {
         try dbQueue.read { db in
-            try Book.fetchOne(db, key: id)
+            try Book.fetchOne(db, id: id)
         }
     }
     
@@ -702,7 +711,7 @@ extension LibraryManager {
     
     func bookInfo(bookId: Int64) throws -> BookInfo? {
         try dbQueue.read { db in
-            guard let book = try Book.fetchOne(db, key: bookId) else {
+            guard let book = try Book.fetchOne(db, id: bookId) else {
                 return nil
             }
             guard let author = try book.author.fetchOne(db) else {
@@ -722,7 +731,7 @@ extension LibraryManager {
     
     func authorInfo(authorId: Int64) throws -> AuthorInfo? {
         try dbQueue.read { db in
-            guard let author = try Author.fetchOne(db, key: authorId) else {
+            guard let author = try Author.fetchOne(db, id: authorId) else {
                 return nil
             }
             let books = try author.books.fetchAll(db)
@@ -820,3 +829,4 @@ Instead, have a look at [Database Observation]:
 [CodingKeys]: https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types
 [Combine Support]: Combine.md
 [Value]: ../README.md#values
+[Identifiable]: https://developer.apple.com/documentation/swift/identifiable

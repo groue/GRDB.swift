@@ -26,7 +26,7 @@ public struct SQLOrdering {
         case descNullsFirst(SQLExpression)
         
         /// A literal SQL ordering
-        case literal(SQLLiteral)
+        case literal(SQL)
     }
     
     static func expression(_ expression: SQLExpression) -> SQLOrdering {
@@ -49,7 +49,7 @@ public struct SQLOrdering {
         self.init(impl: .descNullsFirst(expression))
     }
     
-    static func literal(_ sqlLiteral: SQLLiteral) -> SQLOrdering {
+    static func literal(_ sqlLiteral: SQL) -> SQLOrdering {
         self.init(impl: .literal(sqlLiteral))
     }
 }

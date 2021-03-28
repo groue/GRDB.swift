@@ -111,11 +111,11 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
         }
         
         func superEncoder() -> Encoder {
-            fatalError("Not implemented")
+            recordEncoder
         }
         
         func superEncoder(forKey key: Key) -> Encoder {
-            fatalError("Not implemented")
+            recordEncoder
         }
     }
     

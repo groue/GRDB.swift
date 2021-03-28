@@ -26,6 +26,19 @@ git:
 
 jobs:
   include:
+    
+    ###########################################
+    ## Test GRDB Xcode 11.4
+    
+    - name: "Test GRDB Xcode 11.4 - GRDBiOS iOS maxTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.4
+      script: make test_framework_GRDBiOS_maxTarget_maxSwift
+    
+    - name: "Test GRDB Xcode 11.4 - GRDBiOS iOS minTarget"
+      gemfile: .ci/gemfiles/Gemfile.travis
+      osx_image: xcode11.4
+      script: make test_framework_GRDBiOS_minTarget
 
     ###########################################
     ## Test GRDB Xcode 12.2
@@ -146,16 +159,3 @@ jobs:
       gemfile: .ci/gemfiles/Gemfile.travis
       osx_image: xcode12.2
       script: make test_install_customSQLite
-    
-    ###########################################
-    ## Test GRDB Xcode 11.4
-    
-    - name: "Test GRDB Xcode 11.4 - GRDBiOS iOS maxTarget"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_GRDBiOS_maxTarget_maxSwift
-    
-    - name: "Test GRDB Xcode 11.4 - GRDBiOS iOS minTarget"
-      gemfile: .ci/gemfiles/Gemfile.travis
-      osx_image: xcode11.4
-      script: make test_framework_GRDBiOS_minTarget

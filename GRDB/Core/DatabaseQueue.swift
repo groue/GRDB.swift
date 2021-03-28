@@ -36,7 +36,6 @@ public final class DatabaseQueue: DatabaseWriter {
         writer = try SerializedDatabase(
             path: path,
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabaseQueue")
         
         setupSuspension()
@@ -60,7 +59,6 @@ public final class DatabaseQueue: DatabaseWriter {
         writer = try! SerializedDatabase(
             path: ":memory:",
             configuration: configuration,
-            schemaCache: DatabaseSchemaCache(),
             defaultLabel: "GRDB.DatabaseQueue")
     }
     
@@ -406,6 +404,17 @@ extension DatabaseQueue {
     /// - throws: The error thrown by the updates.
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
+    }
+    
+    /// Asynchronously executes database updates in a protected dispatch queue,
+    /// outside of any transaction, and returns the result.
+    ///
+    /// Eventual concurrent database accesses are postponed until the updates
+    /// are completed.
+    ///
+    /// - parameter updates: The updates to the database.
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+        writer.async(updates)
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,

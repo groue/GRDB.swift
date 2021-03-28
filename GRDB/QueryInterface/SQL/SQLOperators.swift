@@ -13,19 +13,6 @@ public func == (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpress
     .equal(lhs.sqlExpression, rhs?.sqlExpression ?? .null)
 }
 
-/// An SQL expression that compares two expressions with the `=` SQL operator.
-///
-///     // name = 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) == "Arthur"
-///
-/// When the right operand is nil, `IS NULL` is used instead.
-///
-///     // name IS NULL
-///     Column("name").collating(.nocase) == nil
-public func == (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpression {
-    .collated(lhs.expression == rhs, lhs.collationName)
-}
-
 /// An SQL expression that checks the boolean value of an expression.
 ///
 /// The comparison is done with the built-in boolean evaluation of SQLite:
@@ -54,19 +41,6 @@ public func == (lhs: SQLSpecificExpressible, rhs: Bool) -> SQLExpression {
 ///     nil == Column("name")
 public func == (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpression {
     .equal(lhs?.sqlExpression ?? .null, rhs.sqlExpression)
-}
-
-/// An SQL expression that compares two expressions with the `=` SQL operator.
-///
-///     // 'Arthur' = name COLLATE NOCASE
-///     "Arthur" == Column("name").collating(.nocase)
-///
-/// When the left operand is nil, `IS NULL` is used instead.
-///
-///     // name IS NULL
-///     nil == Column("name").collating(.nocase)
-public func == (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpression {
-    .collated(lhs == rhs.expression, rhs.collationName)
 }
 
 /// An SQL expression that checks the boolean value of an expression.
@@ -107,19 +81,6 @@ public func != (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpress
     !(lhs == rhs)
 }
 
-/// An SQL expression that compares two expressions with the `<>` SQL operator.
-///
-///     // name <> 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) != "Arthur"
-///
-/// When the right operand is nil, `IS NOT NULL` is used instead.
-///
-///     // name IS NOT NULL
-///     Column("name").collating(.nocase) != nil
-public func != (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpression {
-    !(lhs == rhs)
-}
-
 /// An SQL expression that checks the boolean value of an expression.
 ///
 /// The comparison is done with the built-in boolean evaluation of SQLite:
@@ -143,19 +104,6 @@ public func != (lhs: SQLSpecificExpressible, rhs: Bool) -> SQLExpression {
 ///     // name IS NOT NULL
 ///     nil != Column("name")
 public func != (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpression {
-    !(lhs == rhs)
-}
-
-/// An SQL expression that compares two expressions with the `<>` SQL operator.
-///
-///     // 'Arthur' <> name COLLATE NOCASE
-///     "Arthur" != Column("name").collating(.nocase)
-///
-/// When the left operand is nil, `IS NOT NULL` is used instead.
-///
-///     // name IS NOT NULL
-///     nil != Column("name").collating(.nocase)
-public func != (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpression {
     !(lhs == rhs)
 }
 
@@ -190,14 +138,6 @@ public func === (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpres
 
 /// An SQL expression that compares two expressions with the `IS` SQL operator.
 ///
-///     // name IS 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) === "Arthur"
-public func === (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpression {
-    .collated(lhs.expression === rhs, lhs.collationName)
-}
-
-/// An SQL expression that compares two expressions with the `IS` SQL operator.
-///
 ///     // name IS 'Arthur'
 ///     "Arthur" === Column("name")
 public func === (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpression {
@@ -206,14 +146,6 @@ public func === (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpres
     } else {
         return .compare(.is, rhs.sqlExpression, .null)
     }
-}
-
-/// An SQL expression that compares two expressions with the `IS` SQL operator.
-///
-///     // name IS 'Arthur' COLLATE NOCASE
-///     "Arthur" === Column("name").collating(.nocase)
-public func === (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpression {
-    .collated(lhs === rhs.expression, rhs.collationName)
 }
 
 /// An SQL expression that compares two expressions with the `IS` SQL operator.
@@ -234,25 +166,9 @@ public func !== (lhs: SQLSpecificExpressible, rhs: SQLExpressible?) -> SQLExpres
 
 /// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
 ///
-///     // name IS NOT 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) !== "Arthur"
-public func !== (lhs: SQLCollatedExpression, rhs: SQLExpressible?) -> SQLExpression {
-    !(lhs === rhs)
-}
-
-/// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
-///
 ///     // name IS NOT 'Arthur'
 ///     "Arthur" !== Column("name")
 public func !== (lhs: SQLExpressible?, rhs: SQLSpecificExpressible) -> SQLExpression {
-    !(lhs === rhs)
-}
-
-/// An SQL expression that compares two expressions with the `IS NOT` SQL operator.
-///
-///     // name IS NOT 'Arthur' COLLATE NOCASE
-///     "Arthur" !== Column("name").collating(.nocase)
-public func !== (lhs: SQLExpressible?, rhs: SQLCollatedExpression) -> SQLExpression {
     !(lhs === rhs)
 }
 
@@ -276,26 +192,10 @@ public func < (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressio
 
 /// An SQL expression that compares two expressions with the `<` SQL operator.
 ///
-///     // name < 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) < "Arthur"
-public func < (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpression {
-    .collated(lhs.expression < rhs, lhs.collationName)
-}
-
-/// An SQL expression that compares two expressions with the `<` SQL operator.
-///
 ///     // 18 < score
 ///     18 < Column("score")
 public func < (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     .binary(.lessThan, lhs.sqlExpression, rhs.sqlExpression)
-}
-
-/// An SQL expression that compares two expressions with the `<` SQL operator.
-///
-///     // 'Arthur' < name COLLATE NOCASE
-///     "Arthur" < Column("name").collating(.nocase)
-public func < (lhs: SQLExpressible, rhs: SQLCollatedExpression) -> SQLExpression {
-    .collated(lhs < rhs.expression, rhs.collationName)
 }
 
 /// An SQL expression that compares two expressions with the `<` SQL operator.
@@ -316,26 +216,10 @@ public func <= (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 
 /// An SQL expression that compares two expressions with the `<=` SQL operator.
 ///
-///     // name <= 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) <= "Arthur"
-public func <= (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpression {
-    .collated(lhs.expression <= rhs, lhs.collationName)
-}
-
-/// An SQL expression that compares two expressions with the `<=` SQL operator.
-///
 ///     // 18 <= score
 ///     18 <= Column("score")
 public func <= (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     .binary(.lessThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
-}
-
-/// An SQL expression that compares two expressions with the `<=` SQL operator.
-///
-///     // 'Arthur' <= name COLLATE NOCASE
-///     "Arthur" <= Column("name").collating(.nocase)
-public func <= (lhs: SQLExpressible, rhs: SQLCollatedExpression) -> SQLExpression {
-    .collated(lhs <= rhs.expression, rhs.collationName)
 }
 
 /// An SQL expression that compares two expressions with the `<=` SQL operator.
@@ -356,26 +240,10 @@ public func > (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressio
 
 /// An SQL expression that compares two expressions with the `>` SQL operator.
 ///
-///     // name > 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) > "Arthur"
-public func > (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpression {
-    .collated(lhs.expression > rhs, lhs.collationName)
-}
-
-/// An SQL expression that compares two expressions with the `>` SQL operator.
-///
 ///     // 18 > score
 ///     18 > Column("score")
 public func > (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     .binary(.greaterThan, lhs.sqlExpression, rhs.sqlExpression)
-}
-
-/// An SQL expression that compares two expressions with the `>` SQL operator.
-///
-///     // 'Arthur' > name COLLATE NOCASE
-///     "Arthur" > Column("name").collating(.nocase)
-public func > (lhs: SQLExpressible, rhs: SQLCollatedExpression) -> SQLExpression {
-    .collated(lhs > rhs.expression, rhs.collationName)
 }
 
 /// An SQL expression that compares two expressions with the `>` SQL operator.
@@ -396,26 +264,10 @@ public func >= (lhs: SQLSpecificExpressible, rhs: SQLExpressible) -> SQLExpressi
 
 /// An SQL expression that compares two expressions with the `>=` SQL operator.
 ///
-///     // name >= 'Arthur' COLLATE NOCASE
-///     Column("name").collating(.nocase) >= "Arthur"
-public func >= (lhs: SQLCollatedExpression, rhs: SQLExpressible) -> SQLExpression {
-    .collated(lhs.expression >= rhs, lhs.collationName)
-}
-
-/// An SQL expression that compares two expressions with the `>=` SQL operator.
-///
 ///     // 18 >= score
 ///     18 >= Column("score")
 public func >= (lhs: SQLExpressible, rhs: SQLSpecificExpressible) -> SQLExpression {
     .binary(.greaterThanOrEqual, lhs.sqlExpression, rhs.sqlExpression)
-}
-
-/// An SQL expression that compares two expressions with the `>=` SQL operator.
-///
-///     // 'Arthur' >= name COLLATE NOCASE
-///     "Arthur" >= Column("name").collating(.nocase)
-public func >= (lhs: SQLExpressible, rhs: SQLCollatedExpression) -> SQLExpression {
-    .collated(lhs >= rhs.expression, rhs.collationName)
 }
 
 /// An SQL expression that compares two expressions with the `>=` SQL operator.
@@ -436,14 +288,6 @@ extension Range where Bound: SQLExpressible {
     public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
         (element >= lowerBound) && (element < upperBound)
     }
-    
-    /// An SQL expression that checks the inclusion of an expression in a range.
-    ///
-    ///     // email >= 'A' COLLATE NOCASE AND email < 'B' COLLATE NOCASE
-    ///     ("A"..<"B").contains(Column("email").collating(.nocase))
-    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
-        (element >= lowerBound) && (element < upperBound)
-    }
 }
 
 extension ClosedRange where Bound: SQLExpressible {
@@ -456,14 +300,6 @@ extension ClosedRange where Bound: SQLExpressible {
             expression: element.sqlExpression,
             lowerBound: lowerBound.sqlExpression,
             upperBound: upperBound.sqlExpression)
-    }
-    
-    /// An SQL expression that checks the inclusion of an expression in a range.
-    ///
-    ///     // email BETWEEN 'A' AND 'B' COLLATE NOCASE
-    ///     ("A"..."B").contains(Column("email").collating(.nocase))
-    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
-        .collated(contains(element.expression), element.collationName)
     }
 }
 
@@ -499,15 +335,6 @@ extension Sequence where Self.Iterator.Element: SQLExpressible {
     public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
         SQLCollection.array(map(\.sqlExpression)).contains(element.sqlExpression)
     }
-    
-    /// An SQL expression that checks the inclusion of an expression in
-    /// a sequence.
-    ///
-    ///     // (name COLLATE NOCASE) IN ('A', 'B')
-    ///     ["A", "B"].contains(Column("name").collating(.nocase))
-    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
-        SQLCollection.array(map(\.sqlExpression)).contains(element.sqlExpression)
-    }
 }
 
 extension Sequence where Self.Iterator.Element == SQLExpressible {
@@ -517,15 +344,6 @@ extension Sequence where Self.Iterator.Element == SQLExpressible {
     ///     // id IN (1,2,3)
     ///     [1, 2, 3].contains(Column("id"))
     public func contains(_ element: SQLSpecificExpressible) -> SQLExpression {
-        SQLCollection.array(map(\.sqlExpression)).contains(element.sqlExpression)
-    }
-    
-    /// An SQL expression that checks the inclusion of an expression in
-    /// a sequence.
-    ///
-    ///     // (name COLLATE NOCASE) IN ('A', 'B')
-    ///     ["A", "B"].contains(Column("name").collating(.nocase))
-    public func contains(_ element: SQLCollatedExpression) -> SQLExpression {
         SQLCollection.array(map(\.sqlExpression)).contains(element.sqlExpression)
     }
 }

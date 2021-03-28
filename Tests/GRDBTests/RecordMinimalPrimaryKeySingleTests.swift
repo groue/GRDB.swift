@@ -39,6 +39,12 @@ class MinimalSingle: Record, Hashable {
     }
 }
 
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension MinimalSingle: Identifiable {
+    /// Test non-optional ID type
+    var id: String { UUID! }
+}
+
 class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
@@ -498,6 +504,22 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let UUIDs: [String] = []
+                    let cursor = try MinimalSingle.fetchCursor(db, ids: UUIDs)
+                    try XCTAssertNil(cursor.next())
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let cursor = try MinimalSingle.fetchCursor(db, ids: UUIDs)
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+            }
         }
     }
     
@@ -522,6 +544,21 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecords = try MinimalSingle.fetchAll(db, keys: UUIDs)
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let UUIDs: [String] = []
+                    let fetchedRecords = try MinimalSingle.fetchAll(db, ids: UUIDs)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let fetchedRecords = try MinimalSingle.fetchAll(db, ids: UUIDs)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                }
             }
         }
     }
@@ -548,6 +585,21 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let UUIDs: [String] = []
+                    let fetchedRecords = try MinimalSingle.fetchSet(db, ids: UUIDs)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let fetchedRecords = try MinimalSingle.fetchSet(db, ids: UUIDs)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                }
+            }
         }
     }
     
@@ -568,6 +620,14 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecord = try MinimalSingle.fetchOne(db, key: record.UUID)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let fetchedRecord = try MinimalSingle.fetchOne(db, id: record.UUID!)!
+                    XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
+                }
             }
         }
     }
@@ -598,6 +658,22 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
                 XCTAssertTrue(try cursor.next() == nil) // end
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let UUIDs: [String] = []
+                    let cursor = try MinimalSingle.filter(ids: UUIDs).fetchCursor(db)
+                    try XCTAssertNil(cursor.next())
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let cursor = try MinimalSingle.filter(ids: UUIDs).fetchCursor(db)
+                    let fetchedRecords = try [cursor.next()!, cursor.next()!]
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                    XCTAssertTrue(try cursor.next() == nil) // end
+                }
+            }
         }
     }
     
@@ -622,6 +698,21 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecords = try MinimalSingle.filter(keys: UUIDs).fetchAll(db)
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let UUIDs: [String] = []
+                    let fetchedRecords = try MinimalSingle.filter(ids: UUIDs).fetchAll(db)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let fetchedRecords = try MinimalSingle.filter(ids: UUIDs).fetchAll(db)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                }
             }
         }
     }
@@ -648,6 +739,21 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 XCTAssertEqual(fetchedRecords.count, 2)
                 XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
             }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let UUIDs: [String] = []
+                    let fetchedRecords = try MinimalSingle.filter(ids: UUIDs).fetchSet(db)
+                    XCTAssertEqual(fetchedRecords.count, 0)
+                }
+                
+                do {
+                    let UUIDs = [record1.UUID!, record2.UUID!]
+                    let fetchedRecords = try MinimalSingle.filter(ids: UUIDs).fetchSet(db)
+                    XCTAssertEqual(fetchedRecords.count, 2)
+                    XCTAssertEqual(Set(fetchedRecords.map { $0.UUID! }), Set(UUIDs))
+                }
+            }
         }
     }
     
@@ -668,6 +774,14 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
                 let fetchedRecord = try MinimalSingle.filter(key: record.UUID).fetchOne(db)!
                 XCTAssertTrue(fetchedRecord.UUID == record.UUID)
                 XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                do {
+                    let fetchedRecord = try MinimalSingle.filter(id: record.UUID!).fetchOne(db)!
+                    XCTAssertTrue(fetchedRecord.UUID == record.UUID)
+                    XCTAssertEqual(lastSQLQuery, "SELECT * FROM \"minimalSingles\" WHERE \"UUID\" = '\(record.UUID!)'")
+                }
             }
         }
     }

@@ -155,7 +155,9 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     /// single table.
     func ignoringViews(_ db: Database) throws -> DatabaseRegion {
         guard let tableRegions = tableRegions else { return .fullDatabase }
-        let viewNames = try db.schema().names(ofType: .view)
+        let mainViewNames = try db.schema(.main).names(ofType: .view)
+        let tempViewNames = try db.schema(.temp).names(ofType: .view)
+        let viewNames = mainViewNames.union(tempViewNames)
         guard viewNames.isEmpty == false else { return self }
         let filteredRegions = tableRegions.filter { viewNames.contains($0.key) == false }
         return DatabaseRegion(tableRegions: filteredRegions)

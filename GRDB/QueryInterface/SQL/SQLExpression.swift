@@ -35,7 +35,7 @@ public struct SQLExpression {
         case subquery(SQLSubquery)
         
         /// A literal SQL expression
-        case literal(SQLLiteral)
+        case literal(SQL)
         
         /// The `BETWEEN` and `NOT BETWEEN` operators.
         ///
@@ -60,6 +60,11 @@ public struct SQLExpression {
         ///
         /// - precondition: expressions.count > 1
         case associativeBinary(AssociativeBinaryOperator, [SQLExpression])
+        
+        /// The `EXISTS` and `NOT EXISTS` operators.
+        ///
+        ///     EXISTS (<subquery>)
+        case exists(SQLSubquery, isNegated: Bool)
         
         /// The `IN` and `NOT IN` operators.
         ///
@@ -402,7 +407,7 @@ extension SQLExpression {
     }
     
     /// A literal SQL expression.
-    static func literal(_ sqlLiteral: SQLLiteral) -> Self {
+    static func literal(_ sqlLiteral: SQL) -> Self {
         self.init(impl: .literal(sqlLiteral))
     }
     
@@ -417,11 +422,22 @@ extension SQLExpression {
         upperBound: SQLExpression,
         isNegated: Bool = false) -> Self
     {
-        self.init(impl: .between(
-                    expression: expression,
-                    lowerBound: lowerBound,
-                    upperBound: upperBound,
-                    isNegated: isNegated))
+        if case let .collated(expression, collationName) = expression.impl {
+            // Prefer: expression BETWEEN lowerBound AND upperBound COLLATE collation
+            // over:   (expression COLLATE collation) BETWEEN lowerBound AND upperBound
+            return collated(between(
+                                expression: expression,
+                                lowerBound: lowerBound,
+                                upperBound: upperBound,
+                                isNegated: isNegated),
+                            collationName)
+        } else {
+            return self.init(impl: .between(
+                                expression: expression,
+                                lowerBound: lowerBound,
+                                upperBound: upperBound,
+                                isNegated: isNegated))
+        }
     }
     
     /// A binary operator.
@@ -430,7 +446,17 @@ extension SQLExpression {
     ///     <lhs> <= <rhs>
     ///     <lhs> LIKE <rhs>
     static func binary(_ op: BinaryOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
-        self.init(impl: .binary(op, lhs, rhs))
+        if case let .collated(lhs, collationName) = lhs.impl {
+            // Prefer: lhs <= rhs COLLATE collation
+            // over:   (lhs COLLATE collation) <= rhs
+            return collated(binary(op, lhs, rhs), collationName)
+        } else if case let .collated(rhs, collationName) = rhs.impl {
+            // Prefer: lhs <= rhs COLLATE collation
+            // over:   lhs <= (rhs COLLATE collation)
+            return collated(binary(op, lhs, rhs), collationName)
+        } else {
+            return self.init(impl: .binary(op, lhs, rhs))
+        }
     }
     
     /// An associative binary operator.
@@ -470,6 +496,13 @@ extension SQLExpression {
         return self.init(impl: .associativeBinary(op, expressions))
     }
     
+    /// The `EXISTS` operator.
+    ///
+    ///     EXISTS (<subquery>)
+    static func exists(_ subquery: SQLSubquery) -> Self {
+        self.init(impl: .exists(subquery, isNegated: false))
+    }
+    
     /// The `IN` and `NOT IN` operators.
     ///
     ///     <expression> IN <collection>
@@ -496,7 +529,17 @@ extension SQLExpression {
     ///
     /// See also `SQLExpression.equal(_:_:)`.
     static func compare(_ op: EqualityOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
-        self.init(impl: .compare(op, lhs, rhs))
+        if case let .collated(lhs, collationName) = lhs.impl {
+            // Prefer: lhs = rhs COLLATE collation
+            // over:   (lhs COLLATE collation) = rhs
+            return collated(compare(op, lhs, rhs), collationName)
+        } else if case let .collated(rhs, collationName) = rhs.impl {
+            // Prefer: lhs = rhs COLLATE collation
+            // over:   lhs = (rhs COLLATE collation)
+            return collated(compare(op, lhs, rhs), collationName)
+        } else {
+            return self.init(impl: .compare(op, lhs, rhs))
+        }
     }
     
     /// An equality comparison. Null database values are checked with `IS NULL`.
@@ -509,10 +552,10 @@ extension SQLExpression {
         case let (impl, .databaseValue(.null)),
              let (.databaseValue(.null), impl):
             // ... IS NULL
-            return .compare(.is, SQLExpression(impl: impl), .null)
+            return compare(.is, SQLExpression(impl: impl), .null)
         default:
             // lhs = rhs
-            return .compare(.equal, lhs, rhs)
+            return compare(.equal, lhs, rhs)
         }
     }
     
@@ -546,14 +589,14 @@ extension SQLExpression {
     ///
     ///     COUNT(<expression>)
     static func count(_ expression: SQLExpression) -> Self {
-        .aggregate("COUNT", [expression])
+        aggregate("COUNT", [expression])
     }
     
     /// The `COUNT(DISTINCT)` function.
     ///
     ///     COUNT(DISTINCT <expression>)
     static func countDistinct(_ expression: SQLExpression) -> Self {
-        .distinctAggregate("COUNT", expression)
+        distinctAggregate("COUNT", expression)
     }
     
     /// A function call.
@@ -794,6 +837,16 @@ extension SQLExpression {
             }
             let joiner = " \(op.sql) "
             var resultSQL = expressionSQLs.joined(separator: joiner)
+            if wrappedInParenthesis {
+                resultSQL = "(\(resultSQL))"
+            }
+            return resultSQL
+            
+        case let .exists(subquery, isNegated: isNegated):
+            var resultSQL = try """
+                \(isNegated ? "NOT EXISTS" : "EXISTS") \
+                (\(subquery.sql(context)))
+                """
             if wrappedInParenthesis {
                 resultSQL = "(\(resultSQL))"
             }
@@ -1179,6 +1232,18 @@ extension SQLExpression {
                 }
             }
             
+        case let .exists(subquery, isNegated: isNegated):
+            switch test {
+            case .true:
+                return .compare(.equal, self, true.sqlExpression)
+                
+            case .false:
+                return .compare(.equal, self, false.sqlExpression)
+                
+            case .falsey:
+                return SQLExpression(impl: .exists(subquery, isNegated: !isNegated))
+            }
+            
         case let .in(expression, collection, isNegated: isNegated):
             switch test {
             case .true:
@@ -1313,7 +1378,8 @@ extension SQLExpression {
         case .databaseValue,
              .qualifiedColumn,
              .qualifiedFastPrimaryKey,
-             .subquery:
+             .subquery,
+             .exists:
             return self
             
         case let .column(name):
@@ -1644,8 +1710,8 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     ///     Player.filter(Column("email").collating(.nocase) == "contact@example.com")
-    public func collating(_ collation: Database.CollationName) -> SQLCollatedExpression {
-        SQLCollatedExpression(sqlExpression, collationName: collation)
+    public func collating(_ collation: Database.CollationName) -> SQLExpression {
+        .collated(sqlExpression, collation)
     }
     
     /// Returns a collated expression.
@@ -1653,7 +1719,7 @@ extension SQLSpecificExpressible {
     /// For example:
     ///
     ///     Player.filter(Column("name").collating(.localizedStandardCompare) == "Hervé")
-    public func collating(_ collation: DatabaseCollation) -> SQLCollatedExpression {
-        SQLCollatedExpression(sqlExpression, collationName: Database.CollationName(rawValue: collation.name))
+    public func collating(_ collation: DatabaseCollation) -> SQLExpression {
+        .collated(sqlExpression, Database.CollationName(rawValue: collation.name))
     }
 }
