@@ -194,6 +194,9 @@ extension FilteredRequest {
     { preconditionFailure() }
 }
 
+@available(*, deprecated, renamed: "SQL")
+typealias SQLLiteral = SQL
+
 /// :nodoc:
 @available(*, unavailable, message: "Build literal expressions with SQL.sqlExpression instead.")
 struct SQLExpressionLiteral: SQLSpecificExpressible {
