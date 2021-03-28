@@ -2317,6 +2317,7 @@ Extending structs with record protocols is more "swifty". Subclassing the Record
 - [PersistableRecord Protocol](#persistablerecord-protocol)
     - [Persistence Methods](#persistence-methods)
     - [Customizing the Persistence Methods]
+- [Identifiable Records]
 - [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
@@ -2436,6 +2437,7 @@ Details follow:
 - [FetchableRecord Protocol](#fetchablerecord-protocol)
 - [TableRecord Protocol](#tablerecord-protocol)
 - [PersistableRecord Protocol](#persistablerecord-protocol)
+- [Identifiable Records]
 - [Codable Records]
 - [Record Class](#record-class)
 - [Record Comparison]
@@ -2822,6 +2824,76 @@ struct Link : PersistableRecord {
 > :point_up: **Note**: the special methods `performInsert`, `performUpdate`, etc. are reserved for your custom implementations. Do not use them elsewhere. Do not provide another implementation for those methods.
 >
 > :point_up: **Note**: it is recommended that you do not implement your own version of the `save` method. Its default implementation forwards the job to `update` or `insert`: these are the methods that may need customization, not `save`.
+
+
+## Identifiable Records
+
+**When a record type maps a table with a single-column primary key, it is recommended to have it adopt the standard [Identifiable] protocol.**
+
+```swift
+struct Player: Identifiable, FetchableRecord, PersistableRecord {
+    var id: Int64 // fulfills the Identifiable requirement
+    var name: String
+    var score: Int
+}
+```
+
+When `id` has a [database-compatible type](#values) (Int64, Int, String, UUID, ...), the `Identifiable` conformance unlocks type-safe record and request methods:
+
+```swift
+let player = try Player.fetchOne(db, id: 1)
+let players = try Player.fetchAll(db, ids: [1, 2, 3])
+let players = try Player.fetchSet(db, ids: [1, 2, 3])
+
+let request = Player.filter(id: 1)
+let request = Player.filter(ids: [1, 2, 3])
+
+try Player.deleteOne(db, id: 1)
+try Player.deleteAll(db, ids: [1, 2, 3])
+```
+
+> :point_up: **Note**: `Identifiable` is not available on all application targets, and not all tables have a single-column primary key. GRDB provides other methods that deal with primary and unique keys, but they won't check the type of their arguments:
+> 
+> ```swift
+> // Those methods are not type-checked
+> try Player.fetchOne(db, key: 1)
+> try Player.fetchOne(db, key: ["email": "arthur@example.com"])
+> try Country.fetchAll(db, keys: ["FR", "US"])
+> try Citizenship.fetchOne(db, key: ["citizenId": 1, "countryCode": "FR"])
+> 
+> let request = Player.filter(key: 1)
+> let request = Player.filter(keys: [1, 2, 3])
+> 
+> try Player.deleteOne(db, key: 1)
+> try Player.deleteAll(db, keys: [1, 2, 3])
+> ```
+
+Some database tables have a single-column primary key which is not called "id":
+
+```swift
+try db.create(table: "country") { t in
+    t.column("isoCode", .text).notNull().primaryKey()
+    t.column("name", .text).notNull()
+    t.column("population", .integer).notNull()
+}
+```
+
+In this case, `Identifiable` conformance can be achieved, for example, by returning the primary key column from the `id` property:
+
+```swift
+struct Country: Identifiable, FetchableRecord, PersistableRecord {
+    var isoCode: String
+    var name: String
+    var population: Int
+    
+    // Fulfill the Identifiable requirement
+    var id: String { isoCode }
+}
+
+let france = try dbQueue.read { db in
+    try Country.fetchOne(db, id: "FR")
+}
+```
 
 
 ## Codable Records
@@ -4252,7 +4324,7 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.filter(nameColumn != nil && heightColumn > 1.75)
     ```
 
-- `filter(id:)` and `filter(ids:)` are type-safe methods available on record types that conform to the standard [Identifiable] protocol:
+- `filter(id:)` and `filter(ids:)` are type-safe methods available on [Identifiable Records]:
     
     ```swift
     // SELECT * FROM player WHERE id = 1
@@ -4261,8 +4333,6 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // SELECT * FROM country WHERE isoCode IN ('FR', 'US')
     Country.filter(ids: ["FR", "US"])
     ```
-    
-    > :point_up: **Note**: `Identifiable` requires the record type to define an `id` property, but the name of the primary key column can be anything.
     
 - `filter(key:)` and `filter(keys:)` apply conditions on primary and unique keys:
     
@@ -4877,14 +4947,14 @@ You can also change the request so that it knows the type it has to fetch:
 
 **Fetching records according to their primary key** is a common task.
 
-Record types that conform to the standard [Identifiable] protocol can use the type-safe methods `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
+[Identifiable Records] can use the type-safe methods `fetchOne(_:id:)`, `fetchAll(_:ids:)` and `fetchSet(_:ids:)`:
 
 ```swift
 try Player.fetchOne(db, id: 1)               // Player?
 try Country.fetchAll(db, ids: ["FR", "US"])  // [Countries]
 ```
 
-All types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
+All record types can use `fetchOne(_:key:)`, `fetchAll(_:keys:)` and `fetchSet(_:keys:)` that apply conditions on primary and unique keys:
 
 ```swift
 try Player.fetchOne(db, key: 1)              // Player?
@@ -4966,14 +5036,14 @@ try Player
 
 **Deleting records according to their primary key** is a common task.
 
-Record types that conform to the standard [Identifiable] protocol can use the type-safe methods `deleteOne(_:id:)` and `deleteAll(_:ids:)`:
+[Identifiable Records] can use the type-safe methods `deleteOne(_:id:)` and `deleteAll(_:ids:)`:
 
 ```swift
 try Player.deleteOne(db, id: 1)
 try Country.deleteAll(db, ids: ["FR", "US"])
 ```
 
-All types can use `deleteOne(_:key:)` and `deleteAll(_:keys:)` that apply conditions on primary and unique keys:
+All record types can use `deleteOne(_:key:)` and `deleteAll(_:keys:)` that apply conditions on primary and unique keys:
 
 ```swift
 try Player.deleteOne(db, key: 1)
@@ -8236,6 +8306,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
+[Identifiable Records]: #identifiable-records
 [Codable Records]: #codable-records
 [Columns Selected by a Request]: #columns-selected-by-a-request
 [common table expression]: Documentation/CommonTableExpressions.md

@@ -75,19 +75,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Development Branch
 
-- **New**: Record types that adopt the standard [Identifiable](https://developer.apple.com/documentation/swift/identifiable) protocol have gained a series of type-safe methods:
+- **New**: Record types that adopt the standard [Identifiable](https://developer.apple.com/documentation/swift/identifiable) protocol have gained type-safe methods that deal with the primary key. For example:
     
     ```swift
     let player = try Player.fetchOne(db, id: 42)
-    let players = try Player.fetchAll(db, ids: [1, 2, 3])
-    let players = try Player.fetchSet(db, ids: [1, 2, 3])
-    let request = Player.filter(id: 42)
-    let request = Player.filter(ids: [1, 2, 3])
-    try Player.deleteOne(db, id: 42)
     try Player.deleteAll(db, ids: [1, 2, 3])
     ```
     
-    It is now recommended to prefer those methods over `fetchOne(_:key:)`, `fetchAll(_:keys:)`, etc. when a database table has a single-column primary key. They let the compiler verify that you provide the correct primary key type.
+    See the new [Identifiable Records](README.md#identifiable-records) documentation chapter for more information.
 
 - **New**: `SQLLiteral` has more use cases than initialy expected, and is renamed `SQL`.
 
