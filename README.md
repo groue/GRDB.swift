@@ -2113,7 +2113,7 @@ Available row adapters are described below.
 
 ### ColumnMapping
 
-`ColumnMapping renames columns. Build one with a dictionary whose keys are adapted column names, and values the column names in the raw row:
+`ColumnMapping` renames columns. Build one with a dictionary whose keys are adapted column names, and values the column names in the raw row:
 
 ```swift
 // [newA:0, newB:1]
