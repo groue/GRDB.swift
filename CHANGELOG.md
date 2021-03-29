@@ -72,6 +72,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - [0.110.0](#01100), ...
 
+---
 
 #### 5.7.2
 
