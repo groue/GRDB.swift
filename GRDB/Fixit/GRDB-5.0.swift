@@ -195,7 +195,7 @@ extension FilteredRequest {
 }
 
 @available(*, deprecated, renamed: "SQL")
-typealias SQLLiteral = SQL
+public typealias SQLLiteral = SQL
 
 /// :nodoc:
 @available(*, unavailable, message: "Build literal expressions with SQL.sqlExpression instead.")
