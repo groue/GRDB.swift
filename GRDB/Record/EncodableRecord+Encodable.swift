@@ -148,16 +148,19 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
                 }
             } catch is JSONRequiredError {
                 // Encode to JSON
-                let jsonData = try Record.databaseJSONEncoder(for: key.stringValue).encode(value)
-                
-                // Store JSON String in the database for easier debugging and
-                // database inspection. Thanks to SQLite weak typing, we won't
-                // have any trouble decoding this string into data when we
-                // eventually perform JSON decoding.
-                // TODO: possible optimization: avoid this conversion to string,
-                // and store raw data bytes as an SQLite string
-                let jsonString = String(data: jsonData, encoding: .utf8)!
-                persist(jsonString, forKey: key)
+                try autoreleasepool {
+
+                    let jsonData = try Record.databaseJSONEncoder(for: key.stringValue).encode(value)
+
+                    // Store JSON String in the database for easier debugging and
+                    // database inspection. Thanks to SQLite weak typing, we won't
+                    // have any trouble decoding this string into data when we
+                    // eventually perform JSON decoding.
+                    // TODO: possible optimization: avoid this conversion to string,
+                    // and store raw data bytes as an SQLite string
+                    let jsonString = String(data: jsonData, encoding: .utf8)!
+                    persist(jsonString, forKey: key)
+                }
             }
         }
     }
