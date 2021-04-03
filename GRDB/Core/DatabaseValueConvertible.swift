@@ -14,7 +14,7 @@
 ///     try String.fetchOne(statement, arguments:...)    // String?
 ///
 /// DatabaseValueConvertible is adopted by Bool, Int, String, etc.
-public protocol DatabaseValueConvertible: SQLExpressible {
+public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
@@ -25,6 +25,11 @@ public protocol DatabaseValueConvertible: SQLExpressible {
 extension DatabaseValueConvertible {
     public var sqlExpression: SQLExpression {
         .databaseValue(databaseValue)
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        databaseValue.bind(to: sqliteStatement, at: index)
     }
 }
 

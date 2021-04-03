@@ -13,6 +13,7 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .blob(self))
     }
@@ -29,6 +30,13 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
             return string.data(using: .utf8)
         default:
             return nil
+        }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        withUnsafeBytes {
+            sqlite3_bind_blob(sqliteStatement, index, $0.baseAddress, Int32($0.count), SQLITE_TRANSIENT)
         }
     }
 }

@@ -35,6 +35,7 @@ public class Statement {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
+    @usableFromInline
     unowned let database: Database
     
     /// Creates a prepared statement. Returns nil if the compiled string is
@@ -95,6 +96,7 @@ public class Statement {
         sqlite3_finalize(sqliteStatement)
     }
     
+    @usableFromInline
     final func reset() throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         let code = sqlite3_reset(sqliteStatement)
@@ -106,9 +108,12 @@ public class Statement {
     
     // MARK: Arguments
     
+    @usableFromInline
     var argumentsNeedValidation = true
-    var _arguments = StatementArguments()
     
+    @usableFromInline
+    var _arguments = StatementArguments()
+
     lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
     }()
@@ -188,10 +193,447 @@ public class Statement {
                 bind(value, at: index)
             } else if let value = valuesIterator.next() {
                 bind(value, at: index)
-            } else {
-                bind(.null, at: index)
             }
         }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1>(_ a1: A1?)
+    where A1: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2>(
+        _ a1: A1?,
+        _ a2: A2?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3, A4>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?,
+        _ a4: A4?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible,
+          A4: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+            a4?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+        if let a = a4 { _ = a.bind(to: sqliteStatement, at: 4) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3, A4, A5>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?,
+        _ a4: A4?,
+        _ a5: A5?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible,
+          A4: DatabaseValueConvertible,
+          A5: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+            a4?.databaseValue ?? .null,
+            a5?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+        if let a = a4 { _ = a.bind(to: sqliteStatement, at: 4) }
+        if let a = a5 { _ = a.bind(to: sqliteStatement, at: 5) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3, A4, A5, A6>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?,
+        _ a4: A4?,
+        _ a5: A5?,
+        _ a6: A6?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible,
+          A4: DatabaseValueConvertible,
+          A5: DatabaseValueConvertible,
+          A6: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+            a4?.databaseValue ?? .null,
+            a5?.databaseValue ?? .null,
+            a6?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+        if let a = a4 { _ = a.bind(to: sqliteStatement, at: 4) }
+        if let a = a5 { _ = a.bind(to: sqliteStatement, at: 5) }
+        if let a = a6 { _ = a.bind(to: sqliteStatement, at: 6) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3, A4, A5, A6, A7>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?,
+        _ a4: A4?,
+        _ a5: A5?,
+        _ a6: A6?,
+        _ a7: A7?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible,
+          A4: DatabaseValueConvertible,
+          A5: DatabaseValueConvertible,
+          A6: DatabaseValueConvertible,
+          A7: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+            a4?.databaseValue ?? .null,
+            a5?.databaseValue ?? .null,
+            a6?.databaseValue ?? .null,
+            a7?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+        if let a = a4 { _ = a.bind(to: sqliteStatement, at: 4) }
+        if let a = a5 { _ = a.bind(to: sqliteStatement, at: 5) }
+        if let a = a6 { _ = a.bind(to: sqliteStatement, at: 6) }
+        if let a = a7 { _ = a.bind(to: sqliteStatement, at: 7) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3, A4, A5, A6, A7, A8>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?,
+        _ a4: A4?,
+        _ a5: A5?,
+        _ a6: A6?,
+        _ a7: A7?,
+        _ a8: A8?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible,
+          A4: DatabaseValueConvertible,
+          A5: DatabaseValueConvertible,
+          A6: DatabaseValueConvertible,
+          A7: DatabaseValueConvertible,
+          A8: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+            a4?.databaseValue ?? .null,
+            a5?.databaseValue ?? .null,
+            a6?.databaseValue ?? .null,
+            a7?.databaseValue ?? .null,
+            a8?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+        if let a = a4 { _ = a.bind(to: sqliteStatement, at: 4) }
+        if let a = a5 { _ = a.bind(to: sqliteStatement, at: 5) }
+        if let a = a6 { _ = a.bind(to: sqliteStatement, at: 6) }
+        if let a = a7 { _ = a.bind(to: sqliteStatement, at: 7) }
+        if let a = a8 { _ = a.bind(to: sqliteStatement, at: 8) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3, A4, A5, A6, A7, A8, A9>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?,
+        _ a4: A4?,
+        _ a5: A5?,
+        _ a6: A6?,
+        _ a7: A7?,
+        _ a8: A8?,
+        _ a9: A9?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible,
+          A4: DatabaseValueConvertible,
+          A5: DatabaseValueConvertible,
+          A6: DatabaseValueConvertible,
+          A7: DatabaseValueConvertible,
+          A8: DatabaseValueConvertible,
+          A9: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+            a4?.databaseValue ?? .null,
+            a5?.databaseValue ?? .null,
+            a6?.databaseValue ?? .null,
+            a7?.databaseValue ?? .null,
+            a8?.databaseValue ?? .null,
+            a9?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+        if let a = a4 { _ = a.bind(to: sqliteStatement, at: 4) }
+        if let a = a5 { _ = a.bind(to: sqliteStatement, at: 5) }
+        if let a = a6 { _ = a.bind(to: sqliteStatement, at: 6) }
+        if let a = a7 { _ = a.bind(to: sqliteStatement, at: 7) }
+        if let a = a8 { _ = a.bind(to: sqliteStatement, at: 8) }
+        if let a = a9 { _ = a.bind(to: sqliteStatement, at: 9) }
+    }
+    
+    /// Set arguments without any validation. Trades safety for performance.
+    ///
+    /// Only call this method if you are sure input arguments match all expected
+    /// arguments of the statement.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO ... VALUES (?, ...)
+    ///         """)
+    ///     statement.setUncheckedArguments(1, ...)
+    ///     try statement.execute()
+    @inlinable
+    public func setUncheckedArguments<A1, A2, A3, A4, A5, A6, A7, A8, A9, A10>(
+        _ a1: A1?,
+        _ a2: A2?,
+        _ a3: A3?,
+        _ a4: A4?,
+        _ a5: A5?,
+        _ a6: A6?,
+        _ a7: A7?,
+        _ a8: A8?,
+        _ a9: A9?,
+        _ a10: A10?)
+    where A1: DatabaseValueConvertible,
+          A2: DatabaseValueConvertible,
+          A3: DatabaseValueConvertible,
+          A4: DatabaseValueConvertible,
+          A5: DatabaseValueConvertible,
+          A6: DatabaseValueConvertible,
+          A7: DatabaseValueConvertible,
+          A8: DatabaseValueConvertible,
+          A9: DatabaseValueConvertible,
+          A10: DatabaseValueConvertible
+    {
+        _arguments.set(databaseValues: [
+            a1?.databaseValue ?? .null,
+            a2?.databaseValue ?? .null,
+            a3?.databaseValue ?? .null,
+            a4?.databaseValue ?? .null,
+            a5?.databaseValue ?? .null,
+            a6?.databaseValue ?? .null,
+            a7?.databaseValue ?? .null,
+            a8?.databaseValue ?? .null,
+            a9?.databaseValue ?? .null,
+            a10?.databaseValue ?? .null,
+        ])
+        argumentsNeedValidation = false
+        try! reset()
+        clearBindings()
+        if let a = a1 { _ = a.bind(to: sqliteStatement, at: 1) }
+        if let a = a2 { _ = a.bind(to: sqliteStatement, at: 2) }
+        if let a = a3 { _ = a.bind(to: sqliteStatement, at: 3) }
+        if let a = a4 { _ = a.bind(to: sqliteStatement, at: 4) }
+        if let a = a5 { _ = a.bind(to: sqliteStatement, at: 5) }
+        if let a = a6 { _ = a.bind(to: sqliteStatement, at: 6) }
+        if let a = a7 { _ = a.bind(to: sqliteStatement, at: 7) }
+        if let a = a8 { _ = a.bind(to: sqliteStatement, at: 8) }
+        if let a = a9 { _ = a.bind(to: sqliteStatement, at: 9) }
+        if let a = a10 { _ = a.bind(to: sqliteStatement, at: 10) }
     }
     
     /// Set the statement arguments, or throws a DatabaseError of code
@@ -224,22 +666,9 @@ public class Statement {
     }
     
     // 1-based index
-    private func bind(_ dbValue: DatabaseValue, at index: Int32) {
-        let code: Int32
-        switch dbValue.storage {
-        case .null:
-            code = sqlite3_bind_null(sqliteStatement, index)
-        case .int64(let int64):
-            code = sqlite3_bind_int64(sqliteStatement, index, int64)
-        case .double(let double):
-            code = sqlite3_bind_double(sqliteStatement, index, double)
-        case .string(let string):
-            code = sqlite3_bind_text(sqliteStatement, index, string, -1, SQLITE_TRANSIENT)
-        case .blob(let data):
-            code = data.withUnsafeBytes {
-                sqlite3_bind_blob(sqliteStatement, index, $0.baseAddress, Int32($0.count), SQLITE_TRANSIENT)
-            }
-        }
+    @inlinable
+    func bind<T: StatementBinding>(_ value: T, at index: CInt) {
+        let code = value.bind(to: sqliteStatement, at: index)
         
         // It looks like sqlite3_bind_xxx() functions do not access the file system.
         // They should thus succeed, unless a GRDB bug: there is no point throwing any error.
@@ -249,7 +678,8 @@ public class Statement {
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
-    private func clearBindings() {
+    @usableFromInline
+    func clearBindings() {
         // It looks like sqlite3_clear_bindings() does not access the file system.
         // This function call should thus succeed, unless a GRDB bug: there is
         // no point throwing any error.
@@ -259,12 +689,13 @@ public class Statement {
         }
     }
     
-    fileprivate func prepare(withArguments arguments: StatementArguments?) {
+    func reset(withArguments arguments: StatementArguments?) {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         if let arguments = arguments {
             try! setArguments(arguments)
         } else if argumentsNeedValidation {
+            try! reset()
             try! validateArguments(self.arguments)
         }
     }
@@ -386,12 +817,6 @@ public final class SelectStatement: Statement {
     /// C function.
     func makeCursor(arguments: StatementArguments? = nil) throws -> StatementCursor {
         try StatementCursor(statement: self, arguments: arguments)
-    }
-    
-    /// Utility function for cursors
-    func reset(withArguments arguments: StatementArguments? = nil) {
-        prepare(withArguments: arguments)
-        try! reset()
     }
     
     /// Utility function for cursors
@@ -542,14 +967,24 @@ public final class UpdateStatement: Statement {
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
-        prepare(withArguments: arguments)
-        try reset()
+        reset(withArguments: arguments)
         
         // Statement does not know how to execute itself, because it does not
         // know how to handle its errors, or if truncate optimisation should be
         // prevented or not. Database knows.
         try database.executeUpdateStatement(self)
     }
+}
+
+// MARK: - StatementBinding
+
+public protocol StatementBinding {
+    /// Binds a statement argument.
+    ///
+    /// - parameter sqliteStatement: An SQLite statement.
+    /// - parameter index: 1-based index to statement arguments
+    /// - returns: the code returned by the `sqlite3_bind_xxx` function.
+    func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt
 }
 
 // MARK: - StatementArguments
@@ -690,6 +1125,11 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
         self.init(values)
     }
     
+    @usableFromInline
+    mutating func set(databaseValues: [DatabaseValue]) {
+        self.values = databaseValues
+        namedValues.removeAll(keepingCapacity: true)
+    }
     
     // MARK: Named Arguments
     

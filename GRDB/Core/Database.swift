@@ -6,6 +6,7 @@ public typealias SQLiteConnection = OpaquePointer
 /// A raw SQLite function argument.
 typealias SQLiteValue = OpaquePointer
 
+@usableFromInline
 let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_destructor_type.self)
 
 /// A Database connection.
@@ -892,7 +893,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         arguments: @autoclosure () -> StatementArguments? = nil)
     throws
     {
-        if isInsideTransactionBlock && !isInsideTransaction {
+        if isInsideTransactionBlock && sqlite3_get_autocommit(sqliteConnection) != 0 {
             throw DatabaseError(
                 resultCode: .SQLITE_ABORT,
                 message: "Transaction was aborted",
@@ -1019,11 +1020,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             return
         }
         
-        // If the savepoint is top-level, we'll use ROLLBACK TRANSACTION in
-        // order to perform the special error handling of rollbacks (see
-        // the rollback method).
-        let topLevelSavepoint = !isInsideTransaction
-        
         // Begin savepoint
         //
         // We use a single name for savepoints because there is no need
@@ -1057,7 +1053,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 isInsideTransactionBlock = wasInsideTransactionBlock
                 
                 try execute(sql: "RELEASE SAVEPOINT grdb")
-                assert(!topLevelSavepoint || !isInsideTransaction)
+                assert(sqlite3_get_autocommit(sqliteConnection) == 0)
                 needsRollback = false
             case .rollback:
                 needsRollback = true
@@ -1069,15 +1065,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         if needsRollback {
             do {
-                if topLevelSavepoint {
-                    try rollback()
-                } else {
-                    // Rollback, and release the savepoint.
-                    // Rollback alone is not enough to clear the savepoint from
-                    // the SQLite savepoint stack.
-                    try execute(sql: "ROLLBACK TRANSACTION TO SAVEPOINT grdb")
-                    try execute(sql: "RELEASE SAVEPOINT grdb")
-                }
+                // Rollback, and release the savepoint.
+                // Rollback alone is not enough to clear the savepoint from
+                // the SQLite savepoint stack.
+                try execute(sql: "ROLLBACK TRANSACTION TO SAVEPOINT grdb")
+                try execute(sql: "RELEASE SAVEPOINT grdb")
             } catch {
                 if firstError == nil {
                     firstError = error
@@ -1100,7 +1092,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
         let kind = kind ?? configuration.defaultTransactionKind
         try execute(sql: "BEGIN \(kind.rawValue) TRANSACTION")
-        assert(isInsideTransaction)
+        assert(sqlite3_get_autocommit(sqliteConnection) == 0)
     }
     
     /// Rollbacks a database transaction.
@@ -1147,13 +1139,13 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         if isInsideTransaction {
             try execute(sql: "ROLLBACK TRANSACTION")
         }
-        assert(!isInsideTransaction)
+        assert(sqlite3_get_autocommit(sqliteConnection) != 0)
     }
     
     /// Commits a database transaction.
     public func commit() throws {
         try execute(sql: "COMMIT TRANSACTION")
-        assert(!isInsideTransaction)
+        assert(sqlite3_get_autocommit(sqliteConnection) != 0)
     }
     
     // MARK: - Memory Management
