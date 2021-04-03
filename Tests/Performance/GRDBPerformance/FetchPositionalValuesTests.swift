@@ -6,7 +6,7 @@ import SQLite
 
 private let expectedRowCount = 100_000
 
-/// Here we test the extraction of values by column index.
+/// Here we test the extraction of row values by column index.
 class FetchPositionalValuesTests: XCTestCase {
     
     func testSQLite() throws {
@@ -18,7 +18,7 @@ class FetchPositionalValuesTests: XCTestCase {
         measure {
             var count = 0
             var statement: OpaquePointer? = nil
-            sqlite3_prepare_v2(connection, "SELECT * FROM items", -1, &statement, nil)
+            sqlite3_prepare_v2(connection, "SELECT * FROM item", -1, &statement, nil)
             
             loop: while true {
                 switch sqlite3_step(statement) {
@@ -60,7 +60,7 @@ class FetchPositionalValuesTests: XCTestCase {
             var count = 0
             
             try! dbQueue.inDatabase { db in
-                let rows = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db, sql: "SELECT * FROM item")
                 while let row = try rows.next() {
                     _ = row[0] as Int
                     _ = row[1] as Int
@@ -91,7 +91,7 @@ class FetchPositionalValuesTests: XCTestCase {
             var count = 0
             
             dbQueue.inDatabase { db in
-                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                let rs = try! db.executeQuery("SELECT * FROM item", values: nil)
                 while rs.next() {
                     _ = rs.long(forColumnIndex: 0)
                     _ = rs.long(forColumnIndex: 1)
@@ -120,7 +120,7 @@ class FetchPositionalValuesTests: XCTestCase {
         measure {
             var count = 0
             
-            for row in try! db.prepare("SELECT * FROM items") {
+            for row in try! db.prepare("SELECT * FROM item") {
                 // Direct Int extraction is not supported.
                 _ = Int(row[0] as! Int64)
                 _ = Int(row[1] as! Int64)

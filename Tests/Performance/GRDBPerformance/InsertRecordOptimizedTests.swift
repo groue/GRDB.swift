@@ -3,36 +3,54 @@ import GRDB
 
 private let insertedRowCount = 20_000
 
-// Here we insert records.
-class InsertRecordStructTests: XCTestCase {
+/// A record optimized for batch insert performance
+private struct Item: Codable, FetchableRecord, PersistableRecord {
+    var i0: Int
+    var i1: Int
+    var i2: Int
+    var i3: Int
+    var i4: Int
+    var i5: Int
+    var i6: Int
+    var i7: Int
+    var i8: Int
+    var i9: Int
     
-    func testGRDB() {
-        struct Item: PersistableRecord {
-            var i0: Int
-            var i1: Int
-            var i2: Int
-            var i3: Int
-            var i4: Int
-            var i5: Int
-            var i6: Int
-            var i7: Int
-            var i8: Int
-            var i9: Int
-            
-            func encode(to container: inout PersistenceContainer) {
-                container["i0"] = i0
-                container["i1"] = i1
-                container["i2"] = i2
-                container["i3"] = i3
-                container["i4"] = i4
-                container["i5"] = i5
-                container["i6"] = i6
-                container["i7"] = i7
-                container["i8"] = i8
-                container["i9"] = i9
-            }
-        }
+    static func optimizedInsertStatement(_ db: Database) throws -> UpdateStatement {
+        try db.makeUpdateStatement(literal: """
+            INSERT INTO \(self) (
+              \(CodingKeys.i0),
+              \(CodingKeys.i1),
+              \(CodingKeys.i2),
+              \(CodingKeys.i3),
+              \(CodingKeys.i4),
+              \(CodingKeys.i5),
+              \(CodingKeys.i6),
+              \(CodingKeys.i7),
+              \(CodingKeys.i8),
+              \(CodingKeys.i9))
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """)
+    }
+    
+    func insert(with statement: UpdateStatement) throws {
+        statement.setUncheckedArguments(
+            i0,
+            i1,
+            i2,
+            i3,
+            i4,
+            i5,
+            i6,
+            i7,
+            i8,
+            i9)
+        try statement.execute()
+    }
+}
 
+class InsertRecordOptimizedTests: XCTestCase {
+    func testGRDB() {
         let databaseFileName = "GRDBPerformanceTests-\(ProcessInfo.processInfo.globallyUniqueString).sqlite"
         let databasePath = (NSTemporaryDirectory() as NSString).appendingPathComponent(databaseFileName)
         _ = try? FileManager.default.removeItem(atPath: databasePath)
@@ -55,8 +73,10 @@ class InsertRecordStructTests: XCTestCase {
             }
             
             try! dbQueue.inTransaction { db in
+                let statement = try Item.optimizedInsertStatement(db)
                 for i in 0..<insertedRowCount {
-                    try Item(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i).insert(db)
+                    let item = Item(i0: i, i1: i, i2: i, i3: i, i4: i, i5: i, i6: i, i7: i, i8: i, i9: i)
+                    try item.insert(with: statement)
                 }
                 return .commit
             }

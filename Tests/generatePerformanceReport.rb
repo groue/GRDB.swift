@@ -100,8 +100,11 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 | Fetch                            | #{formatted_samples(samples, 'FetchRecordStruct').join(" | ")} |
 | Insert                           | #{formatted_samples(samples, 'InsertRecordStruct').join(" | ")} |
 | **Codable Records**              |      |            |      |              |           |       |
-| Fetch                            | #{formatted_samples(samples, 'FetchRecordCodable').join(" | ")} |
-| Insert                           | #{formatted_samples(samples, 'InsertRecordCodable').join(" | ")} |
+| Fetch                            | #{formatted_samples(samples, 'FetchRecordDecodable').join(" | ")} |
+| Insert                           | #{formatted_samples(samples, 'InsertRecordEncodable').join(" | ")} |
+| **Optimized Records**            |      |            |      |              |           |       |
+| Fetch                            | #{formatted_samples(samples, 'FetchRecordOptimized').join(" | ")} |
+| Insert                           | #{formatted_samples(samples, 'InsertRecordOptimized').join(" | ")} |
 | **Records with change tracking** |      |            |      |              |           |       |
 | Fetch                            | #{formatted_samples(samples, 'FetchRecordClass').join(" | ")} |
 | Insert                           | #{formatted_samples(samples, 'InsertRecordClass').join(" | ")} |
@@ -150,15 +153,25 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
 - **Codable Records**:
 
-    - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordCodableTests.swift))
+    - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordDecodableTests.swift))
         
         This test fetches an array of 100000 record objects initiated from rows of 10 ints.
         
         It builds records from GRDB's built-in support for the [Decodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
     
-    - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordCodableTests.swift))
+    - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordEncodableTests.swift))
         
         This tests inserts 20000 records with the persistence method provided by GRDB's built-in support for the [Encodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
+
+- **Optimized Records**:
+
+    - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordDecodableTests.swift))
+        
+        This test shows how to optimize Decodable Records for fetching.
+    
+    - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordEncodableTests.swift))
+        
+        This test shows how to optimize Encodable Records for batch inserts.
 
 - **Records with change tracking**:
 
