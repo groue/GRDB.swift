@@ -120,7 +120,7 @@ public protocol DatabaseReader: AnyObject {
     /// database updates are not visible inside the block:
     ///
     ///     try reader.asyncRead { dbResult in
-    ///         do (
+    ///         do {
     ///             let db = try dbResult.get()
     ///             // Those two values are guaranteed to be equal, even if the
     ///             // `player` table is modified between the two requests:
