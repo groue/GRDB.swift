@@ -1,28 +1,27 @@
 import SwiftUI
 
-/// The Player edition view, designed to be the destination of
-/// a NavigationLink.
+/// The view that edits an existing player.
 struct PlayerEditionView: View {
-    /// Manages the player form
-    let viewModel: PlayerFormViewModel
+    @Environment(\.appDatabase) private var appDatabase
+    @State var player: Player
     
     var body: some View {
-        PlayerForm(viewModel: viewModel)
-            .onDisappear(perform: {
-                // Ignore validation errors
-                try? self.viewModel.savePlayer()
-            })
+        PlayerFormView(
+            name: $player.name,
+            score: Binding(
+                get: { "\(player.score)" },
+                set: { player.score = Int($0) ?? 0 }))
+            .onDisappear {
+                // save and ignore error
+                try? appDatabase?.savePlayer(&player)
+            }
     }
 }
 
 struct PlayerEditionView_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = PlayerFormViewModel(
-            database: .empty(),
-            player: .newRandom())
-        
-        return NavigationView {
-            PlayerEditionView(viewModel: viewModel)
+        NavigationView {
+            PlayerEditionView(player: Player.newRandom())
                 .navigationBarTitle("Player Edition")
         }
     }
