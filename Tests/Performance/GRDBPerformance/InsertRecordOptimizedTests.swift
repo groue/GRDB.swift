@@ -34,7 +34,7 @@ private struct Item: Codable, FetchableRecord, PersistableRecord {
     }
     
     func insert(with statement: UpdateStatement) throws {
-        statement.setUncheckedArguments(
+        statement.setUncheckedArguments([
             i0,
             i1,
             i2,
@@ -44,7 +44,7 @@ private struct Item: Codable, FetchableRecord, PersistableRecord {
             i6,
             i7,
             i8,
-            i9)
+            i9])
         try statement.execute()
     }
 }
