@@ -58,7 +58,7 @@ class RecordWithImmutableProperty : Record {
     let initializedFromRow: Bool
     
     required init(row: Row) {       // An initializer is required, and the minimum is init(row)
-        initializedFromRow = true   // property must bet set before super.init(row: row)
+        initializedFromRow = true   // property must be set before super.init(row: row)
         super.init(row: row)        // super.init(row: row) is required
     }
 }
@@ -68,12 +68,12 @@ class RecordWithPedigree : Record {
     let initializedFromRow: Bool
     
     override init() {
-        initializedFromRow = false  // property must bet set before super.init(row: row)
+        initializedFromRow = false  // property must be set before super.init(row: row)
         super.init()                // super.init() is required
     }
     
     required init(row: Row) {       // An initializer is required, and the minimum is init(row)
-        initializedFromRow = true   // property must bet set before super.init(row: row)
+        initializedFromRow = true   // property must be set before super.init(row: row)
         super.init(row: row)        // super.init(row: row) is required
     }
 }
@@ -83,12 +83,12 @@ class RecordWithImmutablePropertyAndCustomInitializer : Record {
     let initializedFromRow: Bool
     
     init(name: String? = nil) {
-        initializedFromRow = false  // property must bet set before super.init(row: row)
+        initializedFromRow = false  // property must be set before super.init(row: row)
         super.init()                // super.init() is required
     }
     
     required init(row: Row) {       // An initializer is required, and the minimum is init(row)
-        initializedFromRow = true   // property must bet set before super.init(row: row)
+        initializedFromRow = true   // property must be set before super.init(row: row)
         super.init(row: row)        // super.init(row: row) is required
     }
 }
