@@ -6,7 +6,7 @@ import SQLite
 
 private let expectedRowCount = 100_000
 
-/// Here we test the extraction of values by column name.
+/// Here we test the extraction of row values by column name.
 class FetchNamedValuesTests: XCTestCase {
     
     func testGRDB() throws {
@@ -18,7 +18,7 @@ class FetchNamedValuesTests: XCTestCase {
             var count = 0
             
             try! dbQueue.inDatabase { db in
-                let rows = try Row.fetchCursor(db, sql: "SELECT * FROM items")
+                let rows = try Row.fetchCursor(db, sql: "SELECT * FROM item")
                 while let row = try rows.next() {
                     _ = row["i0"] as Int
                     _ = row["i1"] as Int
@@ -49,7 +49,7 @@ class FetchNamedValuesTests: XCTestCase {
             var count = 0
             
             dbQueue.inDatabase { db in
-                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                let rs = try! db.executeQuery("SELECT * FROM item", values: nil)
                 while rs.next() {
                     _ = rs.long(forColumn: "i0")
                     _ = rs.long(forColumn: "i1")
@@ -78,17 +78,17 @@ class FetchNamedValuesTests: XCTestCase {
         measure {
             var count = 0
             
-            for item in try! db.prepare(itemsTable) {
-                _ = item[i0Column]
-                _ = item[i1Column]
-                _ = item[i2Column]
-                _ = item[i3Column]
-                _ = item[i4Column]
-                _ = item[i5Column]
-                _ = item[i6Column]
-                _ = item[i7Column]
-                _ = item[i8Column]
-                _ = item[i9Column]
+            for row in try! db.prepare(itemTable) {
+                _ = row[i0Column]
+                _ = row[i1Column]
+                _ = row[i2Column]
+                _ = row[i3Column]
+                _ = row[i4Column]
+                _ = row[i5Column]
+                _ = row[i6Column]
+                _ = row[i7Column]
+                _ = row[i8Column]
+                _ = row[i9Column]
                 
                 count += 1
             }

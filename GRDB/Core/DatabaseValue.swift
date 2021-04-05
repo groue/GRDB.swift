@@ -86,6 +86,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     
     // MARK: - Not Public
     
+    @inlinable
     init(storage: Storage) {
         self.storage = storage
     }
@@ -136,6 +137,24 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
         case let type:
             // Assume a GRDB bug: there is no point throwing any error.
             fatalError("Unexpected SQLite column type: \(type)")
+        }
+    }
+}
+
+extension DatabaseValue: StatementBinding {
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        switch storage {
+        case .null:
+            return sqlite3_bind_null(sqliteStatement, index)
+        case .int64(let int64):
+            return int64.bind(to: sqliteStatement, at: index)
+        case .double(let double):
+            return double.bind(to: sqliteStatement, at: index)
+        case .string(let string):
+            return string.bind(to: sqliteStatement, at: index)
+        case .blob(let data):
+            return data.bind(to: sqliteStatement, at: index)
         }
     }
 }
@@ -202,6 +221,7 @@ extension DatabaseValue {
 // DatabaseValueConvertible
 extension DatabaseValue {
     /// Returns self
+    @inlinable
     public var databaseValue: DatabaseValue {
         self
     }

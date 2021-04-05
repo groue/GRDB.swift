@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572)
+- `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573)
 - `5.6.x` Releases - [5.6.0](#560)
 - `5.5.x` Releases - [5.5.0](#550)
 - `5.4.x` Releases - [5.4.0](#540)
@@ -73,6 +73,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.7.3
+
+Released April 5, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.7.2...v5.7.3)
+
+- **Fixed**: [#950](https://github.com/groue/GRDB.swift/pull/950) by [@MartinP7r](https://github.com/MartinP7r): Fix memory consumption when encoding JSON columns
+- **Fixed**: [#951](https://github.com/groue/GRDB.swift/pull/951) by [@alexwlchan](https://github.com/alexwlchan): Fix documentation typo
+- **Fixed**: [#952](https://github.com/groue/GRDB.swift/pull/952) by [@holsety](https://github.com/holsety): Fix documentation typo
+- **Documentation Update**: [#953](https://github.com/groue/GRDB.swift/pull/953): Refactor the SwiftUI demo app
 
 #### 5.7.2
 

@@ -6,7 +6,36 @@ import SQLite
 
 private let expectedRowCount = 100_000
 
-/// Here we test the extraction of models from rows
+private struct Item {
+    var i0: Int
+    var i1: Int
+    var i2: Int
+    var i3: Int
+    var i4: Int
+    var i5: Int
+    var i6: Int
+    var i7: Int
+    var i8: Int
+    var i9: Int
+}
+
+// GRDB support
+extension Item: FetchableRecord, TableRecord {
+    init(row: GRDB.Row) {
+        i0 = row["i0"]
+        i1 = row["i1"]
+        i2 = row["i2"]
+        i3 = row["i3"]
+        i4 = row["i4"]
+        i5 = row["i5"]
+        i6 = row["i6"]
+        i7 = row["i7"]
+        i8 = row["i8"]
+        i9 = row["i9"]
+    }
+}
+
+/// Here we test the extraction of a plain Swift struct
 class FetchRecordStructTests: XCTestCase {
 
     func testSQLite() throws {
@@ -17,7 +46,7 @@ class FetchRecordStructTests: XCTestCase {
         
         measure {
             var statement: OpaquePointer? = nil
-            sqlite3_prepare_v2(connection, "SELECT * FROM items", -1, &statement, nil)
+            sqlite3_prepare_v2(connection, "SELECT * FROM item", -1, &statement, nil)
             
             let columnNames = (Int32(0)..<10).map { String(cString: sqlite3_column_name(statement, $0)) }
             let index0 = Int32(columnNames.firstIndex(of: "i0")!)
@@ -31,13 +60,13 @@ class FetchRecordStructTests: XCTestCase {
             let index8 = Int32(columnNames.firstIndex(of: "i8")!)
             let index9 = Int32(columnNames.firstIndex(of: "i9")!)
             
-            var items = [ItemStruct]()
+            var items = [Item]()
             loop: while true {
                 switch sqlite3_step(statement) {
                 case 101 /*SQLITE_DONE*/:
                     break loop
                 case 100 /*SQLITE_ROW*/:
-                    let item = ItemStruct(
+                    let item = Item(
                         i0: Int(sqlite3_column_int64(statement, index0)),
                         i1: Int(sqlite3_column_int64(statement, index1)),
                         i2: Int(sqlite3_column_int64(statement, index2)),
@@ -73,7 +102,7 @@ class FetchRecordStructTests: XCTestCase {
         
         measure {
             let items = try! dbQueue.inDatabase { db in
-                try ItemStruct.fetchAll(db, sql: "SELECT * FROM items")
+                try Item.fetchAll(db)
             }
             XCTAssertEqual(items.count, expectedRowCount)
             XCTAssertEqual(items[0].i0, 0)
@@ -91,11 +120,22 @@ class FetchRecordStructTests: XCTestCase {
         let dbQueue = FMDatabaseQueue(path: url.path)!
         
         measure {
-            var items = [ItemStruct]()
+            var items = [Item]()
             dbQueue.inDatabase { db in
-                let rs = try! db.executeQuery("SELECT * FROM items", values: nil)
+                let rs = try! db.executeQuery("SELECT * FROM item", values: nil)
                 while rs.next() {
-                    let item = ItemStruct(dictionary: rs.resultDictionary!)
+                    let dict = rs.resultDictionary!
+                    let item = Item(
+                        i0: dict["i0"] as! Int,
+                        i1: dict["i1"] as! Int,
+                        i2: dict["i2"] as! Int,
+                        i3: dict["i3"] as! Int,
+                        i4: dict["i4"] as! Int,
+                        i5: dict["i5"] as! Int,
+                        i6: dict["i6"] as! Int,
+                        i7: dict["i7"] as! Int,
+                        i8: dict["i8"] as! Int,
+                        i9: dict["i9"] as! Int)
                     items.append(item)
                 }
             }
@@ -112,9 +152,9 @@ class FetchRecordStructTests: XCTestCase {
         let db = try Connection(url.path)
         
         measure {
-            var items = [ItemStruct]()
-            for row in try! db.prepare(itemsTable) {
-                let item = ItemStruct(
+            var items = [Item]()
+            for row in try! db.prepare(itemTable) {
+                let item = Item(
                     i0: row[i0Column],
                     i1: row[i1Column],
                     i2: row[i2Column],

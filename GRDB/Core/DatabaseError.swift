@@ -248,6 +248,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     ///
     /// This initializer is not public because library user is not supposed to
     /// be exposed to raw result codes.
+    @usableFromInline
     init(resultCode: CInt, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
         self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
     }

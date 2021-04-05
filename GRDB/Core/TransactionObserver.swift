@@ -202,84 +202,86 @@ class DatabaseObservationBroker {
     /// statement, and returns the authorizer that should be used during
     /// statement execution.
     func updateStatementWillExecute(_ statement: UpdateStatement) -> StatementAuthorizer? {
-        // As statement executes, it may trigger database changes that will
-        // be notified to transaction observers. As a consequence, observers
-        // may disable themselves with stopObservingDatabaseChangesUntilNextTransaction()
-        //
-        // This method takes no argument, and requires access to the "current
-        // broker", which is a per-thread global stored in
-        // SchedulingWatchdog.current:
-        SchedulingWatchdog.current!.databaseObservationBroker = self
-        
-        // Fill statementObservations with observations that are interested in
-        // the kind of events performed by the statement.
-        //
-        // Those statementObservations will be notified of individual changes
-        // in databaseWillChange() and databaseDidChange().
-        let eventKinds = statement.databaseEventKinds
-        
         // If any observer observes row deletions, we'll have to disable
         // [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
         // so that observers are notified.
         var observesRowDeletion = false
         
-        switch eventKinds.count {
-        case 0:
-            // Statement has no effect on any database table.
+        if transactionObservations.isEmpty == false {
+            // As statement executes, it may trigger database changes that will
+            // be notified to transaction observers. As a consequence, observers
+            // may disable themselves with stopObservingDatabaseChangesUntilNextTransaction()
             //
-            // For example: PRAGMA foreign_keys = ON
-            statementObservations = []
-        case 1:
-            // We'll execute a simple statement without any side effect.
-            // Eventual database events will thus all have the same kind. All
-            // detabase events can be notified to interested observations.
+            // This method takes no argument, and requires access to the "current
+            // broker", which is a per-thread global stored in
+            // SchedulingWatchdog.current:
+            SchedulingWatchdog.current!.databaseObservationBroker = self
+            
+            // Fill statementObservations with observations that are interested in
+            // the kind of events performed by the statement.
             //
-            // For example, if one observes all deletions in the table T, then
-            // all individual deletions of DELETE FROM T are notified:
-            let eventKind = eventKinds[0]
-            statementObservations = transactionObservations.compactMap { observation in
-                guard observation.observes(eventsOfKind: eventKind) else {
-                    // observation is not interested
-                    return nil
-                }
-                
-                if case .delete = eventKind {
-                    observesRowDeletion = true
-                }
-                
-                // observation will be notified of all individual events
-                return (observation, DatabaseEventPredicate.true)
-            }
-        default:
-            // We'll execute a complex statement with side effects performed by
-            // an SQL trigger or a foreign key action. Eventual database events
-            // may not all have the same kind: we need to filter them before
-            // notifying interested observations.
-            //
-            // For example, if DELETE FROM T1 generates deletions in T1 and T2
-            // by the mean of a foreign key action, then when one only observes
-            // deletions in T1, one must not be notified of deletions in T2:
-            statementObservations = transactionObservations.compactMap { observation in
-                let observedKinds = eventKinds.filter(observation.observes)
-                if observedKinds.isEmpty {
-                    // observation is not interested
-                    return nil
-                }
-                
-                for eventKind in observedKinds {
+            // Those statementObservations will be notified of individual changes
+            // in databaseWillChange() and databaseDidChange().
+            let eventKinds = statement.databaseEventKinds
+            
+            switch eventKinds.count {
+            case 0:
+                // Statement has no effect on any database table.
+                //
+                // For example: PRAGMA foreign_keys = ON
+                statementObservations = []
+            case 1:
+                // We'll execute a simple statement without any side effect.
+                // Eventual database events will thus all have the same kind. All
+                // detabase events can be notified to interested observations.
+                //
+                // For example, if one observes all deletions in the table T, then
+                // all individual deletions of DELETE FROM T are notified:
+                let eventKind = eventKinds[0]
+                statementObservations = transactionObservations.compactMap { observation in
+                    guard observation.observes(eventsOfKind: eventKind) else {
+                        // observation is not interested
+                        return nil
+                    }
+                    
                     if case .delete = eventKind {
                         observesRowDeletion = true
-                        break
                     }
+                    
+                    // observation will be notified of all individual events
+                    return (observation, DatabaseEventPredicate.true)
                 }
-                
-                // observation will only be notified of individual events that
-                // match one of the observed kinds.
-                return (
-                    observation,
-                    DatabaseEventPredicate.matching(
-                        observedKinds: observedKinds,
-                        advertisedKinds: eventKinds))
+            default:
+                // We'll execute a complex statement with side effects performed by
+                // an SQL trigger or a foreign key action. Eventual database events
+                // may not all have the same kind: we need to filter them before
+                // notifying interested observations.
+                //
+                // For example, if DELETE FROM T1 generates deletions in T1 and T2
+                // by the mean of a foreign key action, then when one only observes
+                // deletions in T1, one must not be notified of deletions in T2:
+                statementObservations = transactionObservations.compactMap { observation in
+                    let observedKinds = eventKinds.filter(observation.observes)
+                    if observedKinds.isEmpty {
+                        // observation is not interested
+                        return nil
+                    }
+                    
+                    for eventKind in observedKinds {
+                        if case .delete = eventKind {
+                            observesRowDeletion = true
+                            break
+                        }
+                    }
+                    
+                    // observation will only be notified of individual events that
+                    // match one of the observed kinds.
+                    return (
+                        observation,
+                        DatabaseEventPredicate.matching(
+                            observedKinds: observedKinds,
+                            advertisedKinds: eventKinds))
+                }
             }
         }
         
@@ -327,8 +329,10 @@ class DatabaseObservationBroker {
     
     func updateStatementDidExecute(_ statement: UpdateStatement) throws {
         // Undo updateStatementWillExecute
-        statementObservations = []
-        SchedulingWatchdog.current!.databaseObservationBroker = nil
+        if transactionObservations.isEmpty == false {
+            statementObservations = []
+            SchedulingWatchdog.current!.databaseObservationBroker = nil
+        }
         
         // Has statement any effect on transaction/savepoints?
         if let transactionEffect = statement.transactionEffect {

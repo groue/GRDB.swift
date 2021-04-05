@@ -36,6 +36,7 @@ extension Grape : SQLExpressible { }
 extension Wrapper: SQLOrderingTerm where RawValue: SQLOrderingTerm { }
 extension Wrapper: SQLSelectable where RawValue: SQLSelectable { }
 extension Wrapper: SQLExpressible where RawValue: SQLExpressible { }
+extension Wrapper: StatementBinding where RawValue: StatementBinding { }
 
 extension Color32 : DatabaseValueConvertible { }
 extension Color64 : DatabaseValueConvertible { }

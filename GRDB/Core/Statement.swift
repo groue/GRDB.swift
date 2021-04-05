@@ -35,6 +35,7 @@ public class Statement {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
+    @usableFromInline
     unowned let database: Database
     
     /// Creates a prepared statement. Returns nil if the compiled string is
@@ -95,6 +96,7 @@ public class Statement {
         sqlite3_finalize(sqliteStatement)
     }
     
+    @usableFromInline
     final func reset() throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         let code = sqlite3_reset(sqliteStatement)
@@ -106,9 +108,12 @@ public class Statement {
     
     // MARK: Arguments
     
+    @usableFromInline
     var argumentsNeedValidation = true
-    var _arguments = StatementArguments()
     
+    @usableFromInline
+    var _arguments = StatementArguments()
+
     lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
     }()
@@ -188,8 +193,6 @@ public class Statement {
                 bind(value, at: index)
             } else if let value = valuesIterator.next() {
                 bind(value, at: index)
-            } else {
-                bind(.null, at: index)
             }
         }
     }
@@ -224,22 +227,9 @@ public class Statement {
     }
     
     // 1-based index
-    private func bind(_ dbValue: DatabaseValue, at index: Int32) {
-        let code: Int32
-        switch dbValue.storage {
-        case .null:
-            code = sqlite3_bind_null(sqliteStatement, index)
-        case .int64(let int64):
-            code = sqlite3_bind_int64(sqliteStatement, index, int64)
-        case .double(let double):
-            code = sqlite3_bind_double(sqliteStatement, index, double)
-        case .string(let string):
-            code = sqlite3_bind_text(sqliteStatement, index, string, -1, SQLITE_TRANSIENT)
-        case .blob(let data):
-            code = data.withUnsafeBytes {
-                sqlite3_bind_blob(sqliteStatement, index, $0.baseAddress, Int32($0.count), SQLITE_TRANSIENT)
-            }
-        }
+    @inlinable
+    func bind<T: StatementBinding>(_ value: T, at index: CInt) {
+        let code = value.bind(to: sqliteStatement, at: index)
         
         // It looks like sqlite3_bind_xxx() functions do not access the file system.
         // They should thus succeed, unless a GRDB bug: there is no point throwing any error.
@@ -249,7 +239,8 @@ public class Statement {
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
-    private func clearBindings() {
+    @usableFromInline
+    func clearBindings() {
         // It looks like sqlite3_clear_bindings() does not access the file system.
         // This function call should thus succeed, unless a GRDB bug: there is
         // no point throwing any error.
@@ -259,12 +250,13 @@ public class Statement {
         }
     }
     
-    fileprivate func prepare(withArguments arguments: StatementArguments?) {
+    func reset(withArguments arguments: StatementArguments?) {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         if let arguments = arguments {
             try! setArguments(arguments)
         } else if argumentsNeedValidation {
+            try! reset()
             try! validateArguments(self.arguments)
         }
     }
@@ -386,12 +378,6 @@ public final class SelectStatement: Statement {
     /// C function.
     func makeCursor(arguments: StatementArguments? = nil) throws -> StatementCursor {
         try StatementCursor(statement: self, arguments: arguments)
-    }
-    
-    /// Utility function for cursors
-    func reset(withArguments arguments: StatementArguments? = nil) {
-        prepare(withArguments: arguments)
-        try! reset()
     }
     
     /// Utility function for cursors
@@ -542,14 +528,24 @@ public final class UpdateStatement: Statement {
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
-        prepare(withArguments: arguments)
-        try reset()
+        reset(withArguments: arguments)
         
         // Statement does not know how to execute itself, because it does not
         // know how to handle its errors, or if truncate optimisation should be
         // prevented or not. Database knows.
         try database.executeUpdateStatement(self)
     }
+}
+
+// MARK: - StatementBinding
+
+public protocol StatementBinding {
+    /// Binds a statement argument.
+    ///
+    /// - parameter sqliteStatement: An SQLite statement.
+    /// - parameter index: 1-based index to statement arguments
+    /// - returns: the code returned by the `sqlite3_bind_xxx` function.
+    func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt
 }
 
 // MARK: - StatementArguments
@@ -636,8 +632,8 @@ public final class UpdateStatement: Statement {
 public struct StatementArguments: CustomStringConvertible, Equatable,
                                   ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral
 {
-    private(set) var values: [DatabaseValue] = []
-    private(set) var namedValues: [String: DatabaseValue] = [:]
+    private(set) var values: [DatabaseValue]
+    private(set) var namedValues: [String: DatabaseValue]
     
     public var isEmpty: Bool {
         values.isEmpty && namedValues.isEmpty
@@ -648,6 +644,8 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     
     /// Creates empty StatementArguments.
     public init() {
+        values = .init()
+        namedValues = .init()
     }
     
     // MARK: Positional Arguments
@@ -661,6 +659,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Element == DatabaseValueConvertible? {
         values = sequence.map { $0?.databaseValue ?? .null }
+        namedValues = .init()
     }
     
     /// Creates statement arguments from a sequence of optional values.
@@ -672,6 +671,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// - returns: A StatementArguments.
     public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Element: DatabaseValueConvertible {
         values = sequence.map(\.databaseValue)
+        namedValues = .init()
     }
     
     /// Creates statement arguments from any array. The result is nil unless all
@@ -690,6 +690,11 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
         self.init(values)
     }
     
+    @usableFromInline
+    mutating func set(databaseValues: [DatabaseValue]) {
+        self.values = databaseValues
+        namedValues.removeAll(keepingCapacity: true)
+    }
     
     // MARK: Named Arguments
     
@@ -703,6 +708,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// - returns: A StatementArguments.
     public init(_ dictionary: [String: DatabaseValueConvertible?]) {
         namedValues = dictionary.mapValues { $0?.databaseValue ?? .null }
+        values = .init()
     }
     
     /// Creates statement arguments from a sequence of (key, value) pairs, such
@@ -716,7 +722,11 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     public init<Sequence>(_ sequence: Sequence)
     where Sequence: Swift.Sequence, Sequence.Element == (String, DatabaseValueConvertible?)
     {
-        namedValues = Dictionary(uniqueKeysWithValues: sequence.map { ($0.0, $0.1?.databaseValue ?? .null) })
+        namedValues = .init(minimumCapacity: sequence.underestimatedCount)
+        for (key, value) in sequence {
+            namedValues[key] = value?.databaseValue ?? .null
+        }
+        values = .init()
     }
     
     /// Creates statement arguments from [AnyHashable: Any].

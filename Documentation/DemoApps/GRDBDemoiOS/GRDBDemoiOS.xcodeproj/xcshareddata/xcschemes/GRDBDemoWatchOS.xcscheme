@@ -78,10 +78,8 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <RemoteRunnable
-         runnableDebuggingMode = "2"
-         BundleIdentifier = "com.apple.Carousel"
-         RemotePath = "/GRDBDemoiOS">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "568E5FBE1E926430002582E0"
@@ -89,7 +87,7 @@
             BlueprintName = "GRDBDemoWatchOS"
             ReferencedContainer = "container:GRDBDemoiOS.xcodeproj">
          </BuildableReference>
-      </RemoteRunnable>
+      </BuildableProductRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -97,10 +95,8 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <RemoteRunnable
-         runnableDebuggingMode = "2"
-         BundleIdentifier = "com.apple.Carousel"
-         RemotePath = "/GRDBDemoiOS">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "568E5FBE1E926430002582E0"
@@ -108,16 +104,7 @@
             BlueprintName = "GRDBDemoWatchOS"
             ReferencedContainer = "container:GRDBDemoiOS.xcodeproj">
          </BuildableReference>
-      </RemoteRunnable>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "568E5FBE1E926430002582E0"
-            BuildableName = "GRDBDemoWatchOS.app"
-            BlueprintName = "GRDBDemoWatchOS"
-            ReferencedContainer = "container:GRDBDemoiOS.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
+      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

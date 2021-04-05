@@ -14,6 +14,7 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         (self ? 1 : 0).databaseValue
     }
@@ -85,6 +86,11 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
             return nil
         }
     }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, self ? 1 : 0)
+    }
 }
 
 /// Int adopts DatabaseValueConvertible and StatementColumnConvertible.
@@ -103,6 +109,7 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -110,6 +117,11 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an Int initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int? {
         Int64.fromDatabaseValue(dbValue).flatMap { Int(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -129,6 +141,7 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -136,6 +149,11 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an Int8 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int8? {
         Int64.fromDatabaseValue(dbValue).flatMap { Int8(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -155,6 +173,7 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -162,6 +181,11 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an Int16 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int16? {
         Int64.fromDatabaseValue(dbValue).flatMap { Int16(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -181,6 +205,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -188,6 +213,11 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an Int32 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Int32? {
         Int64.fromDatabaseValue(dbValue).flatMap { Int32(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -205,6 +235,7 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .int64(self))
     }
@@ -221,6 +252,11 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
         default:
             return nil
         }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, self)
     }
 }
 
@@ -240,6 +276,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -247,6 +284,11 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an Int initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt? {
         Int64.fromDatabaseValue(dbValue).flatMap { UInt(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -266,6 +308,7 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -273,6 +316,11 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an UInt8 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt8? {
         Int64.fromDatabaseValue(dbValue).flatMap { UInt8(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -292,6 +340,7 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -299,6 +348,11 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an UInt16 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt16? {
         Int64.fromDatabaseValue(dbValue).flatMap { UInt16(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -318,6 +372,7 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -325,6 +380,11 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an UInt32 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt32? {
         Int64.fromDatabaseValue(dbValue).flatMap { UInt32(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -344,6 +404,7 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Int64(self).databaseValue
     }
@@ -351,6 +412,11 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     /// Returns an UInt64 initialized from *dbValue*, if possible.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> UInt64? {
         Int64.fromDatabaseValue(dbValue).flatMap { UInt64(exactly: $0) }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_int64(sqliteStatement, index, Int64(self))
     }
 }
 
@@ -368,6 +434,7 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .double(self))
     }
@@ -382,6 +449,11 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
         default:
             return nil
         }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_double(sqliteStatement, index, self)
     }
 }
 
@@ -399,6 +471,7 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         Double(self).databaseValue
     }
@@ -413,6 +486,11 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
         default:
             return nil
         }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_double(sqliteStatement, index, Double(self))
     }
 }
 
@@ -430,6 +508,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
+    @inlinable
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .string(self))
     }
@@ -446,6 +525,11 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
         default:
             return nil
         }
+    }
+    
+    @inlinable
+    public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
+        sqlite3_bind_text(sqliteStatement, index, self, -1, SQLITE_TRANSIENT)
     }
 }
 

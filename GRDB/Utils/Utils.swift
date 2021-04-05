@@ -53,7 +53,7 @@ func GRDBPrecondition(
 }
 
 @inlinable
-func fatalError(_ error: Error) -> Never {
+func fatalError<E: Error>(_ error: E) -> Never {
     try! { throw error }()
 }
 
