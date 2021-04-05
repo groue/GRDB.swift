@@ -78,6 +78,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [Development Branch](#development-branch)
 
 - **Fixed**: [#950](https://github.com/groue/GRDB.swift/pull/950) by [@MartinP7r](https://github.com/MartinP7r): Fix memory consumption when encoding JSON columns
+- **Fixed**: [#951](https://github.com/groue/GRDB.swift/pull/951) by [@alexwlchan](https://github.com/alexwlchan): Fix documentation typo
+- **Fixed**: [#952](https://github.com/groue/GRDB.swift/pull/952) by [@holsety](https://github.com/holsety): Fix documentation typo
+- **Documentation Update**: [#953](https://github.com/groue/GRDB.swift/pull/953): Refactor the SwiftUI demo app
 
 #### 5.7.2
 
