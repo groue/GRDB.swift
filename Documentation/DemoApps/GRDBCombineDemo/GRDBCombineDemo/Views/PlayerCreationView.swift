@@ -1,36 +1,37 @@
 import SwiftUI
 
-/// The Player creation sheet
-struct PlayerCreationSheet: View {
-    /// Manages the player form
-    let viewModel: PlayerFormViewModel
-    
+/// The view that creates a new player.
+struct PlayerCreationView: View {
     /// Executed when user cancels or saves the new user.
     let dismissAction: () -> Void
     
+    @Environment(\.appDatabase) private var appDatabase
+    @State private var name = ""
+    @State private var score = ""
     @State private var errorAlertIsPresented = false
     @State private var errorAlertTitle = ""
     
     var body: some View {
         NavigationView {
-            PlayerForm(viewModel: viewModel)
+            PlayerFormView(name: $name, score: $score)
                 .alert(
                     isPresented: $errorAlertIsPresented,
                     content: { Alert(title: Text(errorAlertTitle)) })
                 .navigationBarTitle("New Player")
                 .navigationBarItems(
                     leading: Button(
-                        action: self.dismissAction,
+                        action: dismissAction,
                         label: { Text("Cancel") }),
                     trailing: Button(
-                        action: self.save,
+                        action: save,
                         label: { Text("Save") }))
         }
     }
     
     private func save() {
         do {
-            try viewModel.savePlayer()
+            var player = Player(id: nil, name: name, score: Int(score) ?? 0)
+            try appDatabase?.savePlayer(&player)
             dismissAction()
         } catch {
             errorAlertTitle = (error as? LocalizedError)?.errorDescription ?? "An error occurred"
@@ -41,12 +42,7 @@ struct PlayerCreationSheet: View {
 
 struct PlayerCreationSheet_Previews: PreviewProvider {
     static var previews: some View {
-        let viewModel = PlayerFormViewModel(
-            database: .empty(),
-            player: .new())
-        
-        return PlayerCreationSheet(
-            viewModel: viewModel,
-            dismissAction: { })
+        PlayerCreationView(dismissAction: { })
+            .environment(\.appDatabase, .empty())
     }
 }

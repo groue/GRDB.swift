@@ -54,9 +54,25 @@ struct AppDatabase {
 // MARK: - Database Access: Writes
 
 extension AppDatabase {
+    /// A validation error that prevents some players from being saved into
+    /// the database.
+    enum ValidationError: LocalizedError {
+        case missingName
+        
+        var errorDescription: String? {
+            switch self {
+            case .missingName:
+                return "Please provide a name"
+            }
+        }
+    }
+    
     /// Saves (inserts or updates) a player. When the method returns, the
     /// player is present in the database, and its id is not nil.
     func savePlayer(_ player: inout Player) throws {
+        if player.name.isEmpty {
+            throw ValidationError.missingName
+        }
         try dbWriter.write { db in
             try player.save(db)
         }
@@ -125,19 +141,8 @@ extension AppDatabase {
 // MARK: - Database Access: Reads
 
 extension AppDatabase {
-    /// Returns a publisher that tracks changes in players ordered by name
-    func playersOrderedByNamePublisher() -> AnyPublisher<[Player], Error> {
-        ValueObservation
-            .tracking(Player.all().orderedByName().fetchAll)
-            .publisher(in: dbWriter, scheduling: .immediate)
-            .eraseToAnyPublisher()
-    }
-    
-    /// Returns a publisher that tracks changes in players ordered by score
-    func playersOrderedByScorePublisher() -> AnyPublisher<[Player], Error> {
-        ValueObservation
-            .tracking(Player.all().orderedByScore().fetchAll)
-            .publisher(in: dbWriter, scheduling: .immediate)
-            .eraseToAnyPublisher()
+    /// Provides a read-only access to the database
+    var databaseReader: DatabaseReader {
+        dbWriter
     }
 }

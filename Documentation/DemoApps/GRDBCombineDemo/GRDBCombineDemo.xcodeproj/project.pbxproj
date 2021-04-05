@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		56026CAC25B8A7EF00D1DF3F /* PlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56026CAA25B8A7EF00D1DF3F /* PlayerTests.swift */; };
 		56026CAD25B8A7EF00D1DF3F /* AppDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56026CAB25B8A7EF00D1DF3F /* AppDatabaseTests.swift */; };
+		5671722A261A185300423B6F /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56717229261A185300423B6F /* Query.swift */; };
+		5671723A261B23C800423B6F /* PlayerList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56717239261B23C800423B6F /* PlayerList.swift */; };
+		56717252261B334D00423B6F /* PlayerRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56717251261B334D00423B6F /* PlayerRequestTests.swift */; };
 		567C3E1A2520B6DE0011F6E9 /* GRDBCombineDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */; };
 		567C3E1E2520B6DF0011F6E9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E1D2520B6DF0011F6E9 /* Assets.xcassets */; };
 		567C3E212520B6DF0011F6E9 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E202520B6DF0011F6E9 /* Preview Assets.xcassets */; };
@@ -16,15 +19,14 @@
 		567C3E4F2520B70E0011F6E9 /* GRDB.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 567C3E3B2520B7000011F6E9 /* GRDB.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		567C3E5D2520B75C0011F6E9 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E532520B75C0011F6E9 /* Player.swift */; };
 		567C3E5E2520B75C0011F6E9 /* Persistence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E542520B75C0011F6E9 /* Persistence.swift */; };
-		567C3E5F2520B75C0011F6E9 /* PlayerListViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E562520B75C0011F6E9 /* PlayerListViewModel.swift */; };
-		567C3E602520B75C0011F6E9 /* PlayerFormViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E572520B75C0011F6E9 /* PlayerFormViewModel.swift */; };
-		567C3E612520B75D0011F6E9 /* PlayerForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E592520B75C0011F6E9 /* PlayerForm.swift */; };
-		567C3E622520B75D0011F6E9 /* PlayerList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E5A2520B75C0011F6E9 /* PlayerList.swift */; };
-		567C3E632520B75D0011F6E9 /* PlayerCreationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E5B2520B75C0011F6E9 /* PlayerCreationSheet.swift */; };
+		567C3E612520B75D0011F6E9 /* PlayerFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E592520B75C0011F6E9 /* PlayerFormView.swift */; };
+		567C3E622520B75D0011F6E9 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E5A2520B75C0011F6E9 /* AppView.swift */; };
+		567C3E632520B75D0011F6E9 /* PlayerCreationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E5B2520B75C0011F6E9 /* PlayerCreationView.swift */; };
 		567C3E642520B75D0011F6E9 /* PlayerEditionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E5C2520B75C0011F6E9 /* PlayerEditionView.swift */; };
 		567C3E662520B7880011F6E9 /* AppDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E652520B7880011F6E9 /* AppDatabase.swift */; };
 		567C3E792520BB650011F6E9 /* Localizable.stringsdict in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E752520BB650011F6E9 /* Localizable.stringsdict */; };
 		567C3E7A2520BB650011F6E9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E772520BB650011F6E9 /* LaunchScreen.storyboard */; };
+		56B6D1092619EC1B003CC455 /* PlayerRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D1082619EC1B003CC455 /* PlayerRequest.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -119,6 +121,9 @@
 		56026C9C25B8A7D000D1DF3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		56026CAA25B8A7EF00D1DF3F /* PlayerTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerTests.swift; sourceTree = "<group>"; };
 		56026CAB25B8A7EF00D1DF3F /* AppDatabaseTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabaseTests.swift; sourceTree = "<group>"; };
+		56717229261A185300423B6F /* Query.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
+		56717239261B23C800423B6F /* PlayerList.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerList.swift; sourceTree = "<group>"; };
+		56717251261B334D00423B6F /* PlayerRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRequestTests.swift; sourceTree = "<group>"; };
 		567C3E162520B6DE0011F6E9 /* GRDBCombineDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GRDBCombineDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBCombineDemoApp.swift; sourceTree = "<group>"; };
 		567C3E1D2520B6DF0011F6E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -127,15 +132,14 @@
 		567C3E292520B7000011F6E9 /* GRDB.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GRDB.xcodeproj; path = ../../../GRDB.xcodeproj; sourceTree = "<group>"; };
 		567C3E532520B75C0011F6E9 /* Player.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 		567C3E542520B75C0011F6E9 /* Persistence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
-		567C3E562520B75C0011F6E9 /* PlayerListViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerListViewModel.swift; sourceTree = "<group>"; };
-		567C3E572520B75C0011F6E9 /* PlayerFormViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerFormViewModel.swift; sourceTree = "<group>"; };
-		567C3E592520B75C0011F6E9 /* PlayerForm.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerForm.swift; sourceTree = "<group>"; };
-		567C3E5A2520B75C0011F6E9 /* PlayerList.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerList.swift; sourceTree = "<group>"; };
-		567C3E5B2520B75C0011F6E9 /* PlayerCreationSheet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerCreationSheet.swift; sourceTree = "<group>"; };
+		567C3E592520B75C0011F6E9 /* PlayerFormView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerFormView.swift; sourceTree = "<group>"; };
+		567C3E5A2520B75C0011F6E9 /* AppView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
+		567C3E5B2520B75C0011F6E9 /* PlayerCreationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerCreationView.swift; sourceTree = "<group>"; };
 		567C3E5C2520B75C0011F6E9 /* PlayerEditionView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PlayerEditionView.swift; sourceTree = "<group>"; };
 		567C3E652520B7880011F6E9 /* AppDatabase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDatabase.swift; sourceTree = "<group>"; };
 		567C3E762520BB650011F6E9 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.stringsdict; name = en; path = en.lproj/Localizable.stringsdict; sourceTree = "<group>"; };
 		567C3E782520BB650011F6E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		56B6D1082619EC1B003CC455 /* PlayerRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRequest.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -162,6 +166,7 @@
 			children = (
 				56026C9C25B8A7D000D1DF3F /* Info.plist */,
 				56026CAB25B8A7EF00D1DF3F /* AppDatabaseTests.swift */,
+				56717251261B334D00423B6F /* PlayerRequestTests.swift */,
 				56026CAA25B8A7EF00D1DF3F /* PlayerTests.swift */,
 			);
 			path = GRDBCombineDemoTests;
@@ -212,10 +217,11 @@
 				567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */,
 				567C3E542520B75C0011F6E9 /* Persistence.swift */,
 				567C3E532520B75C0011F6E9 /* Player.swift */,
+				56B6D1082619EC1B003CC455 /* PlayerRequest.swift */,
+				56717229261A185300423B6F /* Query.swift */,
 				567C3E1F2520B6DF0011F6E9 /* Preview Content */,
 				56185BC125B8047D00B9C30F /* Resources */,
 				56185BC225B8048B00B9C30F /* Support */,
-				567C3E552520B75C0011F6E9 /* ViewModels */,
 				567C3E582520B75C0011F6E9 /* Views */,
 			);
 			path = GRDBCombineDemo;
@@ -251,22 +257,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		567C3E552520B75C0011F6E9 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				567C3E562520B75C0011F6E9 /* PlayerListViewModel.swift */,
-				567C3E572520B75C0011F6E9 /* PlayerFormViewModel.swift */,
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
 		567C3E582520B75C0011F6E9 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				567C3E592520B75C0011F6E9 /* PlayerForm.swift */,
-				567C3E5A2520B75C0011F6E9 /* PlayerList.swift */,
-				567C3E5B2520B75C0011F6E9 /* PlayerCreationSheet.swift */,
+				567C3E5A2520B75C0011F6E9 /* AppView.swift */,
+				567C3E5B2520B75C0011F6E9 /* PlayerCreationView.swift */,
 				567C3E5C2520B75C0011F6E9 /* PlayerEditionView.swift */,
+				567C3E592520B75C0011F6E9 /* PlayerFormView.swift */,
+				56717239261B23C800423B6F /* PlayerList.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -441,6 +439,7 @@
 			files = (
 				56026CAC25B8A7EF00D1DF3F /* PlayerTests.swift in Sources */,
 				56026CAD25B8A7EF00D1DF3F /* AppDatabaseTests.swift in Sources */,
+				56717252261B334D00423B6F /* PlayerRequestTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,16 +447,17 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5671722A261A185300423B6F /* Query.swift in Sources */,
 				567C3E5E2520B75C0011F6E9 /* Persistence.swift in Sources */,
 				567C3E5D2520B75C0011F6E9 /* Player.swift in Sources */,
-				567C3E612520B75D0011F6E9 /* PlayerForm.swift in Sources */,
-				567C3E632520B75D0011F6E9 /* PlayerCreationSheet.swift in Sources */,
+				56B6D1092619EC1B003CC455 /* PlayerRequest.swift in Sources */,
+				5671723A261B23C800423B6F /* PlayerList.swift in Sources */,
+				567C3E612520B75D0011F6E9 /* PlayerFormView.swift in Sources */,
+				567C3E632520B75D0011F6E9 /* PlayerCreationView.swift in Sources */,
 				567C3E662520B7880011F6E9 /* AppDatabase.swift in Sources */,
-				567C3E622520B75D0011F6E9 /* PlayerList.swift in Sources */,
+				567C3E622520B75D0011F6E9 /* AppView.swift in Sources */,
 				567C3E642520B75D0011F6E9 /* PlayerEditionView.swift in Sources */,
 				567C3E1A2520B6DE0011F6E9 /* GRDBCombineDemoApp.swift in Sources */,
-				567C3E5F2520B75C0011F6E9 /* PlayerListViewModel.swift in Sources */,
-				567C3E602520B75C0011F6E9 /* PlayerFormViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
