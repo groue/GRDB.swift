@@ -865,7 +865,9 @@ struct SchemaInfo: Equatable {
     ///     try db.schema().canonicalName("foobar", ofType: .table) // "FooBar"
     func canonicalName(_ name: String, ofType type: SchemaObjectType) -> String? {
         let name = name.lowercased()
-        return objects.first { $0.name.lowercased() == name }?.name
+        return objects
+            .first { $0.type == type.rawValue && $0.name.lowercased() == name }?
+            .name
     }
     
     private struct SchemaObject: Codable, Hashable, FetchableRecord {
