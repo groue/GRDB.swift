@@ -9,9 +9,7 @@ class DatabaseRegionTests : GRDBTestCase {
             DatabaseRegion.fullDatabase,
             DatabaseRegion(),
             DatabaseRegion(table: "foo"),
-            DatabaseRegion(table: "FOO"), // selection info is case-sensitive on table name
             DatabaseRegion(table: "foo", columns: ["a", "b"]),
-            DatabaseRegion(table: "foo", columns: ["A", "B"]), // selection info is case-sensitive on columns names
             DatabaseRegion(table: "foo", columns: ["b", "c"]),
             DatabaseRegion(table: "foo", rowIds: [1, 2]),
             DatabaseRegion(table: "foo", rowIds: [2, 3]),
@@ -26,6 +24,14 @@ class DatabaseRegionTests : GRDBTestCase {
                 }
             }
         }
+        
+        // Case insensitivity
+        XCTAssertEqual(
+            DatabaseRegion(table: "foo"),
+            DatabaseRegion(table: "FOO"))
+        XCTAssertEqual(
+            DatabaseRegion(table: "foo", columns: ["a", "b"]),
+            DatabaseRegion(table: "FOO", columns: ["A", "B"]))
     }
     
     func testRegionUnion() {
@@ -243,15 +249,47 @@ class DatabaseRegionTests : GRDBTestCase {
         
         XCTAssertEqual(intersection.map(\.description), ["foo(a)[1]", "empty", "empty", "foo(b)[2]"])
     }
-
+    
     func testSelectStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE TABLE foo (id INTEGER, name TEXT)")
-            try db.execute(sql: "CREATE TABLE bar (id INTEGER, fooId INTEGER)")
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER PRIMARY KEY, name TEXT)")
+            try db.execute(sql: "CREATE TABLE bar (id INTEGER PRIMARY KEY, fooId INTEGER)")
             
             do {
-                let statement = try db.makeSelectStatement(sql: "SELECT foo.name FROM FOO JOIN BAR ON fooId = foo.id")
+                // Select the rowid
+                let statement = try db.makeSelectStatement(sql: "SELECT id FROM foo")
+                let expectedRegion = DatabaseRegion(table: "foo")
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT ID FROM FOO")
+                let expectedRegion = DatabaseRegion(table: "foo")
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT name FROM foo")
+                let expectedRegion = DatabaseRegion(table: "foo", columns: ["name"])
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                XCTAssertEqual(statement.databaseRegion.description, "foo(name)")
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT NAME FROM FOO")
+                let expectedRegion = DatabaseRegion(table: "foo", columns: ["name"])
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                XCTAssertEqual(statement.databaseRegion.description, "foo(name)")
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT foo.name FROM foo JOIN bar ON fooId = foo.id")
+                let expectedRegion = DatabaseRegion(table: "foo", columns: ["name", "id"])
+                    .union(DatabaseRegion(table: "bar", columns: ["fooId"]))
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                XCTAssertEqual(statement.databaseRegion.description, "bar(fooId),foo(id,name)")
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT FOO.NAME FROM FOO JOIN BAR ON FOOID = FOO.ID")
                 let expectedRegion = DatabaseRegion(table: "foo", columns: ["name", "id"])
                     .union(DatabaseRegion(table: "bar", columns: ["fooId"]))
                 XCTAssertEqual(statement.databaseRegion, expectedRegion)
@@ -267,6 +305,18 @@ class DatabaseRegionTests : GRDBTestCase {
                     let expectedRegion = DatabaseRegion(table: "foo")
                     XCTAssertEqual(statement.databaseRegion, expectedRegion)
                     XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
+                }
+            }
+            do {
+                let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM FOO")
+                if sqlite3_libversion_number() < 3019000 {
+                    let expectedRegion = DatabaseRegion.fullDatabase
+                    XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                    XCTAssertEqual(statement.databaseRegion.description, "full database")
+                } else {
+                    let expectedRegion = DatabaseRegion(table: "foo")
+                    XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                    XCTAssertEqual(statement.databaseRegion.description, "FOO(*)")
                 }
             }
         }
@@ -474,16 +524,29 @@ class DatabaseRegionTests : GRDBTestCase {
     func testUpdateStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            try db.execute(sql: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
-            let statement = try db.makeUpdateStatement(sql: "UPDATE foo SET bar = 'bar', baz = 'baz' WHERE id = 1")
-            XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
-            XCTAssertEqual(statement.databaseEventKinds.count, 1)
-            guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
-                XCTFail()
-                return
+            try db.execute(sql: "CREATE TABLE foo (id INTEGER PRIMARY KEY, bar TEXT, baz TEXT, qux TEXT)")
+            do {
+                let statement = try db.makeUpdateStatement(sql: "UPDATE foo SET bar = 'bar', baz = 'baz' WHERE id = 1")
+                XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
+                XCTAssertEqual(statement.databaseEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                    XCTFail()
+                    return
+                }
+                XCTAssertEqual(tableName, "foo")
+                XCTAssertEqual(columnNames, Set(["bar", "baz"]))
             }
-            XCTAssertEqual(tableName, "foo")
-            XCTAssertEqual(columnNames, Set(["bar", "baz"]))
+            do {
+                let statement = try db.makeUpdateStatement(sql: "UPDATE FOO SET BAR = 'bar', BAZ = 'baz' WHERE ID = 1")
+                XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
+                XCTAssertEqual(statement.databaseEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                    XCTFail()
+                    return
+                }
+                XCTAssertEqual(tableName, "foo")
+                XCTAssertEqual(columnNames, Set(["bar", "baz"]))
+            }
         }
     }
     

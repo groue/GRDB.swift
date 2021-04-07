@@ -161,9 +161,7 @@ struct SQLQueryGenerator: Refinable {
             return selectedRegion
         }
         
-        // Database regions are case-sensitive: use the canonical table name
-        let canonicalTableName = try db.canonicalTableName(tableName)
-        return selectedRegion.tableIntersection(canonicalTableName, rowIds: rowIDs)
+        return selectedRegion.tableIntersection(tableName, rowIds: rowIDs)
     }
     
     /// If true, executing this query yields at most one row.

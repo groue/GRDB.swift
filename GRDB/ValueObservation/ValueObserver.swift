@@ -213,12 +213,7 @@ extension ValueObserver {
         
         var region = DatabaseRegion()
         let result = try db.recordingSelection(&region, fetch)
-        
-        // SQLite does not expose views and schema changes to the
-        // TransactionObserver protocol. By removing them from the observed
-        // region, we optimize our TransactionObserver conformance.
-        observedRegion = try region.ignoringViews(db).ignoringInternalSQLiteTables()
-        
+        observedRegion = try region.observableRegion(db)
         return result
     }
 }

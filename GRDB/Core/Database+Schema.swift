@@ -421,14 +421,14 @@ extension Database {
         return foreignKeys
     }
     
-    /// Returns the actual name of the database table, in the main or temp schema.
+    /// Returns the actual name of the database table, in the main or temp
+    /// schema, or nil if the table does not exist.
     ///
     /// - throws: A DatabaseError if table does not exist.
-    func canonicalTableName(_ tableName: String) throws -> String {
+    func canonicalTableName(_ tableName: String) throws -> String? {
         // SQLite has temporary tables shadow main ones
         try schema(.temp).canonicalName(tableName, ofType: .table)
             ?? schema(.main).canonicalName(tableName, ofType: .table)
-            ?? { throw DatabaseError.noSuchTable(tableName) }()
     }
     
     func schema(_ schemaID: SchemaIdentifier) throws -> SchemaInfo {
