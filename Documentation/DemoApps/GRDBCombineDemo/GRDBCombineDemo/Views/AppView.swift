@@ -6,10 +6,15 @@ struct AppView: View {
     @Environment(\.appDatabase) private var appDatabase
     
     /// The `players` property is kept up-to-date with the list of players.
-    @Query(PlayerRequest(ordering: .byScore)) private var players: [Player]
+    @Query(PlayerRequest(ordering: .byName)) private var players: [Player]
     
     /// Tracks the presentation of the player creation sheet.
     @State private var newPlayerIsPresented = false
+
+    init(initialOrdering: PlayerRequest.Ordering) {
+        // Example to update a query on init
+        _players = Query(PlayerRequest(ordering: initialOrdering))
+    }
     
     var body: some View {
         NavigationView {
@@ -42,6 +47,7 @@ struct AppView: View {
         Button(
             action: { newPlayerIsPresented = true },
             label: { Image(systemName: "plus") })
+            .accessibility(label: Text("New Player"))
             .sheet(
                 isPresented: $newPlayerIsPresented,
                 content: {
@@ -83,10 +89,10 @@ struct AppView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Preview a database of random players
-            AppView().environment(\.appDatabase, .random())
+            AppView(initialOrdering: .byScore).environment(\.appDatabase, .random())
 
             // Preview an empty database
-            AppView().environment(\.appDatabase, .empty())
+            AppView(initialOrdering: .byScore).environment(\.appDatabase, .empty())
         }
     }
 }

@@ -9,7 +9,9 @@ struct PlayerFormView: View {
     var body: some View {
         List {
             TextField("Name", text: $name)
+                .accessibility(label: Text("Player Name"))
             TextField("Score", text: $score).keyboardType(.numberPad)
+                .accessibility(label: Text("Player Score"))
         }
         .listStyle(InsetGroupedListStyle())
     }

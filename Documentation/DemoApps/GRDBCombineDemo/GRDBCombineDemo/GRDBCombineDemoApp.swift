@@ -3,9 +3,15 @@ import SwiftUI
 
 @main
 struct GRDBCombineDemoApp: App {
+    @State var initialOrdering: PlayerRequest.Ordering = .byName
+
     var body: some Scene {
         WindowGroup {
-            AppView().environment(\.appDatabase, AppDatabase.shared)
+            AppView(initialOrdering: initialOrdering)
+                .environment(\.appDatabase, AppDatabase.shared)
+                .onAppear {
+                    initialOrdering = .byScore
+                }
         }
     }
 }

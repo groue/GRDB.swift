@@ -18,14 +18,23 @@ extension AppDatabase {
             // Connect to a database on disk
             // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
             let dbURL = folderURL.appendingPathComponent("db.sqlite")
+
+            if CommandLine.arguments.contains("-reset") {
+                try? fileManager.removeItem(at: dbURL)
+            }
+
             let dbPool = try DatabasePool(path: dbURL.path)
             
             // Create the AppDatabase
             let appDatabase = try AppDatabase(dbPool)
             
             // Populate the database if it is empty, for better demo purpose.
-            try appDatabase.createRandomPlayersIfEmpty()
-            
+            if CommandLine.arguments.contains("-fixedTestData") {
+                try appDatabase.createPlayersForUITests()
+            } else {
+                try appDatabase.createRandomPlayersIfEmpty()
+            }
+
             return appDatabase
         } catch {
             // Replace this implementation with code to handle the error appropriately.
