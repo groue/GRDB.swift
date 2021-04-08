@@ -251,7 +251,7 @@ class DatabaseRegionTests : GRDBTestCase {
     }
     
     func testSelectStatement_rowid() throws {
-        guard #available(iOS 11, *) else {
+        guard #available(iOS 11, *, tvOS 11) else {
             // iOS 10.3.1 is not testable on Big Sur :-(
             // This test breaks on iOS 10.3.1, with no known bad consequence.
             // However this test is useful as a reminder of the behavior of
