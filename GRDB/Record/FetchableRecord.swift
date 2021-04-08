@@ -120,6 +120,7 @@ extension FetchableRecord {
         decoder.dataDecodingStrategy = .base64
         decoder.dateDecodingStrategy = .millisecondsSince1970
         decoder.nonConformingFloatDecodingStrategy = .throw
+        decoder.userInfo = databaseDecodingUserInfo
         return decoder
     }
     
