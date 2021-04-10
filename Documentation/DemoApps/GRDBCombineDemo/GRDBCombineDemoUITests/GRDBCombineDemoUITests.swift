@@ -26,6 +26,21 @@ class GRDBCombineDemoUITests: XCTestCase {
         return app
     }
 
+    // This test, introduced in 481f6e93, tests the @Query fix added in
+    // 68874412. The fix expresses itself when a view defines an @Query
+    // property that is replaced in the view initializer, as in 481f6e93.
+    //
+    // It happens that I did not find that this particular view setup was suited
+    // for a demo app. The demo has to find a delicate balance, not too trivial,
+    // but without gratuitous complexity.
+    //
+    // I simplified the demo app in a5ffc52d, and we no longer have any view
+    // that defines an @Query property which is replaced in the view
+    // initializer. This means that this test no longer checks against
+    // 68874412 regressions!
+    //
+    // Whenever the @Query property wrapper ships with GRDB itself, make sure
+    // we test for those regressions!
     func testInitialSortingIsByScore() throws {
         let app = runApp()
 
