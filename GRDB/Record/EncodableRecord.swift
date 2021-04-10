@@ -133,6 +133,7 @@ extension EncodableRecord {
             // guarantee some stability in order to ease record comparison
             encoder.outputFormatting = .sortedKeys
         }
+        encoder.userInfo = databaseEncodingUserInfo
         return encoder
     }
     
