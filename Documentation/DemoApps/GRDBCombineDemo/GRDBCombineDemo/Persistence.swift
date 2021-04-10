@@ -6,35 +6,39 @@ extension AppDatabase {
     
     private static func makeShared() -> AppDatabase {
         do {
-            // Create a folder for storing the SQLite database, as well as
+            // Pick a folder for storing the SQLite database, as well as
             // the various temporary files created during normal database
             // operations (https://sqlite.org/tempfiles.html).
             let fileManager = FileManager()
             let folderURL = try fileManager
                 .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
                 .appendingPathComponent("database", isDirectory: true)
+
+            // Support for tests: delete the database if requested
+            if CommandLine.arguments.contains("-reset") {
+                try? fileManager.removeItem(at: folderURL)
+            }
+            
+            // Create the database folder if needed
             try fileManager.createDirectory(at: folderURL, withIntermediateDirectories: true)
             
             // Connect to a database on disk
             // See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
             let dbURL = folderURL.appendingPathComponent("db.sqlite")
-
-            if CommandLine.arguments.contains("-reset") {
-                try? fileManager.removeItem(at: dbURL)
-            }
-
             let dbPool = try DatabasePool(path: dbURL.path)
             
             // Create the AppDatabase
             let appDatabase = try AppDatabase(dbPool)
             
-            // Populate the database if it is empty, for better demo purpose.
+            // Prepare the database with test fixtures if requested
             if CommandLine.arguments.contains("-fixedTestData") {
                 try appDatabase.createPlayersForUITests()
             } else {
+                // Otherwise, populate the database if it is empty, for better
+                // demo purpose.
                 try appDatabase.createRandomPlayersIfEmpty()
             }
-
+            
             return appDatabase
         } catch {
             // Replace this implementation with code to handle the error appropriately.
