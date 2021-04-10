@@ -10,6 +10,14 @@ struct AppView: View {
     
     /// Tracks the presentation of the player creation sheet.
     @State private var newPlayerIsPresented = false
+
+    // If you want to define the query on initialization, you will prefer:
+    //
+    // @Query<PlayerRequest> private var players: [Player]
+    //
+    // init(initialOrdering: PlayerRequest.Ordering) {
+    //     _players = Query(PlayerRequest(ordering: initialOrdering))
+    // }
     
     var body: some View {
         NavigationView {
@@ -42,6 +50,7 @@ struct AppView: View {
         Button(
             action: { newPlayerIsPresented = true },
             label: { Image(systemName: "plus") })
+            .accessibility(label: Text("New Player"))
             .sheet(
                 isPresented: $newPlayerIsPresented,
                 content: {
