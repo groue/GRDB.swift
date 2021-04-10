@@ -40,7 +40,10 @@ struct Query<Query: Queryable>: DynamicProperty {
     var projectedValue: Binding<Query> {
         Binding(
             get: { core.query ?? baseQuery },
-            set: { core.query = $0 })
+            set: {
+                core.usesBaseQuery = false
+                core.query = $0
+            })
     }
     
     init(_ query: Query) {
@@ -52,13 +55,14 @@ struct Query<Query: Queryable>: DynamicProperty {
             fatalError("Attempting to use @Query without any database in the environment")
         }
         // Feed core with necessary information, and make sure tracking has started
-        if core.query == nil { core.query = baseQuery }
+        if core.usesBaseQuery { core.query = baseQuery }
         core.startTrackingIfNecessary(in: databaseReader)
     }
     
     private class Core: ObservableObject {
         private(set) var value: Query.Value?
         var databaseReader: DatabaseReader?
+        var usesBaseQuery = true
         var query: Query? {
             willSet {
                 if query != newValue {

@@ -128,6 +128,25 @@ extension AppDatabase {
             }
         }
     }
+
+    static let uiTestPlayers = [
+        Player(id: nil, name: "Arthur", score: 5),
+        Player(id: nil, name: "Barbara", score: 6),
+        Player(id: nil, name: "Craig", score: 8),
+        Player(id: nil, name: "David", score: 4),
+        Player(id: nil, name: "Elena", score: 1),
+        Player(id: nil, name: "Frederik", score: 2),
+        Player(id: nil, name: "Gilbert", score: 7),
+        Player(id: nil, name: "Henriette", score: 3)]
+
+    func createPlayersForUITests() throws {
+        try dbWriter.write { db in
+            try AppDatabase.uiTestPlayers.forEach { player in
+                var mutablePlayer = player
+                try mutablePlayer.save(db)
+            }
+        }
+    }
     
     /// Support for `createRandomPlayersIfEmpty()` and `refreshPlayers()`.
     private func createRandomPlayers(_ db: Database) throws {
