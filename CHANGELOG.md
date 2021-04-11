@@ -81,6 +81,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Fixed**: [#955](https://github.com/groue/GRDB.swift/pull/955) by [@steipete](https://github.com/steipete): Robustness of @Query in the SwiftUI demo app
 - **Fixed**: [#956](https://github.com/groue/GRDB.swift/pull/956): Fix case-sensitivity of region-based database observation
 - **New**: [#958](https://github.com/groue/GRDB.swift/pull/958) by [@chrisballinger](https://github.com/chrisballinger): Always add userInfo to databaseJSONDecoder and databaseJSONEncoder
+- **New**: [#960](https://github.com/groue/GRDB.swift/pull/960) by [@MartinP7r](https://github.com/MartinP7r): Add tests for userInfo being applied to database encoder/decoder
 
 
 ## 5.7.3
