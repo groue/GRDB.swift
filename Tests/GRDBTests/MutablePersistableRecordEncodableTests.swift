@@ -800,5 +800,60 @@ extension MutablePersistableRecordEncodableTests {
                 "nestedUnkeyed": "[\"baz\",null,\"JSON nested: nestedUnkeyed\"]"])
         }
     }
+
+    func testUserInfoJsonEncoding() throws {
+        struct NestedStruct : Codable {
+            let firstName: String?
+            let lastName: String?
+
+            init(firstName: String?, lastName: String?) {
+                self.firstName = firstName
+                self.lastName = lastName
+            }
+
+            func encode(to encoder: Encoder) throws {
+                let userInfoValue = encoder.userInfo[.testKey] as? String
+                var container = encoder.container(keyedBy: CodingKeys.self)
+
+                if userInfoValue == "correct" {
+                    try container.encode(firstName, forKey: .firstName)
+                    try container.encode(lastName, forKey: .lastName)
+                } else {
+                    try container.encode(firstName, forKey: .lastName)
+                    try container.encode(lastName, forKey: .firstName)
+                }
+            }
+        }
+
+        struct StructWithNestedType : PersistableRecord, FetchableRecord, Codable {
+            static let databaseTableName = "t1"
+            static var databaseEncodingUserInfo: [CodingUserInfoKey: Any] = [CodingUserInfoKey.testKey: "correct"]
+            let nested: NestedStruct?
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "t1") { t in
+                t.column("nested", .text)
+            }
+            let nested = NestedStruct(firstName: "Bob", lastName: "Dylan")
+            let value = StructWithNestedType(nested: nested)
+            try value.insert(db)
+
+            let parentModel = try StructWithNestedType.fetchAll(db)
+
+            guard let nestedModel = parentModel.first?.nested else {
+                XCTFail()
+                return
+            }
+
+            // Check the nested model contains the expected values of first and last name
+            XCTAssertEqual(nestedModel.firstName, "Bob")
+            XCTAssertEqual(nestedModel.lastName, "Dylan")
+        }
+    }
 }
 
+fileprivate extension CodingUserInfoKey {
+    static let testKey = CodingUserInfoKey(rawValue: "correct")!
+}
