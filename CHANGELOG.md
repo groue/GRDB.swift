@@ -7,8 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- [Development Branch](#development-branch)
-- `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573)
+- `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573) | [5.7.4](#574)
 - `5.6.x` Releases - [5.6.0](#560)
 - `5.5.x` Releases - [5.5.0](#550)
 - `5.4.x` Releases - [5.4.0](#540)
@@ -75,7 +74,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Development Branch
+## 5.7.4
+
+Released April 11, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.7.3...v5.7.4)
 
 - **New**: [#953](https://github.com/groue/GRDB.swift/pull/953): Refactor the SwiftUI demo app
 - **Fixed**: [#955](https://github.com/groue/GRDB.swift/pull/955) by [@steipete](https://github.com/steipete): Robustness of @Query in the SwiftUI demo app
