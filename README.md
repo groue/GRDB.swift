@@ -11,13 +11,13 @@
 
 ---
 
-**Latest release**: April 5, 2021 • version 5.7.3 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
+**Latest release**: April 11, 2021 • version 5.7.4 • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
 
 **Requirements**: iOS 10.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; SQLite 3.8.5+ &bull; Swift 5.2+ / Xcode 11.4+
 
 | Swift version  | GRDB version                                                |
 | -------------- | ----------------------------------------------------------- |
-| **Swift 5.2+** | **v5.7.3**                                                  |
+| **Swift 5.2+** | **v5.7.4**                                                  |
 | Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
 | Swift 5        | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
 | Swift 4.2      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
@@ -8245,7 +8245,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@eburns-vmware](https://github.com/eburns-vmware), [@fpillet](http://github.com/fpillet), [@gcox](https://github.com/gcox), [@GetToSet](https://github.com/GetToSet), [@gjeck](https://github.com/gjeck), [@gusrota](https://github.com/gusrota), [@haikusw](https://github.com/haikusw), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@mallman](https://github.com/mallman), [@MartinP7r](https://github.com/MartinP7r), [@Marus](https://github.com/Marus), [@MaxDesiatov](https://github.com/MaxDesiatov), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@mtancock](https://github.com/mtancock), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@valexa](https://github.com/valexa), [@wuyuehyang](https://github.com/wuyuehyang), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
+- [@alextrob](https://github.com/alextrob), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@eburns-vmware](https://github.com/eburns-vmware), [@fpillet](http://github.com/fpillet), [@gcox](https://github.com/gcox), [@GetToSet](https://github.com/GetToSet), [@gjeck](https://github.com/gjeck), [@gusrota](https://github.com/gusrota), [@haikusw](https://github.com/haikusw), [@hartbit](https://github.com/hartbit), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@mallman](https://github.com/mallman), [@MartinP7r](https://github.com/MartinP7r), [@Marus](https://github.com/Marus), [@MaxDesiatov](https://github.com/MaxDesiatov), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@mtancock](https://github.com/mtancock), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@steipete](https://github.com/steipete), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@valexa](https://github.com/valexa), [@wuyuehyang](https://github.com/wuyuehyang), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 

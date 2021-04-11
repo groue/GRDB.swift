@@ -30,9 +30,9 @@
 ///         let request = Player.filter(key: 1)
 ///         let region = try request.databaseRegion(db)
 public struct DatabaseRegion: CustomStringConvertible, Equatable {
-    private let tableRegions: [String: TableRegion]?
+    private let tableRegions: [CaseInsensitiveIdentifier: TableRegion]?
     
-    private init(tableRegions: [String: TableRegion]?) {
+    private init(tableRegions: [CaseInsensitiveIdentifier: TableRegion]?) {
         self.tableRegions = tableRegions
     }
     
@@ -64,16 +64,20 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     ///
     /// - parameter table: A table name.
     public init(table: String) {
+        let table = CaseInsensitiveIdentifier(rawValue: table)
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: nil)])
     }
     
     /// Full columns in a table: (some columns in a table) × (all rows)
     init(table: String, columns: Set<String>) {
+        let table = CaseInsensitiveIdentifier(rawValue: table)
+        let columns = Set(columns.map(CaseInsensitiveIdentifier.init))
         self.init(tableRegions: [table: TableRegion(columns: columns, rowIds: nil)])
     }
     
     /// Full rows in a table: (all columns in a table) × (some rows)
     init(table: String, rowIds: Set<Int64>) {
+        let table = CaseInsensitiveIdentifier(rawValue: table)
         self.init(tableRegions: [table: TableRegion(columns: nil, rowIds: rowIds)])
     }
     
@@ -86,7 +90,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         guard let tableRegions = tableRegions else { return other }
         guard let otherTableRegions = other.tableRegions else { return self }
         
-        var tableRegionsIntersection: [String: TableRegion] = [:]
+        var tableRegionsIntersection: [CaseInsensitiveIdentifier: TableRegion] = [:]
         for (table, tableRegion) in tableRegions {
             guard let otherTableRegion = otherTableRegions
                     .first(where: { (otherTable, _) in otherTable == table })?
@@ -105,6 +109,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
             return DatabaseRegion(table: table, rowIds: rowIds)
         }
         
+        let table = CaseInsensitiveIdentifier(rawValue: table)
         guard let tableRegion = tableRegions[table] else {
             return self
         }
@@ -123,7 +128,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         guard let tableRegions = tableRegions else { return .fullDatabase }
         guard let otherTableRegions = other.tableRegions else { return .fullDatabase }
         
-        var tableRegionsUnion: [String: TableRegion] = [:]
+        var tableRegionsUnion: [CaseInsensitiveIdentifier: TableRegion] = [:]
         let tableNames = Set(tableRegions.keys).union(Set(otherTableRegions.keys))
         for table in tableNames {
             let tableRegion = tableRegions[table]
@@ -148,26 +153,39 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         self = union(other)
     }
     
-    /// Returns a region suitable for database observation by removing views.
+    /// Returns a region suitable for database observation
+    func observableRegion(_ db: Database) throws -> DatabaseRegion {
+        // SQLite does not expose schema changes to the
+        // TransactionObserver protocol. By removing internal SQLite tables from
+        // the observed region, we optimize database observation.
+        //
+        // And by canonicalizing table names, we remove views, and help the
+        // `isModified` methods.
+        try ignoringInternalSQLiteTables().canonicalTables(db)
+    }
+    
+    /// Returns a region only made of actual tables with their canonical names.
+    /// Canonical names help the `isModified` methods.
     ///
-    /// We can do it because modifications only happen in actual tables. And we
-    /// want to do it because we have a fast path for regions that span a
-    /// single table.
-    func ignoringViews(_ db: Database) throws -> DatabaseRegion {
+    /// This method removes views (assuming no table exists with the same name
+    /// as a view).
+    private func canonicalTables(_ db: Database) throws -> DatabaseRegion {
         guard let tableRegions = tableRegions else { return .fullDatabase }
-        let mainViewNames = try db.schema(.main).names(ofType: .view)
-        let tempViewNames = try db.schema(.temp).names(ofType: .view)
-        let viewNames = mainViewNames.union(tempViewNames)
-        guard viewNames.isEmpty == false else { return self }
-        let filteredRegions = tableRegions.filter { viewNames.contains($0.key) == false }
-        return DatabaseRegion(tableRegions: filteredRegions)
+        var region = DatabaseRegion()
+        for (table, tableRegion) in tableRegions {
+            if let canonicalTableName = try db.canonicalTableName(table.rawValue) {
+                let table = CaseInsensitiveIdentifier(rawValue: canonicalTableName)
+                region.formUnion(DatabaseRegion(tableRegions: [table: tableRegion]))
+            }
+        }
+        return region
     }
     
     /// Returns a region which doesn't contain any SQLite internal table.
-    func ignoringInternalSQLiteTables() -> DatabaseRegion {
+    private func ignoringInternalSQLiteTables() -> DatabaseRegion {
         guard let tableRegions = tableRegions else { return .fullDatabase }
         let filteredRegions = tableRegions.filter {
-            !Database.isSQLiteInternalTable($0.key)
+            !Database.isSQLiteInternalTable($0.key.rawValue)
         }
         return DatabaseRegion(tableRegions: filteredRegions)
     }
@@ -194,7 +212,7 @@ extension DatabaseRegion {
             return true
         }
         
-        guard let tableRegion = tableRegions[event.tableName] else {
+        guard let tableRegion = tableRegions[CaseInsensitiveIdentifier(rawValue: event.tableName)] else {
             // FTS4 (and maybe other virtual tables) perform unadvertised
             // changes. For example, an "INSERT INTO document ..." statement
             // advertises an insertion in the `document` table, but the
@@ -242,11 +260,11 @@ extension DatabaseRegion {
             return "empty"
         }
         return tableRegions
-            .sorted(by: { (l, r) in l.key < r.key })
+            .sorted(by: { (l, r) in l.key.rawValue < r.key.rawValue })
             .map({ (table, tableRegion) in
-                var desc = table
+                var desc = table.rawValue
                 if let columns = tableRegion.columns {
-                    desc += "(" + columns.sorted().joined(separator: ",") + ")"
+                    desc += "(" + columns.map(\.rawValue).sorted().joined(separator: ",") + ")"
                 } else {
                     desc += "(*)"
                 }
@@ -260,7 +278,7 @@ extension DatabaseRegion {
 }
 
 private struct TableRegion: Equatable {
-    var columns: Set<String>? // nil means "all columns"
+    var columns: Set<CaseInsensitiveIdentifier>? // nil means "all columns"
     var rowIds: Set<Int64>? // nil means "all rowids"
     
     var isEmpty: Bool {
@@ -270,7 +288,7 @@ private struct TableRegion: Equatable {
     }
     
     func intersection(_ other: TableRegion) -> TableRegion {
-        let columnsIntersection: Set<String>?
+        let columnsIntersection: Set<CaseInsensitiveIdentifier>?
         switch (self.columns, other.columns) {
         case let (nil, columns), let (columns, nil):
             columnsIntersection = columns
@@ -290,7 +308,7 @@ private struct TableRegion: Equatable {
     }
     
     func union(_ other: TableRegion) -> TableRegion {
-        let columnsUnion: Set<String>?
+        let columnsUnion: Set<CaseInsensitiveIdentifier>?
         switch (self.columns, other.columns) {
         case (nil, _), (_, nil):
             columnsUnion = nil
