@@ -4755,6 +4755,9 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     ```swift
     // SELECT * FROM player WHERE (email LIKE '%@example.com')
     Player.filter(emailColumn.like("%@example.com"))
+    
+    // SELECT * FROM book WHERE (title LIKE '%10\%%' ESCAPE '\')
+    Player.filter(emailColumn.like("%10\\%%", escape: "\\"))
     ```
     
     > :point_up: **Note**: the SQLite LIKE operator is case-insensitive but not Unicode-aware. For example, the expression `'a' LIKE 'A'` is true but `'æ' LIKE 'Æ'` is false.
