@@ -1365,6 +1365,22 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.filter(Col.name.like("%foo") == false)),
             "SELECT * FROM \"readers\" WHERE (\"name\" LIKE '%foo') = 0")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.name.like("%foo", escape: "\\"))),
+            "SELECT * FROM \"readers\" WHERE \"name\" LIKE '%foo' ESCAPE '\\'")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!Col.name.like("%foo", escape: "\\"))),
+            "SELECT * FROM \"readers\" WHERE \"name\" NOT LIKE '%foo' ESCAPE '\\'")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.name.like("%foo", escape: "\\") == true)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" LIKE '%foo' ESCAPE '\\') = 1")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(Col.name.like("%foo", escape: "\\") == false)),
+            "SELECT * FROM \"readers\" WHERE (\"name\" LIKE '%foo' ESCAPE '\\') = 0")
     }
     
     

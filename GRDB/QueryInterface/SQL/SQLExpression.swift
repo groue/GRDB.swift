@@ -50,8 +50,13 @@ public struct SQLExpression {
         ///
         ///     <lhs> * <rhs>
         ///     <lhs> <= <rhs>
-        ///     <lhs> LIKE <rhs>
         indirect case binary(BinaryOperator, SQLExpression, SQLExpression)
+        
+        /// An escapable binary operator.
+        ///
+        ///     <lhs> LIKE <rhs>
+        ///     <lhs> LIKE <rhs> ESCAPE <escape>
+        indirect case escapableBinary(EscapableBinaryOperator, SQLExpression, SQLExpression, escape: SQLExpression?)
         
         /// An associative binary operator.
         ///
@@ -252,32 +257,17 @@ public struct SQLExpression {
     
     /// `BinaryOperator` is an SQLite binary operator, such as `>`, `=`, etc.
     ///
-    /// See also `AssociativeBinaryOperator` and `EqualityOperator`.
+    /// See also `AssociativeBinaryOperator`, `EqualityOperator`,
+    /// `EscapableBinaryOperator`.
     struct BinaryOperator: Hashable {
         /// The SQL operator
         let sql: String
         
-        /// The SQL for the negated operator, if any
-        let negatedSQL: String?
-        
         /// Creates a binary operator
         ///
         ///     BinaryOperator("-")
-        ///     BinaryOperator("LIKE", negated: "NOT LIKE")
-        init(_ sql: String, negated: String? = nil) {
+        init(_ sql: String) {
             self.sql = sql
-            self.negatedSQL = negated
-        }
-        
-        /// Returns the negated binary operator, if any
-        ///
-        ///     let operator = BinaryOperator("IS", negated: "IS NOT")
-        ///     operator.negated!.sql  // IS NOT
-        var negated: BinaryOperator? {
-            guard let negatedSQL = negatedSQL else {
-                return nil
-            }
-            return BinaryOperator(negatedSQL, negated: sql)
         }
         
         /// The `<` binary operator
@@ -298,11 +288,40 @@ public struct SQLExpression {
         /// The `/` binary operator
         static let divide = BinaryOperator("/")
         
-        /// The `LIKE` binary operator
-        static let like = BinaryOperator("LIKE", negated: "NOT LIKE")
-        
         /// The `MATCH` binary operator
         static let match = BinaryOperator("MATCH")
+    }
+    
+    /// `EscapableBinaryOperator` is an SQLite binary operator that accepts an
+    /// `ESCAPE` clause, such as `LIKE`, etc.
+    ///
+    /// See also `AssociativeBinaryOperator`, `EqualityOperator`,
+    /// `BinaryOperator`.
+    struct EscapableBinaryOperator {
+        /// The SQL operator
+        let sql: String
+        
+        /// The SQL for the negated operator
+        let negatedSQL: String
+        
+        /// Creates a binary operator
+        ///
+        ///     BinaryOperator("LIKE", negated: "NOT LIKE")
+        init(_ sql: String, negated: String) {
+            self.sql = sql
+            self.negatedSQL = negated
+        }
+        
+        /// Returns the negated binary operator, if any
+        ///
+        ///     let operator = BinaryOperator("LIKE", negated: "NOT LIKE")
+        ///     operator.negated!.sql  // NOT LIKE
+        var negated: EscapableBinaryOperator {
+            return EscapableBinaryOperator(negatedSQL, negated: sql)
+        }
+        
+        /// The `LIKE` escapable binary operator
+        static let like = EscapableBinaryOperator("LIKE", negated: "NOT LIKE")
     }
     
     /// `EqualityOperator` is an SQLite equality operator.
@@ -457,6 +476,20 @@ extension SQLExpression {
         } else {
             return self.init(impl: .binary(op, lhs, rhs))
         }
+    }
+    
+    /// An escapable binary operator.
+    ///
+    ///     <lhs> LIKE <rhs>
+    ///     <lhs> LIKE <rhs> ESCAPE <escape>
+    static func escapableBinary(
+        _ op: EscapableBinaryOperator,
+        _ lhs: SQLExpression,
+        _ rhs: SQLExpression,
+        escape: SQLExpression?)
+    -> Self
+    {
+        self.init(impl: .escapableBinary(op, lhs, rhs, escape: escape))
     }
     
     /// An associative binary operator.
@@ -825,6 +858,20 @@ extension SQLExpression {
                 \(op.sql) \
                 \(rhs.sql(context, wrappedInParenthesis: true))
                 """
+            if wrappedInParenthesis {
+                resultSQL = "(\(resultSQL))"
+            }
+            return resultSQL
+            
+        case let .escapableBinary(op, lhs, rhs, escape):
+            var resultSQL = try """
+                \(lhs.sql(context, wrappedInParenthesis: true)) \
+                \(op.sql) \
+                \(rhs.sql(context, wrappedInParenthesis: true))
+                """
+            if let escape = escape {
+                resultSQL += try " ESCAPE \(escape.sql(context, wrappedInParenthesis: true))"
+            }
             if wrappedInParenthesis {
                 resultSQL = "(\(resultSQL))"
             }
@@ -1216,7 +1263,7 @@ extension SQLExpression {
                     isNegated: !isNegated)
             }
             
-        case let .binary(op, lhs, rhs):
+        case let .escapableBinary(op, lhs, rhs, escape):
             switch test {
             case .true:
                 return .compare(.equal, self, true.sqlExpression)
@@ -1225,11 +1272,7 @@ extension SQLExpression {
                 return .compare(.equal, self, false.sqlExpression)
                 
             case .falsey:
-                if let negatedOp = op.negated {
-                    return .binary(negatedOp, lhs, rhs)
-                } else {
-                    return .not(self)
-                }
+                return .escapableBinary(op.negated, lhs, rhs, escape: escape)
             }
             
         case let .exists(subquery, isNegated: isNegated):
@@ -1401,6 +1444,13 @@ extension SQLExpression {
             
         case let .binary(op, lhs, rhs):
             return .binary(op, lhs.qualified(with: alias), rhs.qualified(with: alias))
+            
+        case let .escapableBinary(op, lhs, rhs, escape):
+            return .escapableBinary(
+                op,
+                lhs.qualified(with: alias),
+                rhs.qualified(with: alias),
+                escape: escape?.qualified(with: alias))
             
         case let .associativeBinary(op, expressions):
             return .associativeBinary(op, expressions.map { $0.qualified(with: alias) })

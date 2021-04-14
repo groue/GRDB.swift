@@ -8,6 +8,18 @@ configuration.prepareDatabase { db in
 }
 let dbQueue = DatabaseQueue(configuration: configuration)
 
+extension SQLSpecificExpressible {
+    func like(_ pattern: SQLExpressible, escape: SQLExpressible) -> SQLExpression {
+        SQL("\(self) LIKE \(pattern) ESCAPE \(escape)").sqlExpression
+    }
+}
+
+struct Player: Codable, FetchableRecord, PersistableRecord {
+    var id: Int64
+    var name: String
+    var score: Int
+}
+
 try! dbQueue.inDatabase { db in
     try db.create(table: "player") { t in
         t.autoIncrementedPrimaryKey("id")
@@ -15,9 +27,8 @@ try! dbQueue.inDatabase { db in
         t.column("score", .integer).notNull()
     }
     
-    try db.execute(sql: "INSERT INTO player (name, score) VALUES (?, ?)", arguments: ["Arthur", 1000])
-    try db.execute(sql: "INSERT INTO player (name, score) VALUES (?, ?)", arguments: ["Barbara", 1000])
+    try Player(id: 1, name: "toto 10% titi", score: 100).insert(db)
+    try Player(id: 2, name: "toto", score: 100).insert(db)
     
-    let names = try String.fetchAll(db, sql: "SELECT name FROM player")
-    print(names)
+    try Player.filter(Column("name").like("%10\\%%", escape: "\\")).fetchAll(db)
 }
