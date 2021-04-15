@@ -3,7 +3,7 @@ Why Adopt GRDB?
 
 This document aims at exposing why GRDB could become your favorite database library.
 
-We'll start with a few [core principles](#core-principles), so that you see where this library aims at. Then we'll see how GRDB [solves problems](#solving-problems) that developers often face when they use database libraries such as FMDB, FCModel, SQLite.swift, Core Data, or Realm.
+We'll start with a few [core principles](#core-principles), so that you see where this library aims at. Then we'll see how GRDB [solves problems](#solving-problems) that developers often face when they use database libraries such as FMDB, FCModel, SQLite.swift, Core Data, or Realm. And do not miss the list of [distinctive GRDB features](DistinctiveFeatures.md).
 
 
 ## Core Principles
