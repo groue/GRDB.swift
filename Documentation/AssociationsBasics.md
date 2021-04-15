@@ -857,10 +857,6 @@ Before we describe them in detail, let's see a few requests they can build:
 let request = Author
     .including(all: Author.books)
 
-/// All authors with their three most popular books
-let request = Author
-    .including(all: Author.books.order(Column("popularity").desc).limit(3))
-
 /// All authors with their awarded books
 let request = Author
     .including(all: Author.books.having(Book.awards.isEmpty == false))
@@ -1274,26 +1270,6 @@ To specify the default selection for all inclusions of a given type, see [Column
 ## Further Refinements to Associations
 
 Associations support more refinements:
-
-- `limit`
-    
-    Fetch all authors with their three most popular books:
-    
-    ```swift
-    struct AuthorInfo: FetchableRecord, Decodable {
-        var author: Author
-        var books: [Book]
-    }
-    
-    let mostPopularBooks = Author.books
-        .order(Column("popularity").desc)
-        .limit(3)
-    
-    let authorInfos: [AuthorInfo] = try Author
-        .including(all: mostPopularBooks)
-        .asRequest(of: AuthorInfo.self)
-        .fetchAll(db)
-    ```
 
 - `distinct`
     
