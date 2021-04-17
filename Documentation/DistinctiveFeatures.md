@@ -39,7 +39,7 @@ The [WAL mode](https://sqlite.org/wal.html) allows SQLite to support concurrent 
 
 GRDB not only supports the WAL mode (with [DatabasePool](../README.md#database-pools)), but you can write code that accept both WAL and non-WAL databases. Your tests or your SwiftUI previews can run in a fast non-WAL in-memory database, while your main application uses an efficient WAL database on disk.
 
-Many other toolkits do not support the WAL mode, or leave it as an exercise for the application developer.
+Many other toolkits do not support the WAL mode, or leave it as a (very hard) exercise for the application developer.
 
 ### To the point documentation
 
@@ -51,4 +51,4 @@ GRDB helps you focus on the two facets of your database work that that no one el
 
 All other SQLite subtleties are handled by default in the most safe manner by GRDB, and power users have all the escape hatches they need. Consider that all GRDB features used to live at application level before they were polished enough to enter the library. This means that features that are not available through ready-made GRDB APIs are generally available one level below, and that you're unlikely to face any wall.
 
-Many other toolkits leave too much hard work for the developers, or build impassable fences.
+Many other toolkits leave much hard work for the developers, or build impassable fences.
