@@ -489,6 +489,7 @@ myRequest(Player.select(...).filter(...))
 [FetchRequest]: #fetchrequest
 [Int, String, Date…]: #int-string-date
 [query interface]: ../README.md#the-query-interface
+[QueryInterfaceRequest]: #queryinterfacerequest
 [SQL]: #sql
 [SQL Interpolation]: SQLInterpolation.md
 [SQLExpression]: #sqlexpression
