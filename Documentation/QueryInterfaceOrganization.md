@@ -1,9 +1,9 @@
 Query Interface Organization
 ============================
 
-The query interface provides a type-safe approximation of the [SELECT statement grammar](https://sqlite.org/lang_select.html) through a hierarchy of values and protocols. This document exposes their relationships, so that you can leverage the most of them when you need it.
+The [query interface] provides a type-safe Swift API that approximates the [SQLite SELECT statement grammar](https://sqlite.org/lang_select.html) through a hierarchy of values and protocols. This document exposes their relationships, so that you can leverage the most of them when you need it.
 
-In the diagram below, rounded corners are for protocols. Generic types are marked as such, as well as "PATs" (protocols with associated types).
+In the diagram below, protocols have rounded corners. Generic types are marked as such, as well as "PATs" (protocols with associated types).
 
 <img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/QueryInterfaceOrganization.png" width="100%">
 
@@ -460,6 +460,7 @@ myRequest(Player.select(...).filter(...))
 [DerivableRequest]: #derivablerequest
 [FetchableRecord]: ../README.md#fetchablerecord-protocol
 [FetchRequest]: #fetchrequest
+[query interface]: ../README.md#the-query-interface
 [SQL]: #sql
 [SQL Interpolation]: SQLInterpolation.md
 [SQLExpression]: #sqlexpression
