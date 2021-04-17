@@ -4865,14 +4865,15 @@ When you spot an SQL function or operator that misses its Swift version, you can
 For example, you can add support for the `DATE` function, thanks to [SQL Interpolation]:
 
 ```swift
-func date(_ value: SQLExpressible) -> SQLExpression {
+func date(_ value: SQLSpecificExpressible) -> SQLExpression {
     SQL("DATE(\(value))").sqlExpression
 }
 
 // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
-let createdAt = Column("createdAt")
-let request = Player.filter(date(createdAt) == "2020-01-23")
+let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
 ```
+
+See the [Query Interface Organization] for more information about `SQLSpecificExpressible` and `SQLExpression`.
 
 
 ## Fetching from Requests
@@ -8346,3 +8347,4 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [SQLRequest]: http://groue.github.io/GRDB.swift/docs/5.7/Structs/SQLRequest.html
 [SQL literal]: Documentation/SQLInterpolation.md#sql-literal
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
+[Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
