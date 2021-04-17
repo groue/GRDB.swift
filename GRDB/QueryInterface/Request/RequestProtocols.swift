@@ -684,6 +684,9 @@ public protocol DerivableRequest: AggregatingRequest, FilteredRequest,
     ///     request = request.limit(10, offset: 20)
     ///
     /// Any previous limit is replaced.
+    ///
+    /// - warning: Avoid to call this method on associations: it is unlikely it
+    ///   does what you expect it to do. Only call it on requests.
     func limit(_ limit: Int, offset: Int?) -> Self
     
     /// Returns a request which embeds the common table expression.
@@ -727,6 +730,9 @@ extension DerivableRequest {
     ///     request = request.limit(1)
     ///
     /// Any previous limit is replaced.
+    ///
+    /// - warning: Avoid to call this method on associations: it is unlikely it
+    ///   does what you expect it to do. Only call it on requests.
     public func limit(_ limit: Int) -> Self {
         self.limit(limit, offset: nil)
     }
