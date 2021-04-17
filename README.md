@@ -4024,8 +4024,9 @@ So don't miss the [SQL API](#sqlite-api).
 - [Delete Requests](#delete-requests)
 - [Update Requests](#update-requests)
 - [Custom Requests](#custom-requests)
-- [Associations and Joins](Documentation/AssociationsBasics.md)
-- [Common Table Expressions]
+- :blue_book: [Associations and Joins](Documentation/AssociationsBasics.md)
+- :blue_book: [Common Table Expressions]
+- :blue_book: [Query Interface Organization]
 
 
 ## Database Schema
@@ -5512,8 +5513,8 @@ GRDB puts this SQLite feature to some good use, and lets you observe the databas
 - [ValueObservation]: Track changes of database values.
 - [DatabaseRegionObservation]: Tracking transactions that impact a database region.
 - [TransactionObserver Protocol](#transactionobserver-protocol): Low-level database observation.
-- [Combine Support]: Automated tracking of database changes, with [Combine].
-- [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
+- :blue_book: [Combine Support]: Automated tracking of database changes, with [Combine].
+- :blue_book: [RxGRDB]: Automated tracking of database changes, with [RxSwift](https://github.com/ReactiveX/RxSwift).
 
 Database observation requires that a single [database queue](#database-queues) or [pool](#database-pools) is kept open for all the duration of the database usage.
 
@@ -5591,7 +5592,7 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
 - [ValueObservation Scheduling](#valueobservation-scheduling)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Performance](#valueobservation-performance)
-- [Combine Publisher](Documentation/Combine.md#database-observation)
+- :blue_book: [Combine Publisher](Documentation/Combine.md#database-observation)
 
 ### ValueObservation Usage
 
@@ -7198,7 +7199,7 @@ You can catch those errors and wait for [UIApplicationDelegate.applicationProtec
 - [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
 - [Asynchronous APIs](#asynchronous-apis)
 - [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
-- [Sharing a Database]
+- :blue_book: [Sharing a Database]
 
 
 ### Guarantees and Rules
