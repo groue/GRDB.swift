@@ -17,7 +17,7 @@ GRDB can [observe database changes](../README.md#database-changes-observation). 
 
 This makes it easy, for example, to keep your application views up-to-date. All the Combine or RxSwift tooling you may expect is ready-made.
 
-Most other toolkits can not observe the database, or will not notice changes performed with low-level database accesses.
+Many other toolkits can not observe the database, or will not notice changes performed with low-level database accesses.
 
 ### No base Record type, no property wrappers, no keypath-based queries
 
