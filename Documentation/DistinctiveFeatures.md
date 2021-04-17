@@ -7,7 +7,7 @@ This page highlights some of the characteristics of GRDB that are unusual, and m
 
 GRDB accepts all database schemas. There is no constraint on the structure of tables, views, primary, secondary and foreign keys, SQL triggers, etc. Your modelling and SQLite skills are welcomed: GRDB fosters robust database schemas that fit your application needs, able to outlive your Swift code.
 
-Many other toolkits put restrictions on your database schemas, such as enforcing a key-value store, or requiring a single-column primary when it makes no sense.
+Many other toolkits put restrictions on your database schemas, such as enforcing a key-value store, or requiring a single-column primary key when you do not want it.
 
 ### Database Observation
 
