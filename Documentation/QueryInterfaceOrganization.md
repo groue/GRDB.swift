@@ -17,6 +17,7 @@ Diagram items are described below:
 - [DerivableRequest]
 - [FetchRequest]
 - [Int, String, Date…]
+- [QueryInterfaceRequest]
 - [SQL]
 - [SQLExpression]
 - [SQLExpressible]
