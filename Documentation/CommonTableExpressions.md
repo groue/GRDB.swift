@@ -50,7 +50,7 @@ let playerNameCTE = CommonTableExpression(
     literal: "SELECT \(name)")
 
 // WITH playerName AS (SELECT 'O''Brien') ...
-let request: SQLRequest = "SELECT \(name)"
+let request = SQLRequest("SELECT \(name)")
 let playerNameCTE = CommonTableExpression(
     named: "playerName",
     request: request)

@@ -4582,7 +4582,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Player.filter(scoreColumn == maximumScore)
     
     // SELECT * FROM player WHERE score = (SELECT max(score) FROM player)
-    let maximumScore: SQLRequest = "SELECT max(score) FROM player"
+    let maximumScore = SQLRequest("SELECT max(score) FROM player")
     Player.filter(scoreColumn == maximumScore)
     ```
     
@@ -4689,7 +4689,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     Player.filter(selectedPlayerIds.contains(idColumn))
     
     // SELECT * FROM player WHERE id IN (SELECT playerId FROM playerSelection)
-    let selectedPlayerIds: SQLRequest = "SELECT playerId FROM playerSelection"
+    let selectedPlayerIds = SQLRequest("SELECT playerId FROM playerSelection")
     Player.filter(selectedPlayerIds.contains(idColumn))
     ```
     
