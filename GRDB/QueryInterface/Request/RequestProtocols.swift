@@ -687,6 +687,8 @@ public protocol DerivableRequest: AggregatingRequest, FilteredRequest,
     ///
     /// - warning: Avoid to call this method on associations: it is unlikely it
     ///   does what you expect it to do. Only call it on requests.
+    ///
+    /// :nodoc:
     func limit(_ limit: Int, offset: Int?) -> Self
     
     /// Returns a request which embeds the common table expression.
@@ -733,6 +735,8 @@ extension DerivableRequest {
     ///
     /// - warning: Avoid to call this method on associations: it is unlikely it
     ///   does what you expect it to do. Only call it on requests.
+    ///
+    /// :nodoc:
     public func limit(_ limit: Int) -> Self {
         self.limit(limit, offset: nil)
     }
