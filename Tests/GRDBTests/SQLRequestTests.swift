@@ -6,7 +6,7 @@ class SQLRequestTests: GRDBTestCase {
     func testSQLRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(sql: "SELECT 1")
+            let request = SQLRequest(sql: "SELECT 1")
             let preparedRequest = try request.makePreparedRequest(db, forSingleResult: false)
             XCTAssertEqual(preparedRequest.statement.sql, "SELECT 1")
             XCTAssertNil(preparedRequest.adapter)
@@ -30,7 +30,7 @@ class SQLRequestTests: GRDBTestCase {
     func testNotCachedSQLRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(sql: "SELECT 1")
+            let request = SQLRequest(sql: "SELECT 1")
             let preparedRequest1 = try request.makePreparedRequest(db, forSingleResult: false)
             let preparedRequest2 = try request.makePreparedRequest(db, forSingleResult: false)
             XCTAssertTrue(preparedRequest1.statement !== preparedRequest2.statement)
@@ -40,7 +40,7 @@ class SQLRequestTests: GRDBTestCase {
     func testCachedSQLRequest() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let request = SQLRequest<Row>(sql: "SELECT 1", cached: true)
+            let request = SQLRequest(sql: "SELECT 1", cached: true)
             let preparedRequest1 = try request.makePreparedRequest(db, forSingleResult: false)
             let preparedRequest2 = try request.makePreparedRequest(db, forSingleResult: false)
             XCTAssertTrue(preparedRequest1.statement === preparedRequest2.statement)

@@ -18,6 +18,19 @@ public struct SQLRequest<RowDecoder> {
     private(set) var sqlLiteral: SQL
     let cache: Cache?
     
+    private init(
+        literal sqlLiteral: SQL,
+        adapter: RowAdapter?,
+        fromCache cache: Cache?,
+        type: RowDecoder.Type)
+    {
+        self.sqlLiteral = sqlLiteral
+        self.adapter = adapter
+        self.cache = cache
+    }
+}
+
+extension SQLRequest {
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///
@@ -44,7 +57,8 @@ public struct SQLRequest<RowDecoder> {
         self.init(
             literal: SQL(sql: sql, arguments: arguments),
             adapter: adapter,
-            fromCache: cached ? .public : nil)
+            fromCache: cached ? .public : nil,
+            type: RowDecoder.self)
     }
     
     /// Creates a request from an `SQL` literal, and optional row adapter.
@@ -64,13 +78,64 @@ public struct SQLRequest<RowDecoder> {
     ///       prepared statement.
     /// - returns: A SQLRequest
     public init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, cached: Bool = false) {
-        self.init(literal: sqlLiteral, adapter: adapter, fromCache: cached ? .public : nil)
+        self.init(
+            literal: sqlLiteral,
+            adapter: adapter,
+            fromCache: cached ? .public : nil,
+            type: RowDecoder.self)
+    }
+}
+
+extension SQLRequest where RowDecoder == Row {
+    /// Creates a request from an SQL string, optional arguments, and
+    /// optional row adapter.
+    ///
+    ///     let request = SQLRequest(sql: """
+    ///         SELECT * FROM player WHERE id = ?
+    ///         """, arguments: [1])
+    ///
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    ///     - adapter: Optional RowAdapter.
+    ///     - cached: Defaults to false. If true, the request reuses a cached
+    ///       prepared statement.
+    /// - returns: A SQLRequest
+    public init(
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        adapter: RowAdapter? = nil,
+        cached: Bool = false)
+    {
+        self.init(
+            literal: SQL(sql: sql, arguments: arguments),
+            adapter: adapter,
+            fromCache: cached ? .public : nil,
+            type: Row.self)
     }
     
-    init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, fromCache cache: Cache?) {
-        self.sqlLiteral = sqlLiteral
-        self.adapter = adapter
-        self.cache = cache
+    /// Creates a request from an `SQL` literal, and optional row adapter.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     let name = "O'brien"
+    ///     let request = SQLRequest(literal: """
+    ///         SELECT * FROM player WHERE name = \(name)
+    ///         """)
+    ///
+    /// - parameters:
+    ///     - sqlLiteral: An `SQL` literal.
+    ///     - adapter: Optional RowAdapter.
+    ///     - cached: Defaults to false. If true, the request reuses a cached
+    ///       prepared statement.
+    /// - returns: A SQLRequest
+    public init(literal sqlLiteral: SQL, adapter: RowAdapter? = nil, cached: Bool = false) {
+        self.init(
+            literal: sqlLiteral,
+            adapter: adapter,
+            fromCache: cached ? .public : nil,
+            type: Row.self)
     }
 }
 
