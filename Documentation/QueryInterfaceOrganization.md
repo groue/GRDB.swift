@@ -81,21 +81,27 @@ let row = try Row.fetchOne(db, sql: "SELECT 'Arthur' AS name")!
 let name: String = row[Column("name")] // "Arthur"
 ```
 
-Columns are a special kind of expression that allow some optimizations and niceties:
+Columns are special expressions that allow some optimizations and niceties:
 
-- Database observation: When a request is limited to a known list of rowids in a database table, changes applied to other rows do not trigger the observation:
+- Database observation: When a request is limited to a known list of rowids in a database table, changes applied to other rows do not trigger the observation. GRDB needs column expressions in order to apply this optimization:
     
     ```swift
-    // Optimized Observation
-    ValueObservation.tracking { try Player.fetchOne($0, id: 1) }
-    ValueObservation.tracking { try Player.filter(Column("id") == 1).fetchOne(db) }
+    // Optimized Observations
+    ValueObservation.tracking { db in
+        try Player.fetchOne(db, id: 1)
+        // or
+        try Player.filter(Column("id") == 1).fetchOne(db)
+    }
     
-    // Non-optimized observation
-    ValueObservation.tracking { try SQLRequest<Player>("SELECT * FROM player WHERE id = 1").fetchOne(db) }
-    ValueObservation.tracking { try Player.filter(sql: "id = 1").fetchOne(db) }
+    // Non-optimized observations
+    ValueObservation.tracking { db in
+        try SQLRequest<Player>("SELECT * FROM player WHERE id = 1").fetchOne(db)
+        // or
+        try Player.filter(sql: "id = 1").fetchOne(db)
+    }
     ```
     
--  SQL generation: GRDB appends `LIMIT 1` or not to the generated SQL queries, depending on the primary key and unique indexes used on the queried table:
+-  SQL generation: when it generates SQL queries, GRDB appends `LIMIT 1` or not, depending on the primary key and unique indexes used on the queried table. GRDB needs column expressions in order to improve its SQL generation:
     
     ```swift
     // Nicer SQL
