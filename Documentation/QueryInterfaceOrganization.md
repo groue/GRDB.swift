@@ -18,6 +18,7 @@ Diagram items are described below:
 - [DerivableRequest]
 - [FetchableRecord]
 - [FetchRequest]
+- [Int, String, Date…]
 - [SQL]
 - [SQLExpression]
 - [SQLExpressible]
@@ -486,6 +487,7 @@ myRequest(Player.select(...).filter(...))
 [DerivableRequest]: #derivablerequest
 [FetchableRecord]: ../README.md#fetchablerecord-protocol
 [FetchRequest]: #fetchrequest
+[Int, String, Date…]: #int-string-date
 [query interface]: ../README.md#the-query-interface
 [SQL]: #sql
 [SQL Interpolation]: SQLInterpolation.md
