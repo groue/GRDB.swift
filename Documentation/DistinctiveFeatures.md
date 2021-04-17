@@ -5,17 +5,15 @@ This page highlights some of the characteristics of GRDB that are unusual, and m
 
 ### Schema Freedom
 
-GRDB accepts all SQLite schemas. There is no constraint on the structure of tables, their primary keys, foreign keys, SQL triggers, etc. This allows you to leverage your modelling and SQLite skills without any limit.
+GRDB accepts all database schemas. There is no constraint on the structure of tables, views, primary, secondary and foreign keys, SQL triggers, etc. Your modelling and SQLite skills are welcomed: GRDB fosters robust database schemas that fit your application needs, able to outlive your Swift code.
 
-If you are not yet familiar with the relational model or database normalization, no problem: GRDB is a great opportunity to strengthen your database skills. You will ship robust database schemas that fit your application needs, able to outlive your Swift code.
-
-Many other toolkits want to control your database schema, such as requiring a single-column primary key even when it makes no sense.
+Many other toolkits put restrictions on your database schemas, such as enforcing a key-value store, or requiring a single-column primary when it makes no sense.
 
 ### Database Observation
 
-GRDB can [observe database changes](../README.md#database-changes-observation). Observation is entirely implemented on top of SQLite-level features, and this allows GRDB to notify changes performed through its high-level Swift APIs, through raw SQL, and even indirect changes that happen through foreign keys actions or SQL triggers.
+GRDB can [observe database changes](../README.md#database-changes-observation). This makes it easy, for example, to keep your application views up-to-date. All the Combine or RxSwift tooling you expect is ready-made.
 
-This makes it easy, for example, to keep your application views up-to-date. All the Combine or RxSwift tooling you may expect is ready-made.
+Observation is entirely implemented on top of SQLite-level features, and this allows GRDB to notify changes performed through its high-level Swift APIs, through raw SQL, and even indirect changes that happen through foreign keys actions or SQL triggers.
 
 Many other toolkits can not observe the database, or will not notice changes performed with low-level database accesses.
 
@@ -25,11 +23,11 @@ GRDB can turn any Swift type into a [record type](../README.md#records) that can
 
 Because record types do not have to derive from a base class, you can leverage `struct` immutability if you want it.
 
-Because GRDB does not need keypaths or property wrappers to generate SQL queries, you can freely design your properties, and perform as much [information hiding](https://en.wikipedia.org/wiki/Information_hiding) as needed.
+Because GRDB does not need keypaths or property wrappers to generate SQL queries, you can freely design your record properties, and perform as much [information hiding](https://en.wikipedia.org/wiki/Information_hiding) as needed.
 
-Some other toolkits make a liberal use of base classes, mandatory property wrappers, or keypaths. I think this creates an unnecessary dependency on database-level implementation details, which is better avoided when possible (and it is possible).
+Some other toolkits make a liberal use of base classes, mandatory property wrappers, or keypaths. This creates an unnecessary dependency on database-level implementation details, which is better avoided when possible (and it is possible).
 
-### Performance
+### Convenience and Performance: pick both
 
 GRDB leverages the standard [Codable](https://developer.apple.com/documentation/foundation/archives_and_serialization/encoding_and_decoding_custom_types) protocol because it is quite handy. However when one looks after sheer performance, GRDB makes it possible to avoid all the slow runtime machinery of Codable, and run as close to the SQL metal as possible.
 
