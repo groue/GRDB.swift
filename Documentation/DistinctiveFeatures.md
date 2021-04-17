@@ -25,7 +25,7 @@ Because record types do not have to derive from a base class, you can leverage `
 
 Because GRDB does not need keypaths or property wrappers to generate SQL queries, you can freely design your record properties, and perform as much [information hiding](https://en.wikipedia.org/wiki/Information_hiding) as needed.
 
-Some other toolkits make a liberal use of base classes, mandatory property wrappers, or keypaths. This creates an unnecessary dependency on database-level implementation details, which is better avoided when possible (and it is possible).
+Some other toolkits make a liberal use of base classes, mandatory property wrappers, or keypaths. This creates a dependency on database-level implementation details and blurs the line between the application and its database.
 
 ### Convenience and Performance: pick both
 
