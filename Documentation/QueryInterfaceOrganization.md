@@ -7,6 +7,31 @@ In the diagram below, protocols have rounded corners. Generic types are marked a
 
 <img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/QueryInterfaceOrganization.png" width="100%">
 
+Diagram items are described below:
+
+- [Association]
+- [Column]
+- [ColumnExpression]
+- [DatabaseRegionConvertible]
+- [DatabaseRegionObservation]
+- [DatabaseValueConvertible]
+- [DerivableRequest]
+- [FetchableRecord]
+- [FetchRequest]
+- [SQL]
+- [SQLExpression]
+- [SQLExpressible]
+- [SQLOrderingTerm]
+- [SQLOrdering]
+- [SQLRequest]
+- [SQLSelectable]
+- [SQLSelection]
+- [SQLSpecificExpressible]
+- [SQLSubquery]
+- [SQLSubqueryable]
+
+---
+
 ### Association
 
 `Association` is the protocol for all [associations]. It is adopted by `BelongsToAssociation`, `HasManyAssociation`, etc. It conforms to [DerivableRequest].
@@ -18,14 +43,14 @@ protocol Association: DerivableRequest {
 }
 ```
 
-Association has two sub-protocol:
+Association has two sub-protocols:
 
 ```swift
 protocol AssociationToOne: Association { }
 protocol AssociationToMany: Association { }
 ```
 
-`AssociationToMany`, adopted by `HasManyAssociation` and `HasManyThroughAssociation`, leveraged [association aggregates].
+`AssociationToMany`, adopted by `HasManyAssociation` and `HasManyThroughAssociation`, leverages [association aggregates].
 
 ### Column
 
@@ -450,6 +475,7 @@ myRequest(SQLRequest("SELECT ..."))
 myRequest(Player.select(...).filter(...))
 ```
 
+[Association]: #association
 [associations]: AssociationsBasics.md
 [association aggregates]: AssociationsBasics.md#association-aggregates
 [Column]: #column
