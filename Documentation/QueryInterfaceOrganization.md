@@ -5,7 +5,7 @@ The [query interface] provides a type-safe Swift API that approximates the [SQLi
 
 In the diagram below, protocols have rounded corners. Generic types are marked as such, as well as "PATs" (protocols with associated types).
 
-<img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/QueryInterfaceOrganization.png" width="100%">
+<img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/QueryInterfaceOrganization2.png" width="100%">
 
 Diagram items are described below:
 
