@@ -64,7 +64,6 @@ See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your
 
 GRDB ships with:
 
-- **[Distinctive Features](Documentation/DistinctiveFeatures.md)**
 - [Access to raw SQL and SQLite](#sqlite-api)
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
 - [Query Interface](#the-query-interface): A swift way to avoid the SQL language.
