@@ -193,7 +193,7 @@ protocol DerivableRequest: AggregatingRequest, FilteredRequest,
 - `SelectionRequest` provides selection methods such as `select(selection)` or `annotated(with: selection)`
 - `TableRequest` provides table targeting methods such as `aliased(tableAlias)`
 
-DerivableRequest makes it possible to build reusable code snippets that apply to both requests and associations. You'll read more about it in the [Good Practices for Designing Record Types](GoodPracticesForDesigningRecordTypes.md).
+DerivableRequest makes it possible to build reusable code snippets that apply to both requests and associations. You'll read more about it in the [Good Practices for Designing Record Types](GoodPracticesForDesigningRecordTypes.md) and [Associations](AssociationsBasics.md).
 
 ### FetchRequest
 
