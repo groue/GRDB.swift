@@ -274,9 +274,14 @@ struct PlayerInfo: Decodable, FetchableRecord {
     var awards: [Award]
 }
 
-let playerRequest = Player.all()                                 // QueryInterfaceRequest<Player>
-let nameRequest = Player.select(Column("name"), as: String.self) // QueryInterfaceRequest<String>
-let playerInfoRequest = Player                                   // QueryInterfaceRequest<PlayerInfo>
+// QueryInterfaceRequest<Player>
+let playerRequest = Player.all()
+
+// QueryInterfaceRequest<String>
+let nameRequest = Player.select(Column("name"), as: String.self)
+
+// QueryInterfaceRequest<PlayerInfo>
+let playerInfoRequest = Player
     .including(all: Player.awards)
     .asRequest(of: PlayerInfo.self)
 
@@ -284,6 +289,8 @@ try playerRequest.fetchAll(db)     // [Player]
 try nameRequest.fetchAll(db)       // [String]
 try playerInfoRequest.fetchAll(db) // [PlayerInfo]
 ```
+
+For more information on QueryInterfaceRequest, see [Requests](../README.md#requests) and [Associations](AssociationsBasics.md).
 
 ### SQL
 
