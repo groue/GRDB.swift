@@ -327,7 +327,7 @@ struct SQLExpression: SQLSpecificExpressible {
 }
 ```
 
-GRDB functions and methods that build an SQL expression should return an SQLExpression value:
+Functions and methods that build an SQL expression should return an SQLExpression value:
 
 ```swift
 // SELECT * FROM player WHERE LENGTH(name) > 0
