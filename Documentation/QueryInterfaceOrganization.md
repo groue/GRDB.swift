@@ -13,6 +13,7 @@ Diagram items are described below:
 - [Column]
 - [ColumnExpression]
 - [DatabaseRegionConvertible]
+- [DatabaseValue]
 - [DatabaseValueConvertible]
 - [DerivableRequest]
 - [FetchRequest]
@@ -134,10 +135,32 @@ let observer = try observation.start(in: dbQueue) { (db: Database) in
 }
 ```
 
+### DatabaseValue
+
+`DatabaseValue` is the type for SQL values (integers, doubles, strings, blobs, and NULL). It conforms to [SQLSpecificExpressible].
+
+You generally build a DatabaseValue from a [DatabaseValueConvertible] type:
+
+```swift
+1.databaseValue
+"Hello".databaseValue
+DatabaseValue.null
+```
+
+The query interface will sometimes not accept raw [SQLExpressible] values such as [Int, String, Date], etc. In this case, turn those values into DatabaseValue so that you leverage APIs that need [SQLSpecificExpressible]. For example:
+
+```swift
+// SQL: firstName || ' ' || lastName
+let fullname = [
+    Column("firstName"), 
+    " ".databaseValue,
+    Column("lastName"),
+    ].joined(operator: .concat)
+```
 
 ### DatabaseValueConvertible
 
-`DatabaseValueConvertible` is the protocol for types that can provide SQL values (integers, doubles, strings, blobs, and NULL). It is adopted by Int, String, Date, etc. It conforms to [SQLExpressible] because all SQL values are SQL expressions.
+`DatabaseValueConvertible` is the protocol for types that can provide SQL [DatabaseValue]: integers, doubles, strings, blobs, and NULL. It is adopted by [Int, String, Date], etc. It conforms to [SQLExpressible] because all SQL values are SQL expressions.
 
 ```swift
 protocol DatabaseValueConvertible: SQLExpressible {
@@ -231,7 +254,7 @@ Those supplementary SQL queries are an implementation detail of `PreparedRequest
 
 ### Int, String, Date…
 
-The basic value types conform to [DatabaseValueConvertible] so that they can feed database queries with values:
+The basic value types conform to [DatabaseValueConvertible] so that they can feed database queries with [DatabaseValue]:
 
 ```swift
 // SELECT * FROM player WHERE name = 'O''Brien'
@@ -318,7 +341,7 @@ let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
 
 ### SQLExpressible
 
-`SQLExpressible` is the protocol for all [SQL expressions](https://sqlite.org/syntax/expr.html). It is adopted by [Column], [SQL], [SQLExpression], and also Int, String, Date, etc. It has an `sqlExpression` property which returns an [SQLExpression].
+`SQLExpressible` is the protocol for all [SQL expressions](https://sqlite.org/syntax/expr.html). It is adopted by [Column], [SQL], [SQLExpression], and also [Int, String, Date], etc. It has an `sqlExpression` property which returns an [SQLExpression].
 
 ```swift
 protocol SQLExpressible {
@@ -326,7 +349,7 @@ protocol SQLExpressible {
 }
 ```
 
-SQLExpressible-conforming types include types which are not directly related to SQL, such as Int, String, Date, etc. Because of this, SQLExpressible has limited powers that prevent misuses and API pollution. For full-fledged expressions, see [SQLSpecificExpressible]. For example, compare:
+SQLExpressible-conforming types include types which are not directly related to SQL, such as [Int, String, Date], etc. Because of this, SQLExpressible has limited powers that prevent misuses and API pollution. For full-fledged SQL expressions, see [SQLSpecificExpressible]. For example, compare:
 
 ```swift
 Player.filter(1)     // Compiler warning (will become an error in the next major release)
@@ -435,7 +458,7 @@ Functions and methods that build result columns should return an SQLSelection va
 
 ### SQLSpecificExpressible
 
-`SQLSpecificExpressible` is the protocol for all SQL expressions, but values such as Int, String, Date, etc. It conforms to [SQLExpressible], [SQLSelectable], and [SQLOrderingTerm]. It is adopted by [Column], [SQL], and [SQLExpression]. It is also adopted through [SQLSubqueryable] by [QueryInterfaceRequest] and [SQLRequest].
+`SQLSpecificExpressible` is the protocol for all SQL expressions, except values such as [Int, String, Date], etc. It conforms to [SQLExpressible], [SQLSelectable], and [SQLOrderingTerm]. It is adopted by [Column], [SQL], and [SQLExpression]. It is also adopted through [SQLSubqueryable] by [QueryInterfaceRequest] and [SQLRequest].
 
 ```swift
 protocol SQLSpecificExpressible: SQLExpressible, SQLSelectable, SQLOrderingTerm { }
@@ -488,11 +511,13 @@ myRequest(Player.select(...).filter(...))
 [ColumnExpression]: #columnexpression
 [DatabaseRegionConvertible]: #databaseregionconvertible
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
+[DatabaseValue]: #databasevalue
 [DatabaseValueConvertible]: #databasevalueconvertible
 [DerivableRequest]: #derivablerequest
 [FetchableRecord]: ../README.md#fetchablerecord-protocol
 [FetchRequest]: #fetchrequest
 [Int, String, Date…]: #int-string-date
+[Int, String, Date]: #int-string-date
 [query interface]: ../README.md#the-query-interface
 [QueryInterfaceRequest]: #queryinterfacerequest
 [SQL]: #sql
