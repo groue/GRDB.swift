@@ -297,7 +297,7 @@ let request = Player.filter(literal)
 let players: [Player] = try request.fetchAll(db)
 ```
 
-:warning: **Warning**: Not all SQL snippets are expressions, though. It is not recommended to pass `SQL` literals around, or you may end up running invalid SQL. Instead, return an explicit [SQLExpression], [SQLOrdering], [SQLSelection], [SQLRequest], or [SQLSubquery], depending on what you want to express:
+:warning: **Warning**: Not all SQL snippets are expressions. It is not recommended to pass `SQL` literals around, or you may end up forgetting their content, and eventually generate invalid SQL. When possible, prefer building an explicit [SQLExpression], [SQLOrdering], [SQLSelection], [SQLRequest], or [SQLSubquery], depending on what you want to express:
 
 ```swift
 // SQLExpression
