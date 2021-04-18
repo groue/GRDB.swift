@@ -269,14 +269,20 @@ Player.filter(Column("name") == "O'Brien")
 It is generic on the type of fetched values:
 
 ```swift
+struct PlayerInfo: Decodable, FetchableRecord {
+    var player: Player
+    var awards: [Award]
+}
+
 let playerRequest = Player.all()                                 // QueryInterfaceRequest<Player>
 let nameRequest = Player.select(Column("name"), as: String.self) // QueryInterfaceRequest<String>
+let playerInfoRequest = Player                                   // QueryInterfaceRequest<PlayerInfo>
+    .including(all: Player.awards)
+    .asRequest(of: PlayerInfo.self)
 
-try playerRequest.fetchAll(db) // [Player]
-try nameRequest.fetchAll(db)   // [String]
-
-try playerRequest.fetchOne(db) // Player?
-try nameRequest.fetchOne(db)   // String?
+try playerRequest.fetchAll(db)     // [Player]
+try nameRequest.fetchAll(db)       // [String]
+try playerInfoRequest.fetchAll(db) // [PlayerInfo]
 ```
 
 ### SQL
