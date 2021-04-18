@@ -335,15 +335,26 @@ let expression = length(Column("name")) > 0 // SQLExpression
 Player.filter(expression)
 ```
 
-When it looks like GRDB APIs are unable to build a particular expression, fallback to raw [SQL]:
+When it looks like GRDB APIs are unable to build a particular expression, use [SQL]:
 
 ```swift
 func date(_ value: SQLSpecificExpressible) -> SQLExpression {
     SQL("DATE(\(value))").sqlExpression
 }
 
-// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+// SELECT * FROM player WHERE DATE(createdAt) = '2020-01-23'
 let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+```
+
+This technique, based on [SQL Interpolation], is composable and works well even when several tables are involved. See how the `createdAt` column below is correctly attributed to the `player` table:
+
+```swift
+// SELECT player.*, team.* FROM player
+// JOIN team ON team.id = player.teamId
+// WHERE DATE(player.createdAt) = '2020-01-23'
+let request = Player
+    .filter(date(Column("createdAt")) == "2020-01-23")
+    .including(required: Player.team)
 ```
 
 ### SQLExpressible
