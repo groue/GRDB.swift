@@ -160,7 +160,7 @@ let fullname = [
 
 ### DatabaseValueConvertible
 
-`DatabaseValueConvertible` is the protocol for types that can provide SQL [DatabaseValue]: integers, doubles, strings, blobs, and NULL. It is adopted by [Int, String, Date], etc. It conforms to [SQLExpressible] because all SQL values are SQL expressions.
+`DatabaseValueConvertible` is the protocol for types that can provide [DatabaseValue]: SQL integers, doubles, strings, blobs, and NULL. It is adopted by [Int, String, Date], etc. It conforms to [SQLExpressible] because all SQL values are SQL expressions.
 
 ```swift
 protocol DatabaseValueConvertible: SQLExpressible {
