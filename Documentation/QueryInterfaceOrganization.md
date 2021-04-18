@@ -399,7 +399,11 @@ protocol SQLOrderingTerm {
 SQLOrderingTerm feeds the `order()` method of the query interface:
 
 ```swift
-Player.order(Column("score").desc, Column("name"))
+// SELECT * FROM player
+// ORDER BY score DESC, name COLLATE ...
+Player.order(
+    Column("score").desc, 
+    Column("name").collating(.localizedCaseInsensitiveCompare))
 ```
 
 All [SQLSpecificExpressible] values are ordering terms. [SQLExpressible] values are not: `Player.order("name")` does not compile. Instead, use:
