@@ -402,6 +402,16 @@ SQLOrderingTerm feeds the `order()` method of the query interface:
 Player.order(Column("score").desc, Column("name"))
 ```
 
+All [SQLSpecificExpressible] values are ordering terms. [SQLExpressible] values are not: `Player.order("name")` does not compile. Instead, use:
+
+```swift
+// SELECT * FROM player ORDER BY name   -- Order according to a column
+Player.order(Column("name"))
+
+// SELECT * FROM player ORDER BY 'name' -- Order according to a constant string (why not)
+Player.order("name".databaseValue)
+```
+
 ### SQLOrdering
 
 `SQLOrdering` is the opaque type for all [SQLite ordering terms](https://sqlite.org/syntax/ordering-term.html). An SQLOrdering adopts and is built from [SQLOrderingTerm].
@@ -470,6 +480,26 @@ SQLSelectable feeds the `select()` method of the query interface:
 ```swift
 Player.select(AllColumns())
 Player.select(Column("name"), Column("score"))
+```
+
+All [SQLSpecificExpressible] values are selectable. Other selectable values are:
+
+```swift
+// SELECT * FROM player
+Player.select(AllColumns())
+
+// SELECT MAX(score) AS maxScore FROM player
+Player.select(max(Column("score")).forKey("maxScore"))
+```
+
+[SQLExpressible] values are not selectable: `Player.select("name")` does not compile. Instead, use:
+
+```swift
+// SELECT name FROM player   -- Selects a column
+Player.select(Column("name"))
+
+// SELECT 'name' FROM player -- Selects a constant string (why not)
+Player.select("name".databaseValue)
 ```
 
 ### SQLSelection
