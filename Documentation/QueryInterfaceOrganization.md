@@ -528,9 +528,7 @@ Player.select(selection)
 protocol SQLSpecificExpressible: SQLExpressible, SQLSelectable, SQLOrderingTerm { }
 ```
 
-Use SQLSpecificExpressible when you want to operate on expressions without accepting types which are not directly related to SQL.
-
-For example, the `length(_:)` GRDB function accepts SQLSpecificExpressible:
+Use SQLSpecificExpressible when you want to operate on expressions, except [Int, String, Date] and other types which are not directly related to SQL. For example, the built-in `length(_:)` GRDB function accepts SQLSpecificExpressible:
 
 ```swift
 /// The LENGTH SQL function
