@@ -1,7 +1,7 @@
 Query Interface Organization
 ============================
 
-The [query interface] provides a type-safe Swift API that approximates the [SQLite SELECT statement grammar](https://sqlite.org/lang_select.html) through a hierarchy of values and protocols. This document exposes their relationships, so that you can leverage the most of them when you need it.
+The [query interface] provides a type-safe Swift API that approximates the [SQLite SELECT query grammar](https://sqlite.org/lang_select.html) through a hierarchy of values and protocols. This document exposes their relationships, so that you can leverage the most of them when you need it.
 
 In the diagram below, protocols have rounded corners. Generic types are marked as such, as well as "PATs" (protocols with associated types).
 
@@ -289,7 +289,7 @@ let request = SQLRequest<Player>(literal: literal)
 let players: [Player] = try request.fetchAll(db)
 ```
 
-`SQL` conforms to [SQLSpecificExpressible], and thus behaves as an [SQL expression](https://sqlite.org/syntax/expr.html) by default:
+`SQL` conforms to [SQLSpecificExpressible], and thus behaves as an [SQLite expression](https://sqlite.org/syntax/expr.html) by default:
 
 ```swift
 let literal: SQL = "name = \("O'Brien")"
@@ -319,13 +319,20 @@ SQLRequest(literal: "SELECT * FROM player").sqlSubquery
 
 ### SQLExpression
 
-`SQLExpression` is the opaque type for all [SQL expressions](https://sqlite.org/syntax/expr.html). An SQLExpression is built from [SQLExpressible].
+`SQLExpression` is the opaque type for all [SQLite expressions](https://sqlite.org/syntax/expr.html). It adopts [SQLSpecificExpressible], and is built from [SQLExpressible].
+
+```swift
+struct SQLExpression: SQLSpecificExpressible {
+    // opaque implementation
+}
+```
 
 GRDB functions and methods that build an SQL expression should return an SQLExpression value:
 
 ```swift
-Column("score") * 2  // SQLExpression
-max(Column("score")) // SQLExpression
+// SELECT * FROM player WHERE LENGTH(name) > 0
+let expression = length(Column("name")) > 0 // SQLExpression
+Player.filter(expression)
 ```
 
 When it looks like GRDB APIs are unable to build a particular expression, fallback to raw [SQL]:
@@ -341,7 +348,7 @@ let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
 
 ### SQLExpressible
 
-`SQLExpressible` is the protocol for all [SQL expressions](https://sqlite.org/syntax/expr.html). It is adopted by [Column], [SQL], [SQLExpression], and also [Int, String, Date], etc. It has an `sqlExpression` property which returns an [SQLExpression].
+`SQLExpressible` is the protocol for all [SQLite expressions](https://sqlite.org/syntax/expr.html). It is adopted by [Column], [SQL], [SQLExpression], and also [Int, String, Date], etc. It has an `sqlExpression` property which returns an [SQLExpression].
 
 ```swift
 protocol SQLExpressible {
@@ -370,7 +377,7 @@ Column("name").desc            // OK
 
 ### SQLOrderingTerm
 
-`SQLOrderingTerm` is the protocol for all [ordering terms](https://sqlite.org/syntax/ordering-term.html). It is adopted by [SQLSpecificExpressible]. It has an `sqlOrdering` property which returns an [SQLOrdering].
+`SQLOrderingTerm` is the protocol for all [SQLite ordering terms](https://sqlite.org/syntax/ordering-term.html). It is adopted by [SQLSpecificExpressible]. It has an `sqlOrdering` property which returns an [SQLOrdering].
 
 ```swift
 protocol SQLOrderingTerm {
@@ -386,18 +393,26 @@ Player.order(Column("score").desc, Column("name"))
 
 ### SQLOrdering
 
-`SQLOrdering` is the opaque type for all [ordering terms](https://sqlite.org/syntax/ordering-term.html). An SQLOrdering is built from [SQLOrderingTerm].
+`SQLOrdering` is the opaque type for all [SQLite ordering terms](https://sqlite.org/syntax/ordering-term.html). An SQLOrdering adopts and is built from [SQLOrderingTerm].
+
+```swift
+struct SQLOrdering: SQLOrderingTerm {
+    // opaque implementation
+}
+```
 
 Functions and methods that build ordering terms should return an SQLOrdering value:
 
 ```swift
-Column("score").desc        // SQLOrdering
+// SELECT * FROM player ORDER BY score DESC
+let ordering = Column("score").desc // SQLOrdering
+Player.order(ordering)
 ```
 
-To build an SQLOrdering without applying any `DESC`, `ASC` qualifier, use `sqlOrdering`:
+To build an SQLOrdering without applying any `DESC` or `ASC` qualifier, use `sqlOrdering` (from [SQLOrderingTerm], inherited by [SQLSpecificExpressible], [ColumnExpression]...):
 
 ```swift
-Column("score").sqlOrdering // SQLOrdering
+let ordering = Column("score").sqlOrdering // SQLOrdering
 ```
 
 ### SQLRequest
@@ -431,7 +446,7 @@ let playerRequest: SQLRequest<Player> = """
 
 ### SQLSelectable
 
-`SQLSelectable` is the protocol for all [result columns](https://sqlite.org/syntax/result-column.html). It is adopted by [SQLSpecificExpressible]. It has an `sqlSelection` property which returns an [SQLSelection].
+`SQLSelectable` is the protocol for all [SQLite result columns](https://sqlite.org/syntax/result-column.html). It is adopted by [SQLSpecificExpressible]. It has an `sqlSelection` property which returns an [SQLSelection].
 
 ```swift
 protocol SQLSelectable {
@@ -448,12 +463,20 @@ Player.select(Column("name"), Column("score"))
 
 ### SQLSelection
 
-`SQLSelection` is the opaque type for all [result columns](https://sqlite.org/syntax/result-column.html). An SQLSelection is built from [SQLSelectable].
+`SQLSelection` is the opaque type for all [SQLite result columns](https://sqlite.org/syntax/result-column.html). An SQLSelection adopts and is built from [SQLSelectable].
+
+```swift
+struct SQLSelection: SQLSelectable {
+    // opaque implementation
+}
+```
 
 Functions and methods that build result columns should return an SQLSelection value:
 
 ```swift
-(Column("score") + Column("bonus")).forKey("total") // SQLSelection
+// SELECT (score + bonus) AS total
+let selection = (Column("score") + Column("bonus")).forKey("total") // SQLSelection
+Player.select(selection)
 ```
 
 ### SQLSpecificExpressible
@@ -478,11 +501,17 @@ length("name")         // Compiler error
 
 ### SQLSubquery
 
-`SQLSubquery` is the opaque type for all [SELECT statements](https://sqlite.org/syntax/select-stmt.html). An SQLSubquery is built from [SQLSubqueryable].
+`SQLSubquery` is the opaque type for all [SQLite SELECT queries](https://sqlite.org/syntax/select-stmt.html). An SQLSubquery adopts and is built from [SQLSubqueryable].
+
+```swift
+struct SQLSubquery: SQLSubqueryable {
+    // opaque implementation
+}
+```
 
 ### SQLSubqueryable
 
-`SQLSubqueryable` is the protocol for all [SELECT statements](https://sqlite.org/syntax/select-stmt.html). It conforms to [SQLSpecificExpressible], and is adopted by [FetchRequest]. It has an `sqlSubquery` property which returns an [SQLSubquery].
+`SQLSubqueryable` is the protocol for all [SQLite SELECT queries](https://sqlite.org/syntax/select-stmt.html). It conforms to [SQLSpecificExpressible], and is adopted by [FetchRequest], [QueryInterfaceRequest], [SQLRequest]. It has an `sqlSubquery` property which returns an [SQLSubquery].
 
 ```swift
 protocol SQLSubqueryable: SQLSpecificExpressible {
@@ -490,7 +519,18 @@ protocol SQLSubqueryable: SQLSpecificExpressible {
 }
 ```
 
-For example, you can use this protocol in order to define a function that needs a subquery argument:
+SQLSubqueryable provides the GRDB support for subqueries. Its [SQLSpecificExpressible] facet lets you use any request as an expression:
+
+```swift
+// SELECT * FROM player
+// WHERE score >= (SELECT AVG(score) FROM player)
+let averageScore = Player.select(average(Column("score")))
+Player.filter(Column("score") >= averageScore)
+```
+
+SQLSubqueryable has the `contains(_:)` and `exists()` methods that support the `value IN (subquery)` and `EXISTS (subquery)` expressions.
+
+Use SQLSubqueryable in order to define a function that requires a subquery argument:
 
 ```swift
 func myRequest(_ nameSubquery: SQLSubqueryable) -> SQLRequest<Player> {
