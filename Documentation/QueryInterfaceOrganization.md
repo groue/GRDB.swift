@@ -3,7 +3,7 @@ Query Interface Organization
 
 The [query interface] provides a type-safe Swift API that approximates the [SQLite SELECT query grammar](https://sqlite.org/lang_select.html) through a hierarchy of values and protocols. This document exposes their relationships, so that you can leverage the most of them when you need it.
 
-In the diagram below, protocols have rounded corners. Generic types are marked as such, as well as "PATs" (protocols with associated types).
+In the diagram below, protocols are pale blue and have rounded corners, and standard types are grey rectangles. Solid arrows read "inherits from", and dashed arrows read "produces". Generic types are marked as such, as well as "PATs" (protocols with associated types).
 
 <img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/QueryInterfaceOrganization2.png" width="100%">
 
