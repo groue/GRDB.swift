@@ -777,3 +777,31 @@ extension DerivableRequest {
         return request.having(expression)
     }
 }
+
+extension DerivableRequest {
+    /// Conditional request modifier to conveniently build a request by chaining methods.
+    /// - Parameters:
+    ///   - condition: The condition that needs to return true for transform to be called
+    ///   - transform: Code that modifies a request
+    /// - Returns: Modified request if condition returns true, or unmodified request.
+    public func `if`(_ condition: @autoclosure () -> Bool, transform: (Self) -> Self) -> Self {
+        if condition() {
+            return transform(self)
+        } else {
+            return self
+        }
+    }
+
+    /// Conditional request modifier to conveniently build a request by chaining methods with an optional.
+    /// - Parameters:
+    ///   - item: Optional to resolve
+    ///   - content: Code that modifies a request
+    /// - Returns: Modified request if optional is not nil, or unmodified request.
+    public func modifier<Item>(`let` item: Item?, then content: (Self, Item) -> Self) -> Self {
+        if let item = item {
+            return content(self, item)
+        } else {
+            return self
+        }
+    }
+}
