@@ -985,3 +985,9 @@ extension StatementArguments {
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }
 }
+
+extension SelectStatement: CustomStringConvertible {
+    public var description: String {
+        "SQL: \(sql), Arguments: \(arguments)"
+    }
+}
