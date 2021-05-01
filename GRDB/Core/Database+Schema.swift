@@ -92,10 +92,9 @@ extension Database {
                 }
             }
         
-        // Temp schema shadows main and attached databases
+        // Temp schema shadows other schema: put it first
         if let tempIdx = schemaIdentifiers.firstIndex(of: .temp) {
-            schemaIdentifiers.remove(at: tempIdx)
-            schemaIdentifiers.insert(.temp, at: 0)
+            schemaIdentifiers.swapAt(tempIdx, 0)
         }
         
         schemaCache.schemaIdentifiers = schemaIdentifiers
