@@ -468,7 +468,7 @@ struct SQLQueryGenerator: Refinable {
     ///         let author: Author = row["author"]
     ///     }
     private func rowAdapter(_ context: SQLGenerationContext) throws -> RowAdapter? {
-        try relation.rowAdapter(context, fromIndex: 0)?.adapter
+        try relation.rowAdapter(context, fromIndex: 0, rootRelation: true)?.adapter
     }
 }
 
@@ -597,11 +597,12 @@ private struct SQLQualifiedRelation {
     ///   relations does not need any row adapter.
     func rowAdapter(
         _ context: SQLGenerationContext,
-        fromIndex startIndex: Int) throws
+        fromIndex startIndex: Int,
+        rootRelation: Bool) throws
     -> (adapter: RowAdapter, endIndex: Int)?
     {
         // Root relation && no join => no need for any adapter
-        if startIndex == 0 && joins.isEmpty {
+        if rootRelation && joins.isEmpty {
             return nil
         }
         
@@ -614,14 +615,17 @@ private struct SQLQualifiedRelation {
         var endIndex = startIndex + sourceSelectionWidth
         var scopes: [String: RowAdapter] = [:]
         for (key, join) in joins {
-            if let (joinAdapter, joinEndIndex) = try join.relation.rowAdapter(context, fromIndex: endIndex) {
+            if let (joinAdapter, joinEndIndex) = try join
+                .relation
+                .rowAdapter(context, fromIndex: endIndex, rootRelation: false)
+            {
                 scopes[key] = joinAdapter
                 endIndex = joinEndIndex
             }
         }
         
         // (Root relation || empty selection) && no included relation => no need for any adapter
-        if (startIndex == 0 || sourceSelectionWidth == 0) && scopes.isEmpty {
+        if (rootRelation || sourceSelectionWidth == 0) && scopes.isEmpty {
             return nil
         }
         
