@@ -84,6 +84,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     let request = SQLRequest("SELECT ...")
     ```
 - **Fixed**: The `DerivableRequest.limit(_:offset:)` method was ill-designed, and removed from the documentation. It is unfortunately impossible to deprecate it without triggering warnings on the legit use cases (on `QueryInterfaceRequest`).
+- **Fixed**: [#973](https://github.com/groue/GRDB.swift/pull/973): Restore access to attached databases from record types
 - **Documentation Update**: A new [Query Interface Organization](Documentation/QueryInterfaceOrganization.md) document reveals the relationship between the various components of the GRDB query builder.
 
 ## 5.7.4
