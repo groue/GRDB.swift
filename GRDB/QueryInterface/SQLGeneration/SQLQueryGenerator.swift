@@ -589,9 +589,9 @@ private struct SQLQualifiedRelation {
     /// See SQLQueryGenerator.rowAdapter(_:)
     ///
     /// - parameter startIndex: The index of the leftmost selected column of
-    ///   this relation in a full SQL query. `startIndex` is 0 for the relation
-    ///   at the root of a SQLQueryGenerator (as opposed to the
-    ///   joined relations).
+    ///   this relation in a full SQL query.
+    /// - parameter rootRelation: True iff the relation is at the root of a
+    ///   SQLQueryGenerator (as opposed to the joined relations).
     /// - returns: An optional tuple made of a RowAdapter and the index past the
     ///   rightmost selected column of this relation. Nil is returned if this
     ///   relations does not need any row adapter.
