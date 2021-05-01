@@ -55,7 +55,7 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
             invalidatesDatabaseSchemaCache = true
             return SQLITE_OK
             
-        case SQLITE_ALTER_TABLE, SQLITE_DETACH,
+        case SQLITE_ATTACH, SQLITE_DETACH, SQLITE_ALTER_TABLE,
              SQLITE_CREATE_INDEX, SQLITE_CREATE_TABLE,
              SQLITE_CREATE_TEMP_INDEX, SQLITE_CREATE_TEMP_TABLE,
              SQLITE_CREATE_TEMP_TRIGGER, SQLITE_CREATE_TEMP_VIEW,

@@ -106,7 +106,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
                 let primaryKey = try db.primaryKey("items")
                 XCTAssertEqual(primaryKey.rowIDColumn, "id")
                 XCTAssertTrue(db.schemaCache[.main].primaryKey("items")!.value != nil)
-                XCTAssertTrue(db.schemaCache[.temp].primaryKey("items")!.value == nil)
+                XCTAssertTrue(db.schemaCache[.temp].primaryKey("items") == nil)
                 try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT id FROM items"), 1)
             }
             
