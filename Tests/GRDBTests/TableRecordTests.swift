@@ -159,7 +159,7 @@ class TableRecordTests: GRDBTestCase {
         }
         
         let db2 = try makeDatabaseQueue(filename: "db2.sqlite")
-        try db2.write { db in
+        try db2.writeWithoutTransaction { db in
             try db.execute(literal: "ATTACH DATABASE \(db1.path) AS db1")
             try XCTAssertEqual(Player.fetchCount(db), 0)
             let team = Team(id: 1, name: "Arthur")
@@ -205,7 +205,7 @@ class TableRecordTests: GRDBTestCase {
         }
         
         let db2 = try makeDatabaseQueue(filename: "db2.sqlite")
-        try db2.write { db in
+        try db2.writeWithoutTransaction { db in
             try db.create(table: "player") { t in
                 t.autoIncrementedPrimaryKey("id")
                 t.column("teamID", .integer).notNull()

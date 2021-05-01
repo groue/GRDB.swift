@@ -155,7 +155,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
         }
         
         let main = try makeDatabaseQueue(filename: "main")
-        try main.write { db in
+        try main.writeWithoutTransaction { db in
             try XCTAssertFalse(db.tableExists("item"))
             
             try db.execute(literal: "ATTACH DATABASE \(attached1.path) AS attached1")
@@ -193,9 +193,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
             try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA table_info(item)")?["name"], "attached1Column")
             try XCTAssertTrue(db.tableExists("item"))
             try XCTAssertEqual(db.columns(in: "item").first?.name, "attached1Column")
-        }
-        
-        try main.write { db in
+            
             // Attached1 no longer shadows attached2
             try db.execute(sql: "DETACH DATABASE attached1")
             try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "attached2")
@@ -203,9 +201,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
             try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA table_info(item)")?["name"], "attached2Column")
             try XCTAssertTrue(db.tableExists("item"))
             try XCTAssertEqual(db.columns(in: "item").first?.name, "attached2Column")
-        }
-        
-        try main.write { db in
+            
             // Attached2 no longer shadows main
             try db.execute(sql: "DETACH DATABASE attached2")
             try XCTAssertFalse(db.tableExists("item"))
