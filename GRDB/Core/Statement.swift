@@ -19,6 +19,8 @@ public class Statement {
     
     /// The SQL query
     public var sql: String {
+        SchedulingWatchdog.preconditionValidQueue(database)
+        
         // trim white space and semicolumn for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement))
             .trimmingCharacters(in: .sqlStatementSeparators)
