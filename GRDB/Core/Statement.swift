@@ -262,6 +262,12 @@ public class Statement {
     }
 }
 
+extension Statement: CustomStringConvertible {
+    public var description: String {
+        "SQL: \(sql), Arguments: \(arguments)"
+    }
+}
+
 // MARK: - Statement Preparation
 
 extension Statement {
@@ -983,11 +989,5 @@ extension StatementArguments {
             "\(String(reflecting: key)): \(value)"
         }
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
-    }
-}
-
-extension SelectStatement: CustomStringConvertible {
-    public var description: String {
-        "SQL: \(sql), Arguments: \(arguments)"
     }
 }
