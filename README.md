@@ -7836,8 +7836,7 @@ You can compile the request into a prepared statement:
 try dbQueue.read { db in
     let request = Player.filter(Column("name") == "O'Brien")
     let statement = try request.makePreparedRequest(db).statement
-    print(statement.sql)        // "SELECT * FROM player WHERE name = ?"
-    print(statement.arguments)  // ["O'Brien"]
+    print(statement) // SQL: SELECT * FROM player WHERE name = ?, Arguments: ["O'Brien"]
 }
 ```
 
