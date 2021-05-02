@@ -106,7 +106,7 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
                 let primaryKey = try db.primaryKey("items")
                 XCTAssertEqual(primaryKey.rowIDColumn, "id")
                 XCTAssertTrue(db.schemaCache[.main].primaryKey("items")!.value != nil)
-                XCTAssertTrue(db.schemaCache[.temp].primaryKey("items")!.value == nil)
+                XCTAssertTrue(db.schemaCache[.temp].primaryKey("items") == nil)
                 try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT id FROM items"), 1)
             }
             
@@ -130,6 +130,81 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
                 XCTAssertTrue(db.schemaCache[.temp].primaryKey("items")!.value == nil)
                 try XCTAssertEqual(Int.fetchOne(db, sql: "SELECT id FROM items"), 1)
             }
+        }
+    }
+    
+    func testMainShadowedByAttachedDatabase() throws {
+        let attached1 = try makeDatabaseQueue(filename: "attached1")
+        try attached1.write { db in
+            try db.execute(sql: """
+                CREATE TABLE item (attached1Column TEXT);
+                INSERT INTO item VALUES('attached1');
+                """)
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "attached1")
+            try XCTAssertEqual(db.columns(in: "item").first?.name, "attached1Column")
+        }
+        
+        let attached2 = try makeDatabaseQueue(filename: "attached2")
+        try attached2.write { db in
+            try db.execute(sql: """
+                CREATE TABLE item (attached2Column TEXT);
+                INSERT INTO item VALUES('attached2');
+                """)
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "attached2")
+            try XCTAssertEqual(db.columns(in: "item").first?.name, "attached2Column")
+        }
+        
+        let main = try makeDatabaseQueue(filename: "main")
+        try main.writeWithoutTransaction { db in
+            try XCTAssertFalse(db.tableExists("item"))
+            
+            try db.execute(literal: "ATTACH DATABASE \(attached1.path) AS attached1")
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "attached1")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA table_info(item)")?["name"], "attached1Column")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA attached1.table_info(item)")?["name"], "attached1Column")
+            try XCTAssertTrue(db.tableExists("item"))
+            try XCTAssertEqual(db.columns(in: "item").first?.name, "attached1Column")
+            
+            // Main shadows attached1
+            try db.execute(sql: """
+                CREATE TABLE item (mainColumn TEXT);
+                INSERT INTO item VALUES('main');
+                """)
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "main")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA main.table_info(item)")?["name"], "mainColumn")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA attached1.table_info(item)")?["name"], "attached1Column")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA table_info(item)")?["name"], "mainColumn")
+            try XCTAssertTrue(db.tableExists("item"))
+            try XCTAssertEqual(db.columns(in: "item").first?.name, "mainColumn")
+            
+            // Main no longer shadows attached1
+            try db.execute(sql: "DROP TABLE item")
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "attached1")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA attached1.table_info(item)")?["name"], "attached1Column")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA table_info(item)")?["name"], "attached1Column")
+            try XCTAssertTrue(db.tableExists("item"))
+            try XCTAssertEqual(db.columns(in: "item").first?.name, "attached1Column")
+            
+            // Attached1 shadows attached2
+            try db.execute(literal: "ATTACH DATABASE \(attached2.path) AS attached2")
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "attached1")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA attached1.table_info(item)")?["name"], "attached1Column")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA attached2.table_info(item)")?["name"], "attached2Column")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA table_info(item)")?["name"], "attached1Column")
+            try XCTAssertTrue(db.tableExists("item"))
+            try XCTAssertEqual(db.columns(in: "item").first?.name, "attached1Column")
+            
+            // Attached1 no longer shadows attached2
+            try db.execute(sql: "DETACH DATABASE attached1")
+            try XCTAssertEqual(String.fetchOne(db, sql: "SELECT * FROM item"), "attached2")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA attached2.table_info(item)")?["name"], "attached2Column")
+            try XCTAssertEqual(Row.fetchOne(db, sql: "PRAGMA table_info(item)")?["name"], "attached2Column")
+            try XCTAssertTrue(db.tableExists("item"))
+            try XCTAssertEqual(db.columns(in: "item").first?.name, "attached2Column")
+            
+            // Attached2 no longer shadows main
+            try db.execute(sql: "DETACH DATABASE attached2")
+            try XCTAssertFalse(db.tableExists("item"))
         }
     }
 }

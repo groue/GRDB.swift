@@ -127,30 +127,21 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // Caches
     struct SchemaCache {
-        /// The cache for the main schema
-        fileprivate var main = DatabaseSchemaCache()
-        
-        /// The cache for the temp schema
-        fileprivate var temp = DatabaseSchemaCache()
+        var schemaIdentifiers: [SchemaIdentifier]?
+        fileprivate var schemas: [SchemaIdentifier: DatabaseSchemaCache] = [:]
         
         subscript(schemaID: SchemaIdentifier) -> DatabaseSchemaCache { // internal so that it can be tested
             get {
-                switch schemaID {
-                case .main: return main
-                case .temp: return temp
-                }
+                schemas[schemaID] ?? DatabaseSchemaCache()
             }
             set {
-                switch schemaID {
-                case .main: main = newValue
-                case .temp: temp = newValue
-                }
+                schemas[schemaID] = newValue
             }
         }
         
         mutating func clear() {
-            main.clear()
-            temp.clear()
+            schemaIdentifiers = nil
+            schemas.removeAll()
         }
     }
     
