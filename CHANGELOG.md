@@ -83,6 +83,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     ```swift
     let request = SQLRequest("SELECT ...")
     ```
+- **New**: [#967](https://github.com/groue/GRDB.swift/pull/967) by [@steipete](https://github.com/steipete): Make SelectStatement conform to CustomStringConvertible
 - **Fixed**: The `DerivableRequest.limit(_:offset:)` method was ill-designed, and removed from the documentation. It is unfortunately impossible to deprecate it without triggering warnings on the legit use cases (on `QueryInterfaceRequest`).
 - **Fixed**: [#973](https://github.com/groue/GRDB.swift/pull/973): Restore access to attached databases from record types
 - **Fixed**: [#974](https://github.com/groue/GRDB.swift/pull/974): Provide access to included associations when root table is not selected
