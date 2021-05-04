@@ -53,7 +53,7 @@ extension QueryInterfaceRequest: FetchRequest {
         let associations = relation.prefetchedAssociations
         if associations.isEmpty == false {
             // Eager loading of prefetched associations
-            preparedRequest = preparedRequest.with(\.supplementaryFetch) { [relation] db, rows in
+            preparedRequest.supplementaryFetch = { [relation] db, rows in
                 try prefetch(db, associations: associations, from: relation, into: rows)
             }
         }
