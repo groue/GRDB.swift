@@ -125,4 +125,109 @@ class TableRecordTests: GRDBTestCase {
             XCTAssertEqual(lastSQLQuery, "SELECT \"a\", \"b\" FROM \"t1\"")
         }
     }
+    
+    func testRecordInAttachedDatabase() throws {
+        struct Team: Codable, PersistableRecord, FetchableRecord, Equatable {
+            var id: Int64
+            var name: String
+        }
+        
+        struct Player: Codable, PersistableRecord, FetchableRecord, Equatable {
+            var id: Int64
+            var teamID: Int64
+            var name: String
+            var email: String
+        }
+        
+        struct PlayerInfo: Decodable, FetchableRecord, Equatable {
+            var player: Player
+            var team: Team
+        }
+        
+        let db1 = try makeDatabaseQueue(filename: "db1.sqlite")
+        try db1.write { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text).notNull()
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("teamID", .integer).notNull().references("team")
+                t.column("name", .text).notNull()
+                t.column("email", .text).notNull().unique()
+            }
+        }
+        
+        let db2 = try makeDatabaseQueue(filename: "db2.sqlite")
+        try db2.writeWithoutTransaction { db in
+            try db.execute(literal: "ATTACH DATABASE \(db1.path) AS db1")
+            try XCTAssertEqual(Player.fetchCount(db), 0)
+            let team = Team(id: 1, name: "Arthur")
+            let player = Player(id: 1, teamID: 1, name: "Arthur", email: "arthur@example.com")
+            
+            try team.insert(db)
+            try player.insert(db)
+            
+            try XCTAssertEqual(Player.orderByPrimaryKey().fetchOne(db)?.name, "Arthur")
+            try XCTAssertEqual(
+                Player
+                    .including(required: Player.belongsTo(Team.self))
+                    .asRequest(of: PlayerInfo.self)
+                    .fetchOne(db),
+                PlayerInfo(player: player, team: team))
+        }
+    }
+    
+    func testCrossAttachedDatabaseAssociation() throws {
+        struct Team: Codable, PersistableRecord, FetchableRecord, Equatable {
+            var id: Int64
+            var name: String
+        }
+        
+        struct Player: Codable, PersistableRecord, FetchableRecord, Equatable {
+            var id: Int64
+            var teamID: Int64
+            var name: String
+            var email: String
+        }
+        
+        struct PlayerInfo: Decodable, FetchableRecord, Equatable {
+            var player: Player
+            var team: Team
+        }
+        
+        let db1 = try makeDatabaseQueue(filename: "db1.sqlite")
+        try db1.write { db in
+            try db.create(table: "team") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text).notNull()
+            }
+        }
+        
+        let db2 = try makeDatabaseQueue(filename: "db2.sqlite")
+        try db2.writeWithoutTransaction { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("teamID", .integer).notNull()
+                t.column("name", .text).notNull()
+                t.column("email", .text).notNull().unique()
+            }
+            
+            try db.execute(literal: "ATTACH DATABASE \(db1.path) AS db1")
+            try XCTAssertEqual(Player.fetchCount(db), 0)
+            let team = Team(id: 1, name: "Arthur")
+            let player = Player(id: 1, teamID: 1, name: "Arthur", email: "arthur@example.com")
+            
+            try team.insert(db)
+            try player.insert(db)
+            
+            try XCTAssertEqual(Player.orderByPrimaryKey().fetchOne(db)?.name, "Arthur")
+            try XCTAssertEqual(
+                Player
+                    .including(required: Player.belongsTo(Team.self, using: ForeignKey(["teamID"])))
+                    .asRequest(of: PlayerInfo.self)
+                    .fetchOne(db),
+                PlayerInfo(player: player, team: team))
+        }
+    }
 }

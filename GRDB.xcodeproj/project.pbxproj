@@ -840,9 +840,6 @@
 		56D91AA92205F2F100770D8D /* DatabasePromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D91AA82205F2F000770D8D /* DatabasePromise.swift */; };
 		56D91AAA2205F2F100770D8D /* DatabasePromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D91AA82205F2F000770D8D /* DatabasePromise.swift */; };
 		56D91AAB2205F2F100770D8D /* DatabasePromise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56D91AA82205F2F000770D8D /* DatabasePromise.swift */; };
-		56DA7CEB260FA9A500A8D97B /* RecordInitializersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7CEA260FA9A400A8D97B /* RecordInitializersTests.swift */; };
-		56DA7CEC260FA9A500A8D97B /* RecordInitializersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7CEA260FA9A400A8D97B /* RecordInitializersTests.swift */; };
-		56DA7CED260FA9A500A8D97B /* RecordInitializersTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7CEA260FA9A400A8D97B /* RecordInitializersTests.swift */; };
 		56DA7CF7260FA9D400A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7CF6260FA9D400A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */; };
 		56DA7CF8260FA9D400A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7CF6260FA9D400A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */; };
 		56DA7CF9260FA9D400A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DA7CF6260FA9D400A8D97B /* RecordMinimalNonOptionalPrimaryKeySingleTests.swift */; };
@@ -3289,7 +3286,6 @@
 				5698AC441DA2BED90056AF8C /* FTS3PatternTests.swift in Sources */,
 				5698ACBA1DA6285E0056AF8C /* FTS3TokenizerTests.swift in Sources */,
 				5615B276222B107900061C1C /* AssociationHasOneThroughFetchableRecordTests.swift in Sources */,
-				56DA7CEC260FA9A500A8D97B /* RecordInitializersTests.swift in Sources */,
 				56176C6F1EACCCC9000F3F2B /* FTS5TokenizerTests.swift in Sources */,
 				565B0FF01BBC7D980098DE03 /* FetchableRecordTests.swift in Sources */,
 				5698AC9A1DA4B0430056AF8C /* FTS4RecordTests.swift in Sources */,
@@ -3520,7 +3516,6 @@
 				562206081E420EA4005860AC /* DatabasePoolReadOnlyTests.swift in Sources */,
 				5698ACCE1DA8C2620056AF8C /* RecordPrimaryKeyHiddenRowIDTests.swift in Sources */,
 				56D496751D81309E008276D7 /* RecordEditedTests.swift in Sources */,
-				56DA7CEB260FA9A500A8D97B /* RecordInitializersTests.swift in Sources */,
 				5615B275222B107900061C1C /* AssociationHasOneThroughFetchableRecordTests.swift in Sources */,
 				56D4966F1D81309E008276D7 /* RecordPrimaryKeyNoneTests.swift in Sources */,
 				56D496621D81304E008276D7 /* StatementArguments+FoundationTests.swift in Sources */,
@@ -3882,7 +3877,6 @@
 				AAA4DD7E230F262000C74B15 /* FTS3PatternTests.swift in Sources */,
 				AAA4DD7F230F262000C74B15 /* FTS3TokenizerTests.swift in Sources */,
 				AAA4DD80230F262000C74B15 /* AssociationHasOneThroughFetchableRecordTests.swift in Sources */,
-				56DA7CED260FA9A500A8D97B /* RecordInitializersTests.swift in Sources */,
 				AAA4DD81230F262000C74B15 /* FTS5TokenizerTests.swift in Sources */,
 				AAA4DD82230F262000C74B15 /* FetchableRecordTests.swift in Sources */,
 				AAA4DD83230F262000C74B15 /* FTS4RecordTests.swift in Sources */,

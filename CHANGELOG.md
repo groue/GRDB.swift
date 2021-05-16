@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.8.x` Releases - [5.8.0](#580)
 - `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573) | [5.7.4](#574)
 - `5.6.x` Releases - [5.6.0](#560)
 - `5.5.x` Releases - [5.5.0](#550)
@@ -73,6 +74,22 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.8.0
+
+Released May 16, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.7.4...v5.8.0)
+
+- **New**: Support for the `ESCAPE` clause with the `LIKE` operator.
+- **New**: You can now define an `SQLRequest` without any generic qualifier (which defaults to `Row`):
+
+    ```swift
+    let request = SQLRequest("SELECT ...")
+    ```
+- **New**: [#967](https://github.com/groue/GRDB.swift/pull/967) by [@steipete](https://github.com/steipete): Make SelectStatement conform to CustomStringConvertible
+- **Fixed**: The `DerivableRequest.limit(_:offset:)` method was ill-designed, and removed from the documentation. It is unfortunately impossible to deprecate it without triggering warnings on the legit use cases (on `QueryInterfaceRequest`).
+- **Fixed**: [#973](https://github.com/groue/GRDB.swift/pull/973): Restore access to attached databases from record types
+- **Fixed**: [#974](https://github.com/groue/GRDB.swift/pull/974): Provide access to included associations when root table is not selected
+- **Documentation Update**: A new [Query Interface Organization](Documentation/QueryInterfaceOrganization.md) document reveals the relationship between the various components of the GRDB query builder.
 
 ## 5.7.4
 

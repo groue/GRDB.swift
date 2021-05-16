@@ -154,7 +154,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     let request = Player.filter(Column("email") == "arthur@example.com")
-    @available(*, deprecated, message: "Did you mean filter(key: id)? If not, prefer filter(value.databaseValue) instead. See also all() and none().") // swiftlint:disable:this line_length
+    @available(*, deprecated, message: "Did you mean filter(id:) or filter(key:)? If not, prefer filter(value.databaseValue) instead. See also none().") // swiftlint:disable:this line_length
     public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
         all().filter(predicate.sqlExpression)
     }

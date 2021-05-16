@@ -18,7 +18,7 @@ public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
-    /// Returns a value initialized from *dbValue*, if possible.
+    /// Returns a value initialized from `dbValue`, if possible.
     static func fromDatabaseValue(_ dbValue: DatabaseValue) -> Self?
 }
 

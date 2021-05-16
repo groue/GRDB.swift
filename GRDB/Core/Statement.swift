@@ -19,6 +19,8 @@ public class Statement {
     
     /// The SQL query
     public var sql: String {
+        SchedulingWatchdog.preconditionValidQueue(database)
+        
         // trim white space and semicolumn for homogeneous output
         return String(cString: sqlite3_sql(sqliteStatement))
             .trimmingCharacters(in: .sqlStatementSeparators)
@@ -259,6 +261,12 @@ public class Statement {
             try! reset()
             try! validateArguments(self.arguments)
         }
+    }
+}
+
+extension Statement: CustomStringConvertible {
+    public var description: String {
+        "SQL: \(sql), Arguments: \(arguments)"
     }
 }
 

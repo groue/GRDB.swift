@@ -8,16 +8,39 @@ configuration.prepareDatabase { db in
 }
 let dbQueue = DatabaseQueue(configuration: configuration)
 
-try! dbQueue.inDatabase { db in
+struct Player: Codable, FetchableRecord, MutablePersistableRecord {
+    var id: Int64?
+    var name: String
+    var score: Int
+    
+    mutating func didInsert(with rowID: Int64, for column: String?) {
+        id = rowID
+    }
+}
+
+try dbQueue.write { db in
     try db.create(table: "player") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("name", .text).notNull()
         t.column("score", .integer).notNull()
     }
     
-    try db.execute(sql: "INSERT INTO player (name, score) VALUES (?, ?)", arguments: ["Arthur", 1000])
-    try db.execute(sql: "INSERT INTO player (name, score) VALUES (?, ?)", arguments: ["Barbara", 1000])
+    do {
+        var player = Player(id: nil, name: "Arthur", score: 100)
+        try player.insert(db)
+        player = Player(id: nil, name: "Barbara", score: 100)
+        try player.insert(db)
+    }
     
-    let names = try String.fetchAll(db, sql: "SELECT name FROM player")
-    print(names)
+    do {
+        let players = try Player.fetchAll(db)
+        for player in players {
+            print(player)
+        }
+    }
+    
+    do {
+        let count = try Player.fetchCount(db)
+        print(count)
+    }
 }

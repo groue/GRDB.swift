@@ -521,14 +521,16 @@ public prefix func ! (value: SQLSpecificExpressible) -> SQLExpression {
 
 // MARK: - Like Operator
 
-/// :nodoc:
 extension SQLSpecificExpressible {
     
     /// An SQL expression with the `LIKE` SQL operator.
     ///
     ///     // email LIKE '%@example.com"
     ///     Column("email").like("%@example.com")
-    public func like(_ pattern: SQLExpressible) -> SQLExpression {
-        .binary(.like, sqlExpression, pattern.sqlExpression)
+    ///
+    ///     // title LIKE '%10\%%' ESCAPE '\'
+    ///     Column("title").like("%10\\%%", escape: "\\")
+    public func like(_ pattern: SQLExpressible, escape: SQLExpressible? = nil) -> SQLExpression {
+        .escapableBinary(.like, sqlExpression, pattern.sqlExpression, escape: escape?.sqlExpression)
     }
 }

@@ -7,14 +7,15 @@ extension Database {
         /// The temp database
         case temp
         
-        // Future support for attached database: https://sqlite.org/lang_attach.html
-        // case attached(String)
+        /// An attached database: https://sqlite.org/lang_attach.html
+        case attached(String)
         
         /// The name of the schema in SQL queries
         var sql: String {
             switch self {
             case .main: return "main"
             case .temp: return "temp"
+            case let .attached(name): return name
             }
         }
         
@@ -23,6 +24,7 @@ extension Database {
             switch self {
             case .main: return "sqlite_master"
             case .temp: return "sqlite_temp_master"
+            case let .attached(name): return "\(name).sqlite_master"
             }
         }
     }
@@ -73,9 +75,37 @@ extension Database {
         }
     }
     
+    /// The list of database schemas, in the order of SQLite resolution:
+    /// temp, main, then attached databases.
+    func schemaIdentifiers() throws -> [SchemaIdentifier] {
+        if let schemaIdentifiers = schemaCache.schemaIdentifiers {
+            return schemaIdentifiers
+        }
+        
+        var schemaIdentifiers = try Row
+            .fetchAll(self, sql: "PRAGMA database_list")
+            .map { row -> SchemaIdentifier in
+                switch row[1] as String {
+                case "main": return .main
+                case "temp": return .temp
+                case let other: return .attached(other)
+                }
+            }
+        
+        // Temp schema shadows other schema: put it first
+        if let tempIdx = schemaIdentifiers.firstIndex(of: .temp) {
+            schemaIdentifiers.swapAt(tempIdx, 0)
+        }
+        
+        schemaCache.schemaIdentifiers = schemaIdentifiers
+        return schemaIdentifiers
+    }
+    
     /// Returns whether a table exists in the main or temp schema.
     public func tableExists(_ name: String) throws -> Bool {
-        try exists(type: .table, name: name, in: .main) || exists(type: .table, name: name, in: .temp)
+        try schemaIdentifiers().contains {
+            try exists(type: .table, name: name, in: $0)
+        }
     }
     
     private func tableExists(_ table: TableIdentifier) throws -> Bool {
@@ -124,12 +154,16 @@ extension Database {
     
     /// Returns whether a view exists in the main or temp schema.
     public func viewExists(_ name: String) throws -> Bool {
-        try exists(type: .view, name: name, in: .main) || exists(type: .view, name: name, in: .temp)
+        try schemaIdentifiers().contains {
+            try exists(type: .view, name: name, in: $0)
+        }
     }
     
     /// Returns whether a trigger exists in the main or temp schema.
     public func triggerExists(_ name: String) throws -> Bool {
-        try exists(type: .trigger, name: name, in: .main) || exists(type: .trigger, name: name, in: .temp)
+        try schemaIdentifiers().contains {
+            try exists(type: .trigger, name: name, in: $0)
+        }
     }
     
     private func exists(type: SchemaObjectType, name: String, in schemaID: SchemaIdentifier) throws -> Bool {
@@ -149,10 +183,12 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func primaryKey(_ tableName: String) throws -> PrimaryKeyInfo {
-        // SQLite has temporary tables shadow main ones
-        try primaryKey(TableIdentifier(schemaID: .temp, name: tableName))
-            ?? primaryKey(TableIdentifier(schemaID: .main, name: tableName))
-            ?? { throw DatabaseError.noSuchTable(tableName) }()
+        for schemaIdentifier in try schemaIdentifiers() {
+            if let result = try primaryKey(TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            }
+        }
+        throw DatabaseError.noSuchTable(tableName)
     }
     
     /// Returns nil if table does not exist
@@ -281,10 +317,12 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func indexes(on tableName: String) throws -> [IndexInfo] {
-        // SQLite has temporary tables shadow main ones
-        try indexes(on: TableIdentifier(schemaID: .temp, name: tableName))
-            ?? indexes(on: TableIdentifier(schemaID: .main, name: tableName))
-            ?? { throw DatabaseError.noSuchTable(tableName) }()
+        for schemaIdentifier in try schemaIdentifiers() {
+            if let result = try indexes(on: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            }
+        }
+        throw DatabaseError.noSuchTable(tableName)
     }
     
     /// Returns nil if table does not exist
@@ -351,10 +389,12 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func foreignKeys(on tableName: String) throws -> [ForeignKeyInfo] {
-        // SQLite has temporary tables shadow main ones
-        try foreignKeys(on: TableIdentifier(schemaID: .temp, name: tableName))
-            ?? foreignKeys(on: TableIdentifier(schemaID: .main, name: tableName))
-            ?? { throw DatabaseError.noSuchTable(tableName) }()
+        for schemaIdentifier in try schemaIdentifiers() {
+            if let result = try foreignKeys(on: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            }
+        }
+        throw DatabaseError.noSuchTable(tableName)
     }
     
     /// Returns nil if table does not exist
@@ -426,9 +466,12 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     func canonicalTableName(_ tableName: String) throws -> String? {
-        // SQLite has temporary tables shadow main ones
-        try schema(.temp).canonicalName(tableName, ofType: .table)
-            ?? schema(.main).canonicalName(tableName, ofType: .table)
+        for schemaIdentifier in try schemaIdentifiers() {
+            if let result = try schema(schemaIdentifier).canonicalName(tableName, ofType: .table) {
+                return result
+            }
+        }
+        return nil
     }
     
     func schema(_ schemaID: SchemaIdentifier) throws -> SchemaInfo {
@@ -447,10 +490,12 @@ extension Database {
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func columns(in tableName: String) throws -> [ColumnInfo] {
-        // SQLite has temporary tables shadow main ones
-        try columns(in: TableIdentifier(schemaID: .temp, name: tableName))
-            ?? columns(in: TableIdentifier(schemaID: .main, name: tableName))
-            ?? { throw DatabaseError.noSuchTable(tableName) }()
+        for schemaIdentifier in try schemaIdentifiers() {
+            if let result = try columns(in: TableIdentifier(schemaID: schemaIdentifier, name: tableName)) {
+                return result
+            }
+        }
+        throw DatabaseError.noSuchTable(tableName)
     }
     
     /// Returns nil if table does not exist

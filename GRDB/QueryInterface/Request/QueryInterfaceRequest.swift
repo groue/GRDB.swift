@@ -53,7 +53,7 @@ extension QueryInterfaceRequest: FetchRequest {
         let associations = relation.prefetchedAssociations
         if associations.isEmpty == false {
             // Eager loading of prefetched associations
-            preparedRequest = preparedRequest.with(\.supplementaryFetch) { [relation] db, rows in
+            preparedRequest.supplementaryFetch = { [relation] db, rows in
                 try prefetch(db, associations: associations, from: relation, into: rows)
             }
         }
@@ -288,6 +288,13 @@ extension QueryInterfaceRequest: DerivableRequest {
         with(\.relation.isDistinct, true)
     }
     
+    /// Creates a request which fetches *limit* rows, starting at *offset*.
+    ///
+    ///     // SELECT * FROM player LIMIT 10 OFFSET 20
+    ///     var request = Player.all()
+    ///     request = request.limit(10, offset: 20)
+    ///
+    /// Any previous limit is replaced.
     public func limit(_ limit: Int, offset: Int?) -> QueryInterfaceRequest {
         with(\.relation.limit, SQLLimit(limit: limit, offset: offset))
     }

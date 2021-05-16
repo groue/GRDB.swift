@@ -323,6 +323,11 @@ extension Association where Self: DerivableRequest {
     /// Creates an association that fetches *limit* rows, starting at *offset*.
     ///
     /// Any previous limit is replaced.
+    ///
+    /// - warning: Avoid this method: it is unlikely it does what you expect it
+    ///   to do. It will be removed in a future GRDB version.
+    ///
+    /// :nodoc:
     public func limit(_ limit: Int, offset: Int? = nil) -> Self {
         mapDestinationRelation { $0.with(\.limit, SQLLimit(limit: limit, offset: offset)) }
     }

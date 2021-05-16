@@ -443,7 +443,7 @@ This chapter lists all kinds of supported interpolations.
     
     ```swift
     // SELECT * FROM player WHERE score = (SELECT MAX(score) FROM player)
-    let subquery: SQLRequest<Int> = "SELECT MAX(score) FROM player"
+    let subquery = SQLRequest("SELECT MAX(score) FROM player")
     "SELECT * FROM player WHERE score = (\(subquery))"
     
     // SELECT * FROM player WHERE score = (SELECT MAX(score) FROM player)

@@ -50,10 +50,10 @@ let playerNameCTE = CommonTableExpression(
     literal: "SELECT \(name)")
 
 // WITH playerName AS (SELECT 'O''Brien') ...
-let request: SQLRequest<String> = "SELECT \(name)"
+let request = SQLRequest("SELECT \(name)")
 let playerNameCTE = CommonTableExpression(
     named: "playerName",
-    request: requests)
+    request: request)
 ```
 
 All CTEs can be provided with explicit column names:
