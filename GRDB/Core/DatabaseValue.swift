@@ -85,8 +85,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     }
     
     // MARK: - Not Public
-    
-    @inlinable
     init(storage: Storage) {
         self.storage = storage
     }
