@@ -127,6 +127,12 @@ class TableRecordTests: GRDBTestCase {
     }
     
     func testRecordInAttachedDatabase() throws {
+        #if SQLITE_HAS_CODEC
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not suppport encrypted databases")
+        #endif
+        
         struct Team: Codable, PersistableRecord, FetchableRecord, Equatable {
             var id: Int64
             var name: String
@@ -179,6 +185,12 @@ class TableRecordTests: GRDBTestCase {
     }
     
     func testCrossAttachedDatabaseAssociation() throws {
+        #if SQLITE_HAS_CODEC
+        // Avoid error due to key not being provided:
+        // file is not a database - while executing `ATTACH DATABASE...`
+        throw XCTSkip("This test does not suppport encrypted databases")
+        #endif
+        
         struct Team: Codable, PersistableRecord, FetchableRecord, Equatable {
             var id: Int64
             var name: String
