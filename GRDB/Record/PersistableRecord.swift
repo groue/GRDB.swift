@@ -70,7 +70,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// See https://www.sqlite.org/lang_conflict.html
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
     
-    /// Notifies the record that it was succesfully inserted.
+    /// Notifies the record that it was successfully inserted.
     ///
     /// Do not call this method directly: it is called for you, in a protected
     /// dispatch queue, with the inserted RowID and the eventual
@@ -186,7 +186,7 @@ extension MutablePersistableRecord {
         PersistenceConflictPolicy(insert: .abort, update: .abort)
     }
     
-    /// Notifies the record that it was succesfully inserted.
+    /// Notifies the record that it was successfully inserted.
     ///
     /// The default implementation does nothing.
     public mutating func didInsert(with rowID: Int64, for column: String?) {
@@ -811,7 +811,7 @@ extension MutablePersistableRecord {
 /// are not mutating methods.
 public protocol PersistableRecord: MutablePersistableRecord {
     
-    /// Notifies the record that it was succesfully inserted.
+    /// Notifies the record that it was successfully inserted.
     ///
     /// Do not call this method directly: it is called for you, in a protected
     /// dispatch queue, with the inserted RowID and the eventual
@@ -869,7 +869,7 @@ public protocol PersistableRecord: MutablePersistableRecord {
 
 extension PersistableRecord {
     
-    /// Notifies the record that it was succesfully inserted.
+    /// Notifies the record that it was successfully inserted.
     ///
     /// The default implementation does nothing.
     public func didInsert(with rowID: Int64, for column: String?) {
