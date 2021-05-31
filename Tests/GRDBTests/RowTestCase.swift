@@ -15,7 +15,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[index] as? T {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -31,7 +31,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[name] as? T {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -47,7 +47,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[column] as? T {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -65,7 +65,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[index] as T? {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -83,7 +83,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[name] as T? {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -101,7 +101,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[column] as T? {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -119,7 +119,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[index] as T? {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -137,7 +137,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[name] as T? {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
     
@@ -155,7 +155,7 @@ class RowTestCase: GRDBTestCase {
         if let v = row[column] as T? {
             XCTAssertEqual(v, value)
         } else {
-            XCTFail("expected succesful extraction")
+            XCTFail("expected successful extraction")
         }
     }
 }

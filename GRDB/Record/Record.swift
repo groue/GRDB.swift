@@ -116,7 +116,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     open func encode(to container: inout PersistenceContainer) {
     }
     
-    /// Notifies the record that it was succesfully inserted.
+    /// Notifies the record that it was successfully inserted.
     ///
     /// Do not call this method directly: it is called for you, in a protected
     /// dispatch queue, with the inserted RowID and the eventual
