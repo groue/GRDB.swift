@@ -1064,9 +1064,9 @@ extension FetchableRecordDecodableTests {
         }
         
         // No error expected:
-        // - a is succesfully decoded because it consumes the one and unique
+        // - a is successfully decoded because it consumes the one and unique
         //   allowed missing key
-        // - b and c are succesfully decoded, because they are optionals, and
+        // - b and c are successfully decoded, because they are optionals, and
         //   all optionals decode missing keys are nil. This is because GRDB
         //   records accept rows with missing columns, and b and c may want to
         //   decode columns.
