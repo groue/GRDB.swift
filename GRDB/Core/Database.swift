@@ -1584,15 +1584,8 @@ extension Database {
         /// An event reported by `TracingOptions.statement`.
         case statement(Statement)
         
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
         /// An event reported by `TracingOptions.profile`.
         case profile(statement: Statement, duration: TimeInterval)
-        #elseif os(Linux)
-        #else
-        /// An event reported by `TracingOptions.profile`.
-        @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
-        case profile(statement: Statement, duration: TimeInterval)
-        #endif
         
         public var description: String {
             switch self {
