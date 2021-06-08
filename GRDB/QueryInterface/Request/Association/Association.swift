@@ -163,7 +163,8 @@ extension Association {
     }
 }
 
-extension Association where Self: SelectionRequest {
+// SelectionRequest conformance
+extension Association {
     
     /// Creates an association which selects *selection*.
     ///
@@ -208,7 +209,8 @@ extension Association where Self: SelectionRequest {
     }
 }
 
-extension Association where Self: FilteredRequest {
+// FilteredRequest conformance
+extension Association {
     /// Creates an association with the provided *predicate promise* added to
     /// the eventual set of already applied predicates.
     ///
@@ -226,7 +228,8 @@ extension Association where Self: FilteredRequest {
     }
 }
 
-extension Association where Self: OrderedRequest {
+// OrderedRequest conformance
+extension Association {
     /// Creates an association with the provided *orderings promise*.
     ///
     ///     struct Player: TableRecord {
@@ -295,13 +298,15 @@ extension Association where Self: OrderedRequest {
     }
 }
 
-extension Association where Self: TableRequest {
+// TableRequest conformance
+extension Association {
     public var databaseTableName: String {
         _sqlAssociation.destination.relation.source.tableName
     }
 }
 
-extension Association where Self: AggregatingRequest {
+// AggregatingRequest conformance
+extension Association {
     /// Creates an association grouped according to *expressions promise*.
     public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self {
         mapDestinationRelation { $0.group { try expressions($0).map(\.sqlExpression) } }
@@ -314,7 +319,8 @@ extension Association where Self: AggregatingRequest {
     }
 }
 
-extension Association where Self: DerivableRequest {
+// DerivableRequest conformance
+extension Association {
     /// Creates an association for returns distinct rows.
     public func distinct() -> Self {
         mapDestinationRelation { $0.with(\.isDistinct, true) }
