@@ -52,9 +52,19 @@ public struct FTS5: VirtualTableModule {
     /// The virtual table module name
     public let moduleName = "fts5"
     
-    /// Don't use this method.
+    // TODO: remove when `makeTableDefinition()` is no longer a requirement
+    /// Reserved; part of the VirtualTableModule protocol.
+    ///
+    /// See Database.create(virtualTable:using:)
     public func makeTableDefinition() -> FTS5TableDefinition {
-        FTS5TableDefinition()
+        preconditionFailure()
+    }
+    
+    /// Reserved; part of the VirtualTableModule protocol.
+    ///
+    /// See Database.create(virtualTable:using:)
+    public func makeTableDefinition(configuration: VirtualTableConfiguration) -> FTS5TableDefinition {
+        FTS5TableDefinition(configuration: configuration)
     }
     
     /// Don't use this method.
@@ -150,18 +160,24 @@ public struct FTS5: VirtualTableModule {
                 .map { "old.\($0.quotedDatabaseIdentifier)" }
                 .joined(separator: ", ")
             
+            let ifNotExists = definition.configuration.ifNotExists
+                ? "IF NOT EXISTS "
+                : ""
+            
+            // swiftlint:disable line_length
             try db.execute(sql: """
-                CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
+                CREATE TRIGGER \(ifNotExists)\("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
                     INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                 END;
-                CREATE TRIGGER \("__\(tableName)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN
+                CREATE TRIGGER \(ifNotExists)\("__\(tableName)_ad".quotedDatabaseIdentifier) AFTER DELETE ON \(content) BEGIN
                     INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
                 END;
-                CREATE TRIGGER \("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
+                CREATE TRIGGER \(ifNotExists)\("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
                     INSERT INTO \(ftsTable)(\(ftsTable), \(ftsColumns)) VALUES('delete', \(oldContentColumns));
                     INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES (\(newContentColumns));
                 END;
                 """)
+            // swiftlint:enable line_length
             
             // https://sqlite.org/fts5.html#the_rebuild_command
             
@@ -250,6 +266,7 @@ public final class FTS5TableDefinition {
         case synchronized(contentTable: String)
     }
     
+    fileprivate let configuration: VirtualTableConfiguration
     fileprivate var columns: [FTS5ColumnDefinition] = []
     fileprivate var contentMode: ContentMode = .raw(content: nil, contentRowID: nil)
     
@@ -334,6 +351,10 @@ public final class FTS5TableDefinition {
     ///
     /// https://www.sqlite.org/fts5.html#the_detail_option
     public var detail: String?
+    
+    init(configuration: VirtualTableConfiguration) {
+        self.configuration = configuration
+    }
     
     /// Appends a table column.
     ///

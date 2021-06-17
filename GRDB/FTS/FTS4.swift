@@ -25,11 +25,19 @@ public struct FTS4: VirtualTableModule {
     /// The virtual table module name
     public let moduleName = "fts4"
     
+    // TODO: remove when `makeTableDefinition()` is no longer a requirement
     /// Reserved; part of the VirtualTableModule protocol.
     ///
     /// See Database.create(virtualTable:using:)
     public func makeTableDefinition() -> FTS4TableDefinition {
-        FTS4TableDefinition()
+        preconditionFailure()
+    }
+    
+    /// Reserved; part of the VirtualTableModule protocol.
+    ///
+    /// See Database.create(virtualTable:using:)
+    public func makeTableDefinition(configuration: VirtualTableConfiguration) -> FTS4TableDefinition {
+        FTS4TableDefinition(configuration: configuration)
     }
     
     /// Reserved; part of the VirtualTableModule protocol.
@@ -113,20 +121,26 @@ public struct FTS4: VirtualTableModule {
             
             let oldRowID = "old.\(rowIDColumn.quotedDatabaseIdentifier)"
             
+            let ifNotExists = definition.configuration.ifNotExists
+                ? "IF NOT EXISTS "
+                : ""
+            
+            // swiftlint:disable line_length
             try db.execute(sql: """
-                CREATE TRIGGER \("__\(tableName)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN
+                CREATE TRIGGER \(ifNotExists)\("__\(tableName)_bu".quotedDatabaseIdentifier) BEFORE UPDATE ON \(content) BEGIN
                     DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
                 END;
-                CREATE TRIGGER \("__\(tableName)_bd".quotedDatabaseIdentifier) BEFORE DELETE ON \(content) BEGIN
+                CREATE TRIGGER \(ifNotExists)\("__\(tableName)_bd".quotedDatabaseIdentifier) BEFORE DELETE ON \(content) BEGIN
                     DELETE FROM \(ftsTable) WHERE docid=\(oldRowID);
                 END;
-                CREATE TRIGGER \("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
+                CREATE TRIGGER \(ifNotExists)\("__\(tableName)_au".quotedDatabaseIdentifier) AFTER UPDATE ON \(content) BEGIN
                     INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
                 END;
-                CREATE TRIGGER \("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
+                CREATE TRIGGER \(ifNotExists)\("__\(tableName)_ai".quotedDatabaseIdentifier) AFTER INSERT ON \(content) BEGIN
                     INSERT INTO \(ftsTable)(\(ftsColumns)) VALUES(\(newContentColumns));
                 END;
                 """)
+            // swiftlint:enable line_length
             
             // https://www.sqlite.org/fts3.html#*fts4rebuidcmd
             
@@ -151,6 +165,7 @@ public final class FTS4TableDefinition {
         case synchronized(contentTable: String)
     }
     
+    fileprivate let configuration: VirtualTableConfiguration
     fileprivate var columns: [FTS4ColumnDefinition] = []
     fileprivate var contentMode: ContentMode = .raw(content: nil)
     
@@ -212,6 +227,10 @@ public final class FTS4TableDefinition {
     ///
     /// See https://www.sqlite.org/fts3.html#the_prefix_option
     public var prefixes: Set<Int>?
+    
+    init(configuration: VirtualTableConfiguration) {
+        self.configuration = configuration
+    }
     
     /// Appends a table column.
     ///
