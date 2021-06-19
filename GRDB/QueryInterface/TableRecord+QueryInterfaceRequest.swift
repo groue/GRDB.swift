@@ -133,7 +133,7 @@ extension TableRecord {
     /// Creates a request which appends *selection*.
     ///
     ///     // SELECT id, email, name FROM player
-    ///     le request = Player
+    ///     let request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
     public static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
@@ -143,7 +143,7 @@ extension TableRecord {
     /// Creates a request which appends *selection*.
     ///
     ///     // SELECT id, email, name FROM player
-    ///     le request = Player
+    ///     let request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
     public static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {

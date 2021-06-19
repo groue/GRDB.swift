@@ -40,24 +40,403 @@ extension Table {
     
     /// Creates a request for all rows of the table.
     ///
-    /// You can, for example, fetch from this request:
-    ///
-    ///     let table = Table<Row>("player")
-    ///     let rows: [Row] = try table.all().fetchAll(db)
+    ///     // Fetch all players
+    ///     let table = Table<Player>("player")
+    ///     let request = table.all()
+    ///     let players: [Player] = try request.fetchAll(db)
     public func all() -> QueryInterfaceRequest<RowDecoder> {
         QueryInterfaceRequest(relation: relationForAll)
     }
-}
-
-extension Table {
+    
+    /// Creates a request which fetches no row.
+    ///
+    ///     // Fetch no players
+    ///     let table = Table<Player>("player")
+    ///     let request = table.none()
+    ///     let players: [Player] = try request.fetchAll(db) // Empty array
+    public func none() -> QueryInterfaceRequest<RowDecoder> {
+        all().none() // don't laugh
+    }
+    
+    /// Creates a request which selects *selection*.
+    ///
+    ///     // SELECT id, email FROM player
+    ///     let table = Table("player")
+    ///     let request = table.select(Column("id"), Column("email"))
+    public func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
+        all().select(selection)
+    }
+    
+    /// Creates a request which selects *selection*.
+    ///
+    ///     // SELECT id, email FROM player
+    ///     let table = Table("player")
+    ///     let request = table.select([Column("id"), Column("email")])
+    public func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
+        all().select(selection)
+    }
+    
+    /// Creates a request which selects *sql*.
+    ///
+    ///     // SELECT id, email FROM player
+    ///     let table = Table("player")
+    ///     let request = table.select(sql: "id, email")
+    public func select(
+        sql: String,
+        arguments: StatementArguments = StatementArguments())
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        all().select(SQL(sql: sql, arguments: arguments))
+    }
+    
+    /// Creates a request which selects an SQL *literal*.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     // SELECT id, email, score + 1000 FROM player
+    ///     let table = Table("player")
+    ///     let bonus = 1000
+    ///     let request = table.select(literal: """
+    ///         id, email, score + \(bonus)
+    ///         """)
+    public func select(literal sqlLiteral: SQL) -> QueryInterfaceRequest<RowDecoder> {
+        all().select(sqlLiteral)
+    }
+    
+    /// Creates a request which selects *selection*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let table = Table("player")
+    ///         let request = table.select([max(Column("score"))], as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public func select<RowDecoder>(
+        _ selection: [SQLSelectable],
+        as type: RowDecoder.Type = RowDecoder.self)
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        all().select(selection, as: type)
+    }
+    
+    /// Creates a request which selects *selection*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let table = Table("player")
+    ///         let request = table.select(max(Column("score")), as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public func select<RowDecoder>(
+        _ selection: SQLSelectable...,
+        as type: RowDecoder.Type = RowDecoder.self)
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        all().select(selection, as: type)
+    }
+    
+    /// Creates a request which selects *sql*, and fetches values of
+    /// type *type*.
+    ///
+    ///     try dbQueue.read { db in
+    ///         // SELECT max(score) FROM player
+    ///         let table = Table("player")
+    ///         let request = table.select(sql: "max(score)", as: Int.self)
+    ///         let maxScore: Int? = try request.fetchOne(db)
+    ///     }
+    public func select<RowDecoder>(
+        sql: String,
+        arguments: StatementArguments = StatementArguments(),
+        as type: RowDecoder.Type = RowDecoder.self)
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        all().select(SQL(sql: sql, arguments: arguments), as: type)
+    }
+    
+    /// Creates a request which selects an SQL *literal*, and fetches values of
+    /// type *type*.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     // SELECT IFNULL(name, 'Anonymous') FROM player
+    ///     let table = Table("player")
+    ///     let defaultName = "Anonymous"
+    ///     let request = table.select(
+    ///         literal: "IFNULL(name, \(defaultName))",
+    ///         as: String.self)
+    ///     let name: String? = try request.fetchOne(db)
+    public func select<RowDecoder>(
+        literal sqlLiteral: SQL,
+        as type: RowDecoder.Type = RowDecoder.self)
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        all().select(sqlLiteral, as: type)
+    }
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     let table = Table("player")
+    ///     let request = table
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: [Column("name")])
+    public func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<RowDecoder> {
+        all().annotated(with: selection)
+    }
+    
+    /// Creates a request which appends *selection*.
+    ///
+    ///     // SELECT id, email, name FROM player
+    ///     let table = Table("player")
+    ///     let request = table
+    ///         .select([Column("id"), Column("email")])
+    ///         .annotated(with: Column("name"))
+    public func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<RowDecoder> {
+        all().annotated(with: selection)
+    }
+    
+    /// Creates a request with the provided *predicate*.
+    ///
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(Column("email") == "arthur@example.com")
+    public func filter(_ predicate: SQLSpecificExpressible) -> QueryInterfaceRequest<RowDecoder> {
+        all().filter(predicate)
+    }
+    
+    /// Creates a request with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM player WHERE id = 1
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(key: 1)
+    public func filter<PrimaryKeyType>(key: PrimaryKeyType?)
+    -> QueryInterfaceRequest<RowDecoder>
+    where PrimaryKeyType: DatabaseValueConvertible
+    {
+        all().filter(key: key)
+    }
+    
+    /// Creates a request with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(keys: [1, 2, 3])
+    public func filter<Sequence>(keys: Sequence)
+    -> QueryInterfaceRequest<RowDecoder>
+    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    {
+        all().filter(keys: keys)
+    }
+    
+    /// Creates a request with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM passport WHERE personId = 1 AND countryCode = 'FR'
+    ///     let table = Table<Passport>("passport")
+    ///     let request = table.filter(key: ["personId": 1, "countryCode": "FR"])
+    ///
+    /// When executed, this request raises a fatal error if there is no unique
+    /// index on the key columns.
+    public func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<RowDecoder> {
+        all().filter(key: key)
+    }
+    
+    /// Creates a request with the provided primary key *predicate*.
+    ///
+    ///     // SELECT * FROM passport WHERE (personId = 1 AND countryCode = 'FR') OR ...
+    ///     let table = Table<Passport>("passport")
+    ///     let request = table.filter(keys: [["personId": 1, "countryCode": "FR"], ...])
+    ///
+    /// When executed, this request raises a fatal error if there is no unique
+    /// index on the key columns.
+    public func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<RowDecoder> {
+        all().filter(keys: keys)
+    }
+    
+    /// Creates a request with the provided *predicate*.
+    ///
+    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(sql: "email = ?", arguments: ["arthur@example.com"])
+    public func filter(
+        sql: String,
+        arguments: StatementArguments = StatementArguments())
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        filter(SQL(sql: sql, arguments: arguments))
+    }
+    
+    /// Creates a request with the provided *predicate* added to the
+    /// eventual set of already applied predicates.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     // SELECT * FROM player WHERE name = 'O''Brien'
+    ///     let table = Table<Player>("player")
+    ///     let name = "O'Brien"
+    ///     let request = table.filter(literal: "email = \(email)")
+    public func filter(literal sqlLiteral: SQL) -> QueryInterfaceRequest<RowDecoder> {
+        all().filter(sqlLiteral)
+    }
+    
+    /// Creates a request sorted according to the
+    /// provided *orderings*.
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     let table = Table<Player>("player")
+    ///     let request = table.order(Column("name"))
+    public func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<RowDecoder> {
+        all().order(orderings)
+    }
+    
+    /// Creates a request sorted according to the
+    /// provided *orderings*.
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     let table = Table<Player>("player")
+    ///     let request = table.order([Column("name")])
+    public func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<RowDecoder> {
+        all().order(orderings)
+    }
+    
+    /// Creates a request sorted by primary key.
+    ///
+    ///     // SELECT * FROM player ORDER BY id
+    ///     let table = Table<Player>("player")
+    ///     let request = table.orderByPrimaryKey()
+    ///
+    ///     // SELECT * FROM country ORDER BY code
+    ///     let request = Country.orderByPrimaryKey()
+    public func orderByPrimaryKey() -> QueryInterfaceRequest<RowDecoder> {
+        all().orderByPrimaryKey()
+    }
+    
+    /// Creates a request sorted according to *sql*.
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     let table = Table<Player>("player")
+    ///     let request = table.order(sql: "name")
+    public func order(
+        sql: String,
+        arguments: StatementArguments = StatementArguments())
+    -> QueryInterfaceRequest<RowDecoder>
+    {
+        all().order(SQL(sql: sql, arguments: arguments))
+    }
+    
+    /// Creates a request sorted according to an SQL *literal*.
+    ///
+    ///     // SELECT * FROM player ORDER BY name
+    ///     let table = Table<Player>("player")
+    ///     let request = table.order(literal: "name")
+    public func order(literal sqlLiteral: SQL) -> QueryInterfaceRequest<RowDecoder> {
+        all().order(sqlLiteral)
+    }
+    
+    /// Creates a request which fetches *limit* rows, starting at
+    /// *offset*.
+    ///
+    ///     // SELECT * FROM player LIMIT 1
+    ///     let table = Table<Player>("player")
+    ///     let request = table.limit(1)
+    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest<RowDecoder> {
+        all().limit(limit, offset: offset)
+    }
+    
+    /// Creates a request that allows you to define expressions that target
+    /// a specific database table.
+    ///
+    /// See `TableRecord.aliased(_:)` for more information.
+    public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest<RowDecoder> {
+        all().aliased(alias)
+    }
+    
     /// Returns a request which embeds the common table expression.
     ///
-    /// For more information, see `TableRecord.with(_:)`.
+    /// See `TableRecord.with(_:)` for more information.
     ///
     /// - parameter cte: A common table expression.
     /// - returns: A request.
-    public func with<CTERowDecoder>(_ cte: CommonTableExpression<CTERowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
+    public func with<T>(_ cte: CommonTableExpression<T>) -> QueryInterfaceRequest<RowDecoder> {
         all().with(cte)
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE id = 1
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(id: 1)
+    ///
+    /// - parameter id: A primary key
+    public func filter(id: RowDecoder.ID) -> QueryInterfaceRequest<RowDecoder> {
+        all().filter(id: id)
+    }
+    
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(ids: [1, 2, 3])
+    ///
+    /// - parameter ids: A collection of primary keys
+    public func filter<Collection>(ids: Collection)
+    -> QueryInterfaceRequest<RowDecoder>
+    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID
+    {
+        all().filter(ids: ids)
+    }
+    
+    /// Creates a request which selects the primary key.
+    ///
+    ///     // SELECT id FROM player
+    ///     let table = Table("player")
+    ///     let request = try table.selectID()
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> {
+        all().selectID()
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Table where RowDecoder: Identifiable, RowDecoder.ID: _OptionalProtocol, RowDecoder.ID.Wrapped: DatabaseValueConvertible {
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE id = 1
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(id: 1)
+    ///
+    /// - parameter id: A primary key
+    public func filter(id: RowDecoder.ID.Wrapped) -> QueryInterfaceRequest<RowDecoder> {
+        all().filter(id: id)
+    }
+    
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
+    ///     let table = Table<Player>("player")
+    ///     let request = table.filter(ids: [1, 2, 3])
+    ///
+    /// - parameter ids: A collection of primary keys
+    public func filter<Collection>(ids: Collection)
+    -> QueryInterfaceRequest<RowDecoder>
+    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID.Wrapped
+    {
+        all().filter(ids: ids)
+    }
+    
+    /// Creates a request which selects the primary key.
+    ///
+    ///     // SELECT id FROM player
+    ///     let table = Table("player")
+    ///     let request = try table.selectID()
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID.Wrapped> {
+        all().selectID()
     }
 }
 
