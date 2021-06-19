@@ -45,7 +45,7 @@ extension FetchableRecord where Self: TableRecord {
     
     /// The first found record.
     ///
-    ///     // SELECT * FROM player
+    ///     // SELECT * FROM player LIMIT 1
     ///     let player = try Player.fetchOne(db) // Player?
     ///
     /// The selection defaults to all columns. This default can be changed for

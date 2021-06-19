@@ -33,6 +33,8 @@ extension Table where RowDecoder == Row {
     }
 }
 
+// MARK: Request Derivation
+
 extension Table {
     var relationForAll: SQLRelation {
         .all(fromTable: tableName)
@@ -404,7 +406,11 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension Table where RowDecoder: Identifiable, RowDecoder.ID: _OptionalProtocol, RowDecoder.ID.Wrapped: DatabaseValueConvertible {
+extension Table
+where RowDecoder: Identifiable,
+      RowDecoder.ID: _OptionalProtocol,
+      RowDecoder.ID.Wrapped: DatabaseValueConvertible
+{
     /// Creates a request filtered by primary key.
     ///
     ///     // SELECT * FROM player WHERE id = 1
@@ -437,6 +443,402 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: _OptionalProtocol
     ///     let request = try table.selectID()
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID.Wrapped> {
         all().selectID()
+    }
+}
+
+// MARK: - Fetching Records from Table
+
+extension Table where RowDecoder: FetchableRecord {
+    /// A cursor over all records fetched from the database.
+    ///
+    ///     // SELECT * FROM player
+    ///     let table = Table<Player>("player")
+    ///     let players = try table.fetchCursor(db) // Cursor of Player
+    ///     while let player = try players.next() {  // Player
+    ///         ...
+    ///     }
+    ///
+    /// Records are iterated in the natural ordering of the table.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispatch queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> RecordCursor<RowDecoder> {
+        try all().fetchCursor(db)
+    }
+    
+    /// An array of all records fetched from the database.
+    ///
+    ///     // SELECT * FROM player
+    ///     let table = Table<Player>("player")
+    ///     let players = try table.fetchAll(db) // [Player]
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+        try all().fetchAll(db)
+    }
+    
+    /// The first found record.
+    ///
+    ///     // SELECT * FROM player LIMIT 1
+    ///     let table = Table<Player>("player")
+    ///     let player = try table.fetchOne(db) // Player?
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+        try all().fetchOne(db)
+    }
+}
+
+extension Table where RowDecoder: FetchableRecord & Hashable {
+    /// A set of all records fetched from the database.
+    ///
+    ///     // SELECT * FROM player
+    ///     let table = Table<Player>("player")
+    ///     let players = try table.fetchSet(db) // Set<Player>
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+        try all().fetchSet(db)
+    }
+}
+
+// MARK: - Fetching Rows from Table
+
+extension Table where RowDecoder == Row {
+    /// A cursor over all rows fetched from the database.
+    ///
+    ///     // SELECT * FROM player
+    ///     let table = Table("player")
+    ///     let rows = try table.fetchCursor(db) // Cursor of Row
+    ///     while let row = try rows.next() {    // Row
+    ///         ...
+    ///     }
+    ///
+    /// Rows are iterated in the natural ordering of the table.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispatch queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> RowCursor {
+        try all().fetchCursor(db)
+    }
+    
+    /// An array of all rows fetched from the database.
+    ///
+    ///     // SELECT * FROM player
+    ///     let table = Table("player")
+    ///     let players = try table.fetchAll(db) // [Row]
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [Row] {
+        try all().fetchAll(db)
+    }
+    
+    /// The first found row.
+    ///
+    ///     // SELECT * FROM player LIMIT 1
+    ///     let table = Table("player")
+    ///     let row = try table.fetchOne(db) // Row?
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> Row? {
+        try all().fetchOne(db)
+    }
+    
+    /// A set of all rows fetched from the database.
+    ///
+    ///     // SELECT * FROM player
+    ///     let table = Table("player")
+    ///     let rows = try table.fetchSet(db) // Set<Row>
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<Row> {
+        try all().fetchSet(db)
+    }
+}
+
+// MARK: - Fetching Values from Table
+
+extension Table where RowDecoder: DatabaseValueConvertible {
+    /// A cursor over all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String>("name")
+    ///     let names = try table.fetchCursor(db) // Cursor of String
+    ///     while let name = try names.next() {   // String
+    ///         ...
+    ///     }
+    ///
+    /// Values are iterated in the natural ordering of the table.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispatch queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> DatabaseValueCursor<RowDecoder> {
+        try all().fetchCursor(db)
+    }
+    
+    /// An array of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String>("name")
+    ///     let names = try table.fetchAll(db) // [String]
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+        try all().fetchAll(db)
+    }
+    
+    /// The value from the leftmost column of the first row.
+    ///
+    ///     // SELECT * FROM name LIMIT 1
+    ///     let table = Table<String>("name")
+    ///     let name = try table.fetchOne(db) // String?
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+        try all().fetchOne(db)
+    }
+}
+
+extension Table where RowDecoder: DatabaseValueConvertible & Hashable {
+    /// A set of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String>("name")
+    ///     let names = try table.fetchSet(db) // Set<String>
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+        try all().fetchSet(db)
+    }
+}
+
+extension Table where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible {
+    /// A cursor over all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String?>("name")
+    ///     let names = try table.fetchCursor(db) // Cursor of String?
+    ///     while let name = try names.next() {   // String?
+    ///         ...
+    ///     }
+    ///
+    /// Values are iterated in the natural ordering of the table.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispatch queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> NullableDatabaseValueCursor<RowDecoder.Wrapped> {
+        try all().fetchCursor(db)
+    }
+    
+    /// An array of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String?>("name")
+    ///     let names = try table.fetchAll(db) // [String?]
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [RowDecoder.Wrapped?] {
+        try all().fetchAll(db)
+    }
+    
+    /// The value from the leftmost column of the first row.
+    ///
+    ///     // SELECT * FROM name LIMIT 1
+    ///     let table = Table<String?>("name")
+    ///     let name = try table.fetchOne(db) // String?
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder.Wrapped? {
+        try all().fetchOne(db)
+    }
+}
+
+extension Table where RowDecoder: _OptionalProtocol, RowDecoder.Wrapped: DatabaseValueConvertible & Hashable {
+    /// A set of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String?>("name")
+    ///     let names = try table.fetchSet(db) // Set<String?>
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder.Wrapped?> {
+        try all().fetchSet(db)
+    }
+}
+
+// MARK: - Fetching Fast Values from Table
+
+extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible {
+    /// A cursor over all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String>("name")
+    ///     let names = try table.fetchCursor(db) // Cursor of String
+    ///     while let name = try names.next() {   // String
+    ///         ...
+    ///     }
+    ///
+    /// Values are iterated in the natural ordering of the table.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispatch queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> FastDatabaseValueCursor<RowDecoder> {
+        try all().fetchCursor(db)
+    }
+    
+    /// An array of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String>("name")
+    ///     let names = try table.fetchAll(db) // [String]
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [RowDecoder] {
+        try all().fetchAll(db)
+    }
+    
+    /// The value from the leftmost column of the first row.
+    ///
+    ///     // SELECT * FROM name LIMIT 1
+    ///     let table = Table<String>("name")
+    ///     let name = try table.fetchOne(db) // String?
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder? {
+        try all().fetchOne(db)
+    }
+}
+
+extension Table where RowDecoder: DatabaseValueConvertible & StatementColumnConvertible & Hashable {
+    /// A set of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String>("name")
+    ///     let names = try table.fetchSet(db) // Set<String>
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder> {
+        try all().fetchSet(db)
+    }
+}
+
+extension Table
+where RowDecoder: _OptionalProtocol,
+      RowDecoder.Wrapped: DatabaseValueConvertible & StatementColumnConvertible
+{
+    /// A cursor over all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String?>("name")
+    ///     let names = try table.fetchCursor(db) // Cursor of String?
+    ///     while let name = try names.next() {   // String?
+    ///         ...
+    ///     }
+    ///
+    /// Values are iterated in the natural ordering of the table.
+    ///
+    /// If the database is modified during the cursor iteration, the remaining
+    /// elements are undefined.
+    ///
+    /// The cursor must be iterated in a protected dispatch queue.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: A cursor over fetched records.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchCursor(_ db: Database) throws -> FastNullableDatabaseValueCursor<RowDecoder.Wrapped> {
+        try all().fetchCursor(db)
+    }
+    
+    /// An array of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String?>("name")
+    ///     let names = try table.fetchAll(db) // [String?]
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchAll(_ db: Database) throws -> [RowDecoder.Wrapped?] {
+        try all().fetchAll(db)
+    }
+    
+    /// The value from the leftmost column of the first row.
+    ///
+    ///     // SELECT * FROM name LIMIT 1
+    ///     let table = Table<String?>("name")
+    ///     let name = try table.fetchOne(db) // String?
+    ///
+    /// The result is nil if the query returns no row, or if no value can be
+    /// extracted from the first row.
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchOne(_ db: Database) throws -> RowDecoder.Wrapped? {
+        try all().fetchOne(db)
+    }
+}
+
+extension Table
+where RowDecoder: _OptionalProtocol,
+      RowDecoder.Wrapped: DatabaseValueConvertible & StatementColumnConvertible & Hashable
+{
+    /// A set of all values fetched from the leftmost column.
+    ///
+    ///     // SELECT * FROM name
+    ///     let table = Table<String?>("name")
+    ///     let names = try table.fetchSet(db) // Set<String?>
+    ///
+    /// - parameter db: A database connection.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    public func fetchSet(_ db: Database) throws -> Set<RowDecoder.Wrapped?> {
+        try all().fetchSet(db)
     }
 }
 
