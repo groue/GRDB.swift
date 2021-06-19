@@ -818,4 +818,36 @@ class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
             XCTAssertFalse(try record.exists(db))
         }
     }
+    
+    // MARK: Select ID
+    
+    func test_static_selectID() throws {
+        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
+            throw XCTSkip("Identifiable not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            let ids = try MinimalSingle.selectID().fetchAll(db)
+            XCTAssertEqual(ids, ["theUUID"])
+        }
+    }
+    
+    func test_request_selectID() throws {
+        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
+            throw XCTSkip("Identifiable not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalSingle()
+            record.UUID = "theUUID"
+            try record.insert(db)
+            let ids = try MinimalSingle.all().selectID().fetchAll(db)
+            XCTAssertEqual(ids, ["theUUID"])
+        }
+    }
 }

@@ -380,6 +380,14 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     {
         all().filter(ids: ids)
     }
+    
+    /// Creates a request which selects the primary key.
+    ///
+    ///     // SELECT id FROM player
+    ///     let request = try Player.selectID()
+    public static func selectID() -> QueryInterfaceRequest<ID> {
+        all().selectID()
+    }
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
@@ -405,5 +413,13 @@ extension TableRecord where Self: Identifiable, ID: _OptionalProtocol, ID.Wrappe
     where Collection: Swift.Collection, Collection.Element == ID.Wrapped
     {
         all().filter(ids: ids)
+    }
+    
+    /// Creates a request which selects the primary key.
+    ///
+    ///     // SELECT id FROM player
+    ///     let request = try Player.selectID()
+    public static func selectID() -> QueryInterfaceRequest<ID.Wrapped> {
+        all().selectID()
     }
 }
