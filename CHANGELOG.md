@@ -81,6 +81,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Fixed**: [#980](https://github.com/groue/GRDB.swift/pull/980) by [@jroselightricks](https://github.com/jroselightricks): Fix spelling
 - **Fixed**: [#989](https://github.com/groue/GRDB.swift/pull/989) by [@pp5x](https://github.com/pp5x): FTS: add support of ifNotExists in synchronize()
 - **New**: The `selectID()` method is now available for [Identifiable Records](README.md#identifiable-records)
+- **New**: Cached prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
+    
+    ```swift
+    let updateStatement = try db.cachedUpdateStatement(literal: "INSERT ...")
+    let selectStatement = try db.cachedSelectStatement(literal: "SELECT ...")
+    //                                                 ~~~~~~~
+    ```
+
 
 ## 5.8.0
 
