@@ -194,6 +194,23 @@ class FTS4TableBuilderTests: GRDBTestCase {
         }
     }
 
+    func testFTS4SynchronizationIfNotExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            try db.create(table: "documents") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("content", .text)
+            }
+            assertDidExecute(sql: "CREATE TABLE \"documents\" (\"id\" INTEGER PRIMARY KEY, \"content\" TEXT)")
+            try db.create(virtualTable: "ft_documents", ifNotExists: true, using: FTS4()) { t in
+                t.synchronize(withTable: "documents")
+                t.column("content")
+            }
+            assertDidExecute(sql: "CREATE VIRTUAL TABLE IF NOT EXISTS \"ft_documents\" USING fts4(content, content=\"documents\")")
+            assertDidExecute(sql: "CREATE TRIGGER IF NOT EXISTS \"__ft_documents_bu\" BEFORE UPDATE ON \"documents\" BEGIN\n    DELETE FROM \"ft_documents\" WHERE docid=old.\"id\";\nEND")
+        }
+    }
+
     func testFTS4SynchronizationCleanup() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
