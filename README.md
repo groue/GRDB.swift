@@ -1850,7 +1850,15 @@ let updateStatement = try db.cachedUpdateStatement(sql: sql)
 let selectStatement = try db.cachedSelectStatement(sql: sql)
 ```
 
-Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload it from the cache.
+Cached statements also support [SQL Interpolation]:
+
+```swift
+let updateStatement = try db.cachedUpdateStatement(literal: "INSERT ...")
+let selectStatement = try db.cachedSelectStatement(literal: "SELECT ...")
+//                                               ~~~~~~~
+```
+
+> :warning: **Warning**: Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload one from the cache.
 
 
 ## Custom SQL Functions and Aggregates

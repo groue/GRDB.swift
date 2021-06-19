@@ -20,7 +20,7 @@ extension Database {
     /// Returns a new prepared statement that can be reused.
     ///
     /// - parameter sqlLiteral: An `SQL` literal.
-    /// - returns: An SelectStatement.
+    /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
     ///   A fatal error is raised otherwise.
@@ -77,6 +77,40 @@ extension Database {
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedSelectStatement(sql: String) throws -> SelectStatement {
         try publicStatementCache.selectStatement(sql)
+    }
+    
+    /// Returns a prepared statement that can be reused.
+    ///
+    ///     let statement = try db.cachedSelectStatement(literal: "SELECT COUNT(*) FROM player WHERE score > \(20)")
+    ///     let moreThanTwentyCount = try Int.fetchOne(statement)!
+    ///
+    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - returns: A SelectStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
+    ///
+    ///         // OK
+    ///         try cachedSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > ?
+    ///             """)
+    ///         try cachedSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > \(1000)
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try cachedSelectStatement(literal: """
+    ///             SELECT COUNT(*) FROM player
+    ///             WHERE color = ? AND score > \(1000)
+    ///             """)
+    public func cachedSelectStatement(literal sqlLiteral: SQL) throws -> SelectStatement {
+        let (sql, arguments) = try sqlLiteral.build(self)
+        let statement = try cachedSelectStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
@@ -156,6 +190,36 @@ extension Database {
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     public func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
         try publicStatementCache.updateStatement(sql)
+    }
+    
+    /// Returns a new prepared statement that can be reused.
+    ///
+    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - returns: An UpdateStatement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
+    ///
+    ///         // OK
+    ///         try cachedUpdateStatement(literal: """
+    ///             UPDATE player SET name = ?
+    ///             """)
+    ///         try cachedUpdateStatement(literal: """
+    ///             UPDATE player SET name = \("O'Brien")
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try cachedUpdateStatement(literal: """
+    ///             UPDATE player SET name = ?, score = \(10)
+    ///             """)
+    public func cachedUpdateStatement(literal sqlLiteral: SQL) throws -> UpdateStatement {
+        let (sql, arguments) = try sqlLiteral.build(self)
+        let statement = try cachedUpdateStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
