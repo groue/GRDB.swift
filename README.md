@@ -2848,6 +2848,9 @@ let players = try Player.fetchSet(db, ids: [1, 2, 3])
 let request = Player.filter(id: 1)
 let request = Player.filter(ids: [1, 2, 3])
 
+let ids = try Player.selectID().fetchAll(db)
+let ids = try Player.filter(...).selectID().fetchSet(db)
+
 try Player.deleteOne(db, id: 1)
 try Player.deleteAll(db, ids: [1, 2, 3])
 ```
@@ -3894,8 +3897,11 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.selectID()` | [TableRecord] & Identifiable | [*](#identifiable-records) |
 | `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.filter(id:)` | [TableRecord] & Identifiable | [*](#identifiable-records) |
+| `Type.filter(ids:)` | [TableRecord] & Identifiable | [*](#identifiable-records) |
 | `Type.matching(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.including(all:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.including(optional:)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
@@ -4277,6 +4283,16 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     ```swift
     // SELECT name FROM player
     Player.select(nameColumn, as: String.self)
+    ```
+
+- `selectID()` is available on [Identifiable Records]. It supports all tables that have a single-column primary key:
+
+    ```swift
+    // SELECT id FROM player
+    Player.selectID()
+    
+    // SELECT id FROM player WHERE name IS NOT NULL
+    Player.filter(nameColumn != nil).selectID()
     ```
 
 - `annotated(with: expression...)` extends the selection.
