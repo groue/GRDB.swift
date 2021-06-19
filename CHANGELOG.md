@@ -79,6 +79,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Development Branch
 
 - **Fixed**: [#980](https://github.com/groue/GRDB.swift/pull/980) by [@jroselightricks](https://github.com/jroselightricks): Fix spelling
+- **Fixed**: [#989](https://github.com/groue/GRDB.swift/pull/989) by [@pp5x](https://github.com/pp5x): FTS: add support of ifNotExists in synchronize()
 
 ## 5.8.0
 
