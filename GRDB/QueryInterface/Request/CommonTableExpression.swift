@@ -408,4 +408,38 @@ extension CommonTableExpression {
     {
         JoinAssociation(to: Destination.relationForAll, condition: .none)
     }
+    
+    /// Creates an association to a table that you can join
+    /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of `Destination`.
+    ///
+    /// - parameter cte: A common table expression.
+    /// - parameter condition: A function that returns the joining clause.
+    /// - parameter left: A `TableAlias` for the left table.
+    /// - parameter right: A `TableAlias` for the right table.
+    /// - returns: An association to the common table expression.
+    public func association<Destination>(
+        to destination: Table<Destination>,
+        on condition: @escaping (_ left: TableAlias, _ right: TableAlias) -> SQLExpressible)
+    -> JoinAssociation<RowDecoder, Destination>
+    {
+        JoinAssociation(
+            to: destination.relationForAll,
+            condition: .expression { condition($0, $1).sqlExpression })
+    }
+    
+    /// Creates an association to a table that you can join
+    /// or include in another request.
+    ///
+    /// The key of the returned association is the table name of `Destination`.
+    ///
+    /// - parameter cte: A common table expression.
+    /// - returns: An association to the common table expression.
+    public func association<Destination>(
+        to destination: Table<Destination>)
+    -> JoinAssociation<RowDecoder, Destination>
+    {
+        JoinAssociation(to: destination.relationForAll, condition: .none)
+    }
 }
