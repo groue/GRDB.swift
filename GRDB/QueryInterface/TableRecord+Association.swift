@@ -629,7 +629,7 @@ extension TableRecord {
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
-    ///     var request = Player.annotated(with: Player.books.count)
+    ///     let request = Player.annotated(with: Player.books.count)
     public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }
@@ -638,7 +638,7 @@ extension TableRecord {
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
-    ///     var request = Player.annotated(with: [Player.books.count])
+    ///     let request = Player.annotated(with: [Player.books.count])
     public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }

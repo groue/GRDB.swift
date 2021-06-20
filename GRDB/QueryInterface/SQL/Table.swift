@@ -917,7 +917,7 @@ extension Table {
         _ destination: Destination.Type,
         key: String? = nil,
         using foreignKey: ForeignKey? = nil)
-    -> HasOneAssociation<Self, Destination>
+    -> HasOneAssociation<RowDecoder, Destination>
     where Destination: TableRecord
     {
         HasOneAssociation(
@@ -1071,7 +1071,7 @@ extension Table {
     -> HasManyThroughAssociation<RowDecoder, Target.RowDecoder>
     where Pivot: Association,
           Target: Association,
-          Pivot.OriginRowDecoder == Self,
+          Pivot.OriginRowDecoder == RowDecoder,
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation<RowDecoder, Target.RowDecoder>(
@@ -1104,7 +1104,7 @@ extension Table {
     -> HasOneThroughAssociation<RowDecoder, Target.RowDecoder>
     where Pivot: AssociationToOne,
           Target: AssociationToOne,
-          Pivot.OriginRowDecoder == Self,
+          Pivot.OriginRowDecoder == RowDecoder,
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation<RowDecoder, Target.RowDecoder>(
@@ -1115,5 +1115,97 @@ extension Table {
         } else {
             return association
         }
+    }
+}
+
+// MARK: - Joining Methods
+
+extension Table {
+    /// Creates a request that prefetches an association.
+    public func including<A: AssociationToMany>(all association: A)
+    -> QueryInterfaceRequest<RowDecoder>
+    where A.OriginRowDecoder == RowDecoder
+    {
+        all().including(all: association)
+    }
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are selected. The returned association does not
+    /// require that the associated database table contains a matching row.
+    public func including<A: Association>(optional association: A)
+    -> QueryInterfaceRequest<RowDecoder>
+    where A.OriginRowDecoder == RowDecoder
+    {
+        all().including(optional: association)
+    }
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are selected. The returned association requires
+    /// that the associated database table contains a matching row.
+    public func including<A: Association>(required association: A)
+    -> QueryInterfaceRequest<RowDecoder>
+    where A.OriginRowDecoder == RowDecoder
+    {
+        all().including(required: association)
+    }
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are not selected. The returned association does not
+    /// require that the associated database table contains a matching row.
+    public func joining<A: Association>(optional association: A)
+    -> QueryInterfaceRequest<RowDecoder>
+    where A.OriginRowDecoder == RowDecoder
+    {
+        all().joining(optional: association)
+    }
+    
+    /// Creates a request that includes an association. The columns of the
+    /// associated record are not selected. The returned association requires
+    /// that the associated database table contains a matching row.
+    public func joining<A: Association>(required association: A)
+    -> QueryInterfaceRequest<RowDecoder>
+    where A.OriginRowDecoder == RowDecoder
+    {
+        all().joining(required: association)
+    }
+}
+
+// MARK: - Association Aggregates
+
+extension Table {
+    /// Creates a request with *aggregates* appended to the selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     let table = Table<Player>("player")
+    ///     let request = table.annotated(with: Player.books.count)
+    public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> QueryInterfaceRequest<RowDecoder> {
+        all().annotated(with: aggregates)
+    }
+    
+    /// Creates a request with *aggregates* appended to the selection.
+    ///
+    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
+    ///     // FROM player LEFT JOIN book ...
+    ///     let table = Table<Player>("player")
+    ///     let request = table.annotated(with: [Player.books.count])
+    public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> QueryInterfaceRequest<RowDecoder> {
+        all().annotated(with: aggregates)
+    }
+    
+    /// Creates a request with the provided aggregate *predicate*.
+    ///
+    ///     // SELECT player.*
+    ///     // FROM player LEFT JOIN book ...
+    ///     // HAVING COUNT(DISTINCT book.id) = 0
+    ///     let table = Table<Player>("player")
+    ///     var request = table.all()
+    ///     request = request.having(Player.books.isEmpty)
+    ///
+    /// The selection defaults to all columns. This default can be changed for
+    /// all requests by the `TableRecord.databaseSelection` property, or
+    /// for individual requests with the `TableRecord.select` method.
+    public func having(_ predicate: AssociationAggregate<RowDecoder>) -> QueryInterfaceRequest<RowDecoder> {
+        all().having(predicate)
     }
 }
