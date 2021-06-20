@@ -4251,13 +4251,33 @@ let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
 
-All requests start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
+Query interface requests usually start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
-class Player : Record { ... }
+class Player: Record { ... }
+
+// The request for all players:
+let request = Player.all()
+let players = try request.fetchAll(db) // [Player]
 ```
 
-Declare the table **columns** that you want to use for filtering, or sorting:
+When you need to build a request from a table name, use `Table`:
+
+```swift
+// The request for all rows from the player table:
+let table = Table("player")
+let request = table.all()
+let rows = try request.fetchAll(db)    // [Row]
+
+// The request for all players from the player table:
+let table = Table<Player>("player")
+let request = table.all()
+let players = try request.fetchAll(db) // [Player]
+```
+
+> :point_up: **Note**: all examples in the documentation below use a record type, but you can always substitute a `Table` instead.
+
+Next, declare the table **columns** that you want to use for filtering, or sorting:
 
 ```swift
 let idColumn = Column("id")
@@ -4536,16 +4556,24 @@ By default, query interface requests select all columns:
 
 ```swift
 // SELECT * FROM player
+struct Player: TableRecord { ... }
 let request = Player.all()
+
+// SELECT * FROM player
+let table = Table("player")
+let request = table.all()
 ```
 
-**The selection can be changed for each individual requests, or for all requests built from a given type.**
+**The selection can be changed for each individual requests, or in the case of record-based requests, for all requests built from this record type.**
 
 The `select(...)` and `select(..., as:)` methods change the selection of a single request (see [Fetching from Requests] for detailed information):
 
 ```swift
-let request = Player.select(max(scoreColumn))
-let maxScore: Int? = try Int.fetchOne(db, request)
+let request = Player.select(max(Column("score")))
+let maxScore = try Int.fetchOne(db, request) // Int?
+
+let request = Player.select(max(Column("score")), as: Int.self)
+let maxScore = try request.fetchOne(db)      // Int?
 ```
 
 The default selection for a record type is controlled by the `databaseSelection` property:
