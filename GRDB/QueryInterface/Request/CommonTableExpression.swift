@@ -378,7 +378,8 @@ extension CommonTableExpression {
     ///
     /// The key of the returned association is the table name of `Destination`.
     ///
-    /// - parameter cte: A common table expression.
+    /// - parameter destination: The record type at the other side of
+    ///   the association.
     /// - parameter condition: A function that returns the joining clause.
     /// - parameter left: A `TableAlias` for the left table.
     /// - parameter right: A `TableAlias` for the right table.
@@ -399,7 +400,8 @@ extension CommonTableExpression {
     ///
     /// The key of the returned association is the table name of `Destination`.
     ///
-    /// - parameter cte: A common table expression.
+    /// - parameter destination: The record type at the other side of
+    ///   the association.
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Destination.Type)
@@ -414,7 +416,7 @@ extension CommonTableExpression {
     ///
     /// The key of the returned association is the table name of `Destination`.
     ///
-    /// - parameter cte: A common table expression.
+    /// - parameter destination: The table at the other side of the association.
     /// - parameter condition: A function that returns the joining clause.
     /// - parameter left: A `TableAlias` for the left table.
     /// - parameter right: A `TableAlias` for the right table.
@@ -434,7 +436,7 @@ extension CommonTableExpression {
     ///
     /// The key of the returned association is the table name of `Destination`.
     ///
-    /// - parameter cte: A common table expression.
+    /// - parameter destination: The table at the other side of the association.
     /// - returns: An association to the common table expression.
     public func association<Destination>(
         to destination: Table<Destination>)
