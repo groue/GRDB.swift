@@ -142,6 +142,19 @@ class TableTests: GRDBTestCase {
         }
     }
     
+    func test_fetchCount() throws {
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("name", .text)
+            }
+            let t = Table("player")
+            try XCTAssertEqual(t.fetchCount(db), 0)
+            try db.execute(sql: "INSERT INTO player VALUES (1, 'Alice')")
+            try XCTAssertEqual(t.fetchCount(db), 1)
+        }
+    }
+
     func test_fetch_FetchableRecord() throws {
         struct Player: FetchableRecord, Decodable, Hashable {
             var id: Int64

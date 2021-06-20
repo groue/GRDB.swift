@@ -446,6 +446,18 @@ where RowDecoder: Identifiable,
     }
 }
 
+extension Table {
+    
+    // MARK: - Counting All
+    
+    /// The number of rows.
+    ///
+    /// - parameter db: A database connection.
+    public func fetchCount(_ db: Database) throws -> Int {
+        try all().fetchCount(db)
+    }
+}
+
 // MARK: - Fetching Records from Table
 
 extension Table where RowDecoder: FetchableRecord {
