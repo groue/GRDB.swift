@@ -1,31 +1,28 @@
 import XCTest
 import GRDB
 
-private struct Hacker : MutablePersistableRecord {
+private struct Hacker : TableRecord {
     static let databaseTableName = "hackers"
-    func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
     var id: Int64? // Optional
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension Hacker: Identifiable { }
 
-private struct Person : MutablePersistableRecord {
+private struct Person : TableRecord {
     static let databaseTableName = "persons"
-    func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
     var id: Int64 // Non-optional
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension Person: Identifiable { }
 
-private struct Citizenship : MutablePersistableRecord {
+private struct Citizenship : TableRecord {
     static let databaseTableName = "citizenships"
-    func encode(to container: inout PersistenceContainer) { preconditionFailure("should not be called") }
 }
 
 
-class MutablePersistableRecordDeleteTests: GRDBTestCase {
+class TableRecordDeleteTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
         try dbWriter.write { db in

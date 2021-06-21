@@ -1221,3 +1221,297 @@ extension Table {
         all().having(predicate)
     }
 }
+
+// MARK: - Batch Delete
+
+extension Table {
+    /// Deletes all rows; returns the number of deleted rows.
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: The number of deleted rows
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public func deleteAll(_ db: Database) throws -> Int {
+        try all().deleteAll(db)
+    }
+}
+
+// MARK: - Deleting by Single-Column Primary Key
+
+extension Table {
+    /// Delete rows identified by their primary keys; returns the number of
+    /// deleted rows.
+    ///
+    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
+    ///     try Table("player").deleteAll(db, keys: [1, 2, 3])
+    ///
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
+    ///     try Table("country").deleteAll(db, keys: ["FR", "US", "DE"])
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
+    ///     try Table("document").deleteAll(db, keys: [1, 2, 3])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - keys: A sequence of primary keys.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public func deleteAll<Sequence>(_ db: Database, keys: Sequence)
+    throws -> Int
+    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
+    {
+        let keys = Array(keys)
+        if keys.isEmpty {
+            // Avoid hitting the database
+            return 0
+        }
+        return try filter(keys: keys).deleteAll(db)
+    }
+    
+    /// Delete a row, identified by its primary key; returns whether a
+    /// database row was deleted.
+    ///
+    ///     // DELETE FROM player WHERE id = 123
+    ///     try Table("player").deleteOne(db, key: 123)
+    ///
+    ///     // DELETE FROM country WHERE code = 'FR'
+    ///     try Table("country").deleteOne(db, key: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid = 1
+    ///     try Table("document").deleteOne(db, key: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A primary key value.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
+    throws -> Bool
+    where PrimaryKeyType: DatabaseValueConvertible
+    {
+        guard let key = key else {
+            // Avoid hitting the database
+            return false
+        }
+        return try deleteAll(db, keys: [key]) > 0
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Table
+where RowDecoder: Identifiable,
+      RowDecoder.ID: DatabaseValueConvertible
+{
+    /// Delete rows identified by their primary keys; returns the number of
+    /// deleted rows.
+    ///
+    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
+    ///     try Table<Player>("player").deleteAll(db, ids: [1, 2, 3])
+    ///
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
+    ///     try Table<Country>("country").deleteAll(db, ids: ["FR", "US", "DE"])
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
+    ///     try Table<Document>("document").deleteAll(db, ids: [1, 2, 3])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - ids: A collection of primary keys.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public func deleteAll<Collection>(_ db: Database, ids: Collection)
+    throws -> Int
+    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID
+    {
+        if ids.isEmpty {
+            // Avoid hitting the database
+            return 0
+        }
+        return try filter(ids: ids).deleteAll(db)
+    }
+    
+    /// Delete a row, identified by its primary key; returns whether a
+    /// database row was deleted.
+    ///
+    ///     // DELETE FROM player WHERE id = 123
+    ///     try Player.deleteOne(db, id: 123)
+    ///
+    ///     // DELETE FROM country WHERE code = 'FR'
+    ///     try Country.deleteOne(db, id: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid = 1
+    ///     try Document.deleteOne(db, id: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public func deleteOne(_ db: Database, id: RowDecoder.ID) throws -> Bool {
+        try deleteAll(db, ids: [id]) > 0
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Table
+where RowDecoder: Identifiable,
+      RowDecoder.ID: _OptionalProtocol,
+      RowDecoder.ID.Wrapped: DatabaseValueConvertible
+{
+    /// Delete rows identified by their primary keys; returns the number of
+    /// deleted rows.
+    ///
+    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
+    ///     try Table<Player>("player").deleteAll(db, ids: [1, 2, 3])
+    ///
+    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
+    ///     try Table<Country>("country").deleteAll(db, ids: ["FR", "US", "DE"])
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
+    ///     try Table<Document>("document").deleteAll(db, ids: [1, 2, 3])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - ids: A collection of primary keys.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public func deleteAll<Collection>(_ db: Database, ids: Collection)
+    throws -> Int
+    where Collection: Swift.Collection, Collection.Element == RowDecoder.ID.Wrapped
+    {
+        if ids.isEmpty {
+            // Avoid hitting the database
+            return 0
+        }
+        return try filter(ids: ids).deleteAll(db)
+    }
+    
+    /// Delete a row, identified by its primary key; returns whether a
+    /// database row was deleted.
+    ///
+    ///     // DELETE FROM player WHERE id = 123
+    ///     try Table<Player>("player").deleteOne(db, id: 123)
+    ///
+    ///     // DELETE FROM country WHERE code = 'FR'
+    ///     try Table<Country>("country").deleteOne(db, id: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     // DELETE FROM document WHERE rowid = 1
+    ///     try Table<Document>("document").deleteOne(db, id: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public func deleteOne(_ db: Database, id: RowDecoder.ID.Wrapped) throws -> Bool {
+        try deleteAll(db, ids: [id]) > 0
+    }
+}
+
+// MARK: - Deleting by Key
+
+extension Table {
+    /// Delete rows identified by the provided unique keys (primary key or
+    /// any key with a unique index on it); returns the number of deleted rows.
+    ///
+    ///     try Table("player").deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - keys: An array of key dictionaries.
+    /// - returns: The number of deleted rows
+    @discardableResult
+    public func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
+        if keys.isEmpty {
+            // Avoid hitting the database
+            return 0
+        }
+        return try filter(keys: keys).deleteAll(db)
+    }
+    
+    /// Delete a row, identified by a unique key (the primary key or any key
+    /// with a unique index on it); returns whether a database row was deleted.
+    ///
+    ///     Table("player").deleteOne(db, key: ["name": Arthur"])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A dictionary of values.
+    /// - returns: Whether a database row was deleted.
+    @discardableResult
+    public func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+        try deleteAll(db, keys: [key]) > 0
+    }
+}
+
+// MARK: - Batch Update
+
+extension Table {
+    /// Updates all rows; returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // UPDATE player SET score = 0
+    ///         try Table("player").updateAll(db, [Column("score").set(to: 0)])
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignments: An array of column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignments: [ColumnAssignment])
+    throws -> Int
+    {
+        try all().updateAll(db, onConflict: conflictResolution, assignments)
+    }
+    
+    /// Updates all rows; returns the number of updated rows.
+    ///
+    /// For example:
+    ///
+    ///     try dbQueue.write { db in
+    ///         // UPDATE player SET score = 0
+    ///         try Table("player").updateAll(db, Column("score").set(to: 0))
+    ///     }
+    ///
+    /// - parameter db: A database connection.
+    /// - parameter conflictResolution: A policy for conflict resolution.
+    /// - parameter assignment: A column assignment.
+    /// - parameter otherAssignments: Eventual other column assignments.
+    /// - returns: The number of updated rows.
+    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
+    @discardableResult
+    public func updateAll(
+        _ db: Database,
+        onConflict conflictResolution: Database.ConflictResolution? = nil,
+        _ assignment: ColumnAssignment,
+        _ otherAssignments: ColumnAssignment...)
+    throws -> Int
+    {
+        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
+    }
+}

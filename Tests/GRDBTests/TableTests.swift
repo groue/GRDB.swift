@@ -709,4 +709,153 @@ class TableTests: GRDBTestCase {
                 """)
         }
     }
+    
+    func test_delete() throws {
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("a").unique()
+                t.column("b")
+                t.column("c")
+                t.uniqueKey(["b", "c"])
+            }
+            try db.create(table: "country") { t in
+                t.column("code", .text).notNull().primaryKey()
+            }
+            try db.create(table: "document") { t in
+                t.column("a")
+            }
+
+            // Use Table<Void> when we want to make sure the generic type is not used.
+            
+            do {
+                try Table<Void>("player").deleteAll(db)
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player"
+                    """)
+                
+                try Table<Void>("player").all().deleteAll(db)
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player"
+                    """)
+            }
+            
+            do {
+                try Table<Void>("player").deleteOne(db, key: 1)
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player" WHERE "id" = 1
+                    """)
+                
+                try Table<Void>("country").deleteOne(db, key: "FR")
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "country" WHERE "code" = 'FR'
+                    """)
+                
+                try Table<Void>("document").deleteOne(db, key: 1)
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "document" WHERE "rowid" = 1
+                    """)
+            }
+            
+            do {
+                try Table<Void>("player").deleteOne(db, key: ["a": "foo"])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player" WHERE "a" = 'foo'
+                    """)
+                
+                try Table<Void>("player").deleteOne(db, key: ["b": "bar", "c": "baz"])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player" WHERE ("b" = 'bar') AND ("c" = 'baz')
+                    """)
+            }
+
+            do {
+                try Table<Void>("player").deleteAll(db, keys: [1, 2])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player" WHERE "id" IN (1, 2)
+                    """)
+                
+                try Table<Void>("country").deleteAll(db, keys: ["FR", "DE"])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "country" WHERE "code" IN ('FR', 'DE')
+                    """)
+                
+                try Table<Void>("document").deleteAll(db, keys: [1, 2])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "document" WHERE "rowid" IN (1, 2)
+                    """)
+            }
+            
+            do {
+                try Table<Void>("player").deleteAll(db, keys: [["a": "toto"], ["a": "titi"]])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player" WHERE ("a" = 'toto') OR ("a" = 'titi')
+                    """)
+                
+                try Table<Void>("player").deleteAll(db, keys: [["b": "toto", "c": "titi"], ["b": "tata", "c": "tonton"]])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "player" WHERE (("b" = 'toto') AND ("c" = 'titi')) OR (("b" = 'tata') AND ("c" = 'tonton'))
+                    """)
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                struct Country: Identifiable { var id: String }
+                
+                try Table<Country>("country").deleteOne(db, id: "FR")
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "country" WHERE "code" = 'FR'
+                    """)
+                
+                try Table<Country>("country").deleteAll(db, ids: ["FR", "DE"])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "country" WHERE "code" IN ('FR', 'DE')
+                    """)
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                struct Country: Identifiable { var id: String }
+                
+                try Table<Country>("country").deleteOne(db, id: "FR")
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "country" WHERE "code" = 'FR'
+                    """)
+                
+                try Table<Country>("country").deleteAll(db, ids: ["FR", "DE"])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "country" WHERE "code" IN ('FR', 'DE')
+                    """)
+            }
+        }
+    }
+    
+    func test_updateAll() throws {
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("score", .integer)
+            }
+            let assignment = Column("score").set(to: 0)
+            
+            // Use Table<Void> when we want to make sure the generic type is not used.
+            
+            do {
+                try Table<Void>("player").updateAll(db, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Void>("player").updateAll(db, [assignment])
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE "player" SET "score" = 0
+                    """)
+            }
+            do {
+                try Table<Void>("player").updateAll(db, onConflict: .ignore, assignment)
+                XCTAssertEqual(self.lastSQLQuery, """
+                    UPDATE OR IGNORE "player" SET "score" = 0
+                    """)
+            }
+        }
+    }
 }
