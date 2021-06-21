@@ -2398,7 +2398,7 @@ try Player
     .updateAll(db, Column("score") += 1)
 ```
 
-:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
+:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch updates are available on the [TableRecord] protocol.
 
 
 ### Deleting Records
@@ -2421,7 +2421,7 @@ try Player
     .deleteAll(db)
 ```
 
-:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
+:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch deletes are available on the [TableRecord] protocol.
 
 
 ### Counting Records
@@ -2755,7 +2755,11 @@ try place.updateChanges(db) { ... }    // Maybe UPDATE
 try place.updateChanges(db)            // Maybe UPDATE (Record class only)
 try place.delete(db)                   // DELETE
 try place.exists(db)
+```
 
+The [TableRecord] protocol comes with batch operations:
+
+```swift
 // Type methods
 try Place.updateAll(db, ...)               // UPDATE
 try Place.deleteAll(db)                    // DELETE
@@ -3840,16 +3844,16 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db) { ... }` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
-| `Type.updateAll(db, ...)` | [PersistableRecord] | |
-| `Type.filter(...).updateAll(db, ...)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.updateAll(db, ...)` | [TableRecord] | |
+| `Type.filter(...).updateAll(db, ...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
-| `Type.deleteOne(db, key:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteOne(db, id:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db)` | [PersistableRecord] | |
-| `Type.deleteAll(db, keys:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db, ids:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.filter(...).deleteAll(db)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.deleteOne(db, key:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteOne(db, id:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db)` | [TableRecord] | |
+| `Type.deleteAll(db, keys:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db, ids:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.filter(...).deleteAll(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Check Record Existence** | | |
 | `record.exists(db)` | [PersistableRecord] | |
 | **Convert Record to Dictionary** | | |
@@ -5089,7 +5093,13 @@ try Player
     .deleteAll(db)
 ```
 
-> :point_up: **Note** Deletion methods are only available for records that adopts the [PersistableRecord] protocol.
+> :point_up: **Note** Deletion methods are available on types that adopt the [TableRecord] protocol, and `Table`:
+>
+> ```swift
+> struct Player: TableRecord { ... }
+> try Player.deleteAll(db)          // Fine
+> try Table("player").deleteAll(db) // Just as fine
+> ```
 
 **Deleting records according to their primary key** is a common task.
 
@@ -5166,7 +5176,13 @@ Default [Conflict Resolution] rules apply, and you may also provide a specific o
 try Player.updateAll(db, onConflict: .ignore, /* assignments... */)
 ```
 
-> :point_up: **Note** The `updateAll` method is only available for records that adopts the [PersistableRecord] protocol.
+> :point_up: **Note** The `updateAll` method is available on types that adopt the [TableRecord] protocol, and `Table`:
+>
+> ```swift
+> struct Player: TableRecord { ... }
+> try Player.updateAll(db, ...)          // Fine
+> try Table("player").updateAll(db, ...) // Just as fine
+> ```
 
 
 ## Custom Requests
