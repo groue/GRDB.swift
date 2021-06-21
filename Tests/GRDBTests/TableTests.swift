@@ -799,6 +799,7 @@ class TableTests: GRDBTestCase {
             }
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                // Non-optional ID
                 struct Country: Identifiable { var id: String }
                 
                 try Table<Country>("country").deleteOne(db, id: "FR")
@@ -813,7 +814,8 @@ class TableTests: GRDBTestCase {
             }
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
-                struct Country: Identifiable { var id: String }
+                // Optional ID
+                struct Country: Identifiable { var id: String? }
                 
                 try Table<Country>("country").deleteOne(db, id: "FR")
                 XCTAssertEqual(lastSQLQuery, """
