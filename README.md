@@ -4265,7 +4265,7 @@ let request = Player.all()
 let players = try request.fetchAll(db) // [Player]
 ```
 
-When you need to build a request from a table name, use `Table`:
+When you can not use a record type, use `Table`:
 
 ```swift
 // The request for all rows from the player table:
