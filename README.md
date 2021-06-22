@@ -2398,7 +2398,7 @@ try Player
     .updateAll(db, Column("score") += 1)
 ```
 
-:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
+:point_right: update methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch updates are available on the [TableRecord] protocol.
 
 
 ### Deleting Records
@@ -2421,7 +2421,7 @@ try Player
     .deleteAll(db)
 ```
 
-:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol.
+:point_right: delete methods are available for subclasses of the [Record](#record-class) class, and types that adopt the [PersistableRecord] protocol. Batch deletes are available on the [TableRecord] protocol.
 
 
 ### Counting Records
@@ -2755,7 +2755,11 @@ try place.updateChanges(db) { ... }    // Maybe UPDATE
 try place.updateChanges(db)            // Maybe UPDATE (Record class only)
 try place.delete(db)                   // DELETE
 try place.exists(db)
+```
 
+The [TableRecord] protocol comes with batch operations:
+
+```swift
 // Type methods
 try Place.updateAll(db, ...)               // UPDATE
 try Place.deleteAll(db)                    // DELETE
@@ -3840,16 +3844,16 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db) { ... }` | [PersistableRecord] | [*](#record-comparison) |
 | `record.updateChanges(db)` | [Record](#record-class) | [*](#record-comparison) |
-| `Type.updateAll(db, ...)` | [PersistableRecord] | |
-| `Type.filter(...).updateAll(db, ...)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.updateAll(db, ...)` | [TableRecord] | |
+| `Type.filter(...).updateAll(db, ...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Delete Records** | | |
 | `record.delete(db)` | [PersistableRecord] | |
-| `Type.deleteOne(db, key:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteOne(db, id:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db)` | [PersistableRecord] | |
-| `Type.deleteAll(db, keys:...)` | [PersistableRecord] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.deleteAll(db, ids:...)` | [PersistableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
-| `Type.filter(...).deleteAll(db)` | [PersistableRecord] | <a href="#list-of-record-methods-2">²</a> |
+| `Type.deleteOne(db, key:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteOne(db, id:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db)` | [TableRecord] | |
+| `Type.deleteAll(db, keys:...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.deleteAll(db, ids:...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.filter(...).deleteAll(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Check Record Existence** | | |
 | `record.exists(db)` | [PersistableRecord] | |
 | **Convert Record to Dictionary** | | |
@@ -4251,13 +4255,33 @@ let players = try request.fetchAll(db)  // [Player]
 let count = try request.fetchCount(db)  // Int
 ```
 
-All requests start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
+Query interface requests usually start from **a type** that adopts the `TableRecord` protocol, such as a `Record` subclass (see [Records](#records)):
 
 ```swift
-class Player : Record { ... }
+class Player: Record { ... }
+
+// The request for all players:
+let request = Player.all()
+let players = try request.fetchAll(db) // [Player]
 ```
 
-Declare the table **columns** that you want to use for filtering, or sorting:
+When you need to build a request from a table name, use `Table`:
+
+```swift
+// The request for all rows from the player table:
+let table = Table("player")
+let request = table.all()
+let rows = try request.fetchAll(db)    // [Row]
+
+// The request for all players from the player table:
+let table = Table<Player>("player")
+let request = table.all()
+let players = try request.fetchAll(db) // [Player]
+```
+
+> :point_up: **Note**: all examples in the documentation below use a record type, but you can always substitute a `Table` instead.
+
+Next, declare the table **columns** that you want to use for filtering, or sorting:
 
 ```swift
 let idColumn = Column("id")
@@ -4536,16 +4560,24 @@ By default, query interface requests select all columns:
 
 ```swift
 // SELECT * FROM player
+struct Player: TableRecord { ... }
 let request = Player.all()
+
+// SELECT * FROM player
+let table = Table("player")
+let request = table.all()
 ```
 
-**The selection can be changed for each individual requests, or for all requests built from a given type.**
+**The selection can be changed for each individual requests, or in the case of record-based requests, for all requests built from this record type.**
 
 The `select(...)` and `select(..., as:)` methods change the selection of a single request (see [Fetching from Requests] for detailed information):
 
 ```swift
-let request = Player.select(max(scoreColumn))
-let maxScore: Int? = try Int.fetchOne(db, request)
+let request = Player.select(max(Column("score")))
+let maxScore = try Int.fetchOne(db, request) // Int?
+
+let request = Player.select(max(Column("score")), as: Int.self)
+let maxScore = try request.fetchOne(db)      // Int?
 ```
 
 The default selection for a record type is controlled by the `databaseSelection` property:
@@ -5061,7 +5093,13 @@ try Player
     .deleteAll(db)
 ```
 
-> :point_up: **Note** Deletion methods are only available for records that adopts the [PersistableRecord] protocol.
+> :point_up: **Note** Deletion methods are available on types that adopt the [TableRecord] protocol, and `Table`:
+>
+> ```swift
+> struct Player: TableRecord { ... }
+> try Player.deleteAll(db)          // Fine
+> try Table("player").deleteAll(db) // Just as fine
+> ```
 
 **Deleting records according to their primary key** is a common task.
 
@@ -5138,7 +5176,13 @@ Default [Conflict Resolution] rules apply, and you may also provide a specific o
 try Player.updateAll(db, onConflict: .ignore, /* assignments... */)
 ```
 
-> :point_up: **Note** The `updateAll` method is only available for records that adopts the [PersistableRecord] protocol.
+> :point_up: **Note** The `updateAll` method is available on types that adopt the [TableRecord] protocol, and `Table`:
+>
+> ```swift
+> struct Player: TableRecord { ... }
+> try Player.updateAll(db, ...)          // Fine
+> try Table("player").updateAll(db, ...) // Just as fine
+> ```
 
 
 ## Custom Requests

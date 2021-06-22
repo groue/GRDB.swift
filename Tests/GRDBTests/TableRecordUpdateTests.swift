@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private struct Player: Codable, PersistableRecord, FetchableRecord {
+private struct Player: Codable, TableRecord, FetchableRecord {
     var id: Int64
     var name: String
     var score: Int
@@ -30,7 +30,7 @@ private extension QueryInterfaceRequest where RowDecoder == Player {
     }
 }
 
-class MutablePersistableRecordUpdateTests: GRDBTestCase {
+class TableRecordUpdateTests: GRDBTestCase {
     func testRequestUpdateAll() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
@@ -282,10 +282,12 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
     func testUpdateAllReturnsNumberOfUpdatedRows() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
-            try Player(id: 1, name: "Arthur", score: 0, bonus: 2).insert(db)
-            try Player(id: 2, name: "Barbara", score: 0, bonus: 1).insert(db)
-            try Player(id: 3, name: "Craig", score: 0, bonus: 0).insert(db)
-            try Player(id: 4, name: "Diane", score: 0, bonus: 3).insert(db)
+            try db.execute(sql: """
+                INSERT INTO player (id, name, score, bonus) VALUES (1, 'Arthur', 0, 2);
+                INSERT INTO player (id, name, score, bonus) VALUES (2, 'Barbara', 0, 1);
+                INSERT INTO player (id, name, score, bonus) VALUES (3, 'Craig', 0, 0);
+                INSERT INTO player (id, name, score, bonus) VALUES (4, 'Diane', 0, 3);
+                """)
             
             let assignment = Columns.score += 1
             
@@ -305,10 +307,12 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
     func testQueryInterfaceExtension() throws {
         try makeDatabaseQueue().write { db in
             try Player.createTable(db)
-            try Player(id: 1, name: "Arthur", score: 0, bonus: 0).insert(db)
-            try Player(id: 2, name: "Barbara", score: 0, bonus: 0).insert(db)
-            try Player(id: 3, name: "Craig", score: 0, bonus: 0).insert(db)
-            try Player(id: 4, name: "Diane", score: 0, bonus: 0).insert(db)
+            try db.execute(sql: """
+                INSERT INTO player (id, name, score, bonus) VALUES (1, 'Arthur', 0, 0);
+                INSERT INTO player (id, name, score, bonus) VALUES (2, 'Barbara', 0, 0);
+                INSERT INTO player (id, name, score, bonus) VALUES (3, 'Craig', 0, 0);
+                INSERT INTO player (id, name, score, bonus) VALUES (4, 'Diane', 0, 0);
+                """)
             
             try Player.all().incrementScore(db)
             try XCTAssertEqual(Player.filter(Columns.score == 1).fetchCount(db), 4)
@@ -374,6 +378,38 @@ class MutablePersistableRecordUpdateTests: GRDBTestCase {
                 """)
             
             try IgnorePlayer.all().updateAll(db, [Column("score").set(to: 0)])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+        }
+    }
+    
+    func testConflictPolicyIgnoreWithTable() throws {
+        struct IgnorePlayer: PersistableRecord {
+            static let databaseTableName = "player"
+            static let persistenceConflictPolicy = PersistenceConflictPolicy(insert: .abort, update: .ignore)
+            func encode(to container: inout PersistenceContainer) { }
+        }
+        let table = Table<IgnorePlayer>("player")
+        try makeDatabaseQueue().write { db in
+            try Player.createTable(db)
+            
+            try table.updateAll(db, Column("score").set(to: 0))
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try table.updateAll(db, [Column("score").set(to: 0)])
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try table.all().updateAll(db, Column("score").set(to: 0))
+            XCTAssertEqual(self.lastSQLQuery, """
+                UPDATE OR IGNORE "player" SET "score" = 0
+                """)
+            
+            try table.all().updateAll(db, [Column("score").set(to: 0)])
             XCTAssertEqual(self.lastSQLQuery, """
                 UPDATE OR IGNORE "player" SET "score" = 0
                 """)

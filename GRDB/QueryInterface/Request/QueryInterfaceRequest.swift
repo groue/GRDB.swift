@@ -366,7 +366,7 @@ extension QueryInterfaceRequest {
 
 // MARK: - Batch Delete
 
-extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
+extension QueryInterfaceRequest {
     /// Deletes matching rows; returns the number of deleted rows.
     ///
     /// - parameter db: A database connection.
@@ -381,7 +381,20 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
 
 // MARK: - Batch Update
 
-extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
+extension QueryInterfaceRequest {
+    /// The conflict resolution to use for batch updates
+    private var defaultConflictResolutionForUpdate: Database.ConflictResolution {
+        // In order to look for the default conflict resolution, we perform a
+        // runtime check for MutablePersistableRecord, and look for a
+        // user-defined default. Such dynamic dispatch is unusual in GRDB, but
+        // static dispatch is likely to create bad surprises in generic contexts.
+        if let recordType = RowDecoder.self as? MutablePersistableRecord.Type {
+            return recordType.persistenceConflictPolicy.conflictResolutionForUpdate
+        } else {
+            return .abort
+        }
+    }
+    
     /// Updates matching rows; returns the number of updated rows.
     ///
     /// For example:
@@ -392,8 +405,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution,
-    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignments: An array of column assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
@@ -403,7 +415,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         _ assignments: [ColumnAssignment]) throws -> Int
     {
-        let conflictResolution = conflictResolution ?? RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
+        let conflictResolution = conflictResolution ?? defaultConflictResolutionForUpdate
         guard let updateStatement = try SQLQueryGenerator(relation: relation).makeUpdateStatement(
                 db,
                 conflictResolution: conflictResolution,
@@ -426,8 +438,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution,
-    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignment: A column assignment.
     /// - parameter otherAssignments: Eventual other column assignments.
     /// - returns: The number of updated rows.

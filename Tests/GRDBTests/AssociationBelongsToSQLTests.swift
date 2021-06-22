@@ -28,8 +28,12 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentId")]))
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentId")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentId")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -62,8 +66,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE "custom"."rowid" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentId")], to: [Column("id")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentId")], to: [Column("id")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentId")], to: [Column("id")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -89,7 +98,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     FROM "children" \
                     LEFT JOIN "parents" ON ("parents"."id" = "children"."parentId") AND ("parents"."name" = 'foo')
                     """)
-               try assertEqualSQL(db, Child().request(for: association), """
+                try assertEqualSQL(db, Child().request(for: association), """
                     SELECT * FROM "parents" WHERE "id" = 1
                     """)
                 try assertEqualSQL(db, Child().request(for: association).aliased(TableAlias(name: "custom")), """
@@ -123,8 +132,12 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentId")]))
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentId")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentId")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -157,8 +170,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentId")], to: [Column("id")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentId")], to: [Column("id")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentId")], to: [Column("id")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -218,8 +236,10 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self)
+            for association in [
+                Child.belongsTo(Parent.self),
+                Child.belongsTo(Table(Parent.databaseTableName)),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -252,8 +272,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentId")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentId")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentId")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -286,8 +311,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentId")], to: [Column("id")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentId")], to: [Column("id")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentId")], to: [Column("id")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -349,8 +379,12 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent1Id")]))
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent1Id")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent1Id")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -383,8 +417,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent1Id")], to: [Column("id")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent1Id")], to: [Column("id")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent1Id")], to: [Column("id")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -417,8 +456,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent2Id")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent2Id")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent2Id")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -451,8 +495,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE "custom"."id" = 2
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent2Id")], to: [Column("id")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent2Id")], to: [Column("id")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent2Id")], to: [Column("id")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -515,8 +564,12 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")]))
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -580,8 +633,12 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentA"), Column("parentB")]))
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentA"), Column("parentB")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentA"), Column("parentB")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -614,8 +671,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -680,8 +742,10 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self)
+            for association in [
+                Child.belongsTo(Parent.self),
+                Child.belongsTo(Table(Parent.databaseTableName)),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -714,8 +778,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentA"), Column("parentB")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentA"), Column("parentB")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentA"), Column("parentB")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -748,8 +817,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parentA"), Column("parentB")], to: [Column("a"), Column("b")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -819,8 +893,12 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent1A"), Column("parent1B")]))
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent1A"), Column("parent1B")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent1A"), Column("parent1B")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -853,8 +931,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent1A"), Column("parent1B")], to: [Column("a"), Column("b")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent1A"), Column("parent1B")], to: [Column("a"), Column("b")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent1A"), Column("parent1B")], to: [Column("a"), Column("b")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -887,8 +970,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 1) AND ("custom"."b" = 2)
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent2A"), Column("parent2B")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent2A"), Column("parent2B")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent2A"), Column("parent2B")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -921,8 +1009,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "parents" "custom" WHERE ("custom"."a" = 3) AND ("custom"."b" = 4)
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("parent2A"), Column("parent2B")], to: [Column("a"), Column("b")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("parent2A"), Column("parent2B")], to: [Column("a"), Column("b")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("parent2A"), Column("parent2B")], to: [Column("a"), Column("b")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "children".*, "parents".* \
                     FROM "children" \
@@ -1023,8 +1116,10 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         }
         
         try dbQueue.inDatabase { db in
-            do {
-                let association = Child.belongsTo(Parent.self)
+            for association in [
+                Child.belongsTo(Parent.self),
+                Child.belongsTo(Table(Parent.databaseTableName)),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "CHILDREN".*, "PARENTS".* \
                     FROM "CHILDREN" \
@@ -1057,8 +1152,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "PARENTS" "custom" WHERE "custom"."id" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("PARENTID")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("PARENTID")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("PARENTID")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "CHILDREN".*, "PARENTS".* \
                     FROM "CHILDREN" \
@@ -1091,8 +1191,13 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
                     SELECT "custom".* FROM "PARENTS" "custom" WHERE "custom"."id" = 1
                     """)
             }
-            do {
-                let association = Child.belongsTo(Parent.self, using: ForeignKey([Column("PARENTID")], to: [Column("ID")]))
+            
+            for association in [
+                Child.belongsTo(Parent.self,
+                                using: ForeignKey([Column("PARENTID")], to: [Column("ID")])),
+                Child.belongsTo(Table(Parent.databaseTableName),
+                                using: ForeignKey([Column("PARENTID")], to: [Column("ID")])),
+            ] {
                 try assertEqualSQL(db, Child.including(required: association), """
                     SELECT "CHILDREN".*, "PARENTS".* \
                     FROM "CHILDREN" \
@@ -1134,7 +1239,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         struct Book: TableRecord {
             static let author = belongsTo(Author.self)
         }
-
+        
         struct Author: TableRecord {
         }
         
@@ -1162,7 +1267,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
         struct Book: TableRecord {
             static let author = belongsTo(Author.self)
         }
-
+        
         struct Author: TableRecord {
         }
         
