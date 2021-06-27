@@ -967,10 +967,7 @@ extension PersistenceContainer: ColumnAddressable {
     func index(forColumn column: String) -> String? { column }
     @inline(__always)
     func databaseValue(at column: String) -> DatabaseValue {
-        guard let value = self[caseInsensitive: column] else {
-            fatalError("Missing column: \(column)")
-        }
-        return value.databaseValue
+        self[caseInsensitive: column]?.databaseValue ?? .null
     }
 }
 
