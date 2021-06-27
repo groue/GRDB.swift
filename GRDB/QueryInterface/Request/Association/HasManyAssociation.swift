@@ -68,11 +68,6 @@ public struct HasManyAssociation<Origin, Destination>: AssociationToMany {
     /// :nodoc:
     public var _sqlAssociation: _SQLAssociation
     
-    /// :nodoc:
-    public init(sqlAssociation: _SQLAssociation) {
-        self._sqlAssociation = sqlAssociation
-    }
-    
     init(
         to destinationRelation: SQLRelation,
         key: String?,

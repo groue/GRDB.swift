@@ -10,11 +10,6 @@ public struct JoinAssociation<Origin, Destination>: AssociationToOne {
     /// :nodoc:
     public var _sqlAssociation: _SQLAssociation
     
-    /// :nodoc:
-    public init(sqlAssociation: _SQLAssociation) {
-        self._sqlAssociation = sqlAssociation
-    }
-    
     /// Creates a `JoinAssociation` whose key is the table name of the relation.
     init(
         to relation: SQLRelation,

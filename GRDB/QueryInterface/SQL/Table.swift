@@ -1087,7 +1087,7 @@ extension Table {
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation<RowDecoder, Target.RowDecoder>(
-            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
+            _sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -1120,7 +1120,7 @@ extension Table {
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation<RowDecoder, Target.RowDecoder>(
-            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
+            _sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)

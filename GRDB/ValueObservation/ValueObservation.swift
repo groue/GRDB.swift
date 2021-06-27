@@ -103,8 +103,8 @@ extension ValueObservation: Refinable {
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        let observation = map(\.events) { events in
-            events.map(\.didFail) { concat($0, onError) }
+        let observation = self.with {
+            $0.events.didFail = concat($0.events.didFail, onError)
         }
         observation.events.willStart?()
         return reader._add(
@@ -157,14 +157,13 @@ extension ValueObservation: Refinable {
                     // the type of the value may change with the `map` operator.
                     didReceiveValue: didReceiveValue ?? { _ in })
             })
-            .map(\.events, { events in
-                events
-                    .map(\.willStart) { concat($0, willStart) }
-                    .map(\.willTrackRegion) { concat($0, willTrackRegion) }
-                    .map(\.databaseDidChange) { concat($0, databaseDidChange) }
-                    .map(\.didFail) { concat($0, didFail) }
-                    .map(\.didCancel) { concat($0, didCancel) }
-            })
+            .with {
+                $0.events.willStart = concat($0.events.willStart, willStart)
+                $0.events.willTrackRegion = concat($0.events.willTrackRegion, willTrackRegion)
+                $0.events.databaseDidChange = concat($0.events.databaseDidChange, databaseDidChange)
+                $0.events.didFail = concat($0.events.didFail, didFail)
+                $0.events.didCancel = concat($0.events.didCancel, didCancel)
+            }
     }
     
     /// Prints log messages for all ValueObservation events.

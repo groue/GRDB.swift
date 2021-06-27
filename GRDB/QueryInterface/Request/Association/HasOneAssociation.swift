@@ -70,11 +70,6 @@ public struct HasOneAssociation<Origin, Destination>: AssociationToOne {
     /// :nodoc:
     public var _sqlAssociation: _SQLAssociation
     
-    /// :nodoc:
-    public init(sqlAssociation: _SQLAssociation) {
-        self._sqlAssociation = sqlAssociation
-    }
-    
     init(
         to destinationRelation: SQLRelation,
         key: String?,

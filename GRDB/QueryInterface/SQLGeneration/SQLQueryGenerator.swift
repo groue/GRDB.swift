@@ -245,11 +245,14 @@ struct SQLQueryGenerator: Refinable {
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = context.subqueryContext(aliases: relation.allAliases, ctes: relation.ctes)
         let primaryKey = SQLExpression.fastPrimaryKey
+        let selectPrimaryKey = self.with {
+            $0.relation = $0.relation.selectOnly([.expression(primaryKey)])
+        }
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
         sql += try alias[primaryKey].sql(context)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([.expression(primaryKey)]) }).requestSQL(subqueryContext)
+        sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
@@ -343,6 +346,9 @@ struct SQLQueryGenerator: Refinable {
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = context.subqueryContext(aliases: relation.allAliases, ctes: relation.ctes)
         let primaryKey = SQLExpression.fastPrimaryKey
+        let selectPrimaryKey = self.with {
+            $0.relation = $0.relation.selectOnly([.expression(primaryKey)])
+        }
         
         // UPDATE table...
         var sql = "UPDATE "
@@ -361,7 +367,7 @@ struct SQLQueryGenerator: Refinable {
         sql += " WHERE "
         sql += try alias[primaryKey].sql(context)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([.expression(primaryKey)]) }).requestSQL(subqueryContext)
+        sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
         let statement = try db.makeUpdateStatement(sql: sql)
@@ -654,17 +660,18 @@ private struct SQLQualifiedRelation {
     /// Sets the selection, removes all selections from joins, and clears the
     /// `isDistinct` flag.
     func selectOnly(_ selection: [SQLSelection]) -> Self {
-        let sourceSelectionPromise = DatabasePromise(value: selection.map {
+        let qualifiedSelection = selection.map {
             $0.qualified(with: source.alias)
-        })
-        return self
-            .with(\.sourceSelectionPromise, sourceSelectionPromise)
-            .with(\.isDistinct, false)
-            .map(\.joins, { joins in
-                joins.mapValues { join in
-                    join.map(\.relation) { $0.selectOnly([]) }
+        }
+        return with {
+            $0.sourceSelectionPromise = DatabasePromise(value: qualifiedSelection)
+            $0.isDistinct = false
+            $0.joins = $0.joins.mapValues { join in
+                join.with {
+                    $0.relation = $0.relation.selectOnly([])
                 }
-            })
+            }
+        }
     }
 }
 

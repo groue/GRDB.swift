@@ -344,7 +344,9 @@ extension AssociationAggregate: Refinable {
     ///         let numberOfBooks: Int = row["numberOfBooks"]
     ///     }
     public func forKey(_ key: String) -> Self {
-        with(\.key, key)
+        with {
+            $0.key = key
+        }
     }
     
     /// Returns an aggregate that is selected in a column named like the given
@@ -1088,8 +1090,9 @@ public func ?? <RowDecoder>(
     rhs: SQLExpressible)
 -> AssociationAggregate<RowDecoder>
 {
-    // Preserve key
-    lhs.map { $0 ?? rhs }.with(\.key, lhs.key)
+    lhs
+        .map { $0 ?? rhs }
+        .with { $0.key = lhs.key } // Preserve key
 }
 
 // TODO: add support for ABS(aggregate)
