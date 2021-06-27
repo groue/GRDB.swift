@@ -752,7 +752,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Suspends the database. A suspended database prevents database locks in
     /// order to avoid the [`0xdead10cc`
-    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report).
     ///
     /// This method can be called from any thread.
     ///
@@ -784,7 +784,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Resumes the database. A resumed database stops preventing database locks
     /// in order to avoid the [`0xdead10cc`
-    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report).
     ///
     /// This method can be called from any thread.
     ///
@@ -816,7 +816,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Throws SQLITE_ABORT for suspended databases, if statement would lock
     /// the database, in order to avoid the [`0xdead10cc`
-    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report).
     func checkForSuspensionViolation(from statement: Statement) throws {
         try $isSuspended.read { isSuspended in
             guard isSuspended else {

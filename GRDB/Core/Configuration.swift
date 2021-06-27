@@ -91,7 +91,7 @@ public struct Configuration {
     /// When true, the `Database.suspendNotification` and
     /// `Database.resumeNotification` suspend and resume the database. Database
     /// suspension helps avoiding the [`0xdead10cc`
-    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report).
     ///
     /// During suspension, all database accesses but reads in WAL mode may throw
     /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`. You can
