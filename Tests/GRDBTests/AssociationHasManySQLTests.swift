@@ -11,9 +11,11 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var id: Int?
+            var rowid: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["id"] = 1
-                container["rowid"] = 2
+                container["id"] = id
+                container["rowid"] = rowid
             }
         }
         
@@ -54,7 +56,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parentId" = "parents"."rowid"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parentId\" = 2")
+                
+                try assertEqualSQL(db, Parent(id: 1, rowid: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE "parentId" = 2
+                    """)
+                try assertEqualSQL(db, Parent(id: 1, rowid: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -83,7 +91,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parentId" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parentId\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1, rowid: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE "parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil, rowid: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -95,8 +109,9 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var id: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["id"] = 1
+                container["id"] = id
             }
         }
         
@@ -137,7 +152,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parentId" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parentId\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -166,7 +187,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parentId" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parentId\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -178,8 +205,9 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var id: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["id"] = 1
+                container["id"] = id
             }
         }
         
@@ -218,7 +246,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parentId" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parentId\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -247,7 +281,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parentId" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parentId\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -276,7 +316,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parentId" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parentId\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -288,8 +334,9 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var id: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["id"] = 1
+                container["id"] = id
             }
         }
         
@@ -331,7 +378,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parent1Id" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parent1Id\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parent1Id" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -360,7 +413,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parent1Id" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parent1Id\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parent1Id" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -389,7 +448,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parent2Id" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parent2Id\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parent2Id" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -418,7 +483,13 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON "children"."parent2Id" = "parents"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE \"parent2Id\" = 1")
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
+                    SELECT * FROM "children" WHERE "parent2Id" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -430,9 +501,11 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var a: Int?
+            var b: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["a"] = 1
-                container["b"] = 2
+                container["a"] = a
+                container["b"] = b
             }
         }
         
@@ -475,7 +548,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parentA" = "parents"."a") AND ("children"."parentB" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parentA\" = 1) AND (\"parentB\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parentA" = 1) AND ("parentB" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -487,9 +572,11 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var a: Int?
+            var b: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["a"] = 1
-                container["b"] = 2
+                container["a"] = a
+                container["b"] = b
             }
         }
         
@@ -533,7 +620,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parentA" = "parents"."a") AND ("children"."parentB" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parentA\" = 1) AND (\"parentB\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parentA" = 1) AND ("parentB" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -562,7 +661,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parentA" = "parents"."a") AND ("children"."parentB" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parentA\" = 1) AND (\"parentB\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parentA" = 1) AND ("parentB" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -574,9 +685,11 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var a: Int?
+            var b: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["a"] = 1
-                container["b"] = 2
+                container["a"] = a
+                container["b"] = b
             }
         }
         
@@ -619,7 +732,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parentA" = "parents"."a") AND ("children"."parentB" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parentA\" = 1) AND (\"parentB\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parentA" = 1) AND ("parentB" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -648,7 +773,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parentA" = "parents"."a") AND ("children"."parentB" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parentA\" = 1) AND (\"parentB\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parentA" = 1) AND ("parentB" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -677,7 +814,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parentA" = "parents"."a") AND ("children"."parentB" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parentA\" = 1) AND (\"parentB\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parentA" = 1) AND ("parentB" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -689,9 +838,11 @@ class AssociationHasManySQLTests: GRDBTestCase {
         
         struct Parent : TableRecord, EncodableRecord {
             static let databaseTableName = "parents"
+            var a: Int?
+            var b: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["a"] = 1
-                container["b"] = 2
+                container["a"] = a
+                container["b"] = b
             }
         }
         
@@ -739,7 +890,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parent1A" = "parents"."a") AND ("children"."parent1B" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parent1A\" = 1) AND (\"parent1B\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parent1A" = 1) AND ("parent1B" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -768,7 +931,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parent1A" = "parents"."a") AND ("children"."parent1B" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parent1A\" = 1) AND (\"parent1B\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parent1A" = 1) AND ("parent1B" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -797,7 +972,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parent2A" = "parents"."a") AND ("children"."parent2B" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parent2A\" = 1) AND (\"parent2B\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parent2A" = 1) AND ("parent2B" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
             
             for association in [
@@ -826,7 +1013,19 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     FROM "parents" \
                     LEFT JOIN "children" ON ("children"."parent2A" = "parents"."a") AND ("children"."parent2B" = "parents"."b")
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), "SELECT * FROM \"children\" WHERE (\"parent2A\" = 1) AND (\"parent2B\" = 2)")
+                
+                try assertEqualSQL(db, Parent(a: 1, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE ("parent2A" = 1) AND ("parent2B" = 2)
+                    """)
+                try assertEqualSQL(db, Parent(a: 1, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: 2).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
+                try assertEqualSQL(db, Parent(a: nil, b: nil).request(for: association), """
+                    SELECT * FROM "children" WHERE 0
+                    """)
             }
         }
     }
@@ -862,8 +1061,9 @@ class AssociationHasManySQLTests: GRDBTestCase {
         }
         struct Parent: TableRecord, EncodableRecord {
             static let children = hasMany(Child.self)
+            var id: Int?
             func encode(to container: inout PersistenceContainer) {
-                container["id"] = 1
+                container["id"] = id
             }
         }
         
@@ -894,11 +1094,18 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     JOIN "child" ON "child"."parentId" = "parent"."id" \
                     JOIN "toy" ON "toy"."childId" = "child"."id"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), """
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
                     SELECT "child".* \
                     FROM "child" \
                     JOIN "toy" ON "toy"."childId" = "child"."id" \
                     WHERE "child"."parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT "child".* \
+                    FROM "child" \
+                    JOIN "toy" ON "toy"."childId" = "child"."id" \
+                    WHERE 0
                     """)
             }
             do {
@@ -916,11 +1123,18 @@ class AssociationHasManySQLTests: GRDBTestCase {
                     JOIN "child" ON "child"."parentId" = "parent1"."id" \
                     JOIN "parent" "parent2" ON "parent2"."id" = "child"."parentId"
                     """)
-                try assertEqualSQL(db, Parent().request(for: association), """
+                
+                try assertEqualSQL(db, Parent(id: 1).request(for: association), """
                     SELECT "child".* \
                     FROM "child" \
                     JOIN "parent" ON "parent"."id" = "child"."parentId" \
                     WHERE "child"."parentId" = 1
+                    """)
+                try assertEqualSQL(db, Parent(id: nil).request(for: association), """
+                    SELECT "child".* \
+                    FROM "child" \
+                    JOIN "parent" ON "parent"."id" = "child"."parentId" \
+                    WHERE 0
                     """)
             }
         }
