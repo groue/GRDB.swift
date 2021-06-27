@@ -176,10 +176,10 @@ where RowDecoder: Identifiable,
     ///     let request = try Player.filter(...).selectID()
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> {
         select { db in
-            let primaryKey = try db.primaryKey(databaseTableName)
+            let primaryKey = try db.primaryKey(self.databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
-                "selectID requires a single-column primary key in the table \(databaseTableName)")
+                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
             return [Column(primaryKey.columns[0])]
         }.asRequest(of: RowDecoder.ID.self)
     }
@@ -197,10 +197,10 @@ where RowDecoder: Identifiable,
     ///     let request = try Player.filter(...).selectID()
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID.Wrapped> {
         select { db in
-            let primaryKey = try db.primaryKey(databaseTableName)
+            let primaryKey = try db.primaryKey(self.databaseTableName)
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
-                "selectID requires a single-column primary key in the table \(databaseTableName)")
+                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
             return [Column(primaryKey.columns[0])]
         }.asRequest(of: RowDecoder.ID.Wrapped.self)
     }
