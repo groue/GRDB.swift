@@ -1,3 +1,5 @@
+import Foundation
+
 private struct DatabaseValueDecodingContainer: SingleValueDecodingContainer {
     let dbValue: DatabaseValue
     let codingPath: [CodingKey]

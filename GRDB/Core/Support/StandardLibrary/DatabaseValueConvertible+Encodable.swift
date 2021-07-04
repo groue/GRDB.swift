@@ -1,3 +1,5 @@
+import Foundation
+
 private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     let encode: (DatabaseValue) -> Void
     
