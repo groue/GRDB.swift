@@ -1,3 +1,5 @@
+import Foundation
+
 private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
     let encode: (DatabaseValue) -> Void
     
@@ -40,13 +42,18 @@ private struct DatabaseValueEncodingContainer: SingleValueEncodingContainer {
             // This allows us to encode Date as String, for example.
             encode(dbValueConvertible.databaseValue)
         } else {
-            try value.encode(to: DatabaseValueEncoder(encode: encode))
+            try DatabaseValueEncoder(encode: encode).encode(value)
         }
     }
 }
 
-private struct DatabaseValueEncoder: Encoder {
+private class DatabaseValueEncoder: Encoder {
     let encode: (DatabaseValue) -> Void
+    var requiresJSON = false
+    
+    init(encode: @escaping (DatabaseValue) -> Void) {
+        self.encode = encode
+    }
     
     /// The path of coding keys taken to get to this point in encoding.
     /// A `nil` value indicates an unkeyed container.
@@ -63,7 +70,14 @@ private struct DatabaseValueEncoder: Encoder {
     /// - precondition: May not be called after a value has been encoded through
     ///   a previous `self.singleValueContainer()` call.
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> {
-        fatalError("keyed encoding is not supported")
+        // We need to perform JSON encoding. Unfortunately we can't access the
+        // inner container of Foundation's JSONEncoder. At this point we must
+        // throw an error so that the caller can retry encoding from scratch.
+        // Unfortunately (bis), we can't throw right from here, so let's
+        // return a JSONRequiredEncoder that will throw as soon as possible.
+        requiresJSON = true
+        let container = JSONRequiredEncoder.KeyedContainer<Key>(codingPath: codingPath)
+        return KeyedEncodingContainer(container)
     }
     
     /// Returns an encoding container appropriate for holding multiple unkeyed values.
@@ -73,7 +87,13 @@ private struct DatabaseValueEncoder: Encoder {
     /// - precondition: May not be called after a value has been encoded through
     ///   a previous `self.singleValueContainer()` call.
     func unkeyedContainer() -> UnkeyedEncodingContainer {
-        fatalError("unkeyed encoding is not supported")
+        // We need to perform JSON encoding. Unfortunately we can't access the
+        // inner container of Foundation's JSONEncoder. At this point we must
+        // throw an error so that the caller can retry encoding from scratch.
+        // Unfortunately (bis), we can't throw right from here, so let's
+        // return a JSONRequiredEncoder that will throw as soon as possible.
+        requiresJSON = true
+        return JSONRequiredEncoder(codingPath: codingPath)
     }
     
     /// Returns an encoding container appropriate for holding a single primitive value.
@@ -86,13 +106,41 @@ private struct DatabaseValueEncoder: Encoder {
     func singleValueContainer() -> SingleValueEncodingContainer {
         DatabaseValueEncodingContainer(encode: encode)
     }
+    
+    func encode<T: Encodable>(_ value: T) throws {
+        do {
+            try value.encode(to: self)
+            if requiresJSON {
+                // Here we handle empty arrays and dictionaries.
+                throw JSONRequiredError()
+            }
+        } catch is JSONRequiredError {
+            let encoder = JSONEncoder()
+            encoder.dataEncodingStrategy = .base64
+            encoder.dateEncodingStrategy = .millisecondsSince1970
+            encoder.nonConformingFloatEncodingStrategy = .throw
+            if #available(watchOS 4.0, OSX 10.13, iOS 11.0, tvOS 11.0, *) {
+                // guarantee some stability in order to ease value comparison
+                encoder.outputFormatting = .sortedKeys
+            }
+            let jsonData = try encoder.encode(value)
+            
+            // Store JSON String in the database for easier debugging and
+            // database inspection. Thanks to SQLite weak typing, we won't
+            // have any trouble decoding this string into data when we
+            // eventually perform JSON decoding.
+            // TODO: possible optimization: avoid this conversion to string,
+            // and store raw data bytes as an SQLite string
+            let jsonString = String(data: jsonData, encoding: .utf8)!
+            try jsonString.encode(to: self)
+        }
+    }
 }
 
 extension DatabaseValueConvertible where Self: Encodable {
     public var databaseValue: DatabaseValue {
         var dbValue: DatabaseValue! = nil
-        let encoder = DatabaseValueEncoder(encode: { dbValue = $0 })
-        try! self.encode(to: encoder)
+        try! DatabaseValueEncoder(encode: { dbValue = $0 }).encode(self)
         return dbValue
     }
 }

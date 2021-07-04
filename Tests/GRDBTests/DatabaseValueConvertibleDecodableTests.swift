@@ -129,6 +129,169 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
         }
     }
     
+    func testDatabaseValueConvertibleImplementationDerivedFromDecodable4() throws {
+        struct Value: Decodable, DatabaseValueConvertible {
+            let strings: [String]
+            
+            var databaseValue: DatabaseValue {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            // Success from DatabaseValue
+            let value = Value.fromDatabaseValue(#"{ "strings": ["foo", "bar"] }"#.databaseValue)!
+            XCTAssertEqual(value.strings, ["foo", "bar"])
+        }
+        do {
+            // Success from database
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let value = try Value.fetchOne(db, sql: #"SELECT '{ "strings": ["foo", "bar"] }'"#)!
+                XCTAssertEqual(value.strings, ["foo", "bar"])
+            }
+        }
+        do {
+            // Failure from DatabaseValue
+            let value = Value.fromDatabaseValue(1.databaseValue)
+            XCTAssertNil(value)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromDecodable5() throws {
+        struct Value: Decodable, DatabaseValueConvertible {
+            let dictionary: [String: Int]
+            
+            init(from decoder: Decoder) throws {
+                dictionary = try .init(from: decoder)
+            }
+            
+            var databaseValue: DatabaseValue {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            // Success from DatabaseValue
+            let value = Value.fromDatabaseValue(#"{"foo": 1}"#.databaseValue)!
+            XCTAssertEqual(value.dictionary, ["foo": 1])
+        }
+        do {
+            // Success from database
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let value = try Value.fetchOne(db, sql: #"SELECT '{"foo": 1}'"#)!
+                XCTAssertEqual(value.dictionary, ["foo": 1])
+            }
+        }
+        do {
+            // Failure from DatabaseValue
+            let value = Value.fromDatabaseValue(1.databaseValue)
+            XCTAssertNil(value)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromDecodable6() throws {
+        struct Value: Decodable, DatabaseValueConvertible {
+            let strings: [String]
+            
+            init(from decoder: Decoder) throws {
+                strings = try .init(from: decoder)
+            }
+            
+            var databaseValue: DatabaseValue {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            // Success from DatabaseValue
+            let value = Value.fromDatabaseValue(#"["foo", "bar"]"#.databaseValue)!
+            XCTAssertEqual(value.strings, ["foo", "bar"])
+        }
+        do {
+            // Success from database
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let value = try Value.fetchOne(db, sql: #"SELECT '["foo", "bar"]'"#)!
+                XCTAssertEqual(value.strings, ["foo", "bar"])
+            }
+        }
+        do {
+            // Failure from DatabaseValue
+            let value = Value.fromDatabaseValue(1.databaseValue)
+            XCTAssertNil(value)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromDecodable7() throws {
+        struct Value: Decodable, DatabaseValueConvertible {
+            let dictionary: [String: Int]
+            
+            init(from decoder: Decoder) throws {
+                let container = try decoder.singleValueContainer()
+                dictionary = try container.decode([String: Int].self)
+            }
+            
+            var databaseValue: DatabaseValue {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            // Success from DatabaseValue
+            let value = Value.fromDatabaseValue(#"{"foo": 1}"#.databaseValue)!
+            XCTAssertEqual(value.dictionary, ["foo": 1])
+        }
+        do {
+            // Success from database
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let value = try Value.fetchOne(db, sql: #"SELECT '{"foo": 1}'"#)!
+                XCTAssertEqual(value.dictionary, ["foo": 1])
+            }
+        }
+        do {
+            // Failure from DatabaseValue
+            let value = Value.fromDatabaseValue(1.databaseValue)
+            XCTAssertNil(value)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromDecodable8() throws {
+        struct Value: Decodable, DatabaseValueConvertible {
+            let strings: [String]
+            
+            init(from decoder: Decoder) throws {
+                let container = try decoder.singleValueContainer()
+                strings = try container.decode([String].self)
+            }
+            
+            var databaseValue: DatabaseValue {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            // Success from DatabaseValue
+            let value = Value.fromDatabaseValue(#"["foo", "bar"]"#.databaseValue)!
+            XCTAssertEqual(value.strings, ["foo", "bar"])
+        }
+        do {
+            // Success from database
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.inDatabase { db in
+                let value = try Value.fetchOne(db, sql: #"SELECT '["foo", "bar"]'"#)!
+                XCTAssertEqual(value.strings, ["foo", "bar"])
+            }
+        }
+        do {
+            // Failure from DatabaseValue
+            let value = Value.fromDatabaseValue(1.databaseValue)
+            XCTAssertNil(value)
+        }
+    }
+
     func testCustomDatabaseValueConvertible() throws {
         struct Value : Decodable, DatabaseValueConvertible {
             let string: String

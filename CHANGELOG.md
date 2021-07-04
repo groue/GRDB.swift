@@ -91,7 +91,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
     ```
 
 - **New**: [#993](https://github.com/groue/GRDB.swift/pull/993) by [@groue](https://github.com/groue): QueryInterfaceRequest builder with dynamic table/view name
+- **New**: Types that adopt both `DatabaseValueConvertible` and `Codable` now profit from automatic JSON encoding and decoding.
 - **Documentation Update**: The [Requests](README.md#requests) chapter was updated for the new `Table` type that can build requests without any record type.
+- **Documentation Update**: The [Custom Value Types](README.md#custom-value-types) chapter was extended about the new support for codable value types encoded as JSON arrays or objects.
 
 
 ## 5.8.0

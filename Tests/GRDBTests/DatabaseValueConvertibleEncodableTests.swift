@@ -87,6 +87,124 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
         XCTAssertEqual(dbValue.storage.value as! String, "foo")
     }
     
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable4() throws {
+        struct Value: Encodable, DatabaseValueConvertible {
+            let strings: [String]
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            let dbValue = Value(strings: ["foo", "bar"]).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{"strings":["foo","bar"]}"#)
+        }
+        
+        do {
+            let dbValue = Value(strings: []).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{"strings":[]}"#)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable5() throws {
+        struct Value: Encodable, DatabaseValueConvertible {
+            let dictionary: [String: Int]
+            
+            func encode(to encoder: Encoder) throws {
+                try dictionary.encode(to: encoder)
+            }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            let dbValue = Value(dictionary: ["foo": 1]).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{"foo":1}"#)
+        }
+        
+        do {
+            let dbValue = Value(dictionary: [:]).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{}"#)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable6() throws {
+        struct Value: Encodable, DatabaseValueConvertible {
+            let strings: [String]
+            
+            func encode(to encoder: Encoder) throws {
+                try strings.encode(to: encoder)
+            }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            let dbValue = Value(strings: ["foo", "bar"]).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"["foo","bar"]"#)
+        }
+        
+        do {
+            let dbValue = Value(strings: []).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"[]"#)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable7() throws {
+        struct Value: Encodable, DatabaseValueConvertible {
+            let dictionary: [String: Int]
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                try container.encode(dictionary)
+            }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            let dbValue = Value(dictionary: ["foo": 1]).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{"foo":1}"#)
+        }
+        
+        do {
+            let dbValue = Value(dictionary: [:]).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"{}"#)
+        }
+    }
+    
+    func testDatabaseValueConvertibleImplementationDerivedFromEncodable8() throws {
+        struct Value: Encodable, DatabaseValueConvertible {
+            let strings: [String]
+            
+            func encode(to encoder: Encoder) throws {
+                var container = encoder.singleValueContainer()
+                try container.encode(strings)
+            }
+            
+            static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? {
+                preconditionFailure("not tested")
+            }
+        }
+        
+        do {
+            let dbValue = Value(strings: ["foo", "bar"]).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"["foo","bar"]"#)
+        }
+        
+        do {
+            let dbValue = Value(strings: []).databaseValue
+            XCTAssertEqual(dbValue.storage.value as! String, #"[]"#)
+        }
+    }
+    
     func testEncodableRawRepresentable() {
         // Test that the rawValue is encoded with DatabaseValueConvertible, not with Encodable
         struct Value : RawRepresentable, Encodable, DatabaseValueConvertible {
