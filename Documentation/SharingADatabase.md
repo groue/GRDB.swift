@@ -175,7 +175,7 @@ do {
 
 See https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report for more information about this exception.
 
-1. If you use SQLCipher, use SQLCipher 4+, and call the `cipher_plaintext_header_size` pragma from your database preparation function:
+1. If you use SQLCipher, use SQLCipher 4+, and call the [`cipher_plaintext_header_size` pragma](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_plaintext_header_size) from your database preparation function:
     
     ```swift
     var configuration = Configuration()
@@ -186,7 +186,13 @@ See https://developer.apple.com/documentation/xcode/understanding-the-exception-
     let dbPool = try DatabasePool(path: ..., configuration: configuration)
     ```
     
-    This will avoid https://github.com/sqlcipher/sqlcipher/issues/255.
+    This will avoid this issue: https://github.com/sqlcipher/sqlcipher/issues/255.
+    
+    This will also disable a SQLCipher security feature: the salt. As described by https://www.zetetic.net/sqlcipher/design/:
+    
+    > The salt is used for key derivation and it ensures that even if two databases are created using the same password, they will not have the same encryption key.
+    
+    Applications are responsible for managing the salt themselves and providing it to SQLCipher. See https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_plaintext_header_size for instructions.
 
 2. [**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features) In each process that wants to write in the database:
 
