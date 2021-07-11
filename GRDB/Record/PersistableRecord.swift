@@ -977,10 +977,25 @@ final class DAO<Record: MutablePersistableRecord> {
     
     @usableFromInline
     func insertStatement(onConflict: Database.ConflictResolution) throws -> UpdateStatement {
+        // If column name of struct not match column name of table, change to snake case and match again.
+        let tableColumns: [String] = try db.columns(in: databaseTableName).map(\.name)
+        let insertedColumns: [String] = persistenceContainer.columns.map({
+            if tableColumns.contains($0) {
+                return $0
+            }
+            
+            let snakecaseName = $0.camelCaseToSnakeCase()
+            if tableColumns.contains(snakecaseName) {
+                return snakecaseName
+            }
+            
+            return $0
+        })
+        
         let query = InsertQuery(
             onConflict: onConflict,
             tableName: databaseTableName,
-            insertedColumns: persistenceContainer.columns)
+            insertedColumns: insertedColumns)
         let statement = try db.internalCachedUpdateStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(persistenceContainer.values))
         return statement
@@ -991,8 +1006,11 @@ final class DAO<Record: MutablePersistableRecord> {
     func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
+        
+        // If column name of struct not match column name of table, change to camel case and match again.
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ??
+            persistenceContainer[caseInsensitive: $0.snakeCaseToCamelCase()]?.databaseValue ?? .null
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -1002,13 +1020,19 @@ final class DAO<Record: MutablePersistableRecord> {
         // Don't update columns not present in the persistenceContainer
         // Don't update primary key columns
         let lowercaseUpdatedColumns = Set(columns.map { $0.lowercased() })
-            .intersection(persistenceContainer.columns.map { $0.lowercased() })
+            .intersection(
+                persistenceContainer.columns.map { $0.lowercased() } +
+                persistenceContainer.columns.map { $0.camelCaseToSnakeCase().lowercased() }
+            )
             .subtracting(primaryKeyColumns.map { $0.lowercased() })
         
         var updatedColumns: [String] = try db
             .columns(in: databaseTableName)
             .map(\.name)
-            .filter { lowercaseUpdatedColumns.contains($0.lowercased()) }
+            .filter {
+                lowercaseUpdatedColumns.contains($0.lowercased()) ||
+                lowercaseUpdatedColumns.contains($0.camelCaseToSnakeCase().lowercased())
+            }
         
         if updatedColumns.isEmpty {
             // IMPLEMENTATION NOTE
@@ -1023,7 +1047,8 @@ final class DAO<Record: MutablePersistableRecord> {
         }
         
         let updatedValues = updatedColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ??
+            persistenceContainer[caseInsensitive: $0.snakeCaseToCamelCase()]?.databaseValue ?? .null
         }
         
         let query = UpdateQuery(
@@ -1042,7 +1067,8 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ??
+            persistenceContainer[caseInsensitive: $0.snakeCaseToCamelCase()]?.databaseValue ?? .null
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil
@@ -1062,7 +1088,8 @@ final class DAO<Record: MutablePersistableRecord> {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
+            persistenceContainer[caseInsensitive: $0]?.databaseValue ??
+            persistenceContainer[caseInsensitive: $0.snakeCaseToCamelCase()]?.databaseValue ?? .null
         }
         if primaryKeyValues.allSatisfy({ $0.isNull }) {
             return nil

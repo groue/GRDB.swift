@@ -156,7 +156,7 @@ extension Row {
     
     @usableFromInline
     func index(forColumn name: String) -> Int? {
-        impl.index(forColumn: name)
+        impl.index(forColumn: name) ?? impl.index(forColumn: name.camelCaseToSnakeCase())
     }
 }
 
@@ -2176,7 +2176,8 @@ private struct ArrayRowImpl: RowImpl {
     
     func index(forColumn name: String) -> Int? {
         let lowercaseName = name.lowercased()
-        return columns.firstIndex { (column, _) in column.lowercased() == lowercaseName }
+        let snakeLowercaseName = name.camelCaseToSnakeCase().lowercased()
+        return columns.firstIndex { (column, _) in column.lowercased() == lowercaseName || column.lowercased() == snakeLowercaseName }
     }
     
     func copiedRow(_ row: Row) -> Row {
@@ -2309,7 +2310,12 @@ private struct StatementRowImpl: RowImpl {
         if let index = lowercaseColumnIndexes[name] {
             return index
         }
-        return lowercaseColumnIndexes[name.lowercased()]
+        
+        if let index = lowercaseColumnIndexes[name.camelCaseToSnakeCase()] {
+            return index
+        }
+        
+        return lowercaseColumnIndexes[name.lowercased()] ?? lowercaseColumnIndexes[name.camelCaseToSnakeCase().lowercased()]
     }
     
     func copiedRow(_ row: Row) -> Row {
@@ -2332,8 +2338,9 @@ private struct SQLiteStatementRowImpl: RowImpl {
     }
     
     func index(forColumn name: String) -> Int? {
+        let snakeLowercaseName = name.camelCaseToSnakeCase().lowercased()
         let name = name.lowercased()
-        for index in 0..<count where columnName(atUncheckedIndex: index).lowercased() == name {
+        for index in 0..<count where columnName(atUncheckedIndex: index).lowercased() == name || columnName(atUncheckedIndex: index).lowercased() == snakeLowercaseName {
             return index
         }
         return nil

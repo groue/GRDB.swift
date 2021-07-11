@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		27D12D66269A905A00D548CF /* AutoBindingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 27D12D65269A905A00D548CF /* AutoBindingTests.swift */; };
 		56012B552573EED000B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
 		56012B562573EED100B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
 		56012B572573EED100B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
@@ -1242,6 +1243,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		27D12D65269A905A00D548CF /* AutoBindingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoBindingTests.swift; sourceTree = "<group>"; };
 		56012B542573EED000B4925B /* CommonTableExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpressionTests.swift; sourceTree = "<group>"; };
 		56012B742574048B00B4925B /* CommonTableExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpression.swift; sourceTree = "<group>"; };
 		56043299228F00C2009D3FE2 /* OrderedDictionaryTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OrderedDictionaryTests.swift; sourceTree = "<group>"; };
@@ -1682,6 +1684,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		27D12D62269A8F5400D548CF /* AutoBinding */ = {
+			isa = PBXGroup;
+			children = (
+				27D12D65269A905A00D548CF /* AutoBindingTests.swift */,
+			);
+			name = AutoBinding;
+			sourceTree = "<group>";
+		};
 		5605F1471C672E4000235C62 /* Support */ = {
 			isa = PBXGroup;
 			children = (
@@ -2268,6 +2278,7 @@
 		56A238251B9C74A90082EB20 /* Record */ = {
 			isa = PBXGroup;
 			children = (
+				27D12D62269A8F5400D548CF /* AutoBinding */,
 				5674A7251F30A8EF0095F066 /* FetchableRecord */,
 				564E73DE203D50B9000C443C /* JoinSupportTests.swift */,
 				560B3FA41C19DFF800C58EC7 /* PersistableRecord */,
@@ -3467,6 +3478,7 @@
 				56D4968D1D81316E008276D7 /* DatabaseFunctionTests.swift in Sources */,
 				564FCE5E20F7E11B00202B90 /* DatabaseValueConversionErrorTests.swift in Sources */,
 				5695961C222C456C002CB7C9 /* AssociationHasManyThroughSQLTests.swift in Sources */,
+				27D12D66269A905A00D548CF /* AutoBindingTests.swift in Sources */,
 				5653EADE20944B4F00F46237 /* AssociationHasOneSQLDerivationTests.swift in Sources */,
 				56D496661D813086008276D7 /* QueryInterfaceRequestTests.swift in Sources */,
 				56419C5324A51998004967E1 /* Next.swift in Sources */,
