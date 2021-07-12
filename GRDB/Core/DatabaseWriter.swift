@@ -324,7 +324,7 @@ extension DatabaseWriter {
     /// amount of disk space.
     /// See https://www.sqlite.org/lang_vacuum.html for more information.
     ///
-    /// - Parameter into: <#into description#>
+    /// - Parameter into: filename for new database
     public func vacuum(into: String) throws {
         try writeWithoutTransaction {
             try $0.execute(sql: "VACUUM INTO ?", arguments: [into])
