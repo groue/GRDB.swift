@@ -320,6 +320,12 @@ extension DatabaseWriter {
         try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
+    public func vacuum(into: String) throws {
+        try writeWithoutTransaction {
+            try $0.execute(sql: "VACUUM INTO ?", arguments: [into])
+        }
+    }
+    
     // MARK: - Database Observation
     
     /// A write-only observation only uses the serialized writer

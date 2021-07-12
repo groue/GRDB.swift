@@ -158,6 +158,11 @@ class DatabaseWriterTests : GRDBTestCase {
         try testEraseAndVacuum(writer: makeDatabaseQueue())
         try testEraseAndVacuum(writer: makeDatabasePool())
     }
+    
+    func testVacuumInto() throws {
+        try testVacuumInto(writer: makeDatabaseQueue())
+        try testVacuumInto(writer: makeDatabasePool())
+    }
 
     private func testEraseAndVacuum(writer: DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
@@ -191,6 +196,34 @@ class DatabaseWriterTests : GRDBTestCase {
         
         try writer.read { db in
             try XCTAssertNil(Row.fetchOne(db, sql: "SELECT * FROM sqlite_master"))
+        }
+    }
+    
+    private func testVacuumInto(writer: DatabaseWriter) throws {
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("init") { db in
+            try db.execute(sql: """
+                CREATE TABLE t1 (id INTEGER PRIMARY KEY AUTOINCREMENT, b, c);
+                INSERT INTO t1 (b, c) VALUES (1, 1);
+                INSERT INTO t1 (b, c) VALUES (2, 2);
+                """)
+        }
+        
+        try migrator.migrate(writer)
+        
+        try writer.read { db in
+            try XCTAssertTrue(db.tableExists("t1"))
+            XCTAssertEqual(try (Row.fetchOne(db, sql: "SELECT count(*) from t1")![0] as! Int64), 2)
+        }
+        
+        let intoPath = NSTemporaryDirectory().appending(ProcessInfo.processInfo.globallyUniqueString).appending("-vacuum-into-db.sqlite")
+        try writer.vacuum(into: intoPath)
+        
+        // open newly created file and ensure table was copied
+        let newWriter = try DatabaseQueue(path: intoPath)
+        try newWriter.read { db in
+            try XCTAssertTrue(db.tableExists("t1"))
+            XCTAssertEqual(try (Row.fetchOne(db, sql: "SELECT count(*) from t1")![0] as! Int64), 2)
         }
     }
     
