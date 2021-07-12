@@ -320,6 +320,11 @@ extension DatabaseWriter {
         try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
+    /// Creates a new database file at the specified file with a minimum
+    /// amount of disk space.
+    /// See https://www.sqlite.org/lang_vacuum.html for more information.
+    ///
+    /// - Parameter into: <#into description#>
     public func vacuum(into: String) throws {
         try writeWithoutTransaction {
             try $0.execute(sql: "VACUUM INTO ?", arguments: [into])
