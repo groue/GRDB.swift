@@ -1435,7 +1435,7 @@ extension Database {
     
     /// An SQLite conflict resolution.
     ///
-    /// See https://www.sqlite.org/lang_conflict.html.
+    /// See https://www.sqlite.org/lang_conflict.html
     public enum ConflictResolution: String {
         /// The `ROLLBACK` conflict resolution
         case rollback = "ROLLBACK"
