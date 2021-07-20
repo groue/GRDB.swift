@@ -323,12 +323,20 @@ extension DatabaseWriter {
     // VACUUM INTO was introduced in SQLite 3.27.0:
     // https://www.sqlite.org/releaselog/3_27_0.html
     //
+    // Old versions of SQLCipher won't have it, but I don't know how to perform
+    // availability checks that depend on the version of the SQLCipher CocoaPod
+    // chosen by the application. So let's just have the method fail at runtime.
+    //
     // This method is declared on DatabaseWriter instead of DatabaseReader,
     // so that it is not available on DatabaseSnaphot. VACUUM INTO is not
     // available inside the transaction that is kept open by DatabaseSnaphot.
-    #if GRDBCUSTOMSQLITE
+    #if GRDBCUSTOMSQLITE || GRDBCIPHER
     /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
+    ///
+    /// Databases encrypted with SQLCipher are copied with the same password
+    /// and configuration as the original database.
+    ///
     /// See https://www.sqlite.org/lang_vacuum.html#vacuuminto for more information.
     ///
     /// - Parameter filePath: file path for new database
@@ -337,7 +345,7 @@ extension DatabaseWriter {
             try $0.execute(sql: "VACUUM INTO ?", arguments: [filePath])
         }
     }
-    #elseif !GRDBCIPHER
+    #else
     /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
     /// See https://www.sqlite.org/lang_vacuum.html#vacuuminto for more information.

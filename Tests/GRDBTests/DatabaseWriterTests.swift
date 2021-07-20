@@ -198,6 +198,10 @@ class DatabaseWriterTests : GRDBTestCase {
         guard #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) else {
             throw XCTSkip("VACUUM INTO is not available")
         }
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3027000 else {
+            throw XCTSkip("VACUUM INTO is not available")
+        }
         
         func testVacuumInto(writer: DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
@@ -219,8 +223,9 @@ class DatabaseWriterTests : GRDBTestCase {
             let intoPath = NSTemporaryDirectory().appending(ProcessInfo.processInfo.globallyUniqueString).appending("-vacuum-into-db.sqlite")
             try writer.vacuum(into: intoPath)
             
-            // open newly created file and ensure table was copied
-            let newWriter = try DatabaseQueue(path: intoPath)
+            // open newly created file and ensure table was copied, and
+            // encrypted like the original.
+            let newWriter = try DatabaseQueue(path: intoPath, configuration: writer.configuration)
             try newWriter.read { db in
                 try XCTAssertTrue(db.tableExists("t1"))
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT count(*) from t1"), 2)
