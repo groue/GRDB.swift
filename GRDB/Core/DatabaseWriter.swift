@@ -322,6 +322,10 @@ extension DatabaseWriter {
     
     // VACUUM INTO was introduced in SQLite 3.27.0:
     // https://www.sqlite.org/releaselog/3_27_0.html
+    //
+    // This method is declared on DatabaseWriter instead of DatabaseReader,
+    // so that it is not available on DatabaseSnaphot. VACUUM INTO is not
+    // available inside the transaction that is kept open by DatabaseSnaphot.
     #if GRDBCUSTOMSQLITE
     /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
