@@ -320,16 +320,32 @@ extension DatabaseWriter {
         try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
-    /// Creates a new database file at the specified file with a minimum
+    // VACUUM INTO was introduced in SQLite 3.27.0:
+    // https://www.sqlite.org/releaselog/3_27_0.html
+    #if GRDBCUSTOMSQLITE
+    /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
-    /// See https://www.sqlite.org/lang_vacuum.html for more information.
+    /// See https://www.sqlite.org/lang_vacuum.html#vacuuminto for more information.
     ///
-    /// - Parameter into: filename for new database
-    public func vacuum(into: String) throws {
+    /// - Parameter filePath: file path for new database
+    public func vacuum(into filePath: String) throws {
         try writeWithoutTransaction {
-            try $0.execute(sql: "VACUUM INTO ?", arguments: [into])
+            try $0.execute(sql: "VACUUM INTO ?", arguments: [filePath])
         }
     }
+    #elseif !GRDBCIPHER
+    /// Creates a new database file at the specified path with a minimum
+    /// amount of disk space.
+    /// See https://www.sqlite.org/lang_vacuum.html#vacuuminto for more information.
+    ///
+    /// - Parameter filePath: file path for new database
+    @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
+    public func vacuum(into filePath: String) throws {
+        try writeWithoutTransaction {
+            try $0.execute(sql: "VACUUM INTO ?", arguments: [filePath])
+        }
+    }
+    #endif
     
     // MARK: - Database Observation
     
