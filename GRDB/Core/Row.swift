@@ -239,7 +239,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         try! decodeIfPresent(Value.self, atIndex: index)
@@ -267,7 +267,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         try! decode(Value.self, atIndex: index)
@@ -318,7 +318,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value? {
         try! decodeIfPresent(Value.self, forKey: columnName)
@@ -350,7 +350,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         try! decode(Value.self, forKey: columnName)
@@ -392,7 +392,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     public subscript<Value, Column>(_ column: Column)
     -> Value?
@@ -429,7 +429,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     public subscript<Value, Column>(_ column: Column)
     -> Value
@@ -531,7 +531,7 @@ extension Row {
     /// A fatal error is raised if the scope is not available, or contains only
     /// null values.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
+    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
         try! decode(Record.self, forKey: scope)
@@ -566,7 +566,7 @@ extension Row {
     /// Nil is returned if the scope is not available, or contains only
     /// null values.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
+    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
         try! decodeIfPresent(Record.self, forKey: scope)
@@ -786,7 +786,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -806,7 +806,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -827,7 +827,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -851,7 +851,7 @@ extension Row {
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see https://www.sqlite.org/datatype3.html).
+    /// (see <https://www.sqlite.org/datatype3.html>).
     @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -997,7 +997,7 @@ extension Row {
     /// Nil is returned if the scope is not available, or contains only
     /// null values.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
+    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
     /// for more information.
     func decodeIfPresent<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
@@ -1039,7 +1039,7 @@ extension Row {
     /// A fatal error is raised if the scope is not available, or contains only
     /// null values.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support
+    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
     /// for more information.
     func decode<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,

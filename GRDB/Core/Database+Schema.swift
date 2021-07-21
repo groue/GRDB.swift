@@ -1,5 +1,5 @@
 extension Database {
-    /// A SQLite schema. See https://sqlite.org/lang_naming.html
+    /// A SQLite schema. See <https://sqlite.org/lang_naming.html>
     enum SchemaIdentifier: Hashable {
         /// The main database
         case main
@@ -7,7 +7,7 @@ extension Database {
         /// The temp database
         case temp
         
-        /// An attached database: https://sqlite.org/lang_attach.html
+        /// An attached database: <https://sqlite.org/lang_attach.html>
         case attached(String)
         
         /// The name of the schema in SQL queries
@@ -116,7 +116,7 @@ extension Database {
     ///
     /// Those are tables whose name begins with `sqlite_` and `pragma_`.
     ///
-    /// For more information, see https://www.sqlite.org/fileformat2.html
+    /// For more information, see <https://www.sqlite.org/fileformat2.html>
     public static func isSQLiteInternalTable(_ tableName: String) -> Bool {
         // https://www.sqlite.org/fileformat2.html#internal_schema_objects
         // > The names of internal schema objects always begin with "sqlite_"
@@ -131,7 +131,7 @@ extension Database {
     ///
     /// Those are tables whose name begins with `sqlite_` and `pragma_`.
     ///
-    /// For more information, see https://www.sqlite.org/fileformat2.html
+    /// For more information, see <https://www.sqlite.org/fileformat2.html>
     @available(*, deprecated, message: "Use Database.isSQLiteInternalTable(_:) static method instead.")
     public func isSQLiteInternalTable(_ tableName: String) -> Bool {
         Self.isSQLiteInternalTable(tableName)
@@ -641,7 +641,7 @@ extension Database {
 ///     1       firstName   TEXT        0                       0      0
 ///     2       lastName    TEXT        0                       0      0
 ///
-/// See `Database.columns(in:)` and https://www.sqlite.org/pragma.html#pragma_table_info
+/// See `Database.columns(in:)` and <https://www.sqlite.org/pragma.html#pragma_table_info>
 public struct ColumnInfo: FetchableRecord {
     let cid: Int
     let hidden: Int?
@@ -689,8 +689,8 @@ public struct ColumnInfo: FetchableRecord {
     /// the primary key for columns that are part of the primary key.
     ///
     /// References:
-    /// - https://sqlite.org/releaselog/3_7_16.html
-    /// - http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2013-April/046034.html
+    /// - <https://sqlite.org/releaselog/3_7_16.html>
+    /// - <http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2013-April/046034.html>
     public let primaryKeyIndex: Int
     
     /// :nodoc:

@@ -518,7 +518,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
         switch dbValue.storage {
         case .blob(let data):
             // Implicit conversion from blob to string, just as SQLite does
-            // See https://www.sqlite.org/c3ref/column_blob.html
+            // See <https://www.sqlite.org/c3ref/column_blob.html>
             return String(data: data, encoding: .utf8)
         case .string(let string):
             return string

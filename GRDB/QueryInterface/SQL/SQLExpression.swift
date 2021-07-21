@@ -1,5 +1,5 @@
 /// SQLExpression is the type that represents an SQL expression, as
-/// described at https://www.sqlite.org/lang_expr.html
+/// described at <https://www.sqlite.org/lang_expr.html>
 public struct SQLExpression {
     private var impl: Impl
     
@@ -370,7 +370,7 @@ public typealias SQLAssociativeBinaryOperator = SQLExpression.AssociativeBinaryO
 extension SQLExpression {
     
     /// SQLite row values were shipped in SQLite 3.15:
-    /// https://www.sqlite.org/releaselog/3_15_0.html
+    /// <https://www.sqlite.org/releaselog/3_15_0.html>
     static let rowValuesAreAvailable = (sqlite3_libversion_number() >= 3015000)
     
     // MARK: Basic Expressions
@@ -1204,7 +1204,7 @@ extension SQLExpression {
     ///
     /// The `= 1` and `= 0` tests allow the SQLite query planner to
     /// optimize queries with indices on boolean columns and expressions.
-    /// See https://github.com/groue/GRDB.swift/issues/816
+    /// See <https://github.com/groue/GRDB.swift/issues/816>
     ///
     /// Some specific expressions can produce idiomatic SQL.
     ///
@@ -1559,7 +1559,7 @@ extension SQLExpression {
 /// It is adopted by protocols like `DatabaseValueConvertible`, and types
 /// like `Column`.
 ///
-/// See https://github.com/groue/GRDB.swift/#the-query-interface
+/// See <https://github.com/groue/GRDB.swift/#the-query-interface>
 public protocol SQLExpressible {
     /// Returns an SQL expression.
     var sqlExpression: SQLExpression { get }
@@ -1665,14 +1665,14 @@ extension SQLSpecificExpressible {
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
     public var asc: SQLOrdering {
         .asc(sqlExpression)
     }
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
     public var desc: SQLOrdering {
         .desc(sqlExpression)
     }
@@ -1680,21 +1680,21 @@ extension SQLSpecificExpressible {
     #if GRDBCUSTOMSQLITE
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
     public var ascNullsLast: SQLOrdering {
         .ascNullsLast(sqlExpression)
     }
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)
     }
     #elseif !GRDBCIPHER
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var ascNullsLast: SQLOrdering {
         .ascNullsLast(sqlExpression)
@@ -1702,7 +1702,7 @@ extension SQLSpecificExpressible {
     
     /// Returns a value that can be used as an argument to QueryInterfaceRequest.order()
     ///
-    /// See https://github.com/groue/GRDB.swift/#the-query-interface
+    /// See <https://github.com/groue/GRDB.swift/#the-query-interface>
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)
     public var descNullsFirst: SQLOrdering {
         .descNullsFirst(sqlExpression)

@@ -8,7 +8,7 @@ extension String {
     ///
     ///     db.execute(sql: "SELECT * FROM \(tableName.quotedDatabaseIdentifier)")
     @inlinable public var quotedDatabaseIdentifier: String {
-        // See https://www.sqlite.org/lang_keywords.html
+        // See <https://www.sqlite.org/lang_keywords.html>
         return "\"\(self)\""
     }
 }
@@ -45,8 +45,8 @@ func GRDBPrecondition(
     line: UInt = #line)
 {
     /// Custom precondition function which aims at solving
-    /// https://bugs.swift.org/browse/SR-905 and
-    /// https://github.com/groue/GRDB.swift/issues/37
+    /// <https://bugs.swift.org/browse/SR-905> and
+    /// <https://github.com/groue/GRDB.swift/issues/37>
     if !condition() {
         fatalError(message(), file: file, line: line)
     }

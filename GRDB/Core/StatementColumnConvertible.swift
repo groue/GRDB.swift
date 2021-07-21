@@ -1,6 +1,6 @@
 /// The `StatementColumnConvertible` protocol grants access to the low-level C
 /// interface that extracts values from query results:
-/// https://www.sqlite.org/c3ref/column_blob.html. It can bring performance
+/// <https://www.sqlite.org/c3ref/column_blob.html>. It can bring performance
 /// improvements.
 ///
 /// To use it, have a value type adopt both `StatementColumnConvertible` and
@@ -34,7 +34,7 @@ public protocol StatementColumnConvertible {
     /// `nil` for failed conversions: GRDB will interpret a nil result as a
     /// decoding failure.
     ///
-    /// See https://www.sqlite.org/c3ref/column_blob.html for more information.
+    /// See <https://www.sqlite.org/c3ref/column_blob.html> for more information.
     ///
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.

@@ -5,7 +5,7 @@
 ///         t.column("content")
 ///     }
 ///
-/// See https://www.sqlite.org/fts3.html
+/// See <https://www.sqlite.org/fts3.html>
 public struct FTS4: VirtualTableModule {
     
     /// Creates a FTS4 module suitable for the Database
@@ -16,7 +16,7 @@ public struct FTS4: VirtualTableModule {
     ///         t.column("content")
     ///     }
     ///
-    /// See https://www.sqlite.org/fts3.html
+    /// See <https://www.sqlite.org/fts3.html>
     public init() {
     }
     
@@ -158,7 +158,7 @@ public struct FTS4: VirtualTableModule {
 ///         t.column("content")
 ///     }
 ///
-/// See https://www.sqlite.org/fts3.html
+/// See <https://www.sqlite.org/fts3.html>
 public final class FTS4TableDefinition {
     enum ContentMode {
         case raw(content: String?)
@@ -175,7 +175,7 @@ public final class FTS4TableDefinition {
     ///         t.tokenizer = .porter
     ///     }
     ///
-    /// See https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables
+    /// See <https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables>
     public var tokenizer: FTS3TokenizerDescriptor?
     
     /// The FTS4 `content` option
@@ -187,7 +187,7 @@ public final class FTS4TableDefinition {
     /// Setting this property invalidates any synchronization previously
     /// established with the `synchronize(withTable:)` method.
     ///
-    /// See https://www.sqlite.org/fts3.html#the_content_option_
+    /// See <https://www.sqlite.org/fts3.html#the_content_option_>
     public var content: String? {
         get {
             switch contentMode {
@@ -204,17 +204,17 @@ public final class FTS4TableDefinition {
     
     /// The FTS4 `compress` option
     ///
-    /// See https://www.sqlite.org/fts3.html#the_compress_and_uncompress_options
+    /// See <https://www.sqlite.org/fts3.html#the_compress_and_uncompress_options>
     public var compress: String?
     
     /// The FTS4 `uncompress` option
     ///
-    /// See https://www.sqlite.org/fts3.html#the_compress_and_uncompress_options
+    /// See <https://www.sqlite.org/fts3.html#the_compress_and_uncompress_options>
     public var uncompress: String?
     
     /// The FTS4 `matchinfo` option
     ///
-    /// See https://www.sqlite.org/fts3.html#the_matchinfo_option
+    /// See <https://www.sqlite.org/fts3.html#the_matchinfo_option>
     public var matchinfo: String?
     
     /// Support for the FTS5 `prefix` option
@@ -225,7 +225,7 @@ public final class FTS4TableDefinition {
     ///         t.column("content")
     ///     }
     ///
-    /// See https://www.sqlite.org/fts3.html#the_prefix_option
+    /// See <https://www.sqlite.org/fts3.html#the_prefix_option>
     public var prefixes: Set<Int>?
     
     init(configuration: VirtualTableConfiguration) {
@@ -253,7 +253,7 @@ public final class FTS4TableDefinition {
     /// content in the external table. SQL triggers make sure that the
     /// full-text table is kept up to date with the external table.
     ///
-    /// See https://sqlite.org/fts5.html#external_content_tables
+    /// See <https://sqlite.org/fts5.html#external_content_tables>
     public func synchronize(withTable tableName: String) {
         contentMode = .synchronized(contentTable: tableName)
     }
@@ -268,7 +268,7 @@ public final class FTS4TableDefinition {
 ///         t.column("content")      // FTS4ColumnDefinition
 ///     }
 ///
-/// See https://www.sqlite.org/fts3.html
+/// See <https://www.sqlite.org/fts3.html>
 public final class FTS4ColumnDefinition {
     fileprivate let name: String
     fileprivate var isIndexed: Bool
@@ -287,7 +287,7 @@ public final class FTS4ColumnDefinition {
     ///         t.column("b").notIndexed()
     ///     }
     ///
-    /// See https://www.sqlite.org/fts3.html#the_notindexed_option
+    /// See <https://www.sqlite.org/fts3.html#the_notindexed_option>
     ///
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
@@ -303,7 +303,7 @@ public final class FTS4ColumnDefinition {
     ///         t.column("lid").asLanguageId()
     ///     }
     ///
-    /// See https://www.sqlite.org/fts3.html#the_languageid_option
+    /// See <https://www.sqlite.org/fts3.html#the_languageid_option>
     ///
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult

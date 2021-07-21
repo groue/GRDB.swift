@@ -8,7 +8,7 @@ public struct FTS3: VirtualTableModule {
     /// Options for Latin script characters. Matches the raw "remove_diacritics"
     /// tokenizer argument.
     ///
-    /// See https://www.sqlite.org/fts3.html
+    /// See <https://www.sqlite.org/fts3.html>
     public enum Diacritics {
         /// Do not remove diacritics from Latin script characters. This
         /// option matches the raw "remove_diacritics=0" tokenizer argument.
@@ -101,7 +101,7 @@ public final class FTS3TableDefinition {
     ///     try db.create(virtualTable: "document", using: FTS3()) { t in
     ///         t.tokenizer = .porter
     ///     }
-    /// See https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables
+    /// See <https://www.sqlite.org/fts3.html#creating_and_destroying_fts_tables>
     public var tokenizer: FTS3TokenizerDescriptor?
     
     /// Appends a table column.

@@ -3,7 +3,7 @@ import Foundation
 
 /// Flags that tell SQLite how to register a token.
 ///
-/// See https://www.sqlite.org/fts5.html#custom_tokenizers
+/// See <https://www.sqlite.org/fts5.html#custom_tokenizers>
 public struct FTS5TokenFlags: OptionSet {
     public let rawValue: Int32
     
@@ -76,7 +76,7 @@ public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
     /// 2. The input `flags` should be given unmodified to the tokenCallback
     /// function, unless you union it with the .colocated flag when the
     /// tokenizer produces synonyms (see
-    /// https://www.sqlite.org/fts5.html#synonym_support).
+    /// <https://www.sqlite.org/fts5.html#synonym_support>).
     ///
     /// - parameters:
     ///     - token: A token produced by the wrapped tokenizer
