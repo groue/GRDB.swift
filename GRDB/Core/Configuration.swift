@@ -179,7 +179,7 @@ public struct Configuration {
     
     // MARK: - Concurrency
     
-    /// The behavior in case of SQLITE_BUSY error. See https://www.sqlite.org/rescode.html#busy
+    /// The behavior in case of SQLITE_BUSY error. See <https://www.sqlite.org/rescode.html#busy>
     ///
     /// Default: immediateError
     public var busyMode: Database.BusyMode = .immediateError

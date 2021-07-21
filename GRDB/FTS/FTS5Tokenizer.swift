@@ -15,7 +15,7 @@ public typealias FTS5TokenCallback = @convention(c) (
 
 /// The reason why FTS5 is requesting tokenization.
 ///
-/// See https://www.sqlite.org/fts5.html#custom_tokenizers
+/// See <https://www.sqlite.org/fts5.html#custom_tokenizers>
 public struct FTS5Tokenization: OptionSet {
     public let rawValue: Int32
     
@@ -41,7 +41,7 @@ public protocol FTS5Tokenizer: AnyObject {
     /// Tokenizes the text described by `pText` and `nText`, and
     /// notifies found tokens to the `tokenCallback` function.
     ///
-    /// It matches the `xTokenize` function documented at https://www.sqlite.org/fts5.html#custom_tokenizers
+    /// It matches the `xTokenize` function documented at <https://www.sqlite.org/fts5.html#custom_tokenizers>
     ///
     /// - parameters:
     ///     - context: An opaque pointer that is the first argument to
@@ -51,7 +51,7 @@ public protocol FTS5Tokenizer: AnyObject {
     ///       nul-terminated.
     ///     - nText: The number of bytes in the tokenized text.
     ///     - tokenCallback: The function to call for each found token.
-    ///       It matches the `xToken` callback at https://www.sqlite.org/fts5.html#custom_tokenizers
+    ///       It matches the `xToken` callback at <https://www.sqlite.org/fts5.html#custom_tokenizers>
     func tokenize(
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,

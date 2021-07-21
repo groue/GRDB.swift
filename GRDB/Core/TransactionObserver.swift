@@ -741,7 +741,7 @@ public protocol TransactionObserver: AnyObject {
     /// As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
     /// does not have this enabled, so you'll need to compile your own
     /// version of SQLite:
-    /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md
+    /// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md>
     ///
     /// The databaseDidChangeWithEvent callback is always available,
     /// and may provide most/all of what you need.
@@ -1350,7 +1350,7 @@ enum DatabaseEventPredicate {
 // MARK: - SavepointStack
 
 /// The SQLite savepoint stack is described at
-/// https://www.sqlite.org/lang_savepoint.html
+/// <https://www.sqlite.org/lang_savepoint.html>
 ///
 /// This class reimplements the SQLite stack, so that we can:
 ///

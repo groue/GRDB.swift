@@ -315,7 +315,7 @@ extension DatabaseWriter {
     /// Rebuilds the database file, repacking it into a minimal amount of
     /// disk space.
     ///
-    /// See https://www.sqlite.org/lang_vacuum.html for more information.
+    /// See <https://www.sqlite.org/lang_vacuum.html> for more information.
     public func vacuum() throws {
         try writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
@@ -337,7 +337,7 @@ extension DatabaseWriter {
     /// Databases encrypted with SQLCipher are copied with the same password
     /// and configuration as the original database.
     ///
-    /// See https://www.sqlite.org/lang_vacuum.html#vacuuminto for more information.
+    /// See <https://www.sqlite.org/lang_vacuum.html#vacuuminto> for more information.
     ///
     /// - Parameter filePath: file path for new database
     public func vacuum(into filePath: String) throws {
@@ -348,7 +348,7 @@ extension DatabaseWriter {
     #else
     /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
-    /// See https://www.sqlite.org/lang_vacuum.html#vacuuminto for more information.
+    /// See <https://www.sqlite.org/lang_vacuum.html#vacuuminto> for more information.
     ///
     /// - Parameter filePath: file path for new database
     @available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *)

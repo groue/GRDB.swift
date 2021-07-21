@@ -27,7 +27,7 @@
 ///         let players = try request.fetchAll(db) // [Player]
 ///     }
 ///
-/// See https://github.com/groue/GRDB.swift#the-query-interface
+/// See <https://github.com/groue/GRDB.swift#the-query-interface>
 public struct QueryInterfaceRequest<RowDecoder> {
     var relation: SQLRelation
 }

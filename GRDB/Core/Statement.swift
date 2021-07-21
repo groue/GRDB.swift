@@ -49,7 +49,7 @@ public class Statement {
     /// - parameter statementEnd: Upon success, the pointer to the next
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
     /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
@@ -332,7 +332,7 @@ public final class SelectStatement: Statement {
     /// - parameter statementEnd: Upon success, the pointer to the next
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
     /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
@@ -509,7 +509,7 @@ public final class UpdateStatement: Statement {
     /// - parameter statementEnd: Upon success, the pointer to the next
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
     /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
@@ -561,7 +561,7 @@ public protocol StatementBinding {
 /// StatementArguments provide values to argument placeholders in raw
 /// SQL queries.
 ///
-/// Placeholders can take several forms (see https://www.sqlite.org/lang_expr.html#varparam
+/// Placeholders can take several forms (see <https://www.sqlite.org/lang_expr.html#varparam>
 /// for more information):
 ///
 /// - `?NNN` (e.g. `?2`): the NNN-th argument (starts at 1)

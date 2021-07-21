@@ -71,7 +71,7 @@ extension Database {
     ///
     ///     try db.create(virtualTable: "vocabulary", using: "spellfix1")
     ///
-    /// See https://www.sqlite.org/lang_createtable.html
+    /// See <https://www.sqlite.org/lang_createtable.html>
     ///
     /// - parameters:
     ///     - name: The table name.
@@ -112,7 +112,7 @@ extension Database {
     ///         t.column("body")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html
+    /// See <https://www.sqlite.org/lang_createtable.html>
     ///
     /// - parameters:
     ///     - name: The table name.

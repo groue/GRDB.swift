@@ -55,7 +55,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     /// `didInsert(with:for:)` method is not called upon successful insertion,
     /// even if a row was actually inserted without any conflict.
     ///
-    /// See https://www.sqlite.org/lang_conflict.html
+    /// See <https://www.sqlite.org/lang_conflict.html>
     open class var persistenceConflictPolicy: PersistenceConflictPolicy {
         PersistenceConflictPolicy(insert: .abort, update: .abort)
     }

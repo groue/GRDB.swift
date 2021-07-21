@@ -174,7 +174,7 @@ extension SQLSpecificExpressible {
 /// A date modifier for SQLite date functions such as `julianDay(_:_:)` and
 /// `dateTime(_:_:)`.
 ///
-/// For more information, see https://www.sqlite.org/lang_datefunc.html
+/// For more information, see <https://www.sqlite.org/lang_datefunc.html>
 public enum SQLDateModifier: SQLSpecificExpressible {
     /// Adds the specified amount of seconds
     case second(Double)
@@ -203,16 +203,16 @@ public enum SQLDateModifier: SQLSpecificExpressible {
     /// Shifts the date backwards to the beginning of the current year
     case startOfYear
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case weekday(Int)
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case unixEpoch
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case localTime
     
-    /// See https://www.sqlite.org/lang_datefunc.html
+    /// See <https://www.sqlite.org/lang_datefunc.html>
     case utc
     
     public var sqlExpression: SQLExpression {
@@ -261,7 +261,7 @@ public enum SQLDateModifier: SQLSpecificExpressible {
 ///     // JULIANDAY(date, '1 days')
 ///     julianDay(Column("date"), .day(1))
 ///
-/// For more information, see https://www.sqlite.org/lang_datefunc.html
+/// For more information, see <https://www.sqlite.org/lang_datefunc.html>
 public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("JULIANDAY", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }
@@ -276,7 +276,7 @@ public func julianDay(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModif
 ///     // DATETIME(date, '1 days')
 ///     dateTime(Column("date"), .day(1))
 ///
-/// For more information, see https://www.sqlite.org/lang_datefunc.html
+/// For more information, see <https://www.sqlite.org/lang_datefunc.html>
 public func dateTime(_ value: SQLSpecificExpressible, _ modifiers: SQLDateModifier...) -> SQLExpression {
     .function("DATETIME", [value.sqlExpression] + modifiers.map(\.sqlExpression))
 }

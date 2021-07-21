@@ -754,7 +754,7 @@ extension DatabasePool: DatabaseReader {
     /// - parameters:
     ///     - kind: The transaction type (default nil). If nil, the transaction
     ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .deferred. See https://www.sqlite.org/lang_transaction.html
+    ///       defaults to .deferred. See <https://www.sqlite.org/lang_transaction.html>
     ///       for more information.
     ///     - updates: The updates to the database.
     /// - throws: The error thrown by the updates, or by the
@@ -1072,7 +1072,7 @@ extension DatabasePool {
     /// You can create as many snapshots as you need, regardless of the maximum
     /// number of reader connections in the pool.
     ///
-    /// For more information, read about "snapshot isolation" at https://sqlite.org/isolation.html
+    /// For more information, read about "snapshot isolation" at <https://sqlite.org/isolation.html>
     public func makeSnapshot() throws -> DatabaseSnapshot {
         // Sanity check
         if writer.onValidQueue {

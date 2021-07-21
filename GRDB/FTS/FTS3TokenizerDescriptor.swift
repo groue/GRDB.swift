@@ -4,7 +4,7 @@
 ///         t.tokenizer = .simple // FTS3TokenizerDescriptor
 ///     }
 ///
-/// See https://www.sqlite.org/fts3.html#tokenizer
+/// See <https://www.sqlite.org/fts3.html#tokenizer>
 public struct FTS3TokenizerDescriptor {
     let name: String
     let arguments: [String]
@@ -20,7 +20,7 @@ public struct FTS3TokenizerDescriptor {
     ///         t.tokenizer = .simple
     ///     }
     ///
-    /// See https://www.sqlite.org/fts3.html#tokenizer
+    /// See <https://www.sqlite.org/fts3.html#tokenizer>
     public static let simple = FTS3TokenizerDescriptor("simple")
     
     /// The "porter" tokenizer.
@@ -29,7 +29,7 @@ public struct FTS3TokenizerDescriptor {
     ///         t.tokenizer = .porter
     ///     }
     ///
-    /// See https://www.sqlite.org/fts3.html#tokenizer
+    /// See <https://www.sqlite.org/fts3.html#tokenizer>
     public static let porter = FTS3TokenizerDescriptor("porter")
     
     /// The "unicode61" tokenizer.
@@ -46,7 +46,7 @@ public struct FTS3TokenizerDescriptor {
     ///     - tokenCharacters: Unless empty (the default), SQLite will consider
     ///       these characters as token characters.
     ///
-    /// See https://www.sqlite.org/fts3.html#tokenizer
+    /// See <https://www.sqlite.org/fts3.html#tokenizer>
     public static func unicode61(
         diacritics: FTS3.Diacritics = .removeLegacy,
         separators: Set<Character> = [],

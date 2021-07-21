@@ -56,7 +56,7 @@ extension Database {
     ///
     /// - parameter sql: An SQL query.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
     /// - returns: A SelectStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeSelectStatement(sql: String, prepFlags: Int32) throws -> SelectStatement {
@@ -169,7 +169,7 @@ extension Database {
     ///
     /// - parameter sql: An SQL query.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see http://www.sqlite.org/c3ref/prepare.html)
+    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeUpdateStatement(sql: String, prepFlags: Int32) throws -> UpdateStatement {

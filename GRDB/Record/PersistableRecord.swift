@@ -38,7 +38,7 @@ extension PersistenceError {
 ///
 /// See `MutablePersistableRecord.persistenceConflictPolicy`.
 ///
-/// See https://www.sqlite.org/lang_conflict.html
+/// See <https://www.sqlite.org/lang_conflict.html>
 public struct PersistenceConflictPolicy {
     /// The conflict resolution algorithm for insertions
     public let conflictResolutionForInsert: Database.ConflictResolution
@@ -67,7 +67,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// `didInsert(with:for:)` method is not called upon successful insertion,
     /// even if a row was actually inserted without any conflict.
     ///
-    /// See https://www.sqlite.org/lang_conflict.html
+    /// See <https://www.sqlite.org/lang_conflict.html>
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
     
     /// Notifies the record that it was successfully inserted.

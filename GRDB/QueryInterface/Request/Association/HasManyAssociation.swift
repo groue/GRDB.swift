@@ -44,7 +44,7 @@
 ///    SQLite guarantees that no book refers to a missing author. The
 ///    `onDelete: .cascade` option has SQLite automatically delete all of an
 ///    author's books when that author is deleted.
-///    See https://sqlite.org/foreignkeys.html#fk_actions for more information.
+///    See <https://sqlite.org/foreignkeys.html#fk_actions> for more information.
 ///
 /// The example above uses auto-incremented primary keys. But generally
 /// speaking, all primary keys are supported.
