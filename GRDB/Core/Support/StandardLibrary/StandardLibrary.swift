@@ -235,7 +235,6 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
-    @inlinable
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .int64(self))
     }
@@ -434,7 +433,6 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
-    @inlinable
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .double(self))
     }
@@ -508,7 +506,6 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     }
     
     /// Returns a value that can be stored in the database.
-    @inlinable
     public var databaseValue: DatabaseValue {
         DatabaseValue(storage: .string(self))
     }
