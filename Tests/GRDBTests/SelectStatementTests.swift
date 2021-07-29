@@ -163,6 +163,30 @@ class SelectStatementTests : GRDBTestCase {
         }
     }
     
+    func testConsumeMultipleStatements() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            do {
+                let statements = try db.allStatements(sql: """
+                    SELECT age FROM persons ORDER BY age;
+                    SELECT age FROM persons ORDER BY age DESC;
+                    """)
+                let ages = try Array(statements
+                                        .map { try Int.fetchCursor($0) }
+                                        .joined())
+                XCTAssertEqual(ages, [13, 26, 41, 41, 26, 13])
+            }
+            do {
+                let statements = try db.allStatements(literal: """
+                    SELECT name FROM persons WHERE name = \("Arthur");
+                    SELECT name FROM persons WHERE age > \(20) ORDER BY name;
+                    """)
+                let names = try Array(statements.map { try String.fetchAll($0) })
+                XCTAssertEqual(names, [["Arthur"], ["Arthur", "Barbara"]])
+            }
+        }
+    }
+    
     func testRegion() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
