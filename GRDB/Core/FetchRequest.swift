@@ -49,7 +49,7 @@ extension FetchRequest {
 /// A PreparedRequest is a request that is ready to be executed.
 public struct PreparedRequest {
     /// A prepared statement
-    public var statement: SelectStatement
+    public var statement: Statement
     
     /// An eventual adapter for rows fetched by the select statement
     public var adapter: RowAdapter?
@@ -58,7 +58,7 @@ public struct PreparedRequest {
     var supplementaryFetch: ((Database, [Row]) throws -> Void)?
     
     init(
-        statement: SelectStatement,
+        statement: Statement,
         adapter: RowAdapter?,
         supplementaryFetch: ((Database, [Row]) throws -> Void)? = nil)
     {

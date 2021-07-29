@@ -9,10 +9,15 @@ extension CharacterSet {
 }
 
 /// A statement represents an SQL query.
-///
-/// It is the base class of UpdateStatement that executes *update statements*,
-/// and SelectStatement that fetches rows.
-public class Statement {
+public final class Statement {
+    enum TransactionEffect {
+        case beginTransaction
+        case commitTransaction
+        case rollbackTransaction
+        case beginSavepoint(String)
+        case releaseSavepoint(String)
+        case rollbackSavepoint(String)
+    }
     
     /// The raw SQLite statement, suitable for the SQLite C API.
     public let sqliteStatement: SQLiteStatement
@@ -26,19 +31,42 @@ public class Statement {
             .trimmingCharacters(in: .sqlStatementSeparators)
     }
     
+    /// The column names, ordered from left to right.
+    public lazy var columnNames: [String] = {
+        let sqliteStatement = self.sqliteStatement
+        return (0..<Int32(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
+    }()
+    
     // Database region is computed during statement compilation, and maybe
     // extended for select statements compiled by QueryInterfaceRequest, in
     // order to perform focused database observation. See
-    // SQLQueryGenerator.makeSelectStatement(_:)
+    // SQLQueryGenerator.makeStatement(_:)
     /// The database region that the statement looks into.
     public internal(set) var databaseRegion = DatabaseRegion()
     
-    var isReadonly: Bool {
+    /// If true, the database schema cache gets invalidated after this statement
+    /// is executed.
+    private(set) var invalidatesDatabaseSchemaCache: Bool = false
+    private(set) var transactionEffect: TransactionEffect?
+    private(set) var databaseEventKinds: [DatabaseEventKind] = []
+    
+    /// Returns true if and only if the prepared statement makes no direct
+    /// changes to the content of the database file.
+    ///
+    /// See <https://www.sqlite.org/c3ref/stmt_readonly.html>.
+    public var isReadonly: Bool {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
     @usableFromInline
     unowned let database: Database
+    
+    /// Cache for index(ofColumn:). Keys are lowercase.
+    private lazy var columnIndexes: [String: Int] = {
+        Dictionary(
+            self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
+            uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
+    }()
     
     /// Creates a prepared statement. Returns nil if the compiled string is
     /// blank or empty.
@@ -92,6 +120,9 @@ public class Statement {
         self.database = database
         self.sqliteStatement = statement
         self.databaseRegion = authorizer.selectedRegion
+        self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
+        self.transactionEffect = authorizer.transactionEffect
+        self.databaseEventKinds = authorizer.databaseEventKinds
     }
     
     deinit {
@@ -115,7 +146,7 @@ public class Statement {
     
     @usableFromInline
     var _arguments = StatementArguments()
-
+    
     lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
     }()
@@ -264,6 +295,12 @@ public class Statement {
     }
 }
 
+@available(*, deprecated, renamed: "Statement")
+public typealias SelectStatement = Statement
+
+@available(*, deprecated, renamed: "Statement")
+public typealias UpdateStatement = Statement
+
 extension Statement: CustomStringConvertible {
     public var description: String {
         "SQL: \(sql), Arguments: \(arguments)"
@@ -311,69 +348,13 @@ extension Statement {
     }
 }
 
-// MARK: - SelectStatement
+// MARK: - Select Statements
 
-/// A subclass of Statement that fetches database rows.
-///
-/// You create SelectStatement with the Database.makeSelectStatement() method:
-///
-///     try dbQueue.read { db in
-///         let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?")
-///         let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
-///         let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
-///     }
-public final class SelectStatement: Statement {
-    /// Creates a prepared statement. Returns nil if the compiled string is
-    /// blank or empty.
-    ///
-    /// - parameter database: A database connection.
-    /// - parameter statementStart: A pointer to a UTF-8 encoded C string
-    ///   containing SQL.
-    /// - parameter statementEnd: Upon success, the pointer to the next
-    ///   statement in the C string.
-    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
-    /// - parameter authorizer: A StatementCompilationAuthorizer
-    /// - throws: DatabaseError in case of compilation error.
-    required init?(
-        database: Database,
-        statementStart: UnsafePointer<Int8>,
-        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
-        prepFlags: Int32,
-        authorizer: StatementCompilationAuthorizer) throws
-    {
-        try super.init(
-            database: database,
-            statementStart: statementStart,
-            statementEnd: statementEnd,
-            prepFlags: prepFlags,
-            authorizer: authorizer)
-        
-        GRDBPrecondition(
-            authorizer.invalidatesDatabaseSchemaCache == false,
-            "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-        GRDBPrecondition(
-            authorizer.transactionEffect == nil,
-            "Invalid statement type for query \(String(reflecting: sql)): use UpdateStatement instead.")
-    }
-    
+extension Statement {
     /// The number of columns in the resulting rows.
     public var columnCount: Int {
         Int(sqlite3_column_count(self.sqliteStatement))
     }
-    
-    /// The column names, ordered from left to right.
-    public lazy var columnNames: [String] = {
-        let sqliteStatement = self.sqliteStatement
-        return (0..<Int32(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
-    }()
-    
-    /// Cache for index(ofColumn:). Keys are lowercase.
-    private lazy var columnIndexes: [String: Int] = {
-        Dictionary(
-            self.columnNames.enumerated().map { ($0.element.lowercased(), $0.offset) },
-            uniquingKeysWith: { (left, _) in left }) // keep leftmost indexes
-    }()
     
     /// Returns the index of the leftmost column named `name`, in a
     /// case-insensitive way.
@@ -387,17 +368,6 @@ public final class SelectStatement: Statement {
     func makeCursor(arguments: StatementArguments? = nil) throws -> StatementCursor {
         try StatementCursor(statement: self, arguments: arguments)
     }
-    
-    /// Utility function for cursors
-    @usableFromInline
-    func didFail(withResultCode resultCode: Int32) throws -> Never {
-        database.selectStatementDidFail(self)
-        throw DatabaseError(
-            resultCode: resultCode,
-            message: database.lastErrorMessage,
-            sql: sql,
-            arguments: arguments)
-    }
 }
 
 /// A cursor that iterates a database statement without producing any value.
@@ -406,26 +376,33 @@ public final class SelectStatement: Statement {
 /// For example:
 ///
 ///     try dbQueue.read { db in
-///         let statement = db.makeSelectStatement(sql: "SELECT performSideEffect()")
+///         let statement = db.makeStatement(sql: "SELECT performSideEffect()")
 ///         let cursor = statement.makeCursor()
 ///         try cursor.next()
 ///     }
 final class StatementCursor: Cursor {
-    let _statement: SelectStatement
-    let _sqliteStatement: SQLiteStatement
-    var _done = false
+    @usableFromInline enum _State {
+        case idle, busy, done, failed
+    }
     
-    // Use SelectStatement.makeCursor() instead
-    init(statement: SelectStatement, arguments: StatementArguments? = nil) throws {
+    let _statement: Statement
+    let _sqliteStatement: SQLiteStatement
+    var _state = _State.idle
+    
+    // Use Statement.makeCursor() instead
+    init(statement: Statement, arguments: StatementArguments? = nil) throws {
         _statement = statement
         _sqliteStatement = statement.sqliteStatement
-        _statement.reset(withArguments: arguments)
         
-        // Assume cursor is created for iteration
-        try statement.database.selectStatementWillExecute(statement)
+        // Assume cursor is created for immediate iteration: reset and set arguments
+        statement.reset(withArguments: arguments)
     }
     
     deinit {
+        if _state == .busy {
+            try? _statement.database.statementDidExecute(_statement)
+        }
+        
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
         try? _statement.reset()
@@ -434,53 +411,41 @@ final class StatementCursor: Cursor {
     /// :nodoc:
     @inlinable
     func next() throws -> Void? {
-        if _done {
+        switch _state {
+        case .done:
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
             return nil
+        case .idle:
+            guard try _statement.database.statementWillExecute(_statement) == nil else {
+                throw DatabaseError(
+                    resultCode: SQLITE_MISUSE,
+                    message: "Can't run statement that requires a customized authorizer from a cursor",
+                    sql: _statement.sql,
+                    arguments: _statement.arguments)
+            }
+            _state = .busy
+        default:
+            break
         }
+        
         switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
-            _done = true
+            _state = .done
+            try _statement.database.statementDidExecute(_statement)
             return nil
         case SQLITE_ROW:
             return .some(())
         case let code:
-            try _statement.didFail(withResultCode: code)
+            _state = .failed
+            try _statement.database.statementDidFail(_statement, withResultCode: code)
         }
     }
 }
 
+// MARK: - Update Statements
 
-// MARK: - UpdateStatement
-
-/// A subclass of Statement that executes SQL queries.
-///
-/// You create UpdateStatement with the Database.makeUpdateStatement() method:
-///
-///     try dbQueue.inTransaction { db in
-///         let statement = try db.makeUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)")
-///         try statement.execute(arguments: ["Arthur"])
-///         try statement.execute(arguments: ["Barbara"])
-///         return .commit
-///     }
-public final class UpdateStatement: Statement {
-    enum TransactionEffect {
-        case beginTransaction
-        case commitTransaction
-        case rollbackTransaction
-        case beginSavepoint(String)
-        case releaseSavepoint(String)
-        case rollbackSavepoint(String)
-    }
-    
-    /// If true, the database schema cache gets invalidated after this statement
-    /// is executed.
-    private(set) var invalidatesDatabaseSchemaCache: Bool = false
-    
-    private(set) var transactionEffect: TransactionEffect?
-    private(set) var databaseEventKinds: [DatabaseEventKind] = []
-    
+extension Statement {
     var releasesDatabaseLock: Bool {
         guard let transactionEffect = transactionEffect else {
             return false
@@ -500,37 +465,7 @@ public final class UpdateStatement: Statement {
         }
     }
     
-    /// Creates a prepared statement. Returns nil if the compiled string is
-    /// blank or empty.
-    ///
-    /// - parameter database: A database connection.
-    /// - parameter statementStart: A pointer to a UTF-8 encoded C string
-    ///   containing SQL.
-    /// - parameter statementEnd: Upon success, the pointer to the next
-    ///   statement in the C string.
-    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
-    /// - parameter authorizer: A StatementCompilationAuthorizer
-    /// - throws: DatabaseError in case of compilation error.
-    required init?(
-        database: Database,
-        statementStart: UnsafePointer<Int8>,
-        statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
-        prepFlags: Int32,
-        authorizer: StatementCompilationAuthorizer) throws
-    {
-        try super.init(
-            database: database,
-            statementStart: statementStart,
-            statementEnd: statementEnd,
-            prepFlags: prepFlags,
-            authorizer: authorizer)
-        self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
-        self.transactionEffect = authorizer.transactionEffect
-        self.databaseEventKinds = authorizer.databaseEventKinds
-    }
-    
-    /// Executes the SQL query.
+    /// Executes the prepared statement.
     ///
     /// - parameter arguments: Optional statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
@@ -541,7 +476,7 @@ public final class UpdateStatement: Statement {
         // Statement does not know how to execute itself, because it does not
         // know how to handle its errors, or if truncate optimisation should be
         // prevented or not. Database knows.
-        try database.executeUpdateStatement(self)
+        try database.executeStatement(self)
     }
 }
 

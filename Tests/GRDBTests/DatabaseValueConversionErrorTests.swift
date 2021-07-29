@@ -15,7 +15,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT ? AS name")
+            let statement = try db.makeStatement(sql: "SELECT ? AS name")
             statement.arguments = [nil]
             
             do {
@@ -69,7 +69,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
+            let statement = try db.makeStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             
             do {
@@ -137,7 +137,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT 1, ? AS value")
+            let statement = try db.makeStatement(sql: "SELECT 1, ? AS value")
             statement.arguments = ["invalid"]
             
             do {
@@ -191,7 +191,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
+            let statement = try db.makeStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             
             do {
@@ -252,7 +252,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS team")
+            let statement = try db.makeStatement(sql: "SELECT NULL AS name, ? AS team")
             statement.arguments = ["invalid"]
             
             do {
@@ -308,7 +308,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
+            let statement = try db.makeStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             
             do {
@@ -374,7 +374,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS value")
+            let statement = try db.makeStatement(sql: "SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
             
             do {
@@ -430,7 +430,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
+            let statement = try db.makeStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             
             do {
@@ -496,7 +496,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // conversion error
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS value")
+            let statement = try db.makeStatement(sql: "SELECT NULL AS name, ? AS value")
             statement.arguments = ["invalid"]
             
             do {
@@ -550,7 +550,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         // missing column
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT ? AS unused")
+            let statement = try db.makeStatement(sql: "SELECT ? AS unused")
             statement.arguments = ["ignored"]
             
             do {
@@ -606,7 +606,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
     func testStatementColumnConvertible1() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS team")
+            let statement = try db.makeStatement(sql: "SELECT NULL AS name, ? AS team")
             statement.arguments = ["invalid"]
             
             do {
@@ -684,7 +684,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
     func testStatementColumnConvertible2() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT ? AS foo")
+            let statement = try db.makeStatement(sql: "SELECT ? AS foo")
             statement.arguments = [1000]
             
             do {
@@ -790,7 +790,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
         
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let statement = try db.makeSelectStatement(sql: "SELECT NULL AS name, ? AS team")
+            let statement = try db.makeStatement(sql: "SELECT NULL AS name, ? AS team")
             statement.arguments = ["invalid"]
             
             do {

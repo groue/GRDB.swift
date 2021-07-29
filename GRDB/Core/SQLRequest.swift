@@ -155,14 +155,14 @@ extension SQLRequest: FetchRequest {
     {
         let context = SQLGenerationContext(db)
         let sql = try sqlLiteral.sql(context)
-        let statement: SelectStatement
+        let statement: Statement
         switch cache {
         case .none:
-            statement = try db.makeSelectStatement(sql: sql)
+            statement = try db.makeStatement(sql: sql)
         case .public?:
-            statement = try db.cachedSelectStatement(sql: sql)
+            statement = try db.cachedStatement(sql: sql)
         case .internal?:
-            statement = try db.internalCachedSelectStatement(sql: sql)
+            statement = try db.internalCachedStatement(sql: sql)
         }
         try statement.setArguments(context.arguments)
         return PreparedRequest(statement: statement, adapter: adapter)

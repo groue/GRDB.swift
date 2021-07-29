@@ -57,8 +57,8 @@ extension Database {
         SchedulingWatchdog.preconditionValidQueue(self)
         schemaCache.clear()
         
-        // We also clear updateStatementCache and selectStatementCache despite
-        // the automatic statement recompilation (see https://www.sqlite.org/c3ref/prepare.html)
+        // We also clear statement cache despite the automatic statement
+        // recompilation (see https://www.sqlite.org/c3ref/prepare.html)
         // because the automatic statement recompilation only happens a
         // limited number of times.
         internalStatementCache.clear()
@@ -68,7 +68,7 @@ extension Database {
     /// Clears the database schema cache if the database schema has changed
     /// since this method was last called.
     func clearSchemaCacheIfNeeded() throws {
-        let schemaVersion = try Int32.fetchOne(internalCachedSelectStatement(sql: "PRAGMA schema_version"))
+        let schemaVersion = try Int32.fetchOne(internalCachedStatement(sql: "PRAGMA schema_version"))
         if _lastSchemaVersion != schemaVersion {
             _lastSchemaVersion = schemaVersion
             clearSchemaCache()
@@ -295,7 +295,7 @@ extension Database {
             //
             // TODO: find a way to know if a table is WITHOUT ROWID without
             // generating an error.
-            _ = try makeSelectStatement(sql: """
+            _ = try makeStatement(sql: """
                 SELECT rowid AS checkWithoutRowidOptimization FROM \(table.quotedDatabaseIdentifier)
                 """)
             return true

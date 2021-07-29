@@ -6,21 +6,78 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
+    ///     let statement = try db.makeStatement(sql: "SELECT * FROM player WHERE id = ?")
+    ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
+    ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
+    ///
+    ///     let statement = try db.makeStatement(sql: "INSERT INTO player (name) VALUES (?)")
+    ///     try statement.execute(arguments: ["Arthur"])
+    ///     try statement.execute(arguments: ["Barbara"])
+    ///
+    /// - parameter sql: An SQL query.
+    /// - returns: A Statement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    public func makeStatement(sql: String) throws -> Statement {
+        try makeStatement(sql: sql, prepFlags: 0)
+    }
+    
+    /// Returns a new prepared statement that can be reused.
+    ///
+    ///     let statement = try db.makeStatement(literal: "SELECT * FROM player WHERE id = ?")
+    ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
+    ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
+    ///
+    ///     let statement = try db.makeStatement(literal: "INSERT INTO player (name) VALUES (?)")
+    ///     try statement.execute(arguments: ["Arthur"])
+    ///     try statement.execute(arguments: ["Barbara"])
+    ///
+    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - returns: A Statement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
+    ///
+    ///         // OK
+    ///         try makeStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > ?
+    ///             """)
+    ///         try makeStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > \(1000)
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try makeStatement(literal: """
+    ///             SELECT COUNT(*) FROM player
+    ///             WHERE color = ? AND score > \(1000)
+    ///             """)
+    public func makeStatement(literal sqlLiteral: SQL) throws -> Statement {
+        let (sql, arguments) = try sqlLiteral.build(self)
+        let statement = try makeStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
+    }
+    
+    /// Returns a new prepared statement that can be reused.
+    ///
     ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = ?")
     ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
     ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
     ///
     /// - parameter sql: An SQL query.
-    /// - returns: A SelectStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func makeSelectStatement(sql: String) throws -> SelectStatement {
-        try makeSelectStatement(sql: sql, prepFlags: 0)
+    @available(*, deprecated, renamed: "makeStatement(sql:)")
+    public func makeSelectStatement(sql: String) throws -> Statement {
+        try makeStatement(sql: sql)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
     /// - parameter sqlLiteral: An `SQL` literal.
-    /// - returns: A SelectStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
     ///   A fatal error is raised otherwise.
@@ -38,29 +95,83 @@ extension Database {
     ///             SELECT COUNT(*) FROM player
     ///             WHERE color = ? AND score > \(1000)
     ///             """)
-    public func makeSelectStatement(literal sqlLiteral: SQL) throws -> SelectStatement {
-        let (sql, arguments) = try sqlLiteral.build(self)
-        let statement = try makeSelectStatement(sql: sql)
-        if arguments.isEmpty == false {
-            // Crash if arguments do not match
-            statement.arguments = arguments
-        }
-        return statement
+    @available(*, deprecated, renamed: "makeStatement(literal:)")
+    public func makeSelectStatement(literal sqlLiteral: SQL) throws -> Statement {
+        try makeStatement(literal: sqlLiteral)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
-    ///     let statement = try db.makeSelectStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
+    ///     let statement = try db.makeStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
     ///     let moreThanThirtyCount = try Int.fetchOne(statement, arguments: [30])!
     ///
     /// - parameter sql: An SQL query.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
-    /// - returns: A SelectStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    func makeSelectStatement(sql: String, prepFlags: Int32) throws -> SelectStatement {
-        try SelectStatement.prepare(self, sql: sql, prepFlags: prepFlags)
+    func makeStatement(sql: String, prepFlags: Int32) throws -> Statement {
+        try Statement.prepare(self, sql: sql, prepFlags: prepFlags)
+    }
+    
+    /// Returns a prepared statement that can be reused.
+    ///
+    ///     let statement = try db.cachedStatement(sql: "SELECT * FROM player WHERE id = ?")
+    ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
+    ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
+    ///
+    ///     let statement = try db.cachedStatement(sql: "INSERT INTO player (name) VALUES (?)")
+    ///     try statement.execute(arguments: ["Arthur"])
+    ///     try statement.execute(arguments: ["Barbara"])
+    ///
+    /// The returned statement may have already been used: it may or may not
+    /// contain values for its eventual arguments.
+    ///
+    /// - parameter sql: An SQL query.
+    /// - returns: A Statement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    public func cachedStatement(sql: String) throws -> Statement {
+        try publicStatementCache.statement(sql)
+    }
+    
+    /// Returns a prepared statement that can be reused.
+    ///
+    ///     let statement = try db.cachedStatement(literal: "SELECT * FROM player WHERE id = ?")
+    ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
+    ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
+    ///
+    ///     let statement = try db.cachedStatement(literal: "INSERT INTO player (name) VALUES (?)")
+    ///     try statement.execute(arguments: ["Arthur"])
+    ///     try statement.execute(arguments: ["Barbara"])
+    ///
+    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - returns: A Statement.
+    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   A fatal error is raised otherwise.
+    ///
+    ///         // OK
+    ///         try cachedStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > ?
+    ///             """)
+    ///         try cachedStatement(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score > \(1000)
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try cachedStatement(literal: """
+    ///             SELECT COUNT(*) FROM player
+    ///             WHERE color = ? AND score > \(1000)
+    ///             """)
+    public func cachedStatement(literal sqlLiteral: SQL) throws -> Statement {
+        let (sql, arguments) = try sqlLiteral.build(self)
+        let statement = try cachedStatement(sql: sql)
+        if arguments.isEmpty == false {
+            // Crash if arguments do not match
+            statement.arguments = arguments
+        }
+        return statement
     }
     
     /// Returns a prepared statement that can be reused.
@@ -73,10 +184,11 @@ extension Database {
     /// contain values for its eventual arguments.
     ///
     /// - parameter sql: An SQL query.
-    /// - returns: An UpdateStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func cachedSelectStatement(sql: String) throws -> SelectStatement {
-        try publicStatementCache.selectStatement(sql)
+    @available(*, deprecated, renamed: "cachedStatement(sql:)")
+    public func cachedSelectStatement(sql: String) throws -> Statement {
+        try cachedStatement(sql: sql)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -85,7 +197,7 @@ extension Database {
     ///     let moreThanTwentyCount = try Int.fetchOne(statement)!
     ///
     /// - parameter sqlLiteral: An `SQL` literal.
-    /// - returns: A SelectStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
     ///   A fatal error is raised otherwise.
@@ -103,19 +215,14 @@ extension Database {
     ///             SELECT COUNT(*) FROM player
     ///             WHERE color = ? AND score > \(1000)
     ///             """)
-    public func cachedSelectStatement(literal sqlLiteral: SQL) throws -> SelectStatement {
-        let (sql, arguments) = try sqlLiteral.build(self)
-        let statement = try cachedSelectStatement(sql: sql)
-        if arguments.isEmpty == false {
-            // Crash if arguments do not match
-            statement.arguments = arguments
-        }
-        return statement
+    @available(*, deprecated, renamed: "cachedStatement(literal:)")
+    public func cachedSelectStatement(literal sqlLiteral: SQL) throws -> Statement {
+        try cachedStatement(literal: sqlLiteral)
     }
     
     /// Returns a cached statement that does not conflict with user's cached statements.
-    func internalCachedSelectStatement(sql: String) throws -> SelectStatement {
-        try internalStatementCache.selectStatement(sql)
+    func internalCachedStatement(sql: String) throws -> Statement {
+        try internalStatementCache.statement(sql)
     }
     
     /// Returns a new prepared statement that can be reused.
@@ -127,14 +234,15 @@ extension Database {
     /// - parameter sql: An SQL query.
     /// - returns: An UpdateStatement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func makeUpdateStatement(sql: String) throws -> UpdateStatement {
-        try makeUpdateStatement(sql: sql, prepFlags: 0)
+    @available(*, deprecated, renamed: "makeStatement(sql:)")
+    public func makeUpdateStatement(sql: String) throws -> Statement {
+        try makeStatement(sql: sql)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
     /// - parameter sqlLiteral: An `SQL` literal.
-    /// - returns: An UpdateStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
     ///   A fatal error is raised otherwise.
@@ -151,29 +259,9 @@ extension Database {
     ///         try makeUpdateStatement(literal: """
     ///             UPDATE player SET name = ?, score = \(10)
     ///             """)
-    public func makeUpdateStatement(literal sqlLiteral: SQL) throws -> UpdateStatement {
-        let (sql, arguments) = try sqlLiteral.build(self)
-        let statement = try makeUpdateStatement(sql: sql)
-        if arguments.isEmpty == false {
-            // Crash if arguments do not match
-            statement.arguments = arguments
-        }
-        return statement
-    }
-    
-    /// Returns a new prepared statement that can be reused.
-    ///
-    ///     let statement = try db.makeUpdateStatement(sql: "INSERT INTO player (name) VALUES (?)", prepFlags: 0)
-    ///     try statement.execute(arguments: ["Arthur"])
-    ///     try statement.execute(arguments: ["Barbara"])
-    ///
-    /// - parameter sql: An SQL query.
-    /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
-    ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
-    /// - returns: An UpdateStatement.
-    /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    func makeUpdateStatement(sql: String, prepFlags: Int32) throws -> UpdateStatement {
-        try UpdateStatement.prepare(self, sql: sql, prepFlags: prepFlags)
+    @available(*, deprecated, renamed: "makeStatement(literal:)")
+    public func makeUpdateStatement(literal sqlLiteral: SQL) throws -> Statement {
+        try makeStatement(literal: sqlLiteral)
     }
     
     /// Returns a prepared statement that can be reused.
@@ -186,16 +274,17 @@ extension Database {
     /// contain values for its eventual arguments.
     ///
     /// - parameter sql: An SQL query.
-    /// - returns: An UpdateStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    public func cachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        try publicStatementCache.updateStatement(sql)
+    @available(*, deprecated, renamed: "cachedStatement(sql:)")
+    public func cachedUpdateStatement(sql: String) throws -> Statement {
+        try cachedStatement(sql: sql)
     }
     
     /// Returns a new prepared statement that can be reused.
     ///
     /// - parameter sqlLiteral: An `SQL` literal.
-    /// - returns: An UpdateStatement.
+    /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
     ///   A fatal error is raised otherwise.
@@ -212,19 +301,9 @@ extension Database {
     ///         try cachedUpdateStatement(literal: """
     ///             UPDATE player SET name = ?, score = \(10)
     ///             """)
-    public func cachedUpdateStatement(literal sqlLiteral: SQL) throws -> UpdateStatement {
-        let (sql, arguments) = try sqlLiteral.build(self)
-        let statement = try cachedUpdateStatement(sql: sql)
-        if arguments.isEmpty == false {
-            // Crash if arguments do not match
-            statement.arguments = arguments
-        }
-        return statement
-    }
-    
-    /// Returns a cached statement that does not conflict with user's cached statements.
-    func internalCachedUpdateStatement(sql: String) throws -> UpdateStatement {
-        try internalStatementCache.updateStatement(sql)
+    @available(*, deprecated, renamed: "cachedStatement(sql:)")
+    public func cachedUpdateStatement(literal sqlLiteral: SQL) throws -> Statement {
+        try cachedStatement(literal: sqlLiteral)
     }
     
     /// Executes one or several SQL statements, separated by semi-colons.
@@ -290,13 +369,13 @@ extension Database {
             var statementStart = sqlStart
             while statementStart < sqlEnd {
                 var statementEnd: UnsafePointer<Int8>? = nil
-                let nextStatement: UpdateStatement?
+                let nextStatement: Statement?
                 
                 // Compile
                 do {
                     let authorizer = StatementCompilationAuthorizer()
                     nextStatement = try withAuthorizer(authorizer) {
-                        try UpdateStatement(
+                        try Statement(
                             database: self,
                             statementStart: statementStart,
                             statementEnd: &statementEnd,
@@ -334,18 +413,10 @@ extension Database {
 }
 
 extension Database {
-    func executeUpdateStatement(_ statement: UpdateStatement) throws {
-        // Two things must prevent the statement from executing: aborted
-        // transactions, and database suspension.
-        try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
-        try checkForSuspensionViolation(from: statement)
-        
-        if _isRecordingSelectedRegion {
-            _selectedRegion.formUnion(statement.databaseRegion)
-        }
-        
-        let authorizer = observationBroker.updateStatementWillExecute(statement)
+    func executeStatement(_ statement: Statement) throws {
+        let authorizer = try statementWillExecute(statement)
         let sqliteStatement = statement.sqliteStatement
+        
         var code: Int32 = SQLITE_OK
         withAuthorizer(authorizer) {
             while true {
@@ -378,40 +449,18 @@ extension Database {
         // We can now move on further tasks.
         
         if code == SQLITE_DONE {
-            try updateStatementDidExecute(statement)
+            try statementDidExecute(statement)
         } else {
             assert(code != SQLITE_ROW)
-            try updateStatementDidFail(statement)
-            throw DatabaseError(
-                resultCode: code,
-                message: lastErrorMessage,
-                sql: statement.sql,
-                arguments: statement.arguments)
+            try statementDidFail(statement, withResultCode: code)
         }
     }
     
-    private func updateStatementDidExecute(_ statement: UpdateStatement) throws {
-        if statement.invalidatesDatabaseSchemaCache {
-            clearSchemaCache()
-        }
-        
-        try observationBroker.updateStatementDidExecute(statement)
-    }
-    
-    private func updateStatementDidFail(_ statement: UpdateStatement) throws {
-        // Failed statements can not be reused, because sqlite3_reset won't
-        // be able to restore the statement to its initial state:
-        // https://www.sqlite.org/c3ref/reset.html
-        //
-        // So make sure we clear this statement from the cache.
-        internalStatementCache.remove(statement)
-        publicStatementCache.remove(statement)
-        
-        try observationBroker.updateStatementDidFail(statement)
-    }
-    
-    @inline(__always)
-    func selectStatementWillExecute(_ statement: SelectStatement) throws {
+    /// Returns the authorizer that should be used during statement execution
+    /// (this allows preventing the truncate optimization when there exists a
+    /// transaction observer for row deletion).
+    @usableFromInline
+    func statementWillExecute(_ statement: Statement) throws -> StatementAuthorizer? {
         // Two things must prevent the statement from executing: aborted
         // transactions, and database suspension.
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
@@ -420,9 +469,24 @@ extension Database {
         if _isRecordingSelectedRegion {
             _selectedRegion.formUnion(statement.databaseRegion)
         }
+        
+        return observationBroker.statementWillExecute(statement)
     }
     
-    func selectStatementDidFail(_ statement: SelectStatement) {
+    /// May throw a cancelled commit error, if a transaction observer cancels
+    /// an empty transaction.
+    @usableFromInline
+    func statementDidExecute(_ statement: Statement) throws {
+        if statement.invalidatesDatabaseSchemaCache {
+            clearSchemaCache()
+        }
+        
+        try observationBroker.statementDidExecute(statement)
+    }
+    
+    /// Always throws an error
+    @usableFromInline
+    func statementDidFail(_ statement: Statement, withResultCode resultCode: Int32) throws -> Never {
         // Failed statements can not be reused, because sqlite3_reset won't
         // be able to restore the statement to its initial state:
         // https://www.sqlite.org/c3ref/reset.html
@@ -430,21 +494,30 @@ extension Database {
         // So make sure we clear this statement from the cache.
         internalStatementCache.remove(statement)
         publicStatementCache.remove(statement)
+        
+        /// Exposes the user-provided cancelled commit error, if a transaction
+        /// observer has cancelled a transaction.
+        try observationBroker.statementDidFail(statement)
+        
+        throw DatabaseError(
+            resultCode: resultCode,
+            message: lastErrorMessage,
+            sql: statement.sql,
+            arguments: statement.arguments)
     }
 }
 
 /// A thread-unsafe statement cache
 struct StatementCache {
     unowned let db: Database
-    private var selectStatements: [String: SelectStatement] = [:]
-    private var updateStatements: [String: UpdateStatement] = [:]
+    private var statements: [String: Statement] = [:]
     
     init(database: Database) {
         self.db = database
     }
     
-    mutating func selectStatement(_ sql: String) throws -> SelectStatement {
-        if let statement = selectStatements[sql] {
+    mutating func statement(_ sql: String) throws -> Statement {
+        if let statement = statements[sql] {
             return statement
         }
         
@@ -458,61 +531,26 @@ struct StatementCache {
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let statement = try db.makeSelectStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        let statement = try db.makeStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         #else
-        let statement: SelectStatement
+        let statement: Statement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
             // SQLite 3.24.0 or more
-            statement = try db.makeSelectStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+            statement = try db.makeStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         } else {
             // SQLite 3.19.3 or less
-            statement = try db.makeSelectStatement(sql: sql)
+            statement = try db.makeStatement(sql: sql)
         }
         #endif
-        selectStatements[sql] = statement
-        return statement
-    }
-    
-    mutating func updateStatement(_ sql: String) throws -> UpdateStatement {
-        if let statement = updateStatements[sql] {
-            return statement
-        }
-        
-        // http://www.sqlite.org/c3ref/c_prepare_persistent.html#sqlitepreparepersistent
-        // > The SQLITE_PREPARE_PERSISTENT flag is a hint to the query
-        // > planner that the prepared statement will be retained for a long
-        // > time and probably reused many times.
-        //
-        // This looks like a perfect match for cached statements.
-        //
-        // However SQLITE_PREPARE_PERSISTENT was only introduced in
-        // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let statement = try db.makeUpdateStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
-        #else
-        let statement: UpdateStatement
-        if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
-            // SQLite 3.24.0 or more
-            statement = try db.makeUpdateStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
-        } else {
-            // SQLite 3.19.3 or less
-            statement = try db.makeUpdateStatement(sql: sql)
-        }
-        #endif
-        updateStatements[sql] = statement
+        statements[sql] = statement
         return statement
     }
     
     mutating func clear() {
-        updateStatements = [:]
-        selectStatements = [:]
+        statements = [:]
     }
     
-    mutating func remove(_ statement: SelectStatement) {
-        selectStatements.removeFirst { $0.value === statement }
-    }
-    
-    mutating func remove(_ statement: UpdateStatement) {
-        updateStatements.removeFirst { $0.value === statement }
+    mutating func remove(_ statement: Statement) {
+        statements.removeFirst { $0.value === statement }
     }
 }

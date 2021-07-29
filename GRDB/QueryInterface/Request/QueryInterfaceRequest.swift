@@ -812,7 +812,7 @@ throws -> DatabaseRegion
         .destinationRelation()
     
     return try SQLQueryGenerator(relation: prefetchRelation)
-        .makeSelectStatement(db)
+        .makeStatement(db)
         .databaseRegion // contains region of nested associations
 }
 

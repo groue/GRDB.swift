@@ -212,30 +212,30 @@ extension Base: MyDatabaseDecoder {
 //: **prepared statement**:
 //:
 //:     try dbQueue.read { db in
-//:         let statement = try db.makeSelectStatement(sql: "SELECT ...")
+//:         let statement = try db.makeStatement(sql: "SELECT ...")
 //:         try Base.fetchCursor(statement) // Cursor of Base
 //:         try Base.fetchAll(statement)    // [Base]
 //:         try Base.fetchOne(statement)    // Base?
 //:     }
 
 extension MyDatabaseDecoder {
-    // MARK: - Fetch from SelectStatement
+    // MARK: - Fetch from Prepared Statement
     
-    // SelectStatement, StatementArguments, and RowAdapter are the fundamental
+    // Statement, StatementArguments, and RowAdapter are the fundamental
     // fetching parameters of GRDB. Make sure to accept them all:
-    static func fetchCursor(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
+    static func fetchCursor(_ statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
         // Turn the cursor of raw rows into a cursor of decoded rows
         return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map {
             self.decode(row: $0)
         }
     }
     
-    static func fetchAll(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
+    static func fetchAll(_ statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> [DecodedType] {
         // Turn the cursor into an Array
         return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
-    static func fetchOne(_ statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
+    static func fetchOne(_ statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> DecodedType? {
         // Consume the first value of the cursor
         return try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
     }
@@ -243,7 +243,7 @@ extension MyDatabaseDecoder {
 
 try dbQueue.read { db in
     print("> Fetch from prepared statement")
-    let statement = try db.makeSelectStatement(sql: "SELECT * FROM base")
+    let statement = try db.makeStatement(sql: "SELECT * FROM base")
     let bases = try Base.fetchAll(statement)
     for base in bases {
         print(base.description)
@@ -422,7 +422,7 @@ protocol ContextFetchableRecord {
 
 extension ContextFetchableRecord {
     static func fetchCursor(
-        _ statement: SelectStatement,
+        _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil,
         context: Context)
@@ -454,7 +454,7 @@ protocol FailableFetchableRecord {
 
 extension FailableFetchableRecord {
     static func fetchCursor(
-        _ statement: SelectStatement,
+        _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
         throws -> MapCursor<RowCursor, Self>

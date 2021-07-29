@@ -93,7 +93,7 @@ struct SQLQueryGenerator: Refinable {
     
     func makePreparedRequest(_ db: Database) throws -> PreparedRequest {
         try PreparedRequest(
-            statement: makeSelectStatement(db),
+            statement: makeStatement(db),
             adapter: rowAdapter(SQLGenerationContext(db, ctes: relation.ctes)))
     }
     
@@ -105,14 +105,14 @@ struct SQLQueryGenerator: Refinable {
             .columnCount(SQLGenerationContext(db, ctes: relation.ctes))
     }
     
-    /// Returns a select statement
-    func makeSelectStatement(_ db: Database) throws -> SelectStatement {
+    /// Returns a prepared statement
+    func makeStatement(_ db: Database) throws -> Statement {
         // Build
         let context = SQLGenerationContext(db)
         let sql = try requestSQL(context)
         
         // Compile & set arguments
-        let statement = try db.makeSelectStatement(sql: sql)
+        let statement = try db.makeStatement(sql: sql)
         statement.arguments = context.arguments
         
         // Optimize statement region. This allows us to track individual rowids,
@@ -197,7 +197,7 @@ struct SQLQueryGenerator: Refinable {
         return false
     }
     
-    func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
+    func makeDeleteStatement(_ db: Database) throws -> Statement {
         switch try grouping(db) {
         case .none:
             guard relation.joins.isEmpty else {
@@ -225,7 +225,7 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            let statement = try db.makeUpdateStatement(sql: sql)
+            let statement = try db.makeStatement(sql: sql)
             statement.arguments = context.arguments
             return statement
             
@@ -239,7 +239,7 @@ struct SQLQueryGenerator: Refinable {
     }
     
     /// DELETE FROM table WHERE id IN (SELECT id FROM table ...)
-    private func makeTrivialDeleteStatement(_ db: Database) throws -> UpdateStatement {
+    private func makeTrivialDeleteStatement(_ db: Database) throws -> Statement {
         let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
@@ -255,7 +255,7 @@ struct SQLQueryGenerator: Refinable {
         sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        let statement = try db.makeUpdateStatement(sql: sql)
+        let statement = try db.makeStatement(sql: sql)
         statement.arguments = context.arguments
         return statement
     }
@@ -265,7 +265,7 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-    throws -> UpdateStatement?
+    throws -> Statement?
     {
         switch try grouping(db) {
         case .none:
@@ -314,7 +314,7 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            let statement = try db.makeUpdateStatement(sql: sql)
+            let statement = try db.makeStatement(sql: sql)
             statement.arguments = context.arguments
             return statement
             
@@ -333,7 +333,7 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-    throws -> UpdateStatement?
+    throws -> Statement?
     {
         // Check for empty assignments after all programmer errors have
         // been checked.
@@ -370,7 +370,7 @@ struct SQLQueryGenerator: Refinable {
         sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        let statement = try db.makeUpdateStatement(sql: sql)
+        let statement = try db.makeStatement(sql: sql)
         statement.arguments = context.arguments
         return statement
     }

@@ -121,7 +121,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT 2"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 try test(Fetched.fetchCursor(db, sql: sql))
                 try test(Fetched.fetchCursor(statement))
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql: sql)))
@@ -129,7 +129,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 0, 1 UNION ALL SELECT 0, 2"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchCursor(db, sql: sql, adapter: adapter))
                 try test(Fetched.fetchCursor(statement, adapter: adapter))
@@ -176,7 +176,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT throw()"
                 try test(Fetched.fetchCursor(db, sql: sql), sql: sql)
-                try test(Fetched.fetchCursor(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchCursor(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchCursor(db), sql: sql)
             }
@@ -184,7 +184,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchCursor(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchCursor(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchCursor(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
@@ -208,7 +208,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Fetched.fetchCursor(db, sql: sql), sql: sql)
-                try test(Fetched.fetchCursor(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchCursor(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchCursor(db), sql: sql)
             }
@@ -216,7 +216,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchCursor(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchCursor(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchCursor(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchCursor(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
@@ -232,7 +232,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT 2"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 try test(Fetched.fetchAll(db, sql: sql))
                 try test(Fetched.fetchAll(statement))
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql: sql)))
@@ -240,7 +240,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 0, 1 UNION ALL SELECT 0, 2"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchAll(db, sql: sql, adapter: adapter))
                 try test(Fetched.fetchAll(statement, adapter: adapter))
@@ -279,7 +279,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT throw()"
                 try test(Fetched.fetchAll(db, sql: sql), sql: sql)
-                try test(Fetched.fetchAll(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchAll(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchAll(db), sql: sql)
             }
@@ -287,7 +287,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchAll(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchAll(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchAll(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
@@ -311,7 +311,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Fetched.fetchAll(db, sql: sql), sql: sql)
-                try test(Fetched.fetchAll(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchAll(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchAll(db), sql: sql)
             }
@@ -319,7 +319,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchAll(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchAll(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchAll(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchAll(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
@@ -335,7 +335,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT 2"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 try test(Fetched.fetchSet(db, sql: sql))
                 try test(Fetched.fetchSet(statement))
                 try test(Fetched.fetchSet(db, SQLRequest<Void>(sql: sql)))
@@ -343,7 +343,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 0, 1 UNION ALL SELECT 0, 2"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchSet(db, sql: sql, adapter: adapter))
                 try test(Fetched.fetchSet(statement, adapter: adapter))
@@ -382,7 +382,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT throw()"
                 try test(Fetched.fetchSet(db, sql: sql), sql: sql)
-                try test(Fetched.fetchSet(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchSet(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchSet(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchSet(db), sql: sql)
             }
@@ -390,7 +390,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchSet(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchSet(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchSet(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchSet(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchSet(db), sql: sql)
             }
@@ -414,7 +414,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Fetched.fetchSet(db, sql: sql), sql: sql)
-                try test(Fetched.fetchSet(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchSet(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchSet(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchSet(db), sql: sql)
             }
@@ -422,7 +422,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchSet(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchSet(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchSet(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchSet(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchSet(db), sql: sql)
             }
@@ -438,7 +438,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 1 WHERE 0"
-                    let statement = try db.makeSelectStatement(sql: sql)
+                    let statement = try db.makeStatement(sql: sql)
                     try test(Fetched.fetchOne(db, sql: sql))
                     try test(Fetched.fetchOne(statement))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)))
@@ -446,7 +446,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 0, 1 WHERE 0"
-                    let statement = try db.makeSelectStatement(sql: sql)
+                    let statement = try db.makeStatement(sql: sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Fetched.fetchOne(db, sql: sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
@@ -460,7 +460,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT NULL"
-                    let statement = try db.makeSelectStatement(sql: sql)
+                    let statement = try db.makeStatement(sql: sql)
                     try test(Fetched.fetchOne(db, sql: sql))
                     try test(Fetched.fetchOne(statement))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)))
@@ -468,7 +468,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 0, NULL"
-                    let statement = try db.makeSelectStatement(sql: sql)
+                    let statement = try db.makeStatement(sql: sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Fetched.fetchOne(db, sql: sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
@@ -482,7 +482,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 1"
-                    let statement = try db.makeSelectStatement(sql: sql)
+                    let statement = try db.makeStatement(sql: sql)
                     try test(Fetched.fetchOne(db, sql: sql))
                     try test(Fetched.fetchOne(statement))
                     try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)))
@@ -490,7 +490,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 }
                 do {
                     let sql = "SELECT 0, 1"
-                    let statement = try db.makeSelectStatement(sql: sql)
+                    let statement = try db.makeStatement(sql: sql)
                     let adapter = SuffixRowAdapter(fromIndex: 1)
                     try test(Fetched.fetchOne(db, sql: sql, adapter: adapter))
                     try test(Fetched.fetchOne(statement, adapter: adapter))
@@ -530,7 +530,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT throw()"
                 try test(Fetched.fetchOne(db, sql: sql), sql: sql)
-                try test(Fetched.fetchOne(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchOne(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchOne(db), sql: sql)
             }
@@ -538,7 +538,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchOne(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchOne(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
             }
@@ -562,7 +562,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Fetched.fetchOne(db, sql: sql), sql: sql)
-                try test(Fetched.fetchOne(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Fetched.fetchOne(db.makeStatement(sql: sql)), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql).fetchOne(db), sql: sql)
             }
@@ -570,7 +570,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Fetched.fetchOne(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Fetched.fetchOne(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Fetched.fetchOne(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Fetched.fetchOne(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched>(sql: sql, adapter: adapter).fetchOne(db), sql: sql)
             }
@@ -592,7 +592,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT NULL"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db, sql: sql))
                 try test(Optional<Fetched>.fetchCursor(statement))
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql: sql)))
@@ -600,7 +600,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchCursor(db, sql: sql, adapter: adapter))
                 try test(Optional<Fetched>.fetchCursor(statement, adapter: adapter))
@@ -638,7 +638,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Optional<Fetched>.fetchCursor(db, sql: sql), sql: sql)
-                try test(Optional<Fetched>.fetchCursor(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Optional<Fetched>.fetchCursor(db.makeStatement(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql).fetchCursor(db), sql: sql)
             }
@@ -646,7 +646,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchCursor(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchCursor(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchCursor(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchCursor(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchCursor(db), sql: sql)
             }
@@ -664,7 +664,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT NULL"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, sql: sql))
                 try test(Optional<Fetched>.fetchAll(statement))
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql: sql)))
@@ -672,7 +672,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchAll(db, sql: sql, adapter: adapter))
                 try test(Optional<Fetched>.fetchAll(statement, adapter: adapter))
@@ -711,7 +711,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT throw()"
                 try test(Optional<Fetched>.fetchAll(db, sql: sql), sql: sql)
-                try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db.makeStatement(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql).fetchAll(db), sql: sql)
             }
@@ -719,7 +719,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchAll(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
@@ -743,7 +743,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Optional<Fetched>.fetchAll(db, sql: sql), sql: sql)
-                try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db.makeStatement(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql).fetchAll(db), sql: sql)
             }
@@ -751,7 +751,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchAll(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchAll(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchAll(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchAll(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchAll(db), sql: sql)
             }
@@ -767,7 +767,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 1 UNION ALL SELECT NULL"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 try test(Optional<Fetched>.fetchSet(db, sql: sql))
                 try test(Optional<Fetched>.fetchSet(statement))
                 try test(Optional<Fetched>.fetchSet(db, SQLRequest<Void>(sql: sql)))
@@ -775,7 +775,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             }
             do {
                 let sql = "SELECT 0, 1 UNION ALL SELECT 0, NULL"
-                let statement = try db.makeSelectStatement(sql: sql)
+                let statement = try db.makeStatement(sql: sql)
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchSet(db, sql: sql, adapter: adapter))
                 try test(Optional<Fetched>.fetchSet(statement, adapter: adapter))
@@ -814,7 +814,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT throw()"
                 try test(Optional<Fetched>.fetchSet(db, sql: sql), sql: sql)
-                try test(Optional<Fetched>.fetchSet(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Optional<Fetched>.fetchSet(db.makeStatement(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchSet(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql).fetchSet(db), sql: sql)
             }
@@ -822,7 +822,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT 0, throw()"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchSet(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchSet(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchSet(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchSet(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchSet(db), sql: sql)
             }
@@ -846,7 +846,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             do {
                 let sql = "SELECT * FROM nonExistingTable"
                 try test(Optional<Fetched>.fetchSet(db, sql: sql), sql: sql)
-                try test(Optional<Fetched>.fetchSet(db.makeSelectStatement(sql: sql)), sql: sql)
+                try test(Optional<Fetched>.fetchSet(db.makeStatement(sql: sql)), sql: sql)
                 try test(Optional<Fetched>.fetchSet(db, SQLRequest<Void>(sql: sql)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql).fetchSet(db), sql: sql)
             }
@@ -854,7 +854,7 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
                 let sql = "SELECT * FROM nonExistingTable"
                 let adapter = SuffixRowAdapter(fromIndex: 1)
                 try test(Optional<Fetched>.fetchSet(db, sql: sql, adapter: adapter), sql: sql)
-                try test(Optional<Fetched>.fetchSet(db.makeSelectStatement(sql: sql), adapter: adapter), sql: sql)
+                try test(Optional<Fetched>.fetchSet(db.makeStatement(sql: sql), adapter: adapter), sql: sql)
                 try test(Optional<Fetched>.fetchSet(db, SQLRequest<Void>(sql: sql, adapter: adapter)), sql: sql)
                 try test(SQLRequest<Fetched?>(sql: sql, adapter: adapter).fetchSet(db), sql: sql)
             }

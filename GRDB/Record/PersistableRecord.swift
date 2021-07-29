@@ -677,19 +677,19 @@ final class DAO<Record: MutablePersistableRecord> {
     }
     
     @usableFromInline
-    func insertStatement(onConflict: Database.ConflictResolution) throws -> UpdateStatement {
+    func insertStatement(onConflict: Database.ConflictResolution) throws -> Statement {
         let query = InsertQuery(
             onConflict: onConflict,
             tableName: databaseTableName,
             insertedColumns: persistenceContainer.columns)
-        let statement = try db.internalCachedUpdateStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(persistenceContainer.values))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
-    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
+    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -732,14 +732,14 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.internalCachedUpdateStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
-    func deleteStatement() throws -> UpdateStatement? {
+    func deleteStatement() throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -752,14 +752,14 @@ final class DAO<Record: MutablePersistableRecord> {
         let query = DeleteQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.internalCachedUpdateStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
-    func existsStatement() throws -> SelectStatement? {
+    func existsStatement() throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -772,7 +772,7 @@ final class DAO<Record: MutablePersistableRecord> {
         let query = ExistsQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.internalCachedSelectStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }
