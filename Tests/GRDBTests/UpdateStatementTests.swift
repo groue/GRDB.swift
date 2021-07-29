@@ -292,6 +292,18 @@ class UpdateStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inTransaction { db in
             do {
+                try db.execute(sql: "", arguments: [1])
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
+                XCTAssertEqual(error.message!, "wrong number of statement arguments: 1")
+                XCTAssertEqual(error.description, "SQLite error 21: wrong number of statement arguments: 1")
+            }
+            return .rollback
+        }
+        
+        try dbQueue.inTransaction { db in
+            do {
                 try db.execute(sql: """
                     INSERT INTO persons (name, age) VALUES ('Arthur', ?);
                     INSERT INTO persons (name, age) VALUES ('Arthur', ?);
@@ -302,6 +314,37 @@ class UpdateStatementTests : GRDBTestCase {
                 XCTAssertEqual(error.message!, "wrong number of statement arguments: 3")
                 XCTAssertEqual(error.description, "SQLite error 21: wrong number of statement arguments: 3")
             }
+            
+            // Both statements were run
+            let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!
+            XCTAssertEqual(count, 2)
+            
+            return .rollback
+        }
+    }
+    
+    func testExecuteMultipleStatementWithTooFewArguments() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            do {
+                try db.execute(sql: """
+                    INSERT INTO persons (name, age) VALUES ('Arthur', ?);
+                    INSERT INTO persons (name, age) VALUES ('Arthur', ?);
+                    """, arguments: [41])
+                XCTFail()
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_MISUSE)
+                XCTAssertEqual(error.message!, "wrong number of statement arguments: 0")
+                XCTAssertEqual(error.description, """
+                    SQLite error 21: wrong number of statement arguments: 0 \
+                    - while executing `INSERT INTO persons (name, age) VALUES ('Arthur', ?)`
+                    """)
+            }
+            
+            // First statement did run
+            let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM persons")!
+            XCTAssertEqual(count, 1)
+            
             return .rollback
         }
     }

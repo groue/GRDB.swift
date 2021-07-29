@@ -306,6 +306,52 @@ extension Database {
         try cachedStatement(literal: sqlLiteral)
     }
     
+    /// Returns a cursor of all SQL statements separated by semi-colons.
+    ///
+    ///     let statements = try db.allStatements(sql: """
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         INSERT INTO player (name) VALUES (?);
+    ///         """, arguments: ["Arthur", "Barbara", "O'Brien"])
+    ///     while let statement = try statements.next() {
+    ///         try statement.execute()
+    ///     }
+    ///
+    /// - parameters:
+    ///     - sql: An SQL query.
+    ///     - arguments: Statement arguments.
+    /// - returns: A cursor of `Statement`
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func allStatements(sql: String, arguments: StatementArguments = StatementArguments())
+    throws -> SQLStatementCursor
+    {
+        try allStatements(literal: SQL(sql: sql, arguments: arguments))
+    }
+
+    /// Returns a cursor of all SQL statements separated by semi-colons.
+    ///
+    /// Literals allow you to safely embed raw values in your SQL, without any
+    /// risk of syntax errors or SQL injection:
+    ///
+    ///     let statements = try db.allStatements(literal: """
+    ///         INSERT INTO player (name) VALUES (\("Arthur"));
+    ///         INSERT INTO player (name) VALUES (\("Barbara"));
+    ///         INSERT INTO player (name) VALUES (\("O'Brien"));
+    ///         """)
+    ///     while let statement = try statements.next() {
+    ///         try statement.execute()
+    ///     }
+    ///
+    /// - parameter sqlLiteral: An `SQL` literal.
+    /// - returns: A cursor of `Statement`
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func allStatements(literal sqlLiteral: SQL) throws -> SQLStatementCursor {
+        let context = SQLGenerationContext(self)
+        let sql = try sqlLiteral.sql(context)
+        let arguments = context.arguments
+        return SQLStatementCursor(database: self, sql: sql, arguments: arguments)
+    }
+    
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
     ///     try db.execute(
@@ -348,66 +394,87 @@ extension Database {
     /// - parameter sqlLiteral: An `SQL` literal.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(literal sqlLiteral: SQL) throws {
-        // This method is like sqlite3_exec (https://www.sqlite.org/c3ref/exec.html)
-        // It adds support for arguments, and the tricky part is to consume
-        // arguments as statements are executed.
-        //
-        // This job is performed by StatementArguments.extractBindings(forStatement:allowingRemainingValues:)
-        //
-        // And before we return, we'll check that all arguments were consumed.
-        
-        let context = SQLGenerationContext(self)
-        let sql = try sqlLiteral.sql(context)
-        var arguments = context.arguments
-        let initialValuesCount = arguments.values.count
-        
-        // Build a C string (SQLite wants that), and execute SQL statements one
-        // after the other.
-        try sql.utf8CString.withUnsafeBufferPointer { buffer in
-            guard let sqlStart = buffer.baseAddress else { return }
-            let sqlEnd = sqlStart + buffer.count // past \0
-            var statementStart = sqlStart
-            while statementStart < sqlEnd {
-                var statementEnd: UnsafePointer<Int8>? = nil
-                let nextStatement: Statement?
-                
-                // Compile
-                do {
-                    let authorizer = StatementCompilationAuthorizer()
-                    nextStatement = try withAuthorizer(authorizer) {
-                        try Statement(
-                            database: self,
-                            statementStart: statementStart,
-                            statementEnd: &statementEnd,
-                            prepFlags: 0,
-                            authorizer: authorizer)
-                    }
-                }
-                
-                guard let statement = nextStatement else {
-                    // End of SQL string
-                    break
-                }
-                
-                // Extract statement arguments
-                let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
-                // unsafe is OK because we just extracted the correct number of arguments
-                statement.setUncheckedArguments(StatementArguments(bindings))
-                
-                // Execute
-                try statement.execute()
-                
-                // Next
-                statementStart = statementEnd!
-            }
+        let statements = try allStatements(literal: sqlLiteral)
+        while let statement = try statements.next() {
+            try statement.execute()
+        }
+    }
+}
+
+public class SQLStatementCursor: Cursor {
+    private let database: Database
+    private let buffer: UnsafeBufferPointer<CChar> // C string
+    private let initialArgumentCount: Int
+    private let sqlEnd: UnsafePointer<CChar>?
+    private var statementStart: UnsafePointer<CChar>?
+    private var arguments: StatementArguments
+    
+    init(database: Database, sql: String, arguments: StatementArguments) {
+        self.database = database
+        self.arguments = arguments
+        self.initialArgumentCount = arguments.values.count
+        self.buffer = sql.utf8CString.withUnsafeBufferPointer { buffer in
+            let rawBuffer = UnsafeRawBufferPointer(buffer)
+            let copy = UnsafeMutableRawBufferPointer.allocate(
+                byteCount: rawBuffer.count,
+                alignment: MemoryLayout<CChar>.alignment)
+            copy.copyMemory(from: rawBuffer)
+            return UnsafeBufferPointer(copy.bindMemory(to: CChar.self))
+        }
+        if let sqlStart = buffer.baseAddress {
+            statementStart = sqlStart
+            sqlEnd = sqlStart + buffer.count  // past \0
+        } else {
+            statementStart = nil
+            sqlEnd = nil
+        }
+    }
+    
+    deinit {
+        buffer.deallocate()
+    }
+    
+    public func next() throws -> Statement? {
+        guard let statementStart = statementStart,
+              let sqlEnd = sqlEnd,
+              statementStart < sqlEnd
+        else {
+            try checkArgumentsAreEmpty()
+            return nil
         }
         
-        // Check that all arguments were consumed: it is a programmer error to
-        // provide arguments that do not match the statement.
+        var statementEnd: UnsafePointer<Int8>? = nil
+        let authorizer = StatementCompilationAuthorizer()
+        let statement = try database.withAuthorizer(authorizer) {
+            try Statement(
+                database: database,
+                statementStart: statementStart,
+                statementEnd: &statementEnd,
+                prepFlags: 0,
+                authorizer: authorizer)
+        }
+        
+        self.statementStart = statementEnd!
+        
+        if let statement = statement {
+            // Extract statement arguments
+            let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
+            // unsafe is OK because we just extracted the correct number of arguments
+            statement.setUncheckedArguments(StatementArguments(bindings))
+            return statement
+        } else {
+            try checkArgumentsAreEmpty()
+            return nil
+        }
+    }
+    
+    /// Check that all arguments were consumed: it is a programmer error to
+    /// provide arguments that do not match the statements.
+    private func checkArgumentsAreEmpty() throws {
         if arguments.values.isEmpty == false {
             throw DatabaseError(
                 resultCode: .SQLITE_MISUSE,
-                message: "wrong number of statement arguments: \(initialValuesCount)")
+                message: "wrong number of statement arguments: \(initialArgumentCount)")
         }
     }
 }
