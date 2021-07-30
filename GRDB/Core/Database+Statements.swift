@@ -112,7 +112,35 @@ extension Database {
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     func makeStatement(sql: String, prepFlags: Int32) throws -> Statement {
-        try Statement.prepare(self, sql: sql, prepFlags: prepFlags)
+        let statements = SQLStatementCursor(database: self, sql: sql, arguments: nil, prepFlags: prepFlags)
+        guard let statement = try statements.next() else {
+            throw DatabaseError(
+                resultCode: .SQLITE_ERROR,
+                message: "empty statement",
+                sql: sql)
+        }
+        do {
+            guard try statements.next() == nil else {
+                throw DatabaseError(
+                    resultCode: .SQLITE_MISUSE,
+                    message: """
+                    Multiple statements found. To execute multiple statements, use \
+                    Database.execute(sql:) or Database.allStatements(sql:) instead.
+                    """,
+                    sql: sql)
+            }
+        } catch {
+            // Something while would not compile was found after the first statement.
+            // Complain about multiple statements anyway.
+            throw DatabaseError(
+                resultCode: .SQLITE_MISUSE,
+                message: """
+                    Multiple statements found. To execute multiple statements, use \
+                    Database.execute(sql:) or Database.allStatements(sql:) instead.
+                    """,
+                sql: sql)
+        }
+        return statement
     }
     
     /// Returns a prepared statement that can be reused.
@@ -403,16 +431,20 @@ extension Database {
 
 public class SQLStatementCursor: Cursor {
     private let database: Database
-    private let buffer: UnsafeBufferPointer<CChar> // C string
-    private let initialArgumentCount: Int
+    /// C string
+    private let buffer: UnsafeBufferPointer<CChar>
+    private let prepFlags: CInt
+    private let initialArgumentCount: Int?
     private let sqlEnd: UnsafePointer<CChar>?
     private var statementStart: UnsafePointer<CChar>?
-    private var arguments: StatementArguments
+    /// Nil when arguments are set later
+    private var arguments: StatementArguments?
     
-    init(database: Database, sql: String, arguments: StatementArguments) {
+    init(database: Database, sql: String, arguments: StatementArguments?, prepFlags: CInt = 0) {
         self.database = database
         self.arguments = arguments
-        self.initialArgumentCount = arguments.values.count
+        self.prepFlags = prepFlags
+        self.initialArgumentCount = arguments?.values.count
         self.buffer = sql.utf8CString.withUnsafeBufferPointer { buffer in
             let rawBuffer = UnsafeRawBufferPointer(buffer)
             let copy = UnsafeMutableRawBufferPointer.allocate(
@@ -450,17 +482,19 @@ public class SQLStatementCursor: Cursor {
                 database: database,
                 statementStart: statementStart,
                 statementEnd: &statementEnd,
-                prepFlags: 0,
+                prepFlags: prepFlags,
                 authorizer: authorizer)
         }
         
         self.statementStart = statementEnd!
         
         if let statement = statement {
-            // Extract statement arguments
-            let bindings = try arguments.extractBindings(forStatement: statement, allowingRemainingValues: true)
-            // unsafe is OK because we just extracted the correct number of arguments
-            statement.setUncheckedArguments(StatementArguments(bindings))
+            if arguments != nil {
+                // Extract statement arguments
+                let bindings = try arguments!.extractBindings(forStatement: statement, allowingRemainingValues: true)
+                // unsafe is OK because we just extracted the correct number of arguments
+                statement.setUncheckedArguments(StatementArguments(bindings))
+            }
             return statement
         } else {
             try checkArgumentsAreEmpty()
@@ -471,7 +505,10 @@ public class SQLStatementCursor: Cursor {
     /// Check that all arguments were consumed: it is a programmer error to
     /// provide arguments that do not match the statements.
     private func checkArgumentsAreEmpty() throws {
-        if arguments.values.isEmpty == false {
+        if let arguments = arguments,
+           let initialArgumentCount = initialArgumentCount,
+           arguments.values.isEmpty == false
+        {
             throw DatabaseError(
                 resultCode: .SQLITE_MISUSE,
                 message: "wrong number of statement arguments: \(initialArgumentCount)")

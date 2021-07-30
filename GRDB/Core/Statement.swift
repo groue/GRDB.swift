@@ -307,47 +307,6 @@ extension Statement: CustomStringConvertible {
     }
 }
 
-// MARK: - Statement Preparation
-
-extension Statement {
-    // Static method instead of an initializer because initializer can't run
-    // inside `sqlCodeUnits.withUnsafeBufferPointer`.
-    static func prepare(_ db: Database, sql: String, prepFlags: Int32) throws -> Self {
-        let authorizer = StatementCompilationAuthorizer()
-        return try db.withAuthorizer(authorizer) {
-            try sql.utf8CString.withUnsafeBufferPointer { buffer in
-                let statementStart = buffer.baseAddress!
-                var statementEnd: UnsafePointer<Int8>? = nil
-                guard let statement = try self.init(
-                        database: db,
-                        statementStart: statementStart,
-                        statementEnd: &statementEnd,
-                        prepFlags: prepFlags,
-                        authorizer: authorizer) else
-                {
-                    throw DatabaseError(
-                        resultCode: .SQLITE_ERROR,
-                        message: "empty statement",
-                        sql: sql)
-                }
-                
-                let remainingSQL = String(cString: statementEnd!).trimmingCharacters(in: .sqlStatementSeparators)
-                guard remainingSQL.isEmpty else {
-                    throw DatabaseError(
-                        resultCode: .SQLITE_MISUSE,
-                        message: """
-                            Multiple statements found. To execute multiple statements, \
-                            use Database.execute(sql:) instead.
-                            """,
-                        sql: sql)
-                }
-                
-                return statement
-            }
-        }
-    }
-}
-
 // MARK: - Select Statements
 
 extension Statement {

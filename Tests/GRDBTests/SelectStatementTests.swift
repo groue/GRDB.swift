@@ -167,6 +167,7 @@ class SelectStatementTests : GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
             do {
+                // SQL, no argument
                 let statements = try db.allStatements(sql: """
                     SELECT age FROM persons ORDER BY age;
                     SELECT age FROM persons ORDER BY age DESC;
@@ -177,12 +178,25 @@ class SelectStatementTests : GRDBTestCase {
                 XCTAssertEqual(ages, [13, 26, 41, 41, 26, 13])
             }
             do {
+                // Literal, arguments
                 let statements = try db.allStatements(literal: """
                     SELECT name FROM persons WHERE name = \("Arthur");
                     SELECT name FROM persons WHERE age > \(20) ORDER BY name;
                     """)
                 let names = try Array(statements.map { try String.fetchAll($0) })
                 XCTAssertEqual(names, [["Arthur"], ["Arthur", "Barbara"]])
+            }
+            do {
+                // Mix statement kinds
+                let statements = try db.allStatements(literal: """
+                    CREATE TABLE t(a);
+                    INSERT INTO t VALUES (0);
+                    SELECT a FROM t ORDER BY a;
+                    INSERT INTO t VALUES (1);
+                    SELECT a FROM t ORDER BY a;
+                    """)
+                let values = try Array(statements.map { try Int.fetchAll($0) })
+                XCTAssertEqual(values, [[], [], [0], [], [0, 1]])
             }
         }
     }
