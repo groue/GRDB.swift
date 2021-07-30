@@ -817,10 +817,10 @@ This `allStatements` method allows you to iterate all rows from multiple stateme
 // A Cursor of all rows from all statements
 let rows = try db
     .allStatements(sql: "...")
-    .map { statement in try Row.fetchCursor(statement) }
-    .joined()
+    .flatMap { statement in try Row.fetchCursor(statement) }
 ```
 
+See [prepared statements](#prepared-statements) for more information about `allStatements()`.
 
 ### Cursors
 
@@ -1872,15 +1872,25 @@ When you want to build multiple statements joined with a semicolon, use the `all
 
 ```swift
 let statements = try db.allStatements(sql: """
-    INSERT ...;
-    SELECT ...; 
-    SELECT ...; 
-    """)
+    INSERT INTO player (name, score) VALUES (?, ?);
+    INSERT INTO player (name, score) VALUES (?, ?);
+    """, arguments: ["Arthur", 100, "O'Brien", 1000])
 while let statement = try statements.next() {
-    // Use statement
+    try statement.execute()
 }
 ```
 
+`allStatements` also supports [SQL Interpolation]:
+
+```swift
+let statements = try db.allStatements(literal: """
+    INSERT INTO player (name, score) VALUES (\("Arthur"), \(100));
+    INSERT INTO player (name, score) VALUES (\("O'Brien"), \(1000));
+    """)
+while let statement = try statements.next() {
+    try statement.execute()
+}
+```
 
 > :point_up: **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
 

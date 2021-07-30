@@ -172,9 +172,7 @@ class SelectStatementTests : GRDBTestCase {
                     SELECT age FROM persons ORDER BY age;
                     SELECT age FROM persons ORDER BY age DESC;
                     """)
-                let ages = try Array(statements
-                                        .map { try Int.fetchCursor($0) }
-                                        .joined())
+                let ages = try Array(statements.flatMap { try Int.fetchCursor($0) })
                 XCTAssertEqual(ages, [13, 26, 41, 41, 26, 13])
             }
             do {
