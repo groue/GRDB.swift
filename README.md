@@ -798,6 +798,29 @@ try Row.fetchOne(...)    // Row?
     let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) ...") // Int?
     ```
 
+All those fetching methods require an SQL string that contains a single SQL statement. When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements](#prepared-statements) found in the SQL string:
+
+```swift
+let statements = try db.allStatements(sql: """
+    SELECT ...; 
+    SELECT ...; 
+    SELECT ...;
+    """)
+while let statement = try statements.next() {
+    let players = try Player.fetchAll(statement)
+}
+```
+
+This `allStatements` method allows you to iterate all rows from multiple statements, like the SQLite [`sqlite3_exec`](https://www.sqlite.org/c3ref/exec.html) function:
+
+```swift
+// A Cursor of all rows from all statements
+let rows = try db
+    .allStatements(sql: "...")
+    .map { statement in try Row.fetchCursor(statement) }
+    .joined()
+```
+
 
 ### Cursors
 
@@ -1844,6 +1867,20 @@ You can set the arguments at the moment of the statement execution:
 try insertStatement.execute(arguments: ["name": "Arthur", "score": 1000])
 let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
+
+When you want to build multiple statements joined with a semicolon, use the `allStatements` method:
+
+```swift
+let statements = try db.allStatements(sql: """
+    INSERT ...;
+    SELECT ...; 
+    SELECT ...; 
+    """)
+while let statement = try statements.next() {
+    // Use statement
+}
+```
+
 
 > :point_up: **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
 
