@@ -32,7 +32,7 @@ public struct ValueObservation<Reducer: ValueReducer> {
     ///
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
-    public var requiresWriteAccess: Bool = false
+    public var requiresWriteAccess = false
     
     /// Returns a ValueObservation with a transformed reducer.
     func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {

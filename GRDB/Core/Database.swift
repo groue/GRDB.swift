@@ -163,7 +163,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// If true, select statement execution is recorded.
     /// Use recordingSelectedRegion(_:), see `statementWillExecute(_:)`
-    var _isRecordingSelectedRegion: Bool = false
+    var _isRecordingSelectedRegion = false
     var _selectedRegion = DatabaseRegion()
     
     /// Support for checkForAbortedTransaction()
@@ -183,7 +183,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     private var _readOnlyDepth = 0 // Modify with beginReadOnly/endReadOnly
-    private var isClosed: Bool = false
+    private var isClosed = false
     
     // MARK: - Initializer
     

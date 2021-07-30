@@ -9,12 +9,12 @@ public struct Configuration {
     /// If true, foreign key constraints are checked.
     ///
     /// Default: true
-    public var foreignKeysEnabled: Bool = true
+    public var foreignKeysEnabled = true
     
     /// If true, database modifications are disallowed.
     ///
     /// Default: false
-    public var readonly: Bool = false
+    public var readonly = false
     
     /// The configuration label.
     ///
@@ -175,7 +175,7 @@ public struct Configuration {
     /// never allow leaving a transaction opened at the end of a read access.
     ///
     /// Default: false
-    public var allowsUnsafeTransactions: Bool = false
+    public var allowsUnsafeTransactions = false
     
     // MARK: - Concurrency
     

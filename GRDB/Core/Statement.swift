@@ -46,7 +46,7 @@ public final class Statement {
     
     /// If true, the database schema cache gets invalidated after this statement
     /// is executed.
-    private(set) var invalidatesDatabaseSchemaCache: Bool = false
+    private(set) var invalidatesDatabaseSchemaCache = false
     private(set) var transactionEffect: TransactionEffect?
     private(set) var databaseEventKinds: [DatabaseEventKind] = []
     

@@ -164,7 +164,7 @@ class DatabaseObservationBroker {
     private var statementObservations: [StatementObservation] = [] {
         didSet { observesDatabaseChanges = !statementObservations.isEmpty }
     }
-    private var observesDatabaseChanges: Bool = false {
+    private var observesDatabaseChanges = false {
         didSet {
             if observesDatabaseChanges == oldValue { return }
             if observesDatabaseChanges {
@@ -796,7 +796,7 @@ final class TransactionObservation {
     
     // A disabled observation is not interested in individual database changes.
     // It is still interested in transactions commits & rollbacks.
-    var isDisabled: Bool = false
+    var isDisabled = false
     
     private weak var weakObserver: TransactionObserver?
     private var strongObserver: TransactionObserver?
