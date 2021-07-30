@@ -18,7 +18,7 @@ func generateSQLiteDatabaseIfMissing(at url: URL, insertedRowCount: Int) throws 
         }
         try db.execute(sql: "CREATE TABLE item (i0 INT, i1 INT, i2 INT, i3 INT, i4 INT, i5 INT, i6 INT, i7 INT, i8 INT, i9 INT)")
         
-        let statement = try! db.makeUpdateStatement(sql: "INSERT INTO item (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+        let statement = try! db.makeStatement(sql: "INSERT INTO item (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
         for i in 0..<insertedRowCount {
             try statement.execute(arguments: [i, i, i, i, i, i, i, i, i, i])
         }

@@ -141,7 +141,7 @@ public protocol _RowLayout {
     func _layoutIndex(ofColumn name: String) -> Int?
 }
 
-extension SelectStatement: _RowLayout {
+extension Statement: _RowLayout {
     /// :nodoc:
     public var _layoutColumns: [(Int, String)] {
         Array(columnNames.enumerated())

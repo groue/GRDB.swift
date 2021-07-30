@@ -20,7 +20,7 @@ class StatementArgumentsTests: GRDBTestCase {
     func testPositionalStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            let statement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             
             do {
                 // Correct number of arguments
@@ -83,11 +83,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             updateStatement.arguments = arguments
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
@@ -103,11 +103,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             try updateStatement.setArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
             try selectStatement.setArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -141,11 +141,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments([name, age] as [DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (?, ?)")
             updateStatement.setUncheckedArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = ? AND age = ?")
             selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -157,7 +157,7 @@ class StatementArgumentsTests: GRDBTestCase {
     func testNamedStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:firstName, :age)")
+            let statement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:firstName, :age)")
             
             do {
                 // Correct number of arguments
@@ -234,11 +234,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             updateStatement.arguments = arguments
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
@@ -254,11 +254,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             try updateStatement.setArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
             try selectStatement.setArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -292,11 +292,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, age) VALUES (:name, :age)")
             updateStatement.setUncheckedArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND age = :age")
             selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -308,7 +308,7 @@ class StatementArgumentsTests: GRDBTestCase {
     func testReusedNamedStatementArgumentsValidation() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let statement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            let statement = try db.makeStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             
             do {
                 try statement.execute(arguments: ["name": "foo", "age": 1])
@@ -394,11 +394,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             updateStatement.arguments = arguments
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
@@ -414,11 +414,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             try updateStatement.setArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
             try selectStatement.setArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
@@ -452,11 +452,11 @@ class StatementArgumentsTests: GRDBTestCase {
             let age = 42
             let arguments = StatementArguments(["name": name, "age": age] as [String: DatabaseValueConvertible?])
             
-            let updateStatement = try db.makeUpdateStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
+            let updateStatement = try db.makeStatement(sql: "INSERT INTO persons (firstName, lastName, age) VALUES (:name, :name, :age)")
             updateStatement.setUncheckedArguments(arguments)
             try updateStatement.execute()
             
-            let selectStatement = try db.makeSelectStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
+            let selectStatement = try db.makeStatement(sql: "SELECT * FROM persons WHERE firstName = :name AND lastName = :name AND age = :age")
             selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             

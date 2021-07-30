@@ -92,7 +92,7 @@ enum RowDecodingError: Error {
     @usableFromInline
     static func valueMismatch(
         _ type: Any.Type,
-        statement: SelectStatement,
+        statement: Statement,
         index: Int)
     -> Self
     {
@@ -149,7 +149,7 @@ struct RowDecodingContext {
     
     /// Convenience initializer
     @usableFromInline
-    init(statement: SelectStatement, index: Int) {
+    init(statement: Statement, index: Int) {
         self.key = .columnIndex(index)
         self.row = Row(copiedFromSQLiteStatement: statement.sqliteStatement, statement: statement)
         self.sql = statement.sql
@@ -171,7 +171,7 @@ extension RowDecodingError: CustomStringConvertible {
                 let columnName = row.columnNames[rowIndex]
                 chunks.append("column: \(String(reflecting: columnName))")
                 chunks.append("column index: \(columnIndex)")
-
+                
             case let .columnName(columnName):
                 if let columnIndex = row.index(forColumn: columnName) {
                     chunks.append("column: \(String(reflecting: columnName))")

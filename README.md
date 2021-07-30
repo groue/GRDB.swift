@@ -798,6 +798,29 @@ try Row.fetchOne(...)    // Row?
     let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) ...") // Int?
     ```
 
+All those fetching methods require an SQL string that contains a single SQL statement. When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements](#prepared-statements) found in the SQL string:
+
+```swift
+let statements = try db.allStatements(sql: """
+    SELECT ...; 
+    SELECT ...; 
+    SELECT ...;
+    """)
+while let statement = try statements.next() {
+    let players = try Player.fetchAll(statement)
+}
+```
+
+This `allStatements` method allows you to iterate all rows from multiple statements, like the SQLite [`sqlite3_exec`](https://www.sqlite.org/c3ref/exec.html) function:
+
+```swift
+// A Cursor of all rows from all statements
+let rows = try db
+    .allStatements(sql: "...")
+    .flatMap { statement in try Row.fetchCursor(statement) }
+```
+
+See [prepared statements](#prepared-statements) for more information about `allStatements()`.
 
 ### Cursors
 
@@ -1798,40 +1821,38 @@ dbQueue.inTransaction(.exclusive) { db in ... }
 
 **Prepared Statements** let you prepare an SQL query and execute it later, several times if you need, with different arguments.
 
-There are two kinds of prepared statements: **select statements**, and **update statements**:
-
 ```swift
 try dbQueue.write { db in
-    let updateSQL = "INSERT INTO player (name, score) VALUES (:name, :score)"
-    let updateStatement = try db.makeUpdateStatement(sql: updateSQL)
+    let insertSQL = "INSERT INTO player (name, score) VALUES (:name, :score)"
+    let insertStatement = try db.makeStatement(sql: insertSQL)
     
     let selectSQL = "SELECT * FROM player WHERE name = ?"
-    let selectStatement = try db.makeSelectStatement(sql: selectSQL)
+    let selectStatement = try db.makeStatement(sql: selectSQL)
 }
 ```
 
 The `?` and colon-prefixed keys like `:name` in the SQL query are the statement arguments. You set them with arrays or dictionaries (arguments are actually of type [StatementArguments](http://groue.github.io/GRDB.swift/docs/5.8/Structs/StatementArguments.html), which happens to adopt the ExpressibleByArrayLiteral and ExpressibleByDictionaryLiteral protocols).
 
 ```swift
-updateStatement.arguments = ["name": "Arthur", "score": 1000]
+insertStatement.arguments = ["name": "Arthur", "score": 1000]
 selectStatement.arguments = ["Arthur"]
 ```
 
 Alternatively, you can create a prepared statement with [SQL Interpolation]:
 
 ```swift
-let updateStatement = try db.makeUpdateStatement(literal: "INSERT ...")
-let selectStatement = try db.makeSelectStatement(literal: "SELECT ...")
-//                                               ~~~~~~~
+let insertStatement = try db.makeStatement(literal: "INSERT ...")
+let selectStatement = try db.makeStatement(literal: "SELECT ...")
+//                                         ~~~~~~~
 ```
 
-Update statements can be executed:
+Statements can be executed:
 
 ```swift
-try updateStatement.execute()
+try insertStatement.execute()
 ```
 
-Select statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
+Statements can be used wherever a raw SQL query string would fit (see [fetch queries](#fetch-queries)):
 
 ```swift
 let rows = try Row.fetchCursor(selectStatement)    // A Cursor of Row
@@ -1843,13 +1864,49 @@ let player = try Player.fetchOne(selectStatement)  // Player?
 You can set the arguments at the moment of the statement execution:
 
 ```swift
-try updateStatement.execute(arguments: ["name": "Arthur", "score": 1000])
+try insertStatement.execute(arguments: ["name": "Arthur", "score": 1000])
 let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
+**When you want to build multiple statements joined with a semicolon**, use the `allStatements` method:
+
+```swift
+let statements = try db.allStatements(sql: """
+    INSERT INTO player (name, score) VALUES (?, ?);
+    INSERT INTO player (name, score) VALUES (?, ?);
+    """, arguments: ["Arthur", 100, "O'Brien", 1000])
+while let statement = try statements.next() {
+    try statement.execute()
+}
+```
+
+`allStatements` also supports [SQL Interpolation]:
+
+```swift
+let statements = try db.allStatements(literal: """
+    INSERT INTO player (name, score) VALUES (\("Arthur"), \(100));
+    INSERT INTO player (name, score) VALUES (\("O'Brien"), \(1000));
+    """)
+while let statement = try statements.next() {
+    try statement.execute()
+}
+```
+
+You can turn the [cursor](#cursors) returned from `allStatements` into a regular Swift array, but in this case make sure all individual statements can compile even if the previous ones were not run:
+
+```swift
+// OK
+let statements = try Array(db.allStatements(sql: "INSERT ...; UPDATE ...; SELECT ...;"))
+
+// Will fail since the insert statement won't compile until the table is created
+let statements = try Array(db.allStatements(sql: "CREATE TABLE player ...; INSERT INTO player ...;"))
+```
+
+See also `Database.execute(sql:)` in the [Executing Updates](#executing-updates) chapter.
+
 > :point_up: **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
 
-See [row queries](#row-queries), [value queries](#value-queries), and [Records](#records) for more information.
+For more information about prepared statements, see the [Statement reference](http://groue.github.io/GRDB.swift/docs/5.8/Classes/Statement.html).
 
 
 ### Prepared Statements Cache
@@ -1860,19 +1917,17 @@ When the same query will be used several times in the lifetime of your applicati
 
 > :point_up: **Note**: This is because you don't have the necessary tools. Statements are tied to specific SQLite connections and dispatch queues which you don't manage yourself, especially when you use [database pools](#database-pools). A change in the database schema [may, or may not](https://www.sqlite.org/compile.html#max_schema_retry) invalidate a statement.
 
-Instead, use the `cachedUpdateStatement` and `cachedSelectStatement` methods. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
+Instead, use the `cachedStatement` method. GRDB does all the hard caching and [memory management](#memory-management) stuff for you:
 
 ```swift
-let updateStatement = try db.cachedUpdateStatement(sql: sql)
-let selectStatement = try db.cachedSelectStatement(sql: sql)
+let statement = try db.cachedStatement(sql: sql)
 ```
 
 Cached statements also support [SQL Interpolation]:
 
 ```swift
-let updateStatement = try db.cachedUpdateStatement(literal: "INSERT ...")
-let selectStatement = try db.cachedSelectStatement(literal: "SELECT ...")
-//                                                 ~~~~~~~
+let statement = try db.cachedStatement(literal: "INSERT ...")
+//                                     ~~~~~~~
 ```
 
 > :warning: **Warning**: Should a cached prepared statement throw an error, don't reuse it (it is a programmer error). Instead, reload one from the cache.
@@ -2288,7 +2343,7 @@ try dbQueue.read { db in
     let sqliteConnection = db.sqliteConnection
 
     // The raw pointer to a statement:
-    let statement = try db.makeSelectStatement(sql: "SELECT ...")
+    let statement = try db.makeStatement(sql: "SELECT ...")
     let sqliteStatement = statement.sqliteStatement
 }
 ```
@@ -3978,7 +4033,7 @@ let player = try Player.fetchOne(db, sql: "SELECT * FROM player WHERE id = ?", a
 <a name="list-of-record-methods-4">⁴</a> See [Prepared Statements](#prepared-statements):
 
 ```swift
-let statement = try db.makeSelectStatement(sql: "SELECT * FROM player WHERE id = ?")
+let statement = try db.makeStatement(sql: "SELECT * FROM player WHERE id = ?")
 let player = try Player.fetchOne(statement, arguments: [1])  // Player?
 ```
 
@@ -7087,7 +7142,7 @@ In such a situation, you can still avoid fatal errors by exposing and handling e
 ```swift
 // Untrusted arguments
 if let arguments = StatementArguments(arguments) {
-    let statement = try db.makeSelectStatement(sql: sql)
+    let statement = try db.makeStatement(sql: sql)
     try statement.setArguments(arguments)
     
     var cursor = try Row.fetchCursor(statement)

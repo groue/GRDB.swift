@@ -201,12 +201,12 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
                 s2.signal()
             }
             let block2 = { [weak dbPool] () in
-                var statement: UpdateStatement? = nil
+                var statement: Statement? = nil
                 do {
                     if let dbPool = dbPool {
                         do {
                             try dbPool.write { db in
-                                statement = try db.makeUpdateStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+                                statement = try db.makeStatement(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                                 s1.signal()
                             }
                         } catch {

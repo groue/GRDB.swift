@@ -3,6 +3,7 @@ import Glibc
 #endif
 
 /// A protocol around sqlite3_set_authorizer
+@usableFromInline
 protocol StatementAuthorizer: AnyObject {
     func authorize(
         _ actionCode: Int32,
@@ -28,7 +29,7 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
     
     /// Not nil if a statement is a BEGIN/COMMIT/ROLLBACK/RELEASE transaction or
     /// savepoint statement.
-    var transactionEffect: UpdateStatement.TransactionEffect?
+    var transactionEffect: Statement.TransactionEffect?
     
     private var isDropStatement = false
     

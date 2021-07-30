@@ -14,7 +14,7 @@ class ValueObservationPrintTests: GRDBTestCase {
     private func region(sql: String, in dbReader: DatabaseReader) throws -> String {
         try dbReader.read { db in
             try db
-                .makeSelectStatement(sql: sql)
+                .makeStatement(sql: sql)
                 .databaseRegion
                 .description
         }

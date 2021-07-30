@@ -40,7 +40,7 @@ public class DatabaseSnapshot: DatabaseReader {
             try db.beginTransaction(.deferred)
             
             // Acquire snapshot isolation
-            try db.internalCachedSelectStatement(sql: "SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
+            try db.internalCachedStatement(sql: "SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
             
             #if SQLITE_ENABLE_SNAPSHOT
             // We must expect an error: https://www.sqlite.org/c3ref/snapshot_get.html

@@ -4,35 +4,25 @@ import XCTest
 class DatabaseQueueSchemaCacheTests : GRDBTestCase {
     
     func testCache() throws {
-        let dbQueue = try makeDatabaseQueue()
-        
-        try dbQueue.inDatabase { db in
+        try makeDatabaseQueue().inDatabase { db in
             try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
-        }
-        
-        dbQueue.inDatabase { db in
+
             // Assert that cache is empty
             XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
-        }
-        
-        try dbQueue.inDatabase { db in
+
             // Warm cache
             let primaryKey = try db.primaryKey("items")
             XCTAssertEqual(primaryKey.rowIDColumn, "id")
             
             // Assert that cache is warmed
             XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
-        }
-        
-        try dbQueue.inDatabase { db in
+
             // Empty cache after schema change
             try db.execute(sql: "DROP TABLE items")
             
             // Assert that cache is empty
             XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
-        }
-        
-        try dbQueue.inDatabase { db in
+
             do {
                 // Assert that cache is used: we expect an error now that
                 // the cache is empty.
@@ -43,6 +33,32 @@ class DatabaseQueueSchemaCacheTests : GRDBTestCase {
                 XCTAssertEqual(error.message!, "no such table: items")
                 XCTAssertEqual(error.description, "SQLite error 1: no such table: items")
             }
+        }
+    }
+    
+    func testCacheInvalidationWithCursor() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            
+            // Assert that cache is empty
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
+            
+            // Warm cache
+            let primaryKey = try db.primaryKey("items")
+            XCTAssertEqual(primaryKey.rowIDColumn, "id")
+            
+            // Assert that cache is warmed
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
+            
+            // Assert that cache is still warm until the DROP TABLE statement has been executed
+            let statement = try db.makeStatement(sql: "DROP TABLE items")
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
+            let cursor = try Row.fetchCursor(statement)
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") != nil)
+            _ = try cursor.next()
+
+            // Assert that cache is empty after cursor has run sqlite3_step
+            XCTAssertTrue(db.schemaCache[.main].primaryKey("items") == nil)
         }
     }
     

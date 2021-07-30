@@ -162,7 +162,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     /// If true, select statement execution is recorded.
-    /// Use recordingSelectedRegion(_:), see `selectStatementWillExecute(_:)`
+    /// Use recordingSelectedRegion(_:), see `statementWillExecute(_:)`
     var _isRecordingSelectedRegion: Bool = false
     var _selectedRegion = DatabaseRegion()
     
@@ -365,7 +365,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         //
         // So let's fail early if file is not a database, or encrypted with
         // another passphrase.
-        try makeSelectStatement(sql: "SELECT * FROM sqlite_master LIMIT 1").makeCursor().next()
+        try makeStatement(sql: "SELECT * FROM sqlite_master LIMIT 1").makeCursor().next()
     }
     
     // MARK: - Database Closing
@@ -486,7 +486,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     func beginReadOnly() throws {
         if configuration.readonly { return }
         if _readOnlyDepth == 0 {
-            try internalCachedUpdateStatement(sql: "PRAGMA query_only = 1").execute()
+            try internalCachedStatement(sql: "PRAGMA query_only = 1").execute()
         }
         _readOnlyDepth += 1
     }
@@ -495,7 +495,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         if configuration.readonly { return }
         _readOnlyDepth -= 1
         if _readOnlyDepth == 0 {
-            try internalCachedUpdateStatement(sql: "PRAGMA query_only = 0").execute()
+            try internalCachedStatement(sql: "PRAGMA query_only = 0").execute()
         }
     }
     
@@ -834,9 +834,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 return
             }
             
-            if let updateStatement = statement as? UpdateStatement,
-               updateStatement.releasesDatabaseLock
-            {
+            if statement.releasesDatabaseLock {
                 // Accept statements that release locks:
                 // - COMMIT
                 // - ROLLBACK
@@ -1255,7 +1253,7 @@ extension Database {
         }
         try usePassphrase(data)
     }
-
+    
     /// Sets the passphrase used to crypt and decrypt an SQLCipher database.
     ///
     /// Call this method from `Configuration.prepareDatabase`,
@@ -1284,7 +1282,7 @@ extension Database {
         }
         try changePassphrase(data)
     }
-
+    
     /// Changes the passphrase used by an SQLCipher encrypted database.
     public func changePassphrase(_ passphrase: Data) throws {
         // FIXME: sqlite3_rekey is discouraged.

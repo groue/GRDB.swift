@@ -20,9 +20,9 @@
 ///
 /// - `DatabaseRegion(table:)`: the region that covers one database table.
 ///
-/// - `SelectStatement.databaseRegion`:
+/// - `Statement.databaseRegion`:
 ///
-///         let statement = try db.makeSelectStatement(sql: "SELECT name, score FROM player")
+///         let statement = try db.makeStatement(sql: "SELECT name, score FROM player")
 ///         let region = statement.databaseRegion
 ///
 /// - `FetchRequest.databaseRegion(_:)`
