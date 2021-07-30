@@ -61,15 +61,3 @@ opt_in_rules:
 
 vertical_whitespace:
   max_empty_lines: 2
-
-custom_rules:
-  # In doc comments (which start with ///), any link like http(s): must be wrapped in <angle brackets> to make it clickable in Xcode's rendered documentation.
-  angle_brackets_on_links_in_documentation:
-    name: "Angle brackets on links in documentation"
-    # exclude `](` to avoid triggering on Markdown URLs.
-    # exclude `<` so we don't trigger on URLs that are already bracketed.
-    # Note: does not catch missing `>` at the end of a URL; only missing `<` at the beginning.
-    regex: '^(\s+///.*[^<][^\]\(])(https?\:).+[^\n]'
-    capture_group: 2
-    message: "Links in documentation must be wrapped in <angle brackets>."
-    severity: warning
