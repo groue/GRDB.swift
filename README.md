@@ -1843,7 +1843,7 @@ Alternatively, you can create a prepared statement with [SQL Interpolation]:
 ```swift
 let insertStatement = try db.makeStatement(literal: "INSERT ...")
 let selectStatement = try db.makeStatement(literal: "SELECT ...")
-//                                               ~~~~~~~
+//                                         ~~~~~~~
 ```
 
 Statements can be executed:
