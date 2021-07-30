@@ -1892,12 +1892,11 @@ while let statement = try statements.next() {
 }
 ```
 
-You can turn the [cursor](#cursors) returned from `allStatements` into a regular Swift array, but make sure all individual statements can compile even if the previous ones were not run:
+You can turn the [cursor](#cursors) returned from `allStatements` into a regular Swift array, but in this case make sure all individual statements can compile even if the previous ones were not run:
 
 ```swift
 // OK
-let statements = try Array(db.allStatements(sql: "SELECT ...; SELECT ...;"))
-let statements = try Array(db.allStatements(sql: "INSERT ...; UPDATE ...;"))
+let statements = try Array(db.allStatements(sql: "INSERT ...; UPDATE ...; SELECT ...;"))
 
 // Will fail since the insert statement won't compile until the table is created
 let statements = try Array(db.allStatements(sql: "CREATE TABLE player ...; INSERT INTO player ...;"))
