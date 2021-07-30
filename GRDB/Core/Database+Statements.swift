@@ -35,7 +35,7 @@ extension Database {
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
-    ///   A fatal error is raised otherwise.
+    ///   An error is raised otherwise.
     ///
     ///         // OK
     ///         try makeStatement(literal: """
@@ -54,8 +54,8 @@ extension Database {
         let (sql, arguments) = try sqlLiteral.build(self)
         let statement = try makeStatement(sql: sql)
         if arguments.isEmpty == false {
-            // Crash if arguments do not match
-            statement.arguments = arguments
+            // Throws if arguments do not match
+            try statement.setArguments(arguments)
         }
         return statement
     }
@@ -80,7 +80,7 @@ extension Database {
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
-    ///   A fatal error is raised otherwise.
+    ///   An error is raised otherwise.
     ///
     ///         // OK
     ///         try makeSelectStatement(literal: """
@@ -177,7 +177,7 @@ extension Database {
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
-    ///   A fatal error is raised otherwise.
+    ///   An error is raised otherwise.
     ///
     ///         // OK
     ///         try cachedStatement(literal: """
@@ -196,8 +196,8 @@ extension Database {
         let (sql, arguments) = try sqlLiteral.build(self)
         let statement = try cachedStatement(sql: sql)
         if arguments.isEmpty == false {
-            // Crash if arguments do not match
-            statement.arguments = arguments
+            // Throws if arguments do not match
+            try statement.setArguments(arguments)
         }
         return statement
     }
@@ -228,7 +228,7 @@ extension Database {
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
-    ///   A fatal error is raised otherwise.
+    ///   An error is raised otherwise.
     ///
     ///         // OK
     ///         try cachedSelectStatement(literal: """
@@ -273,7 +273,7 @@ extension Database {
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
-    ///   A fatal error is raised otherwise.
+    ///   An error is raised otherwise.
     ///
     ///         // OK
     ///         try makeUpdateStatement(literal: """
@@ -315,7 +315,7 @@ extension Database {
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
     /// - precondition: No argument must be set, or all arguments must be set.
-    ///   A fatal error is raised otherwise.
+    ///   An error is raised otherwise.
     ///
     ///         // OK
     ///         try cachedUpdateStatement(literal: """
@@ -350,10 +350,28 @@ extension Database {
     ///     - arguments: Statement arguments.
     /// - returns: A cursor of `Statement`
     /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func allStatements(sql: String, arguments: StatementArguments = StatementArguments())
+    /// - precondition: Arguments must be nil, or all arguments must be set.
+    ///   The returned cursor will throw an error otherwise.
+    ///
+    ///         // OK
+    ///         try allStatements(sql: """
+    ///             SELECT COUNT(*) FROM player WHERE score < ?;
+    ///             SELECT COUNT(*) FROM player WHERE score > ?;
+    ///             """)
+    ///         try allStatements(sql: """
+    ///             SELECT COUNT(*) FROM player WHERE score < ?;
+    ///             SELECT COUNT(*) FROM player WHERE score > ?;
+    ///             """, arguments: [1000, 1000])
+    ///
+    ///         // NOT OK
+    ///         try allStatements(sql: """
+    ///             SELECT COUNT(*) FROM player WHERE score < ?;
+    ///             SELECT COUNT(*) FROM player WHERE score > ?;
+    ///             """, arguments: [1000])
+    public func allStatements(sql: String, arguments: StatementArguments? = nil)
     throws -> SQLStatementCursor
     {
-        try allStatements(literal: SQL(sql: sql, arguments: arguments))
+        SQLStatementCursor(database: self, sql: sql, arguments: arguments)
     }
 
     /// Returns a cursor of all SQL statements separated by semi-colons.
@@ -373,10 +391,30 @@ extension Database {
     /// - parameter sqlLiteral: An `SQL` literal.
     /// - returns: A cursor of `Statement`
     /// - throws: A DatabaseError whenever an SQLite error occurs.
+    /// - precondition: No argument must be set, or all arguments must be set.
+    ///   The returned cursor will throw an error otherwise.
+    ///
+    ///         // OK
+    ///         try allStatements(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score < ?;
+    ///             SELECT COUNT(*) FROM player WHERE score > ?;
+    ///             """)
+    ///         try allStatements(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score < \(1000);
+    ///             SELECT COUNT(*) FROM player WHERE score > \(1000);
+    ///             """)
+    ///
+    ///         // NOT OK
+    ///         try allStatements(literal: """
+    ///             SELECT COUNT(*) FROM player WHERE score < \(1000);
+    ///             SELECT COUNT(*) FROM player WHERE score > ?;
+    ///             """)
     public func allStatements(literal sqlLiteral: SQL) throws -> SQLStatementCursor {
         let context = SQLGenerationContext(self)
         let sql = try sqlLiteral.sql(context)
-        let arguments = context.arguments
+        let arguments = context.arguments.isEmpty
+            ? nil               // builds statements without arguments
+            : context.arguments // force arguments to match
         return SQLStatementCursor(database: self, sql: sql, arguments: arguments)
     }
     
