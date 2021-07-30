@@ -617,6 +617,38 @@ class TransactionObserverTests: GRDBTestCase {
         }
     }
 
+    func testInsertEventWithCursor() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer)
+        
+        try dbQueue.writeWithoutTransaction { db in
+            let insertedName = "Gerhard Richter"
+            let statement = try db.makeStatement(literal: "INSERT INTO artists (name) VALUES (\(insertedName))")
+            _ = try Row.fetchCursor(statement).next()
+            let insertedId = db.lastInsertedRowID
+            
+            XCTAssertEqual(observer.lastCommittedEvents.count, 1)
+            let event = observer.lastCommittedEvents.filter { event in
+                self.match(event: event, kind: .insert, tableName: "artists", rowId: insertedId)
+            }.first
+            XCTAssertTrue(event != nil)
+            
+            #if SQLITE_ENABLE_PREUPDATE_HOOK
+            XCTAssertEqual(observer.lastCommittedPreUpdateEvents.count, 1)
+            let preUpdateEvent = observer.lastCommittedPreUpdateEvents.filter { event in
+                self.match(preUpdateEvent: event, kind: .insert, tableName: "artists", initialRowID: nil, finalRowID: insertedId, initialValues: nil,
+                           finalValues: [
+                            insertedId.databaseValue,
+                            insertedName.databaseValue
+                           ])
+            }.first
+            XCTAssertTrue(preUpdateEvent != nil)
+            #endif
+        }
+    }
+    
     func testUpdateEvent() throws {
         let dbQueue = try makeDatabaseQueue()
         try setupArtistDatabase(in: dbQueue)
