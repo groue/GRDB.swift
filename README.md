@@ -1868,7 +1868,7 @@ try insertStatement.execute(arguments: ["name": "Arthur", "score": 1000])
 let player = try Player.fetchOne(selectStatement, arguments: ["Arthur"])
 ```
 
-When you want to build multiple statements joined with a semicolon, use the `allStatements` method:
+**When you want to build multiple statements joined with a semicolon**, use the `allStatements` method:
 
 ```swift
 let statements = try db.allStatements(sql: """
@@ -1891,6 +1891,19 @@ while let statement = try statements.next() {
     try statement.execute()
 }
 ```
+
+You can turn the [cursor](#cursors) returned from `allStatements` into a regular Swift array, but make sure all individual statements can compile even if the previous ones were not run:
+
+```swift
+// OK
+let statements = try Array(db.allStatements(sql: "SELECT ...; SELECT ...;"))
+let statements = try Array(db.allStatements(sql: "INSERT ...; UPDATE ...;"))
+
+// Will fail since the insert statement won't compile until the table is created
+let statements = try Array(db.allStatements(sql: "CREATE TABLE player ...; INSERT INTO player ...;"))
+```
+
+See also `Database.execute(sql:)` in the [Executing Updates](#executing-updates) chapter.
 
 > :point_up: **Note**: it is a programmer error to reuse a prepared statement that has failed: GRDB may crash if you do so.
 
