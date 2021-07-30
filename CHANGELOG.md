@@ -85,9 +85,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: Cached prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
     
     ```swift
-    let updateStatement = try db.cachedUpdateStatement(literal: "INSERT ...")
-    let selectStatement = try db.cachedSelectStatement(literal: "SELECT ...")
-    //                                                 ~~~~~~~
+    let updateStatement = try db.cachedStatement(literal: "INSERT ...")
+    //                                           ~~~~~~~
     ```
 
 - **New**: [#993](https://github.com/groue/GRDB.swift/pull/993) by [@groue](https://github.com/groue): QueryInterfaceRequest builder with dynamic table/view name
