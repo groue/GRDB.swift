@@ -94,8 +94,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: Types that adopt both `DatabaseValueConvertible` and `Codable` now profit from automatic JSON encoding and decoding.
 - **New**: [#1010](https://github.com/groue/GRDB.swift/pull/1010) by [@tternes](https://github.com/tternes): Add VACUUM INTO Support
 - **New**: [#1012](https://github.com/groue/GRDB.swift/pull/1012) by [@ZevEisenberg](https://github.com/ZevEisenberg): Add brackets to urls in doc comments to make them clickable
+- **New**: [#1019](https://github.com/groue/GRDB.swift/pull/1019) by [@groue](https://github.com/groue): Merge prepared statement types, and introduce statement cursor
 - **Documentation Update**: The [Requests](README.md#requests) chapter was updated for the new `Table` type that can build requests without any record type.
 - **Documentation Update**: The [Custom Value Types](README.md#custom-value-types) chapter was extended about the new support for codable value types encoded as JSON arrays or objects.
+- **Documentation Update**: The [Fetching Methods](README.md#fetching-methods) and [Prepared Statements](README.md#prepared-statements) chapters have been updated for the unique `Statement` class, and the new `Database.allStatements()` method.
 
 
 ## 5.8.0
