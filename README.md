@@ -798,7 +798,7 @@ try Row.fetchOne(...)    // Row?
     let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) ...") // Int?
     ```
 
-All those fetching methods require an SQL string that contains a single SQL statement. When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements](#prepared-statements) found in the SQL string:
+**All those fetching methods require an SQL string that contains a single SQL statement.** When you want to fetch from multiple statements joined with a semicolon, iterate the multiple [prepared statements](#prepared-statements) found in the SQL string:
 
 ```swift
 let statements = try db.allStatements(sql: """
@@ -811,10 +811,10 @@ while let statement = try statements.next() {
 }
 ```
 
-This `allStatements` method allows you to iterate all rows from multiple statements, like the SQLite [`sqlite3_exec`](https://www.sqlite.org/c3ref/exec.html) function:
+You can join the results of all statements yielded by the `allStatements` method, like the SQLite [`sqlite3_exec`](https://www.sqlite.org/c3ref/exec.html) function:
 
 ```swift
-// A Cursor of all rows from all statements
+// A single cursor of all rows from all statements
 let rows = try db
     .allStatements(sql: "...")
     .flatMap { statement in try Row.fetchCursor(statement) }
@@ -1895,11 +1895,19 @@ while let statement = try statements.next() {
 You can turn the [cursor](#cursors) returned from `allStatements` into a regular Swift array, but in this case make sure all individual statements can compile even if the previous ones were not run:
 
 ```swift
-// OK
-let statements = try Array(db.allStatements(sql: "INSERT ...; UPDATE ...; SELECT ...;"))
+// OK: Array of statements
+let statements = try Array(db.allStatements(sql: """
+    INSERT ...; 
+    UPDATE ...; 
+    SELECT ...;
+    """))
 
-// Will fail since the insert statement won't compile until the table is created
-let statements = try Array(db.allStatements(sql: "CREATE TABLE player ...; INSERT INTO player ...;"))
+// FAILURE: Can't build an array of statements since 
+// the INSERT won't compile until CREATE TABLE is run.
+let statements = try Array(db.allStatements(sql: """
+    CREATE TABLE player ...; 
+    INSERT INTO player ...;
+    """))
 ```
 
 See also `Database.execute(sql:)` in the [Executing Updates](#executing-updates) chapter.
