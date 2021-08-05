@@ -75,4 +75,70 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
             assert(record, isEncodedIn: row)
         }
     }
+    
+    // MARK: - Delete
+    
+    func testDelete() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            try record.insert(db)
+            try record.delete(db)
+            do {
+                try record.update(db)
+                XCTFail("Expected PersistenceError.recordNotFound")
+            } catch let PersistenceError.recordNotFound(databaseTableName: databaseTableName, key: key) {
+                // Expected PersistenceError.recordNotFound
+                XCTAssertEqual(databaseTableName, "maybeRemoteMaybeLocalID")
+                XCTAssertEqual(DatabaseValue.null, key["remoteID"])
+                XCTAssertEqual(1.databaseValue, key["localID"])
+            }
+        }
+    }
+    
+    // MARK: - Exists
+    
+    func testExistsFalse() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            XCTAssertFalse(try record.exists(db))
+        }
+    }
+    
+    func testExistsTrue() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            try record.insert(db)
+            XCTAssertTrue(try record.exists(db))
+        }
+    }
+    
+    // MARK: - Save
+    
+    func testSavesNew() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            try record.save(db)
+            
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM maybeRemoteMaybeLocalID WHERE localID = ?", arguments: [record.localID])!
+            assert(record, isEncodedIn: row)
+        }
+    }
+    
+    func testSavesUpdate() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            try record.insert(db)
+            record.thing = "Local One Updated"
+            try record.save(db)
+            
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM maybeRemoteMaybeLocalID WHERE localID = ?", arguments: [record.localID])!
+            assert(record, isEncodedIn: row)
+        }
+    }
+    
 }

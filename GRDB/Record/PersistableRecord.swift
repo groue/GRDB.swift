@@ -690,12 +690,10 @@ final class DAO<Record: MutablePersistableRecord> {
     /// Returns nil if and only if primary key is nil
     @usableFromInline
     func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> Statement? {
-        // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey.columns
-        let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
-        }
-        if primaryKeyValues.allSatisfy({ $0.isNull }) {
+        let primaryKeysAndValues = groupedPrimaryKeysAndTheirValues()
+
+        // If there are no primary key columns at all, then return nil because we cannot proceed
+        if primaryKeysAndValues.notNullColumns.isEmpty {
             return nil
         }
         
@@ -704,7 +702,7 @@ final class DAO<Record: MutablePersistableRecord> {
         // Don't update primary key columns
         let lowercaseUpdatedColumns = Set(columns.map { $0.lowercased() })
             .intersection(persistenceContainer.columns.map { $0.lowercased() })
-            .subtracting(primaryKeyColumns.map { $0.lowercased() })
+            .subtracting(primaryKeysAndValues.allColumns.map { $0.lowercased() })
         
         var updatedColumns: [String] = try db
             .columns(in: databaseTableName)
@@ -720,7 +718,7 @@ final class DAO<Record: MutablePersistableRecord> {
             //
             // The goal is to be able to write tests with minimal tables,
             // including tables made of a single primary key column.
-            updatedColumns = primaryKeyColumns
+            updatedColumns = primaryKeysAndValues.allColumns
         }
         
         let updatedValues = updatedColumns.map {
@@ -731,49 +729,53 @@ final class DAO<Record: MutablePersistableRecord> {
             onConflict: onConflict,
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
-            conditionColumns: primaryKeyColumns)
-        let statement = try db.internalCachedStatement(sql: query.sql)
-        statement.setUncheckedArguments(StatementArguments(updatedValues + primaryKeyValues))
+            conditionColumns: primaryKeysAndValues.notNullColumns,
+            nullConditionColumns: primaryKeysAndValues.nullColumns
+        )
+        let statement = try db.internalCachedStatement(sql: query.sql) // NB: query.sql may return cached value
+        statement.setUncheckedArguments(
+            StatementArguments(updatedValues + primaryKeysAndValues.notNullValues)
+        )
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
     func deleteStatement() throws -> Statement? {
+        let primaryKeysAndValues = groupedPrimaryKeysAndTheirValues()
+        
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey.columns
-        let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
-        }
-        if primaryKeyValues.allSatisfy({ $0.isNull }) {
+        if primaryKeysAndValues.notNullColumns.isEmpty {
             return nil
         }
         
         let query = DeleteQuery(
             tableName: databaseTableName,
-            conditionColumns: primaryKeyColumns)
+            conditionColumns: primaryKeysAndValues.notNullColumns,
+            nullConditionColumns: primaryKeysAndValues.nullColumns
+        )
         let statement = try db.internalCachedStatement(sql: query.sql)
-        statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(primaryKeysAndValues.notNullValues))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
     func existsStatement() throws -> Statement? {
+        let primaryKeysAndValues = groupedPrimaryKeysAndTheirValues()
+        
         // Fail early if primary key does not resolve to a database row.
-        let primaryKeyColumns = primaryKey.columns
-        let primaryKeyValues = primaryKeyColumns.map {
-            persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null
-        }
-        if primaryKeyValues.allSatisfy({ $0.isNull }) {
+        if primaryKeysAndValues.notNullColumns.isEmpty {
             return nil
         }
         
         let query = ExistsQuery(
             tableName: databaseTableName,
-            conditionColumns: primaryKeyColumns)
+            conditionColumns: primaryKeysAndValues.notNullColumns,
+            nullConditionColumns: primaryKeysAndValues.nullColumns
+        )
         let statement = try db.internalCachedStatement(sql: query.sql)
-        statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
+        statement.setUncheckedArguments(StatementArguments(primaryKeysAndValues.notNullValues))
         return statement
     }
     
@@ -786,6 +788,33 @@ final class DAO<Record: MutablePersistableRecord> {
         return PersistenceError.recordNotFound(
             databaseTableName: databaseTableName,
             key: key)
+    }
+    
+    private struct GroupedPrimaryKeysAndTheirValues {
+        let allColumns: [String]
+        var nullColumns: [String]
+        var notNullColumns: [String]
+        var notNullValues: [DatabaseValue]
+    }
+    
+    // Some primary key columns may be null, in which case they need to be handled differently
+    private func groupedPrimaryKeysAndTheirValues() -> GroupedPrimaryKeysAndTheirValues {
+        var result = GroupedPrimaryKeysAndTheirValues(
+            allColumns: primaryKey.columns,
+            nullColumns: [],
+            notNullColumns: [],
+            notNullValues: [])
+ 
+        for column in result.allColumns {
+            if let value = persistenceContainer[caseInsensitive: column]?.databaseValue {
+                result.notNullColumns.append(column)
+                result.notNullValues.append(value)
+            } else {
+                result.nullColumns.append(column)
+            }
+        }
+        
+        return result
     }
 }
 
@@ -833,6 +862,7 @@ private struct UpdateQuery: Hashable {
     let tableName: String
     let updatedColumns: [String]
     let conditionColumns: [String]
+    let nullConditionColumns: [String]
 }
 
 extension UpdateQuery {
@@ -841,8 +871,19 @@ extension UpdateQuery {
         if let sql = Self.sqlCache[self] {
             return sql
         }
+        let sql = uncachedSQL()
+        Self.sqlCache[self] = sql
+        return sql
+    }
+    
+    func uncachedSQL() -> String {
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+        if nullConditionColumns.isEmpty == false {
+            let nullConditions = nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" }
+            whereSQL.append("AND \(nullConditions.joined(separator: " AND "))")
+        }
+        
         let sql: String
         switch onConflict {
         case .abort:
@@ -869,11 +910,16 @@ extension UpdateQuery {
 private struct DeleteQuery {
     let tableName: String
     let conditionColumns: [String]
+    let nullConditionColumns: [String]
 }
 
 extension DeleteQuery {
     var sql: String {
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+        if nullConditionColumns.isEmpty == false {
+            let nullConditions = nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" }
+            whereSQL.append("AND \(nullConditions.joined(separator: " AND "))")
+        }
         return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
     }
 }
@@ -884,11 +930,16 @@ extension DeleteQuery {
 private struct ExistsQuery {
     let tableName: String
     let conditionColumns: [String]
+    let nullConditionColumns: [String]
 }
 
 extension ExistsQuery {
     var sql: String {
-        let whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
+        if nullConditionColumns.isEmpty == false {
+            let nullConditions = nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" }
+            whereSQL.append("AND \(nullConditions.joined(separator: " AND "))")
+        }
         return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
     }
 }
