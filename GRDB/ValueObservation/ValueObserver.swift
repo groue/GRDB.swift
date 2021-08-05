@@ -94,7 +94,7 @@ extension ValueObserver: TransactionObserver {
             // Synchronously
             fetchedFuture = DatabaseFuture(Result {
                 try recordingSelectedRegionIfNeeded(db) {
-                    try lock.synchronized {
+                    try synchronized {
                         try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
                     }
                 }
@@ -102,7 +102,7 @@ extension ValueObserver: TransactionObserver {
         } else {
             // Concurrently
             guard let writer = writer else { return }
-            fetchedFuture = writer.concurrentRead { db in try self.lock.synchronized { try self.reducer._fetch(db) } }
+            fetchedFuture = writer.concurrentRead { db in try self.synchronized { try self.reducer._fetch(db) } }
         }
         
         // 2. Reduce
@@ -115,7 +115,7 @@ extension ValueObserver: TransactionObserver {
             if self.isCompleted { return }
             do {
                 let fetchedValue = try fetchedFuture.wait()
-                if let value = self.lock.synchronized("", { self.reducer._value(fetchedValue) }) {
+                if let value = self.synchronized({ self.reducer._value(fetchedValue) }) {
                     self.notifyChange(value)
                 }
             } catch {
@@ -146,7 +146,7 @@ extension ValueObserver {
     /// Fetch an observed value, and moves the reducer forward.
     func fetchValue(_ db: Database) throws -> Reducer.Value? {
         try recordingSelectedRegionIfNeeded(db) {
-            try lock.synchronized {
+            try synchronized {
                 try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
             }
         }
@@ -203,7 +203,7 @@ extension ValueObserver {
     }
     
     private var needsRecordingSelectedRegion: Bool {
-        observedRegion == nil || lock.synchronized { !reducer._isSelectedRegionDeterministic }
+        observedRegion == nil || synchronized { !reducer._isSelectedRegionDeterministic }
     }
     
     private func recordingSelectedRegionIfNeeded<T>(
