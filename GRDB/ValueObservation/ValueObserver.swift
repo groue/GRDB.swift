@@ -23,7 +23,7 @@ final class ValueObserver<Reducer: ValueReducer> {
     private let reduceQueue: DispatchQueue
     private var isChanged = false
     private let onChange: (Reducer.Value) -> Void
-    private var lock = NSRecursiveLock() // protects _isCompleted
+    private var lock = NSRecursiveLock() // protects _isCompleted and reducer
     
     init(
         events: ValueObservationEvents,
@@ -94,13 +94,15 @@ extension ValueObserver: TransactionObserver {
             // Synchronously
             fetchedFuture = DatabaseFuture(Result {
                 try recordingSelectedRegionIfNeeded(db) {
-                    try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+                    try lock.synchronized {
+                        try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+                    }
                 }
             })
         } else {
             // Concurrently
             guard let writer = writer else { return }
-            fetchedFuture = writer.concurrentRead(reducer._fetch)
+            fetchedFuture = writer.concurrentRead { db in try self.lock.synchronized { try self.reducer._fetch(db) } }
         }
         
         // 2. Reduce
@@ -113,7 +115,7 @@ extension ValueObserver: TransactionObserver {
             if self.isCompleted { return }
             do {
                 let fetchedValue = try fetchedFuture.wait()
-                if let value = self.reducer._value(fetchedValue) {
+                if let value = self.lock.synchronized("", { self.reducer._value(fetchedValue) }) {
                     self.notifyChange(value)
                 }
             } catch {
@@ -144,7 +146,9 @@ extension ValueObserver {
     /// Fetch an observed value, and moves the reducer forward.
     func fetchValue(_ db: Database) throws -> Reducer.Value? {
         try recordingSelectedRegionIfNeeded(db) {
-            try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
+            try lock.synchronized {
+                try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
+            }
         }
     }
     
@@ -199,7 +203,7 @@ extension ValueObserver {
     }
     
     private var needsRecordingSelectedRegion: Bool {
-        observedRegion == nil || !reducer._isSelectedRegionDeterministic
+        observedRegion == nil || lock.synchronized { !reducer._isSelectedRegionDeterministic }
     }
     
     private func recordingSelectedRegionIfNeeded<T>(
