@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		223F6F3E26BC1201007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223F6F3D26BC1201007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift */; };
+		223F6F3F26BC1202007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223F6F3D26BC1201007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift */; };
+		223F6F4026BC1202007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 223F6F3D26BC1201007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift */; };
 		56012B552573EED000B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
 		56012B562573EED100B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
 		56012B572573EED100B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
@@ -1253,6 +1256,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		223F6F3D26BC1201007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordPrimaryKeyMultipleSomeNilTests.swift; sourceTree = "<group>"; };
 		56012B542573EED000B4925B /* CommonTableExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpressionTests.swift; sourceTree = "<group>"; };
 		56012B742574048B00B4925B /* CommonTableExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpression.swift; sourceTree = "<group>"; };
 		56043299228F00C2009D3FE2 /* OrderedDictionaryTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OrderedDictionaryTests.swift; sourceTree = "<group>"; };
@@ -1836,6 +1840,7 @@
 				6340BF7F1E5E3F7900832805 /* RecordPersistenceConflictPolicy.swift */,
 				5698ACCD1DA8C2620056AF8C /* RecordPrimaryKeyHiddenRowIDTests.swift */,
 				56A238281B9C74A90082EB20 /* RecordPrimaryKeyMultipleTests.swift */,
+				223F6F3D26BC1201007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift */,
 				56A238291B9C74A90082EB20 /* RecordPrimaryKeyNoneTests.swift */,
 				56A2382A1B9C74A90082EB20 /* RecordPrimaryKeyRowIDTests.swift */,
 				56A2382B1B9C74A90082EB20 /* RecordPrimaryKeySingleTests.swift */,
@@ -3385,6 +3390,7 @@
 				5653EAF520944B4F00F46237 /* AssociationParallelSQLTests.swift in Sources */,
 				563B06BE2185CCD300B38F35 /* ValueObservationTests.swift in Sources */,
 				56FF455A1D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift in Sources */,
+				223F6F3F26BC1202007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift in Sources */,
 				56419C7A24A51A39004967E1 /* Recorder.swift in Sources */,
 				56B7F42A1BE14A1900E39BBF /* CGFloatTests.swift in Sources */,
 				5605F1881C69111300235C62 /* DatabaseRegionTests.swift in Sources */,
@@ -3616,6 +3622,7 @@
 				56677C19241D217F0050755D /* ValueObservationRecorderTests.swift in Sources */,
 				5653EAF420944B4F00F46237 /* AssociationParallelSQLTests.swift in Sources */,
 				563B06BD2185CCD300B38F35 /* ValueObservationTests.swift in Sources */,
+				223F6F3E26BC1201007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift in Sources */,
 				56D496971D81317B008276D7 /* DatabaseReaderTests.swift in Sources */,
 				56419C7824A51A38004967E1 /* Recorder.swift in Sources */,
 				56D496911D81316E008276D7 /* RowFromStatementTests.swift in Sources */,
@@ -3980,6 +3987,7 @@
 				AAA4DDC2230F262000C74B15 /* AssociationParallelSQLTests.swift in Sources */,
 				AAA4DDC3230F262000C74B15 /* ValueObservationTests.swift in Sources */,
 				AAA4DDC4230F262000C74B15 /* RecordUniqueIndexTests.swift in Sources */,
+				223F6F4026BC1202007A379C /* RecordPrimaryKeyMultipleSomeNilTests.swift in Sources */,
 				56419C7C24A51A3A004967E1 /* Recorder.swift in Sources */,
 				AAA4DDC5230F262000C74B15 /* CGFloatTests.swift in Sources */,
 				AAA4DDC6230F262000C74B15 /* DatabaseRegionTests.swift in Sources */,
