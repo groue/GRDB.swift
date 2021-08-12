@@ -762,6 +762,24 @@ extension FetchableRecordDecodableTests {
             XCTAssertEqual(record.optionalDates[1]!.timeIntervalSince1970, 128)
         }
     }
+
+    func testJSONKeyEncodingStrategy() throws {
+        struct Record: FetchableRecord, Decodable {
+            static let databaseKeyDecodingStrategy: DatabaseKeyDecodingStrategy = .convertFromSnakeCase
+            let recordID: Int
+            let recordName: String
+        }
+
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = try Record.fetchOne(db, sql: "SELECT ? AS record_id, ? AS record_name", arguments: [
+                1,
+                "test1",
+                ])!
+            XCTAssertEqual(record.recordID, 1)
+            XCTAssertEqual(record.recordName, "test1")
+        }
+    }
 }
 
 // MARK: - User Infos & Coding Keys
