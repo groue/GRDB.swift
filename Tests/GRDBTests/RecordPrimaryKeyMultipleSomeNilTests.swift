@@ -1,10 +1,6 @@
 import XCTest
 import GRDB
 
-private enum MaybeRemoteMaybeLocalIdError: Error {
-    case mustHaveLocalIDorRemoteID
-}
-
 // MaybeRemoteMaybeLocalID is a record that might have a local id, or might have a remote id, or possibly both.
 // So its primary key is a combination of the local and remote ids,
 // permitting one or the other (but not both) to be null
@@ -13,7 +9,7 @@ private struct MaybeRemoteMaybeLocalID : Codable, MutablePersistableRecord, Fetc
     let remoteID: UInt64?
     var thing: String
     
-    init(localID: UInt64? = nil, remoteID: UInt64? = nil, thing: String) throws {
+    init(localID: UInt64? = nil, remoteID: UInt64? = nil, thing: String) {
         self.localID = localID
         self.remoteID = remoteID
         self.thing = thing
@@ -43,7 +39,7 @@ private struct MaybeRemoteMaybeLocalIDUsingNulls : MutablePersistableRecord {
     let remoteID: DatabaseValue
     var thing: String
     
-    init(localID: DatabaseValue, remoteID: DatabaseValue, thing: String) throws {
+    init(localID: DatabaseValue, remoteID: DatabaseValue, thing: String) {
         self.localID = localID
         self.remoteID = remoteID
         self.thing = thing
@@ -72,7 +68,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testInsert() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            var record = MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
             try record.insert(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM maybeRemoteMaybeLocalID WHERE localID = ?", arguments: [record.localID])!
@@ -89,7 +85,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testUpdate() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            var record = MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
             try record.insert(db)
             record.thing = "Local One Updated"
             try record.update(db)
@@ -104,7 +100,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testUpdateUsingDatabaseValueNull() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var record = try MaybeRemoteMaybeLocalIDUsingNulls(localID: DatabaseValue(value: 1)!, remoteID: .null, thing: "Local One")
+            var record = MaybeRemoteMaybeLocalIDUsingNulls(localID: DatabaseValue(value: 1)!, remoteID: .null, thing: "Local One")
             try record.insert(db)
             record.thing = "Local One Updated"
             try record.update(db)
@@ -119,7 +115,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testDelete() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            var record = MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
             try record.insert(db)
             try record.delete(db)
             do {
@@ -139,7 +135,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testExistsFalse() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            let record = MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
             XCTAssertFalse(try record.exists(db))
         }
     }
@@ -147,7 +143,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testExistsTrue() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            var record = MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
             try record.insert(db)
             XCTAssertTrue(try record.exists(db))
         }
@@ -158,7 +154,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testSavesNew() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            var record = MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
             try record.save(db)
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM maybeRemoteMaybeLocalID WHERE localID = ?", arguments: [record.localID])!
@@ -169,7 +165,7 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     func testSavesUpdate() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            var record = MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
             try record.insert(db)
             record.thing = "Local One Updated"
             try record.save(db)
