@@ -871,12 +871,12 @@ extension UpdateQuery {
         if let sql = Self.sqlCache[self] {
             return sql
         }
-        let sql = uncachedSQL()
+        let sql = buildSQL()
         Self.sqlCache[self] = sql
         return sql
     }
     
-    func uncachedSQL() -> String {
+    func buildSQL() -> String {
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
         var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
         if nullConditionColumns.isEmpty == false {
