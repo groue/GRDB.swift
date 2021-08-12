@@ -14,7 +14,6 @@ private struct MaybeRemoteMaybeLocalID : Codable, MutablePersistableRecord, Fetc
     var thing: String
     
     init(localID: UInt64? = nil, remoteID: UInt64? = nil, thing: String) throws {
-        guard localID != nil || remoteID != nil else { throw MaybeRemoteMaybeLocalIdError.mustHaveLocalIDorRemoteID }
         self.localID = localID
         self.remoteID = remoteID
         self.thing = thing
