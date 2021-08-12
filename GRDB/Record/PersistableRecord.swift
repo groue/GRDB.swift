@@ -878,11 +878,8 @@ extension UpdateQuery {
     
     func buildSQL() -> String {
         let updateSQL = updatedColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: ", ")
-        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
-        if nullConditionColumns.isEmpty == false {
-            let nullConditions = nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" }
-            whereSQL.append("AND \(nullConditions.joined(separator: " AND "))")
-        }
+        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }
+        whereSQL.append(contentsOf: nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" })
         
         let sql: String
         switch onConflict {
@@ -890,13 +887,13 @@ extension UpdateQuery {
             sql = """
                 UPDATE \(tableName.quotedDatabaseIdentifier) \
                 SET \(updateSQL) \
-                WHERE \(whereSQL)
+                WHERE \(whereSQL.joined(separator: " AND "))
                 """
         default:
             sql = """
                 UPDATE OR \(onConflict.rawValue) \(tableName.quotedDatabaseIdentifier) \
                 SET \(updateSQL) \
-                WHERE \(whereSQL)
+                WHERE \(whereSQL.joined(separator: " AND "))
                 """
         }
         Self.sqlCache[self] = sql
@@ -915,12 +912,9 @@ private struct DeleteQuery {
 
 extension DeleteQuery {
     var sql: String {
-        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
-        if nullConditionColumns.isEmpty == false {
-            let nullConditions = nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" }
-            whereSQL.append("AND \(nullConditions.joined(separator: " AND "))")
-        }
-        return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
+        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }
+        whereSQL.append(contentsOf: nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" })
+        return "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL.joined(separator: " AND "))"
     }
 }
 
@@ -935,11 +929,8 @@ private struct ExistsQuery {
 
 extension ExistsQuery {
     var sql: String {
-        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }.joined(separator: " AND ")
-        if nullConditionColumns.isEmpty == false {
-            let nullConditions = nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" }
-            whereSQL.append("AND \(nullConditions.joined(separator: " AND "))")
-        }
-        return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL)"
+        var whereSQL = conditionColumns.map { "\($0.quotedDatabaseIdentifier)=?" }
+        whereSQL.append(contentsOf: nullConditionColumns.map { "\($0.quotedDatabaseIdentifier) IS NULL" })
+        return "SELECT 1 FROM \(tableName.quotedDatabaseIdentifier) WHERE \(whereSQL.joined(separator: " AND "))"
     }
 }
