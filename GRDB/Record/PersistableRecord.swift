@@ -692,10 +692,10 @@ final class DAO<Record: MutablePersistableRecord> {
     func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> Statement? {
         let primaryKeysAndValues = groupedPrimaryKeysAndTheirValues()
 
-        // If there are no primary key columns at all, then return nil because we cannot proceed
-        if primaryKeysAndValues.notNullColumns.isEmpty {
-            return nil
-        }
+//        // If there are no primary key columns at all, then return nil because we cannot proceed
+//        if primaryKeysAndValues.notNullColumns.isEmpty {
+//            return nil
+//        }
         
         // Don't update columns not present in columns
         // Don't update columns not present in the persistenceContainer
