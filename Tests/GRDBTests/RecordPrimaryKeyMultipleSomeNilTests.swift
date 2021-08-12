@@ -32,6 +32,30 @@ private struct MaybeRemoteMaybeLocalID : Codable, MutablePersistableRecord, Fetc
     }
 }
 
+// This is a version of MaybeRemoteMaybeLocalID above, used to test case where
+// a primary key may be explicitly set to be DatabaseValue.null, rather than set to nil as above.
+// Referred to in https://github.com/groue/GRDB.swift/pull/1024#discussion_r685940813
+private struct MaybeRemoteMaybeLocalIDUsingNulls : MutablePersistableRecord {
+    
+    static let databaseTableName = "maybeRemoteMaybeLocalID"
+    
+    let localID: DatabaseValue
+    let remoteID: DatabaseValue
+    var thing: String
+    
+    init(localID: DatabaseValue, remoteID: DatabaseValue, thing: String) throws {
+        self.localID = localID
+        self.remoteID = remoteID
+        self.thing = thing
+    }
+    
+    func encode(to container: inout PersistenceContainer) {
+        container["localID"] = localID
+        container["remoteID"] = remoteID
+        container["thing"] = thing
+    }
+}
+
 
 class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
     
@@ -66,6 +90,21 @@ class RecordPrimaryKeyMultipleSomeNilTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             var record = try MaybeRemoteMaybeLocalID(localID: 1, thing: "Local One")
+            try record.insert(db)
+            record.thing = "Local One Updated"
+            try record.update(db)
+            
+            let row = try Row.fetchOne(db, sql: "SELECT * FROM maybeRemoteMaybeLocalID WHERE localID = ?", arguments: [record.localID])!
+            assert(record, isEncodedIn: row)
+        }
+    }
+    
+    // This tests the case where a primary key value is explicitly set to DatabaseValue.null as described
+    // in https://github.com/groue/GRDB.swift/pull/1024#discussion_r685940813
+    func testUpdateUsingDatabaseValueNull() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            var record = try MaybeRemoteMaybeLocalIDUsingNulls(localID: DatabaseValue(value: 1)!, remoteID: .null, thing: "Local One")
             try record.insert(db)
             record.thing = "Local One Updated"
             try record.update(db)

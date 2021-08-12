@@ -806,7 +806,7 @@ final class DAO<Record: MutablePersistableRecord> {
             notNullValues: [])
  
         for column in result.allColumns {
-            if let value = persistenceContainer[caseInsensitive: column]?.databaseValue {
+            if let value = persistenceContainer[caseInsensitive: column]?.databaseValue, !value.isNull {
                 result.notNullColumns.append(column)
                 result.notNullValues.append(value)
             } else {
