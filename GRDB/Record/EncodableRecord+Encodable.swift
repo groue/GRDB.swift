@@ -16,6 +16,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
     private var _persistenceContainer: PersistenceContainer
     var persistenceContainer: PersistenceContainer { _persistenceContainer }
+    var keyEncodingStrategy: DatabaseKeyEncodingStrategy { Record.databaseKeyEncodingStrategy }
     
     init(persistenceContainer: PersistenceContainer) {
         _persistenceContainer = persistenceContainer
@@ -122,7 +123,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     /// Helper methods
     @inline(__always)
     fileprivate func persist(_ value: DatabaseValueConvertible?, forKey key: CodingKey) {
-        _persistenceContainer[key.stringValue] = value
+        _persistenceContainer[keyEncodingStrategy.convertedKey(key: key.stringValue)] = value
     }
     
     @inline(__always)

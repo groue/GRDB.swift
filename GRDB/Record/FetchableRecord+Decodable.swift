@@ -324,7 +324,8 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
-        let decoder = _RowDecoder<R>(row: rows[currentIndex], codingPath: codingPath, keyDecodingStrategy: .useDefaultKeys)
+        let decoder = _RowDecoder<R>(row: rows[currentIndex], codingPath: codingPath,
+                                     keyDecodingStrategy: .useDefaultKeys)
         return try T(from: decoder)
     }
     
