@@ -81,6 +81,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Fixed**: [#980](https://github.com/groue/GRDB.swift/pull/980) by [@jroselightricks](https://github.com/jroselightricks): Fix spelling
 - **Fixed**: [#989](https://github.com/groue/GRDB.swift/pull/989) by [@pp5x](https://github.com/pp5x): FTS: add support of ifNotExists in synchronize()
 - **Fixed**: [#999](https://github.com/groue/GRDB.swift/issues/999): `request(for: association)` no longer crashes when the foreign key contains a NULL value.
+- **Fixed**: [#1025](https://github.com/groue/GRDB.swift/issues/1025) by [@mattgallagher](https://github.com/mattgallagher): Fix ValueObservation crash
 - **Fixed**: Fix thread unsafety in `ValueObservation.print()`
 - **New**: The `selectID()` method is now available for [Identifiable Records](README.md#identifiable-records)
 - **New**: Cached prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
