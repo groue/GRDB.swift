@@ -154,7 +154,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
             let row = decoder.row
-            let keyName = key.stringValue
+            let keyName = convertedKey(key.stringValue)
             
             // Column?
             if let index = row.index(forColumn: keyName) {

@@ -763,21 +763,24 @@ extension FetchableRecordDecodableTests {
         }
     }
 
-    func testJSONKeyEncodingStrategy() throws {
+    func testJSONKeyDecodingStrategy() throws {
         struct Record: FetchableRecord, Decodable {
             static let databaseKeyDecodingStrategy: DatabaseKeyDecodingStrategy = .convertFromSnakeCase
             let recordID: Int
             let recordName: String
+            let recordDate: Date
         }
 
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
-            let record = try Record.fetchOne(db, sql: "SELECT ? AS record_id, ? AS record_name", arguments: [
+            let record = try Record.fetchOne(db, sql: "SELECT ? AS record_id, ? AS record_name, ? as record_date", arguments: [
                 1,
                 "test1",
+                "1970-01-01 00:02:08.000",
                 ])!
             XCTAssertEqual(record.recordID, 1)
             XCTAssertEqual(record.recordName, "test1")
+            XCTAssertEqual(record.recordDate.timeIntervalSince1970, 128)
         }
     }
 }
