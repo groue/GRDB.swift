@@ -1,5 +1,5 @@
 /// The type that can be selected, as described at
-/// https://www.sqlite.org/syntax/result-column.html
+/// <https://www.sqlite.org/syntax/result-column.html>
 public struct SQLSelection {
     private var impl: Impl
     
@@ -175,7 +175,7 @@ extension SQLSelection {
     ///     COUNT(*)
     ///     (score + bonus) AS total
     ///
-    /// See https://sqlite.org/syntax/result-column.html
+    /// See <https://sqlite.org/syntax/result-column.html>
     ///
     /// - parameter context: An SQL generation context which accepts
     ///   statement arguments.
@@ -285,7 +285,7 @@ enum SQLCount {
 // MARK: - SQLSelectable
 
 /// SQLSelectable is the protocol for types that can be selected, as
-/// described at https://www.sqlite.org/syntax/result-column.html
+/// described at <https://www.sqlite.org/syntax/result-column.html>
 public protocol SQLSelectable {
     /// Returns an SQL selection.
     var sqlSelection: SQLSelection { get }

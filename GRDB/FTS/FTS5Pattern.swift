@@ -93,7 +93,7 @@ public struct FTS5Pattern {
                         }
                     }
                 }
-                try db.makeSelectStatement(sql: "SELECT * FROM document WHERE document MATCH ?")
+                try db.makeStatement(sql: "SELECT * FROM document WHERE document MATCH ?")
                     .makeCursor(arguments: [rawPattern])
                     .next() // error on next() for invalid patterns
             }
@@ -114,7 +114,7 @@ extension Database {
     /// Creates a pattern from a raw pattern string; throws DatabaseError on
     /// invalid syntax.
     ///
-    /// The pattern syntax is documented at https://www.sqlite.org/fts5.html#full_text_query_syntax
+    /// The pattern syntax is documented at <https://www.sqlite.org/fts5.html#full_text_query_syntax>
     ///
     ///     try db.makeFTS5Pattern(rawPattern: "and", forTable: "document") // OK
     ///     try db.makeFTS5Pattern(rawPattern: "AND", forTable: "document") // malformed MATCH expression: [AND]

@@ -7,7 +7,7 @@ public struct FTS3Pattern {
     /// Creates a pattern from a raw pattern string; throws DatabaseError on
     /// invalid syntax.
     ///
-    /// The pattern syntax is documented at https://www.sqlite.org/fts3.html#full_text_index_queries
+    /// The pattern syntax is documented at <https://www.sqlite.org/fts3.html#full_text_index_queries>
     ///
     ///     try FTS3Pattern(rawPattern: "and") // OK
     ///     try FTS3Pattern(rawPattern: "AND") // malformed MATCH expression: [AND]

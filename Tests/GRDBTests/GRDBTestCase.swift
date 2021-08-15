@@ -226,7 +226,7 @@ class GRDBTestCase: XCTestCase {
 
 extension FetchRequest {
     /// Turn request into a statement
-    func makeStatement(_ db: Database) throws -> SelectStatement {
+    func makeStatement(_ db: Database) throws -> Statement {
         try makePreparedRequest(db, forSingleResult: false).statement
     }
     

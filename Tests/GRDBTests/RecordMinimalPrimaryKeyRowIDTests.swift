@@ -780,4 +780,34 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
             XCTAssertFalse(try record.exists(db))
         }
     }
+    
+    // MARK: Select ID
+    
+    func test_static_selectID() throws {
+        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
+            throw XCTSkip("Identifiable not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalRowID()
+            try record.insert(db)
+            let ids = try MinimalRowID.selectID().fetchAll(db)
+            XCTAssertEqual(ids, [1])
+        }
+    }
+    
+    func test_request_selectID() throws {
+        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
+            throw XCTSkip("Identifiable not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let record = MinimalRowID()
+            try record.insert(db)
+            let ids = try MinimalRowID.all().selectID().fetchAll(db)
+            XCTAssertEqual(ids, [1])
+        }
+    }
 }

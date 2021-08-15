@@ -4,7 +4,7 @@ import Foundation
 
 /// DatabaseValue is the intermediate type between SQLite and your values.
 ///
-/// See https://www.sqlite.org/datatype3.html
+/// See <https://www.sqlite.org/datatype3.html>
 public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueConvertible, SQLSpecificExpressible {
     /// The SQLite storage
     public let storage: Storage

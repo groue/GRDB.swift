@@ -93,7 +93,7 @@ struct SQLQueryGenerator: Refinable {
     
     func makePreparedRequest(_ db: Database) throws -> PreparedRequest {
         try PreparedRequest(
-            statement: makeSelectStatement(db),
+            statement: makeStatement(db),
             adapter: rowAdapter(SQLGenerationContext(db, ctes: relation.ctes)))
     }
     
@@ -105,14 +105,14 @@ struct SQLQueryGenerator: Refinable {
             .columnCount(SQLGenerationContext(db, ctes: relation.ctes))
     }
     
-    /// Returns a select statement
-    func makeSelectStatement(_ db: Database) throws -> SelectStatement {
+    /// Returns a prepared statement
+    func makeStatement(_ db: Database) throws -> Statement {
         // Build
         let context = SQLGenerationContext(db)
         let sql = try requestSQL(context)
         
         // Compile & set arguments
-        let statement = try db.makeSelectStatement(sql: sql)
+        let statement = try db.makeStatement(sql: sql)
         statement.arguments = context.arguments
         
         // Optimize statement region. This allows us to track individual rowids,
@@ -197,7 +197,7 @@ struct SQLQueryGenerator: Refinable {
         return false
     }
     
-    func makeDeleteStatement(_ db: Database) throws -> UpdateStatement {
+    func makeDeleteStatement(_ db: Database) throws -> Statement {
         switch try grouping(db) {
         case .none:
             guard relation.joins.isEmpty else {
@@ -225,7 +225,7 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            let statement = try db.makeUpdateStatement(sql: sql)
+            let statement = try db.makeStatement(sql: sql)
             statement.arguments = context.arguments
             return statement
             
@@ -239,20 +239,23 @@ struct SQLQueryGenerator: Refinable {
     }
     
     /// DELETE FROM table WHERE id IN (SELECT id FROM table ...)
-    private func makeTrivialDeleteStatement(_ db: Database) throws -> UpdateStatement {
+    private func makeTrivialDeleteStatement(_ db: Database) throws -> Statement {
         let tableName = relation.source.tableName
         let alias = TableAlias(tableName: tableName)
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = context.subqueryContext(aliases: relation.allAliases, ctes: relation.ctes)
         let primaryKey = SQLExpression.fastPrimaryKey
+        let selectPrimaryKey = self.with {
+            $0.relation = $0.relation.selectOnly([.expression(primaryKey)])
+        }
         
         var sql = "DELETE FROM \(tableName.quotedDatabaseIdentifier) WHERE "
         sql += try alias[primaryKey].sql(context)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([.expression(primaryKey)]) }).requestSQL(subqueryContext)
+        sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        let statement = try db.makeUpdateStatement(sql: sql)
+        let statement = try db.makeStatement(sql: sql)
         statement.arguments = context.arguments
         return statement
     }
@@ -262,7 +265,7 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-    throws -> UpdateStatement?
+    throws -> Statement?
     {
         switch try grouping(db) {
         case .none:
@@ -311,7 +314,7 @@ struct SQLQueryGenerator: Refinable {
                 sql += " LIMIT " + limit.sql
             }
             
-            let statement = try db.makeUpdateStatement(sql: sql)
+            let statement = try db.makeStatement(sql: sql)
             statement.arguments = context.arguments
             return statement
             
@@ -330,7 +333,7 @@ struct SQLQueryGenerator: Refinable {
         _ db: Database,
         conflictResolution: Database.ConflictResolution,
         assignments: [ColumnAssignment])
-    throws -> UpdateStatement?
+    throws -> Statement?
     {
         // Check for empty assignments after all programmer errors have
         // been checked.
@@ -343,6 +346,9 @@ struct SQLQueryGenerator: Refinable {
         let context = SQLGenerationContext(db, aliases: [alias])
         let subqueryContext = context.subqueryContext(aliases: relation.allAliases, ctes: relation.ctes)
         let primaryKey = SQLExpression.fastPrimaryKey
+        let selectPrimaryKey = self.with {
+            $0.relation = $0.relation.selectOnly([.expression(primaryKey)])
+        }
         
         // UPDATE table...
         var sql = "UPDATE "
@@ -361,10 +367,10 @@ struct SQLQueryGenerator: Refinable {
         sql += " WHERE "
         sql += try alias[primaryKey].sql(context)
         sql += " IN ("
-        sql += try map(\.relation, { $0.selectOnly([.expression(primaryKey)]) }).requestSQL(subqueryContext)
+        sql += try selectPrimaryKey.requestSQL(subqueryContext)
         sql += ")"
         
-        let statement = try db.makeUpdateStatement(sql: sql)
+        let statement = try db.makeStatement(sql: sql)
         statement.arguments = context.arguments
         return statement
     }
@@ -654,17 +660,18 @@ private struct SQLQualifiedRelation {
     /// Sets the selection, removes all selections from joins, and clears the
     /// `isDistinct` flag.
     func selectOnly(_ selection: [SQLSelection]) -> Self {
-        let sourceSelectionPromise = DatabasePromise(value: selection.map {
+        let qualifiedSelection = selection.map {
             $0.qualified(with: source.alias)
-        })
-        return self
-            .with(\.sourceSelectionPromise, sourceSelectionPromise)
-            .with(\.isDistinct, false)
-            .map(\.joins, { joins in
-                joins.mapValues { join in
-                    join.map(\.relation) { $0.selectOnly([]) }
+        }
+        return with {
+            $0.sourceSelectionPromise = DatabasePromise(value: qualifiedSelection)
+            $0.isDistinct = false
+            $0.joins = $0.joins.mapValues { join in
+                join.with {
+                    $0.relation = $0.relation.selectOnly([])
                 }
-            })
+            }
+        }
     }
 }
 

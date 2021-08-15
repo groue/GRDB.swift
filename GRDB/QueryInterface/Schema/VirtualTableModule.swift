@@ -21,13 +21,25 @@ public protocol VirtualTableModule {
     /// The name of the module.
     var moduleName: String { get }
     
+    // TODO: remove this requirement
     /// Returns a table definition that is passed as the closure argument in the
     /// `Database.create(virtualTable:using:)` method:
     ///
     ///     try db.create(virtualTable: "item", using: module) { t in
     ///         // t is the result of makeTableDefinition()
     ///     }
+    ///
+    /// - warning: This method is DEPRECATED. Define
+    ///   `makeTableDefinition(configuration:)` instead.
     func makeTableDefinition() -> TableDefinition
+    
+    /// Returns a table definition that is passed as the closure argument in the
+    /// `Database.create(virtualTable:using:)` method:
+    ///
+    ///     try db.create(virtualTable: "item", using: module) { t in
+    ///         // t is the result of makeTableDefinition(configuration:)
+    ///     }
+    func makeTableDefinition(configuration: VirtualTableConfiguration) -> TableDefinition
     
     /// Returns the module arguments for the `CREATE VIRTUAL TABLE` query.
     func moduleArguments(for definition: TableDefinition, in db: Database) throws -> [String]
@@ -35,6 +47,20 @@ public protocol VirtualTableModule {
     /// Execute any relevant database statement after the virtual table has
     /// been created.
     func database(_ db: Database, didCreate tableName: String, using definition: TableDefinition) throws
+}
+
+extension VirtualTableModule {
+    // Support for VirtualTableModule types defined by users
+    // TODO: remove when `makeTableDefinition()` is no longer a requirement
+    public func makeTableDefinition(configuration: VirtualTableConfiguration) -> TableDefinition {
+        makeTableDefinition()
+    }
+}
+
+public struct VirtualTableConfiguration {
+    /// If true, existing objects must not be replaced, or generate any error
+    /// (even if they do not match the objects that would be created otherwise.)
+    var ifNotExists: Bool
 }
 
 extension Database {
@@ -45,7 +71,7 @@ extension Database {
     ///
     ///     try db.create(virtualTable: "vocabulary", using: "spellfix1")
     ///
-    /// See https://www.sqlite.org/lang_createtable.html
+    /// See <https://www.sqlite.org/lang_createtable.html>
     ///
     /// - parameters:
     ///     - name: The table name.
@@ -86,7 +112,7 @@ extension Database {
     ///         t.column("body")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html
+    /// See <https://www.sqlite.org/lang_createtable.html>
     ///
     /// - parameters:
     ///     - name: The table name.
@@ -104,7 +130,8 @@ extension Database {
     throws
     {
         // Define virtual table
-        let definition = module.makeTableDefinition()
+        let configuration = VirtualTableConfiguration(ifNotExists: ifNotExists)
+        let definition = module.makeTableDefinition(configuration: configuration)
         if let body = body {
             body(definition)
         }

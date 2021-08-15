@@ -46,7 +46,7 @@
 ///    country.code, so that SQLite guarantees that no profile refers to a
 ///    missing country. The `onDelete: .cascade` option has SQLite automatically
 ///    delete a profile when its country is deleted.
-///    See https://sqlite.org/foreignkeys.html#fk_actions for more information.
+///    See <https://sqlite.org/foreignkeys.html#fk_actions> for more information.
 ///
 /// The example above uses a string primary for the country table. But generally
 /// speaking, all primary keys are supported.
@@ -69,11 +69,6 @@ public struct HasOneAssociation<Origin, Destination>: AssociationToOne {
     
     /// :nodoc:
     public var _sqlAssociation: _SQLAssociation
-    
-    /// :nodoc:
-    public init(sqlAssociation: _SQLAssociation) {
-        self._sqlAssociation = sqlAssociation
-    }
     
     init(
         to destinationRelation: SQLRelation,

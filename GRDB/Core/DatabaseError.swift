@@ -2,7 +2,7 @@ import Foundation
 
 /// An SQLite result code.
 ///
-/// See https://www.sqlite.org/rescode.html
+/// See <https://www.sqlite.org/rescode.html>
 public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     /// The raw SQLite result code
     public let rawValue: CInt
@@ -13,7 +13,7 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     }
     
     /// A result code limited to the least significant 8 bits of the receiver.
-    /// See https://www.sqlite.org/rescode.html for more information.
+    /// See <https://www.sqlite.org/rescode.html> for more information.
     ///
     ///     let resultCode = .SQLITE_CONSTRAINT_FOREIGNKEY
     ///     resultCode.primaryResultCode == .SQLITE_CONSTRAINT // true
@@ -193,7 +193,7 @@ extension ResultCode {
 public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     
     /// The SQLite error code (see
-    /// https://www.sqlite.org/rescode.html#primary_result_code_list).
+    /// <https://www.sqlite.org/rescode.html#primary_result_code_list>).
     ///
     ///     do {
     ///         ...
@@ -203,7 +203,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     ///
     /// This property returns a "primary result code", that is to say the least
     /// significant 8 bits of any SQLite result code. See
-    /// https://www.sqlite.org/rescode.html for more information.
+    /// <https://www.sqlite.org/rescode.html> for more information.
     ///
     /// See also `extendedResultCode`.
     public var resultCode: ResultCode {
@@ -211,7 +211,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     }
     
     /// The SQLite extended error code (see
-    /// https://www.sqlite.org/rescode.html#extended_result_code_list).
+    /// <https://www.sqlite.org/rescode.html#extended_result_code_list>).
     ///
     ///     do {
     ///         ...

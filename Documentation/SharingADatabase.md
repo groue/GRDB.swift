@@ -173,7 +173,7 @@ do {
 
 > The exception code 0xDEAD10CC indicates that an application has been terminated by the OS because it held on to a file lock or sqlite database lock during suspension.
 
-See https://developer.apple.com/library/archive/technotes/tn2151/_index.html for more information about this exception.
+See https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report for more information about this exception.
 
 1. If you use SQLCipher, use SQLCipher 4+, and call the [`cipher_plaintext_header_size` pragma](https://www.zetetic.net/sqlcipher/sqlcipher-api/#cipher_plaintext_header_size) from your database preparation function:
     

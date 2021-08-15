@@ -6,7 +6,7 @@ import Dispatch
 ///
 /// Generally speaking, each connection has its own dispatch queue. But it's not
 /// enough: users need to use two database connections at the same time:
-/// https://github.com/groue/GRDB.swift/issues/55. To support this use case, a
+/// <https://github.com/groue/GRDB.swift/issues/55>. To support this use case, a
 /// single dispatch queue can be temporarily shared by two or more connections.
 ///
 /// - SchedulingWatchdog.makeSerializedQueue(allowingDatabase:) creates a

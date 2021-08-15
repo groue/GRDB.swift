@@ -39,7 +39,7 @@ struct Migration {
                     // > schema change did not break any foreign
                     // > key constraints.
                     if try db
-                        .makeSelectStatement(sql: "PRAGMA foreign_key_check")
+                        .makeStatement(sql: "PRAGMA foreign_key_check")
                         .makeCursor()
                         .isEmpty() == false
                     {

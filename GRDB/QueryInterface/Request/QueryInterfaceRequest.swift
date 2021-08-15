@@ -27,7 +27,7 @@
 ///         let players = try request.fetchAll(db) // [Player]
 ///     }
 ///
-/// See https://github.com/groue/GRDB.swift#the-query-interface
+/// See <https://github.com/groue/GRDB.swift#the-query-interface>
 public struct QueryInterfaceRequest<RowDecoder> {
     var relation: SQLRelation
 }
@@ -77,7 +77,11 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         .select { db in [Column("id")] }
     ///         .select { db in [Column("email")] }
     public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
-        map(\.relation) { $0.select { try selection($0).map(\.sqlSelection) } }
+        with {
+            $0.relation = $0.relation.select { db in
+                try selection(db).map(\.sqlSelection)
+            }
+        }
     }
     
     /// Creates a request which selects *selection*, and fetches values of
@@ -153,7 +157,52 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: { db in [Column("name")] })
     public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
-        map(\.relation) { $0.annotated { try selection($0).map(\.sqlSelection) } }
+        with {
+            $0.relation = $0.relation.annotated { db in
+                try selection(db).map(\.sqlSelection)
+            }
+        }
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension QueryInterfaceRequest
+where RowDecoder: Identifiable,
+      RowDecoder.ID: DatabaseValueConvertible
+{
+    /// Creates a request which selects the primary key.
+    ///
+    ///     // SELECT id FROM player WHERE ...
+    ///     let request = try Player.filter(...).selectID()
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> {
+        select { db in
+            let primaryKey = try db.primaryKey(self.databaseTableName)
+            GRDBPrecondition(
+                primaryKey.columns.count == 1,
+                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
+            return [Column(primaryKey.columns[0])]
+        }.asRequest(of: RowDecoder.ID.self)
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension QueryInterfaceRequest
+where RowDecoder: Identifiable,
+      RowDecoder.ID: _OptionalProtocol,
+      RowDecoder.ID.Wrapped: DatabaseValueConvertible
+{
+    /// Creates a request which selects the primary key.
+    ///
+    ///     // SELECT id FROM player WHERE ...
+    ///     let request = try Player.filter(...).selectID()
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID.Wrapped> {
+        select { db in
+            let primaryKey = try db.primaryKey(self.databaseTableName)
+            GRDBPrecondition(
+                primaryKey.columns.count == 1,
+                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
+            return [Column(primaryKey.columns[0])]
+        }.asRequest(of: RowDecoder.ID.Wrapped.self)
     }
 }
 
@@ -165,7 +214,11 @@ extension QueryInterfaceRequest: FilteredRequest {
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
     public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
-        map(\.relation) { $0.filter { try predicate($0).sqlExpression } }
+        with {
+            $0.relation = $0.relation.filter { db in
+                try predicate(db).sqlExpression
+            }
+        }
     }
 }
 
@@ -184,7 +237,11 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
     public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest {
-        map(\.relation) { $0.order { try orderings($0).map(\.sqlOrdering) } }
+        with {
+            $0.relation = $0.relation.order { db in
+                try orderings(db).map(\.sqlOrdering)
+            }
+        }
     }
     
     /// Creates a request that reverses applied orderings.
@@ -199,7 +256,9 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///     var request = Player.all()
     ///     request = request.reversed()
     public func reversed() -> QueryInterfaceRequest {
-        map(\.relation) { $0.reversed() }
+        with {
+            $0.relation = $0.relation.reversed()
+        }
     }
     
     /// Creates a request without any ordering.
@@ -208,20 +267,30 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///     var request = Player.all().order(Column("name"))
     ///     request = request.unordered()
     public func unordered() -> QueryInterfaceRequest {
-        map(\.relation) { $0.unordered() }
+        with {
+            $0.relation = $0.relation.unordered()
+        }
     }
 }
 
 extension QueryInterfaceRequest: AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
     public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
-        map(\.relation) { $0.group { try expressions($0).map(\.sqlExpression) } }
+        with {
+            $0.relation = $0.relation.group { db in
+                try expressions(db).map(\.sqlExpression)
+            }
+        }
     }
     
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
     public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
-        map(\.relation) { $0.having { try predicate($0).sqlExpression } }
+        with {
+            $0.relation = $0.relation.having { db in
+                try predicate(db).sqlExpression
+            }
+        }
     }
 }
 
@@ -229,27 +298,37 @@ extension QueryInterfaceRequest: AggregatingRequest {
 extension QueryInterfaceRequest: _JoinableRequest {
     /// :nodoc:
     public func _including(all association: _SQLAssociation) -> QueryInterfaceRequest {
-        map(\.relation) { $0._including(all: association) }
+        with {
+            $0.relation = $0.relation._including(all: association)
+        }
     }
     
     /// :nodoc:
     public func _including(optional association: _SQLAssociation) -> QueryInterfaceRequest {
-        map(\.relation) { $0._including(optional: association) }
+        with {
+            $0.relation = $0.relation._including(optional: association)
+        }
     }
     
     /// :nodoc:
     public func _including(required association: _SQLAssociation) -> QueryInterfaceRequest {
-        map(\.relation) { $0._including(required: association) }
+        with {
+            $0.relation = $0.relation._including(required: association)
+        }
     }
     
     /// :nodoc:
     public func _joining(optional association: _SQLAssociation) -> QueryInterfaceRequest {
-        map(\.relation) { $0._joining(optional: association) }
+        with {
+            $0.relation = $0.relation._joining(optional: association)
+        }
     }
     
     /// :nodoc:
     public func _joining(required association: _SQLAssociation) -> QueryInterfaceRequest {
-        map(\.relation) { $0._joining(required: association) }
+        with {
+            $0.relation = $0.relation._joining(required: association)
+        }
     }
 }
 
@@ -279,13 +358,17 @@ extension QueryInterfaceRequest: TableRequest {
     ///         .aliased(playerAlias)
     ///         .including(required: Player.team.filter(Column("avgScore") < playerAlias[Column("score")])
     public func aliased(_ alias: TableAlias) -> QueryInterfaceRequest {
-        map(\.relation) { $0.aliased(alias) }
+        with {
+            $0.relation = $0.relation.aliased(alias)
+        }
     }
 }
 
 extension QueryInterfaceRequest: DerivableRequest {
     public func distinct() -> QueryInterfaceRequest {
-        with(\.relation.isDistinct, true)
+        with {
+            $0.relation.isDistinct = true
+        }
     }
     
     /// Creates a request which fetches *limit* rows, starting at *offset*.
@@ -296,11 +379,15 @@ extension QueryInterfaceRequest: DerivableRequest {
     ///
     /// Any previous limit is replaced.
     public func limit(_ limit: Int, offset: Int?) -> QueryInterfaceRequest {
-        with(\.relation.limit, SQLLimit(limit: limit, offset: offset))
+        with {
+            $0.relation.limit = SQLLimit(limit: limit, offset: offset)
+        }
     }
     
     public func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self {
-        with(\.relation.ctes[cte.tableName], cte.cte)
+        with {
+            $0.relation.ctes[cte.tableName] = cte.cte
+        }
     }
 }
 
@@ -325,7 +412,7 @@ extension QueryInterfaceRequest {
 
 // MARK: - Batch Delete
 
-extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
+extension QueryInterfaceRequest {
     /// Deletes matching rows; returns the number of deleted rows.
     ///
     /// - parameter db: A database connection.
@@ -340,7 +427,20 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
 
 // MARK: - Batch Update
 
-extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
+extension QueryInterfaceRequest {
+    /// The conflict resolution to use for batch updates
+    private var defaultConflictResolutionForUpdate: Database.ConflictResolution {
+        // In order to look for the default conflict resolution, we perform a
+        // runtime check for MutablePersistableRecord, and look for a
+        // user-defined default. Such dynamic dispatch is unusual in GRDB, but
+        // static dispatch is likely to create bad surprises in generic contexts.
+        if let recordType = RowDecoder.self as? MutablePersistableRecord.Type {
+            return recordType.persistenceConflictPolicy.conflictResolutionForUpdate
+        } else {
+            return .abort
+        }
+    }
+    
     /// Updates matching rows; returns the number of updated rows.
     ///
     /// For example:
@@ -351,8 +451,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution,
-    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignments: An array of column assignments.
     /// - returns: The number of updated rows.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
@@ -362,7 +461,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
         onConflict conflictResolution: Database.ConflictResolution? = nil,
         _ assignments: [ColumnAssignment]) throws -> Int
     {
-        let conflictResolution = conflictResolution ?? RowDecoder.persistenceConflictPolicy.conflictResolutionForUpdate
+        let conflictResolution = conflictResolution ?? defaultConflictResolutionForUpdate
         guard let updateStatement = try SQLQueryGenerator(relation: relation).makeUpdateStatement(
                 db,
                 conflictResolution: conflictResolution,
@@ -385,8 +484,7 @@ extension QueryInterfaceRequest where RowDecoder: MutablePersistableRecord {
     ///     }
     ///
     /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution,
-    ///   defaulting to the record's persistenceConflictPolicy.
+    /// - parameter conflictResolution: A policy for conflict resolution.
     /// - parameter assignment: A column assignment.
     /// - parameter otherAssignments: Eventual other column assignments.
     /// - returns: The number of updated rows.
@@ -659,7 +757,11 @@ func makePrefetchRequest(
     let pivotAlias = TableAlias()
     
     let prefetchRelation = association
-        .map(\.pivot.relation, { $0.aliased(pivotAlias).filter(pivotFilter) })
+        .with {
+            $0.pivot.relation = $0.pivot.relation
+                .aliased(pivotAlias)
+                .filter(pivotFilter)
+        }
         .destinationRelation()
         .annotated(with: pivotColumns.map { pivotAlias[$0].forKey("grdb_\($0)") })
     
@@ -704,11 +806,13 @@ throws -> DatabaseRegion
     let pivotFilter = pivotMapping.joinExpression(leftRows: [DummyRow()])
     
     let prefetchRelation = association
-        .map(\.pivot.relation) { $0.filter(pivotFilter) }
+        .with {
+            $0.pivot.relation = $0.pivot.relation.filter(pivotFilter)
+        }
         .destinationRelation()
     
     return try SQLQueryGenerator(relation: prefetchRelation)
-        .makeSelectStatement(db)
+        .makeStatement(db)
         .databaseRegion // contains region of nested associations
 }
 

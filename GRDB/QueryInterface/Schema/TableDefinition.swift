@@ -12,8 +12,8 @@ extension Database {
     ///         t.column("latitude", .double).notNull()
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html and
-    /// https://www.sqlite.org/withoutrowid.html
+    /// See <https://www.sqlite.org/lang_createtable.html> and
+    /// <https://www.sqlite.org/withoutrowid.html>
     ///
     /// - parameters:
     ///     - name: The table name.
@@ -44,7 +44,7 @@ extension Database {
     
     /// Renames a database table.
     ///
-    /// See https://www.sqlite.org/lang_altertable.html
+    /// See <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func rename(table name: String, to newName: String) throws {
@@ -57,7 +57,7 @@ extension Database {
     ///         t.add(column: "url", .text)
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_altertable.html
+    /// See <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - parameters:
     ///     - name: The table name.
@@ -72,7 +72,7 @@ extension Database {
     
     /// Deletes a database table.
     ///
-    /// See https://www.sqlite.org/lang_droptable.html
+    /// See <https://www.sqlite.org/lang_droptable.html>
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func drop(table name: String) throws {
@@ -89,7 +89,7 @@ extension Database {
     ///
     ///     try db.execute(sql: "CREATE INDEX ...")
     ///
-    /// See https://www.sqlite.org/lang_createindex.html
+    /// See <https://www.sqlite.org/lang_createindex.html>
     ///
     /// - parameters:
     ///     - name: The index name.
@@ -98,7 +98,7 @@ extension Database {
     ///     - unique: If true, creates a unique index.
     ///     - ifNotExists: If false, no error is thrown if index already exists.
     ///     - condition: If not nil, creates a partial index
-    ///       (see https://www.sqlite.org/partialindex.html).
+    ///       (see <https://www.sqlite.org/partialindex.html>).
     public func create(
         index name: String,
         on table: String,
@@ -121,7 +121,7 @@ extension Database {
     
     /// Deletes a database index.
     ///
-    /// See https://www.sqlite.org/lang_dropindex.html
+    /// See <https://www.sqlite.org/lang_dropindex.html>
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func drop(index name: String) throws {
@@ -133,7 +133,7 @@ extension Database {
     /// This method is useful when the definition of a collation sequence
     /// has changed.
     ///
-    /// See https://www.sqlite.org/lang_reindex.html
+    /// See <https://www.sqlite.org/lang_reindex.html>
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func reindex(collation: Database.CollationName) throws {
@@ -145,7 +145,7 @@ extension Database {
     /// This method is useful when the definition of a collation sequence
     /// has changed.
     ///
-    /// See https://www.sqlite.org/lang_reindex.html
+    /// See <https://www.sqlite.org/lang_reindex.html>
     ///
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func reindex(collation: DatabaseCollation) throws {
@@ -162,7 +162,7 @@ extension Database {
 ///         t.column(...)
 ///     }
 ///
-/// See https://www.sqlite.org/lang_createtable.html
+/// See <https://www.sqlite.org/lang_createtable.html>
 public final class TableDefinition {
     private typealias KeyConstraint = (
         columns: [String],
@@ -238,11 +238,11 @@ public final class TableDefinition {
     /// asynchronous process, even if this row gets deleted and a new one is
     /// inserted in between.
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#primkeyconst and
-    /// https://www.sqlite.org/lang_createtable.html#rowid
+    /// See <https://www.sqlite.org/lang_createtable.html#primkeyconst> and
+    /// <https://www.sqlite.org/lang_createtable.html#rowid>
     ///
     /// - parameter conflictResolution: An optional conflict resolution
-    ///   (see https://www.sqlite.org/lang_conflict.html).
+    ///   (see <https://www.sqlite.org/lang_conflict.html>).
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func autoIncrementedPrimaryKey(
@@ -259,7 +259,7 @@ public final class TableDefinition {
     ///         t.column("name", .text)
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#tablecoldef
+    /// See <https://www.sqlite.org/lang_createtable.html#tablecoldef>
     ///
     /// - parameter name: the column name.
     /// - parameter type: the eventual column type.
@@ -305,12 +305,12 @@ public final class TableDefinition {
     ///         t.primaryKey(["citizenID", "countryCode"])
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#primkeyconst and
-    /// https://www.sqlite.org/lang_createtable.html#rowid
+    /// See <https://www.sqlite.org/lang_createtable.html#primkeyconst> and
+    /// <https://www.sqlite.org/lang_createtable.html#rowid>
     ///
     /// - parameter columns: The primary key columns.
     /// - parameter conflictResolution: An optional conflict resolution
-    ///   (see https://www.sqlite.org/lang_conflict.html).
+    ///   (see <https://www.sqlite.org/lang_conflict.html>).
     public func primaryKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         guard primaryKeyConstraint == nil else {
             // Programmer error
@@ -327,11 +327,11 @@ public final class TableDefinition {
     ///         t.uniqueKey(["latitude", "longitude"])
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#uniqueconst
+    /// See <https://www.sqlite.org/lang_createtable.html#uniqueconst>
     ///
     /// - parameter columns: The unique key columns.
     /// - parameter conflictResolution: An optional conflict resolution
-    ///   (see https://www.sqlite.org/lang_conflict.html).
+    ///   (see <https://www.sqlite.org/lang_conflict.html>).
     public func uniqueKey(_ columns: [String], onConflict conflictResolution: Database.ConflictResolution? = nil) {
         uniqueKeyConstraints.append((columns: columns, conflictResolution: conflictResolution))
     }
@@ -345,7 +345,7 @@ public final class TableDefinition {
     ///         t.foreignKey(["citizenID", "countryCode"], references: "citizenship", onDelete: .cascade)
     ///     }
     ///
-    /// See https://www.sqlite.org/foreignkeys.html
+    /// See <https://www.sqlite.org/foreignkeys.html>
     ///
     /// - parameters:
     ///     - columns: The foreign key columns.
@@ -356,7 +356,7 @@ public final class TableDefinition {
     ///     - deleteAction: Optional action when the referenced row is deleted.
     ///     - updateAction: Optional action when the referenced row is updated.
     ///     - deferred: If true, defines a deferred foreign key constraint.
-    ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
+    ///       See <https://www.sqlite.org/foreignkeys.html#fk_deferred>.
     public func foreignKey(
         _ columns: [String],
         references table: String,
@@ -384,7 +384,7 @@ public final class TableDefinition {
     ///         t.check(personalPhone != nil || workPhone != nil)
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#ckconst
+    /// See <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter condition: The checked condition
     public func check(_ condition: SQLExpressible) {
@@ -399,7 +399,7 @@ public final class TableDefinition {
     ///         t.check(sql: "personalPhone IS NOT NULL OR workPhone IS NOT NULL")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#ckconst
+    /// See <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter sql: An SQL snippet
     public func check(sql: String) {
@@ -572,7 +572,7 @@ public final class TableDefinition {
 ///         t.add(column: ...)
 ///     }
 ///
-/// See https://www.sqlite.org/lang_altertable.html
+/// See <https://www.sqlite.org/lang_altertable.html>
 public final class TableAlteration {
     private let name: String
     
@@ -594,7 +594,7 @@ public final class TableAlteration {
     ///         t.add(column: "url", .text)
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_altertable.html
+    /// See <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - parameter name: the column name.
     /// - parameter type: the column type.
@@ -638,7 +638,7 @@ public final class TableAlteration {
     ///         t.rename(column: "url", to: "homeURL")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_altertable.html
+    /// See <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - parameter name: the column name to rename.
     /// - parameter newName: the new name of the column.
@@ -652,7 +652,7 @@ public final class TableAlteration {
     ///         t.rename(column: "url", to: "homeURL")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_altertable.html
+    /// See <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - parameter name: the column name to rename.
     /// - parameter newName: the new name of the column.
@@ -723,8 +723,8 @@ public final class TableAlteration {
 ///         t.add(column: ...) // ColumnDefinition
 ///     }
 ///
-/// See https://www.sqlite.org/lang_createtable.html and
-/// https://www.sqlite.org/lang_altertable.html
+/// See <https://www.sqlite.org/lang_createtable.html> and
+/// <https://www.sqlite.org/lang_altertable.html>
 public final class ColumnDefinition {
     enum Index {
         case none
@@ -743,7 +743,7 @@ public final class ColumnDefinition {
     /// The `GeneratedColumnQualification` enum defines whether a generated
     /// column sis virtual or stored.
     ///
-    /// See https://sqlite.org/gencol.html#virtual_versus_stored_columns
+    /// See <https://sqlite.org/gencol.html#virtual_versus_stored_columns>
     public enum GeneratedColumnQualification {
         case virtual
         case stored
@@ -776,12 +776,12 @@ public final class ColumnDefinition {
     ///         t.column("id", .integer).primaryKey()
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#primkeyconst and
-    /// https://www.sqlite.org/lang_createtable.html#rowid
+    /// See <https://www.sqlite.org/lang_createtable.html#primkeyconst> and
+    /// <https://www.sqlite.org/lang_createtable.html#rowid>
     ///
     /// - parameters:
     ///     - conflictResolution: An optional conflict resolution
-    ///       (see https://www.sqlite.org/lang_conflict.html).
+    ///       (see <https://www.sqlite.org/lang_conflict.html>).
     ///     - autoincrement: If true, the primary key is autoincremented.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
@@ -800,10 +800,10 @@ public final class ColumnDefinition {
     ///         t.column("name", .text).notNull()
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#notnullconst
+    /// See <https://www.sqlite.org/lang_createtable.html#notnullconst>
     ///
     /// - parameter conflictResolution: An optional conflict resolution
-    ///   (see https://www.sqlite.org/lang_conflict.html).
+    ///   (see <https://www.sqlite.org/lang_conflict.html>).
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func notNull(onConflict conflictResolution: Database.ConflictResolution? = nil) -> Self {
@@ -817,10 +817,10 @@ public final class ColumnDefinition {
     ///         t.column("email", .text).unique()
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#uniqueconst
+    /// See <https://www.sqlite.org/lang_createtable.html#uniqueconst>
     ///
     /// - parameter conflictResolution: An optional conflict resolution
-    ///   (see https://www.sqlite.org/lang_conflict.html).
+    ///   (see <https://www.sqlite.org/lang_conflict.html>).
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func unique(onConflict conflictResolution: Database.ConflictResolution? = nil) -> Self {
@@ -834,7 +834,7 @@ public final class ColumnDefinition {
     ///         t.column("email", .text).indexed()
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#uniqueconst
+    /// See <https://www.sqlite.org/lang_createtable.html#uniqueconst>
     ///
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
@@ -851,7 +851,7 @@ public final class ColumnDefinition {
     ///         t.column("name", .text).check { length($0) > 0 }
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#ckconst
+    /// See <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter condition: A closure whose argument is an Column that
     ///   represents the defined column, and returns the expression to check.
@@ -868,7 +868,7 @@ public final class ColumnDefinition {
     ///         t.column("name", .text).check(sql: "LENGTH(name) > 0")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#ckconst
+    /// See <https://www.sqlite.org/lang_createtable.html#ckconst>
     ///
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
@@ -884,7 +884,7 @@ public final class ColumnDefinition {
     ///         t.column("name", .text).defaults(to: "Anonymous")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#dfltval
+    /// See <https://www.sqlite.org/lang_createtable.html#dfltval>
     ///
     /// - parameter value: A DatabaseValueConvertible value.
     /// - returns: Self so that you can further refine the column definition.
@@ -900,7 +900,7 @@ public final class ColumnDefinition {
     ///         t.column("creationDate", .DateTime).defaults(sql: "CURRENT_TIMESTAMP")
     ///     }
     ///
-    /// See https://www.sqlite.org/lang_createtable.html#dfltval
+    /// See <https://www.sqlite.org/lang_createtable.html#dfltval>
     ///
     /// - parameter sql: An SQL snippet.
     /// - returns: Self so that you can further refine the column definition.
@@ -916,7 +916,7 @@ public final class ColumnDefinition {
     ///         t.column("email", .text).collate(.nocase)
     ///     }
     ///
-    /// See https://www.sqlite.org/datatype3.html#collation
+    /// See <https://www.sqlite.org/datatype3.html#collation>
     ///
     /// - parameter collation: An Database.CollationName.
     /// - returns: Self so that you can further refine the column definition.
@@ -932,7 +932,7 @@ public final class ColumnDefinition {
     ///         t.column("name", .text).collate(.localizedCaseInsensitiveCompare)
     ///     }
     ///
-    /// See https://www.sqlite.org/datatype3.html#collation
+    /// See <https://www.sqlite.org/datatype3.html#collation>
     ///
     /// - parameter collation: A custom DatabaseCollation.
     /// - returns: Self so that you can further refine the column definition.
@@ -952,7 +952,7 @@ public final class ColumnDefinition {
     ///         t.column("totalScore", .integer).generatedAs(sql: "score + bonus", .stored)
     ///     }
     ///
-    /// See https://sqlite.org/gencol.html. Note particularly the limitations of
+    /// See <https://sqlite.org/gencol.html>. Note particularly the limitations of
     /// generated columns, e.g. they may not have a default value.
     ///
     /// - parameters:
@@ -982,7 +982,7 @@ public final class ColumnDefinition {
     ///         t.column("totalScore", .integer).generatedAs(Column("score") + Column("bonus"), .stored)
     ///     }
     ///
-    /// See https://sqlite.org/gencol.html. Note particularly the limitations of
+    /// See <https://sqlite.org/gencol.html>. Note particularly the limitations of
     /// generated columns, e.g. they may not have a default value.
     ///
     /// - parameters:
@@ -1009,7 +1009,7 @@ public final class ColumnDefinition {
     ///         t.column("authorId", .integer).references("author", onDelete: .cascade)
     ///     }
     ///
-    /// See https://www.sqlite.org/foreignkeys.html
+    /// See <https://www.sqlite.org/foreignkeys.html>
     ///
     /// - parameters
     ///     - table: The referenced table.
@@ -1018,7 +1018,7 @@ public final class ColumnDefinition {
     ///     - deleteAction: Optional action when the referenced row is deleted.
     ///     - updateAction: Optional action when the referenced row is updated.
     ///     - deferred: If true, defines a deferred foreign key constraint.
-    ///       See https://www.sqlite.org/foreignkeys.html#fk_deferred.
+    ///       See <https://www.sqlite.org/foreignkeys.html#fk_deferred>.
     /// - returns: Self so that you can further refine the column definition.
     @discardableResult
     public func references(

@@ -16,7 +16,7 @@
 ///     let nameColumn = MyColumn(name: "name", sqlType: "VARCHAR")
 ///     let arthur = try Player.filter(nameColumn == "Arthur").fetchOne(db)
 ///
-/// See https://github.com/groue/GRDB.swift#the-query-interface
+/// See <https://github.com/groue/GRDB.swift#the-query-interface>
 public protocol ColumnExpression: SQLSpecificExpressible {
     /// The unqualified name of a database column.
     ///
@@ -35,7 +35,7 @@ extension ColumnExpression {
 /// When you need to introduce your own column type, don't wrap a Column.
 /// Instead, adopt the ColumnExpression protocol.
 ///
-/// See https://github.com/groue/GRDB.swift#the-query-interface
+/// See <https://github.com/groue/GRDB.swift#the-query-interface>
 public struct Column: ColumnExpression, Equatable {
     /// The hidden rowID column
     public static let rowID = Column("rowid")

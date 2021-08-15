@@ -193,6 +193,48 @@ class DatabaseWriterTests : GRDBTestCase {
             try XCTAssertNil(Row.fetchOne(db, sql: "SELECT * FROM sqlite_master"))
         }
     }
+
+    func testVacuumInto() throws {
+        guard #available(OSX 10.16, iOS 14, tvOS 14, watchOS 7, *) else {
+            throw XCTSkip("VACUUM INTO is not available")
+        }
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3027000 else {
+            throw XCTSkip("VACUUM INTO is not available")
+        }
+        
+        func testVacuumInto(writer: DatabaseWriter) throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("init") { db in
+                try db.execute(sql: """
+                    CREATE TABLE t1 (id INTEGER PRIMARY KEY AUTOINCREMENT, b, c);
+                    INSERT INTO t1 (b, c) VALUES (1, 1);
+                    INSERT INTO t1 (b, c) VALUES (2, 2);
+                    """)
+            }
+            
+            try migrator.migrate(writer)
+            
+            try writer.read { db in
+                try XCTAssertTrue(db.tableExists("t1"))
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT count(*) from t1"), 2)
+            }
+            
+            let intoPath = NSTemporaryDirectory().appending(ProcessInfo.processInfo.globallyUniqueString).appending("-vacuum-into-db.sqlite")
+            try writer.vacuum(into: intoPath)
+            
+            // open newly created file and ensure table was copied, and
+            // encrypted like the original.
+            let newWriter = try DatabaseQueue(path: intoPath, configuration: writer.configuration)
+            try newWriter.read { db in
+                try XCTAssertTrue(db.tableExists("t1"))
+                XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT count(*) from t1"), 2)
+            }
+        }
+        
+        try testVacuumInto(writer: makeDatabaseQueue())
+        try testVacuumInto(writer: makeDatabasePool())
+    }
     
     // See https://github.com/groue/GRDB.swift/issues/424
     func testIssue424() throws {
@@ -204,7 +246,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 """)
         }
         try dbQueue.read { db in
-            _ = try Row.fetchCursor(db.cachedSelectStatement(sql: "SELECT * FROM t")).next()
+            _ = try Row.fetchCursor(db.cachedStatement(sql: "SELECT * FROM t")).next()
         }
         try dbQueue.erase()
     }
@@ -219,7 +261,7 @@ class DatabaseWriterTests : GRDBTestCase {
                 INSERT INTO t VALUES (1);
                 PRAGMA query_only = 1;
                 """)
-            _ = try Row.fetchCursor(db.cachedSelectStatement(sql: "SELECT * FROM t")).next()
+            _ = try Row.fetchCursor(db.cachedStatement(sql: "SELECT * FROM t")).next()
         }
         try DatabaseQueue().backup(to: dbQueue)
     }

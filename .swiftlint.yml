@@ -61,4 +61,3 @@ opt_in_rules:
 
 vertical_whitespace:
   max_empty_lines: 2
-

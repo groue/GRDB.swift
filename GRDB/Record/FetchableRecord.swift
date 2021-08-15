@@ -12,7 +12,7 @@ import Foundation
 ///     try Player.fetchAll(db, sql: "SELECT ...", arguments:...)    // [Player]
 ///     try Player.fetchOne(db, sql: "SELECT ...", arguments:...)    // Player?
 ///
-///     let statement = try db.makeSelectStatement(sql: "SELECT ...")
+///     let statement = try db.makeStatement(sql: "SELECT ...")
 ///     try Player.fetchCursor(statement, arguments:...) // Cursor of Player
 ///     try Player.fetchAll(statement, arguments:...)    // [Player]
 ///     try Player.fetchOne(statement, arguments:...)    // Player?
@@ -131,11 +131,11 @@ extension FetchableRecord {
 
 extension FetchableRecord {
     
-    // MARK: Fetching From SelectStatement
+    // MARK: Fetching From Prepared Statement
     
     /// A cursor over records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
+    ///     let statement = try db.makeStatement(sql: "SELECT * FROM player")
     ///     let players = try Player.fetchCursor(statement) // Cursor of Player
     ///     while let player = try players.next() { // Player
     ///         ...
@@ -153,7 +153,7 @@ extension FetchableRecord {
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchCursor(
-        _ statement: SelectStatement,
+        _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
     throws -> RecordCursor<Self>
@@ -163,7 +163,7 @@ extension FetchableRecord {
     
     /// Returns an array of records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
+    ///     let statement = try db.makeStatement(sql: "SELECT * FROM player")
     ///     let players = try Player.fetchAll(statement) // [Player]
     ///
     /// - parameters:
@@ -173,7 +173,7 @@ extension FetchableRecord {
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchAll(
-        _ statement: SelectStatement,
+        _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
     throws -> [Self]
@@ -183,7 +183,7 @@ extension FetchableRecord {
     
     /// Returns a single record fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
+    ///     let statement = try db.makeStatement(sql: "SELECT * FROM player")
     ///     let player = try Player.fetchOne(statement) // Player?
     ///
     /// - parameters:
@@ -193,7 +193,7 @@ extension FetchableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(
-        _ statement: SelectStatement,
+        _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
     throws -> Self?
@@ -205,7 +205,7 @@ extension FetchableRecord {
 extension FetchableRecord where Self: Hashable {
     /// Returns a set of records fetched from a prepared statement.
     ///
-    ///     let statement = try db.makeSelectStatement(sql: "SELECT * FROM player")
+    ///     let statement = try db.makeStatement(sql: "SELECT * FROM player")
     ///     let players = try Player.fetchSet(statement) // Set<Player>
     ///
     /// - parameters:
@@ -215,7 +215,7 @@ extension FetchableRecord where Self: Hashable {
     /// - returns: A set of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchSet(
-        _ statement: SelectStatement,
+        _ statement: Statement,
         arguments: StatementArguments? = nil,
         adapter: RowAdapter? = nil)
     throws -> Set<Self>
@@ -494,22 +494,29 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
 ///         let players: RecordCursor<Player> = try Player.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RecordCursor<Record: FetchableRecord>: Cursor {
-    @usableFromInline let _statement: SelectStatement
+    @usableFromInline enum _State {
+        case idle, busy, done, failed
+    }
+    
+    @usableFromInline let _statement: Statement
     @usableFromInline let _row: Row // Reused for performance
     @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline var _done = false
+    @usableFromInline var _state = _State.idle
     
-    init(statement: SelectStatement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
+    init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
         _row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         _sqliteStatement = statement.sqliteStatement
-        _statement.reset(withArguments: arguments)
         
-        // Assume cursor is created for iteration
-        try statement.database.selectStatementWillExecute(statement)
+        // Assume cursor is created for immediate iteration: reset and set arguments
+        statement.reset(withArguments: arguments)
     }
     
     deinit {
+        if _state == .busy {
+            try? _statement.database.statementDidExecute(_statement)
+        }
+        
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
         try? _statement.reset()
@@ -517,19 +524,34 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
     
     @inlinable
     public func next() throws -> Record? {
-        if _done {
+        switch _state {
+        case .done:
             // make sure this instance never yields a value again, even if the
             // statement is reset by another cursor.
             return nil
+        case .idle:
+            guard try _statement.database.statementWillExecute(_statement) == nil else {
+                throw DatabaseError(
+                    resultCode: SQLITE_MISUSE,
+                    message: "Can't run statement that requires a customized authorizer from a cursor",
+                    sql: _statement.sql,
+                    arguments: _statement.arguments)
+            }
+            _state = .busy
+        default:
+            break
         }
+        
         switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
-            _done = true
+            _state = .done
+            try _statement.database.statementDidExecute(_statement)
             return nil
         case SQLITE_ROW:
             return Record(row: _row)
         case let code:
-            try _statement.didFail(withResultCode: code)
+            _state = .failed
+            try _statement.database.statementDidFail(_statement, withResultCode: code)
         }
     }
 }

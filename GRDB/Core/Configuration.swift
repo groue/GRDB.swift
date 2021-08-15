@@ -9,12 +9,12 @@ public struct Configuration {
     /// If true, foreign key constraints are checked.
     ///
     /// Default: true
-    public var foreignKeysEnabled: Bool = true
+    public var foreignKeysEnabled = true
     
     /// If true, database modifications are disallowed.
     ///
     /// Default: false
-    public var readonly: Bool = false
+    public var readonly = false
     
     /// The configuration label.
     ///
@@ -91,7 +91,7 @@ public struct Configuration {
     /// When true, the `Database.suspendNotification` and
     /// `Database.resumeNotification` suspend and resume the database. Database
     /// suspension helps avoiding the [`0xdead10cc`
-    /// exception](https://developer.apple.com/library/archive/technotes/tn2151/_index.html).
+    /// exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report).
     ///
     /// During suspension, all database accesses but reads in WAL mode may throw
     /// a DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`. You can
@@ -175,11 +175,11 @@ public struct Configuration {
     /// never allow leaving a transaction opened at the end of a read access.
     ///
     /// Default: false
-    public var allowsUnsafeTransactions: Bool = false
+    public var allowsUnsafeTransactions = false
     
     // MARK: - Concurrency
     
-    /// The behavior in case of SQLITE_BUSY error. See https://www.sqlite.org/rescode.html#busy
+    /// The behavior in case of SQLITE_BUSY error. See <https://www.sqlite.org/rescode.html#busy>
     ///
     /// Default: immediateError
     public var busyMode: Database.BusyMode = .immediateError

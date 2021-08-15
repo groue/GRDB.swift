@@ -252,6 +252,30 @@ class FTS5TableBuilderTests: GRDBTestCase {
         }
     }
 
+    func testFTS5SynchronizationIfNotExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.writeWithoutTransaction { db in
+            try db.create(table: "documents") { t in
+                t.column("id", .integer).primaryKey()
+                t.column("content", .text)
+            }
+            assertDidExecute(sql: "CREATE TABLE \"documents\" (\"id\" INTEGER PRIMARY KEY, \"content\" TEXT)")
+            try db.create(virtualTable: "ft_documents", ifNotExists: true, using: FTS5()) { t in
+                t.synchronize(withTable: "documents")
+                t.column("content")
+            }
+            
+            assertDidExecute(sql: """
+                CREATE VIRTUAL TABLE IF NOT EXISTS "ft_documents" USING fts5(content, content='documents', content_rowid='id')
+                """)
+            assertDidExecute(sql: """
+                CREATE TRIGGER IF NOT EXISTS "__ft_documents_ai" AFTER INSERT ON "documents" BEGIN
+                    INSERT INTO "ft_documents"("rowid", "content") VALUES (new."id", new."content");
+                END
+                """)
+        }
+    }
+    
     func testFTS5SynchronizationCleanup() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

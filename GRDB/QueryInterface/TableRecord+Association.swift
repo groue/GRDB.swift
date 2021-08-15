@@ -209,6 +209,91 @@ extension TableRecord {
     }
 }
 
+// MARK: - Associations to Table
+
+extension TableRecord {
+    /// Creates a "Belongs To" association between Self and the destination
+    /// table, based on a database foreign key.
+    ///
+    /// For more information, see `TableRecord.belongsTo(_:key:using:)` where
+    /// the first argument is `TableRecord`.
+    ///
+    /// - parameters:
+    ///     - destination: The table at the other side of the association.
+    ///     - key: An eventual decoding key for the association. By default, it
+    ///       is `destination.tableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide an
+    ///       explicit foreign key when GRDB can't infer one from the database
+    ///       schema. This happens when the schema does not define any foreign
+    ///       key to the destination table, or when the schema defines several
+    ///       foreign keys to the destination table.
+    public static func belongsTo<Destination>(
+        _ destination: Table<Destination>,
+        key: String? = nil,
+        using foreignKey: ForeignKey? = nil)
+    -> BelongsToAssociation<Self, Destination>
+    {
+        BelongsToAssociation(
+            to: destination.relationForAll,
+            key: key,
+            using: foreignKey)
+    }
+    
+    /// Creates a "Has many" association between Self and the destination table,
+    /// based on a database foreign key.
+    ///
+    /// For more information, see `TableRecord.hasMany(_:key:using:)` where
+    /// the first argument is `TableRecord`.
+    ///
+    /// - parameters:
+    ///     - destination: The table at the other side of the association.
+    ///     - key: An eventual decoding key for the association. By default, it
+    ///       is `destination.tableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide an
+    ///       explicit foreign key when GRDB can't infer one from the database
+    ///       schema. This happens when the schema does not define any foreign
+    ///       key from the destination table, or when the schema defines several
+    ///       foreign keys from the destination table.
+    public static func hasMany<Destination>(
+        _ destination: Table<Destination>,
+        key: String? = nil,
+        using foreignKey: ForeignKey? = nil)
+    -> HasManyAssociation<Self, Destination>
+    {
+        HasManyAssociation(
+            to: destination.relationForAll,
+            key: key,
+            using: foreignKey)
+    }
+    
+    /// Creates a "Has one" association between Self and the destination table,
+    /// based on a database foreign key.
+    ///
+    /// For more information, see `TableRecord.hasOne(_:key:using:)` where
+    /// the first argument is `TableRecord`.
+    ///
+    /// - parameters:
+    ///     - destination: The table at the other side of the association.
+    ///     - key: An eventual decoding key for the association. By default, it
+    ///       is `destination.databaseTableName`.
+    ///     - foreignKey: An eventual foreign key. You need to provide an
+    ///       explicit foreign key when GRDB can't infer one from the database
+    ///       schema. This happens when the schema does not define any foreign
+    ///       key from the destination table, or when the schema defines several
+    ///       foreign keys from the destination table.
+    public static func hasOne<Destination>(
+        _ destination: Table<Destination>,
+        key: String? = nil,
+        using foreignKey: ForeignKey? = nil)
+    -> HasOneAssociation<Self, Destination>
+    {
+        HasOneAssociation(
+            to: destination.relationForAll,
+            key: key,
+            using: foreignKey)
+    }
+}
+
 // MARK: - Associations to CommonTableExpression
 
 extension TableRecord {
@@ -351,7 +436,7 @@ extension TableRecord {
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasManyThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
+            _sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -433,7 +518,7 @@ extension TableRecord {
           Pivot.RowDecoder == Target.OriginRowDecoder
     {
         let association = HasOneThroughAssociation<Self, Target.RowDecoder>(
-            sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
+            _sqlAssociation: target._sqlAssociation.through(pivot._sqlAssociation))
         
         if let key = key {
             return association.forKey(key)
@@ -471,14 +556,14 @@ extension TableRecord where Self: EncodableRecord {
         case let .foreignKey(foreignKey):
             let destinationRelation = association
                 ._sqlAssociation
-                .map(\.pivot.relation, { pivotRelation in
-                    pivotRelation.filter { db in
+                .with {
+                    $0.pivot.relation = $0.pivot.relation.filter { db in
                         // Filter the pivot on self
                         try foreignKey
                             .joinMapping(db, from: Self.databaseTableName)
                             .joinExpression(leftRows: [PersistenceContainer(db, self)])
                     }
-                })
+                }
                 .destinationRelation()
             return QueryInterfaceRequest(relation: destinationRelation)
         }
@@ -544,7 +629,7 @@ extension TableRecord {
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
-    ///     var request = Player.annotated(with: Player.books.count)
+    ///     let request = Player.annotated(with: Player.books.count)
     public static func annotated(with aggregates: AssociationAggregate<Self>...) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }
@@ -553,7 +638,7 @@ extension TableRecord {
     ///
     ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
     ///     // FROM player LEFT JOIN book ...
-    ///     var request = Player.annotated(with: [Player.books.count])
+    ///     let request = Player.annotated(with: [Player.books.count])
     public static func annotated(with aggregates: [AssociationAggregate<Self>]) -> QueryInterfaceRequest<Self> {
         all().annotated(with: aggregates)
     }

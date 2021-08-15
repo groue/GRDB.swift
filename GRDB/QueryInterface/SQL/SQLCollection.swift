@@ -1,6 +1,6 @@
 /// The right-hand side of the `IN` or `NOT IN` SQL operators
 ///
-/// See https://sqlite.org/lang_expr.html#the_in_and_not_in_operators
+/// See <https://sqlite.org/lang_expr.html#the_in_and_not_in_operators>
 struct SQLCollection {
     private var impl: Impl
     

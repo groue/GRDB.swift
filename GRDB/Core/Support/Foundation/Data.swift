@@ -26,7 +26,7 @@ extension Data: DatabaseValueConvertible, StatementColumnConvertible {
             return data
         case .string(let string):
             // Implicit conversion from string to blob, just as SQLite does
-            // See https://www.sqlite.org/c3ref/column_blob.html
+            // See <https://www.sqlite.org/c3ref/column_blob.html>
             return string.data(using: .utf8)
         default:
             return nil

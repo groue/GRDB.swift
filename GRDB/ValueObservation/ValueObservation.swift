@@ -32,7 +32,7 @@ public struct ValueObservation<Reducer: ValueReducer> {
     ///
     /// Don't set this flag to true unless you really need it. A read/write
     /// observation is less efficient than a read-only observation.
-    public var requiresWriteAccess: Bool = false
+    public var requiresWriteAccess = false
     
     /// Returns a ValueObservation with a transformed reducer.
     func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
@@ -103,8 +103,8 @@ extension ValueObservation: Refinable {
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Reducer.Value) -> Void) -> DatabaseCancellable
     {
-        let observation = map(\.events) { events in
-            events.map(\.didFail) { concat($0, onError) }
+        let observation = self.with {
+            $0.events.didFail = concat($0.events.didFail, onError)
         }
         observation.events.willStart?()
         return reader._add(
@@ -157,14 +157,13 @@ extension ValueObservation: Refinable {
                     // the type of the value may change with the `map` operator.
                     didReceiveValue: didReceiveValue ?? { _ in })
             })
-            .map(\.events, { events in
-                events
-                    .map(\.willStart) { concat($0, willStart) }
-                    .map(\.willTrackRegion) { concat($0, willTrackRegion) }
-                    .map(\.databaseDidChange) { concat($0, databaseDidChange) }
-                    .map(\.didFail) { concat($0, didFail) }
-                    .map(\.didCancel) { concat($0, didCancel) }
-            })
+            .with {
+                $0.events.willStart = concat($0.events.willStart, willStart)
+                $0.events.willTrackRegion = concat($0.events.willTrackRegion, willTrackRegion)
+                $0.events.databaseDidChange = concat($0.events.databaseDidChange, databaseDidChange)
+                $0.events.didFail = concat($0.events.didFail, didFail)
+                $0.events.didCancel = concat($0.events.didCancel, didCancel)
+            }
     }
     
     /// Prints log messages for all ValueObservation events.
@@ -173,16 +172,31 @@ extension ValueObservation: Refinable {
         to stream: TextOutputStream? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
+        let lock = NSLock()
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         var stream = stream ?? PrintOutputStream()
         return handleEvents(
-            willStart: { stream.write("\(prefix)start") },
-            willFetch: { stream.write("\(prefix)fetch") },
-            willTrackRegion: { stream.write("\(prefix)tracked region: \($0)") },
-            databaseDidChange: { stream.write("\(prefix)database did change") },
-            didReceiveValue: { stream.write("\(prefix)value: \($0)") },
-            didFail: { stream.write("\(prefix)failure: \($0)") },
-            didCancel: { stream.write("\(prefix)cancel") })
+            willStart: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)start") },
+            willFetch: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)fetch") },
+            willTrackRegion: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)tracked region: \($0)") },
+            databaseDidChange: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)database did change") },
+            didReceiveValue: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)value: \($0)") },
+            didFail: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)failure: \($0)") },
+            didCancel: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)cancel") })
     }
     
     // MARK: - Fetching Values

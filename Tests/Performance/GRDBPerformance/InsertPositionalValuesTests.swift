@@ -76,7 +76,7 @@ class InsertPositionalValuesTests: XCTestCase {
             }
             
             try! dbQueue.inTransaction { db in
-                let statement = try! db.makeUpdateStatement(sql: "INSERT INTO item (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
+                let statement = try! db.makeStatement(sql: "INSERT INTO item (i0, i1, i2, i3, i4, i5, i6, i7, i8, i9) VALUES (?,?,?,?,?,?,?,?,?,?)")
                 for i in 0..<insertedRowCount {
                     statement.setUncheckedArguments([i, i, i, i, i, i, i, i, i, i])
                     try statement.execute()

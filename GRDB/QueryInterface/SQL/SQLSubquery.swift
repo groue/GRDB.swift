@@ -45,7 +45,7 @@ extension SQLSubquery {
             // do not execute the statement or modify its arguments.
             let context = SQLGenerationContext(db)
             let sql = try sqlLiteral.sql(context)
-            let statement = try db.cachedSelectStatement(sql: sql)
+            let statement = try db.cachedStatement(sql: sql)
             return statement.columnCount
             
         case let .relation(relation):

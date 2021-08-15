@@ -396,9 +396,6 @@ extension ColumnDecoder: SingleValueDecodingContainer {
     }
 }
 
-/// The error that triggers JSON decoding
-private struct JSONRequiredError: Error { }
-
 @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
 private var iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()

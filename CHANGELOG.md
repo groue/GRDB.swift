@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- [Development Branch](#development-branch)
+- `5.9.x` Releases - [5.9.0](#590)
 - `5.8.x` Releases - [5.8.0](#580)
 - `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573) | [5.7.4](#574)
 - `5.6.x` Releases - [5.6.0](#560)
@@ -76,9 +76,32 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Development Branch
+## 5.9.0
+
+Released August 15, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.8.0...v5.9.0)
 
 - **Fixed**: [#980](https://github.com/groue/GRDB.swift/pull/980) by [@jroselightricks](https://github.com/jroselightricks): Fix spelling
+- **Fixed**: [#989](https://github.com/groue/GRDB.swift/pull/989) by [@pp5x](https://github.com/pp5x): FTS: add support of ifNotExists in synchronize()
+- **Fixed**: [#999](https://github.com/groue/GRDB.swift/issues/999): `request(for: association)` no longer crashes when the foreign key contains a NULL value.
+- **Fixed**: [#1025](https://github.com/groue/GRDB.swift/issues/1025) by [@mattgallagher](https://github.com/mattgallagher): Fix ValueObservation crash
+- **Fixed**: Fix thread unsafety in `ValueObservation.print()`
+- **New**: The `selectID()` method is now available for [Identifiable Records](README.md#identifiable-records)
+- **New**: Cached prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
+    
+    ```swift
+    let updateStatement = try db.cachedStatement(literal: "INSERT ...")
+    //                                           ~~~~~~~
+    ```
+
+- **New**: [#993](https://github.com/groue/GRDB.swift/pull/993) by [@groue](https://github.com/groue): QueryInterfaceRequest builder with dynamic table/view name
+- **New**: Types that adopt both `DatabaseValueConvertible` and `Codable` now profit from automatic JSON encoding and decoding.
+- **New**: [#1010](https://github.com/groue/GRDB.swift/pull/1010) by [@tternes](https://github.com/tternes): Add VACUUM INTO Support
+- **New**: [#1012](https://github.com/groue/GRDB.swift/pull/1012) by [@ZevEisenberg](https://github.com/ZevEisenberg): Add brackets to urls in doc comments to make them clickable
+- **New**: [#1019](https://github.com/groue/GRDB.swift/pull/1019) by [@groue](https://github.com/groue): Merge prepared statement types, and introduce statement cursor
+- **Documentation Update**: The [Requests](README.md#requests) chapter was updated for the new `Table` type that can build requests without any record type.
+- **Documentation Update**: The [Custom Value Types](README.md#custom-value-types) chapter was extended about the new support for codable value types encoded as JSON arrays or objects.
+- **Documentation Update**: The [Fetching Methods](README.md#fetching-methods) and [Prepared Statements](README.md#prepared-statements) chapters have been updated for the unique `Statement` class, and the new `Database.allStatements()` method.
+
 
 ## 5.8.0
 

@@ -164,7 +164,7 @@ class DatabaseObservationBroker {
     private var statementObservations: [StatementObservation] = [] {
         didSet { observesDatabaseChanges = !statementObservations.isEmpty }
     }
-    private var observesDatabaseChanges: Bool = false {
+    private var observesDatabaseChanges = false {
         didSet {
             if observesDatabaseChanges == oldValue { return }
             if observesDatabaseChanges {
@@ -200,8 +200,9 @@ class DatabaseObservationBroker {
     
     /// Setups observation of changes that are about to be performed by the
     /// statement, and returns the authorizer that should be used during
-    /// statement execution.
-    func updateStatementWillExecute(_ statement: UpdateStatement) -> StatementAuthorizer? {
+    /// statement execution (this allows preventing the truncate optimization
+    /// when there exists a transaction observer for row deletion).
+    func statementWillExecute(_ statement: Statement) -> StatementAuthorizer? {
         // If any observer observes row deletions, we'll have to disable
         // [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
         // so that observers are notified.
@@ -285,16 +286,7 @@ class DatabaseObservationBroker {
             }
         }
         
-        switch transactionState {
-        case .none:
-            break
-        default:
-            // May happen after "PRAGMA journal_mode = WAL" executed with a
-            // SelectStatement.
-            // TODO: Maybe this state machine should be run for *all* statements,
-            // not ony update statements.
-            transactionState = .none
-        }
+        transactionState = .none
         
         if observesRowDeletion {
             return TruncateOptimizationBlocker()
@@ -303,8 +295,10 @@ class DatabaseObservationBroker {
         }
     }
     
-    func updateStatementDidFail(_ statement: UpdateStatement) throws {
-        // Undo updateStatementWillExecute
+    /// May throw a cancelled commit error, if a transaction observer cancels
+    /// a transaction.
+    func statementDidFail(_ statement: Statement) throws {
+        // Undo statementWillExecute
         statementObservations = []
         SchedulingWatchdog.current!.databaseObservationBroker = nil
         
@@ -327,8 +321,10 @@ class DatabaseObservationBroker {
         }
     }
     
-    func updateStatementDidExecute(_ statement: UpdateStatement) throws {
-        // Undo updateStatementWillExecute
+    /// May throw a cancelled commit error, if a transaction observer cancels
+    /// an empty transaction.
+    func statementDidExecute(_ statement: Statement) throws {
+        // Undo statementWillExecute
         if transactionObservations.isEmpty == false {
             statementObservations = []
             SchedulingWatchdog.current!.databaseObservationBroker = nil
@@ -443,7 +439,7 @@ class DatabaseObservationBroker {
         }
     }
     
-    // Called from updateStatementDidExecute
+    // Called from statementDidExecute
     private func databaseDidCommit() {
         savepointStack.clear()
         
@@ -453,7 +449,9 @@ class DatabaseObservationBroker {
         databaseDidEndTransaction()
     }
     
-    // Called from updateStatementDidExecute
+    // Called from statementDidExecute
+    /// May throw a cancelled commit error, if a transaction observer cancels
+    /// the empty transaction.
     private func databaseDidCommitEmptyDeferredTransaction() throws {
         // A statement that ends a transaction has been executed. But for
         // SQLite, no transaction at all has started, and sqlite3_commit_hook
@@ -496,7 +494,7 @@ class DatabaseObservationBroker {
         }
     }
     
-    // Called from updateStatementDidExecute or updateStatementDidFails
+    // Called from statementDidExecute or statementDidFail
     private func databaseDidRollback(notifyTransactionObservers: Bool) {
         savepointStack.clear()
         
@@ -531,7 +529,7 @@ class DatabaseObservationBroker {
         //
         // Normally, notifyBufferedEvents() is called as part of statement
         // execution, and the current broker has been set in
-        // updateStatementWillExecute(). An assertion should be enough:
+        // statementWillExecute(). An assertion should be enough:
         //
         //      assert(SchedulingWatchdog.current?.databaseObservationBroker != nil)
         //
@@ -539,10 +537,8 @@ class DatabaseObservationBroker {
         //
         //      let journalMode = String.fetchOne(db, sql: "PRAGMA journal_mode = wal")
         //
-        // It runs a SelectStatement, not an UpdateStatement. But this not why
-        // this case is particular. What is unexpected is that it triggers
-        // the commit hook when the "PRAGMA journal_mode = wal" statement is
-        // finalized, long after it has executed:
+        // It triggers the commit hook when the "PRAGMA journal_mode = wal"
+        // statement is finalized, long after it has executed:
         //
         // 1. Statement.deinit()
         // 2. sqlite3_finalize()
@@ -555,7 +551,7 @@ class DatabaseObservationBroker {
         // journal mode would trigger the commit hook in sqlite3_step(),
         // not in sqlite3_finalize().
         //
-        // Anyway: in this scenario, updateStatementWillExecute() has not been
+        // Anyway: in this scenario, statementWillExecute() has not been
         // called, and the current broker is nil.
         //
         // Let's not try to outsmart SQLite, and build a complex state machine.
@@ -590,7 +586,7 @@ class DatabaseObservationBroker {
             do {
                 try broker.databaseWillCommit()
                 broker.transactionState = .commit
-                // Next step: updateStatementDidExecute()
+                // Next step: statementDidExecute()
                 return 0
             } catch {
                 broker.transactionState = .cancelledCommit(error)
@@ -603,11 +599,11 @@ class DatabaseObservationBroker {
             let broker = Unmanaged<DatabaseObservationBroker>.fromOpaque(brokerPointer!).takeUnretainedValue()
             switch broker.transactionState {
             case .cancelledCommit:
-                // Next step: updateStatementDidFail()
+                // Next step: statementDidFail()
                 break
             default:
                 broker.transactionState = .rollback
-            // Next step: updateStatementDidExecute()
+            // Next step: statementDidExecute()
             }
         }, brokerPointer)
     }
@@ -741,7 +737,7 @@ public protocol TransactionObserver: AnyObject {
     /// As of OSX 10.11.5, and iOS 9.3.2, the built-in SQLite library
     /// does not have this enabled, so you'll need to compile your own
     /// version of SQLite:
-    /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md
+    /// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/CustomSQLiteBuilds.md>
     ///
     /// The databaseDidChangeWithEvent callback is always available,
     /// and may provide most/all of what you need.
@@ -800,7 +796,7 @@ final class TransactionObservation {
     
     // A disabled observation is not interested in individual database changes.
     // It is still interested in transactions commits & rollbacks.
-    var isDisabled: Bool = false
+    var isDisabled = false
     
     private weak var weakObserver: TransactionObserver?
     private var strongObserver: TransactionObserver?
@@ -1350,7 +1346,7 @@ enum DatabaseEventPredicate {
 // MARK: - SavepointStack
 
 /// The SQLite savepoint stack is described at
-/// https://www.sqlite.org/lang_savepoint.html
+/// <https://www.sqlite.org/lang_savepoint.html>
 ///
 /// This class reimplements the SQLite stack, so that we can:
 ///

@@ -295,21 +295,25 @@ class CommonTableExpressionTests: GRDBTestCase {
                     literal: "SELECT \("O'Brien")")
                 let assoc1 = T.association(to: cte1)
                 let assoc2 = cte1.association(to: cte2)
-                let assoc3 = cte2.association(to: T.self)
-                let request = T.all()
-                    .with(cte1)
-                    .with(cte2)
-                    .including(required: assoc1.including(required: assoc2.including(required: assoc3)))
-                try assertEqualSQL(db, request, """
-                    WITH \
-                    "cte1" AS (SELECT * FROM "t"), \
-                    "cte2" AS (SELECT 'O''Brien') \
-                    SELECT "t1".*, "cte1".*, "cte2".*, "t2".* \
-                    FROM "t" "t1" \
-                    JOIN "cte1" \
-                    JOIN "cte2" \
-                    JOIN "t" "t2"
-                    """)
+                for assoc3 in [
+                    cte2.association(to: T.self),
+                    cte2.association(to: Table("t")),
+                ] {
+                    let request = T.all()
+                        .with(cte1)
+                        .with(cte2)
+                        .including(required: assoc1.including(required: assoc2.including(required: assoc3)))
+                    try assertEqualSQL(db, request, """
+                        WITH \
+                        "cte1" AS (SELECT * FROM "t"), \
+                        "cte2" AS (SELECT 'O''Brien') \
+                        SELECT "t1".*, "cte1".*, "cte2".*, "t2".* \
+                        FROM "t" "t1" \
+                        JOIN "cte1" \
+                        JOIN "cte2" \
+                        JOIN "t" "t2"
+                        """)
+                }
             }
             
             // Use CTE as a subquery

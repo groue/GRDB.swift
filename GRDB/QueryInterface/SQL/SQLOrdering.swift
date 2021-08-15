@@ -1,5 +1,5 @@
 /// The type that can be used as an SQL ordering term, as described at
-/// https://www.sqlite.org/syntax/ordering-term.html
+/// <https://www.sqlite.org/syntax/ordering-term.html>
 public struct SQLOrdering {
     private var impl: Impl
     
@@ -117,7 +117,7 @@ extension SQLOrdering {
 // MARK: - SQLOrderingTerm
 
 /// The protocol for all types that can be used as an SQL ordering term, as
-/// described at https://www.sqlite.org/syntax/ordering-term.html
+/// described at <https://www.sqlite.org/syntax/ordering-term.html>
 public protocol SQLOrderingTerm {
     /// Returns an SQL ordering.
     var sqlOrdering: SQLOrdering { get }

@@ -38,7 +38,7 @@ extension PersistenceError {
 ///
 /// See `MutablePersistableRecord.persistenceConflictPolicy`.
 ///
-/// See https://www.sqlite.org/lang_conflict.html
+/// See <https://www.sqlite.org/lang_conflict.html>
 public struct PersistenceConflictPolicy {
     /// The conflict resolution algorithm for insertions
     public let conflictResolutionForInsert: Database.ConflictResolution
@@ -67,7 +67,7 @@ public protocol MutablePersistableRecord: EncodableRecord, TableRecord {
     /// `didInsert(with:for:)` method is not called upon successful insertion,
     /// even if a row was actually inserted without any conflict.
     ///
-    /// See https://www.sqlite.org/lang_conflict.html
+    /// See <https://www.sqlite.org/lang_conflict.html>
     static var persistenceConflictPolicy: PersistenceConflictPolicy { get }
     
     /// Notifies the record that it was successfully inserted.
@@ -504,305 +504,6 @@ extension MutablePersistableRecord where Self: AnyObject {
     }
 }
 
-extension MutablePersistableRecord {
-    
-    // MARK: Batch Delete
-    
-    /// Deletes all records; returns the number of deleted rows.
-    ///
-    /// - parameter db: A database connection.
-    /// - returns: The number of deleted rows
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult
-    public static func deleteAll(_ db: Database) throws -> Int {
-        try all().deleteAll(db)
-    }
-    
-    // MARK: Batch Update
-    
-    /// Updates all records; returns the number of updated records.
-    ///
-    /// For example:
-    ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, [Column("score").set(to: 0)])
-    ///     }
-    ///
-    /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution,
-    ///   defaulting to the record's persistenceConflictPolicy.
-    /// - parameter assignments: An array of column assignments.
-    /// - returns: The number of updated rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult
-    public static func updateAll(
-        _ db: Database,
-        onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignments: [ColumnAssignment])
-    throws -> Int
-    {
-        try all().updateAll(db, onConflict: conflictResolution, assignments)
-    }
-    
-    /// Updates all records; returns the number of updated records.
-    ///
-    /// For example:
-    ///
-    ///     try dbQueue.write { db in
-    ///         // UPDATE player SET score = 0
-    ///         try Player.updateAll(db, Column("score").set(to: 0))
-    ///     }
-    ///
-    /// - parameter db: A database connection.
-    /// - parameter conflictResolution: A policy for conflict resolution,
-    ///   defaulting to the record's persistenceConflictPolicy.
-    /// - parameter assignment: A column assignment.
-    /// - parameter otherAssignments: Eventual other column assignments.
-    /// - returns: The number of updated rows.
-    /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    @discardableResult
-    public static func updateAll(
-        _ db: Database,
-        onConflict conflictResolution: Database.ConflictResolution? = nil,
-        _ assignment: ColumnAssignment,
-        _ otherAssignments: ColumnAssignment...)
-    throws -> Int
-    {
-        try updateAll(db, onConflict: conflictResolution, [assignment] + otherAssignments)
-    }
-}
-
-extension MutablePersistableRecord {
-    
-    // MARK: - Deleting by Single-Column Primary Key
-    
-    /// Delete records identified by their primary keys; returns the number of
-    /// deleted rows.
-    ///
-    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Player.deleteAll(db, keys: [1, 2, 3])
-    ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Country.deleteAll(db, keys: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Document.deleteAll(db, keys: [1, 2, 3])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - keys: A sequence of primary keys.
-    /// - returns: The number of deleted rows
-    @discardableResult
-    public static func deleteAll<Sequence>(_ db: Database, keys: Sequence)
-    throws -> Int
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
-    {
-        let keys = Array(keys)
-        if keys.isEmpty {
-            // Avoid hitting the database
-            return 0
-        }
-        return try filter(keys: keys).deleteAll(db)
-    }
-    
-    /// Delete a record, identified by its primary key; returns whether a
-    /// database row was deleted.
-    ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, key: 123)
-    ///
-    ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Country.deleteOne(db, key: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, key: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - key: A primary key value.
-    /// - returns: Whether a database row was deleted.
-    @discardableResult
-    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
-    throws -> Bool
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
-        guard let key = key else {
-            // Avoid hitting the database
-            return false
-        }
-        return try deleteAll(db, keys: [key]) > 0
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension MutablePersistableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
-    
-    // MARK: - Deleting by Single-Column Primary Key
-    
-    /// Delete records identified by their primary keys; returns the number of
-    /// deleted rows.
-    ///
-    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Player.deleteAll(db, ids: [1, 2, 3])
-    ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Country.deleteAll(db, ids: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Document.deleteAll(db, ids: [1, 2, 3])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted rows
-    @discardableResult
-    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
-        if ids.isEmpty {
-            // Avoid hitting the database
-            return 0
-        }
-        return try filter(ids: ids).deleteAll(db)
-    }
-    
-    /// Delete a record, identified by its primary key; returns whether a
-    /// database row was deleted.
-    ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, key: 123)
-    ///
-    ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Country.deleteOne(db, key: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, key: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a database row was deleted.
-    @discardableResult
-    public static func deleteOne(_ db: Database, id: ID) throws -> Bool {
-        try deleteAll(db, ids: [id]) > 0
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension MutablePersistableRecord
-where Self: Identifiable,
-      ID: _OptionalProtocol,
-      ID.Wrapped: DatabaseValueConvertible
-{
-    // MARK: - Deleting by Single-Column Primary Key
-    
-    /// Delete records identified by their primary keys; returns the number of
-    /// deleted rows.
-    ///
-    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Player.deleteAll(db, ids: [1, 2, 3])
-    ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Country.deleteAll(db, ids: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Document.deleteAll(db, ids: [1, 2, 3])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted rows
-    @discardableResult
-    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
-    {
-        if ids.isEmpty {
-            // Avoid hitting the database
-            return 0
-        }
-        return try filter(ids: ids).deleteAll(db)
-    }
-    
-    /// Delete a record, identified by its primary key; returns whether a
-    /// database row was deleted.
-    ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, key: 123)
-    ///
-    ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Country.deleteOne(db, key: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, key: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a database row was deleted.
-    @discardableResult
-    public static func deleteOne(_ db: Database, id: ID.Wrapped) throws -> Bool {
-        try deleteAll(db, ids: [id]) > 0
-    }
-}
-
-extension MutablePersistableRecord {
-    
-    // MARK: - Deleting by Key
-    
-    /// Delete records identified by the provided unique keys (primary key or
-    /// any key with a unique index on it); returns the number of deleted rows.
-    ///
-    ///     try Player.deleteAll(db, keys: [["email": "a@example.com"], ["email": "b@example.com"]])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - keys: An array of key dictionaries.
-    /// - returns: The number of deleted rows
-    @discardableResult
-    public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
-        if keys.isEmpty {
-            // Avoid hitting the database
-            return 0
-        }
-        return try filter(keys: keys).deleteAll(db)
-    }
-    
-    /// Delete a record, identified by a unique key (the primary key or any key
-    /// with a unique index on it); returns whether a database row was deleted.
-    ///
-    ///     Player.deleteOne(db, key: ["name": Arthur"])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - key: A dictionary of values.
-    /// - returns: Whether a database row was deleted.
-    @discardableResult
-    public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
-        try deleteAll(db, keys: [key]) > 0
-    }
-}
-
 // MARK: - PersistableRecord
 
 /// Types that adopt `PersistableRecord` can be inserted, updated, and deleted.
@@ -976,19 +677,19 @@ final class DAO<Record: MutablePersistableRecord> {
     }
     
     @usableFromInline
-    func insertStatement(onConflict: Database.ConflictResolution) throws -> UpdateStatement {
+    func insertStatement(onConflict: Database.ConflictResolution) throws -> Statement {
         let query = InsertQuery(
             onConflict: onConflict,
             tableName: databaseTableName,
             insertedColumns: persistenceContainer.columns)
-        let statement = try db.internalCachedUpdateStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(persistenceContainer.values))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
-    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> UpdateStatement? {
+    func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -1031,14 +732,14 @@ final class DAO<Record: MutablePersistableRecord> {
             tableName: databaseTableName,
             updatedColumns: updatedColumns,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.internalCachedUpdateStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(updatedValues + primaryKeyValues))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
-    func deleteStatement() throws -> UpdateStatement? {
+    func deleteStatement() throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -1051,14 +752,14 @@ final class DAO<Record: MutablePersistableRecord> {
         let query = DeleteQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.internalCachedUpdateStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }
     
     /// Returns nil if and only if primary key is nil
     @usableFromInline
-    func existsStatement() throws -> SelectStatement? {
+    func existsStatement() throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
         let primaryKeyValues = primaryKeyColumns.map {
@@ -1071,7 +772,7 @@ final class DAO<Record: MutablePersistableRecord> {
         let query = ExistsQuery(
             tableName: databaseTableName,
             conditionColumns: primaryKeyColumns)
-        let statement = try db.internalCachedSelectStatement(sql: query.sql)
+        let statement = try db.internalCachedStatement(sql: query.sql)
         statement.setUncheckedArguments(StatementArguments(primaryKeyValues))
         return statement
     }

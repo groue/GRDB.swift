@@ -3,7 +3,7 @@ import GRDB
 /// AppDatabase lets the application access the database.
 ///
 /// It applies the pratices recommended at
-/// https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md
+/// <https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md>
 final class AppDatabase {
     /// Creates an `AppDatabase`, and make sure the database schema is ready.
     init(_ dbWriter: DatabaseWriter) throws {
@@ -16,12 +16,12 @@ final class AppDatabase {
     /// Application can use a `DatabasePool`, and tests can use a fast
     /// in-memory `DatabaseQueue`.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections
+    /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections>
     private let dbWriter: DatabaseWriter
     
     /// The DatabaseMigrator that defines the database schema.
     ///
-    /// See https://github.com/groue/GRDB.swift/blob/master/Documentation/Migrations.md
+    /// See <https://github.com/groue/GRDB.swift/blob/master/Documentation/Migrations.md>
     private var migrator: DatabaseMigrator {
         var migrator = DatabaseMigrator()
         

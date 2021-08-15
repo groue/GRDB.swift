@@ -87,7 +87,9 @@ public struct _SQLAssociation {
     
     /// Changes the destination key
     func forDestinationKey(_ key: SQLAssociationKey) -> Self {
-        with(\.destination.key, key)
+        with {
+            $0.destination.key = key
+        }
     }
     
     /// Returns a new association
@@ -126,7 +128,9 @@ public struct _SQLAssociation {
                     .removingChildrenForPrefetchedAssociations()
                 
                 // Don't interfere with user-defined keys that could be added later
-                let key = step.key.map(\.baseName) { "grdb_\($0)" }
+                let key = step.key.with {
+                    $0.baseName = "grdb_\($0.baseName)"
+                }
                 
                 return SQLAssociationStep(
                     key: key,

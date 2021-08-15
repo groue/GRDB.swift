@@ -15,7 +15,7 @@ extension AnyFetchRequest {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Define your own FetchRequest type instead.")
-    public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (SelectStatement, RowAdapter?))
+    public init(_ prepare: @escaping (Database, _ singleResult: Bool) throws -> (Statement, RowAdapter?))
     { preconditionFailure() }
 }
 
@@ -129,7 +129,7 @@ extension DatabaseReader {
 
 extension FetchRequest {
     @available(*, unavailable, message: "Use makePreparedRequest(_:forSingleResult:) instead.")
-    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (SelectStatement, RowAdapter?)
+    func prepare(_ db: Database, forSingleResult singleResult: Bool) throws -> (Statement, RowAdapter?)
     { preconditionFailure() }
     
     @available(*, unavailable, message: "Use ValueObservation.tracking(request.fetchCount) instead")
