@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- [Development Branch](#development-branch)
+- `5.9.x` Releases - [5.9.0](#590)
 - `5.8.x` Releases - [5.8.0](#580)
 - `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573) | [5.7.4](#574)
 - `5.6.x` Releases - [5.6.0](#560)
@@ -76,7 +76,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Development Branch
+## 5.9.0
+
+Released August 15, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.8.0...v5.9.0)
 
 - **Fixed**: [#980](https://github.com/groue/GRDB.swift/pull/980) by [@jroselightricks](https://github.com/jroselightricks): Fix spelling
 - **Fixed**: [#989](https://github.com/groue/GRDB.swift/pull/989) by [@pp5x](https://github.com/pp5x): FTS: add support of ifNotExists in synchronize()
