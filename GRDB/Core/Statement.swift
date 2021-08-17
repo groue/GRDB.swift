@@ -78,33 +78,33 @@ public final class Statement {
     ///   statement in the C string.
     /// - parameter prepFlags: Flags for sqlite3_prepare_v3 (available from
     ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
-    /// - parameter authorizer: A StatementCompilationAuthorizer
     /// - throws: DatabaseError in case of compilation error.
     required init?(
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
-        prepFlags: Int32,
-        authorizer: StatementCompilationAuthorizer) throws
+        prepFlags: Int32) throws
     {
         SchedulingWatchdog.preconditionValidQueue(database)
         
+        let authorizer = StatementCompilationAuthorizer()
         var sqliteStatement: SQLiteStatement? = nil
-        // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let code = sqlite3_prepare_v3(
-            database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
-            &sqliteStatement, statementEnd)
-        #else
-        let code: Int32
-        if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
-            code = sqlite3_prepare_v3(
+        let code: Int32 = database.withAuthorizer(authorizer) {
+            // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+            #if GRDBCUSTOMSQLITE || GRDBCIPHER
+            return sqlite3_prepare_v3(
                 database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
                 &sqliteStatement, statementEnd)
-        } else {
-            code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
+            #else
+            if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
+                return sqlite3_prepare_v3(
+                    database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
+                    &sqliteStatement, statementEnd)
+            } else {
+                return sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
+            }
+            #endif
         }
-        #endif
         
         guard code == SQLITE_OK else {
             throw DatabaseError(

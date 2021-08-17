@@ -492,38 +492,38 @@ public class SQLStatementCursor: Cursor {
             return nil
         }
         
-        let authorizer = StatementCompilationAuthorizer()
-        return try database.withAuthorizer(authorizer) {
-            try cString.withUnsafeBufferPointer { buffer in
-                guard let baseAddress = buffer.baseAddress else {
-                    return nil
-                }
-                var statementEnd: UnsafePointer<Int8>? = nil
-                let statement = try Statement(
-                    database: database,
-                    statementStart: baseAddress + offset,
-                    statementEnd: &statementEnd,
-                    prepFlags: prepFlags,
-                    authorizer: authorizer)
-                
-                offset = statementEnd! - baseAddress
-                
-                if let statement = statement {
-                    if arguments != nil {
-                        // Extract statement arguments
-                        let bindings = try arguments!.extractBindings(
-                            forStatement: statement,
-                            allowingRemainingValues: true)
-                        // unchecked is OK because we just extracted the correct
-                        // number of arguments
-                        statement.setUncheckedArguments(StatementArguments(bindings))
-                    }
-                    return statement
-                } else {
-                    try checkArgumentsAreEmpty()
-                    return nil
-                }
+        return try cString.withUnsafeBufferPointer { buffer in
+            guard let baseAddress = buffer.baseAddress else {
+                // Should never happen since buffer contains at least
+                // the trailing \0
+                return nil
             }
+            
+            var statementEnd: UnsafePointer<Int8>? = nil
+            let compiledStatement = try Statement(
+                database: database,
+                statementStart: baseAddress + offset,
+                statementEnd: &statementEnd,
+                prepFlags: prepFlags)
+            
+            offset = statementEnd! - baseAddress
+            
+            guard let statement = compiledStatement else {
+                try checkArgumentsAreEmpty()
+                return nil
+            }
+            
+            if arguments != nil {
+                // Extract statement arguments
+                let bindings = try arguments!.extractBindings(
+                    forStatement: statement,
+                    allowingRemainingValues: true)
+                // unchecked is OK because we just extracted the correct
+                // number of arguments
+                statement.setUncheckedArguments(StatementArguments(bindings))
+            }
+            
+            return statement
         }
     }
     
