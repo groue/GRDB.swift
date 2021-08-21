@@ -425,7 +425,7 @@ extension DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> DatabaseValueCursor<Self>
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -446,7 +446,7 @@ extension DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> [Self]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -470,7 +470,7 @@ extension DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> Self?
     {
-        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -493,7 +493,7 @@ extension DatabaseValueConvertible where Self: Hashable {
         adapter: RowAdapter? = nil)
     throws -> Set<Self>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -757,7 +757,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> NullableDatabaseValueCursor<Wrapped>
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of optional values fetched from an SQL query.
@@ -778,7 +778,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> [Wrapped?]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -801,7 +801,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & Hashable {
         adapter: RowAdapter? = nil)
     throws -> Set<Wrapped?>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

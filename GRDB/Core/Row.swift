@@ -1400,7 +1400,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> RowCursor
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -1425,7 +1425,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> [Row]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a set of rows fetched from an SQL query.
@@ -1450,7 +1450,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> Set<Row>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -1475,7 +1475,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> Row?
     {
-        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

@@ -4834,7 +4834,7 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     ```swift
     // WITH selectedName AS (...)
     // SELECT * FROM player WHERE name IN selectedName
-    let cte = CommonTableExpression<Void>(named: "selectedName", ...)
+    let cte = CommonTableExpression(named: "selectedName", ...)
     Player
         .with(cte)
         .filter(cte.contains(nameColumn))

@@ -419,7 +419,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
     throws -> FastDatabaseValueCursor<Self>
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -440,7 +440,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
     throws -> [Self]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -461,7 +461,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         adapter: RowAdapter? = nil)
     throws -> Self?
     {
-        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -484,7 +484,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible & Hash
         adapter: RowAdapter? = nil)
     throws -> Set<Self>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -747,7 +747,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
         adapter: RowAdapter? = nil)
     throws -> FastNullableDatabaseValueCursor<Wrapped>
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of optional values fetched from an SQL query.
@@ -768,7 +768,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
         adapter: RowAdapter? = nil)
     throws -> [Wrapped?]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -791,7 +791,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & StatementColumnConv
         adapter: RowAdapter? = nil)
     throws -> Set<Wrapped?>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
