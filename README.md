@@ -7900,6 +7900,7 @@ FAQ
 
 - [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
 - [What Are Experimental Features?](#what-are-experimental-features)
+- [Does GRDB support library evolution and ABI stability?](does-grdb-support-library-evolution-and-abi-stability)
 
 **[FAQ: Associations](#faq-associations)**
 
@@ -8028,6 +8029,7 @@ db.trace { event in
 - :arrow_up: [FAQ]
 - [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
 - [What Are Experimental Features?](#what-are-experimental-features)
+- [Does GRDB support library evolution and ABI stability?](does-grdb-support-library-evolution-and-abi-stability)
 
 ### How do I monitor the duration of database statements execution?
 
@@ -8054,6 +8056,11 @@ try dbQueue.read { db in
 }
 ```
 
+### Does GRDB support library evolution and ABI stability?
+
+No, GRDB does not support library evolution and ABI stability. The only promise is API stability according to [semantic versioning](http://semver.org), with an exception for [experimental features](#what-are-experimental-features).
+
+Yet, GRDB can be built with the "Build Libraries for Distribution" Xcode option (`BUILD_LIBRARY_FOR_DISTRIBUTION`), so that you can build binary frameworks at your convenience.
 
 ## FAQ: Associations
 

@@ -494,14 +494,14 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
 ///         let players: RecordCursor<Player> = try Player.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RecordCursor<Record: FetchableRecord>: Cursor {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
-    @usableFromInline let _statement: Statement
-    @usableFromInline let _row: Row // Reused for performance
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline var _state = _State.idle
+    private let _statement: Statement
+    private let _row: Row // Reused for performance
+    private let _sqliteStatement: SQLiteStatement
+    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
@@ -522,7 +522,6 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
         try? _statement.reset()
     }
     
-    @inlinable
     public func next() throws -> Record? {
         switch _state {
         case .done:

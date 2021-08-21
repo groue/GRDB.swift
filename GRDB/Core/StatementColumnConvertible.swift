@@ -129,7 +129,8 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 ///         }
 ///     }
 public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
-    @usableFromInline enum _State {
+    @usableFromInline
+    enum _State {
         case idle, busy, done, failed
     }
     
@@ -213,7 +214,8 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
 public final class FastNullableDatabaseValueCursor<Value>: Cursor
 where Value: DatabaseValueConvertible & StatementColumnConvertible
 {
-    @usableFromInline enum _State {
+    @usableFromInline
+    enum _State {
         case idle, busy, done, failed
     }
     

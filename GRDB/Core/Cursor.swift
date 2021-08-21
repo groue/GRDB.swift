@@ -19,7 +19,6 @@ extension RangeReplaceableCollection {
     ///     let strings = try Array(cursor)
     ///
     /// - parameter cursor: The cursor whose elements feed the collection.
-    @inlinable
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
         while let element = try cursor.next() {
@@ -36,7 +35,6 @@ extension RangeReplaceableCollection {
     /// - parameter cursor: The cursor whose elements feed the collection.
     /// - parameter minimumCapacity: Prepares the returned collection to store
     ///   the specified number of elements.
-    @inlinable
     public init<C: Cursor>(_ cursor: C, minimumCapacity: Int) throws where C.Element == Element {
         self.init()
         reserveCapacity(minimumCapacity)
