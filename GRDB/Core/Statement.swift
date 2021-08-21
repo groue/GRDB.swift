@@ -58,7 +58,6 @@ public final class Statement {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
-    @usableFromInline
     unowned let database: Database
     
     /// Cache for index(ofColumn:). Keys are lowercase.
@@ -129,7 +128,6 @@ public final class Statement {
         sqlite3_finalize(sqliteStatement)
     }
     
-    @usableFromInline
     final func reset() throws {
         SchedulingWatchdog.preconditionValidQueue(database)
         let code = sqlite3_reset(sqliteStatement)
@@ -141,11 +139,9 @@ public final class Statement {
     
     // MARK: Arguments
     
-    @usableFromInline
-    var argumentsNeedValidation = true
+    private var argumentsNeedValidation = true
     
-    @usableFromInline
-    var _arguments = StatementArguments()
+    private var _arguments = StatementArguments()
     
     lazy var sqliteArgumentCount: Int = {
         Int(sqlite3_bind_parameter_count(self.sqliteStatement))
@@ -260,7 +256,6 @@ public final class Statement {
     }
     
     // 1-based index
-    @inlinable
     func bind<T: StatementBinding>(_ value: T, at index: CInt) {
         let code = value.bind(to: sqliteStatement, at: index)
         
@@ -272,7 +267,6 @@ public final class Statement {
     }
     
     // Don't make this one public unless we keep the arguments property in sync.
-    @usableFromInline
     func clearBindings() {
         // It looks like sqlite3_clear_bindings() does not access the file system.
         // This function call should thus succeed, unless a GRDB bug: there is
@@ -340,13 +334,13 @@ extension Statement {
 ///         try cursor.next()
 ///     }
 final class StatementCursor: Cursor {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
-    let _statement: Statement
-    let _sqliteStatement: SQLiteStatement
-    var _state = _State.idle
+    /* private, internal for testability */ let _statement: Statement
+    private let _sqliteStatement: SQLiteStatement
+    private var _state = _State.idle
     
     // Use Statement.makeCursor() instead
     init(statement: Statement, arguments: StatementArguments? = nil) throws {
@@ -368,7 +362,6 @@ final class StatementCursor: Cursor {
     }
     
     /// :nodoc:
-    @inlinable
     func next() throws -> Void? {
         switch _state {
         case .done:
@@ -592,8 +585,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
         self.init(values)
     }
     
-    @usableFromInline
-    mutating func set(databaseValues: [DatabaseValue]) {
+    private mutating func set(databaseValues: [DatabaseValue]) {
         self.values = databaseValues
         namedValues.removeAll(keepingCapacity: true)
     }

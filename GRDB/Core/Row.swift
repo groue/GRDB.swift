@@ -14,8 +14,8 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     ///
     ///     let rows = try Row.fetchCursor(db, sql: "SELECT ...")
     ///     let players = try Player.fetchAll(db, sql: "SELECT ...")
-    @usableFromInline let statement: Statement?
-    @usableFromInline let sqliteStatement: SQLiteStatement?
+    let statement: Statement?
+    let sqliteStatement: SQLiteStatement?
     
     /// The number of columns in the row.
     public let count: Int
@@ -154,7 +154,6 @@ extension Row {
         index(forColumn: columnName) != nil
     }
     
-    @usableFromInline
     func index(forColumn name: String) -> Int? {
         impl.index(forColumn: name)
     }
@@ -165,8 +164,7 @@ extension Row {
     // MARK: - Extracting Values
     
     /// Fatal errors if index is out of bounds
-    @inlinable
-    func checkedIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) -> Int {
+    private func checkedIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) -> Int {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
         return index
     }
@@ -223,7 +221,6 @@ extension Row {
     /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
     /// value is converted to the requested type `Value`. Should this conversion
     /// fail, a fatal error is raised.
-    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
         try! decodeIfPresent(Value.self, atIndex: index)
     }
@@ -240,7 +237,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         try! decodeIfPresent(Value.self, atIndex: index)
     }
@@ -252,7 +248,6 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         try! decode(Value.self, atIndex: index)
     }
@@ -268,7 +263,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         try! decode(Value.self, atIndex: index)
     }
@@ -302,7 +296,6 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
-    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value? {
         try! decodeIfPresent(Value.self, forKey: columnName)
     }
@@ -319,7 +312,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value? {
         try! decodeIfPresent(Value.self, forKey: columnName)
     }
@@ -333,7 +325,6 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
         try! decode(Value.self, forKey: columnName)
     }
@@ -351,7 +342,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         try! decode(Value.self, forKey: columnName)
     }
@@ -363,7 +353,6 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    @inlinable
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
         self[column.name]
     }
@@ -376,7 +365,6 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. Should this conversion fail, a fatal error is raised.
-    @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value? {
         try! decodeIfPresent(Value.self, forKey: column.name)
     }
@@ -393,7 +381,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     public subscript<Value, Column>(_ column: Column)
     -> Value?
     where
@@ -412,7 +399,6 @@ extension Row {
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
-    @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
         try! decode(Value.self, forKey: column.name)
     }
@@ -430,7 +416,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     public subscript<Value, Column>(_ column: Column)
     -> Value
     where
@@ -706,7 +691,6 @@ extension Row {
     /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
     /// value is converted to the requested type `Value`. If the conversion
     /// fail, a `RowDecodingError` is thrown.
-    @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
@@ -722,7 +706,6 @@ extension Row {
     ///
     /// If the SQLite value is NULL, or if the conversion fails, a
     /// `RowDecodingError` is thrown.
-    @inlinable
     func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
@@ -739,7 +722,6 @@ extension Row {
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. Otherwise the SQLite value is converted to the requested type
     /// `Value`. If the conversion fails, a `RowDecodingError` is thrown.
-    @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
         forKey columnName: String)
@@ -759,7 +741,6 @@ extension Row {
     /// If the row does not contain the column, or if the SQLite value is NULL,
     /// or if the SQLite value can not be converted to `Value`, a
     /// `RowDecodingError` is thrown.
-    @inlinable
     func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
         forKey columnName: String)
@@ -787,7 +768,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
@@ -807,7 +787,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
@@ -828,7 +807,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         forKey columnName: String)
@@ -852,7 +830,6 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         forKey columnName: String)
@@ -865,7 +842,6 @@ extension Row {
     }
     
     // Support for fast decoding in scoped rows
-    @usableFromInline
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
@@ -875,7 +851,6 @@ extension Row {
     }
     
     // Support for fast decoding in scoped rows
-    @usableFromInline
     func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type,
         atUncheckedIndex index: Int)
@@ -953,13 +928,11 @@ extension Row {
     }
     
     // Support for fast decoding in scoped rows
-    @usableFromInline
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
         try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
     }
     
     // Support for fast decoding in scoped rows
-    @usableFromInline
     func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
         try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
     }
@@ -1189,15 +1162,15 @@ extension Row {
 ///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RowCursor: Cursor {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
     /// The statement iterated by this cursor
     public let statement: Statement
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline let _row: Row // Reused for performance
-    @usableFromInline var _state = _State.idle
+    private let _sqliteStatement: SQLiteStatement
+    private let _row: Row // Reused for performance
+    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
@@ -1218,7 +1191,6 @@ public final class RowCursor: Cursor {
         try? statement.reset()
     }
     
-    @inlinable
     public func next() throws -> Row? {
         switch _state {
         case .done:

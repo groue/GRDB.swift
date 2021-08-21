@@ -1,5 +1,4 @@
 /// A key that is used to decode a value in a row
-@usableFromInline
 enum RowKey: Hashable {
     /// A column name
     case columnName(String)
@@ -15,12 +14,9 @@ enum RowKey: Hashable {
 }
 
 /// A decoding error
-@usableFromInline
 enum RowDecodingError: Error {
-    @usableFromInline
     struct Context: CustomDebugStringConvertible {
         /// A description of what went wrong, for debugging purposes.
-        @usableFromInline
         let debugDescription: String
         
         /// The row that could not be decoded
@@ -35,7 +31,6 @@ enum RowDecodingError: Error {
         /// The SQL query arguments
         let statementArguments: StatementArguments?
         
-        @usableFromInline
         init(decodingContext: RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
             self.row = decodingContext.row
@@ -73,7 +68,6 @@ enum RowDecodingError: Error {
     
     /// Convenience method that builds the
     /// `could not decode <Type> from database value <value>` error message.
-    @usableFromInline
     static func valueMismatch(
         _ type: Any.Type,
         sqliteStatement: SQLiteStatement,
@@ -89,7 +83,6 @@ enum RowDecodingError: Error {
     
     /// Convenience method that builds the
     /// `could not decode <Type> from database value <value>` error message.
-    @usableFromInline
     static func valueMismatch(
         _ type: Any.Type,
         statement: Statement,
@@ -104,7 +97,6 @@ enum RowDecodingError: Error {
     
     /// Convenience method that builds the `column not found: <column>`
     /// error message.
-    @usableFromInline
     static func columnNotFound(_ columnName: String, context: RowDecodingContext) -> Self {
         keyNotFound(
             .columnName(columnName),
@@ -114,7 +106,6 @@ enum RowDecodingError: Error {
     }
 }
 
-@usableFromInline
 struct RowDecodingContext {
     /// The row that is decoded
     let row: Row
@@ -127,7 +118,6 @@ struct RowDecodingContext {
     /// The SQL query arguments
     let statementArguments: StatementArguments?
     
-    @usableFromInline
     init(row: Row, key: RowKey? = nil) {
         if let statement = row.statement {
             self.key = key
@@ -148,7 +138,6 @@ struct RowDecodingContext {
     }
     
     /// Convenience initializer
-    @usableFromInline
     init(statement: Statement, index: Int) {
         self.key = .columnIndex(index)
         self.row = Row(copiedFromSQLiteStatement: statement.sqliteStatement, statement: statement)
@@ -158,7 +147,6 @@ struct RowDecodingContext {
 }
 
 extension RowDecodingError: CustomStringConvertible {
-    @usableFromInline
     var description: String {
         let context = self.context
         let row = context.row

@@ -965,20 +965,17 @@ protocol ColumnAddressable {
 struct DummyRow: ColumnAddressable {
     struct DummyIndex { }
     func index(forColumn column: String) -> DummyIndex? { DummyIndex() }
-    @inline(__always)
     func databaseValue(at index: DummyIndex) -> DatabaseValue { DatabaseValue(storage: .int64(1)) }
 }
 
 /// Row has columns
 extension Row: ColumnAddressable {
-    @inline(__always)
     func databaseValue(at index: Int) -> DatabaseValue { self[index] }
 }
 
 /// PersistenceContainer has columns
 extension PersistenceContainer: ColumnAddressable {
     func index(forColumn column: String) -> String? { column }
-    @inline(__always)
     func databaseValue(at column: String) -> DatabaseValue {
         self[caseInsensitive: column]?.databaseValue ?? .null
     }

@@ -6,7 +6,6 @@ public typealias SQLiteConnection = OpaquePointer
 /// A raw SQLite function argument.
 typealias SQLiteValue = OpaquePointer
 
-@usableFromInline
 let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_destructor_type.self)
 
 /// A Database connection.

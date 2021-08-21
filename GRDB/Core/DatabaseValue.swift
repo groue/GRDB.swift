@@ -86,7 +86,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     
     // MARK: - Not Public
     
-    @inlinable
     init(storage: Storage) {
         self.storage = storage
     }
@@ -116,7 +115,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     }
     
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
-    @usableFromInline
     init(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
@@ -142,7 +140,6 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
 }
 
 extension DatabaseValue: StatementBinding {
-    @inlinable
     public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
         switch storage {
         case .null:
@@ -221,7 +218,6 @@ extension DatabaseValue {
 // DatabaseValueConvertible
 extension DatabaseValue {
     /// Returns self
-    @inlinable
     public var databaseValue: DatabaseValue {
         self
     }

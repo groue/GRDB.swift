@@ -588,7 +588,6 @@ extension Database {
     /// Returns the authorizer that should be used during statement execution
     /// (this allows preventing the truncate optimization when there exists a
     /// transaction observer for row deletion).
-    @usableFromInline
     func statementWillExecute(_ statement: Statement) throws -> StatementAuthorizer? {
         // Two things must prevent the statement from executing: aborted
         // transactions, and database suspension.
@@ -604,7 +603,6 @@ extension Database {
     
     /// May throw a cancelled commit error, if a transaction observer cancels
     /// an empty transaction.
-    @usableFromInline
     func statementDidExecute(_ statement: Statement) throws {
         if statement.invalidatesDatabaseSchemaCache {
             clearSchemaCache()
@@ -614,7 +612,6 @@ extension Database {
     }
     
     /// Always throws an error
-    @usableFromInline
     func statementDidFail(_ statement: Statement, withResultCode resultCode: Int32) throws -> Never {
         // Failed statements can not be reused, because sqlite3_reset won't
         // be able to restore the statement to its initial state:

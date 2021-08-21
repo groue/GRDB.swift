@@ -28,7 +28,6 @@ extension Refinable {
     ///     }
     ///     newPlayer.name  // "Arthur"
     ///     newPlayer.score // 100
-    @inline(__always)
     func with(_ update: (inout Self) throws -> Void) rethrows -> Self {
         var result = self
         try update(&result)

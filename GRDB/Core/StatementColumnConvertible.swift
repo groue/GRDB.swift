@@ -45,7 +45,6 @@ public protocol StatementColumnConvertible {
 // MARK: - Conversions
 
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
-    @inlinable
     static func fastDecode(
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
@@ -64,7 +63,6 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return value
     }
     
-    @inlinable
     static func fastDecode(
         fromRow row: Row,
         atUncheckedIndex index: Int)
@@ -80,7 +78,6 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return try row.fastDecode(Self.self, atUncheckedIndex: index)
     }
     
-    @inlinable
     static func fastDecodeIfPresent(
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
@@ -100,7 +97,6 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return value
     }
     
-    @inlinable
     static func fastDecodeIfPresent(
         fromRow row: Row,
         atUncheckedIndex index: Int)
@@ -129,14 +125,14 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 ///         }
 ///     }
 public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
-    @usableFromInline let _statement: Statement
-    @usableFromInline let _columnIndex: Int32
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline var _state = _State.idle
+    private let _statement: Statement
+    private let _columnIndex: Int32
+    private let _sqliteStatement: SQLiteStatement
+    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
@@ -162,7 +158,6 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
         try? _statement.reset()
     }
     
-    @inlinable
     public func next() throws -> Value? {
         switch _state {
         case .done:
@@ -213,14 +208,14 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
 public final class FastNullableDatabaseValueCursor<Value>: Cursor
 where Value: DatabaseValueConvertible & StatementColumnConvertible
 {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
-    @usableFromInline let _statement: Statement
-    @usableFromInline let _columnIndex: Int32
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline var _state = _State.idle
+    private let _statement: Statement
+    private let _columnIndex: Int32
+    private let _sqliteStatement: SQLiteStatement
+    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
@@ -246,7 +241,6 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
         try? _statement.reset()
     }
     
-    @inlinable
     public func next() throws -> Value?? {
         switch _state {
         case .done:
