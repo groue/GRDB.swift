@@ -57,6 +57,7 @@ extension DatabaseValueConvertible {
         return try decode(fromDatabaseValue: dbValue, context: context())
     }
     
+    @usableFromInline
     static func decode(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self {
         if let sqliteStatement = row.sqliteStatement {
             return try decode(
@@ -100,6 +101,7 @@ extension DatabaseValueConvertible {
         }
     }
     
+    @usableFromInline
     static func decodeIfPresent(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self? {
         if let sqliteStatement = row.sqliteStatement {
             return try decodeIfPresent(

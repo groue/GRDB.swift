@@ -45,6 +45,7 @@ public protocol StatementColumnConvertible {
 // MARK: - Conversions
 
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+    @inlinable
     static func fastDecode(
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
@@ -63,6 +64,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return value
     }
     
+    @inlinable
     static func fastDecode(
         fromRow row: Row,
         atUncheckedIndex index: Int)
@@ -78,6 +80,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return try row.fastDecode(Self.self, atUncheckedIndex: index)
     }
     
+    @inlinable
     static func fastDecodeIfPresent(
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
@@ -97,6 +100,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         return value
     }
     
+    @inlinable
     static func fastDecodeIfPresent(
         fromRow row: Row,
         atUncheckedIndex index: Int)
