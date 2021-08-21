@@ -146,6 +146,7 @@ struct RowDecodingContext {
     }
     
     /// Convenience initializer
+    @usableFromInline
     init(statement: Statement, index: Int) {
         self.key = .columnIndex(index)
         self.row = Row(copiedFromSQLiteStatement: statement.sqliteStatement, statement: statement)

@@ -58,6 +58,7 @@ public final class Statement {
         sqlite3_stmt_readonly(sqliteStatement) != 0
     }
     
+    @usableFromInline
     unowned let database: Database
     
     /// Cache for index(ofColumn:). Keys are lowercase.

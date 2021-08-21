@@ -3,6 +3,7 @@ import Glibc
 #endif
 
 /// A protocol around sqlite3_set_authorizer
+@usableFromInline
 protocol StatementAuthorizer: AnyObject {
     func authorize(
         _ actionCode: Int32,

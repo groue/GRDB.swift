@@ -129,14 +129,15 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
 ///         }
 ///     }
 public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & StatementColumnConvertible> : Cursor {
-    private enum _State {
+    @usableFromInline
+    enum _State {
         case idle, busy, done, failed
     }
     
-    private let _statement: Statement
-    private let _columnIndex: Int32
-    private let _sqliteStatement: SQLiteStatement
-    private var _state = _State.idle
+    @usableFromInline let _statement: Statement
+    @usableFromInline let _columnIndex: Int32
+    @usableFromInline let _sqliteStatement: SQLiteStatement
+    @usableFromInline var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
@@ -162,6 +163,7 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
         try? _statement.reset()
     }
     
+    @inlinable
     public func next() throws -> Value? {
         switch _state {
         case .done:
@@ -212,14 +214,15 @@ public final class FastDatabaseValueCursor<Value: DatabaseValueConvertible & Sta
 public final class FastNullableDatabaseValueCursor<Value>: Cursor
 where Value: DatabaseValueConvertible & StatementColumnConvertible
 {
-    private enum _State {
+    @usableFromInline
+    enum _State {
         case idle, busy, done, failed
     }
     
-    private let _statement: Statement
-    private let _columnIndex: Int32
-    private let _sqliteStatement: SQLiteStatement
-    private var _state = _State.idle
+    @usableFromInline let _statement: Statement
+    @usableFromInline let _columnIndex: Int32
+    @usableFromInline let _sqliteStatement: SQLiteStatement
+    @usableFromInline var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
@@ -245,6 +248,7 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
         try? _statement.reset()
     }
     
+    @inlinable
     public func next() throws -> Value?? {
         switch _state {
         case .done:
