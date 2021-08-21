@@ -1596,6 +1596,7 @@ extension Database {
     }
     
     /// Confirms or cancels the changes performed by a transaction or savepoint.
+    @frozen
     public enum TransactionCompletion {
         /// Confirms changes
         case commit

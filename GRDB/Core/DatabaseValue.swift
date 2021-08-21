@@ -13,6 +13,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     public static let null = DatabaseValue(storage: .null)
     
     /// An SQLite storage (NULL, INTEGER, REAL, TEXT, BLOB).
+    @frozen
     public enum Storage: Equatable {
         /// The NULL storage class.
         case null

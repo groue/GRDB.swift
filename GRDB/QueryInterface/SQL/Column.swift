@@ -52,6 +52,12 @@ public struct Column: ColumnExpression, Equatable {
     public init(_ codingKey: CodingKey) {
         self.name = codingKey.stringValue
     }
+    
+    // Avoid a wrong resolution when BUILD_LIBRARY_FOR_DISTRIBUTION is set
+    @_disfavoredOverload
+    public static func == (lhs: Column, rhs: Column) -> Bool {
+        lhs.name == rhs.name
+    }
 }
 
 /// Support for column enums:

@@ -881,6 +881,7 @@ typealias StatementObservation = (TransactionObservation, DatabaseEventPredicate
 
 /// A kind of database event. See the `TransactionObserver` protocol for
 /// more information.
+@frozen
 public enum DatabaseEventKind {
     /// The insertion of a row in a database table
     case insert(tableName: String)
