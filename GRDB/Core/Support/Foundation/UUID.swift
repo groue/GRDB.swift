@@ -49,7 +49,6 @@ extension UUID: DatabaseValueConvertible {
 }
 
 extension UUID: StatementColumnConvertible {
-    @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_TEXT:

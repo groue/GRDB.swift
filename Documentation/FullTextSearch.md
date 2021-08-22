@@ -280,7 +280,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.9/Structs/StatementArguments.html):
+FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.10/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -529,7 +529,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.9/Structs/StatementArguments.html):
+FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.10/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -540,7 +540,11 @@ let documents = try Document.fetchAll(db,
 Use them in the [query interface](../README.md#the-query-interface):
 
 ```swift
+// Search in all columns
 let documents = try Document.matching(pattern).fetchAll(db)
+
+// Search in a specific column:
+let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
 

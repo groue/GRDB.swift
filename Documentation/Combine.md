@@ -7,6 +7,7 @@ GRDB ❤️ Combine
 - [Demo Application]
 - [Asynchronous Database Access]
 - [Database Observation]
+- [Combine and Data Consistency]: take care when you combine database publishers together
 
 ## Usage
 
@@ -248,37 +249,6 @@ This publisher has the same behavior as ValueObservation:
 
 See [ValueObservation Scheduling](../README.md#valueobservation-scheduling) for more information.
 
-:warning: **ValueObservation and Data Consistency**
-
-When you compose ValueObservation publishers together with the [combineLatest](https://developer.apple.com/documentation/combine/publisher/3333677-combinelatest) operator, you lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
-
-Instead, compose requests together into **one single** ValueObservation, as below:
-
-```swift
-struct HallOfFame {
-    var totalPlayerCount: Int
-    var bestPlayers: [Player]
-}
-
-// DATA CONSISTENCY GUARANTEED
-let hallOfFamePublisher = ValueObservation
-    .tracking { db -> HallOfFame in
-        let totalPlayerCount = try Player.fetchCount(db)
-        
-        let bestPlayers = try Player
-            .order(Column("score").desc)
-            .limit(10)
-            .fetchAll(db)
-        
-        return HallOfFame(
-            totalPlayerCount: totalPlayerCount,
-            bestPlayers: bestPlayers)
-    }
-    .publisher(in: dbQueue)
-```
-
-See [ValueObservation] for more information.
-
 
 #### `DatabaseRegionObservation.publisher(in:)`
 
@@ -320,12 +290,86 @@ try dbQueue.write { db in
 See [DatabaseRegionObservation] for more information.
 
 
+## Combine and Data Consistency
+
+When you compose database publishers together with Combine operators such as `combineLatest` or `zip`, you lose all guarantees of [data consistency](https://en.wikipedia.org/wiki/Consistency_(database_systems)).
+
+This is because each database publisher is isolated from others: each one of them sees its own state of the database. Whenever some database change is interleaved between publisher operations, publishers will process or publish values that may not fit well together.
+
+In other words, whenever you need to perform some database access or observation that depends on some database invariant, make sure you define one and only one database publisher instead of combining several publishers. This is how you will prevent eventual concurrent database writes from messing with your app, and introduce bugs.
+
+To this end, remember that *all database publishers can perform several requests*.
+
+In the example below, we are totally sure that the published `HallOfFame` values will never contain inconsistent values, because it is produced by one and ony one publisher:
+
+```swift
+struct HallOfFame {
+    // Invariant: bestPlayers.count <= totalPlayerCount
+    var totalPlayerCount: Int
+    var bestPlayers: [Player]
+}
+
+// CORRECT: DATA CONSISTENCY GUARANTEED
+let hallOfFamePublisher = ValueObservation
+    .tracking { db -> HallOfFame in
+        // 1st request
+        let totalPlayerCount = try Player.fetchCount(db)
+        
+        // 2nd request
+        let bestPlayers = try Player
+            .order(Column("score").desc)
+            .limit(10)
+            .fetchAll(db)
+        
+        // 100% guaranteed
+        assert(bestPlayers.count <= totalPlayerCount)
+        
+        // Merge results together
+        return HallOfFame(
+            totalPlayerCount: totalPlayerCount,
+            bestPlayers: bestPlayers)
+    }
+    .publisher(in: dbQueue)
+```
+
+Compare with the incorrect version that combines two database publishers together:
+
+```swift
+// OK
+let totalPlayerCountPublisher = ValueObservation
+    .tracking(Player.fetchCount)
+    .publisher(in: dbQueue)
+
+// OK
+let bestPlayerPublisher = ValueObservation
+    .tracking(Player
+              .order(Column("score").desc)
+              .limit(10)
+              .fetchAll)
+    .publisher(in: dbQueue)
+
+// NOT OK: DATA CONSISTENCY NOT GUARANTEED
+let hallOfFamePublisher = totalPlayerCountPublisher
+    .combineLatest(bestPlayerPublisher)
+    .map(HallOfFame.init(totalPlayerCount:bestPlayers))
+
+let cancellable = hallOfFamePublisher.sink(
+    receiveCompletion: { completion in ... },
+    receiveValue: { hallOfFame in
+        // ASSERTION MAY FAIL if some players are deleted
+        // at the wrong time
+        assert(hallOfFame.bestPlayers.count <= hallOfFame.totalPlayerCount)
+    })
+```
+
+
 [Database Connections]: ../README.md#database-connections
 [Usage]: #usage
 [Asynchronous Database Access]: #asynchronous-database-access
 [Combine]: https://developer.apple.com/documentation/combine
 [Database Changes Observation]: ../README.md#database-changes-observation
 [Database Observation]: #database-observation
+[Combine and Data Consistency]: #combine-and-data-consistency
 [DatabaseRegionObservation]: ../README.md#databaseregionobservation
 [Demo Application]: DemoApps/GRDBCombineDemo/README.md
 [SQLite]: http://sqlite.org

@@ -58,7 +58,6 @@ extension Date: DatabaseValueConvertible {
         return nil
     }
     
-    @usableFromInline
     init?(databaseDateComponents: DatabaseDateComponents) {
         guard databaseDateComponents.format.hasYMDComponents else {
             // Refuse to turn hours without any date information into Date:
@@ -118,7 +117,6 @@ extension Date: StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_INTEGER, SQLITE_FLOAT:

@@ -74,8 +74,7 @@ extension SQLSelection {
         }
     }
     
-    /// Support for `count(selection)`.
-    /// TODO: deprecate `count(selection)`, and get rid of this property.
+    /// TODO: remove when `count(_ counted: SQLSelectable)` is removed.
     var countExpression: SQLExpression {
         switch impl {
         case .allColumns:

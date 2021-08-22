@@ -19,14 +19,16 @@ public struct CommonTableExpression<RowDecoder> {
     /// For example:
     ///
     ///     // WITH p AS (SELECT * FROM player) ...
-    ///     let p = CommonTableExpression<Void>(
+    ///     let p = CommonTableExpression(
     ///         named: "p",
-    ///         request: Player.all())
+    ///         request: Player.all(),
+    ///         type: Void.self)
     ///
     ///     // WITH p AS (SELECT * FROM player) ...
-    ///     let p = CommonTableExpression<Void>(
+    ///     let p = CommonTableExpression(
     ///         named: "p",
-    ///         request: SQLRequest<Player>(sql: "SELECT * FROM player"))
+    ///         request: SQLRequest<Player>(sql: "SELECT * FROM player"),
+    ///         type: Void.self)
     ///
     /// - parameter recursive: Whether this common table expression needs a
     ///   `WITH RECURSIVE` sql clause.
@@ -113,7 +115,7 @@ extension CommonTableExpression {
             recursive: recursive,
             named: tableName,
             columns: columns,
-            request: SQLRequest<Void>(sql: sql, arguments: arguments),
+            request: SQLRequest(sql: sql, arguments: arguments),
             type: RowDecoder.self)
     }
     
@@ -144,7 +146,7 @@ extension CommonTableExpression {
             recursive: recursive,
             named: tableName,
             columns: columns,
-            request: SQLRequest<Void>(literal: sqlLiteral),
+            request: SQLRequest(literal: sqlLiteral),
             type: RowDecoder.self)
     }
 }
@@ -213,7 +215,7 @@ extension CommonTableExpression where RowDecoder == Row {
             recursive: recursive,
             named: tableName,
             columns: columns,
-            request: SQLRequest<Void>(sql: sql, arguments: arguments),
+            request: SQLRequest(sql: sql, arguments: arguments),
             type: Row.self)
     }
     
@@ -244,7 +246,7 @@ extension CommonTableExpression where RowDecoder == Row {
             recursive: recursive,
             named: tableName,
             columns: columns,
-            request: SQLRequest<Void>(literal: sqlLiteral),
+            request: SQLRequest(literal: sqlLiteral),
             type: Row.self)
     }
 }

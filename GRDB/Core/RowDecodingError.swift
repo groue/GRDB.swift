@@ -35,7 +35,6 @@ enum RowDecodingError: Error {
         /// The SQL query arguments
         let statementArguments: StatementArguments?
         
-        @usableFromInline
         init(decodingContext: RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
             self.row = decodingContext.row
@@ -89,7 +88,6 @@ enum RowDecodingError: Error {
     
     /// Convenience method that builds the
     /// `could not decode <Type> from database value <value>` error message.
-    @usableFromInline
     static func valueMismatch(
         _ type: Any.Type,
         statement: Statement,

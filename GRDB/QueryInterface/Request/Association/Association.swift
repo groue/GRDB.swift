@@ -45,7 +45,6 @@ public protocol Association: _Association, DerivableRequest {
 
 extension Association {
     /// Returns self modified with the *update* function.
-    @inline(__always)
     func with(_ update: (inout Self) throws -> Void) rethrows -> Self {
         var result = self
         try update(&result)
@@ -53,7 +52,6 @@ extension Association {
     }
     
     /// Returns self with destination relation modified with the *update* function.
-    @inline(__always)
     fileprivate func withDestinationRelation(_ update: (inout SQLRelation) throws -> Void) rethrows -> Self {
         var result = self
         try update(&result._sqlAssociation.destination.relation)

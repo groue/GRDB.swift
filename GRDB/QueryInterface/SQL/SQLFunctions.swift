@@ -22,13 +22,23 @@ public func average(_ value: SQLSpecificExpressible) -> SQLExpression {
 
 // MARK: - COUNT(...)
 
-// TODO: deprecate, replace with count(expression)
 /// Returns an expression that evaluates the `COUNT` SQL function.
 ///
 ///     // COUNT(email)
 ///     count(Column("email"))
+///
+/// :nodoc:
+@available(*, deprecated)
 public func count(_ counted: SQLSelectable) -> SQLExpression {
     counted.sqlSelection.countExpression
+}
+
+/// Returns an expression that evaluates the `COUNT` SQL function.
+///
+///     // COUNT(email)
+///     count(Column("email"))
+public func count(_ counted: SQLSpecificExpressible) -> SQLExpression {
+    .count(counted.sqlExpression)
 }
 
 
