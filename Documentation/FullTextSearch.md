@@ -540,7 +540,11 @@ let documents = try Document.fetchAll(db,
 Use them in the [query interface](../README.md#the-query-interface):
 
 ```swift
+// Search in all columns
 let documents = try Document.matching(pattern).fetchAll(db)
+
+// Search in a specific column:
+let documents = try Document.filter(Column("content").match(pattern)).fetchAll(db)
 ```
 
 
