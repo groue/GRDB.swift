@@ -36,7 +36,7 @@
 - [ ] Turn a hasMany to hasOne without first/last : hasMany(Book.self).filter(Column("isBest") /* assume a single book is flagged best */).asOne()
 - [ ] Support for more kinds of joins: https://github.com/groue/GRDB.swift/issues/740
 - [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
-- [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671
+- [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671 (https://www.sqlite.org/lang_select.html#compound)
 - [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
@@ -63,7 +63,6 @@
 - [ ] Have SQLPrimaryKeyExpression embed the record type
 - [ ] Remove support for suspended databases - https://inessential.com/2020/02/13/how_we_fixed_the_dreaded_0xdead10cc_cras
 - [ ] https://sqlite.org/pragma.html#pragma_index_xinfo
-- [ ] Deprecate DatabaseQueue/Pool.addFunction, collation, tokenizer: those should be done in Configuration.prepareDatabase
 - [ ] filter(rowid:), filter(rowids:)
 - [ ] https://github.com/apple/swift-evolution/blob/master/proposals/0075-import-test.md
 - [ ] https://forums.swift.org/t/how-to-encode-objects-of-unknown-type/12253/6
@@ -72,7 +71,6 @@
 - [ ] Not sure: type safety for SQL expressions
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
-- [ ] Cursor.underestimatedCount, which could speed up Array(cursor) and fetchAll()
 - [ ] Remove prefix from association keys when association name is namespaced: https://github.com/groue/GRDB.swift/issues/584#issuecomment-517658122
 - [ ] Alternative support for custom SQLite builds, wih CocoaPods: https://github.com/CocoaPods/CocoaPods/issues/9103
 
