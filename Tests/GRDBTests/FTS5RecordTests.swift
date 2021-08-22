@@ -72,6 +72,9 @@ class FTS5RecordTests: GRDBTestCase {
             
             let pattern = FTS5Pattern(matchingAllTokensIn: "Herman Melville")!
             XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 1)
+            XCTAssertEqual(try Book.filter(Column("books").match(pattern)).fetchCount(db), 1)
+            XCTAssertEqual(try Book.filter(Column("author").match(pattern)).fetchCount(db), 1)
+            XCTAssertEqual(try Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
         }
     }
 
@@ -86,6 +89,9 @@ class FTS5RecordTests: GRDBTestCase {
             let pattern = FTS5Pattern(matchingAllTokensIn: "")
             XCTAssertTrue(pattern == nil)
             XCTAssertEqual(try Book.matching(pattern).fetchCount(db), 0)
+            XCTAssertEqual(try Book.filter(Column("books").match(pattern)).fetchCount(db), 0)
+            XCTAssertEqual(try Book.filter(Column("author").match(pattern)).fetchCount(db), 0)
+            XCTAssertEqual(try Book.filter(Column("title").match(pattern)).fetchCount(db), 0)
         }
     }
 
