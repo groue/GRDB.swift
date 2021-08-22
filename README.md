@@ -3581,7 +3581,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
         var id: Int64?
         
         init(row: Row) {
-            id = row[Column.rowID]
+            id = row[Column.rowID] // or `row[.rowID]` with Swift 5.5+
         }
     }
     ```
@@ -3600,7 +3600,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
         var id: Int64?
         
         func encode(to container: inout PersistenceContainer) {
-            container[Column.rowID] = id
+            container[Column.rowID] = id // or `container[.rowID]` with Swift 5.5+
             container["message"] = message
             container["date"] = date
         }

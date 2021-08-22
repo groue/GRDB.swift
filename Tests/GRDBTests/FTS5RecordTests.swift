@@ -11,7 +11,11 @@ private struct Book {
 
 extension Book : FetchableRecord {
     init(row: Row) {
+        #if compiler(>=5.5)
+        id = row[.rowID]
+        #else
         id = row[Column.rowID]
+        #endif
         title = row["title"]
         author = row["author"]
         body = row["body"]
@@ -21,9 +25,13 @@ extension Book : FetchableRecord {
 extension Book : MutablePersistableRecord {
     static let databaseTableName = "books"
     static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
-
+    
     func encode(to container: inout PersistenceContainer) {
+        #if compiler(>=5.5)
+        container[.rowID] = id
+        #else
         container[Column.rowID] = id
+        #endif
         container["title"] = title
         container["author"] = author
         container["body"] = body

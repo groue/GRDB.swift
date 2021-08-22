@@ -30,6 +30,13 @@ extension ColumnExpression {
     }
 }
 
+#if compiler(>=5.5)
+extension ColumnExpression where Self == Column {
+    /// The hidden rowID column
+    public static var rowID: Self { Column.rowID }
+}
+#endif
+
 /// A column in a database table.
 ///
 /// When you need to introduce your own column type, don't wrap a Column.

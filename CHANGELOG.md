@@ -82,6 +82,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1036](https://github.com/groue/GRDB.swift/pull/1036) by [@groue](https://github.com/groue): Restore minimal CI tests
 - **New**: [#1037](https://github.com/groue/GRDB.swift/pull/1037) by [@groue](https://github.com/groue): Support BUILD_LIBRARY_FOR_DISTRIBUTION
 - **New**: [#1038](https://github.com/groue/GRDB.swift/pull/1038) by [@GetToSet](https://github.com/GetToSet): Add match operator in ColumnExpression for FTS5
+- **New**: With Swift 5.5+, enhance access to `Column.rowID`. Row and PersistenceContainer subscripts now accept `row[.rowID]` and `container[.rowID]` ([SE-0299](https://github.com/apple/swift-evolution/blob/main/proposals/0299-extend-generic-static-member-lookup.md))
 - **Documentation Update**: A new [Combine and Data Consistency](Documentation/Combine.md#combine-and-data-consistency) chapter explains how to make sure database publishers do not break important database invariants.
 
 
