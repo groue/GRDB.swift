@@ -402,18 +402,22 @@ public enum DatabaseUUIDEncodingStrategy {
 }
 
 /// `DatabaseKeyEncodingStrategy` specifies how `EncodableRecord` types that
-/// also adopt the standard `Encodable` protocol encode their keys.
+/// also adopt the standard `Encodable` protocol encode their coding keys into
+/// database columns.
 ///
 /// For example:
 ///
 ///     struct Player: EncodableProtocol, Encodable {
 ///         static let databaseKeyEncodingStrategy = DatabaseKeyEncodingStrategy.convertToSnakeCase
 ///
-///         // encoded as player_id
+///         // Encoded in the player_id column
 ///         var playerID: String
 ///     }
 public enum DatabaseKeyEncodingStrategy {
+    /// A key encoding strategy that doesn’t change key names during encoding.
     case useDefaultKeys
+    
+    /// A key encoding strategy that converts camel-case keys to snake-case keys.
     case convertToSnakeCase
     
     func column(forKey key: CodingKey) -> String {

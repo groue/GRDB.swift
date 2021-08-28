@@ -636,19 +636,22 @@ public enum DatabaseDateDecodingStrategy {
 // MARK: - DatabaseKeyDecodingStrategy
 
 /// `DatabaseKeyDecodingStrategy` specifies how `FetchableRecord` types that
-/// also adopt the standard `Decodable` protocol decode their keys.
+/// also adopt the standard `Decodable` protocol look for the database colums
+/// that match their coding keys.
 ///
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
 ///         static let databaseKeyDecodingStrategy = DatabaseKeyDecodingStrategy.convertFromSnakeCase
 ///
-///         var playerID: Int // decoded from player_id
+///         // Decoded from the player_id column
+///         var playerID: Int
 ///     }
 public enum DatabaseKeyDecodingStrategy {
-    /// Uses the original key without applying any transformations
+    /// A key decoding strategy that doesn’t change key names during decoding.
     case useDefaultKeys
-    /// Converts the key from snake case format, e.g. player_id to playerID
+    
+    /// A key decoding strategy that converts snake-case keys to camel-case keys.
     case convertFromSnakeCase
     
     func column(forKey key: CodingKey) -> String {
