@@ -16,7 +16,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
     private var _persistenceContainer: PersistenceContainer
     var persistenceContainer: PersistenceContainer { _persistenceContainer }
-    var keyEncodingStrategy: DatabaseKeyEncodingStrategy { Record.databaseKeyEncodingStrategy }
+    var keyEncodingStrategy: DatabaseColumnEncodingStrategy { Record.databaseColumnEncodingStrategy }
     
     init(persistenceContainer: PersistenceContainer) {
         _persistenceContainer = persistenceContainer

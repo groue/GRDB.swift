@@ -14,7 +14,7 @@ class RowDecoder {
     init() { }
     
     func decode<T: FetchableRecord & Decodable>(_ type: T.Type = T.self, from row: Row) throws -> T {
-        let decoder = _RowDecoder<T>(row: row, codingPath: [], keyDecodingStrategy: T.databaseKeyDecodingStrategy)
+        let decoder = _RowDecoder<T>(row: row, codingPath: [], keyDecodingStrategy: T.databaseColumnDecodingStrategy)
         return try T(from: decoder)
     }
 }
@@ -25,7 +25,7 @@ class RowDecoder {
 private struct _RowDecoder<R: FetchableRecord>: Decoder {
     var row: Row
     var codingPath: [CodingKey]
-    var keyDecodingStrategy: DatabaseKeyDecodingStrategy
+    var keyDecodingStrategy: DatabaseColumnDecodingStrategy
     var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {

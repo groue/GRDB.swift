@@ -112,11 +112,11 @@ public protocol FetchableRecord {
     /// For example:
     ///
     ///     struct Player: FetchableRecord, Decodable {
-    ///         static let databaseDateDecodingStrategy: DatabaseKeyDecodingStrategy = .convertFromSnakeCase
+    ///         static let databaseDateDecodingStrategy: DatabaseColumnDecodingStrategy = .convertFromSnakeCase
     ///
     ///         var playerID: String // decoded from player_id
     ///     }
-    static var databaseKeyDecodingStrategy: DatabaseKeyDecodingStrategy { get }
+    static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy { get }
 }
 
 extension FetchableRecord {
@@ -142,7 +142,7 @@ extension FetchableRecord {
         .deferredToDate
     }
     
-    public static var databaseKeyDecodingStrategy: DatabaseKeyDecodingStrategy {
+    public static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy {
         .useDefaultKeys
     }
 }
@@ -633,21 +633,21 @@ public enum DatabaseDateDecodingStrategy {
     case custom((DatabaseValue) -> Date?)
 }
 
-// MARK: - DatabaseKeyDecodingStrategy
+// MARK: - DatabaseColumnDecodingStrategy
 
-/// `DatabaseKeyDecodingStrategy` specifies how `FetchableRecord` types that
+/// `DatabaseColumnDecodingStrategy` specifies how `FetchableRecord` types that
 /// also adopt the standard `Decodable` protocol look for the database colums
 /// that match their coding keys.
 ///
 /// For example:
 ///
 ///     struct Player: FetchableRecord, Decodable {
-///         static let databaseKeyDecodingStrategy = DatabaseKeyDecodingStrategy.convertFromSnakeCase
+///         static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.convertFromSnakeCase
 ///
 ///         // Decoded from the player_id column
 ///         var playerID: Int
 ///     }
-public enum DatabaseKeyDecodingStrategy {
+public enum DatabaseColumnDecodingStrategy {
     /// A key decoding strategy that doesn’t change key names during decoding.
     case useDefaultKeys
     

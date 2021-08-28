@@ -3,16 +3,16 @@ import Foundation
 @testable import GRDB
 
 private struct UseDefaultKeysRecord: PersistableRecord, Encodable {
-    static var databaseKeyEncodingStrategy: DatabaseKeyEncodingStrategy { .useDefaultKeys }
+    static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy { .useDefaultKeys }
     var recordID: String
 }
 
 private struct ConvertToSnakeCaseRecord: PersistableRecord, Encodable {
-    static var databaseKeyEncodingStrategy: DatabaseKeyEncodingStrategy { .convertToSnakeCase }
+    static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy { .convertToSnakeCase }
     var recordID: String
 }
 
-class DatabaseKeyEncodingStrategyTests: GRDBTestCase {
+class DatabaseColumnEncodingStrategyTests: GRDBTestCase {
     func testUseDefaultKeys() {
         let record = UseDefaultKeysRecord(recordID: "test")
 

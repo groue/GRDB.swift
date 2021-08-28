@@ -765,7 +765,7 @@ extension FetchableRecordDecodableTests {
 
     func testJSONKeyDecodingStrategy() throws {
         struct Record: FetchableRecord, Decodable {
-            static let databaseKeyDecodingStrategy: DatabaseKeyDecodingStrategy = .convertFromSnakeCase
+            static let databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy = .convertFromSnakeCase
             let recordID: Int
             let recordName: String
             let recordDate: Date

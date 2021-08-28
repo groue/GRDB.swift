@@ -126,12 +126,12 @@ public protocol EncodableRecord {
     /// For example:
     ///
     ///     struct Player: PersistableProtocol, Encodable {
-    ///         static let databaseKeyEncodingStrategy: DatabaseUUIDEncodingStrategy = .convertToSnakeCase
+    ///         static let databaseColumnEncodingStrategy: DatabaseUUIDEncodingStrategy = .convertToSnakeCase
     ///
     ///         // encoded as player_id
     ///         var playerID: String
     ///     }
-    static var databaseKeyEncodingStrategy: DatabaseKeyEncodingStrategy { get }
+    static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy { get }
 }
 
 extension EncodableRecord {
@@ -160,7 +160,7 @@ extension EncodableRecord {
         .deferredToUUID
     }
     
-    public static var databaseKeyEncodingStrategy: DatabaseKeyEncodingStrategy {
+    public static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy {
         .useDefaultKeys
     }
 }
@@ -401,19 +401,19 @@ public enum DatabaseUUIDEncodingStrategy {
     case string
 }
 
-/// `DatabaseKeyEncodingStrategy` specifies how `EncodableRecord` types that
+/// `DatabaseColumnEncodingStrategy` specifies how `EncodableRecord` types that
 /// also adopt the standard `Encodable` protocol encode their coding keys into
 /// database columns.
 ///
 /// For example:
 ///
 ///     struct Player: EncodableProtocol, Encodable {
-///         static let databaseKeyEncodingStrategy = DatabaseKeyEncodingStrategy.convertToSnakeCase
+///         static let databaseColumnEncodingStrategy = DatabaseColumnEncodingStrategy.convertToSnakeCase
 ///
 ///         // Encoded in the player_id column
 ///         var playerID: String
 ///     }
-public enum DatabaseKeyEncodingStrategy {
+public enum DatabaseColumnEncodingStrategy {
     /// A key encoding strategy that doesn’t change key names during encoding.
     case useDefaultKeys
     
