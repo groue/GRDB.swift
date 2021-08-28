@@ -117,7 +117,7 @@ public protocol EncodableRecord {
     ///         var uuid: UUID
     ///     }
     static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy { get }
-
+    
     /// When the EncodableRecord type also adopts the standard Encodable
     /// protocol, this property controls the key encoding strategy.
     ///
@@ -159,7 +159,7 @@ extension EncodableRecord {
     public static var databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy {
         .deferredToUUID
     }
-
+    
     public static var databaseKeyEncodingStrategy: DatabaseKeyEncodingStrategy {
         .useDefaultKeys
     }
@@ -412,25 +412,24 @@ public enum DatabaseUUIDEncodingStrategy {
 ///         // encoded as player_id
 ///         var playerID: String
 ///     }
-
 public enum DatabaseKeyEncodingStrategy {
     case useDefaultKeys
     case convertToSnakeCase
-
-    func convertedKey(key: String) -> String {
+    
+    func column(forKey key: CodingKey) -> String {
         switch self {
         case .useDefaultKeys:
-            return key
+            return key.stringValue
         case .convertToSnakeCase:
-            return Self.convertToSnakeCase(key)
+            return Self.convertToSnakeCase(key.stringValue)
         }
     }
-
+    
     /// This function is taken directly from Apple's open source JSONEncoder.
     /// https://github.com/apple/swift-corelibs-foundation/blob/eec4b26deee34edb7664ddd9c1222492a399d122/Sources/Foundation/JSONEncoder.swift#L127
     private static func convertToSnakeCase(_ stringKey: String) -> String {
         guard !stringKey.isEmpty else { return stringKey }
-
+        
         var words: [Range<String.Index>] = []
         // The general idea of this algorithm is to split words on transition from lower to upper case, then on
         // transition of >1 upper case characters to lowercase
@@ -441,13 +440,13 @@ public enum DatabaseKeyEncodingStrategy {
         // We assume, per Swift naming conventions, that the first character of the key is lowercase.
         var wordStart = stringKey.startIndex
         var searchRange = stringKey.index(after: wordStart)..<stringKey.endIndex
-
+        
         // Find next uppercase character
         while let upperCaseRange = stringKey.rangeOfCharacter(from: CharacterSet.uppercaseLetters, options: [],
                                                               range: searchRange) {
             let untilUpperCase = wordStart..<upperCaseRange.lowerBound
             words.append(untilUpperCase)
-
+            
             // Find next lowercase character
             searchRange = upperCaseRange.lowerBound..<searchRange.upperBound
             guard let lowerCaseRange = stringKey.rangeOfCharacter(from: CharacterSet.lowercaseLetters, options: [],
@@ -456,7 +455,7 @@ public enum DatabaseKeyEncodingStrategy {
                 wordStart = searchRange.lowerBound
                 break
             }
-
+            
             // Is the next lowercase letter more than 1 after the uppercase? If so, we encountered a group of
             // uppercase letters that we should treat as its own word
             let nextCharacterAfterCapital = stringKey.index(after: upperCaseRange.lowerBound)
@@ -469,7 +468,7 @@ public enum DatabaseKeyEncodingStrategy {
                 // the lower case character.
                 let beforeLowerIndex = stringKey.index(before: lowerCaseRange.lowerBound)
                 words.append(upperCaseRange.lowerBound..<beforeLowerIndex)
-
+                
                 // Next word starts at the capital before the lowercase we just found
                 wordStart = beforeLowerIndex
             }
