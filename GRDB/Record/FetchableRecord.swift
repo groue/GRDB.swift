@@ -654,12 +654,17 @@ public enum DatabaseKeyDecodingStrategy {
     /// A key decoding strategy that converts snake-case keys to camel-case keys.
     case convertFromSnakeCase
     
+    /// A key decoding strategy defined by the closure you supply.
+    case custom((CodingKey) -> String)
+    
     func column(forKey key: CodingKey) -> String {
         switch self {
         case .useDefaultKeys:
             return key.stringValue
         case .convertFromSnakeCase:
             return Self.convertFromSnakeCase(key.stringValue)
+        case let .custom(column):
+            return column(key)
         }
     }
     
