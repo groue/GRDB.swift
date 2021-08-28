@@ -45,6 +45,20 @@ public protocol StatementColumnConvertible {
 // MARK: - Conversions
 
 extension DatabaseValueConvertible where Self: StatementColumnConvertible {
+    @usableFromInline
+    /* private */ static func _valueMismatch(
+        fromStatement sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32,
+        context: @autoclosure () -> RowDecodingContext)
+    throws -> Never
+    {
+        throw RowDecodingError.valueMismatch(
+            Self.self,
+            sqliteStatement: sqliteStatement,
+            index: index,
+            context: context())
+    }
+    
     @inline(__always)
     @inlinable
     static func fastDecode(
@@ -56,11 +70,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         guard sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL,
               let value = self.init(sqliteStatement: sqliteStatement, index: index)
         else {
-            throw RowDecodingError.valueMismatch(
-                Self.self,
-                sqliteStatement: sqliteStatement,
-                index: index,
-                context: context())
+            try _valueMismatch(fromStatement: sqliteStatement, atUncheckedIndex: index, context: context())
         }
         return value
     }
@@ -94,11 +104,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
             return nil
         }
         guard let value = self.init(sqliteStatement: sqliteStatement, index: index) else {
-            throw RowDecodingError.valueMismatch(
-                Self.self,
-                sqliteStatement: sqliteStatement,
-                index: index,
-                context: context())
+            try _valueMismatch(fromStatement: sqliteStatement, atUncheckedIndex: index, context: context())
         }
         return value
     }
