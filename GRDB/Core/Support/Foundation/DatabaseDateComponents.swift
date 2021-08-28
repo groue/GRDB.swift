@@ -69,6 +69,8 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
+    @inline(__always)
+    @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         guard let cString = sqlite3_column_text(sqliteStatement, index) else {
             return nil

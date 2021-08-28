@@ -50,7 +50,9 @@ class FetchRecordOptimizedTests: XCTestCase {
         try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
         let dbQueue = try DatabaseQueue(path: url.path)
         
-        measure {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 50
+        measure(options: options) {
             let items = try! dbQueue.inDatabase { db in
                 try Item.fetchAll(db)
             }

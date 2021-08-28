@@ -15,8 +15,8 @@
         "repositoryURL": "https://github.com/realm/realm-cocoa.git",
         "state": {
           "branch": null,
-          "revision": "83a07f6a508c3427058d9e2c466208d0b6a960fa",
-          "version": "10.12.0"
+          "revision": "7a3e25994d4d917efe30fa4496775d3f024b71b6",
+          "version": "10.13.0"
         }
       },
       {
@@ -24,8 +24,8 @@
         "repositoryURL": "https://github.com/realm/realm-core",
         "state": {
           "branch": null,
-          "revision": "e72b3078bfc5c3f69a0b18f7a220be27e28c463f",
-          "version": "11.2.0"
+          "revision": "9a7d09994e85b7eda8e3553b444bcfef6ec3f9ea",
+          "version": "11.3.0"
         }
       },
       {
@@ -33,7 +33,7 @@
         "repositoryURL": "https://github.com/stephencelis/SQLite.swift.git",
         "state": {
           "branch": null,
-          "revision": "8096e9b9c5cc694f373d2176f96889d3e4afe053",
+          "revision": "9af51e2edf491c0ea632e369a6566e09b65aa333",
           "version": "0.13.0"
         }
       }

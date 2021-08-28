@@ -2,13 +2,18 @@ import Foundation
 
 // inspired by: http://jordansmith.io/performant-date-parsing/
 
-final class SQLiteDateParser {
+@usableFromInline
+struct SQLiteDateParser {
+    @usableFromInline
+    init() { }
+    
     func components(from dateString: String) -> DatabaseDateComponents? {
         dateString.withCString { cString in
             components(cString: cString, length: strlen(cString))
         }
     }
     
+    @usableFromInline
     func components(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
         assert(strlen(cString) == length)
         
