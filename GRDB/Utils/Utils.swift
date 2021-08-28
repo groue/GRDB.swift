@@ -36,6 +36,7 @@ extension Optional: _OptionalProtocol { }
 // MARK: - Internal
 
 /// Reserved for GRDB: do not use.
+@inlinable
 func GRDBPrecondition(
     _ condition: @autoclosure() -> Bool,
     _ message: @autoclosure() -> String = "",

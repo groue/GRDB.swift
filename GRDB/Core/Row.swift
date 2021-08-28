@@ -166,6 +166,7 @@ extension Row {
     // MARK: - Extracting Values
     
     /// Fatal errors if index is out of bounds
+    @inline(__always)
     @usableFromInline
     /* private */ func _checkedIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) -> Int {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
@@ -241,6 +242,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         try! decodeIfPresent(Value.self, atIndex: index)
@@ -269,6 +271,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         try! decode(Value.self, atIndex: index)
@@ -787,6 +790,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -807,6 +811,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -828,6 +833,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
