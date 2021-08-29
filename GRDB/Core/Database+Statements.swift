@@ -469,74 +469,61 @@ extension Database {
 
 public class SQLStatementCursor: Cursor {
     private let database: Database
-    /// C string
-    private let buffer: UnsafeBufferPointer<CChar>
+    private let cString: ContiguousArray<CChar>
     private let prepFlags: CInt
     private let initialArgumentCount: Int?
-    private let sqlEnd: UnsafePointer<CChar>?
-    private var statementStart: UnsafePointer<CChar>?
-    /// Nil when arguments are set later
-    private var arguments: StatementArguments?
+    
+    // Mutated by iteration
+    private var offset: Int // offset in the C string
+    private var arguments: StatementArguments? // Nil when arguments are set later
     
     init(database: Database, sql: String, arguments: StatementArguments?, prepFlags: CInt = 0) {
         self.database = database
-        self.arguments = arguments
+        self.cString = sql.utf8CString
         self.prepFlags = prepFlags
         self.initialArgumentCount = arguments?.values.count
-        self.buffer = sql.utf8CString.withUnsafeBufferPointer { buffer in
-            let rawBuffer = UnsafeRawBufferPointer(buffer)
-            let copy = UnsafeMutableRawBufferPointer.allocate(
-                byteCount: rawBuffer.count,
-                alignment: MemoryLayout<CChar>.alignment)
-            copy.copyMemory(from: rawBuffer)
-            return UnsafeBufferPointer(copy.bindMemory(to: CChar.self))
-        }
-        if let sqlStart = buffer.baseAddress {
-            statementStart = sqlStart
-            sqlEnd = sqlStart + buffer.count  // past \0
-        } else {
-            statementStart = nil
-            sqlEnd = nil
-        }
-    }
-    
-    deinit {
-        buffer.deallocate()
+        self.offset = 0
+        self.arguments = arguments
     }
     
     public func next() throws -> Statement? {
-        guard let statementStart = statementStart,
-              let sqlEnd = sqlEnd,
-              statementStart < sqlEnd
-        else {
+        guard offset < cString.count - 1 /* trailing \0 */ else {
             try checkArgumentsAreEmpty()
             return nil
         }
         
-        var statementEnd: UnsafePointer<Int8>? = nil
-        let authorizer = StatementCompilationAuthorizer()
-        let statement = try database.withAuthorizer(authorizer) {
-            try Statement(
+        return try cString.withUnsafeBufferPointer { buffer in
+            guard let baseAddress = buffer.baseAddress else {
+                // Should never happen since buffer contains at least
+                // the trailing \0
+                return nil
+            }
+            
+            var statementEnd: UnsafePointer<Int8>? = nil
+            let compiledStatement = try Statement(
                 database: database,
-                statementStart: statementStart,
+                statementStart: baseAddress + offset,
                 statementEnd: &statementEnd,
-                prepFlags: prepFlags,
-                authorizer: authorizer)
-        }
-        
-        self.statementStart = statementEnd!
-        
-        if let statement = statement {
+                prepFlags: prepFlags)
+            
+            offset = statementEnd! - baseAddress
+            
+            guard let statement = compiledStatement else {
+                try checkArgumentsAreEmpty()
+                return nil
+            }
+            
             if arguments != nil {
                 // Extract statement arguments
-                let bindings = try arguments!.extractBindings(forStatement: statement, allowingRemainingValues: true)
-                // unsafe is OK because we just extracted the correct number of arguments
+                let bindings = try arguments!.extractBindings(
+                    forStatement: statement,
+                    allowingRemainingValues: true)
+                // unchecked is OK because we just extracted the correct
+                // number of arguments
                 statement.setUncheckedArguments(StatementArguments(bindings))
             }
+            
             return statement
-        } else {
-            try checkArgumentsAreEmpty()
-            return nil
         }
     }
     

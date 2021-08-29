@@ -1,5 +1,5 @@
 extension Database.ConflictResolution {
-    @usableFromInline var invalidatesLastInsertedRowID: Bool {
+    var invalidatesLastInsertedRowID: Bool {
         switch self {
         case .abort, .fail, .rollback, .replace:
             return false
@@ -350,7 +350,6 @@ extension MutablePersistableRecord {
     // MARK: - CRUD Internals
     
     /// Return a non-nil dictionary if record has a non-null primary key
-    @usableFromInline
     func primaryKey(_ db: Database) throws -> [String: DatabaseValue]? {
         let databaseTableName = type(of: self).databaseTableName
         let primaryKeyInfo = try db.primaryKey(databaseTableName)
@@ -371,7 +370,6 @@ extension MutablePersistableRecord {
     /// that adopt MutablePersistableRecord can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    @inlinable
     public mutating func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = try DAO(db, self)
@@ -395,7 +393,6 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    @inlinable
     public func performUpdate(_ db: Database, columns: Set<String>) throws {
         let dao = try DAO(db, self)
         guard let statement = try dao.updateStatement(
@@ -420,7 +417,6 @@ extension MutablePersistableRecord {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    @inlinable
     public mutating func performSave(_ db: Database) throws {
         // Call self.insert and self.update so that we support classes that
         // override those methods.
@@ -442,7 +438,6 @@ extension MutablePersistableRecord {
     /// that adopt MutablePersistableRecord can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
-    @inlinable
     public func performDelete(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).deleteStatement() else {
             // Nil primary key
@@ -459,7 +454,6 @@ extension MutablePersistableRecord {
     /// that adopt MutablePersistableRecord can invoke performExists() in
     /// their implementation of exists(). They should not provide their own
     /// implementation of performExists().
-    @inlinable
     public func performExists(_ db: Database) throws -> Bool {
         guard let statement = try DAO(db, self).existsStatement() else {
             // Nil primary key
@@ -602,7 +596,6 @@ extension PersistableRecord {
     /// that adopt PersistableRecord can invoke performInsert() in their
     /// implementation of insert(). They should not provide their own
     /// implementation of performInsert().
-    @inlinable
     public func performInsert(_ db: Database) throws {
         let conflictResolutionForInsert = type(of: self).persistenceConflictPolicy.conflictResolutionForInsert
         let dao = try DAO(db, self)
@@ -622,7 +615,6 @@ extension PersistableRecord {
     /// implementation of performSave().
     ///
     /// This default implementation forwards the job to `update` or `insert`.
-    @inlinable
     public func performSave(_ db: Database) throws {
         // Call self.insert and self.update so that we support classes that
         // override those methods.
@@ -651,7 +643,6 @@ extension PersistenceContainer {
 }
 
 /// DAO takes care of PersistableRecord CRUD
-@usableFromInline
 final class DAO<Record: MutablePersistableRecord> {
     /// The database
     let db: Database
@@ -665,9 +656,8 @@ final class DAO<Record: MutablePersistableRecord> {
     let databaseTableName: String
     
     /// The table primary key info
-    @usableFromInline let primaryKey: PrimaryKeyInfo
+    let primaryKey: PrimaryKeyInfo
     
-    @usableFromInline
     init(_ db: Database, _ record: Record) throws {
         self.db = db
         databaseTableName = type(of: record).databaseTableName
@@ -676,7 +666,6 @@ final class DAO<Record: MutablePersistableRecord> {
         GRDBPrecondition(!persistenceContainer.isEmpty, "\(type(of: record)): invalid empty persistence container")
     }
     
-    @usableFromInline
     func insertStatement(onConflict: Database.ConflictResolution) throws -> Statement {
         let query = InsertQuery(
             onConflict: onConflict,
@@ -688,7 +677,6 @@ final class DAO<Record: MutablePersistableRecord> {
     }
     
     /// Returns nil if and only if primary key is nil
-    @usableFromInline
     func updateStatement(columns: Set<String>, onConflict: Database.ConflictResolution) throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
@@ -738,7 +726,6 @@ final class DAO<Record: MutablePersistableRecord> {
     }
     
     /// Returns nil if and only if primary key is nil
-    @usableFromInline
     func deleteStatement() throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
@@ -758,7 +745,6 @@ final class DAO<Record: MutablePersistableRecord> {
     }
     
     /// Returns nil if and only if primary key is nil
-    @usableFromInline
     func existsStatement() throws -> Statement? {
         // Fail early if primary key does not resolve to a database row.
         let primaryKeyColumns = primaryKey.columns
@@ -778,7 +764,6 @@ final class DAO<Record: MutablePersistableRecord> {
     }
     
     /// Throws a PersistenceError.recordNotFound error
-    @usableFromInline
     func makeRecordNotFoundError() -> Error {
         let key = Dictionary(uniqueKeysWithValues: primaryKey.columns.map {
             ($0, persistenceContainer[caseInsensitive: $0]?.databaseValue ?? .null)

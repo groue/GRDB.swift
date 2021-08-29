@@ -22,7 +22,9 @@ class InsertPositionalValuesTests: XCTestCase {
             try! FileManager.default.removeItem(atPath: databasePath)
         }
         
-        measure {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 50
+        measure(options: options) {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             var connection: OpaquePointer? = nil
@@ -67,7 +69,9 @@ class InsertPositionalValuesTests: XCTestCase {
             }
             try! FileManager.default.removeItem(atPath: databasePath)
         }
-        measure {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 50
+        measure(options: options) {
             _ = try? FileManager.default.removeItem(atPath: databasePath)
             
             let dbQueue = try! DatabaseQueue(path: databasePath)

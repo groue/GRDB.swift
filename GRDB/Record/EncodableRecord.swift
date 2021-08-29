@@ -214,14 +214,13 @@ public struct PersistenceContainer {
     // fileprivate for Row(_:PersistenceContainer)
     // The ordering of the OrderedDictionary helps generating always the same
     // SQL queries, and hit the statement cache.
-    @usableFromInline var storage: OrderedDictionary<String, DatabaseValueConvertible?>
+    fileprivate var storage: OrderedDictionary<String, DatabaseValueConvertible?>
     
     /// Accesses the value associated with the given column.
     ///
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    @inlinable
     public subscript(_ column: String) -> DatabaseValueConvertible? {
         get { storage[column] ?? nil }
         set { storage.updateValue(newValue, forKey: column) }
@@ -232,7 +231,6 @@ public struct PersistenceContainer {
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    @inlinable
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
         get { self[column.name] }
         set { self[column.name] = newValue }

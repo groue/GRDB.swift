@@ -368,15 +368,15 @@ extension MyDatabaseDecoder {
     // MARK: - Fetch from SQL
     
     static func fetchCursor(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     static func fetchAll(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> [DecodedType] {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     static func fetchOne(_ db: Database, sql: String, arguments: StatementArguments = StatementArguments(), adapter: RowAdapter? = nil) throws -> DecodedType? {
-        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

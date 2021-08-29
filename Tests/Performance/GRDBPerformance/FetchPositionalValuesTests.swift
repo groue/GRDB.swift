@@ -15,7 +15,9 @@ class FetchPositionalValuesTests: XCTestCase {
         var connection: OpaquePointer? = nil
         sqlite3_open_v2(url.path, &connection, 0x00000004 /*SQLITE_OPEN_CREATE*/ | 0x00000002 /*SQLITE_OPEN_READWRITE*/, nil)
         
-        measure {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 50
+        measure(options: options) {
             var count = 0
             var statement: OpaquePointer? = nil
             sqlite3_prepare_v2(connection, "SELECT * FROM item", -1, &statement, nil)
@@ -56,7 +58,9 @@ class FetchPositionalValuesTests: XCTestCase {
         try generateSQLiteDatabaseIfMissing(at: url, insertedRowCount: expectedRowCount)
         let dbQueue = try DatabaseQueue(path: url.path)
         
-        measure {
+        let options = XCTMeasureOptions()
+        options.iterationCount = 50
+        measure(options: options) {
             var count = 0
             
             try! dbQueue.inDatabase { db in

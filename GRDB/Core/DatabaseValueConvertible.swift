@@ -27,7 +27,6 @@ extension DatabaseValueConvertible {
         .databaseValue(databaseValue)
     }
     
-    @inlinable
     public func bind(to sqliteStatement: SQLiteStatement, at index: CInt) -> CInt {
         databaseValue.bind(to: sqliteStatement, at: index)
     }
@@ -48,7 +47,6 @@ extension DatabaseValueConvertible {
         }
     }
     
-    @usableFromInline
     static func decode(
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
@@ -87,7 +85,6 @@ extension DatabaseValueConvertible {
         }
     }
     
-    @usableFromInline
     static func decodeIfPresent(
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
@@ -130,14 +127,14 @@ extension DatabaseValueConvertible {
 ///         }
 ///     }
 public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
-    @usableFromInline let _statement: Statement
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline let _columnIndex: Int32
-    @usableFromInline var _state = _State.idle
+    private let _statement: Statement
+    private let _sqliteStatement: SQLiteStatement
+    private let _columnIndex: Int32
+    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
@@ -163,7 +160,6 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor 
         try? _statement.reset()
     }
     
-    @inlinable
     public func next() throws -> Value? {
         switch _state {
         case .done:
@@ -211,14 +207,14 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor 
 ///         }
 ///     }
 public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible>: Cursor {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
-    @usableFromInline let _statement: Statement
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline let _columnIndex: Int32
-    @usableFromInline var _state = _State.idle
+    private let _statement: Statement
+    private let _sqliteStatement: SQLiteStatement
+    private let _columnIndex: Int32
+    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         _statement = statement
@@ -244,7 +240,6 @@ public final class NullableDatabaseValueCursor<Value: DatabaseValueConvertible>:
         try? _statement.reset()
     }
     
-    @inlinable
     public func next() throws -> Value?? {
         switch _state {
         case .done:
@@ -425,7 +420,7 @@ extension DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> DatabaseValueCursor<Self>
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of values fetched from an SQL query.
@@ -446,7 +441,7 @@ extension DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> [Self]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single value fetched from an SQL query.
@@ -470,7 +465,7 @@ extension DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> Self?
     {
-        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -493,7 +488,7 @@ extension DatabaseValueConvertible where Self: Hashable {
         adapter: RowAdapter? = nil)
     throws -> Set<Self>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -757,7 +752,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> NullableDatabaseValueCursor<Wrapped>
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of optional values fetched from an SQL query.
@@ -778,7 +773,7 @@ extension Optional where Wrapped: DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> [Wrapped?]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -801,7 +796,7 @@ extension Optional where Wrapped: DatabaseValueConvertible & Hashable {
         adapter: RowAdapter? = nil)
     throws -> Set<Wrapped?>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 

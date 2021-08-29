@@ -118,6 +118,7 @@ extension Date: StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
+    @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         switch sqlite3_column_type(sqliteStatement, index) {

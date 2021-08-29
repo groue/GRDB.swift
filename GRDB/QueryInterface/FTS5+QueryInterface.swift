@@ -41,4 +41,15 @@ extension TableRecord {
         all().matching(pattern)
     }
 }
+
+extension ColumnExpression {
+    
+    /// A matching SQL expression with the `MATCH` SQL operator.
+    ///
+    ///     // content MATCH '...'
+    ///     Column("content").match(pattern)
+    public func match(_ pattern: FTS5Pattern) -> SQLExpression {
+        .binary(.match, sqlExpression, pattern.sqlExpression)
+    }
+}
 #endif

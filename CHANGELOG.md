@@ -7,7 +7,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- [Development Branch](#development-branch)
+- `5.10.x` Releases - [5.10.0](#5100)
+- `5.9.x` Releases - [5.9.0](#590)
 - `5.8.x` Releases - [5.8.0](#580)
 - `5.7.x` Releases - [5.7.0](#570) | [5.7.1](#571) | [5.7.2](#572) | [5.7.3](#573) | [5.7.4](#574)
 - `5.6.x` Releases - [5.6.0](#560)
@@ -76,11 +77,26 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Development Branch
+## 5.10.0
+
+Released August 22, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.9.0...v5.10.0)
+
+- **New**: [#1036](https://github.com/groue/GRDB.swift/pull/1036) by [@groue](https://github.com/groue): Restore minimal CI tests
+- **New**: [#1037](https://github.com/groue/GRDB.swift/pull/1037) by [@groue](https://github.com/groue): Support BUILD_LIBRARY_FOR_DISTRIBUTION
+- **New**: [#1038](https://github.com/groue/GRDB.swift/pull/1038) by [@GetToSet](https://github.com/GetToSet): Add match operator in ColumnExpression for FTS5
+- **New**: With Swift 5.5+, enhance access to `Column.rowID`. Row and PersistenceContainer subscripts now accept `row[.rowID]` and `container[.rowID]` ([SE-0299](https://github.com/apple/swift-evolution/blob/main/proposals/0299-extend-generic-static-member-lookup.md))
+- **Documentation Update**: A new [Combine and Data Consistency](Documentation/Combine.md#combine-and-data-consistency) chapter explains how to make sure database publishers do not break important database invariants.
+
+
+## 5.9.0
+
+Released August 15, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.8.0...v5.9.0)
 
 - **Fixed**: [#980](https://github.com/groue/GRDB.swift/pull/980) by [@jroselightricks](https://github.com/jroselightricks): Fix spelling
 - **Fixed**: [#989](https://github.com/groue/GRDB.swift/pull/989) by [@pp5x](https://github.com/pp5x): FTS: add support of ifNotExists in synchronize()
 - **Fixed**: [#999](https://github.com/groue/GRDB.swift/issues/999): `request(for: association)` no longer crashes when the foreign key contains a NULL value.
+- **Fixed**: [#1025](https://github.com/groue/GRDB.swift/issues/1025) by [@mattgallagher](https://github.com/mattgallagher): Fix ValueObservation crash
+- **Fixed**: Fix thread unsafety in `ValueObservation.print()`
 - **New**: The `selectID()` method is now available for [Identifiable Records](README.md#identifiable-records)
 - **New**: Cached prepared statements can profit from [SQL Interpolation](Documentation/SQLInterpolation.md):
     

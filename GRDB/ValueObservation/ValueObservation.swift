@@ -172,16 +172,31 @@ extension ValueObservation: Refinable {
         to stream: TextOutputStream? = nil)
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
+        let lock = NSLock()
         let prefix = prefix.isEmpty ? "" : "\(prefix): "
         var stream = stream ?? PrintOutputStream()
         return handleEvents(
-            willStart: { stream.write("\(prefix)start") },
-            willFetch: { stream.write("\(prefix)fetch") },
-            willTrackRegion: { stream.write("\(prefix)tracked region: \($0)") },
-            databaseDidChange: { stream.write("\(prefix)database did change") },
-            didReceiveValue: { stream.write("\(prefix)value: \($0)") },
-            didFail: { stream.write("\(prefix)failure: \($0)") },
-            didCancel: { stream.write("\(prefix)cancel") })
+            willStart: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)start") },
+            willFetch: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)fetch") },
+            willTrackRegion: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)tracked region: \($0)") },
+            databaseDidChange: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)database did change") },
+            didReceiveValue: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)value: \($0)") },
+            didFail: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)failure: \($0)") },
+            didCancel: {
+                lock.lock(); defer { lock.unlock() }
+                stream.write("\(prefix)cancel") })
     }
     
     // MARK: - Fetching Values

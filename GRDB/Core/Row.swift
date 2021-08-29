@@ -14,8 +14,9 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     ///
     ///     let rows = try Row.fetchCursor(db, sql: "SELECT ...")
     ///     let players = try Player.fetchAll(db, sql: "SELECT ...")
-    @usableFromInline let statement: Statement?
-    @usableFromInline let sqliteStatement: SQLiteStatement?
+    let statement: Statement?
+    @usableFromInline
+    let sqliteStatement: SQLiteStatement?
     
     /// The number of columns in the row.
     public let count: Int
@@ -165,10 +166,10 @@ extension Row {
     // MARK: - Extracting Values
     
     /// Fatal errors if index is out of bounds
-    @inlinable
-    func checkedIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) -> Int {
+    @inline(__always)
+    @usableFromInline
+    /* private */ func _checkIndex(_ index: Int, file: StaticString = #file, line: UInt = #line) {
         GRDBPrecondition(index >= 0 && index < count, "row index out of range", file: file, line: line)
-        return index
     }
     
     /// Returns true if and only if one column contains a non-null value, or if
@@ -203,7 +204,8 @@ extension Row {
     /// in performance-critical code because it can avoid decoding database
     /// values.
     public func hasNull(atIndex index: Int) -> Bool {
-        impl.hasNull(atUncheckedIndex: checkedIndex(index))
+        _checkIndex(index)
+        return impl.hasNull(atUncheckedIndex: index)
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -212,7 +214,8 @@ extension Row {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     public subscript(_ index: Int) -> DatabaseValueConvertible? {
-        impl.databaseValue(atUncheckedIndex: checkedIndex(index)).storage.value
+        _checkIndex(index)
+        return impl.databaseValue(atUncheckedIndex: index).storage.value
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -240,6 +243,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
         try! decodeIfPresent(Value.self, atIndex: index)
@@ -268,6 +272,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
         try! decode(Value.self, atIndex: index)
@@ -363,7 +368,6 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    @inlinable
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
         self[column.name]
     }
@@ -712,7 +716,8 @@ extension Row {
         atIndex index: Int)
     throws -> Value?
     {
-        try Value.decodeIfPresent(fromRow: self, atUncheckedIndex: checkedIndex(index))
+        _checkIndex(index)
+        return try Value.decodeIfPresent(fromRow: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -728,7 +733,8 @@ extension Row {
         atIndex index: Int)
     throws -> Value
     {
-        try Value.decode(fromRow: self, atUncheckedIndex: checkedIndex(index))
+        _checkIndex(index)
+        return try Value.decode(fromRow: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -787,13 +793,15 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
     throws -> Value?
     {
-        try Value.fastDecodeIfPresent(fromRow: self, atUncheckedIndex: checkedIndex(index))
+        _checkIndex(index)
+        return try Value.fastDecodeIfPresent(fromRow: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given index, converted to the requested type.
@@ -807,13 +815,15 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
         atIndex index: Int)
     throws -> Value
     {
-        try Value.fastDecode(fromRow: self, atUncheckedIndex: checkedIndex(index))
+        _checkIndex(index)
+        return try Value.fastDecode(fromRow: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -828,6 +838,7 @@ extension Row {
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    @inline(__always)
     @inlinable
     func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
@@ -899,7 +910,8 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     func decodeDataNoCopyIfPresent(atIndex index: Int) throws -> Data? {
-        try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: checkedIndex(index))
+        _checkIndex(index)
+        return try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
     }
     
     /// Returns the Data at given index.
@@ -913,7 +925,8 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     func decodeDataNoCopy(atIndex index: Int) throws -> Data {
-        try impl.fastDecodeDataNoCopy(atUncheckedIndex: checkedIndex(index))
+        _checkIndex(index)
+        return try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
     }
     
     /// Returns the optional Data at given column.
@@ -953,13 +966,11 @@ extension Row {
     }
     
     // Support for fast decoding in scoped rows
-    @usableFromInline
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
         try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
     }
     
     // Support for fast decoding in scoped rows
-    @usableFromInline
     func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
         try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
     }
@@ -1189,15 +1200,15 @@ extension Row {
 ///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
 public final class RowCursor: Cursor {
-    @usableFromInline enum _State {
+    private enum _State {
         case idle, busy, done, failed
     }
     
     /// The statement iterated by this cursor
     public let statement: Statement
-    @usableFromInline let _sqliteStatement: SQLiteStatement
-    @usableFromInline let _row: Row // Reused for performance
-    @usableFromInline var _state = _State.idle
+    private let _sqliteStatement: SQLiteStatement
+    private let _row: Row // Reused for performance
+    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
@@ -1218,7 +1229,6 @@ public final class RowCursor: Cursor {
         try? statement.reset()
     }
     
-    @inlinable
     public func next() throws -> Row? {
         switch _state {
         case .done:
@@ -1400,7 +1410,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> RowCursor
     {
-        try fetchCursor(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns an array of rows fetched from an SQL query.
@@ -1425,7 +1435,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> [Row]
     {
-        try fetchAll(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a set of rows fetched from an SQL query.
@@ -1450,7 +1460,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> Set<Row>
     {
-        try fetchSet(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
     
     /// Returns a single row fetched from an SQL query.
@@ -1475,7 +1485,7 @@ extension Row {
         adapter: RowAdapter? = nil)
     throws -> Row?
     {
-        try fetchOne(db, SQLRequest<Void>(sql: sql, arguments: arguments, adapter: adapter))
+        try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
     }
 }
 
@@ -1660,7 +1670,8 @@ extension Row {
     
     /// Accesses the (ColumnName, DatabaseValue) pair at given index.
     public subscript(position: RowIndex) -> (String, DatabaseValue) {
-        let index = checkedIndex(position.index)
+        let index = position.index
+        _checkIndex(index)
         return (
             impl.columnName(atUncheckedIndex: index),
             impl.databaseValue(atUncheckedIndex: index))

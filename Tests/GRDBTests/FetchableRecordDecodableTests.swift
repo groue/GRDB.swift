@@ -954,7 +954,7 @@ extension FetchableRecordDecodableTests {
             }
             
             let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
-            let request = SQLRequest<Void>(
+            let request = SQLRequest(
                 sql: "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["foo", "bar", "[\"baz\"]"],
                 adapter: adapter)
@@ -990,7 +990,7 @@ extension FetchableRecordDecodableTests {
                 XCTAssertNil(record.nestedUnkeyed.context)
             }
             
-            let request = SQLRequest<Void>(
+            let request = SQLRequest(
                 sql: "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["{\"name\":\"foo\"}", "bar", "[\"baz\"]"])
             
@@ -1026,7 +1026,7 @@ extension FetchableRecordDecodableTests {
             }
             
             let adapter = SuffixRowAdapter(fromIndex: 1).addingScopes(["nestedKeyed": RangeRowAdapter(0..<1)])
-            let request = SQLRequest<Void>(
+            let request = SQLRequest(
                 sql: "SELECT ? AS name, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["foo", "bar", "[\"baz\"]"],
                 adapter: adapter)
@@ -1062,7 +1062,7 @@ extension FetchableRecordDecodableTests {
                 XCTAssertEqual(record.nestedUnkeyed.context, "JSON column: nestedUnkeyed")
             }
             
-            let request = SQLRequest<Void>(
+            let request = SQLRequest(
                 sql: "SELECT ? AS nestedKeyed, ? AS nestedSingle, ? AS nestedUnkeyed",
                 arguments: ["{\"name\":\"foo\"}", "bar", "[\"baz\"]"])
             

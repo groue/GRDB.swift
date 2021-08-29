@@ -121,12 +121,10 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     }
     
     /// Helper methods
-    @inline(__always)
     fileprivate func persist(_ value: DatabaseValueConvertible?, forKey key: CodingKey) {
         _persistenceContainer[keyEncodingStrategy.column(forKey: key)] = value
     }
     
-    @inline(__always)
     fileprivate func encode<T>(_ value: T, forKey key: CodingKey) throws where T: Encodable {
         if let date = value as? Date {
             persist(Record.databaseDateEncodingStrategy.encode(date), forKey: key)
@@ -237,7 +235,6 @@ private var iso8601Formatter: ISO8601DateFormatter = {
 }()
 
 extension DatabaseDateEncodingStrategy {
-    @inline(__always)
     fileprivate func encode(_ date: Date) -> DatabaseValueConvertible? {
         switch self {
         case .deferredToDate:
@@ -265,7 +262,6 @@ extension DatabaseDateEncodingStrategy {
 }
 
 extension DatabaseUUIDEncodingStrategy {
-    @inline(__always)
     fileprivate func encode(_ uuid: UUID) -> DatabaseValueConvertible? {
         switch self {
         case .deferredToUUID:

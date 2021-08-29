@@ -2,13 +2,18 @@ import Foundation
 
 // inspired by: http://jordansmith.io/performant-date-parsing/
 
-final class SQLiteDateParser {
+@usableFromInline
+struct SQLiteDateParser {
+    @usableFromInline
+    init() { }
+    
     func components(from dateString: String) -> DatabaseDateComponents? {
         dateString.withCString { cString in
             components(cString: cString, length: strlen(cString))
         }
     }
     
+    @usableFromInline
     func components(cString: UnsafePointer<CChar>, length: Int) -> DatabaseDateComponents? {
         assert(strlen(cString) == length)
         
@@ -161,13 +166,11 @@ final class SQLiteDateParser {
         var cString: UnsafePointer<CChar>
         var length: Int
         
-        @inline(__always)
         private mutating func shift() {
             cString += 1
             length -= 1
         }
         
-        @inline(__always)
         mutating func parse(_ scalar: Unicode.Scalar) -> Bool {
             guard length > 0, cString[0] == UInt8(ascii: scalar) else {
                 return false
@@ -176,7 +179,6 @@ final class SQLiteDateParser {
             return true
         }
         
-        @inline(__always)
         mutating func parseDigit() -> Int? {
             guard length > 0 else {
                 return nil
@@ -190,7 +192,6 @@ final class SQLiteDateParser {
             return Int(digit)
         }
         
-        @inline(__always)
         mutating func parseDigit(into number: inout Int) -> Bool {
             guard let digit = parseDigit() else {
                 return false
@@ -199,7 +200,6 @@ final class SQLiteDateParser {
             return true
         }
         
-        @inline(__always)
         mutating func parseNNNN() -> Int? {
             var number = 0
             guard parseDigit(into: &number)
@@ -213,7 +213,6 @@ final class SQLiteDateParser {
             return number
         }
         
-        @inline(__always)
         mutating func parseNN() -> Int? {
             var number = 0
             guard parseDigit(into: &number)
