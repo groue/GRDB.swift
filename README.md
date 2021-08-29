@@ -3077,7 +3077,7 @@ protocol EncodableRecord {
 
 ### Column Names Coding Strategies
 
-By default, [Codable Records] stores their values into database columns that match their coding keys: the `teamID` property is stored into the `teamID` column.
+By default, [Codable Records] store their values into database columns that match their coding keys: the `teamID` property is stored into the `teamID` column.
 
 This behavior can be overridden, so that you can, for example, store the `teamID` property into the `team_id` column:
 
