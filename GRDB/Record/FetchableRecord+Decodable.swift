@@ -154,10 +154,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func decode<T>(_ type: T.Type, forKey key: Key) throws -> T where T: Decodable {
             let row = decoder.row
-            let keyName = column(forKey: key)
             
             // Column?
-            if let index = row.index(forColumn: keyName) {
+            if let index = row.index(forColumn: column(forKey: key)) {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
                 if type == Date.self {
@@ -172,12 +171,12 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             }
             
             // Scope?
-            if let scopedRow = row.scopesTree[keyName] {
+            if let scopedRow = row.scopesTree[key.stringValue] {
                 return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
             }
             
             // Prefetched Rows?
-            if let prefetchedRows = row.prefetchedRows[keyName] {
+            if let prefetchedRows = row.prefetchedRows[key.stringValue] {
                 let decoder = PrefetchedRowsDecoder<R>(rows: prefetchedRows, codingPath: codingPath)
                 return try T(from: decoder)
             }
