@@ -1223,4 +1223,59 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
             ])
         }
     }
+    
+    func testIncludingAllHasMany_ColumnDecodingStrategy() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                struct XA: TableRecord, FetchableRecord, Decodable, Equatable {
+                    static let databaseTableName = "a"
+                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
+                        String(key.stringValue.dropFirst())
+                    }
+                    var xcola1: Int64
+                    var xcola2: String
+                }
+                
+                struct XB: TableRecord, FetchableRecord, Decodable, Equatable, Hashable {
+                    static let databaseTableName = "b"
+                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
+                        String(key.stringValue.dropFirst())
+                    }
+                    var xcolb1: Int64
+                    var xcolb2: Int64?
+                    var xcolb3: String
+                }
+                
+                struct XRecord: FetchableRecord, Decodable, Equatable {
+                    var xa: XA
+                    var xbs: [XB]
+                }
+                
+                let request = XA
+                    .including(all: XA
+                                .hasMany(XB.self, key: "xbs")
+                                .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                let records = try XRecord.fetchAll(db, request)
+                XCTAssertEqual(records, [
+                    XRecord(
+                        xa: XA(row: ["cola1": 1, "cola2": "a1"]),
+                        xbs: [
+                            XB(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                            XB(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                        ]),
+                    XRecord(
+                        xa: XA(row: ["cola1": 2, "cola2": "a2"]),
+                        xbs: [
+                            XB(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                        ]),
+                    XRecord(
+                        xa: XA(row: ["cola1": 3, "cola2": "a3"]),
+                        xbs: []),
+                ])
+            }
+        }
+    }
 }
