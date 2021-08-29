@@ -14,7 +14,7 @@ class RowDecoder {
     init() { }
     
     func decode<T: FetchableRecord & Decodable>(_ type: T.Type = T.self, from row: Row) throws -> T {
-        let decoder = _RowDecoder<T>(row: row, codingPath: [], keyDecodingStrategy: T.databaseColumnDecodingStrategy)
+        let decoder = _RowDecoder<T>(row: row, codingPath: [], columnDecodingStrategy: T.databaseColumnDecodingStrategy)
         return try T(from: decoder)
     }
 }
@@ -25,7 +25,7 @@ class RowDecoder {
 private struct _RowDecoder<R: FetchableRecord>: Decoder {
     var row: Row
     var codingPath: [CodingKey]
-    var keyDecodingStrategy: DatabaseColumnDecodingStrategy
+    var columnDecodingStrategy: DatabaseColumnDecodingStrategy
     var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
@@ -117,7 +117,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         // swiftlint:enable comma
         
         private func column(forKey key: Key) -> String {
-            decoder.keyDecodingStrategy.column(forKey: key)
+            decoder.columnDecodingStrategy.column(forKey: key)
         }
         
         func decodeIfPresent<T>(_ type: T.Type, forKey key: Key) throws -> T? where T: Decodable {
@@ -252,7 +252,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 // Prefer FetchableRecord decoding over Decodable.
                 return type.init(row: row) as! T
             } else {
-                let decoder = _RowDecoder(row: row, codingPath: codingPath, keyDecodingStrategy: .useDefaultKeys)
+                let decoder = _RowDecoder(row: row, codingPath: codingPath, columnDecodingStrategy: .useDefaultKeys)
                 return try T(from: decoder)
             }
         }
@@ -320,16 +320,18 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
-        let keyDecodingStrategy: DatabaseColumnDecodingStrategy
+        
+        let columnDecodingStrategy: DatabaseColumnDecodingStrategy
         if let type = T.self as? FetchableRecord.Type {
-            keyDecodingStrategy = type.databaseColumnDecodingStrategy
+            columnDecodingStrategy = type.databaseColumnDecodingStrategy
         } else {
-            keyDecodingStrategy = .useDefaultKeys
+            columnDecodingStrategy = .useDefaultKeys
         }
+        
         let decoder = _RowDecoder<R>(
             row: rows[currentIndex],
             codingPath: codingPath,
-            keyDecodingStrategy: keyDecodingStrategy)
+            columnDecodingStrategy: columnDecodingStrategy)
         return try T(from: decoder)
     }
     
