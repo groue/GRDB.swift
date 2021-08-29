@@ -113,10 +113,17 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
     }
     
     func testIncludingRequired_ColumnDecodingStrategy() throws {
+        struct AnyKey: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+        
         struct XTeam: Decodable, FetchableRecord, TableRecord {
             static let databaseTableName = "teams"
-            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
-                String(key.stringValue.dropFirst())
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                AnyKey(stringValue: "x\(column)")
             }
             var xid: Int64
             var xname: String
@@ -124,8 +131,8 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
 
         struct XPlayer: Decodable, FetchableRecord, TableRecord {
             static let databaseTableName = "players"
-            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
-                String(key.stringValue.dropFirst())
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                AnyKey(stringValue: "x\(column)")
             }
             static let xteam = belongsTo(XTeam.self, key: "xteam")
             var xid: Int64
@@ -152,10 +159,17 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
     }
     
     func testIncludingOptional_ColumnDecodingStrategy() throws {
+        struct AnyKey: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+        
         struct XTeam: Decodable, FetchableRecord, TableRecord {
             static let databaseTableName = "teams"
-            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
-                String(key.stringValue.dropFirst())
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                AnyKey(stringValue: "x\(column)")
             }
             var xid: Int64
             var xname: String
@@ -163,8 +177,8 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
 
         struct XPlayer: Decodable, FetchableRecord, TableRecord {
             static let databaseTableName = "players"
-            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
-                String(key.stringValue.dropFirst())
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                AnyKey(stringValue: "x\(column)")
             }
             static let xteam = belongsTo(XTeam.self, key: "xteam")
             var xid: Int64

@@ -1228,10 +1228,17 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
+                struct AnyKey: CodingKey {
+                    var stringValue: String
+                    var intValue: Int? { nil }
+                    init(stringValue: String) { self.stringValue = stringValue }
+                    init?(intValue: Int) { nil }
+                }
+                
                 struct XA: TableRecord, FetchableRecord, Decodable, Equatable {
                     static let databaseTableName = "a"
-                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
-                        String(key.stringValue.dropFirst())
+                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                        AnyKey(stringValue: "x\(column)")
                     }
                     var xcola1: Int64
                     var xcola2: String
@@ -1239,8 +1246,8 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 
                 struct XB: TableRecord, FetchableRecord, Decodable, Equatable, Hashable {
                     static let databaseTableName = "b"
-                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
-                        String(key.stringValue.dropFirst())
+                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                        AnyKey(stringValue: "x\(column)")
                     }
                     var xcolb1: Int64
                     var xcolb2: Int64?
