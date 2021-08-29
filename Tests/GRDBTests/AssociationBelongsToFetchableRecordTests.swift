@@ -111,4 +111,86 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
         XCTAssertNil(players[1].teamId)
         XCTAssertEqual(players[1].name, "Barbara")
     }
+    
+    func testIncludingRequired_ColumnDecodingStrategy() throws {
+        struct XTeam: Decodable, FetchableRecord, TableRecord {
+            static let databaseTableName = "teams"
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
+                String(key.stringValue.dropFirst())
+            }
+            var xid: Int64
+            var xname: String
+        }
+
+        struct XPlayer: Decodable, FetchableRecord, TableRecord {
+            static let databaseTableName = "players"
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
+                String(key.stringValue.dropFirst())
+            }
+            static let xteam = belongsTo(XTeam.self, key: "xteam")
+            var xid: Int64
+            var xteamId: Int64?
+            var xname: String
+        }
+
+        struct XPlayerWithRequiredTeam: Decodable, FetchableRecord {
+            var xplayer: XPlayer
+            var xteam: XTeam
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        let request = XPlayer
+            .including(required: XPlayer.xteam)
+            .asRequest(of: XPlayerWithRequiredTeam.self)
+        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records[0].xplayer.xid, 1)
+        XCTAssertEqual(records[0].xplayer.xteamId, 1)
+        XCTAssertEqual(records[0].xplayer.xname, "Arthur")
+        XCTAssertEqual(records[0].xteam.xid, 1)
+        XCTAssertEqual(records[0].xteam.xname, "Reds")
+    }
+    
+    func testIncludingOptional_ColumnDecodingStrategy() throws {
+        struct XTeam: Decodable, FetchableRecord, TableRecord {
+            static let databaseTableName = "teams"
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
+                String(key.stringValue.dropFirst())
+            }
+            var xid: Int64
+            var xname: String
+        }
+
+        struct XPlayer: Decodable, FetchableRecord, TableRecord {
+            static let databaseTableName = "players"
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { key in
+                String(key.stringValue.dropFirst())
+            }
+            static let xteam = belongsTo(XTeam.self, key: "xteam")
+            var xid: Int64
+            var xteamId: Int64?
+            var xname: String
+        }
+
+        struct XPlayerWithOptionalTeam: Decodable, FetchableRecord {
+            var xplayer: XPlayer
+            var xteam: XTeam?
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        let request = XPlayer
+            .including(optional: XPlayer.xteam)
+            .asRequest(of: XPlayerWithOptionalTeam.self)
+        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
+        XCTAssertEqual(records.count, 2)
+        XCTAssertEqual(records[0].xplayer.xid, 1)
+        XCTAssertEqual(records[0].xplayer.xteamId, 1)
+        XCTAssertEqual(records[0].xplayer.xname, "Arthur")
+        XCTAssertEqual(records[0].xteam!.xid, 1)
+        XCTAssertEqual(records[0].xteam!.xname, "Reds")
+        XCTAssertEqual(records[1].xplayer.xid, 2)
+        XCTAssertNil(records[1].xplayer.xteamId)
+        XCTAssertEqual(records[1].xplayer.xname, "Barbara")
+        XCTAssertNil(records[1].xteam)
+    }
 }
