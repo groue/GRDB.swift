@@ -1225,35 +1225,35 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
     }
     
     func testIncludingAllHasMany_ColumnDecodingStrategy() throws {
+        struct AnyKey: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+        
+        struct XA: TableRecord, FetchableRecord, Decodable, Equatable {
+            static let databaseTableName = "a"
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                AnyKey(stringValue: "x\(column)")
+            }
+            var xcola1: Int64
+            var xcola2: String
+        }
+        
+        struct XB: TableRecord, FetchableRecord, Decodable, Equatable, Hashable {
+            static let databaseTableName = "b"
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                AnyKey(stringValue: "x\(column)")
+            }
+            var xcolb1: Int64
+            var xcolb2: Int64?
+            var xcolb3: String
+        }
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
             do {
-                struct AnyKey: CodingKey {
-                    var stringValue: String
-                    var intValue: Int? { nil }
-                    init(stringValue: String) { self.stringValue = stringValue }
-                    init?(intValue: Int) { nil }
-                }
-                
-                struct XA: TableRecord, FetchableRecord, Decodable, Equatable {
-                    static let databaseTableName = "a"
-                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
-                        AnyKey(stringValue: "x\(column)")
-                    }
-                    var xcola1: Int64
-                    var xcola2: String
-                }
-                
-                struct XB: TableRecord, FetchableRecord, Decodable, Equatable, Hashable {
-                    static let databaseTableName = "b"
-                    static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
-                        AnyKey(stringValue: "x\(column)")
-                    }
-                    var xcolb1: Int64
-                    var xcolb2: Int64?
-                    var xcolb3: String
-                }
-                
                 struct XRecord: FetchableRecord, Decodable, Equatable {
                     var xa: XA
                     var xbs: [XB]
@@ -1280,6 +1280,68 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                         ]),
                     XRecord(
                         xa: XA(row: ["cola1": 3, "cola2": "a3"]),
+                        xbs: []),
+                ])
+            }
+            
+            do {
+                struct XRecord: FetchableRecord, Decodable, Equatable {
+                    var xa: XA
+                    var bs: [B]
+                }
+                
+                let request = XA
+                    .including(all: XA
+                                .hasMany(B.self)
+                                .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                let records = try XRecord.fetchAll(db, request)
+                XCTAssertEqual(records, [
+                    XRecord(
+                        xa: XA(row: ["cola1": 1, "cola2": "a1"]),
+                        bs: [
+                            B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                            B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                        ]),
+                    XRecord(
+                        xa: XA(row: ["cola1": 2, "cola2": "a2"]),
+                        bs: [
+                            B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                        ]),
+                    XRecord(
+                        xa: XA(row: ["cola1": 3, "cola2": "a3"]),
+                        bs: []),
+                ])
+            }
+            
+            do {
+                struct XRecord: FetchableRecord, Decodable, Equatable {
+                    var a: A
+                    var xbs: [XB]
+                }
+                
+                let request = A
+                    .including(all: A
+                                .hasMany(XB.self, key: "xbs")
+                                .orderByPrimaryKey())
+                    .orderByPrimaryKey()
+                
+                let records = try XRecord.fetchAll(db, request)
+                XCTAssertEqual(records, [
+                    XRecord(
+                        a: A(row: ["cola1": 1, "cola2": "a1"]),
+                        xbs: [
+                            XB(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                            XB(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                        ]),
+                    XRecord(
+                        a: A(row: ["cola1": 2, "cola2": "a2"]),
+                        xbs: [
+                            XB(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                        ]),
+                    XRecord(
+                        a: A(row: ["cola1": 3, "cola2": "a3"]),
                         xbs: []),
                 ])
             }
