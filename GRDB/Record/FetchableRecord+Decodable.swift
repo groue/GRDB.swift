@@ -85,7 +85,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func contains(_ key: Key) -> Bool {
             let row = decoder.row
-            return row.hasColumn(key.stringValue)
+            return row.hasColumn(column(forKey: key))
                 || (row.scopesTree[key.stringValue] != nil)
                 || (row.prefetchedRows[key.stringValue] != nil)
         }
@@ -94,7 +94,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             // Nil is only possible for columns and scopes (optional
             // associations), not for prefetched rows.
             let row = decoder.row
-            return row[key.stringValue] == nil && (row.scopesTree[key.stringValue] == nil)
+            return row[column(forKey: key)] == nil && (row.scopesTree[key.stringValue] == nil)
         }
         
         // swiftlint:disable comma
@@ -122,10 +122,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func decodeIfPresent<T>(_ type: T.Type, forKey key: Key) throws -> T? where T: Decodable {
             let row = decoder.row
-            let keyName = key.stringValue
             
             // Column?
-            if let index = row.index(forColumn: keyName) {
+            if let index = row.index(forColumn: column(forKey: key)) {
                 // Prefer DatabaseValueConvertible decoding over Decodable.
                 // This allows decoding Date from String, or DatabaseValue from NULL.
                 if type == Date.self {
@@ -144,7 +143,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             }
             
             // Scope? (beware left joins: check if scoped row contains non-null values)
-            if let scopedRow = row.scopesTree[keyName], scopedRow.containsNonNullValue {
+            if let scopedRow = row.scopesTree[key.stringValue], scopedRow.containsNonNullValue {
                 return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
             }
             
@@ -321,8 +320,10 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
-        let decoder = _RowDecoder<R>(row: rows[currentIndex], codingPath: codingPath,
-                                     keyDecodingStrategy: .useDefaultKeys)
+        let decoder = _RowDecoder<R>(
+            row: rows[currentIndex],
+            codingPath: codingPath,
+            keyDecodingStrategy: .useDefaultKeys)
         return try T(from: decoder)
     }
     
