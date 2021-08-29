@@ -3018,6 +3018,7 @@ Codable records encode and decode their properties according to their own implem
 For more information about Codable records, see:
 
 - [JSON Columns]
+- [Column Names Coding Strategies]
 - [Date and UUID Coding Strategies]
 - [The userInfo Dictionary]
 - [Tip: Derive Columns from Coding Keys](#tip-derive-columns-from-coding-keys)
@@ -3072,6 +3073,25 @@ protocol EncodableRecord {
 ```
 
 > :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, tvOS 9.0+ and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
+
+
+### Column Names Coding Strategies
+
+By default, [Codable Records] stores their values into database columns that match their coding keys: the `teamID` property is stored into the `teamID` column.
+
+This behavior can be overridden, so that you can, for example, store the `teamID` property into the `team_id` column:
+
+```swift
+protocol FetchableRecord {
+    static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy { get }
+}
+
+protocol EncodableRecord {
+    static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy { get }
+}
+```
+
+See [DatabaseColumnDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.10/Enums/DatabaseColumnDecodingStrategy.html), [DatabaseColumnEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.10/Enums/DatabaseColumnEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.10/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
 
 
 ### Date and UUID Coding Strategies
@@ -3432,6 +3452,7 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 [Codable Records] have a few extra options:
 
 - [JSON Columns]: control the format of JSON columns.
+- [Column Names Coding Strategies]: control how coding keys are turned into column names
 - [Date and UUID Coding Strategies]: control the format of Date and UUID properties in your Codable records.
 - [The userInfo Dictionary]: adapt your Codable implementation for the database.
 
@@ -8472,6 +8493,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Common Table Expressions]: Documentation/CommonTableExpressions.md
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
+[Column Names Coding Strategies]: #column-names-coding-strategies
 [Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
 [Full-Text Search]: Documentation/FullTextSearch.md
