@@ -76,6 +76,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         }
         
         lazy var allKeys: [Key] = {
+            #warning("TODO: the columns are not decoded with decoder.columnDecodingStrategy")
             let row = decoder.row
             return Set(row.columnNames)
                 .union(row.scopesTree.names)
