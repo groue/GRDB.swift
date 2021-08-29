@@ -401,6 +401,8 @@ public enum DatabaseUUIDEncodingStrategy {
     case string
 }
 
+// MARK: - DatabaseColumnEncodingStrategy
+
 /// `DatabaseColumnEncodingStrategy` specifies how `EncodableRecord` types that
 /// also adopt the standard `Encodable` protocol encode their coding keys into
 /// database columns.
