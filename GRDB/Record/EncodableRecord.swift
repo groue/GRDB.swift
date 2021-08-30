@@ -437,6 +437,17 @@ public enum DatabaseColumnEncodingStrategy {
     // Copied straight from
     // https://github.com/apple/swift-corelibs-foundation/blob/8d6398d76eaf886a214e0bb2bd7549d968f7b40e/Sources/Foundation/JSONEncoder.swift#L127
     static func _convertToSnakeCase(_ stringKey: String) -> String {
+        //===----------------------------------------------------------------------===//
+        //
+        // This function is part of the Swift.org open source project
+        //
+        // Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
+        // Licensed under Apache License v2.0 with Runtime Library Exception
+        //
+        // See https://swift.org/LICENSE.txt for license information
+        // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+        //
+        //===----------------------------------------------------------------------===//
         guard !stringKey.isEmpty else { return stringKey }
 
         var words: [Range<String.Index>] = []
