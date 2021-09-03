@@ -16,6 +16,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
     private var _persistenceContainer: PersistenceContainer
     var persistenceContainer: PersistenceContainer { _persistenceContainer }
+    var keyEncodingStrategy: DatabaseColumnEncodingStrategy { Record.databaseColumnEncodingStrategy }
     
     init(persistenceContainer: PersistenceContainer) {
         _persistenceContainer = persistenceContainer
@@ -121,7 +122,7 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     
     /// Helper methods
     fileprivate func persist(_ value: DatabaseValueConvertible?, forKey key: CodingKey) {
-        _persistenceContainer[key.stringValue] = value
+        _persistenceContainer[keyEncodingStrategy.column(forKey: key)] = value
     }
     
     fileprivate func encode<T>(_ value: T, forKey key: CodingKey) throws where T: Encodable {
@@ -147,9 +148,9 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
             } catch is JSONRequiredError {
                 // Encode to JSON
                 try autoreleasepool {
-
+                    
                     let jsonData = try Record.databaseJSONEncoder(for: key.stringValue).encode(value)
-
+                    
                     // Store JSON String in the database for easier debugging and
                     // database inspection. Thanks to SQLite weak typing, we won't
                     // have any trouble decoding this string into data when we

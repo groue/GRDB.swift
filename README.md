@@ -3018,6 +3018,7 @@ Codable records encode and decode their properties according to their own implem
 For more information about Codable records, see:
 
 - [JSON Columns]
+- [Column Names Coding Strategies]
 - [Date and UUID Coding Strategies]
 - [The userInfo Dictionary]
 - [Tip: Derive Columns from Coding Keys](#tip-derive-columns-from-coding-keys)
@@ -3072,6 +3073,25 @@ protocol EncodableRecord {
 ```
 
 > :bulb: **Tip**: Make sure you set the JSONEncoder `sortedKeys` option, available from iOS 11.0+, macOS 10.13+, tvOS 9.0+ and watchOS 4.0+. This option makes sure that the JSON output is stable. This stability is required for [Record Comparison] to work as expected, and database observation tools such as [ValueObservation] to accurately recognize changed records.
+
+
+### Column Names Coding Strategies
+
+By default, [Codable Records] store their values into database columns that match their coding keys: the `teamID` property is stored into the `teamID` column.
+
+This behavior can be overridden, so that you can, for example, store the `teamID` property into the `team_id` column:
+
+```swift
+protocol FetchableRecord {
+    static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy { get }
+}
+
+protocol EncodableRecord {
+    static var databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy { get }
+}
+```
+
+See [DatabaseColumnDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.10/Enums/DatabaseColumnDecodingStrategy.html), [DatabaseColumnEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.10/Enums/DatabaseColumnEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.10/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
 
 
 ### Date and UUID Coding Strategies
@@ -3432,6 +3452,7 @@ GRDB records come with many default behaviors, that are designed to fit most sit
 [Codable Records] have a few extra options:
 
 - [JSON Columns]: control the format of JSON columns.
+- [Column Names Coding Strategies]: control how coding keys are turned into column names
 - [Date and UUID Coding Strategies]: control the format of Date and UUID properties in your Codable records.
 - [The userInfo Dictionary]: adapt your Codable implementation for the database.
 
@@ -8404,7 +8425,7 @@ Sample Code
 **Thanks**
 
 - [Pierlis](http://pierlis.com), where we write great software.
-- [@alextrob](https://github.com/alextrob), [@alexwlchan](https://github.com/alexwlchan), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@eburns-vmware](https://github.com/eburns-vmware), [@felixscheinost](https://github.com/felixscheinost), [@fpillet](http://github.com/fpillet), [@gcox](https://github.com/gcox), [@GetToSet](https://github.com/GetToSet), [@gjeck](https://github.com/gjeck), [@gusrota](https://github.com/gusrota), [@haikusw](https://github.com/haikusw), [@hartbit](https://github.com/hartbit), [@holsety](https://github.com/holsety), [@jroselightricks](https://github.com/jroselightricks), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@layoutSubviews](https://github.com/layoutSubviews), [@mallman](https://github.com/mallman), [@MartinP7r](https://github.com/MartinP7r), [@Marus](https://github.com/Marus), [@mattgallagher](https://github.com/mattgallagher), [@MaxDesiatov](https://github.com/MaxDesiatov), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@mtancock](https://github.com/mtancock), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@pp5x](https://github.com/pp5x), [@professordeng](https://github.com/professordeng), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@steipete](https://github.com/steipete), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@tternes](https://github.com/tternes), [@valexa](https://github.com/valexa), [@wuyuehyang](https://github.com/wuyuehyang), [@ZevEisenberg](https://github.com/ZevEisenberg), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
+- [@alextrob](https://github.com/alextrob), [@alexwlchan](https://github.com/alexwlchan), [@bellebethcooper](https://github.com/bellebethcooper), [@bfad](https://github.com/bfad), [@cfilipov](https://github.com/cfilipov), [@charlesmchen-signal](https://github.com/charlesmchen-signal), [@Chiliec](https://github.com/Chiliec), [@chrisballinger](https://github.com/chrisballinger), [@darrenclark](https://github.com/darrenclark), [@davidkraus](https://github.com/davidkraus), [@eburns-vmware](https://github.com/eburns-vmware), [@felixscheinost](https://github.com/felixscheinost), [@fpillet](http://github.com/fpillet), [@gcox](https://github.com/gcox), [@GetToSet](https://github.com/GetToSet), [@gjeck](https://github.com/gjeck), [@gusrota](https://github.com/gusrota), [@haikusw](https://github.com/haikusw), [@hartbit](https://github.com/hartbit), [@holsety](https://github.com/holsety), [@jroselightricks](https://github.com/jroselightricks), [@kdubb](https://github.com/kdubb), [@kluufger](https://github.com/kluufger), [@KyleLeneau](https://github.com/KyleLeneau), [@layoutSubviews](https://github.com/layoutSubviews), [@mallman](https://github.com/mallman), [@MartinP7r](https://github.com/MartinP7r), [@Marus](https://github.com/Marus), [@mattgallagher](https://github.com/mattgallagher), [@MaxDesiatov](https://github.com/MaxDesiatov), [@michaelkirk-signal](https://github.com/michaelkirk-signal), [@mtancock](https://github.com/mtancock), [@pakko972](https://github.com/pakko972), [@peter-ss](https://github.com/peter-ss), [@pierlo](https://github.com/pierlo), [@pocketpixels](https://github.com/pocketpixels), [@pp5x](https://github.com/pp5x), [@professordeng](https://github.com/professordeng), [@robcas3](https://github.com/robcas3), [@runhum](https://github.com/runhum), [@sberrevoets](https://github.com/sberrevoets), [@schveiguy](https://github.com/schveiguy), [@SD10](https://github.com/SD10), [@sobri909](https://github.com/sobri909), [@sroddy](https://github.com/sroddy), [@steipete](https://github.com/steipete), [@swiftlyfalling](https://github.com/swiftlyfalling), [@Timac](https://github.com/Timac), [@tternes](https://github.com/tternes), [@valexa](https://github.com/valexa), [@wuyuehyang](https://github.com/wuyuehyang), [@ZevEisenberg](https://github.com/ZevEisenberg), and [@zmeyc](https://github.com/zmeyc) for their contributions, help, and feedback on GRDB.
 - [@aymerick](https://github.com/aymerick) and [@kali](https://github.com/kali) because SQL.
 - [ccgus/fmdb](https://github.com/ccgus/fmdb) for its excellency.
 
@@ -8472,6 +8493,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [Common Table Expressions]: Documentation/CommonTableExpressions.md
 [Conflict Resolution]: #conflict-resolution
 [Customizing the Persistence Methods]: #customizing-the-persistence-methods
+[Column Names Coding Strategies]: #column-names-coding-strategies
 [Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
 [Full-Text Search]: Documentation/FullTextSearch.md

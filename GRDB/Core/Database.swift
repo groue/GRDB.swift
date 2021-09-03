@@ -318,7 +318,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         //
         // - DatabaseCursorTests.testIssue583()
         // - http://sqlite.1065341.n5.nabble.com/Issue-report-sqlite3-set-authorizer-triggers-error-4-516-SQLITE-ABORT-ROLLBACK-during-statement-itern-td107972.html
-        // swiftlint:disable:previous line_length
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_set_authorizer(
             sqliteConnection,
@@ -1293,7 +1292,6 @@ extension Database {
         // > options and using sqlcipher_export() to migrate the contents and
         // > schema of the original db into the new one:
         // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
-        // swiftlint:disable:previous line_length
         let code = passphrase.withUnsafeBytes {
             sqlite3_rekey(sqliteConnection, $0.baseAddress, Int32($0.count))
         }

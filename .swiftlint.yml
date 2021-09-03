@@ -61,3 +61,6 @@ opt_in_rules:
 
 vertical_whitespace:
   max_empty_lines: 2
+
+line_length:
+  ignores_urls: true
