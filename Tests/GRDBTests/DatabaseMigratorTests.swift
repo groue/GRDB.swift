@@ -830,4 +830,22 @@ class DatabaseMigratorTests : GRDBTestCase {
         try migrator2.migrate(dbQueue)
         try XCTAssertEqual(dbQueue.read { try Int.fetchOne($0, sql: "SELECT id FROM t1") }, 2)
     }
+    
+    func testMigrations() throws {
+        do {
+            let migrator = DatabaseMigrator()
+            XCTAssertEqual(migrator.migrations, [])
+        }
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("foo", migrate: { _ in })
+            XCTAssertEqual(migrator.migrations, ["foo"])
+        }
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("foo", migrate: { _ in })
+            migrator.registerMigration("bar", migrate: { _ in })
+            XCTAssertEqual(migrator.migrations, ["foo", "bar"])
+        }
+    }
 }
