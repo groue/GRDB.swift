@@ -72,7 +72,7 @@ public struct DatabaseMigrator {
     /// 2. When the database content can easily be recreated, such as a cache
     ///     for some downloaded data.
     public var eraseDatabaseOnSchemaChange = false
-    private var migrations: [Migration] = []
+    private var _migrations: [Migration] = []
     
     /// A new migrator.
     public init() {
@@ -108,7 +108,7 @@ public struct DatabaseMigrator {
     ///   where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
     public func migrate(_ writer: DatabaseWriter) throws {
-        guard let lastMigration = migrations.last else {
+        guard let lastMigration = _migrations.last else {
             return
         }
         try migrate(writer, upTo: lastMigration.identifier)
@@ -143,7 +143,7 @@ public struct DatabaseMigrator {
     {
         writer.asyncBarrierWriteWithoutTransaction { db in
             do {
-                if let lastMigration = self.migrations.last {
+                if let lastMigration = self._migrations.last {
                     try self.migrate(db, upTo: lastMigration.identifier)
                 }
                 completion(db, nil)
@@ -155,6 +155,12 @@ public struct DatabaseMigrator {
     
     // MARK: - Querying Migrations
     
+    /// The list of registered migration identifiers, in the same order as they
+    /// have been registered.
+    public var migrations: [String] {
+        _migrations.map(\.identifier)
+    }
+    
     /// Returns the identifiers of registered and applied migrations, in the
     /// order of registration.
     ///
@@ -164,7 +170,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual database error.
     public func appliedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try self.appliedIdentifiers(db)
-        return migrations.map { $0.identifier }.filter { appliedIdentifiers.contains($0) }
+        return _migrations.map { $0.identifier }.filter { appliedIdentifiers.contains($0) }
     }
     
     /// Returns the applied migration identifiers, even unregistered ones.
@@ -192,7 +198,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual database error.
     public func completedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try appliedMigrations(db)
-        let knownIdentifiers = migrations.map(\.identifier)
+        let knownIdentifiers = _migrations.map(\.identifier)
         return Array(zip(appliedIdentifiers, knownIdentifiers)
                         .prefix(while: { $0 == $1 })
                         .map { $0.0 })
@@ -203,7 +209,7 @@ public struct DatabaseMigrator {
     /// - parameter db: A database connection.
     /// - throws: An eventual database error.
     public func hasCompletedMigrations(_ db: Database) throws -> Bool {
-        try completedMigrations(db).last == migrations.last?.identifier
+        try completedMigrations(db).last == _migrations.last?.identifier
     }
     
     /// Returns whether database contains unknown migration
@@ -214,7 +220,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual database error.
     public func hasBeenSuperseded(_ db: Database) throws -> Bool {
         let appliedIdentifiers = try self.appliedIdentifiers(db)
-        let knownIdentifiers = migrations.map(\.identifier)
+        let knownIdentifiers = _migrations.map(\.identifier)
         return appliedIdentifiers.contains { !knownIdentifiers.contains($0) }
     }
     
@@ -222,15 +228,15 @@ public struct DatabaseMigrator {
     
     private mutating func registerMigration(_ migration: Migration) {
         GRDBPrecondition(
-            !migrations.map({ $0.identifier }).contains(migration.identifier),
+            !_migrations.map({ $0.identifier }).contains(migration.identifier),
             "already registered migration: \(String(reflecting: migration.identifier))")
-        migrations.append(migration)
+        _migrations.append(migration)
     }
     
     /// Returns unapplied migration identifier,
     private func unappliedMigrations(upTo targetIdentifier: String, appliedIdentifiers: [String]) -> [Migration] {
         var expectedMigrations: [Migration] = []
-        for migration in migrations {
+        for migration in _migrations {
             expectedMigrations.append(migration)
             if migration.identifier == targetIdentifier {
                 break
@@ -249,9 +255,9 @@ public struct DatabaseMigrator {
         let appliedIdentifiers = try self.appliedMigrations(db)
         
         // Subsequent migration must not be applied
-        if let targetIndex = migrations.firstIndex(where: { $0.identifier == targetIdentifier }),
+        if let targetIndex = _migrations.firstIndex(where: { $0.identifier == targetIdentifier }),
            let lastAppliedIdentifier = appliedIdentifiers.last,
-           let lastAppliedIndex = migrations.firstIndex(where: { $0.identifier == lastAppliedIdentifier }),
+           let lastAppliedIndex = _migrations.firstIndex(where: { $0.identifier == lastAppliedIdentifier }),
            targetIndex < lastAppliedIndex
         {
             fatalError("database is already migrated beyond migration \(String(reflecting: targetIdentifier))")
@@ -276,14 +282,14 @@ public struct DatabaseMigrator {
             var needsErase = false
             try db.inTransaction(.deferred) {
                 let appliedIdentifiers = try self.appliedIdentifiers(db)
-                let knownIdentifiers = Set(migrations.map { $0.identifier })
+                let knownIdentifiers = Set(_migrations.map { $0.identifier })
                 if !appliedIdentifiers.isSubset(of: knownIdentifiers) {
                     // Database contains an unknown migration
                     needsErase = true
                     return .commit
                 }
                 
-                if let lastAppliedIdentifier = migrations
+                if let lastAppliedIdentifier = _migrations
                     .map(\.identifier)
                     .last(where: { appliedIdentifiers.contains($0) })
                 {

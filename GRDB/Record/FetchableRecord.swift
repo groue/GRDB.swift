@@ -103,6 +103,20 @@ public protocol FetchableRecord {
     ///         var registrationDate: Date // decoded from epoch timestamp
     ///     }
     static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy { get }
+    
+    /// When the FetchableRecord type also adopts the standard Decodable
+    /// protocol, this property controls the key decoding strategy.
+    ///
+    /// Default value is .useDefaultKeys
+    ///
+    /// For example:
+    ///
+    ///     struct Player: FetchableRecord, Decodable {
+    ///         static let databaseDateDecodingStrategy: DatabaseColumnDecodingStrategy = .convertFromSnakeCase
+    ///
+    ///         var playerID: String // decoded from player_id
+    ///     }
+    static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy { get }
 }
 
 extension FetchableRecord {
@@ -126,6 +140,10 @@ extension FetchableRecord {
     
     public static var databaseDateDecodingStrategy: DatabaseDateDecodingStrategy {
         .deferredToDate
+    }
+    
+    public static var databaseColumnDecodingStrategy: DatabaseColumnDecodingStrategy {
+        .useDefaultKeys
     }
 }
 
@@ -612,4 +630,101 @@ public enum DatabaseDateDecodingStrategy {
     /// must return nil (GRDB will interpret this nil result as a conversion
     /// error, and react accordingly).
     case custom((DatabaseValue) -> Date?)
+}
+
+// MARK: - DatabaseColumnDecodingStrategy
+
+/// `DatabaseColumnDecodingStrategy` specifies how `FetchableRecord` types that
+/// also adopt the standard `Decodable` protocol look for the database colums
+/// that match their coding keys.
+///
+/// For example:
+///
+///     struct Player: FetchableRecord, Decodable {
+///         static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.convertFromSnakeCase
+///
+///         // Decoded from the player_id column
+///         var playerID: Int
+///     }
+public enum DatabaseColumnDecodingStrategy {
+    /// A key decoding strategy that doesn’t change key names during decoding.
+    case useDefaultKeys
+    
+    /// A key decoding strategy that converts snake-case keys to camel-case keys.
+    case convertFromSnakeCase
+    
+    /// A key decoding strategy defined by the closure you supply.
+    case custom((String) -> CodingKey)
+    
+    func key<K: CodingKey>(forColumn column: String) -> K? {
+        switch self {
+        case .useDefaultKeys:
+            return K(stringValue: column)
+        case .convertFromSnakeCase:
+            return K(stringValue: Self._convertFromSnakeCase(column))
+        case let .custom(key):
+            return K(stringValue: key(column).stringValue)
+        }
+    }
+    
+    // Copied straight from
+    // https://github.com/apple/swift-corelibs-foundation/blob/8d6398d76eaf886a214e0bb2bd7549d968f7b40e/Sources/Foundation/JSONDecoder.swift#L103
+    static func _convertFromSnakeCase(_ stringKey: String) -> String {
+        //===----------------------------------------------------------------------===//
+        //
+        // This function is part of the Swift.org open source project
+        //
+        // Copyright (c) 2014 - 2020 Apple Inc. and the Swift project authors
+        // Licensed under Apache License v2.0 with Runtime Library Exception
+        //
+        // See https://swift.org/LICENSE.txt for license information
+        // See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+        //
+        //===----------------------------------------------------------------------===//
+        guard !stringKey.isEmpty else { return stringKey }
+
+        // Find the first non-underscore character
+        guard let firstNonUnderscore = stringKey.firstIndex(where: { $0 != "_" }) else {
+            // Reached the end without finding an _
+            return stringKey
+        }
+
+        // Find the last non-underscore character
+        var lastNonUnderscore = stringKey.index(before: stringKey.endIndex)
+        while lastNonUnderscore > firstNonUnderscore && stringKey[lastNonUnderscore] == "_" {
+            stringKey.formIndex(before: &lastNonUnderscore)
+        }
+
+        let keyRange = firstNonUnderscore...lastNonUnderscore
+        let leadingUnderscoreRange = stringKey.startIndex..<firstNonUnderscore
+        let trailingUnderscoreRange = stringKey.index(after: lastNonUnderscore)..<stringKey.endIndex
+
+        let components = stringKey[keyRange].split(separator: "_")
+        let joinedString: String
+        if components.count == 1 {
+            // No underscores in key, leave the word as is - maybe already camel cased
+            joinedString = String(stringKey[keyRange])
+        } else {
+            joinedString = ([components[0].lowercased()] + components[1...].map { $0.capitalized }).joined()
+        }
+
+        // Do a cheap isEmpty check before creating and appending potentially empty strings
+        let result: String
+        if leadingUnderscoreRange.isEmpty && trailingUnderscoreRange.isEmpty {
+            result = joinedString
+        } else if !leadingUnderscoreRange.isEmpty && !trailingUnderscoreRange.isEmpty {
+            // Both leading and trailing underscores
+            result = String(stringKey[leadingUnderscoreRange])
+                + joinedString
+                + String(stringKey[trailingUnderscoreRange])
+        } else if !leadingUnderscoreRange.isEmpty {
+            // Just leading
+            result = String(stringKey[leadingUnderscoreRange]) + joinedString
+        } else {
+            // Just trailing
+            result = joinedString + String(stringKey[trailingUnderscoreRange])
+        }
+        return result
+    }
+
 }

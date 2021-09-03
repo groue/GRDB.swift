@@ -4,7 +4,7 @@ require 'json'
 
 tests = {}
 STDIN.each do |line|
-  if line =~ /\.([^ ]*) ([^ ]*)\]' measured \[Time, seconds\] average: ([\d.]+)/
+  if line =~ /\.([^ ]*) ([^ ]*)\]' measured \[.*\] average: ([\d.]+)/
     class_name = $1
     test_name = $2
     time = $3

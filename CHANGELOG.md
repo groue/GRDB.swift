@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.11.x` Releases - [5.11.0](#5110)
 - `5.10.x` Releases - [5.10.0](#5100)
 - `5.9.x` Releases - [5.9.0](#590)
 - `5.8.x` Releases - [5.8.0](#580)
@@ -76,6 +77,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.11.0
+
+Released September 3, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.10.0...v5.11.0)
+
+- **Fixed**: Version 5.10.0, when embedded as an Xcode project, would enable the FTS5 full-text engine on system versions that do not provide it.
+- **New**: [#1046](https://github.com/groue/GRDB.swift/pull/1046) by [@groue](https://github.com/groue): Improve performance of by-index row decoding
+- **New**: [#1029](https://github.com/groue/GRDB.swift/pull/1029) by [@sberrevoets](https://github.com/sberrevoets), [@groue](https://github.com/groue): Column coding strategies for Codable records
+
 
 ## 5.10.0
 

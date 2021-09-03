@@ -762,6 +762,311 @@ extension FetchableRecordDecodableTests {
             XCTAssertEqual(record.optionalDates[1]!.timeIntervalSince1970, 128)
         }
     }
+    
+    // MARK: - DatabaseColumnDecodingStrategy
+    
+    func testDatabaseColumnDecodingStrategy_useDefaultKeys() throws {
+        struct Record: FetchableRecord, Decodable, Equatable {
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.useDefaultKeys
+            let requiredId: Int
+            let optionalName: String?
+            let requiredDates: [Date]
+            let optionalDates: [Date?]
+            let optionalDates2: [Date]?
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "requiredId": 1,
+                "optionalName": "test1",
+                "requiredDates": "[128000]",
+                "optionalDates": "[null, 128000]",
+                "optionalDates2": "[128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: "test1",
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: [Date(timeIntervalSince1970: 128)]))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "REQUIREDID": 1,
+                "OPTIONALNAME": "test1",
+                "REQUIREDDATES": "[128000]",
+                "OPTIONALDATES": "[null, 128000]",
+                "OPTIONALDATES2": "[128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: "test1",
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: [Date(timeIntervalSince1970: 128)]))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "requiredId": 1,
+                "optionalName": nil,
+                "requiredDates": "[128000]",
+                "optionalDates": "[null, 128000]",
+                "optionalDates2": nil,
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: nil,
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: nil))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "requiredId": 1,
+                "requiredDates": "[128000]",
+                "optionalDates": "[null, 128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: nil,
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: nil))
+        }
+        
+        do {
+            _ = try RowDecoder().decode(Record.self, from: [
+                "required_id": 1,
+                "optionalName": "test1",
+                "requiredDates": "[128000]",
+                "optionalDates": "[null, 128000]",
+                "optionalDates2": "[128000]",
+            ])
+            XCTFail("Expected error")
+        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+            XCTAssertEqual(column, "requiredId")
+            XCTAssertEqual(context.debugDescription, "column not found: \"requiredId\"")
+        }
+    }
+    
+    func testDatabaseColumnDecodingStrategy_convertFromSnakeCase() throws {
+        struct Record: FetchableRecord, Decodable, Equatable {
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.convertFromSnakeCase
+            let requiredId: Int
+            let optionalName: String?
+            let requiredDates: [Date]
+            let optionalDates: [Date?]
+            let optionalDates2: [Date]?
+        }
+        
+        struct IncorrectRecord: FetchableRecord, Decodable, Equatable {
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.convertFromSnakeCase
+            let requiredID: Int // incorrect: should be requiredId
+            let optionalName: String?
+            let requiredDates: [Date]
+            let optionalDates: [Date?]
+            let optionalDates2: [Date]?
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "required_id": 1,
+                "optional_name": "test1",
+                "required_dates": "[128000]",
+                "optional_dates": "[null, 128000]",
+                "optional_dates2": "[128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: "test1",
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: [Date(timeIntervalSince1970: 128)]))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "REQUIRED_ID": 1,
+                "OPTIONAL_NAME": "test1",
+                "REQUIRED_DATES": "[128000]",
+                "OPTIONAL_DATES": "[null, 128000]",
+                "OPTIONAL_DATES2": "[128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: "test1",
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: [Date(timeIntervalSince1970: 128)]))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "required_id": 1,
+                "optional_name": nil,
+                "required_dates": "[128000]",
+                "optional_dates": "[null, 128000]",
+                "optional_dates2": nil,
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: nil,
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: nil))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "required_id": 1,
+                "required_dates": "[128000]",
+                "optional_dates": "[null, 128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: nil,
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: nil))
+        }
+        
+        do {
+            // Matches JSONDecoder.KeyDecodingStrategy.convertFromSnakeCase behavior
+            let record = try RowDecoder().decode(Record.self, from: [
+                "requiredId": 1,
+                "optionalName": "test1",
+                "requiredDates": "[128000]",
+                "optionalDates": "[null, 128000]",
+                "optionalDates2": "[128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: "test1",
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: [Date(timeIntervalSince1970: 128)]))
+        }
+        
+        do {
+            _ = try RowDecoder().decode(Record.self, from: [
+                "required_idx": 1,
+                "optional_name": "test1",
+                "required_dates": "[128000]",
+                "optional_dates": "[null, 128000]",
+                "optional_dates2": "[128000]",
+            ])
+            XCTFail("Expected error")
+        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+            XCTAssertEqual(column, "requiredId")
+            XCTAssertEqual(context.debugDescription, """
+                key not found: CodingKeys(stringValue: "requiredId", intValue: nil) ("requiredId"), \
+                converted to required_id
+                """)
+        }
+        
+        do {
+            _ = try RowDecoder().decode(IncorrectRecord.self, from: [
+                "required_id": 1,
+                "optional_name": "test1",
+                "required_dates": "[128000]",
+                "optional_dates": "[null, 128000]",
+                "optional_dates2": "[128000]",
+            ])
+            XCTFail("Expected error")
+        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+            XCTAssertEqual(column, "requiredID")
+            XCTAssertEqual(context.debugDescription, """
+                key not found: CodingKeys(stringValue: "requiredID", intValue: nil) ("requiredID"), \
+                with divergent representation requiredId, \
+                converted to required_id
+                """)
+        }
+    }
+    
+    func testDatabaseColumnDecodingStrategy_custom() throws {
+        struct AnyKey: CodingKey {
+            var stringValue: String
+            var intValue: Int? { nil }
+            init(stringValue: String) { self.stringValue = stringValue }
+            init?(intValue: Int) { nil }
+        }
+        
+        struct Record: FetchableRecord, Decodable, Equatable {
+            static let databaseColumnDecodingStrategy = DatabaseColumnDecodingStrategy.custom { column in
+                AnyKey(stringValue: String(column.dropFirst()))
+            }
+            let requiredId: Int
+            let optionalName: String?
+            let requiredDates: [Date]
+            let optionalDates: [Date?]
+            let optionalDates2: [Date]?
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "_requiredId": 1,
+                "_optionalName": "test1",
+                "_requiredDates": "[128000]",
+                "_optionalDates": "[null, 128000]",
+                "_optionalDates2": "[128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: "test1",
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: [Date(timeIntervalSince1970: 128)]))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "_requiredId": 1,
+                "_optionalName": nil,
+                "_requiredDates": "[128000]",
+                "_optionalDates": "[null, 128000]",
+                "_optionalDates2": nil,
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: nil,
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: nil))
+        }
+        
+        do {
+            let record = try RowDecoder().decode(Record.self, from: [
+                "_requiredId": 1,
+                "_requiredDates": "[128000]",
+                "_optionalDates": "[null, 128000]",
+            ])
+            XCTAssertEqual(record, Record(
+                            requiredId: 1,
+                            optionalName: nil,
+                            requiredDates: [Date(timeIntervalSince1970: 128)],
+                            optionalDates: [nil, Date(timeIntervalSince1970: 128)],
+                            optionalDates2: nil))
+        }
+        
+        do {
+            _ = try RowDecoder().decode(Record.self, from: [
+                "requiredId": 1,
+                "_optionalName": "test1",
+                "_requiredDates": "[128000]",
+                "_optionalDates": "[null, 128000]",
+                "_optionalDates2": "[128000]",
+            ])
+            XCTFail("Expected error")
+        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+            XCTAssertEqual(column, "requiredId")
+            XCTAssertEqual(context.debugDescription, """
+                key not found: CodingKeys(stringValue: "requiredId", intValue: nil) ("requiredId")
+                """)
+        }
+    }
 }
 
 // MARK: - User Infos & Coding Keys
