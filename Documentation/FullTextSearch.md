@@ -508,7 +508,16 @@ try db.makeFTS5Pattern(rawPattern: "AND", forTable: "book")
 try db.makeFTS5Pattern(rawPattern: "missing: sqlite", forTable: "book")
 ```
 
-The FTS5Pattern initializers don't throw. They build a valid pattern from any string, **including strings provided by users of your application**. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
+The first initializer validates your raw patterns against the query grammar, and may throw a [DatabaseError](../README.md#databaseerror):
+
+```swift
+// OK: FTS5Pattern
+let pattern = try FTS5Pattern(rawPattern: "sqlite", forTable: "book")
+// DatabaseError: syntax error near \"AND\"
+let pattern = try FTS5Pattern(rawPattern: "AND", forTable: "book")
+```
+
+The other four FTS5Pattern initializers don't throw. They build a valid pattern from any string, **including strings provided by users of your application**. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
 
 ```swift
 let query = "SQLite database"

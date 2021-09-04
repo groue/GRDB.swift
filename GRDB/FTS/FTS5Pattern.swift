@@ -5,6 +5,43 @@ public struct FTS5Pattern {
     /// The raw pattern string. Guaranteed to be a valid FTS5 pattern.
     public let rawPattern: String
     
+    /// Creates a pattern from a raw pattern string; throws DatabaseError on
+    /// invalid syntax.
+    ///
+    /// The pattern syntax is documented at <https://www.sqlite.org/fts5.html#full_text_query_syntax>
+    ///
+    ///     try FTS5Pattern(rawPattern: "and", forTable: "document") // OK
+    ///     try FTS5Pattern(rawPattern: "AND", forTable: "document") // malformed MATCH expression: [AND]
+    public init(rawPattern: String, allowedColumns: [String] = []) throws {
+        // Correctness above all: use SQLite to validate the pattern.
+        //
+        // Invalid patterns have SQLite return an error on the first
+        // call to sqlite3_step() on a statement that matches against
+        // that pattern.
+        do {
+            try DatabaseQueue().inDatabase { db in
+                try db.create(virtualTable: "document", using: FTS5()) { t in
+                    if allowedColumns.isEmpty {
+                        t.column("__grdb__")
+                    } else {
+                        for column in allowedColumns {
+                            t.column(column)
+                        }
+                    }
+                }
+                try db.makeStatement(sql: "SELECT * FROM document WHERE document MATCH ?")
+                    .makeCursor(arguments: [rawPattern])
+                    .next() // error on next() for invalid patterns
+            }
+        } catch let error as DatabaseError {
+            // Remove private SQL & arguments from the thrown error
+            throw DatabaseError(resultCode: error.extendedResultCode, message: error.message)
+        }
+        
+        // Pattern is valid
+        self.rawPattern = rawPattern
+    }
+    
     /// Creates a pattern that matches any token found in the input string;
     /// returns nil if no pattern could be built.
     ///
@@ -75,36 +112,6 @@ public struct FTS5Pattern {
         guard !tokens.isEmpty else { return nil }
         try? self.init(rawPattern: "^\"" + tokens.joined(separator: " ") + "\"")
     }
-    
-    init(rawPattern: String, allowedColumns: [String] = []) throws {
-        // Correctness above all: use SQLite to validate the pattern.
-        //
-        // Invalid patterns have SQLite return an error on the first
-        // call to sqlite3_step() on a statement that matches against
-        // that pattern.
-        do {
-            try DatabaseQueue().inDatabase { db in
-                try db.create(virtualTable: "document", using: FTS5()) { t in
-                    if allowedColumns.isEmpty {
-                        t.column("__grdb__")
-                    } else {
-                        for column in allowedColumns {
-                            t.column(column)
-                        }
-                    }
-                }
-                try db.makeStatement(sql: "SELECT * FROM document WHERE document MATCH ?")
-                    .makeCursor(arguments: [rawPattern])
-                    .next() // error on next() for invalid patterns
-            }
-        } catch let error as DatabaseError {
-            // Remove private SQL & arguments from the thrown error
-            throw DatabaseError(resultCode: error.extendedResultCode, message: error.message)
-        }
-        
-        // Pattern is valid
-        self.rawPattern = rawPattern
-    }
 }
 
 extension Database {
@@ -129,8 +136,8 @@ extension FTS5Pattern: DatabaseValueConvertible {
         rawPattern.databaseValue
     }
     
-    /// Returns an FTS5Pattern initialized from *dbValue*, if it
-    /// contains a suitable value.
+    /// Returns an FTS5Pattern initialized from *dbValue*, if it contains
+    /// a suitable value.
     public static func fromDatabaseValue(_ dbValue: DatabaseValue) -> FTS5Pattern? {
         String
             .fromDatabaseValue(dbValue)
