@@ -226,6 +226,18 @@ See below some examples of matches:
     
     It does not provide stemming, and won't match "databases" with "database".
 
+You can tokenize strings when needed:
+
+```swift
+// Default tokenization using the `simple` tokenizer:
+FTS3.tokenize("SQLite database")  // ["sqlite", "database"]
+FTS3.tokenize("Gustave Doré")     // ["gustave", "doré"])
+
+// Tokenization with an explicit tokenizer:
+FTS3.tokenize("SQLite database", withTokenizer: .porter)   // ["sqlite", "databas"]
+FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
+```
+
 See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more information.
 
 
@@ -452,7 +464,7 @@ See below some examples of matches:
     
     ```swift
     try db.create(virtualTable: "book", using: FTS5()) { t in
-        t.tokenizer = .ascii
+        t.tokenizer = .ascii()
     }
     ```
     
@@ -466,8 +478,8 @@ See below some examples of matches:
     
     ```swift
     try db.create(virtualTable: "book", using: FTS5()) { t in
-        t.tokenizer = .porter()       // porter wrapping unicode61 (the default)
-        t.tokenizer = .porter(.ascii) // porter wrapping ascii
+        t.tokenizer = .porter()         // porter wrapping unicode61 (the default)
+        t.tokenizer = .porter(.ascii()) // porter wrapping ascii
         t.tokenizer = .porter(.unicode61(diacritics: .keep)) // porter wrapping unicode61 without diacritics stripping
     }
     ```
@@ -475,6 +487,18 @@ See below some examples of matches:
     The porter tokenizer is a wrapper tokenizer which compares English words according to their roots: it matches "database" with "databases", and "frustration" with "frustrated".
     
     It strips diacritics from latin script characters if it wraps unicode61, and does not if it wraps ascii (see the example above).
+
+You can tokenize strings when needed:
+
+```swift
+// Default tokenization using the `ascii` tokenizer:
+try FTS5.tokenize("SQLite database")  // ["sqlite", "database"]
+try FTS5.tokenize("Gustave Doré")     // ["gustave", "doré"])
+
+// Tokenization with an explicit tokenizer:
+try FTS5.tokenize("SQLite database", withTokenizer: .porter()) // ["sqlite", "databas"]
+try FTS5.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
+```
 
 See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information, and [custom FTS5 tokenizers](FTS5Tokenizers.md) in order to add your own tokenizers.
 
