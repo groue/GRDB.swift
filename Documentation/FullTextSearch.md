@@ -248,6 +248,7 @@ struct FTS3Pattern {
     init(rawPattern: String) throws
     init?(matchingAnyTokenIn string: String)
     init?(matchingAllTokensIn string: String)
+    init?(matchingAllPrefixesIn string: String)
     init?(matchingPhrase string: String)
 }
 ```
@@ -257,18 +258,25 @@ The first initializer validates your raw patterns against the query grammar, and
 ```swift
 // OK: FTS3Pattern
 let pattern = try FTS3Pattern(rawPattern: "sqlite AND database")
+
 // DatabaseError: malformed MATCH expression: [AND]
 let pattern = try FTS3Pattern(rawPattern: "AND")
 ```
 
-The three other initializers don't throw. They build a valid pattern from any string, **including strings provided by users of your application**. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
+The other initializers don't throw. They build a valid pattern from any string, **including strings provided by users of your application**. They let you find documents that match any given word, all given words or prefixes, or a full phrase, depending on the needs of your application:
 
 ```swift
 let query = "SQLite database"
+
 // Matches documents that contain "SQLite" or "database"
 let pattern = FTS3Pattern(matchingAnyTokenIn: query)
-// Matches documents that contain both "SQLite" and "database"
+
+// Matches documents that contain "SQLite" and "database"
 let pattern = FTS3Pattern(matchingAllTokensIn: query)
+
+// Matches documents that contain words that start with "SQLite" and words that start with "database"
+let pattern = FTS3Pattern(matchingAllPrefixesIn: query)
+
 // Matches documents that contain "SQLite database"
 let pattern = FTS3Pattern(matchingPhrase: query)
 ```
@@ -493,7 +501,9 @@ extension Database {
 struct FTS5Pattern {
     init?(matchingAnyTokenIn string: String)
     init?(matchingAllTokensIn string: String)
+    init?(matchingAllPrefixesIn string: String)
     init?(matchingPhrase string: String)
+    init?(matchingPrefixPhrase string: String)
 }
 ```
 
@@ -502,8 +512,10 @@ The `Database.makeFTS5Pattern(rawPattern:forTable:)` method validates your raw p
 ```swift
 // OK: FTS5Pattern
 try db.makeFTS5Pattern(rawPattern: "sqlite", forTable: "book")
+
 // DatabaseError: syntax error near \"AND\"
 try db.makeFTS5Pattern(rawPattern: "AND", forTable: "book")
+
 // DatabaseError: no such column: missing
 try db.makeFTS5Pattern(rawPattern: "missing: sqlite", forTable: "book")
 ```
@@ -512,12 +524,19 @@ The FTS5Pattern initializers don't throw. They build a valid pattern from any st
 
 ```swift
 let query = "SQLite database"
+
 // Matches documents that contain "SQLite" or "database"
 let pattern = FTS5Pattern(matchingAnyTokenIn: query)
-// Matches documents that contain both "SQLite" and "database"
+
+// Matches documents that contain "SQLite" and "database"
 let pattern = FTS5Pattern(matchingAllTokensIn: query)
+
+// Matches documents that contain words that start with "SQLite" and words that start with "database"
+let pattern = FTS5Pattern(matchingAllPrefixesIn: query)
+
 // Matches documents that contain "SQLite database"
 let pattern = FTS5Pattern(matchingPhrase: query)
+
 // Matches documents that start with "SQLite database"
 let pattern = FTS5Pattern(matchingPrefixPhrase: query)
 ```
