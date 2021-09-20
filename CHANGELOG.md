@@ -78,6 +78,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Unreleased
+
+- **New**: `FTS3Pattern(matchingAllPrefixesIn:)` and `FTS5Pattern(matchingAllPrefixesIn:)` let you build full-text search patterns suitable for prefix queries.
+- **New**: `FTS3.tokenize(_:)` and `FTS5.tokenize(_:)` let you tokenize input strings.
+
 ## 5.11.0
 
 Released September 3, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.10.0...v5.11.0)
