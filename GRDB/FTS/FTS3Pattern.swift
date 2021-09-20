@@ -59,6 +59,19 @@ public struct FTS3Pattern {
         try? self.init(rawPattern: tokens.joined(separator: " "))
     }
     
+    /// Creates a pattern that matches all token prefixes found in the input
+    /// string; returns nil if no pattern could be built.
+    ///
+    ///     FTS3Pattern(matchingAllTokensIn: "")        // nil
+    ///     FTS3Pattern(matchingAllTokensIn: "foo bar") // foo* bar*
+    ///
+    /// - parameter string: The string to turn into an FTS3 pattern
+    public init?(matchingAllPrefixesIn string: String) {
+        let tokens = FTS3.tokenize(string, withTokenizer: .simple)
+        guard !tokens.isEmpty else { return nil }
+        try? self.init(rawPattern: tokens.map { "\($0)*" }.joined(separator: " "))
+    }
+    
     /// Creates a pattern that matches a contiguous string; returns nil if no
     /// pattern could be built.
     ///
