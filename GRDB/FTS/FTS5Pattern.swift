@@ -13,9 +13,9 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingAnyTokenIn string: String) {
-        guard let tokens = try? FTS5.tokenize(string, withTokenizer: .ascii(), for: .query),
-              !tokens.isEmpty
-        else { return nil }
+        guard let tokens = try? FTS5.tokenize(query: string), !tokens.isEmpty else {
+            return nil
+        }
         try? self.init(rawPattern: tokens.joined(separator: " OR "))
     }
     
@@ -27,9 +27,9 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingAllTokensIn string: String) {
-        guard let tokens = try? FTS5.tokenize(string, withTokenizer: .ascii(), for: .query),
-              !tokens.isEmpty
-        else { return nil }
+        guard let tokens = try? FTS5.tokenize(query: string), !tokens.isEmpty else {
+            return nil
+        }
         try? self.init(rawPattern: tokens.joined(separator: " "))
     }
     
@@ -41,9 +41,9 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS3 pattern
     public init?(matchingAllPrefixesIn string: String) {
-        guard let tokens = try? FTS5.tokenize(string, withTokenizer: .ascii(), for: .query),
-              !tokens.isEmpty
-        else { return nil }
+        guard let tokens = try? FTS5.tokenize(query: string), !tokens.isEmpty else {
+            return nil
+        }
         try? self.init(rawPattern: tokens.map { "\($0)*" }.joined(separator: " "))
     }
     
@@ -55,9 +55,9 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingPhrase string: String) {
-        guard let tokens = try? FTS5.tokenize(string, withTokenizer: .ascii(), for: .query),
-              !tokens.isEmpty
-        else { return nil }
+        guard let tokens = try? FTS5.tokenize(query: string), !tokens.isEmpty else {
+            return nil
+        }
         try? self.init(rawPattern: "\"" + tokens.joined(separator: " ") + "\"")
     }
     
@@ -72,9 +72,9 @@ public struct FTS5Pattern {
     ///
     /// - parameter string: The string to turn into an FTS5 pattern
     public init?(matchingPrefixPhrase string: String) {
-        guard let tokens = try? FTS5.tokenize(string, withTokenizer: .ascii(), for: .query),
-              !tokens.isEmpty
-        else { return nil }
+        guard let tokens = try? FTS5.tokenize(query: string), !tokens.isEmpty else {
+            return nil
+        }
         try? self.init(rawPattern: "^\"" + tokens.joined(separator: " ") + "\"")
     }
     

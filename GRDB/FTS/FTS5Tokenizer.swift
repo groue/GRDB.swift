@@ -67,8 +67,40 @@ private class TokenizeContext {
 
 extension FTS5Tokenizer {
     
-    /// Tokenizes the string argument into an array of
-    /// (String, FTS5TokenFlags) pairs.
+    /// Tokenizes the string argument as a document that would be inserted into
+    /// an FTS5 table.
+    ///
+    /// For example:
+    ///
+    ///     let tokenizer = try db.makeTokenizer(.ascii())
+    ///     try tokenizer.tokenize(document: "foo bar") // [("foo", flags), ("bar", flags)]
+    ///
+    /// See also `tokenize(query:)`.
+    ///
+    /// - parameter string: The string to tokenize.
+    /// - returns: An array of tokens and flags.
+    /// - throws: An error if tokenization fails.
+    public func tokenize(document string: String) throws -> [(token: String, flags: FTS5TokenFlags)] {
+        try tokenize(string, for: .document)
+    }
+
+    /// Tokenizes the string argument as an FTS5 query.
+    ///
+    /// For example:
+    ///
+    ///     let tokenizer = try db.makeTokenizer(.ascii())
+    ///     try tokenizer.tokenize(query: "foo bar") // [("foo", flags), ("bar", flags)]
+    ///
+    /// See also `tokenize(document:)`.
+    ///
+    /// - parameter string: The string to tokenize.
+    /// - returns: An array of tokens and flags.
+    /// - throws: An error if tokenization fails.
+    public func tokenize(query string: String) throws -> [(token: String, flags: FTS5TokenFlags)] {
+        try tokenize(string, for: .query)
+    }
+
+    /// Tokenizes the string argument.
     ///
     ///     let tokenizer = try db.makeTokenizer(.ascii())
     ///     try tokenizer.tokenize("foo bar", for: .document) // [("foo", flags), ("bar", flags)]
@@ -78,7 +110,9 @@ extension FTS5Tokenizer {
     ///     - .document: Tokenize like a document being inserted into an FTS table.
     ///     - .query: Tokenize like the search pattern of the MATCH operator.
     /// - parameter tokenizer: A FTS5TokenizerDescriptor such as .ascii()
-    func tokenize(_ string: String, for tokenization: FTS5Tokenization) throws -> [(String, FTS5TokenFlags)] {
+    private func tokenize(_ string: String, for tokenization: FTS5Tokenization)
+    throws -> [(token: String, flags: FTS5TokenFlags)]
+    {
         try ContiguousArray(string.utf8).withUnsafeBufferPointer { buffer -> [(String, FTS5TokenFlags)] in
             guard let addr = buffer.baseAddress else {
                 return []
@@ -119,16 +153,6 @@ extension FTS5Tokenizer {
             }
             return context.tokens
         }
-    }
-    
-    func nonSynonymTokens(in string: String, for tokenization: FTS5Tokenization) throws -> [String] {
-        var tokens: [String] = []
-        for (token, flags) in try tokenize(string, for: tokenization) {
-            if !flags.contains(.colocated) {
-                tokens.append(token)
-            }
-        }
-        return tokens
     }
 }
 

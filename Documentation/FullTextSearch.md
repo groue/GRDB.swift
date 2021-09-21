@@ -31,6 +31,7 @@ let books = try Book.fetchAll(db,
 - **[Enabling FTS5 Support](#enabling-fts5-support)**
 - **Create Full-Text Virtual Tables**: [FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
 - **Choosing a Tokenizer**: [FTS3/4](#fts3-and-fts4-tokenizers), [FTS5](#fts5-tokenizers)
+- **Tokenization**: [FTS3/4](#fts3-and-fts4-tokenization), [FTS5](#fts5-tokenization)
 - **Search Patterns**: [FTS3/4](#fts3pattern), [FTS5](#fts5pattern)
 - **Sorting by Relevance**: [FTS5](#fts5-sorting-by-relevance)
 - **External Content Full-Text Tables**: [FTS4/5](#external-content-full-text-tables)
@@ -226,6 +227,11 @@ See below some examples of matches:
     
     It does not provide stemming, and won't match "databases" with "database".
 
+See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more information.
+
+
+## FTS3 and FTS4 Tokenization
+
 You can tokenize strings when needed:
 
 ```swift
@@ -237,8 +243,6 @@ FTS3.tokenize("Gustave Doré")     // ["gustave", "doré"])
 FTS3.tokenize("SQLite database", withTokenizer: .porter)   // ["sqlite", "databas"]
 FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
 ```
-
-See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more information.
 
 
 ## FTS3Pattern
@@ -488,19 +492,30 @@ See below some examples of matches:
     
     It strips diacritics from latin script characters if it wraps unicode61, and does not if it wraps ascii (see the example above).
 
+See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information, and [custom FTS5 tokenizers](FTS5Tokenizers.md) in order to add your own tokenizers.
+
+
+## FTS5 Tokenization
+
 You can tokenize strings when needed:
 
 ```swift
-// Default tokenization using the `ascii` tokenizer:
-try FTS5.tokenize("SQLite database")  // ["sqlite", "database"]
-try FTS5.tokenize("Gustave Doré")     // ["gustave", "doré"])
+let ascii = try db.makeTokenizer(.ascii())
 
-// Tokenization with an explicit tokenizer:
-try FTS5.tokenize("SQLite database", withTokenizer: .porter()) // ["sqlite", "databas"]
-try FTS5.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
+// Tokenize an FTS5 query
+for (token, flags) in try ascii.tokenize(query: "SQLite database") {
+    print(token) // Prints "sqlite" then "database"
+}
+
+// Tokenize an FTS5 document
+for (token, flags) in try ascii.tokenize(document: "SQLite database") {
+    print(token) // Prints "sqlite" then "database"
+}
 ```
 
-See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information, and [custom FTS5 tokenizers](FTS5Tokenizers.md) in order to add your own tokenizers.
+Some tokenizers may produce a different output when you tokenize a query or a document (see `FTS5_TOKENIZE_QUERY` and `FTS5_TOKENIZE_DOCUMENT` in https://www.sqlite.org/fts5.html#custom_tokenizers). You should generally use `tokenize(query:)` when you intend to tokenize a string in order to compose a [raw search pattern](#fts5pattern).
+
+See the `FTS5_TOKEN_*` flags in https://www.sqlite.org/fts5.html#custom_tokenizers for more information about token flags. In particular, tokenizers that support synonyms may output multiple tokens for a single word, along with the `.colocated` flag.
 
 
 ## FTS5Pattern

@@ -81,7 +81,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Unreleased
 
 - **New**: `FTS3Pattern(matchingAllPrefixesIn:)` and `FTS5Pattern(matchingAllPrefixesIn:)` let you build full-text search patterns suitable for prefix queries.
-- **New**: `FTS3.tokenize(_:)` and `FTS5.tokenize(_:)` let you tokenize input strings.
+- **New**: `FTS3.tokenize(_:)` and `FTS5Tokenizer.tokenize(_:)` let you tokenize input strings.
+- **Documentation Update**: Full-text search documentation was updated for the new search pattern initializers ([FTS3/4](Documentation/FullTextSearch.md#fts3pattern), [FTS5](Documentation/FullTextSearch.md#fts5pattern)), and tokenization methods ([FTS3/4](Documentation/FullTextSearch.md#fts3-and-fts4-tokenization), [FTS5](Documentation/FullTextSearch.md#fts5-tokenization)).
 
 ## 5.11.0
 

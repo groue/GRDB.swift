@@ -46,37 +46,28 @@ public struct FTS5: VirtualTableModule {
     /// See <https://www.sqlite.org/fts5.html>
     public init() { }
     
-    /// Returns an array of tokens found in the string argument.
+    // Support for FTS5Pattern initializers. Don't make public. Users tokenize
+    // with `FTS5Tokenizer.tokenize()` methods, which support custom tokenizers,
+    // token flags, and query/document tokenzation.
+    /// Tokenizes the string argument as an FTS5 query.
     ///
     /// For example:
     ///
-    ///     try FTS5.tokenize("SQLite database")  // ["sqlite", "database"]
-    ///     try FTS5.tokenize("Gustave Doré")     // ["gustave", "doré"])
-    ///
-    /// Results can be altered with an explicit tokenizer - default is `.ascii()`.
-    /// See <https://www.sqlite.org/fts5.html#tokenizers>.
-    ///
-    ///     try FTS5.tokenize("SQLite database", withTokenizer: .porter()) // ["sqlite", "databas"]
-    ///     try FTS5.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
+    ///     try FTS5.tokenize(query: "SQLite database")  // ["sqlite", "database"]
+    ///     try FTS5.tokenize(query: "Gustave Doré")     // ["gustave", "doré"])
     ///
     /// Synonym (colocated) tokens are not present in the returned array. See
     /// `FTS5_TOKEN_COLOCATED` at <https://www.sqlite.org/fts5.html#custom_tokenizers>
     /// for more information.
     ///
     /// - parameter string: The tokenized string.
-    /// - parameter tokenizer: The tokenizer - defaults to `.ascii()`.
-    /// - parameter tokenization: The reason why tokenization is requested -
-    ///   defaults to `.query`.
     /// - returns: An array of tokens.
     /// - throws: An error if tokenization fails.
-    public static func tokenize(
-        _ string: String,
-        withTokenizer tokenizer: FTS5TokenizerDescriptor = .ascii(),
-        for tokenization: FTS5Tokenization = .query)
-    throws -> [String]
-    {
+    static func tokenize(query string: String) throws -> [String] {
         try DatabaseQueue().inDatabase { db in
-            try db.makeTokenizer(tokenizer).nonSynonymTokens(in: string, for: tokenization)
+            try db.makeTokenizer(.ascii()).tokenize(query: string).compactMap {
+                $0.flags.contains(.colocated) ? nil : $0.token
+            }
         }
     }
     
