@@ -84,8 +84,7 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
         guard let components = optionalComponents else {
             return nil
         }
-        self.dateComponents = components.dateComponents
-        self.format = components.format
+        self.init(components.dateComponents, format: components.format)
     }
     
     // MARK: - DatabaseValueConvertible adoption
