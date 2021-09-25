@@ -121,7 +121,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
     static let name = "synonyms"
     let wrappedTokenizer: FTS5Tokenizer
     let synonyms: [Set<String>]
-
+    
     init(db: Database, arguments: [String]) throws {
         if arguments.isEmpty {
             wrappedTokenizer = try db.makeTokenizer(.unicode61())
@@ -130,11 +130,11 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
         }
         synonyms = [["first", "1st"]]
     }
-
+    
     deinit {
         // TODO: test that deinit is called
     }
-
+    
     func tokenize(context: UnsafeMutableRawPointer?, tokenization: FTS5Tokenization, pText: UnsafePointer<Int8>?, nText: Int32, tokenCallback: @escaping FTS5TokenCallback) -> Int32 {
         // Don't look for synonyms when tokenizing queries, as advised by
         // https://www.sqlite.org/fts5.html#synonym_support
@@ -153,7 +153,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
             let tokenCallback: FTS5TokenCallback
         }
         var customContext = CustomContext(synonyms: synonyms, context: context!, tokenCallback: tokenCallback)
-
+        
         return withUnsafeMutablePointer(to: &customContext) { customContextPointer in
             // Invoke wrappedTokenizer, but intercept raw tokens
             return wrappedTokenizer.tokenize(context: customContextPointer, tokenization: tokenization, pText: pText, nText: nText) { (customContextPointer, flags, pToken, nToken, iStart, iEnd) in
@@ -165,7 +165,7 @@ private final class SynonymsTokenizer : FTS5CustomTokenizer {
                     return 0 // SQLITE_OK
                 }
                 
-                guard let synonyms = customContext.synonyms.first(where: { $0.contains(token) }) else {
+                guard let synonyms = customContext.synonyms.first(where: { $0.contains(token) })?.sorted() else {
                     // No synonym
                     return customContext.tokenCallback(customContext.context, flags, pToken, nToken, iStart, iEnd)
                 }
@@ -214,7 +214,7 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
         }
     }
-
+    
     func testStopWordsTokenizerDatabasePool() throws {
         dbConfiguration.prepareDatabase { db in
             db.add(tokenizer: StopWordsTokenizer.self)
@@ -246,7 +246,15 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"foo bar baz\""]), 1)
         }
     }
-
+    
+    func testStopWordsTokenizer_tokenize() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            db.add(tokenizer: StopWordsTokenizer.self)
+            let tokenizer = try db.makeTokenizer(StopWordsTokenizer.tokenizerDescriptor())
+            try XCTAssertEqual(tokenizer.tokenize(query: "foo bar baz").map(\.token), ["foo", "baz"])
+        }
+    }
+    
     func testNFKCTokenizer() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -303,7 +311,15 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             try db.drop(table: "documents")
         }
     }
-
+    
+    func testNFKCTokenizer_tokenize() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            db.add(tokenizer: NFKCTokenizer.self)
+            let tokenizer = try db.makeTokenizer(NFKCTokenizer.tokenizerDescriptor())
+            try XCTAssertEqual(tokenizer.tokenize(query: "foo aimé\u{FB01}").map(\.token), ["foo", "aimefi"]) // U+FB01: LATIN SMALL LIGATURE FI
+        }
+    }
+    
     func testSynonymTokenizer() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -325,6 +341,19 @@ class FTS5CustomTokenizerTests: GRDBTestCase {
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["\"1st bar\""]), 1)
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["fi*"]), 2)
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE documents MATCH ?", arguments: ["1s*"]), 2)
+        }
+    }
+    
+    func testSynonymsTokenizer_tokenize() throws {
+        try makeDatabaseQueue().inDatabase { db in
+            db.add(tokenizer: SynonymsTokenizer.self)
+            let tokenizer = try db.makeTokenizer(SynonymsTokenizer.tokenizerDescriptor())
+            
+            try XCTAssertEqual(tokenizer.tokenize(query: "foo first 1st").map(\.token), ["foo", "first", "1st"])
+            try XCTAssertEqual(tokenizer.tokenize(query: "foo first 1st").map(\.flags), [[], [], []])
+            
+            try XCTAssertEqual(tokenizer.tokenize(document: "foo first 1st").map(\.token), ["foo", "1st", "first", "1st", "first"])
+            try XCTAssertEqual(tokenizer.tokenize(document: "foo first 1st").map(\.flags), [[], [], .colocated, [], .colocated])
         }
     }
 }

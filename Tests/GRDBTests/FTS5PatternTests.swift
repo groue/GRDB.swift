@@ -49,7 +49,7 @@ class FTS5PatternTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testInvalidFTS5Pattern() throws {
         let dbQueue = try makeDatabaseQueue()
         dbQueue.inDatabase { db in
@@ -65,7 +65,7 @@ class FTS5PatternTests: GRDBTestCase {
             }
         }
     }
-
+    
     func testFTS5PatternWithAnyToken() throws {
         let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
         for string in wrongInputs {
@@ -114,9 +114,39 @@ class FTS5PatternTests: GRDBTestCase {
                 (" \t\nyears \t\nmonths \t\n", "years months", 1),
                 ("\"years months days\"", "years months days", 1),
                 ("FOOÉı👨👨🏿🇫🇷🇨🇮", "fooÉı👨👨🏿🇫🇷🇨🇮", 0),
-                ]
+            ]
             for (string, expectedRawPattern, expectedCount) in cases {
                 if let pattern = FTS5Pattern(matchingAllTokensIn: string) {
+                    let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
+                    XCTAssertEqual(rawPattern, expectedRawPattern)
+                    let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
+                    XCTAssertEqual(count, expectedCount, "Expected pattern \(String(reflecting: rawPattern)) to yield \(expectedCount) results")
+                }
+            }
+        }
+    }
+    
+    func testFTS5PatternWithAllPrefixes() throws {
+        let wrongInputs = ["", "*", "^", " ", "(", "()", "\"", "?!"]
+        for string in wrongInputs {
+            if let pattern = FTS5Pattern(matchingAllPrefixesIn: string) {
+                let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
+                XCTFail("Unexpected raw pattern \(String(reflecting: rawPattern)) from string \(String(reflecting: string))")
+            }
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Couples (pattern, expected raw pattern, expected count of matching rows)
+            let cases = [
+                ("écarlate", "écarlate*", 1),
+                ("^Mob*", "mob*", 1),
+                (" \t\nyear \t\nmonth \t\n", "year* month*", 1),
+                ("\"year month day\"", "year* month* day*", 1),
+                ("FOOÉı👨👨🏿🇫🇷", "fooÉı👨👨🏿🇫🇷*", 0),
+            ]
+            for (string, expectedRawPattern, expectedCount) in cases {
+                if let pattern = FTS5Pattern(matchingAllPrefixesIn: string) {
                     let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
                     XCTAssertEqual(rawPattern, expectedRawPattern)
                     let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM books WHERE books MATCH ?", arguments: [pattern])!
@@ -144,7 +174,7 @@ class FTS5PatternTests: GRDBTestCase {
                 (" \t\nyears \t\nmonths \t\n", "\"years months\"", 0),
                 ("\"years months days\"", "\"years months days\"", 0),
                 ("FOOÉı👨👨🏿🇫🇷🇨🇮", "\"fooÉı👨👨🏿🇫🇷🇨🇮\"", 0),
-                ]
+            ]
             for (string, expectedRawPattern, expectedCount) in cases {
                 if let pattern = FTS5Pattern(matchingPhrase: string) {
                     let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!
@@ -176,7 +206,7 @@ class FTS5PatternTests: GRDBTestCase {
                 (" \t\nyears \t\nmonths \t\n", "^\"years months\"", 0),
                 ("\"years months days\"", "^\"years months days\"", 0),
                 ("FOOÉı👨👨🏿🇫🇷🇨🇮", "^\"fooÉı👨👨🏿🇫🇷🇨🇮\"", 0),
-                ]
+            ]
             for (string, expectedRawPattern, expectedCount) in cases {
                 if let pattern = FTS5Pattern(matchingPrefixPhrase: string) {
                     let rawPattern = String.fromDatabaseValue(pattern.databaseValue)!

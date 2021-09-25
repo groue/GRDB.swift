@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.12.x` Releases - [5.12.0](#5120)
 - `5.11.x` Releases - [5.11.0](#5110)
 - `5.10.x` Releases - [5.10.0](#5100)
 - `5.9.x` Releases - [5.9.0](#590)
@@ -77,6 +78,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.12.0
+
+Released September 25, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.11.0...v5.12.0)
+
+- **Breaking Change**: Minimum iOS version is now iOS 11.0, and 32-bits devices are no longer supported. This fixes issues introduced by Xcode 13 ([#1033](https://github.com/groue/GRDB.swift/issues/1033), [#1059](https://github.com/groue/GRDB.swift/issues/1059)).
+- **New**: `FTS3Pattern(matchingAllPrefixesIn:)` and `FTS5Pattern(matchingAllPrefixesIn:)` let you build full-text search patterns suitable for prefix queries.
+- **New**: `FTS3.tokenize(_:)` and `FTS5Tokenizer.tokenize(_:)` let you tokenize input strings.
+- **Documentation Update**: Full-text search documentation was updated for the new search pattern initializers ([FTS3/4](Documentation/FullTextSearch.md#fts3pattern), [FTS5](Documentation/FullTextSearch.md#fts5pattern)), and tokenization methods ([FTS3/4](Documentation/FullTextSearch.md#fts3-and-fts4-tokenization), [FTS5](Documentation/FullTextSearch.md#fts5-tokenization)).
 
 ## 5.11.0
 

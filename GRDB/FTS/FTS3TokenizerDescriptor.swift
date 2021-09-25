@@ -90,27 +90,4 @@ public struct FTS3TokenizerDescriptor {
         }
         return FTS3TokenizerDescriptor("unicode61", arguments: arguments)
     }
-    
-    func tokenize(_ string: String) -> [String] {
-        _tokenize(string)
-    }
-    
-    /// Returns an array of tokens found in the string argument.
-    ///
-    ///     FTS3TokenizerDescriptor.simple.tokenize("foo bar") // ["foo", "bar"]
-    private func _tokenize(_ string: String) -> [String] {
-        DatabaseQueue().inDatabase { db in
-            var tokenizerChunks: [String] = []
-            tokenizerChunks.append(name)
-            for option in arguments {
-                tokenizerChunks.append("\"\(option)\"")
-            }
-            let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
-            // Assume fts3tokenize virtual table in an in-memory database always succeeds
-            try! db.execute(sql: "CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
-            return try! String.fetchAll(db, sql: """
-                SELECT token FROM tokens WHERE input = ? ORDER BY position
-                """, arguments: [string])
-        }
-    }
 }

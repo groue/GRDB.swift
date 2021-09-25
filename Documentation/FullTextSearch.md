@@ -31,6 +31,7 @@ let books = try Book.fetchAll(db,
 - **[Enabling FTS5 Support](#enabling-fts5-support)**
 - **Create Full-Text Virtual Tables**: [FTS3/4](#create-fts3-and-fts4-virtual-tables), [FTS5](#create-fts5-virtual-tables)
 - **Choosing a Tokenizer**: [FTS3/4](#fts3-and-fts4-tokenizers), [FTS5](#fts5-tokenizers)
+- **Tokenization**: [FTS3/4](#fts3-and-fts4-tokenization), [FTS5](#fts5-tokenization)
 - **Search Patterns**: [FTS3/4](#fts3pattern), [FTS5](#fts5pattern)
 - **Sorting by Relevance**: [FTS5](#fts5-sorting-by-relevance)
 - **External Content Full-Text Tables**: [FTS4/5](#external-content-full-text-tables)
@@ -229,6 +230,21 @@ See below some examples of matches:
 See [SQLite tokenizers](https://www.sqlite.org/fts3.html#tokenizer) for more information.
 
 
+## FTS3 and FTS4 Tokenization
+
+You can tokenize strings when needed:
+
+```swift
+// Default tokenization using the `simple` tokenizer:
+FTS3.tokenize("SQLite database")  // ["sqlite", "database"]
+FTS3.tokenize("Gustave Doré")     // ["gustave", "doré"])
+
+// Tokenization with an explicit tokenizer:
+FTS3.tokenize("SQLite database", withTokenizer: .porter)   // ["sqlite", "databas"]
+FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
+```
+
+
 ## FTS3Pattern
 
 **Full-text search in FTS3 and FTS4 tables is performed with search patterns:**
@@ -248,6 +264,7 @@ struct FTS3Pattern {
     init(rawPattern: String) throws
     init?(matchingAnyTokenIn string: String)
     init?(matchingAllTokensIn string: String)
+    init?(matchingAllPrefixesIn string: String)
     init?(matchingPhrase string: String)
 }
 ```
@@ -257,18 +274,25 @@ The first initializer validates your raw patterns against the query grammar, and
 ```swift
 // OK: FTS3Pattern
 let pattern = try FTS3Pattern(rawPattern: "sqlite AND database")
+
 // DatabaseError: malformed MATCH expression: [AND]
 let pattern = try FTS3Pattern(rawPattern: "AND")
 ```
 
-The three other initializers don't throw. They build a valid pattern from any string, **including strings provided by users of your application**. They let you find documents that match all given words, any given word, or a full phrase, depending on the needs of your application:
+The other initializers don't throw. They build a valid pattern from any string, **including strings provided by users of your application**. They let you find documents that match any given word, all given words or prefixes, or a full phrase, depending on the needs of your application:
 
 ```swift
 let query = "SQLite database"
+
 // Matches documents that contain "SQLite" or "database"
 let pattern = FTS3Pattern(matchingAnyTokenIn: query)
-// Matches documents that contain both "SQLite" and "database"
+
+// Matches documents that contain "SQLite" and "database"
 let pattern = FTS3Pattern(matchingAllTokensIn: query)
+
+// Matches documents that contain words that start with "SQLite" and words that start with "database"
+let pattern = FTS3Pattern(matchingAllPrefixesIn: query)
+
 // Matches documents that contain "SQLite database"
 let pattern = FTS3Pattern(matchingPhrase: query)
 ```
@@ -280,7 +304,7 @@ let pattern = FTS3Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS3Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.11/Structs/StatementArguments.html):
+FTS3Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.12/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
@@ -444,7 +468,7 @@ See below some examples of matches:
     
     ```swift
     try db.create(virtualTable: "book", using: FTS5()) { t in
-        t.tokenizer = .ascii
+        t.tokenizer = .ascii()
     }
     ```
     
@@ -458,8 +482,8 @@ See below some examples of matches:
     
     ```swift
     try db.create(virtualTable: "book", using: FTS5()) { t in
-        t.tokenizer = .porter()       // porter wrapping unicode61 (the default)
-        t.tokenizer = .porter(.ascii) // porter wrapping ascii
+        t.tokenizer = .porter()         // porter wrapping unicode61 (the default)
+        t.tokenizer = .porter(.ascii()) // porter wrapping ascii
         t.tokenizer = .porter(.unicode61(diacritics: .keep)) // porter wrapping unicode61 without diacritics stripping
     }
     ```
@@ -469,6 +493,29 @@ See below some examples of matches:
     It strips diacritics from latin script characters if it wraps unicode61, and does not if it wraps ascii (see the example above).
 
 See [SQLite tokenizers](https://www.sqlite.org/fts5.html#tokenizers) for more information, and [custom FTS5 tokenizers](FTS5Tokenizers.md) in order to add your own tokenizers.
+
+
+## FTS5 Tokenization
+
+You can tokenize strings when needed:
+
+```swift
+let ascii = try db.makeTokenizer(.ascii())
+
+// Tokenize an FTS5 query
+for (token, flags) in try ascii.tokenize(query: "SQLite database") {
+    print(token) // Prints "sqlite" then "database"
+}
+
+// Tokenize an FTS5 document
+for (token, flags) in try ascii.tokenize(document: "SQLite database") {
+    print(token) // Prints "sqlite" then "database"
+}
+```
+
+Some tokenizers may produce a different output when you tokenize a query or a document (see `FTS5_TOKENIZE_QUERY` and `FTS5_TOKENIZE_DOCUMENT` in https://www.sqlite.org/fts5.html#custom_tokenizers). You should generally use `tokenize(query:)` when you intend to tokenize a string in order to compose a [raw search pattern](#fts5pattern).
+
+See the `FTS5_TOKEN_*` flags in https://www.sqlite.org/fts5.html#custom_tokenizers for more information about token flags. In particular, tokenizers that support synonyms may output multiple tokens for a single word, along with the `.colocated` flag.
 
 
 ## FTS5Pattern
@@ -493,7 +540,9 @@ extension Database {
 struct FTS5Pattern {
     init?(matchingAnyTokenIn string: String)
     init?(matchingAllTokensIn string: String)
+    init?(matchingAllPrefixesIn string: String)
     init?(matchingPhrase string: String)
+    init?(matchingPrefixPhrase string: String)
 }
 ```
 
@@ -502,8 +551,10 @@ The `Database.makeFTS5Pattern(rawPattern:forTable:)` method validates your raw p
 ```swift
 // OK: FTS5Pattern
 try db.makeFTS5Pattern(rawPattern: "sqlite", forTable: "book")
+
 // DatabaseError: syntax error near \"AND\"
 try db.makeFTS5Pattern(rawPattern: "AND", forTable: "book")
+
 // DatabaseError: no such column: missing
 try db.makeFTS5Pattern(rawPattern: "missing: sqlite", forTable: "book")
 ```
@@ -512,12 +563,19 @@ The FTS5Pattern initializers don't throw. They build a valid pattern from any st
 
 ```swift
 let query = "SQLite database"
+
 // Matches documents that contain "SQLite" or "database"
 let pattern = FTS5Pattern(matchingAnyTokenIn: query)
-// Matches documents that contain both "SQLite" and "database"
+
+// Matches documents that contain "SQLite" and "database"
 let pattern = FTS5Pattern(matchingAllTokensIn: query)
+
+// Matches documents that contain words that start with "SQLite" and words that start with "database"
+let pattern = FTS5Pattern(matchingAllPrefixesIn: query)
+
 // Matches documents that contain "SQLite database"
 let pattern = FTS5Pattern(matchingPhrase: query)
+
 // Matches documents that start with "SQLite database"
 let pattern = FTS5Pattern(matchingPrefixPhrase: query)
 ```
@@ -529,7 +587,7 @@ let pattern = FTS5Pattern(matchingAnyTokenIn: "")  // nil
 let pattern = FTS5Pattern(matchingAnyTokenIn: "*") // nil
 ```
 
-FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.11/Structs/StatementArguments.html):
+FTS5Pattern are regular [values](../README.md#values). You can use them as query [arguments](http://groue.github.io/GRDB.swift/docs/5.12/Structs/StatementArguments.html):
 
 ```swift
 let documents = try Document.fetchAll(db,
