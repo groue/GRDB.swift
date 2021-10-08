@@ -1245,8 +1245,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     func backup(
         to dbDest: Database,
+        pageStepSize: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: (() -> Void)? = nil)
+        afterBackupStep: ((Progress) -> Void)? = nil)
     throws
     {
         guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", sqliteConnection, "main") else {
@@ -1260,12 +1261,17 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         do {
             backupLoop: while true {
-                switch sqlite3_backup_step(backup, -1) {
+                let rc = sqlite3_backup_step(backup, pageStepSize)
+                let pageCount = sqlite3_backup_pagecount(backup)
+                let completedCount = pageCount - sqlite3_backup_remaining(backup)
+                let progress = Progress(totalUnitCount: Int64(pageCount))
+                progress.completedUnitCount = Int64(completedCount)
+                switch rc {
                 case SQLITE_DONE:
-                    afterBackupStep?()
+                    afterBackupStep?(progress)
                     break backupLoop
                 case SQLITE_OK:
-                    afterBackupStep?()
+                    afterBackupStep?(progress)
                 case let code:
                     throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
                 }

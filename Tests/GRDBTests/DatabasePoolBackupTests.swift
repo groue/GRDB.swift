@@ -8,13 +8,26 @@ class DatabasePoolBackupTests: GRDBTestCase {
         let source = try makeDatabasePool(filename: "source.sqlite", configuration: Configuration())
         let destination = try makeDatabasePool(filename: "destination.sqlite", configuration: Configuration())
         
+        var pageCount: Int = 0
         try source.write { db in
             try db.execute(sql: "CREATE TABLE item (id INTEGER PRIMARY KEY)")
             try db.execute(sql: "INSERT INTO item (id) VALUES (NULL)")
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM item")!, 1)
+            pageCount = try Int.fetchOne(db, sql: "PRAGMA page_count")!
         }
         
-        try source.backup(to: destination)
+        XCTAssert(pageCount > 0)
+        
+        var progressCount: Int = 1
+        try source.backup(to: destination, pageStepSize: 1) { progress in
+            let expectedCompletedPages = Int64(progressCount)
+            XCTAssertEqual(expectedCompletedPages, progress.completedUnitCount)
+            if !progress.isFinished {
+                progressCount += 1
+            }
+        }
+        
+        XCTAssertEqual(pageCount, progressCount)
         
         try destination.read { db in
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM item")!, 1)

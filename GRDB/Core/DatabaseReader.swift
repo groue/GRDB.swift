@@ -278,21 +278,43 @@ extension DatabaseReader {
     /// When the source is a DatabasePool, concurrent writes can happen during
     /// the backup. Those writes may, or may not, be reflected in the backup,
     /// but they won't trigger any error.
-    public func backup(to writer: DatabaseWriter) throws {
+    ///
+    /// The `backup` method uses the optional `progress` callback to report
+    /// the progress of the backup operation.
+    public func backup(
+        to writer: DatabaseWriter,
+        progress: ((Progress) -> ())? = nil)
+    throws
+    {
+        try backup(to: writer, pageStepSize: 5, progress: progress)
+    }
+    
+    /// A module-private function to pass the page step size for testing
+    func backup(
+        to writer: DatabaseWriter,
+        pageStepSize: Int32 = -1,
+        progress: ((Progress) -> ())? = nil)
+    throws
+    {
         try writer.writeWithoutTransaction { dbDest in
-            try backup(to: dbDest)
+            try backup(
+                to: dbDest,
+                pageStepSize: pageStepSize,
+                afterBackupStep: progress)
         }
     }
     
     func backup(
         to dbDest: Database,
+        pageStepSize: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: (() -> Void)? = nil)
+        afterBackupStep: ((Progress) -> Void)? = nil)
     throws
     {
         try read { dbFrom in
             try dbFrom.backup(
                 to: dbDest,
+                pageStepSize: pageStepSize,
                 afterBackupInit: afterBackupInit,
                 afterBackupStep: afterBackupStep)
         }
