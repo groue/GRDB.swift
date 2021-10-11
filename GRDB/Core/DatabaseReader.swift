@@ -286,7 +286,7 @@ extension DatabaseReader {
         progress: ((Progress) -> ())? = nil)
     throws
     {
-        try backup(to: writer, pageStepSize: 5, progress: progress)
+        try backup(to: writer, pageStepSize: 100, progress: progress)
     }
     
     /// A module-private function to pass the page step size for testing
