@@ -91,6 +91,10 @@ extension DatabaseSnapshot {
         try serializedDatabase.sync(value)
     }
     
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        serializedDatabase.async { value(.success($0)) }
+    }
+    
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
         try serializedDatabase.reentrantSync(value)
     }

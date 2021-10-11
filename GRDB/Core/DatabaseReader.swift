@@ -90,6 +90,12 @@ public protocol DatabaseReader: AnyObject {
     /// Synchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
+    /// For example:
+    ///
+    ///     let count = try reader.read { db in
+    ///         try Player.fetchCount(db)
+    ///     }
+    ///
     /// The `value` function runs in an isolated fashion: eventual concurrent
     /// database updates are not visible from the function:
     ///
@@ -158,6 +164,12 @@ public protocol DatabaseReader: AnyObject {
     /// Synchronously executes a function that accepts a database
     /// connection, and returns its result.
     ///
+    /// For example:
+    ///
+    ///     let count = try reader.unsafeRead { db in
+    ///         try Player.fetchCount(db)
+    ///     }
+    ///
     /// The guarantees of the `read` method are lifted:
     ///
     /// the `value` function is not isolated: eventual concurrent database
@@ -185,7 +197,36 @@ public protocol DatabaseReader: AnyObject {
     /// - parameter value: A function that accesses the database.
     /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T
+    
+    /// Asynchronously executes a function that accepts a database connection.
+    ///
+    /// The guarantees of the `asyncRead` method are lifted:
+    ///
+    /// the `value` function is not isolated: eventual concurrent database
+    /// updates are visible from the function:
+    ///
+    ///     reader.asyncUnsafeRead { dbResult in
+    ///         do {
+    ///             let db = try dbResult.get()
+    ///             // Those two values can be different, because some other
+    ///             // database connection or some other thread may modify the
+    ///             // database between the two requests.
+    ///             let count1 = try Player.fetchCount(db)
+    ///             let count2 = try Player.fetchCount(db)
+    ///         } catch {
+    ///             // handle error
+    ///         }
+    ///     }
+    ///
+    /// The `value` function is not prevented from writing (DatabaseQueue, in
+    /// particular, will accept database modifications in `asyncUnsafeRead`).
+    ///
+    /// - parameter value: A function that accesses the database. Its argument
+    ///   is a `Result` that provides the database connection, or the failure
+    ///   that would prevent establishing the read access to the database.
+    func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void)
     
     /// Synchronously executes a function that accepts a database
     /// connection, and returns its result.
@@ -273,6 +314,8 @@ extension DatabaseReader {
     /// Asynchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
+    /// For example:
+    ///
     ///     let count = try await reader.read { db in
     ///         try Player.fetchCount(db)
     ///     }
@@ -303,6 +346,46 @@ extension DatabaseReader {
     public func read<T>(_ value: @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncRead { result in
+                do {
+                    try continuation.resume(returning: value(result.get()))
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+    
+    /// Asynchronously executes a function that accepts a database connection.
+    ///
+    /// For example:
+    ///
+    ///     let count = try await reader.unsafeRead { db in
+    ///         try Player.fetchCount(db)
+    ///     }
+    ///
+    /// The guarantees of the `read` method are lifted:
+    ///
+    /// the `value` function is not isolated: eventual concurrent database
+    /// updates are visible from the function:
+    ///
+    ///     try await reader.asyncRead { db in
+    ///         // Those two values can be different, because some other
+    ///         // database connection or some other thread may modify the
+    ///         // database between the two requests.
+    ///         let count1 = try Player.fetchCount(db)
+    ///         let count2 = try Player.fetchCount(db)
+    ///     }
+    ///
+    /// The `value` function is not prevented from writing (DatabaseQueue, in
+    /// particular, will accept database modifications in `asyncUnsafeRead`).
+    ///
+    /// - parameter value: A function that accesses the database.
+    /// - throws: The error thrown by `value`, or any `DatabaseError` that would
+    ///   happen while establishing the read access to the database.
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    public func unsafeRead<T>(_ value: @escaping (Database) throws -> T) async throws -> T {
+        try await withUnsafeThrowingContinuation { continuation in
+            asyncUnsafeRead { result in
                 do {
                     try continuation.resume(returning: value(result.get()))
                 } catch {
@@ -478,6 +561,10 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         try base.unsafeRead(value)
+    }
+    
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        base.asyncUnsafeRead(value)
     }
     
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {

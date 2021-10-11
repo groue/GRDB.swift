@@ -237,6 +237,10 @@ extension DatabaseQueue {
         try writer.sync(value)
     }
     
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        writer.async { value(.success($0)) }
+    }
+    
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) rethrows -> T {
         try writer.reentrantSync(value)
     }

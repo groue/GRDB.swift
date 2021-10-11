@@ -640,6 +640,10 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         try base.unsafeRead(value)
     }
     
+    public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        base.asyncUnsafeRead(value)
+    }
+    
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
         try base.unsafeReentrantRead(value)
     }
