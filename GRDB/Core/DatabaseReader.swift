@@ -87,15 +87,16 @@ public protocol DatabaseReader: AnyObject {
     
     // MARK: - Read From Database
     
-    /// Synchronously executes a read-only block that takes a database
+    /// Synchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
-    /// Guarantee 1: the block argument is isolated. Eventual concurrent
-    /// database updates are not visible inside the block:
+    /// The `value` function runs in an isolated fashion: eventual concurrent
+    /// database updates are not visible from the function:
     ///
     ///     try reader.read { db in
     ///         // Those two values are guaranteed to be equal, even if the
-    ///         // `player` table is modified between the two requests:
+    ///         // `player` table is modified, between the two requests, by
+    ///         // some other database connection or some other thread.
     ///         let count1 = try Player.fetchCount(db)
     ///         let count2 = try Player.fetchCount(db)
     ///     }
@@ -105,25 +106,34 @@ public protocol DatabaseReader: AnyObject {
     ///         let count = try Player.fetchCount(db)
     ///     }
     ///
-    /// Guarantee 2: attempts to write in the database throw a DatabaseError
-    /// whose resultCode is `SQLITE_READONLY`.
+    /// Attempts to write in the database throw a DatabaseError with
+    /// resultCode `SQLITE_READONLY`.
     ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block, or any DatabaseError that would
+    /// It is a programmer error to call this method from another database
+    /// access method:
+    ///
+    ///     try reader.read { db in
+    ///         // Raises a fatal error
+    ///         try reader.read { ... )
+    ///     }
+    ///
+    /// - parameter value: A function that accesses the database.
+    /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
-    func read<T>(_ block: (Database) throws -> T) throws -> T
+    func read<T>(_ value: (Database) throws -> T) throws -> T
     
-    /// Asynchronously executes a read-only block that takes a
+    /// Asynchronously executes a read-only function that accepts a
     /// database connection.
     ///
-    /// Guarantee 1: the block argument is isolated. Eventual concurrent
-    /// database updates are not visible inside the block:
+    /// The `value` function runs in an isolated fashion: eventual concurrent
+    /// database updates are not visible from the function:
     ///
-    ///     try reader.asyncRead { dbResult in
+    ///     reader.asyncRead { dbResult in
     ///         do {
     ///             let db = try dbResult.get()
     ///             // Those two values are guaranteed to be equal, even if the
-    ///             // `player` table is modified between the two requests:
+    ///             // `player` table is modified, between the two requests, by
+    ///             // some other database connection or some other thread.
     ///             let count1 = try Player.fetchCount(db)
     ///             let count2 = try Player.fetchCount(db)
     ///         } catch {
@@ -131,81 +141,77 @@ public protocol DatabaseReader: AnyObject {
     ///         }
     ///     }
     ///
-    /// Guarantee 2: attempts to write in the database throw a DatabaseError
-    /// whose resultCode is `SQLITE_READONLY`.
+    /// Attempts to write in the database throw a DatabaseError with
+    /// resultCode `SQLITE_READONLY`.
     ///
-    /// - parameter block: A block that accesses the database.
-    func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void)
+    /// - parameter value: A function that accesses the database. Its argument
+    ///   is a `Result` that provides the database connection, or the failure
+    ///   that would prevent establishing the read access to the database.
+    func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void)
     
     /// Same as asyncRead, but without retaining self
     ///
     /// :nodoc:
-    func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void)
+    func _weakAsyncRead(_ value: @escaping (Result<Database, Error>?) -> Void)
     
-    /// Synchronously executes a read-only block that takes a database
+    /// Synchronously executes a function that accepts a database
     /// connection, and returns its result.
     ///
-    /// The two guarantees of the safe `read` method are lifted:
+    /// The guarantees of the `read` method are lifted:
     ///
-    /// The block argument is not isolated: eventual concurrent database updates
-    /// are visible inside the block:
+    /// the `value` function is not isolated: eventual concurrent database
+    /// updates are visible from the function:
     ///
     ///     try reader.unsafeRead { db in
-    ///         // Those two values may be different because some other thread
-    ///         // may have inserted or deleted a player between the two requests:
+    ///         // Those two values can be different, because some other
+    ///         // database connection or some other thread may modify the
+    ///         // database between the two requests.
     ///         let count1 = try Player.fetchCount(db)
     ///         let count2 = try Player.fetchCount(db)
     ///     }
     ///
-    /// Cursor iterations are isolated, though:
-    ///
-    ///     try reader.unsafeRead { db in
-    ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, sql: "SELECT ...")
-    ///         while let row = try rows.next() { ... }
-    ///     }
-    ///
-    /// The block argument is not prevented from writing (DatabaseQueue, in
+    /// The `value` function is not prevented from writing (DatabaseQueue, in
     /// particular, will accept database modifications in `unsafeRead`).
     ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block, or any DatabaseError that would
+    /// It is a programmer error to call this method from another database
+    /// access method:
+    ///
+    ///     try reader.read { db in
+    ///         // Raises a fatal error
+    ///         try reader.unsafeRead { ... )
+    ///     }
+    ///
+    /// - parameter value: A function that accesses the database.
+    /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
-    func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T
+    func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T
     
-    /// Synchronously executes a block that takes a database connection, and
-    /// returns its result.
+    /// Synchronously executes a function that accepts a database
+    /// connection, and returns its result.
     ///
-    /// The two guarantees of the safe `read` method are lifted:
+    /// The guarantees of the safe `read` method are lifted:
     ///
-    /// The block argument is not isolated: eventual concurrent database updates
-    /// are visible inside the block:
+    /// the `value` function is not isolated: eventual concurrent database
+    /// updates are visible from the function:
     ///
     ///     try reader.unsafeReentrantRead { db in
-    ///         // Those two values may be different because some other thread
-    ///         // may have inserted or deleted a player between the two requests:
+    ///         // Those two values can be different, because some other
+    ///         // database connection or some other thread may modify the
+    ///         // database between the two requests.
     ///         let count1 = try Player.fetchCount(db)
     ///         let count2 = try Player.fetchCount(db)
     ///     }
     ///
-    /// Cursor iterations are isolated, though:
-    ///
-    ///     try reader.unsafeReentrantRead { db in
-    ///         // No concurrent update can mess with this iteration:
-    ///         let rows = try Row.fetchCursor(db, sql: "SELECT ...")
-    ///         while let row = try rows.next() { ... }
-    ///     }
-    ///
-    /// The block argument is not prevented from writing (DatabaseQueue, in
-    /// particular, will accept database modifications in `unsafeReentrantRead`).
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block, or any DatabaseError that would
-    ///   happen while establishing the read access to the database.
+    /// The `value` function is not prevented from writing (DatabaseQueue, in
+    /// particular, will accept database modifications in `unsafeRead`).
     ///
     /// This method is reentrant. It should be avoided because it fosters
     /// dangerous concurrency practices.
-    func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T
+    ///
+    /// - parameter value: A function that accesses the database.
+    /// - throws: The error thrown by `value`, or any `DatabaseError` that would
+    ///   happen while establishing the read access to the database.
+    func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T
     
     
     // MARK: - Value Observation
@@ -408,25 +414,25 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     // MARK: - Reading from Database
     
-    public func read<T>(_ block: (Database) throws -> T) throws -> T {
-        try base.read(block)
+    public func read<T>(_ value: (Database) throws -> T) throws -> T {
+        try base.read(value)
     }
     
-    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
-        base.asyncRead(block)
+    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        base.asyncRead(value)
     }
     
     /// :nodoc:
-    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
-        base._weakAsyncRead(block)
+    public func _weakAsyncRead(_ value: @escaping (Result<Database, Error>?) -> Void) {
+        base._weakAsyncRead(value)
     }
     
-    public func unsafeRead<T>(_ block: (Database) throws -> T) throws -> T {
-        try base.unsafeRead(block)
+    public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
+        try base.unsafeRead(value)
     }
     
-    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        try base.unsafeReentrantRead(block)
+    public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
+        try base.unsafeReentrantRead(value)
     }
     
     // MARK: - Value Observation
