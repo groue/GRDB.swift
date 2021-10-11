@@ -120,6 +120,7 @@ public protocol DatabaseReader: AnyObject {
     /// - parameter value: A function that accesses the database.
     /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     func read<T>(_ value: (Database) throws -> T) throws -> T
     
     /// Asynchronously executes a read-only function that accepts a
@@ -264,6 +265,54 @@ extension DatabaseReader {
         }
     }
 }
+
+#if swift(>=5.5)
+extension DatabaseReader {
+    // MARK: - Asynchronous Database Access
+    
+    /// Asynchronously executes a read-only function that accepts a database
+    /// connection, and returns its result.
+    ///
+    ///     let count = try await reader.read { db in
+    ///         try Player.fetchCount(db)
+    ///     }
+    ///
+    /// The `value` function runs in an isolated fashion: eventual concurrent
+    /// database updates are not visible from the function:
+    ///
+    ///     try await reader.read { db in
+    ///         // Those two values are guaranteed to be equal, even if the
+    ///         // `player` table is modified, between the two requests, by
+    ///         // some other database connection or some other thread.
+    ///         let count1 = try Player.fetchCount(db)
+    ///         let count2 = try Player.fetchCount(db)
+    ///     }
+    ///
+    ///     try await reader.read { db in
+    ///         // Now this value may be different:
+    ///         let count = try Player.fetchCount(db)
+    ///     }
+    ///
+    /// Attempts to write in the database throw a DatabaseError with
+    /// resultCode `SQLITE_READONLY`.
+    ///
+    /// - parameter value: A function that accesses the database.
+    /// - throws: The error thrown by `value`, or any `DatabaseError` that would
+    ///   happen while establishing the read access to the database.
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    public func read<T>(_ value: @escaping (Database) throws -> T) async throws -> T {
+        try await withUnsafeThrowingContinuation { continuation in
+            asyncRead { result in
+                do {
+                    try continuation.resume(returning: value(result.get()))
+                } catch {
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+}
+#endif
 
 #if canImport(Combine)
 extension DatabaseReader {
