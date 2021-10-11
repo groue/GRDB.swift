@@ -6909,12 +6909,12 @@ try dbQueue.write { db in
 }                                  // throws SQLITE_ABORT
 ```
 
-You can catch both `SQLITE_INTERRUPT` and `SQLITE_ABORT` errors with the `DatabaseError.isInterruptionError` property:
+You can catch both `SQLITE_INTERRUPT` and `SQLITE_ABORT` errors:
 
 ```swift
 do {
     try dbPool.write { db in ... }
-} catch let error as DatabaseError where error.isInterruptionError {
+} catch DatabaseError.SQLITE_INTERRUPT, DatabaseError.SQLITE_ABORT {
     // Oops, the database was interrupted.
 }
 ```
@@ -8366,10 +8366,7 @@ When your application should be able to run in the background on a locked device
 ```swift
 do {
     try ...
-} catch let error as DatabaseError where
-    error.resultCode == .SQLITE_IOERR ||
-    error.resultCode == .SQLITE_AUTH
-{
+} catch DatabaseError.SQLITE_IOERR, DatabaseError.SQLITE_AUTH {
     // Handle possible data protection error
 }
 ```

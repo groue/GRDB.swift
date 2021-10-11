@@ -37,7 +37,7 @@ class DatabaseReaderTests : GRDBTestCase {
                     try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
                 }
                 XCTFail("Expected error")
-            } catch let error as DatabaseError where error.resultCode == .SQLITE_READONLY {
+            } catch DatabaseError.SQLITE_READONLY {
             }
         }
         

@@ -190,7 +190,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
                 _ = s2.wait(timeout: .distantFuture)
                 try dbQueue2.inTransaction(.exclusive) { db in return .commit }
                 XCTFail("Expected error")
-            } catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
+            } catch DatabaseError.SQLITE_BUSY {
             } catch {
                 XCTFail("\(error)")
             }
@@ -240,7 +240,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
 //                _ = s2.wait(timeout: .distantFuture)
 //                try dbQueue2.inTransaction(.exclusive) { db in return .commit }
 //                XCTFail("Expected error")
-//            } catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
+//            } catch DatabaseError.SQLITE_BUSY {
 //            } catch {
 //                XCTFail("\(error)")
 //            }
