@@ -240,7 +240,7 @@ let maximumScore: Int? = try Int.fetchOne(db, sql: """
     """)
 ```
 
-With Swift 5, you can profit from **SQL interpolation**. It lets you build SQL queries from natural looking strings, but without any risk of syntax error or [SQL injection](https://xkcd.com/327/):
+[SQL interpolation] lets you build SQL queries from natural looking strings, but without any risk of syntax error or [SQL injection](https://xkcd.com/327/):
 
 ```swift
 try db.execute(literal: "UPDATE player SET score = \(score) WHERE id = \(id)")
@@ -306,3 +306,4 @@ Happy GRDB! :gift:
 [associations]: AssociationsBasics.md
 [Codable records]: ../README.md#codable-records
 [records]: ../README.md#records
+[SQL interpolation]: SQLInterpolation.md
