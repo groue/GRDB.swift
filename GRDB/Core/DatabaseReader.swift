@@ -2,6 +2,7 @@
 import Combine
 #endif
 import Dispatch
+import Foundation
 
 /// `DatabaseReader` is the protocol for all types that can fetch values from
 /// an SQLite database.
