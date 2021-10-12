@@ -161,7 +161,7 @@ With such a setup, you may still get `SQLITE_BUSY` (5, "database is locked") err
 ```swift
 do {
     try dbPool.write { db in ... }
-} catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
+} catch DatabaseError.SQLITE_BUSY {
     // Another process won't let you write. Deal with it.
 }
 ```
@@ -251,7 +251,7 @@ See https://developer.apple.com/documentation/xcode/understanding-the-exception-
     ```swift
     do {
         try dbPool.write { db in ... }
-    } catch let error as DatabaseError where error.isInterruptionError {
+    } catch DatabaseError.SQLITE_INTERRUPT, DatabaseError.SQLITE_ABORT {
         // Oops, the database is suspended.
         // Maybe try again after database is resumed?
     }

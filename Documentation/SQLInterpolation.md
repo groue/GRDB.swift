@@ -19,7 +19,7 @@ try dbQueue.write { db in
 }
 ```
 
-SQL Interpolation is an answer to these troubles. It is available in Swift 5.
+SQL Interpolation is an answer to these troubles.
 
 - [Introduction]
 - [SQL Literal]

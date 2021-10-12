@@ -52,69 +52,48 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 # `xcrun xctrace list devices` (or the deprecated `instruments -s devices`).
 ifeq ($(XCODEVERSION),13.0)
   MAX_SWIFT_VERSION = 5.5
-  MIN_SWIFT_VERSION = 5.2
+  MIN_SWIFT_VERSION = 5.3
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=15.0"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=11.4"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=15.0"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4"
 else ifeq ($(XCODEVERSION),12.5)
   MAX_SWIFT_VERSION = 5.4
-  MIN_SWIFT_VERSION = 5.2
+  MIN_SWIFT_VERSION = 5.3
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 12,OS=14.5"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=11.4"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=14.5"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4"
 else ifeq ($(XCODEVERSION),12.4)
   MAX_SWIFT_VERSION = 5.3
-  MIN_SWIFT_VERSION = 5.2
+  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 12,OS=14.4"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=11.4"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=14.3"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4"
 else ifeq ($(XCODEVERSION),12.3)
   MAX_SWIFT_VERSION = 5.3
-  MIN_SWIFT_VERSION = 5.2
+  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 12,OS=14.3"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=14.3"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
 else ifeq ($(XCODEVERSION),12.2)
   MAX_SWIFT_VERSION = 5.3
-  MIN_SWIFT_VERSION = 5.2
+  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 12,OS=14.2"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=14.2"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
 else ifeq ($(XCODEVERSION),12.0)
   MAX_SWIFT_VERSION = 5.3
-  MIN_SWIFT_VERSION = 5.2
+  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=14.0"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=14.0"
   MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
-else ifeq ($(XCODEVERSION),11.6)
-  MAX_SWIFT_VERSION = 5.2
-  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.6"
-  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
-  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=13.4"
-  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
-else ifeq ($(XCODEVERSION),11.5)
-  MAX_SWIFT_VERSION = 5.2
-  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.5"
-  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
-  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=13.4"
-  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
-else ifeq ($(XCODEVERSION),11.4)
-  MAX_SWIFT_VERSION = 5.2
-  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
-  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 11,OS=13.4.1"
-  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 5s,OS=10.3.1"
-  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV 4K,OS=13.4"
-  MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=10.2"
 else
-  # Swift 5.2 required: Xcode < 11.4 is not supported
+  # Swift 5.3 required: Xcode < 12.0 is not supported
 endif
 
 # If xcpretty is available, use it for xcodebuild output
