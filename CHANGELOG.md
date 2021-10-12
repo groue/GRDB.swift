@@ -79,6 +79,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3
+
 ## 5.12.0
 
 Released September 25, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.11.0...v5.12.0)
