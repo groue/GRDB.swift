@@ -304,11 +304,8 @@ extension DatabaseWriter {
     // MARK: - Erasing the content of the database
     
     /// Erases the content of the database.
-    ///
-    /// - precondition: database is not accessed concurrently during the
-    ///   execution of this method.
     public func erase() throws {
-        try writeWithoutTransaction { try $0.erase() }
+        try barrierWriteWithoutTransaction { try $0.erase() }
     }
     
     // MARK: - Claiming Disk Space

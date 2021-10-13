@@ -82,6 +82,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3
+- **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
 
 ## 5.12.0
 
