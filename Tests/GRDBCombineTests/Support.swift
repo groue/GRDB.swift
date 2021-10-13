@@ -51,6 +51,57 @@ final class Test<Context> {
     }
 }
 
+#if swift(>=5.5)
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+final class AsyncTest<Context> {
+    // Raise the repeatCount in order to help spotting flaky tests.
+    private let repeatCount: Int
+    private let test: (Context, Int) async throws -> ()
+    
+    init(repeatCount: Int = 1, _ test: @escaping (Context) async throws -> ()) {
+        self.repeatCount = repeatCount
+        self.test = { context, _ in try await test(context) }
+    }
+    
+    init(repeatCount: Int, _ test: @escaping (Context, Int) async throws -> ()) {
+        self.repeatCount = repeatCount
+        self.test = test
+    }
+    
+    @discardableResult
+    func run(context: () async throws -> Context) async throws -> Self {
+        for i in 1...repeatCount {
+            try await test(context(), i)
+        }
+        return self
+    }
+    
+    @discardableResult
+    func runInTemporaryDirectory(context: (_ directoryURL: URL) async throws -> Context) async throws -> Self {
+        for i in 1...repeatCount {
+            let directoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent("GRDB", isDirectory: true)
+                .appendingPathComponent(ProcessInfo.processInfo.globallyUniqueString, isDirectory: true)
+            
+            try FileManager.default.createDirectory(at: directoryURL, withIntermediateDirectories: true, attributes: nil)
+            defer {
+                try! FileManager.default.removeItem(at: directoryURL)
+            }
+            
+            try await test(context(directoryURL), i)
+        }
+        return self
+    }
+    
+    @discardableResult
+    func runAtTemporaryDatabasePath(context: (_ path: String) async throws -> Context) async throws -> Self {
+        try await runInTemporaryDirectory { url in
+            try await context(url.appendingPathComponent("db.sqlite").path)
+        }
+    }
+}
+#endif
+
 #if compiler(>=5.3)
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public func assertNoFailure<Failure>(
