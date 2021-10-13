@@ -420,6 +420,18 @@ extension DatabaseWriter {
     // MARK: - Asynchronous Database Access
     
     // TODO: remove @escaping as soon as it is possible
+    /// Asynchronously executes database updates, wrapped inside a transaction,
+    /// and returns the result.
+    ///
+    /// If the updates throw an error, the transaction is rollbacked and the
+    /// error is rethrown.
+    ///
+    /// Eventual concurrent reads are guaranteed to not see any partial updates
+    /// of the database until the transaction has completed.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates, or by the
+    ///   wrapping transaction.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func write<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
@@ -430,6 +442,14 @@ extension DatabaseWriter {
     }
     
     // TODO: remove @escaping as soon as it is possible
+    /// Asynchronously executes database updates, outside of any transaction,
+    /// and returns the result.
+    ///
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func writeWithoutTransaction<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
@@ -444,6 +464,15 @@ extension DatabaseWriter {
     }
     
     // TODO: remove @escaping as soon as it is possible
+    /// Asynchronously executes database updates, outside of any transaction,
+    /// and returns the result.
+    ///
+    /// Updates are guaranteed an exclusive access to the database. They wait
+    /// until all pending writes and reads are completed. They postpone all
+    /// other writes and reads until they are completed.
+    ///
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func barrierWriteWithoutTransaction<T>(
         _ updates: @Sendable @escaping (Database) throws -> T)
@@ -460,16 +489,27 @@ extension DatabaseWriter {
         }
     }
     
+    /// Erases the content of the database.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func erase() async throws {
         try await writeWithoutTransaction { try $0.erase() }
     }
     
+    /// Rebuilds the database file, repacking it into a minimal amount of
+    /// disk space.
+    ///
+    /// See <https://www.sqlite.org/lang_vacuum.html> for more information.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func vacuum() async throws {
         try await writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
     
+    /// Creates a new database file at the specified path with a minimum
+    /// amount of disk space.
+    ///
+    /// See <https://www.sqlite.org/lang_vacuum.html#vacuuminto> for more information.
+    ///
+    /// - Parameter filePath: file path for new database
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func vacuum(into filePath: String) async throws {
         try await writeWithoutTransaction {
