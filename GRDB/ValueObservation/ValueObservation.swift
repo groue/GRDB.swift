@@ -211,6 +211,109 @@ extension ValueObservation: Refinable {
     }
 }
 
+#if swift(>=5.5)
+extension ValueObservation {
+    // MARK: - Asynchronous Observation
+    
+    /// The database observation, as an asynchronous sequence of
+    /// database changes.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
+    /// - parameter reader: A DatabaseReader.
+    /// - parameter scheduler: A Scheduler. By default, fresh values are
+    ///   dispatched asynchronously on the main queue.
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    public func values(
+        in reader: DatabaseReader,
+        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
+    -> AsyncValueObservation<Reducer.Value>
+    {
+        AsyncValueObservation { onError, onChange in
+            self.start(in: reader, scheduling: scheduler, onError: onError, onChange: onChange)
+        }
+    }
+}
+
+/// An asynchronous sequence of database changes.
+///
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
+/// Usage:
+///
+///     let observation = ValueObservation.tracking(Player.fetchAll)
+///     let dbQueue: DatabaseQueue: ...
+///
+///     // Each database change in the player prints "Fresh players: ..."
+///     for try await players in observation.values(in: dbQueue) {
+///         print("Fresh players: \(players)")
+///     }
+///
+/// See `ValueObservation` for more information.
+///
+/// - note: This async sequence never ends.
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+public struct AsyncValueObservation<Element>: AsyncSequence {
+    public typealias AsyncIterator = Iterator
+    typealias StartFunction = (
+        _ onError: @escaping (Error) -> Void,
+        _ onChange: @escaping (Element) -> Void)
+        -> DatabaseCancellable
+    private var start: StartFunction
+    
+    init(start: @escaping StartFunction) {
+        self.start = start
+    }
+    
+    public func makeAsyncIterator() -> Iterator {
+        // This cancellable will be retained by the Iterator, which itself will
+        // be retained by the Swift async runtime.
+        //
+        // We must not retain this cancellable in any other way, in order to
+        // cancel the observation when the Swift async runtime releases
+        // the iterator.
+        var cancellable: AnyDatabaseCancellable?
+        let stream = AsyncThrowingStream(Element.self, bufferingPolicy: .unbounded) { continuation in
+            cancellable = AnyDatabaseCancellable(start(
+                // onError
+                { error in
+                    continuation.finish(throwing: error)
+                },
+                // onChange
+                { [weak cancellable] element in
+                    if case .terminated = continuation.yield(element) {
+                        // TODO: I could never see this code running. Is it needed?
+                        cancellable?.cancel()
+                    }
+                }))
+            continuation.onTermination = { @Sendable [weak cancellable] _ in
+                cancellable?.cancel()
+            }
+        }
+        
+        let iterator = stream.makeAsyncIterator()
+        if let cancellable = cancellable {
+            return Iterator(
+                iterator: iterator,
+                cancellable: cancellable)
+        } else {
+            // GRDB bug: there is no point throwing any error.
+            fatalError("Expected AsyncThrowingStream to have started the observation already")
+        }
+    }
+    
+    /// An asynchronous iterator that supplies database changes one at a time.
+    public struct Iterator: AsyncIteratorProtocol {
+        var iterator: AsyncThrowingStream<Element, Error>.AsyncIterator
+        let cancellable: AnyDatabaseCancellable
+        
+        public mutating func next() async throws -> Element? {
+            try await iterator.next()
+        }
+    }
+}
+#endif
+
 #if canImport(Combine)
 extension ValueObservation {
     // MARK: - Publishing Observed Values
