@@ -3,7 +3,7 @@ UIKit Demo Application
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBDemoiOS/Screenshot.png" width="50%">
 
-**This demo application is a storyboard-based UIKit application.** For a demo application that uses Combine and SwiftUI, see [GRDBCombineDemo](../GRDBCombineDemo/README.md).
+**This demo application is a storyboard-based UIKit application.** For a demo application that uses Combine + SwiftUI, see [GRDBCombineDemo](../GRDBCombineDemo/README.md), and for Async/Await + SwiftUI, see [GRDBAsyncDemo](../GRDBAsyncDemo/README.md).
 
 > :point_up: **Note**: This demo app is not a project template. Do not copy it as a starting point for your application. Instead, create a new project, choose a GRDB [installation method](../../../README.md#installation), and use the demo as an inspiration.
 
