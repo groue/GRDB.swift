@@ -64,56 +64,60 @@ struct AppView: View {
     
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .bottomBar) {
-            Button(
-                action: {
-                    // Don't stopEditing() here because this is
-                    // performed `onChange(of: players)`
-                    Task {
-                        try? await appDatabase?.deleteAllPlayers()
-                    }
-                },
-                label: { Image(systemName: "trash").imageScale(.large) })
+            Button {
+                // Don't stopEditing() here because this is
+                // performed `onChange(of: players)`
+                Task {
+                    try? await appDatabase?.deleteAllPlayers()
+                }
+            } label: {
+                Image(systemName: "trash").imageScale(.large)
+            }
+            
             Spacer()
-            Button(
-                action: {
-                    stopEditing()
-                    Task {
-                        try? await appDatabase?.refreshPlayers()
-                    }
-                },
-                label: { Image(systemName: "arrow.clockwise").imageScale(.large) })
+            
+            Button {
+                stopEditing()
+                Task {
+                    try? await appDatabase?.refreshPlayers()
+                }
+            } label: {
+                Image(systemName: "arrow.clockwise").imageScale(.large)
+            }
+            
             Spacer()
-            Button(
-                action: {
-                    stopEditing()
-                    // Perform 50 refreshes in parallel
-                    Task {
-                        try? await withThrowingTaskGroup(of: Void.self) { group in
-                            for _ in 0..<50 {
-                                _ = group.addTaskUnlessCancelled {
-                                    try await appDatabase?.refreshPlayers()
-                                }
+            
+            Button {
+                stopEditing()
+                // Perform 50 refreshes in parallel
+                Task {
+                    try? await withThrowingTaskGroup(of: Void.self) { group in
+                        for _ in 0..<50 {
+                            _ = group.addTaskUnlessCancelled {
+                                try await appDatabase?.refreshPlayers()
                             }
-                            try await group.waitForAll()
                         }
+                        try await group.waitForAll()
                     }
-                },
-                label: { Image(systemName: "tornado").imageScale(.large) })
+                }
+            } label: {
+                Image(systemName: "tornado").imageScale(.large)
+            }
         }
     }
     
     /// The button that presents the player creation sheet.
     private var newPlayerButton: some View {
-        Button(
-            action: {
-                stopEditing()
-                newPlayerIsPresented = true
-            },
-            label: { Image(systemName: "plus") })
-            .accessibility(label: Text("New Player"))
-            .sheet(isPresented: $newPlayerIsPresented) {
-                PlayerCreationView()
-            }
+        Button {
+            stopEditing()
+            newPlayerIsPresented = true
+        } label: {
+            Image(systemName: "plus")
+        }
+        .accessibility(label: Text("New Player"))
+        .sheet(isPresented: $newPlayerIsPresented) {
+            PlayerCreationView()
+        }
     }
     
     private func stopEditing() {
@@ -130,25 +134,19 @@ private struct ToggleOrderingButton: View {
     var body: some View {
         switch ordering {
         case .byName:
-            Button(
-                action: {
-                    willChange()
-                    ordering = .byScore
-                },
-                label: {
-                    Label("Name", systemImage: "arrowtriangle.up.fill")
-                        .labelStyle(.titleAndIcon)
-                })
+            Button {
+                willChange()
+                ordering = .byScore
+            } label: {
+                Label("Name", systemImage: "arrowtriangle.up.fill").labelStyle(.titleAndIcon)
+            }
         case .byScore:
-            Button(
-                action: {
-                    willChange()
-                    ordering = .byName
-                },
-                label: {
-                    Label("Name", systemImage: "arrowtriangle.down.fill")
-                        .labelStyle(.titleAndIcon)
-                })
+            Button {
+                willChange()
+                ordering = .byName
+            } label: {
+                Label("Name", systemImage: "arrowtriangle.down.fill").labelStyle(.titleAndIcon)
+            }
         }
     }
 }

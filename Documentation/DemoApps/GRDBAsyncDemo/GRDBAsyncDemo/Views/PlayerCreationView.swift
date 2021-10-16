@@ -17,14 +17,16 @@ struct PlayerCreationView: View {
                     content: { Alert(title: Text(errorAlertTitle)) })
                 .navigationBarTitle("New Player")
                 .navigationBarItems(
-                    leading: Button(
-                        action: { dismiss() },
-                        label: { Text("Cancel") }),
-                    trailing: Button(
-                        action: {
-                            Task { await save() }
-                        },
-                        label: { Text("Save") }))
+                    leading: Button {
+                        dismiss()
+                    } label: {
+                        Text("Cancel")
+                    },
+                    trailing: Button {
+                        Task { await save() }
+                    } label: {
+                        Text("Save")
+                    })
         }
     }
     
