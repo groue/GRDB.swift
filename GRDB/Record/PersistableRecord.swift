@@ -213,7 +213,7 @@ extension MutablePersistableRecord {
     ///     print(player.id)         // nil
     ///     print(insertedPlayer.id) // some id
     public func inserted(_ db: Database) throws -> Self {
-        #warning("TODO: test")
+        #warning("TODO: document")
         var result = self
         try result.insert(db)
         return result
@@ -348,7 +348,7 @@ extension MutablePersistableRecord {
     ///     print(player.id)      // nil
     ///     print(savedPlayer.id) // some id
     public func saved(_ db: Database) throws -> Self {
-        #warning("TODO: test")
+        #warning("TODO: document")
         var result = self
         try result.save(db)
         return result
