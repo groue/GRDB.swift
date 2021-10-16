@@ -17,15 +17,15 @@ protocol Queryable: Equatable {
     /// The default value, used whenever the database is not available
     static var defaultValue: Value { get }
     
-    /// Fetches the database value
-    func fetchValue(_ db: Database) throws -> Value
+    /// Returns a publisher of database values
+    func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<Value, Error>
 }
 
 /// The property wrapper that observes a database query
 @propertyWrapper
 struct Query<Query: Queryable>: DynamicProperty {
-    /// The database reader that makes it possible to observe the database
-    @Environment(\.appDatabase?.databaseReader) private var databaseReader: DatabaseReader?
+    /// The AppDatabase that grants access to the database
+    @Environment(\.appDatabase) private var appDatabase: AppDatabase?
     @StateObject private var core = Core()
     private var baseQuery: Query
     
@@ -51,17 +51,17 @@ struct Query<Query: Queryable>: DynamicProperty {
     }
     
     func update() {
-        guard let databaseReader = databaseReader else {
+        guard let appDatabase = appDatabase else {
             fatalError("Attempting to use @Query without any database in the environment")
         }
         // Feed core with necessary information, and make sure tracking has started
         if core.usesBaseQuery { core.query = baseQuery }
-        core.startTrackingIfNecessary(in: databaseReader)
+        core.startTrackingIfNecessary(in: appDatabase)
     }
     
     private class Core: ObservableObject {
         private(set) var value: Query.Value?
-        var databaseReader: DatabaseReader?
+        var appDatabase: AppDatabase?
         var usesBaseQuery = true
         var query: Query? {
             willSet {
@@ -76,13 +76,7 @@ struct Query<Query: Queryable>: DynamicProperty {
         
         init() { }
         
-        func startTrackingIfNecessary(in databaseReader: DatabaseReader) {
-            if databaseReader !== self.databaseReader {
-                // Database has changed. Stop tracking.
-                self.databaseReader = databaseReader
-                cancellable = nil
-            }
-            
+        func startTrackingIfNecessary(in appDatabase: AppDatabase) {
             guard let query = query else {
                 // No query set
                 return
@@ -93,11 +87,8 @@ struct Query<Query: Queryable>: DynamicProperty {
                 return
             }
             
-            cancellable = ValueObservation
-                .tracking(query.fetchValue)
-                .publisher(
-                    in: databaseReader,
-                    scheduling: .immediate)
+            cancellable = query
+                .valuePublisher(in: appDatabase)
                 .sink(
                     receiveCompletion: { _ in
                         // Ignore errors
