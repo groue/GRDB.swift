@@ -36,11 +36,8 @@ class AppDatabaseTests: XCTestCase {
         // Given a players database that contains a player
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
-        var player = Player(id: nil, name: "Arthur", score: 100)
-        player = try await dbQueue.write { [player] db in
-            var player = player
-            try player.insert(db)
-            return player
+        var player = try await dbQueue.write { db in
+            try Player(id: nil, name: "Arthur", score: 100).inserted(db)
         }
         
         // When we modify and save the player
@@ -60,16 +57,10 @@ class AppDatabaseTests: XCTestCase {
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
         let playerIds: [Int64] = try await dbQueue.write { db in
-            var player1 = Player(id: nil, name: "Arthur", score: 100)
-            var player2 = Player(id: nil, name: "Barbara", score: 200)
-            var player3 = Player(id: nil, name: "Craig", score: 150)
-            var player4 = Player(id: nil, name: "David", score: 120)
-            
-            try player1.insert(db)
-            try player2.insert(db)
-            try player3.insert(db)
-            try player4.insert(db)
-            
+            _ = try Player(id: nil, name: "Arthur", score: 100).inserted(db)
+            _ = try Player(id: nil, name: "Barbara", score: 200).inserted(db)
+            _ = try Player(id: nil, name: "Craig", score: 150).inserted(db)
+            _ = try Player(id: nil, name: "David", score: 120).inserted(db)
             return try Player.selectID().fetchAll(db)
         }
         
@@ -80,8 +71,8 @@ class AppDatabaseTests: XCTestCase {
         
         // Then the deleted players no longer exist
         try await dbQueue.read { db in
-            try XCTAssertNil(Player.fetchOne(db, id: deletedId1))
-            try XCTAssertNil(Player.fetchOne(db, id: deletedId2))
+            try XCTAssertFalse(Player.exists(db, id: deletedId1))
+            try XCTAssertFalse(Player.exists(db, id: deletedId2))
         }
         
         // Then the database still contains two players
@@ -93,15 +84,10 @@ class AppDatabaseTests: XCTestCase {
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
         try await dbQueue.write { db in
-            var player1 = Player(id: nil, name: "Arthur", score: 100)
-            var player2 = Player(id: nil, name: "Barbara", score: 200)
-            var player3 = Player(id: nil, name: "Craig", score: 150)
-            var player4 = Player(id: nil, name: "David", score: 120)
-            
-            try player1.insert(db)
-            try player2.insert(db)
-            try player3.insert(db)
-            try player4.insert(db)
+            _ = try Player(id: nil, name: "Arthur", score: 100).inserted(db)
+            _ = try Player(id: nil, name: "Barbara", score: 200).inserted(db)
+            _ = try Player(id: nil, name: "Craig", score: 150).inserted(db)
+            _ = try Player(id: nil, name: "David", score: 120).inserted(db)
         }
         
         // When we delete all players

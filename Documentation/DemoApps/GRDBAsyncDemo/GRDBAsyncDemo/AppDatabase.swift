@@ -73,9 +73,7 @@ extension AppDatabase {
             throw ValidationError.missingName
         }
         player = try await dbWriter.write { [player] db in
-            var player = player
-            try player.save(db)
-            return player
+            try player.saved(db)
         }
     }
     
