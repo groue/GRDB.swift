@@ -2,10 +2,8 @@ import SwiftUI
 
 /// The view that creates a new player.
 struct PlayerCreationView: View {
-    /// Executed when user cancels or saves the new user.
-    let dismissAction: () -> Void
-    
     @Environment(\.appDatabase) private var appDatabase
+    @Environment(\.dismiss) private var dismiss
     @State private var name = ""
     @State private var score = ""
     @State private var errorAlertIsPresented = false
@@ -20,7 +18,7 @@ struct PlayerCreationView: View {
                 .navigationBarTitle("New Player")
                 .navigationBarItems(
                     leading: Button(
-                        action: dismissAction,
+                        action: { dismiss() },
                         label: { Text("Cancel") }),
                     trailing: Button(
                         action: {
@@ -34,7 +32,7 @@ struct PlayerCreationView: View {
         do {
             var player = Player(id: nil, name: name, score: Int(score) ?? 0)
             try await appDatabase?.savePlayer(&player)
-            dismissAction()
+            dismiss()
         } catch {
             errorAlertTitle = (error as? LocalizedError)?.errorDescription ?? "An error occurred"
             errorAlertIsPresented = true
@@ -44,7 +42,7 @@ struct PlayerCreationView: View {
 
 struct PlayerCreationSheet_Previews: PreviewProvider {
     static var previews: some View {
-        PlayerCreationView(dismissAction: { })
+        PlayerCreationView()
             .environment(\.appDatabase, .empty())
     }
 }

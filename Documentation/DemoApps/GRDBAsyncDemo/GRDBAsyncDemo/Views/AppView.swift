@@ -111,13 +111,9 @@ struct AppView: View {
             },
             label: { Image(systemName: "plus") })
             .accessibility(label: Text("New Player"))
-            .sheet(
-                isPresented: $newPlayerIsPresented,
-                content: {
-                    PlayerCreationView(dismissAction: {
-                        newPlayerIsPresented = false
-                    })
-                })
+            .sheet(isPresented: $newPlayerIsPresented) {
+                PlayerCreationView()
+            }
     }
     
     private func stopEditing() {
