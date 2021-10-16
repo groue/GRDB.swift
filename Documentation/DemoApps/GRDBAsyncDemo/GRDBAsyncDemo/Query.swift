@@ -11,14 +11,17 @@ import SwiftUI
 
 /// The protocol that feeds the `@Query` property wrapper.
 protocol Queryable: Equatable {
-    /// The type of the fetched value
-    associatedtype Value
+    /// The type of the sequence of database values
+    associatedtype Sequence: AsyncSequence
+    
+    /// The type of the database values
+    typealias Value = Sequence.Element
     
     /// The default value, used whenever the database is not available
     static var defaultValue: Value { get }
     
-    /// Returns a publisher of database values
-    func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<Value, Error>
+    /// Returns an asynchronous sequence of database values
+    func values(in appDatabase: AppDatabase) -> Sequence
 }
 
 /// The property wrapper that observes a database query
@@ -68,11 +71,12 @@ struct Query<Query: Queryable>: DynamicProperty {
                 if query != newValue {
                     // Stop tracking, and tell SwiftUI about the update
                     objectWillChange.send()
-                    cancellable = nil
+                    task?.cancel()
+                    task = nil
                 }
             }
         }
-        private var cancellable: AnyCancellable?
+        private var task: Task<Void, Error>?
         
         init() { }
         
@@ -82,23 +86,18 @@ struct Query<Query: Queryable>: DynamicProperty {
                 return
             }
             
-            guard cancellable == nil else {
+            guard task == nil else {
                 // Already tracking
                 return
             }
             
-            cancellable = query
-                .valuePublisher(in: appDatabase)
-                .sink(
-                    receiveCompletion: { _ in
-                        // Ignore errors
-                    },
-                    receiveValue: { [weak self] value in
-                        guard let self = self else { return }
-                        // Tell SwiftUI about the new value
-                        self.objectWillChange.send()
-                        self.value = value
-                    })
+            task = Task { @MainActor in
+                for try await value in query.values(in: appDatabase) {
+                    if Task.isCancelled { break }
+                    self.objectWillChange.send()
+                    self.value = value
+                }
+            }
         }
     }
 }

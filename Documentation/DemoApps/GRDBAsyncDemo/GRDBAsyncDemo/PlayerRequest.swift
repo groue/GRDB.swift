@@ -15,7 +15,7 @@ struct PlayerRequest {
 extension PlayerRequest: Queryable {
     static var defaultValue: [Player] { [] }
     
-    func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
+    func values(in appDatabase: AppDatabase) -> AsyncValueObservation<[Player]> {
         ValueObservation
             .trackingConstantRegion { db in
                 switch ordering {
@@ -25,7 +25,6 @@ extension PlayerRequest: Queryable {
                     return try Player.all().orderedByName().fetchAll(db)
                 }
             }
-            .publisher(in: appDatabase.databaseReader, scheduling: .immediate)
-            .eraseToAnyPublisher()
+            .values(in: appDatabase.databaseReader, scheduling: .immediate)
     }
 }
