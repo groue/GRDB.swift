@@ -309,8 +309,16 @@ extension TableRequest where Self: FilteredRequest {
                     return key
                         // Preserve ordering of columns in the unique index
                         .sorted { (kv1, kv2) in
-                            let index1 = lowercaseColumns.firstIndex(of: kv1.key.lowercased())!
-                            let index2 = lowercaseColumns.firstIndex(of: kv2.key.lowercased())!
+                            guard let index1 = lowercaseColumns.firstIndex(of: kv1.key.lowercased()) else {
+                                // We allow extra columns which are not in the unique key
+                                // Put them last in the query
+                                return false
+                            }
+                            guard let index2 = lowercaseColumns.firstIndex(of: kv2.key.lowercased()) else {
+                                // We allow extra columns which are not in the unique key
+                                // Put them last in the query
+                                return true
+                            }
                             return index1 < index2
                         }
                         .map { (column, value) in Column(column) == value }

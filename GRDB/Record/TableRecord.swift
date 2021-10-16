@@ -207,7 +207,7 @@ where Self: Identifiable,
       ID: _OptionalProtocol,
       ID.Wrapped: DatabaseValueConvertible
 {
-    #warning("TODO: test & document")
+    #warning("TODO: document")
     /// Returns whether a row exists for this primary key.
     ///
     ///     try Player.deleteOne(db, id: 123)

@@ -413,7 +413,7 @@ extension QueryInterfaceRequest {
 // MARK: - Check Existence
 
 extension QueryInterfaceRequest {
-    #warning("TODO: test & document")
+    #warning("TODO: document")
  /// Returns whether a row exists in this request.
     ///
     ///     try Player.filter(Column("name") == "Arthur").exists(db)
