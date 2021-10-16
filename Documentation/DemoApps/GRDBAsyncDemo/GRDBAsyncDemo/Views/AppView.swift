@@ -136,10 +136,8 @@ private struct ToggleOrderingButton: View {
                     ordering = .byScore
                 },
                 label: {
-                    HStack {
-                        Text("Name")
-                        Image(systemName: "arrowtriangle.up.fill")
-                    }
+                    Label("Name", systemImage: "arrowtriangle.up.fill")
+                        .labelStyle(.titleAndIcon)
                 })
         case .byScore:
             Button(
@@ -148,10 +146,8 @@ private struct ToggleOrderingButton: View {
                     ordering = .byName
                 },
                 label: {
-                    HStack {
-                        Text("Score")
-                        Image(systemName: "arrowtriangle.down.fill")
-                    }
+                    Label("Name", systemImage: "arrowtriangle.down.fill")
+                        .labelStyle(.titleAndIcon)
                 })
         }
     }
