@@ -19,77 +19,85 @@ class AppDatabaseTests: XCTestCase {
         }
     }
     
-    func test_savePlayer_inserts() throws {
+    func test_savePlayer_inserts() async throws {
         // Given an empty players database
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
         
         // When we save a new player
         var player = Player(id: nil, name: "Arthur", score: 100)
-        try appDatabase.savePlayer(&player)
+        try await appDatabase.savePlayer(&player)
         
         // Then the player exists in the database
         try XCTAssertTrue(dbQueue.read(player.exists))
     }
     
-    func test_savePlayer_updates() throws {
+    func test_savePlayer_updates() async throws {
         // Given a players database that contains a player
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
         var player = Player(id: nil, name: "Arthur", score: 100)
-        try dbQueue.write { db in
-            try player.insert(db)            
+        player = try await dbQueue.write { [player] db in
+            var player = player
+            try player.insert(db)
+            return player
         }
         
         // When we modify and save the player
         player.name = "Barbara"
         player.score = 1000
-        try appDatabase.savePlayer(&player)
+        try await appDatabase.savePlayer(&player)
         
         // Then the player has been updated in the database
-        let fetchedPlayer = try dbQueue.read { db in
+        let fetchedPlayer = try await dbQueue.read { [player] db in
             try XCTUnwrap(Player.fetchOne(db, key: player.id))
         }
         XCTAssertEqual(fetchedPlayer, player)
     }
     
-    func test_deletePlayers() throws {
+    func test_deletePlayers() async throws {
         // Given a players database that contains four players
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
-        var player1 = Player(id: nil, name: "Arthur", score: 100)
-        var player2 = Player(id: nil, name: "Barbara", score: 200)
-        var player3 = Player(id: nil, name: "Craig", score: 150)
-        var player4 = Player(id: nil, name: "David", score: 120)
-        try dbQueue.write { db in
+        let playerIds: [Int64] = try await dbQueue.write { db in
+            var player1 = Player(id: nil, name: "Arthur", score: 100)
+            var player2 = Player(id: nil, name: "Barbara", score: 200)
+            var player3 = Player(id: nil, name: "Craig", score: 150)
+            var player4 = Player(id: nil, name: "David", score: 120)
+            
             try player1.insert(db)
             try player2.insert(db)
             try player3.insert(db)
             try player4.insert(db)
+            
+            return try Player.selectID().fetchAll(db)
         }
         
         // When we delete two players
-        try appDatabase.deletePlayers(ids: [player1.id!, player3.id!])
+        let deletedId1 = playerIds[0]
+        let deletedId2 = playerIds[2]
+        try await appDatabase.deletePlayers(ids: [deletedId1, deletedId2])
         
         // Then the deleted players no longer exist
-        try dbQueue.read { db in
-            try XCTAssertFalse(player1.exists(db))
-            try XCTAssertFalse(player3.exists(db))
+        try await dbQueue.read { db in
+            try XCTAssertNil(Player.fetchOne(db, id: deletedId1))
+            try XCTAssertNil(Player.fetchOne(db, id: deletedId2))
         }
         
         // Then the database still contains two players
         try XCTAssertEqual(dbQueue.read(Player.fetchCount), 2)
     }
     
-    func test_deleteAllPlayers() throws {
+    func test_deleteAllPlayers() async throws {
         // Given a players database that contains players
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
-        var player1 = Player(id: nil, name: "Arthur", score: 100)
-        var player2 = Player(id: nil, name: "Barbara", score: 200)
-        var player3 = Player(id: nil, name: "Craig", score: 150)
-        var player4 = Player(id: nil, name: "David", score: 120)
-        try dbQueue.write { db in
+        try await dbQueue.write { db in
+            var player1 = Player(id: nil, name: "Arthur", score: 100)
+            var player2 = Player(id: nil, name: "Barbara", score: 200)
+            var player3 = Player(id: nil, name: "Craig", score: 150)
+            var player4 = Player(id: nil, name: "David", score: 120)
+            
             try player1.insert(db)
             try player2.insert(db)
             try player3.insert(db)
@@ -97,19 +105,19 @@ class AppDatabaseTests: XCTestCase {
         }
         
         // When we delete all players
-        try appDatabase.deleteAllPlayers()
+        try await appDatabase.deleteAllPlayers()
         
         // Then the database does not contain any player
         try XCTAssertEqual(dbQueue.read(Player.fetchCount), 0)
     }
     
-    func test_refreshPlayers_populates_an_empty_database() throws {
+    func test_refreshPlayers_populates_an_empty_database() async throws {
         // Given an empty players database
         let dbQueue = DatabaseQueue()
         let appDatabase = try AppDatabase(dbQueue)
         
         // When we refresh players
-        try appDatabase.refreshPlayers()
+        try await appDatabase.refreshPlayers()
         
         // Then the database is not empty
         try XCTAssert(dbQueue.read(Player.fetchCount) > 0)

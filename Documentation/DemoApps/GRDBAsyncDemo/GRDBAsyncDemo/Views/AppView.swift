@@ -145,7 +145,7 @@ private struct ToggleOrderingButton: View {
                 willChange()
                 ordering = .byName
             } label: {
-                Label("Name", systemImage: "arrowtriangle.down.fill").labelStyle(.titleAndIcon)
+                Label("Score", systemImage: "arrowtriangle.down.fill").labelStyle(.titleAndIcon)
             }
         }
     }
