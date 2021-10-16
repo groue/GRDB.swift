@@ -24,8 +24,8 @@ protocol Queryable: Equatable {
 /// The property wrapper that observes a database query
 @propertyWrapper
 struct Query<Query: Queryable>: DynamicProperty {
-    /// The AppDatabase that grants access to the database
-    @Environment(\.appDatabase) private var appDatabase: AppDatabase?
+    /// Database access
+    @Environment(\.appDatabase) private var appDatabase
     @StateObject private var core = Core()
     private var baseQuery: Query
     
@@ -51,9 +51,6 @@ struct Query<Query: Queryable>: DynamicProperty {
     }
     
     func update() {
-        guard let appDatabase = appDatabase else {
-            fatalError("Attempting to use @Query without any database in the environment")
-        }
         // Feed core with necessary information, and make sure tracking has started
         if core.usesBaseQuery { core.query = baseQuery }
         core.startTrackingIfNecessary(in: appDatabase)

@@ -16,7 +16,7 @@ struct PlayerList: View {
             }
             .onDelete(perform: { offsets in
                 let playerIds = offsets.compactMap { players[$0].id }
-                try? appDatabase?.deletePlayers(ids: playerIds)
+                try? appDatabase.deletePlayers(ids: playerIds)
             })
         }
         .animation(.default)

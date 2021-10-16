@@ -13,7 +13,7 @@ struct PlayerEditionView: View {
                 set: { player.score = Int($0) ?? 0 }))
             .onDisappear {
                 // save and ignore error
-                try? appDatabase?.savePlayer(&player)
+                try? appDatabase.savePlayer(&player)
             }
     }
 }

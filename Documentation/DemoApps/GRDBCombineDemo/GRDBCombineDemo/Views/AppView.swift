@@ -36,11 +36,11 @@ struct AppView: View {
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .bottomBar) {
             Button(
-                action: { try? appDatabase?.deleteAllPlayers() },
+                action: { try? appDatabase.deleteAllPlayers() },
                 label: { Image(systemName: "trash").imageScale(.large) })
             Spacer()
             Button(
-                action: { try? appDatabase?.refreshPlayers() },
+                action: { try? appDatabase.refreshPlayers() },
                 label: { Image(systemName: "arrow.clockwise").imageScale(.large) })
         }
     }
@@ -91,11 +91,11 @@ private struct ToggleOrderingButton: View {
 struct AppView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
+            // Preview the default, empty database
+            AppView()
+            
             // Preview a database of random players
             AppView().environment(\.appDatabase, .random())
-
-            // Preview an empty database
-            AppView().environment(\.appDatabase, .empty())
         }
     }
 }

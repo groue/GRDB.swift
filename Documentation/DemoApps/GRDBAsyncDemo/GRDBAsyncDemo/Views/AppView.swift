@@ -68,7 +68,7 @@ struct AppView: View {
                 // Don't stopEditing() here because this is
                 // performed `onChange(of: players)`
                 Task {
-                    try? await appDatabase?.deleteAllPlayers()
+                    try? await appDatabase.deleteAllPlayers()
                 }
             } label: {
                 Image(systemName: "trash").imageScale(.large)
@@ -79,7 +79,7 @@ struct AppView: View {
             Button {
                 stopEditing()
                 Task {
-                    try? await appDatabase?.refreshPlayers()
+                    try? await appDatabase.refreshPlayers()
                 }
             } label: {
                 Image(systemName: "arrow.clockwise").imageScale(.large)
@@ -94,7 +94,7 @@ struct AppView: View {
                     try? await withThrowingTaskGroup(of: Void.self) { group in
                         for _ in 0..<50 {
                             _ = group.addTaskUnlessCancelled {
-                                try await appDatabase?.refreshPlayers()
+                                try await appDatabase.refreshPlayers()
                             }
                         }
                         try await group.waitForAll()
@@ -154,11 +154,11 @@ private struct ToggleOrderingButton: View {
 struct AppView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
+            // Preview the default, empty database
+            AppView()
+            
             // Preview a database of random players
             AppView().environment(\.appDatabase, .random())
-            
-            // Preview an empty database
-            AppView().environment(\.appDatabase, .empty())
         }
     }
 }

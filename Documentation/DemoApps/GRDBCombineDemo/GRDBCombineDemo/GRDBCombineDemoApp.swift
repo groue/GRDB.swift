@@ -5,18 +5,19 @@ import SwiftUI
 struct GRDBCombineDemoApp: App {
     var body: some Scene {
         WindowGroup {
-            AppView().environment(\.appDatabase, AppDatabase.shared)
+            AppView().environment(\.appDatabase, .shared)
         }
     }
 }
 
-// Let SwiftUI views access the database through the SwiftUI environment
+// Let SwiftUI views access the app database through the SwiftUI environment
 private struct AppDatabaseKey: EnvironmentKey {
-    static let defaultValue: AppDatabase? = nil
+    /// Default appDatabase is an empty in-memory database
+    static var defaultValue: AppDatabase { .empty() }
 }
 
 extension EnvironmentValues {
-    var appDatabase: AppDatabase? {
+    var appDatabase: AppDatabase {
         get { self[AppDatabaseKey.self] }
         set { self[AppDatabaseKey.self] = newValue }
     }

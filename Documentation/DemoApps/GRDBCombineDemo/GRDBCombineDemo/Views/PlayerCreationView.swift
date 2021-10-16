@@ -31,7 +31,7 @@ struct PlayerCreationView: View {
     private func save() {
         do {
             var player = Player(id: nil, name: name, score: Int(score) ?? 0)
-            try appDatabase?.savePlayer(&player)
+            try appDatabase.savePlayer(&player)
             dismissAction()
         } catch {
             errorAlertTitle = (error as? LocalizedError)?.errorDescription ?? "An error occurred"
@@ -43,6 +43,5 @@ struct PlayerCreationView: View {
 struct PlayerCreationSheet_Previews: PreviewProvider {
     static var previews: some View {
         PlayerCreationView(dismissAction: { })
-            .environment(\.appDatabase, .empty())
     }
 }

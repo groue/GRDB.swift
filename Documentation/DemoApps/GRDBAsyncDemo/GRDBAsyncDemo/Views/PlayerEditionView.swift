@@ -14,7 +14,7 @@ struct PlayerEditionView: View {
             .onDisappear {
                 Task {
                     // save and ignore error
-                    try? await appDatabase?.savePlayer(&player)
+                    try? await appDatabase.savePlayer(&player)
                 }
             }
     }

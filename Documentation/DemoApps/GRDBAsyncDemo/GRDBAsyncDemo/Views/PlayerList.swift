@@ -19,7 +19,7 @@ struct PlayerList: View {
             .onDelete { offsets in
                 let playerIds = offsets.compactMap { players[$0].id }
                 Task {
-                    try? await appDatabase?.deletePlayers(ids: playerIds)
+                    try? await appDatabase.deletePlayers(ids: playerIds)
                 }
             }
         }
