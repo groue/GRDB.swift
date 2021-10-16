@@ -410,6 +410,21 @@ extension QueryInterfaceRequest {
     }
 }
 
+// MARK: - Check Existence
+
+extension QueryInterfaceRequest {
+    #warning("TODO: test & document")
+ /// Returns whether a row exists in this request.
+    ///
+    ///     try Player.filter(Column("name") == "Arthur").exists(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: Whether a row exists in this request
+    public func exists(_ db: Database) throws -> Bool {
+        try SQLRequest("SELECT \(exists())").fetchOne(db)!
+    }
+}
+
 // MARK: - Batch Delete
 
 extension QueryInterfaceRequest {
