@@ -5,7 +5,6 @@
 // https://davedelong.com/blog/2021/04/03/core-data-and-swiftui/
 //
 
-import Combine
 import GRDB
 import SwiftUI
 
@@ -20,7 +19,7 @@ protocol Queryable: Equatable {
     /// The default value, used whenever the database is not available
     static var defaultValue: Value { get }
     
-    /// Returns an asynchronous sequence of database values
+    /// Returns an asynchronous sequence of database values.
     func values(in appDatabase: AppDatabase) -> Sequence
 }
 

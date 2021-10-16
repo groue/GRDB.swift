@@ -1,18 +1,18 @@
-import Combine
 import GRDB
 
-/// A player request defines how to feed the player list
-struct PlayerRequest {
+/// A player request defines how to feed the player list.
+///
+/// It can be used with the `@Query` property wrapper.
+struct PlayerRequest: Queryable {
     enum Ordering {
         case byScore
         case byName
     }
     
     var ordering: Ordering
-}
-
-/// Make `PlayerRequest` able to be used with the `@Query` property wrapper.
-extension PlayerRequest: Queryable {
+    
+    // MARK: - Queryable
+    
     static var defaultValue: [Player] { [] }
     
     func values(in appDatabase: AppDatabase) -> AsyncValueObservation<[Player]> {
