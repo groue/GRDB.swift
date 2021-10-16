@@ -14,6 +14,10 @@ struct AppView: View {
     /// Tracks the presentation of the player creation sheet.
     @State private var newPlayerIsPresented = false
     
+    /// Workaround "flash of missing content" with Swift async/await
+    /// <https://forums.swift.org/t/52862>
+    @State private var missingContent = true
+    
     // If you want to define the query on initialization, you will prefer:
     //
     // @Query<PlayerRequest> private var players: [Player]
@@ -24,31 +28,37 @@ struct AppView: View {
     
     var body: some View {
         NavigationView {
-            PlayerList(players: players)
-                .navigationBarTitle(Text("\(players.count) Players"))
-                .navigationBarItems(
-                    leading: HStack {
-                        EditButton()
-                        newPlayerButton
-                    },
-                    trailing: ToggleOrderingButton(
-                        ordering: $players.ordering,
-                        willChange: {
-                            // onChange(of: $players.wrappedValue.ordering)
-                            // reveals a bug in SwiftUI: the List remains in
-                            // editing mode if the editMode is changed during
-                            // the animation of the list content.
-                            // Word around: stop editing *before* the ordering
-                            // is changed, and the list content is updated.
-                            stopEditing()
-                        }))
-                .toolbar { toolbarContent }
-                .onChange(of: players) { players in
-                    if players.isEmpty {
-                        stopEditing()
-                    }
+            if missingContent {
+                EmptyView().onChange(of: players) { players in
+                    missingContent = false
                 }
-                .environment(\.editMode, $editMode)
+            } else {
+                PlayerList(players: players)
+                    .navigationBarTitle(Text(missingContent ? "" : "\(players.count) Players"))
+                    .navigationBarItems(
+                        leading: HStack {
+                            EditButton()
+                            newPlayerButton
+                        },
+                        trailing: ToggleOrderingButton(
+                            ordering: $players.ordering,
+                            willChange: {
+                                // onChange(of: $players.wrappedValue.ordering)
+                                // reveals a bug in SwiftUI: the List remains in
+                                // editing mode if the editMode is changed during
+                                // the animation of the list content.
+                                // Word around: stop editing *before* the ordering
+                                // is changed, and the list content is updated.
+                                stopEditing()
+                            }))
+                    .toolbar { toolbarContent }
+                    .onChange(of: players) { players in
+                        if players.isEmpty {
+                            stopEditing()
+                        }
+                    }
+                    .environment(\.editMode, $editMode)
+            }
         }
     }
     
@@ -156,7 +166,7 @@ struct AppView_Previews: PreviewProvider {
         Group {
             // Preview a database of random players
             AppView().environment(\.appDatabase, .random())
-
+            
             // Preview an empty database
             AppView().environment(\.appDatabase, .empty())
         }
