@@ -311,6 +311,7 @@ extension DatabaseReader {
 extension DatabaseReader {
     // MARK: - Asynchronous Database Access
     
+    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
@@ -343,7 +344,7 @@ extension DatabaseReader {
     /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
-    public func read<T>(_ value: @escaping (Database) throws -> T) async throws -> T {
+    public func read<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncRead { result in
                 do {
@@ -355,6 +356,7 @@ extension DatabaseReader {
         }
     }
     
+    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes a function that accepts a database connection.
     ///
     /// For example:
@@ -383,7 +385,7 @@ extension DatabaseReader {
     /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
-    public func unsafeRead<T>(_ value: @escaping (Database) throws -> T) async throws -> T {
+    public func unsafeRead<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncUnsafeRead { result in
                 do {
@@ -546,6 +548,7 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     // MARK: - Reading from Database
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         try base.read(value)
     }
@@ -559,6 +562,7 @@ public final class AnyDatabaseReader: DatabaseReader {
         base._weakAsyncRead(value)
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         try base.unsafeRead(value)
     }

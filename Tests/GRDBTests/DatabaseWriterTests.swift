@@ -265,4 +265,139 @@ class DatabaseWriterTests : GRDBTestCase {
         }
         try DatabaseQueue().backup(to: dbQueue)
     }
+    
+#if swift(>=5.5)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    func testAsyncAwait_write() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            let count = try await dbWriter.write { db -> Int in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
+            }
+            XCTAssertEqual(count, 1)
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+    }
+#endif
+    
+#if swift(>=5.5)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    func testAsyncAwait_writeWithoutTransaction() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            let count = try await dbWriter.writeWithoutTransaction { db -> Int in
+                try db.beginTransaction()
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
+                try db.commit()
+                return count
+            }
+            XCTAssertEqual(count, 1)
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+    }
+#endif
+    
+#if swift(>=5.5)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    func testAsyncAwait_barrierWriteWithoutTransaction() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            let count = try await dbWriter.barrierWriteWithoutTransaction { db -> Int in
+                try db.beginTransaction()
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
+                try db.commit()
+                return count
+            }
+            XCTAssertEqual(count, 1)
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+    }
+#endif
+    
+#if swift(>=5.5)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    func testAsyncAwait_erase() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            try await dbWriter.erase()
+            let tableExists = try await dbWriter.read { try $0.tableExists("t") }
+            XCTAssertFalse(tableExists)
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+    }
+#endif
+    
+#if swift(>=5.5)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    func testAsyncAwait_vacuum() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            try await dbWriter.vacuum()
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+    }
+#endif
+    
+#if swift(>=5.5)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    func testAsyncAwait_vacuumInto() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test<T: DatabaseWriter>(_ dbWriter: T) async throws {
+            let intoPath = NSTemporaryDirectory().appending(ProcessInfo.processInfo.globallyUniqueString).appending("-vacuum-into-db.sqlite")
+            try await dbWriter.vacuum(into: intoPath)
+            do {
+                let dbQueue = try DatabaseQueue(path: intoPath)
+                let tableExists = try await dbQueue.read { try $0.tableExists("t") }
+                XCTAssertTrue(tableExists)
+            }
+            try FileManager().removeItem(atPath: intoPath)
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+    }
+#endif
 }

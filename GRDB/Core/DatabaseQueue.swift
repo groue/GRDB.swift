@@ -174,6 +174,7 @@ extension DatabaseQueue {
     
     // MARK: - Reading from Database
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         try writer.sync { db in
             // The transaction guarantees snapshot isolation against eventual
@@ -329,10 +330,12 @@ extension DatabaseQueue {
         }
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
     }
     
+    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
     }
