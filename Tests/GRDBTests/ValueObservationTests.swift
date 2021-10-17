@@ -519,7 +519,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-#if swift(>=5.5)
+#if swift(>=5.5) && canImport(_Concurrency)
     // MARK: - Async Await
     
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)

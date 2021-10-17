@@ -307,7 +307,7 @@ extension DatabaseReader {
     }
 }
 
-#if swift(>=5.5)
+#if swift(>=5.5) && canImport(_Concurrency)
 extension DatabaseReader {
     // MARK: - Asynchronous Database Access
     

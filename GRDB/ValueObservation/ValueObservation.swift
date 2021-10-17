@@ -211,7 +211,7 @@ extension ValueObservation: Refinable {
     }
 }
 
-#if swift(>=5.5)
+#if swift(>=5.5) && canImport(_Concurrency)
 extension ValueObservation {
     // MARK: - Asynchronous Observation
     

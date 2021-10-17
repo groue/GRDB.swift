@@ -98,7 +98,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-#if swift(>=5.5)
+#if swift(>=5.5) && canImport(_Concurrency)
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     func testAsyncAwait_NonEmptyMigratorSync() async throws {
         func test(writer: DatabaseWriter) async throws {
@@ -423,7 +423,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
 
-#if swift(>=5.5)
+#if swift(>=5.5) && canImport(_Concurrency)
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     func testAsyncAwait_MigrateUpTo() async throws {
         func test(writer: DatabaseWriter) async throws {

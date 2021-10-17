@@ -115,7 +115,7 @@ public struct DatabaseMigrator {
         try migrate(writer, upTo: lastMigration.identifier)
     }
     
-    #if swift(>=5.5)
+    #if swift(>=5.5) && canImport(_Concurrency)
     /// Iterate migrations in the same order as they were registered. If a
     /// migration has not yet been applied, its block is executed in
     /// a transaction.
@@ -147,7 +147,7 @@ public struct DatabaseMigrator {
         }
     }
     
-#if swift(>=5.5)
+    #if swift(>=5.5) && canImport(_Concurrency)
     /// Iterate migrations in the same order as they were registered, up to the
     /// provided target. If a migration has not yet been applied, its block is
     /// executed in a transaction.
@@ -162,7 +162,7 @@ public struct DatabaseMigrator {
             try migrate(db, upTo: targetIdentifier)
         }
     }
-#endif
+    #endif
     
     /// Iterate migrations in the same order as they were registered. If a
     /// migration has not yet been applied, its block is executed in
