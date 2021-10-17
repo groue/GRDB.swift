@@ -82,7 +82,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3
+- **New**: [#1078](https://github.com/groue/GRDB.swift/pull/1078) by [@groue](https://github.com/groue): More convenience methods (non-mutating persistence methods, and existence-checking methods)
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
+- **Documentation Update**: A new [Testing for Record Existence](README.md#testing-for-record-existence) chapter describes the new `request.isEmpty(_:)`, `Record.exists(_:id:)` and `Record.exists(_:key:)` methods.
 
 ## 5.12.0
 

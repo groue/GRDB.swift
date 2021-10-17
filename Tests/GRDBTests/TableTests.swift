@@ -860,4 +860,73 @@ class TableTests: GRDBTestCase {
             }
         }
     }
+    
+    func test_exists() throws {
+        try makeDatabaseQueue().write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+                t.column("a").unique()
+                t.column("b")
+                t.column("c")
+                t.uniqueKey(["b", "c"])
+            }
+            try db.create(table: "country") { t in
+                t.column("code", .text).notNull().primaryKey()
+            }
+            try db.create(table: "document") { t in
+                t.column("a")
+            }
+
+            // Use Table<Void> when we want to make sure the generic type is not used.
+            
+            do {
+                try XCTAssertFalse(Table<Void>("player").exists(db, key: 1))
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT EXISTS (SELECT * FROM "player" WHERE "id" = 1)
+                    """)
+                
+                try XCTAssertFalse(Table<Void>("country").exists(db, key: "FR"))
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT EXISTS (SELECT * FROM "country" WHERE "code" = 'FR')
+                    """)
+                
+                try XCTAssertFalse(Table<Void>("document").exists(db, key: 1))
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT EXISTS (SELECT * FROM "document" WHERE "rowid" = 1)
+                    """)
+            }
+            
+            do {
+                try XCTAssertFalse(Table<Void>("player").exists(db, key: ["a": "foo"]))
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT EXISTS (SELECT * FROM "player" WHERE "a" = 'foo')
+                    """)
+                
+                try XCTAssertFalse(Table<Void>("player").exists(db, key: ["b": "bar", "c": "baz"]))
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT EXISTS (SELECT * FROM "player" WHERE ("b" = 'bar') AND ("c" = 'baz'))
+                    """)
+            }
+
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                // Non-optional ID
+                struct Country: Identifiable { var id: String }
+                
+                try XCTAssertFalse(Table<Country>("country").exists(db, id: "FR"))
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT EXISTS (SELECT * FROM "country" WHERE "code" = 'FR')
+                    """)
+            }
+            
+            if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
+                // Optional ID
+                struct Country: Identifiable { var id: String? }
+                
+                try XCTAssertFalse(Table<Country>("country").exists(db, id: "FR"))
+                XCTAssertEqual(lastSQLQuery, """
+                    SELECT EXISTS (SELECT * FROM "country" WHERE "code" = 'FR')
+                    """)
+            }
+        }
+    }
 }

@@ -155,6 +155,94 @@ extension TableRecord {
     }
 }
 
+// MARK: - Check Existence by Single-Column Primary Key
+
+extension TableRecord {
+    /// Returns whether a row exists for this primary key.
+    ///
+    ///     try Player.exists(db, key: 123)
+    ///     try Country.exists(db, key: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     try Document.exists(db, key: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A primary key value.
+    /// - returns: Whether a row exists for this primary key.
+    public static func exists<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
+    throws -> Bool
+    where PrimaryKeyType: DatabaseValueConvertible
+    {
+        try !filter(key: key).isEmpty(db)
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
+    /// Returns whether a row exists for this primary key.
+    ///
+    ///     try Player.deleteOne(db, id: 123)
+    ///     try Country.deleteOne(db, id: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     try Document.deleteOne(db, id: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a row exists for this primary key.
+    public static func exists(_ db: Database, id: ID) throws -> Bool {
+        try !filter(id: id).isEmpty(db)
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension TableRecord
+where Self: Identifiable,
+      ID: _OptionalProtocol,
+      ID.Wrapped: DatabaseValueConvertible
+{
+    /// Returns whether a row exists for this primary key.
+    ///
+    ///     try Player.deleteOne(db, id: 123)
+    ///     try Country.deleteOne(db, id: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     try Document.deleteOne(db, id: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a row exists for this primary key.
+    public static func exists(_ db: Database, id: ID.Wrapped) throws -> Bool {
+        try !filter(id: id).isEmpty(db)
+    }
+}
+
+// MARK: - Check Existence by Key
+
+extension TableRecord {
+    /// Returns whether a row exists for this unique key (primary key or any key
+    /// with a unique index on it).
+    ///
+    ///     try Player.exists(db, key: ["name": Arthur"])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A dictionary of values.
+    /// - returns: Whether a row exists for this key.
+    public static func exists(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+        try !filter(key: key).isEmpty(db)
+    }
+}
+
 // MARK: - Deleting by Single-Column Primary Key
 
 extension TableRecord {

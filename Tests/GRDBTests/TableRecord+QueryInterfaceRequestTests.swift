@@ -12,7 +12,6 @@ private struct Reader : TableRecord {
     static let databaseTableName = "readers"
 }
 
-
 class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
     
     override func setup(_ dbWriter: DatabaseWriter) throws {
@@ -296,5 +295,108 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, Reader.limit(1, offset: 2).limit(3)),
             "SELECT * FROM \"readers\" LIMIT 3")
+    }
+    
+    // MARK: - Exists
+    
+    func testExists() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            struct Player: TableRecord { }
+            try db.create(table: "player") { t in
+                t.column("a").unique()
+                t.column("b")
+                t.column("c")
+                t.uniqueKey(["b", "c"])
+            }
+            
+            try XCTAssertFalse(Player.exists(db, key: 1))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"rowid\" = 1)")
+            
+            try XCTAssertFalse(Player.exists(db, key: ["a": 1]))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"a\" = 1)")
+            
+            try XCTAssertFalse(Player.exists(db, key: ["a": 1, "b": 2]))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE (\"a\" = 1) AND (\"b\" = 2))")
+            
+            try XCTAssertFalse(Player.exists(db, key: ["b": 1, "c": 2]))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE (\"b\" = 1) AND (\"c\" = 2))")
+            
+            return .rollback
+        }
+        
+        try dbQueue.inTransaction { db in
+            struct Player: TableRecord { }
+            try db.create(table: "player") { t in
+                t.column("a", .integer).notNull().primaryKey()
+            }
+            
+            try XCTAssertFalse(Player.exists(db, key: 1))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"a\" = 1)")
+            
+            try XCTAssertFalse(Player.exists(db, key: ["a": 2]))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"a\" = 2)")
+            
+            return .rollback
+        }
+        
+        try dbQueue.inTransaction { db in
+            struct Player: TableRecord { }
+            try db.create(table: "player") { t in
+                t.column("id", .text).notNull().primaryKey()
+            }
+            
+            try XCTAssertFalse(Player.exists(db, key: "foo"))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 'foo')")
+            
+            try XCTAssertFalse(Player.exists(db, key: ["id": "bar"]))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 'bar')")
+            
+            return .rollback
+        }
+    }
+    
+    @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+    func testExistsIdentifiable() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            struct Player: TableRecord, Identifiable {
+                var id: Int64
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            
+            try XCTAssertFalse(Player.exists(db, id: 1))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 1)")
+            
+            return .rollback
+        }
+        try dbQueue.inTransaction { db in
+            struct Player: TableRecord, Identifiable {
+                var id: Int64?
+            }
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+            
+            try XCTAssertFalse(Player.exists(db, id: 1))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 1)")
+            
+            return .rollback
+        }
+        try dbQueue.inTransaction { db in
+            struct Player: TableRecord, Identifiable {
+                var id: String
+            }
+            try db.create(table: "player") { t in
+                t.column("id", .text).notNull().primaryKey()
+            }
+            
+            try XCTAssertFalse(Player.exists(db, id: "foo"))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 'foo')")
+            
+            return .rollback
+        }
     }
 }

@@ -17,8 +17,8 @@ private enum Namespace {
     class CustomizedRecordSubClass: CustomizedRecordClass { override class var databaseTableName: String { "CustomizedRecordSubClass" } }
     class CustomizedPlainRecord: Record { override class var databaseTableName: String { "CustomizedPlainRecord" } }
 }
-struct HTTPRequest: TableRecord { }
-struct TOEFL: TableRecord { }
+private struct HTTPRequest: TableRecord { }
+private struct TOEFL: TableRecord { }
 
 class TableRecordTests: GRDBTestCase {
     

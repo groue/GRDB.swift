@@ -410,6 +410,20 @@ extension QueryInterfaceRequest {
     }
 }
 
+// MARK: - Check Existence
+
+extension QueryInterfaceRequest {
+    /// Returns true if the request matches no row in the database.
+    ///
+    ///     try Player.filter(Column("name") == "Arthur").isEmpty(db)
+    ///
+    /// - parameter db: A database connection.
+    /// - returns: Whether the request matches no row in the database.
+    public func isEmpty(_ db: Database) throws -> Bool {
+        try !SQLRequest("SELECT \(exists())").fetchOne(db)!
+    }
+}
+
 // MARK: - Batch Delete
 
 extension QueryInterfaceRequest {

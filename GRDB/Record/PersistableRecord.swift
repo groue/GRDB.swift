@@ -201,6 +201,23 @@ extension MutablePersistableRecord {
         try performInsert(db)
     }
     
+    /// Executes an INSERT statement so that `self` is saved in the database,
+    /// and return the inserted record.
+    ///
+    /// Usage:
+    ///
+    ///     let player = Player(id: nil, name: "Arthur")
+    ///     let insertedPlayer = try dbQueue.write { db in
+    ///         try player.inserted(db)
+    ///     }
+    ///     print(player.id)         // nil
+    ///     print(insertedPlayer.id) // some id
+    public func inserted(_ db: Database) throws -> Self {
+        var result = self
+        try result.insert(db)
+        return result
+    }
+    
     /// Executes an UPDATE statement.
     ///
     /// - parameter db: A database connection.
@@ -316,6 +333,23 @@ extension MutablePersistableRecord {
     /// The default implementation for save() invokes performSave().
     public mutating func save(_ db: Database) throws {
         try performSave(db)
+    }
+    
+    /// Executes an INSERT or an UPDATE statement so that `self` is saved in
+    /// the database, and return the saved record.
+    ///
+    /// Usage:
+    ///
+    ///     let player = Player(id: nil, name: "Arthur")
+    ///     let savedPlayer = try dbQueue.write { db in
+    ///         try player.saved(db)
+    ///     }
+    ///     print(player.id)      // nil
+    ///     print(savedPlayer.id) // some id
+    public func saved(_ db: Database) throws -> Self {
+        var result = self
+        try result.save(db)
+        return result
     }
     
     /// Executes a DELETE statement.

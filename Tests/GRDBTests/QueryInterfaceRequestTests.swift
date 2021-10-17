@@ -978,4 +978,23 @@ class QueryInterfaceRequestTests: GRDBTestCase {
             }
         }
     }
+    
+    // MARK: - Exists
+    
+    func testIsEmpty() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try XCTAssertTrue(tableRequest.isEmpty(db))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"readers\")")
+
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Arthur", 42])
+            try db.execute(sql: "INSERT INTO readers (name, age) VALUES (?, ?)", arguments: ["Barbara", 36])
+            
+            try XCTAssertFalse(tableRequest.isEmpty(db))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"readers\")")
+
+            try XCTAssertFalse(tableRequest.filter(Column("name") == "Arthur").isEmpty(db))
+            XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"readers\" WHERE \"name\" = 'Arthur')")
+        }
+    }
 }
