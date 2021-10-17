@@ -176,7 +176,7 @@ extension TableRecord {
     throws -> Bool
     where PrimaryKeyType: DatabaseValueConvertible
     {
-        try filter(key: key).exists(db)
+        try !filter(key: key).isEmpty(db)
     }
 }
 
@@ -197,7 +197,7 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public static func exists(_ db: Database, id: ID) throws -> Bool {
-        try filter(id: id).exists(db)
+        try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -223,7 +223,7 @@ where Self: Identifiable,
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public static func exists(_ db: Database, id: ID.Wrapped) throws -> Bool {
-        try filter(id: id).exists(db)
+        try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -240,7 +240,7 @@ extension TableRecord {
     ///     - key: A dictionary of values.
     /// - returns: Whether a row exists for this key.
     public static func exists(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
-        try filter(key: key).exists(db)
+        try !filter(key: key).isEmpty(db)
     }
 }
 

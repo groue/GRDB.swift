@@ -1257,7 +1257,7 @@ extension Table {
     throws -> Bool
     where PrimaryKeyType: DatabaseValueConvertible
     {
-        try filter(key: key).exists(db)
+        try !filter(key: key).isEmpty(db)
     }
 }
 
@@ -1281,7 +1281,7 @@ where RowDecoder: Identifiable,
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public func exists(_ db: Database, id: RowDecoder.ID) throws -> Bool {
-        try filter(id: id).exists(db)
+        try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -1306,7 +1306,7 @@ where RowDecoder: Identifiable,
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public func exists(_ db: Database, id: RowDecoder.ID.Wrapped) throws -> Bool {
-        try filter(id: id).exists(db)
+        try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -1323,7 +1323,7 @@ extension Table {
     ///     - key: A dictionary of values.
     /// - returns: Whether a row exists for this key.
     public func exists(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
-        try filter(key: key).exists(db)
+        try !filter(key: key).isEmpty(db)
     }
 }
 

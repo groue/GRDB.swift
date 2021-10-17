@@ -414,14 +414,14 @@ extension QueryInterfaceRequest {
 
 extension QueryInterfaceRequest {
     #warning("TODO: document")
- /// Returns whether a row exists in this request.
+    /// Returns true if the request matches no row in the database.
     ///
-    ///     try Player.filter(Column("name") == "Arthur").exists(db)
+    ///     try Player.filter(Column("name") == "Arthur").isEmpty(db)
     ///
     /// - parameter db: A database connection.
-    /// - returns: Whether a row exists in this request
-    public func exists(_ db: Database) throws -> Bool {
-        try SQLRequest("SELECT \(exists())").fetchOne(db)!
+    /// - returns: Whether the request matches no row in the database.
+    public func isEmpty(_ db: Database) throws -> Bool {
+        try !SQLRequest("SELECT \(exists())").fetchOne(db)!
     }
 }
 
