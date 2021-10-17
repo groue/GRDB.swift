@@ -3942,7 +3942,9 @@ This is the list of record methods, along with their required protocols. The [Re
 | `record.didInsert(with:for:)` | [PersistableRecord] | |
 | **Insert and Update Records** | | |
 | `record.insert(db)` | [PersistableRecord] | |
+| `record.inserted(db)` | [PersistableRecord] | |
 | `record.save(db)` | [PersistableRecord] | |
+| `record.saved(db)` | [PersistableRecord] | |
 | `record.update(db)` | [PersistableRecord] | |
 | `record.update(db, columns:...)` | [PersistableRecord] | |
 | `record.updateChanges(db, from:...)` | [PersistableRecord] | [*](#record-comparison) |
