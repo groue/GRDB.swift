@@ -315,6 +315,8 @@ extension DatabaseReader {
     /// Asynchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// For example:
     ///
     ///     let count = try await reader.read { db in

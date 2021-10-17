@@ -120,6 +120,8 @@ public struct DatabaseMigrator {
     /// migration has not yet been applied, its block is executed in
     /// a transaction.
     ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
@@ -151,6 +153,8 @@ public struct DatabaseMigrator {
     /// Iterate migrations in the same order as they were registered, up to the
     /// provided target. If a migration has not yet been applied, its block is
     /// executed in a transaction.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.

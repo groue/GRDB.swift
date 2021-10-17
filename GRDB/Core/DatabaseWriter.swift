@@ -423,6 +423,8 @@ extension DatabaseWriter {
     /// Asynchronously executes database updates, wrapped inside a transaction,
     /// and returns the result.
     ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// If the updates throw an error, the transaction is rollbacked and the
     /// error is rethrown.
     ///
