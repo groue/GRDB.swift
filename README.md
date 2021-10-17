@@ -2718,7 +2718,7 @@ When a type adopts both TableRecord and [FetchableRecord](#fetchablerecord-proto
 let paris = try Place.filter(nameColumn == "Paris").fetchOne(db)
 ```
 
-TableRecord can also fetch records by primary key and unique keys: see [Fetching by Key](#fetching-by-key).
+TableRecord can also fetch deal with primary and unique keys: see [Fetching by Key](#fetching-by-key) and [Testing for Record Existence](#testing-for-record-existence).
 
 
 ## PersistableRecord Protocol
@@ -2827,27 +2827,29 @@ struct Player: Encodable, MutablePersistableRecord {
 
 ```swift
 // Instance methods
-try place.save(db)                     // INSERT or UPDATE
-try place.insert(db)                   // INSERT
-try place.update(db)                   // UPDATE
-try place.update(db, columns: ...)     // UPDATE
-try place.updateChanges(db, from: ...) // Maybe UPDATE
-try place.updateChanges(db) { ... }    // Maybe UPDATE
-try place.updateChanges(db)            // Maybe UPDATE (Record class only)
-try place.delete(db)                   // DELETE
+try place.save(db)                       // INSERT or UPDATE
+try place.insert(db)                     // INSERT
+try place.update(db)                     // UPDATE
+try place.update(db, columns: ...)       // UPDATE
+try place.updateChanges(db, from: ...)   // Maybe UPDATE
+try place.updateChanges(db) { ... }      // Maybe UPDATE
+try place.updateChanges(db)              // Maybe UPDATE (Record class only)
+try place.delete(db)                     // DELETE
 try place.exists(db)
+let savedPlace = try place.saved(db)     // INSERT or UPDATE (non-mutating)
+let insertedPlace try place.inserted(db) // INSERT (non-mutating)
 ```
 
 The [TableRecord] protocol comes with batch operations:
 
 ```swift
 // Type methods
-try Place.updateAll(db, ...)               // UPDATE
-try Place.deleteAll(db)                    // DELETE
-try Place.deleteAll(db, ids:...)           // DELETE
-try Place.deleteAll(db, keys:...)          // DELETE
-try Place.deleteOne(db, id:...)            // DELETE
-try Place.deleteOne(db, key:...)           // DELETE
+try Place.updateAll(db, ...)             // UPDATE
+try Place.deleteAll(db)                  // DELETE
+try Place.deleteAll(db, ids:...)         // DELETE
+try Place.deleteAll(db, keys:...)        // DELETE
+try Place.deleteOne(db, id:...)          // DELETE
+try Place.deleteOne(db, key:...)         // DELETE
 ```
 
 - `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling).
@@ -3958,6 +3960,9 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.filter(...).deleteAll(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Check Record Existence** | | |
 | `record.exists(db)` | [PersistableRecord] | |
+| `Type.exists(db, key: ...)` | [TableRecord] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.exists(db, id: ...)` | [TableRecord] & [Identifiable] | <a href="#list-of-record-methods-1">¹</a> |
+| `Type.filter(...).isEmpty(db)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | **Convert Record to Dictionary** | | |
 | `record.databaseDictionary` | [EncodableRecord] | |
 | **Count Records** | | |
@@ -4139,6 +4144,7 @@ So don't miss the [SQL API](#sqlite-api).
     - [SQL Functions](#sql-functions)
 - [Fetching from Requests]
 - [Fetching by Key](#fetching-by-key)
+- [Testing for Record Existence](#testing-for-record-existence)
 - [Fetching Aggregated Values](#fetching-aggregated-values)
 - [Delete Requests](#delete-requests)
 - [Update Requests](#update-requests)
@@ -5130,7 +5136,7 @@ When the table has no explicit primary key, GRDB uses the [hidden "rowid" column
 
 ```swift
 // SELECT * FROM document WHERE rowid = 1
-try Document.fetchOne(db, id: 1)             // Document?
+try Document.fetchOne(db, key: 1)            // Document?
 ```
 
 **When you want to build a request and plan to fetch from it later**, use a `filter` method:
@@ -5140,6 +5146,54 @@ let request = Player.filter(id: 1)
 let request = Country.filter(ids: ["FR", "US"])
 let request = Player.filter(key: ["email": "arthur@example.com"])
 let request = Citizenship.filter(key: ["citizenId": 1, "countryCode": "FR"])
+```
+
+
+## Testing for Record Existence
+
+**You can check if a request has matching rows in the database.**
+
+```swift
+// Some request based on `Player`
+let request = Player.filter(...)...
+
+// Check for player existence:
+let noSuchPlayer = try request.isEmpty(db) // Bool
+```
+
+Checking for emptiness is lighter than counting:
+
+```swift
+// Correct
+let noSuchPlayer = try request.fetchCount(db) == 0
+// Even better
+let noSuchPlayer = try request.isEmpty(db)
+
+**You can also check if there exists a row in the database for a given primary or unique key.**
+
+[Identifiable Records] can use the type-safe method `exists(_:id:)`:
+
+```swift
+try Player.exists(db, id: 1)
+try Country.exists(db, id: "FR")
+```
+
+All record types can use `exists(_:key:)` that can check primary and unique keys:
+
+```swift
+try Player.exists(db, key: 1)
+try Country.exists(db, key: "FR")
+try Player.exists(db, key: ["email": "arthur@example.com"])
+try Citizenship.exists(db, key: ["citizenId": 1, "countryCode": "FR"])
+```
+
+Checking for key existence is lighter than fetching a record for a given key and checking for nil:
+
+```swift
+// Correct
+let playerExists = try Player.fetchOne(db, key: 1) != nil
+// Even better
+let playerExists = try Player.exists(db, key: 1)
 ```
 
 
