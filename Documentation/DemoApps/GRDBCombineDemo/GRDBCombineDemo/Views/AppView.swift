@@ -8,9 +8,12 @@ struct AppView: View {
     /// The `players` property is kept up-to-date with the list of players.
     @Query(PlayerRequest(ordering: .byScore)) private var players: [Player]
     
+    /// We'll need to leave edit mode in several occasions.
+    @State private var editMode = EditMode.inactive
+    
     /// Tracks the presentation of the player creation sheet.
     @State private var newPlayerIsPresented = false
-
+    
     // If you want to define the query on initialization, you will prefer:
     //
     // @Query<PlayerRequest> private var players: [Player]
@@ -28,62 +31,103 @@ struct AppView: View {
                         EditButton()
                         newPlayerButton
                     },
-                    trailing: ToggleOrderingButton(ordering: $players.ordering))
+                    trailing: ToggleOrderingButton(
+                        ordering: $players.ordering,
+                        willChange: {
+                            // onChange(of: $players.wrappedValue.ordering)
+                            // reveals a bug in SwiftUI: the List remains in
+                            // editing mode if the editMode is changed during
+                            // the animation of the list content.
+                            // Word around: stop editing *before* the ordering
+                            // is changed, and the list content is updated.
+                            stopEditing()
+                        }))
                 .toolbar { toolbarContent }
+                .onChange(of: players) { players in
+                    if players.isEmpty {
+                        stopEditing()
+                    }
+                }
+                .environment(\.editMode, $editMode)
         }
     }
     
     private var toolbarContent: some ToolbarContent {
         ToolbarItemGroup(placement: .bottomBar) {
-            Button(
-                action: { try? appDatabase.deleteAllPlayers() },
-                label: { Image(systemName: "trash").imageScale(.large) })
+            Button {
+                // Don't stopEditing() here because this is
+                // performed `onChange(of: players)`
+                try! appDatabase.deleteAllPlayers()
+            } label: {
+                Image(systemName: "trash").imageScale(.large)
+            }
+            
             Spacer()
-            Button(
-                action: { try? appDatabase.refreshPlayers() },
-                label: { Image(systemName: "arrow.clockwise").imageScale(.large) })
+            
+            Button {
+                stopEditing()
+                try! appDatabase.refreshPlayers()
+            } label: {
+                Image(systemName: "arrow.clockwise").imageScale(.large)
+            }
+            
+            Spacer()
+            
+            Button {
+                stopEditing()
+                // Perform 50 refreshes in parallel
+                for _ in 0..<50 {
+                    DispatchQueue.global().async {
+                        try! AppDatabase.shared.refreshPlayers()
+                    }
+                }
+            } label: {
+                Image(systemName: "tornado").imageScale(.large)
+            }
         }
     }
     
     /// The button that presents the player creation sheet.
     private var newPlayerButton: some View {
-        Button(
-            action: { newPlayerIsPresented = true },
-            label: { Image(systemName: "plus") })
-            .accessibility(label: Text("New Player"))
-            .sheet(
-                isPresented: $newPlayerIsPresented,
-                content: {
-                    PlayerCreationView(dismissAction: {
-                        newPlayerIsPresented = false
-                    })
-                })
+        Button {
+            stopEditing()
+            newPlayerIsPresented = true
+        } label: {
+            Image(systemName: "plus")
+        }
+        .accessibility(label: Text("New Player"))
+        .sheet(isPresented: $newPlayerIsPresented) {
+            PlayerCreationView()
+        }
+    }
+    
+    private func stopEditing() {
+        withAnimation {
+            editMode = .inactive
+        }
     }
 }
 
 private struct ToggleOrderingButton: View {
     @Binding var ordering: PlayerRequest.Ordering
+    let willChange: () -> Void
     
     var body: some View {
         switch ordering {
         case .byName:
-            Button(
-                action: { ordering = .byScore },
-                label: {
-                    HStack {
-                        Text("Name")
-                        Image(systemName: "arrowtriangle.up.fill")
-                    }
-                })
+            Button {
+                willChange()
+                ordering = .byScore
+            } label: {
+                Label("Name", systemImage: "arrowtriangle.up.fill").labelStyle(.titleAndIcon)
+            }
         case .byScore:
-            Button(
-                action: { ordering = .byName },
-                label: {
-                    HStack {
-                        Text("Score")
-                        Image(systemName: "arrowtriangle.down.fill")
-                    }
-                })
+            Button {
+                willChange()
+                ordering = .byName
+            } label: {
+                Label("Score", systemImage: "arrowtriangle.down.fill").labelStyle(.titleAndIcon)
+            }
         }
     }
 }
