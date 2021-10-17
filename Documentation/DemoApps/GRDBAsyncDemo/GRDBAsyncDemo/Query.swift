@@ -25,11 +25,53 @@
 // A property wrapper inspired from
 // https://davedelong.com/blog/2021/04/03/core-data-and-swiftui/
 //
+// You can copy this file into your project, source code and license.
+//
 
-import GRDB
 import SwiftUI
 
+/// The environment key that lets SwiftUI access the database.
+private struct AppDatabaseKey: EnvironmentKey {
+    /// The default appDatabase is an empty in-memory database
+    static var defaultValue: AppDatabase { .empty() }
+}
+
+extension EnvironmentValues {
+    /// The environment value that lets SwiftUI access the database.
+    ///
+    /// Usage:
+    ///
+    ///     struct MyView {
+    ///         @Environment(\.appDatabase) private var appDatabase
+    ///
+    ///         var body: some View {
+    ///             Button {
+    ///                 try {
+    ///                     try appDatabase.deleteAllPlayers()
+    ///                 } catch { ... }
+    ///             } label: { Image(systemName: "trash") }
+    ///         }
+    ///     }
+    var appDatabase: AppDatabase {
+        get { self[AppDatabaseKey.self] }
+        set { self[AppDatabaseKey.self] = newValue }
+    }
+}
+
 /// The protocol that feeds the `@Query` property wrapper.
+///
+/// For example:
+///
+///     // Tracks the number of players
+///     struct PlayerCount: Queryable {
+///         static var defaultValue: Int { 0 }
+///
+///         func values(in appDatabase: AppDatabase) -> AsyncValueObservation<Int> {
+///             ValueObservation
+///                 .trackingConstantRegion(Player.fetchCount)
+///                 .values(in: appDatabase.databaseReader, scheduling: .immediate)
+///         }
+///     }
 protocol Queryable: Equatable {
     /// The type of the sequence of database values
     associatedtype Sequence: AsyncSequence
@@ -44,7 +86,29 @@ protocol Queryable: Equatable {
     func values(in appDatabase: AppDatabase) -> Sequence
 }
 
-/// The property wrapper that observes a database query
+/// The property wrapper that tells SwiftUI about changes in the database.
+/// See `Queryable`.
+///
+/// For example:
+///
+///     // Tracks the number of players
+///     struct PlayerCount: Queryable {
+///         static var defaultValue: Int { 0 }
+///
+///         func values(in appDatabase: AppDatabase) -> AsyncValueObservation<Int> {
+///             ValueObservation
+///                 .trackingConstantRegion(Player.fetchCount)
+///                 .values(in: appDatabase.databaseReader, scheduling: .immediate)
+///         }
+///     }
+///
+///     struct MyView {
+///         @Query(PlayerCount()) private var playerCount
+///
+///         var body: some View {
+///             Text("\(playerCount) Players")
+///         }
+///     }
 @propertyWrapper
 struct Query<Query: Queryable>: DynamicProperty {
     /// Database access
