@@ -5163,15 +5163,16 @@ let request = Player.filter(...)...
 let noSuchPlayer = try request.isEmpty(db) // Bool
 ```
 
-Checking for emptiness is lighter than counting:
+You should check for emptiness instead of counting:
 
 ```swift
 // Correct
 let noSuchPlayer = try request.fetchCount(db) == 0
 // Even better
 let noSuchPlayer = try request.isEmpty(db)
+```
 
-**You can also check if there exists a row in the database for a given primary or unique key.**
+**You can also check if a given primary or unique key exists in the database.**
 
 [Identifiable Records] can use the type-safe method `exists(_:id:)`:
 
@@ -5189,13 +5190,13 @@ try Player.exists(db, key: ["email": "arthur@example.com"])
 try Citizenship.exists(db, key: ["citizenId": 1, "countryCode": "FR"])
 ```
 
-Checking for key existence is lighter than fetching a record for a given key and checking for nil:
+You should check for key existence instead of fetching a record and checking for nil:
 
 ```swift
 // Correct
-let playerExists = try Player.fetchOne(db, key: 1) != nil
+let playerExists = try Player.fetchOne(db, id: 1) != nil
 // Even better
-let playerExists = try Player.exists(db, key: 1)
+let playerExists = try Player.exists(db, id: 1)
 ```
 
 
