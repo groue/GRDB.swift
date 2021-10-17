@@ -1268,13 +1268,13 @@ where RowDecoder: Identifiable,
 {
     /// Returns whether a row exists for this primary key.
     ///
-    ///     try Player.exists(db, id: 123)
-    ///     try Country.exists(db, id: "FR")
+    ///     try Table<Player>("player").exists(db, id: 123)
+    ///     try Table<Country>("player").exists(db, id: "FR")
     ///
     /// When the table has no explicit primary key, GRDB uses the hidden
     /// "rowid" column:
     ///
-    ///     try Document.exists(db, id: 1)
+    ///     try Table<Document>("document").exists(db, id: 1)
     ///
     /// - parameters:
     ///     - db: A database connection.
@@ -1434,16 +1434,16 @@ where RowDecoder: Identifiable,
     /// database row was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, id: 123)
+    ///     try Table<Player>("player").deleteOne(db, id: 123)
     ///
     ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Country.deleteOne(db, id: "FR")
+    ///     try Table<Country>("country").deleteOne(db, id: "FR")
     ///
     /// When the table has no explicit primary key, GRDB uses the hidden
     /// "rowid" column:
     ///
     ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, id: 1)
+    ///     try Table<Document>("document").deleteOne(db, id: 1)
     ///
     /// - parameters:
     ///     - db: A database connection.
