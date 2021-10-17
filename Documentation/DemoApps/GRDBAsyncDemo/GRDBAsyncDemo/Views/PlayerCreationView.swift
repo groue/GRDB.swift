@@ -4,20 +4,19 @@ import SwiftUI
 struct PlayerCreationView: View {
     @Environment(\.appDatabase) private var appDatabase
     @Environment(\.dismiss) private var dismiss
-    @State private var name = ""
-    @State private var score = ""
+    @State private var form = PlayerForm(name: "", score: "")
     @State private var errorAlertIsPresented = false
     @State private var errorAlertTitle = ""
     
     var body: some View {
         NavigationView {
-            PlayerFormView(name: $name, score: $score)
+            PlayerFormView(form: $form)
                 .alert(
                     isPresented: $errorAlertIsPresented,
                     content: { Alert(title: Text(errorAlertTitle)) })
                 .navigationBarTitle("New Player")
                 .navigationBarItems(
-                    leading: Button {
+                    leading: Button(role: .cancel) {
                         dismiss()
                     } label: {
                         Text("Cancel")
@@ -32,7 +31,8 @@ struct PlayerCreationView: View {
     
     private func save() async {
         do {
-            var player = Player(id: nil, name: name, score: Int(score) ?? 0)
+            var player = Player(id: nil, name: "", score: 0)
+            form.apply(to: &player)
             try await appDatabase.savePlayer(&player)
             dismiss()
         } catch {

@@ -3,18 +3,22 @@ import SwiftUI
 /// The view that edits an existing player.
 struct PlayerEditionView: View {
     @Environment(\.appDatabase) private var appDatabase
-    @State var player: Player
+    private let player: Player
+    @State private var form: PlayerForm
+    
+    init(player: Player) {
+        self.player = player
+        self.form = PlayerForm(player)
+    }
     
     var body: some View {
-        PlayerFormView(
-            name: $player.name,
-            score: Binding(
-                get: { "\(player.score)" },
-                set: { player.score = Int($0) ?? 0 }))
+        PlayerFormView(form: $form)
             .onDisappear {
                 Task {
                     // save and ignore error
-                    try? await appDatabase.savePlayer(&player)
+                    var savedPlayer = player
+                    form.apply(to: &savedPlayer)
+                    try? await appDatabase.savePlayer(&savedPlayer)
                 }
             }
     }
