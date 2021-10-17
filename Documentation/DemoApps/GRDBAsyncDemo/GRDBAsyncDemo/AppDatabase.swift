@@ -141,8 +141,7 @@ extension AppDatabase {
     func createPlayersForUITests() throws {
         try dbWriter.write { db in
             try AppDatabase.uiTestPlayers.forEach { player in
-                var mutablePlayer = player
-                try mutablePlayer.save(db)
+                _ = try player.inserted(db) // insert but ignore inserted id
             }
         }
     }
