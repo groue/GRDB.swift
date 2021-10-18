@@ -1,9 +1,18 @@
 import Combine
 import GRDB
 
-/// A player request defines how to feed the player list.
+/// A player request can be used with the `@Query` property wrapper in order to
+/// feed a view with a list of players.
 ///
-/// It can be used with the `@Query` property wrapper.
+/// For example:
+///
+///     struct MyView: View {
+///         @Query(PlayerRequest(ordering: .byName)) private var players: [Player]
+///
+///         var body: some View {
+///             List(players) { player in ... )
+///         }
+///     }
 struct PlayerRequest: Queryable {
     enum Ordering {
         case byScore
@@ -22,7 +31,9 @@ struct PlayerRequest: Queryable {
         // Some apps will prefer to call a dedicated method of `appDatabase`.
         ValueObservation
             .trackingConstantRegion(fetchValue(_:))
-            .publisher(in: appDatabase.databaseReader, scheduling: .immediate)
+            .publisher(
+                in: appDatabase.databaseReader,
+                scheduling: .immediate) // Feed the view without delay
             .eraseToAnyPublisher()
     }
     

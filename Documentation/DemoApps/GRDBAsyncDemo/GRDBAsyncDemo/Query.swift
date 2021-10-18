@@ -28,6 +28,7 @@
 // You can copy this file into your project, source code and license.
 //
 
+import Combine
 import SwiftUI
 
 /// The environment key that lets SwiftUI access the database.
@@ -66,24 +67,22 @@ extension EnvironmentValues {
 ///     struct PlayerCount: Queryable {
 ///         static var defaultValue: Int { 0 }
 ///
-///         func values(in appDatabase: AppDatabase) -> AsyncValueObservation<Int> {
+///         func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
 ///             ValueObservation
 ///                 .trackingConstantRegion(Player.fetchCount)
-///                 .values(in: appDatabase.databaseReader, scheduling: .immediate)
+///                 .publisher(in: appDatabase.databaseReader, scheduling: .immediate)
+///                 .eraseToAnyPublisher()
 ///         }
 ///     }
 protocol Queryable: Equatable {
-    /// The type of the sequence of database values
-    associatedtype Sequence: AsyncSequence
-    
-    /// The type of the database values
-    typealias Value = Sequence.Element
+    /// The type of the fetched value
+    associatedtype Value
     
     /// The default value, used whenever the database is not available
     static var defaultValue: Value { get }
     
-    /// Returns an asynchronous sequence of database values.
-    func values(in appDatabase: AppDatabase) -> Sequence
+    /// Returns a publisher of database values
+    func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<Value, Error>
 }
 
 /// The property wrapper that tells SwiftUI about changes in the database.
@@ -95,10 +94,11 @@ protocol Queryable: Equatable {
 ///     struct PlayerCount: Queryable {
 ///         static var defaultValue: Int { 0 }
 ///
-///         func values(in appDatabase: AppDatabase) -> AsyncValueObservation<Int> {
+///         func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
 ///             ValueObservation
 ///                 .trackingConstantRegion(Player.fetchCount)
-///                 .values(in: appDatabase.databaseReader, scheduling: .immediate)
+///                 .publisher(in: appDatabase.databaseReader, scheduling: .immediate)
+///                 .eraseToAnyPublisher()
 ///         }
 ///     }
 ///
@@ -152,12 +152,11 @@ struct Query<Query: Queryable>: DynamicProperty {
                 if query != newValue {
                     // Stop tracking, and tell SwiftUI about the update
                     objectWillChange.send()
-                    task?.cancel()
-                    task = nil
+                    cancellable = nil
                 }
             }
         }
-        private var task: Task<Void, Error>?
+        private var cancellable: AnyCancellable?
         
         init() { }
         
@@ -167,18 +166,23 @@ struct Query<Query: Queryable>: DynamicProperty {
                 return
             }
             
-            guard task == nil else {
+            guard cancellable == nil else {
                 // Already tracking
                 return
             }
             
-            task = Task { @MainActor in
-                for try await value in query.values(in: appDatabase) {
-                    if Task.isCancelled { break }
-                    self.objectWillChange.send()
-                    self.value = value
-                }
-            }
+            cancellable = query
+                .valuePublisher(in: appDatabase)
+                .sink(
+                    receiveCompletion: { _ in
+                        // Ignore errors
+                    },
+                    receiveValue: { [weak self] value in
+                        guard let self = self else { return }
+                        // Tell SwiftUI about the new value
+                        self.objectWillChange.send()
+                        self.value = value
+                    })
         }
     }
 }

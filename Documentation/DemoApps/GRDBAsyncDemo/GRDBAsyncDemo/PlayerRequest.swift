@@ -1,8 +1,18 @@
+import Combine
 import GRDB
 
-/// A player request defines how to feed the player list.
+/// A player request can be used with the `@Query` property wrapper in order to
+/// feed a view with a list of players.
 ///
-/// It can be used with the `@Query` property wrapper.
+/// For example:
+///
+///     struct MyView: View {
+///         @Query(PlayerRequest(ordering: .byName)) private var players: [Player]
+///
+///         var body: some View {
+///             List(players) { player in ... )
+///         }
+///     }
 struct PlayerRequest: Queryable {
     enum Ordering {
         case byScore
@@ -15,13 +25,16 @@ struct PlayerRequest: Queryable {
     
     static var defaultValue: [Player] { [] }
     
-    func values(in appDatabase: AppDatabase) -> AsyncValueObservation<[Player]> {
-        // Build the async sequence from the general-purpose read-only access
+    func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
+        // Build the publisher from the general-purpose read-only access
         // granted by `appDatabase.databaseReader`.
         // Some apps will prefer to call a dedicated method of `appDatabase`.
         ValueObservation
             .trackingConstantRegion(fetchValue(_:))
-            .values(in: appDatabase.databaseReader, scheduling: .immediate)
+            .publisher(
+                in: appDatabase.databaseReader,
+                scheduling: .immediate) // Feed the view without delay
+            .eraseToAnyPublisher()
     }
     
     // This method is not required by Queryable, but it makes it easier
