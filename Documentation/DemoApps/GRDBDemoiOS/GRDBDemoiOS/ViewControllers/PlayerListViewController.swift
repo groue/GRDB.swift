@@ -33,18 +33,29 @@ class PlayerListViewController: UITableViewController {
     
     private func configureToolbar() {
         toolbarItems = [
-            UIBarButtonItem(barButtonSystemItem: .trash, target: self, action: #selector(deletePlayers)),
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refresh)),
-            UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil),
-            UIBarButtonItem(image: UIImage(systemName: "tornado"), style: .plain, target: self, action: #selector(stressTest)),
+            UIBarButtonItem(systemItem: .trash, primaryAction: UIAction { [unowned self] _ in
+                setEditing(false, animated: true)
+                try! AppDatabase.shared.deleteAllPlayers()
+            }),
+            UIBarButtonItem(systemItem: .flexibleSpace),
+            UIBarButtonItem(systemItem: .refresh, primaryAction: UIAction { [unowned self] _ in
+                setEditing(false, animated: true)
+                try! AppDatabase.shared.refreshPlayers()
+            }),
+            UIBarButtonItem(systemItem: .flexibleSpace),
+            UIBarButtonItem(image: UIImage(systemName: "tornado"), primaryAction: UIAction { [unowned self] _ in
+                setEditing(false, animated: true)
+                for _ in 0..<50 {
+                    DispatchQueue.global().async {
+                        try! AppDatabase.shared.refreshPlayers()
+                    }
+                }
+            }),
         ]
     }
     
     private func configureNavigationItem() {
-        navigationItem.backBarButtonItem = UIBarButtonItem(
-            title: "Players", style: .plain,
-            target: nil, action: nil)
+        navigationItem.backBarButtonItem = UIBarButtonItem(title: "Players")
         navigationItem.leftBarButtonItems = [editButtonItem, newPlayerButtonItem]
         configureOrderingBarButtonItem()
     }
@@ -54,13 +65,17 @@ class PlayerListViewController: UITableViewController {
         case .byScore:
             navigationItem.rightBarButtonItem = UIBarButtonItem(
                 title: "Score ▼",
-                style: .plain,
-                target: self, action: #selector(sortByName))
+                primaryAction: UIAction { [unowned self] _ in
+                    setEditing(false, animated: true)
+                    playerOrdering = .byName
+                })
         case .byName:
             navigationItem.rightBarButtonItem = UIBarButtonItem(
                 title: "Name ▲",
-                style: .plain,
-                target: self, action: #selector(sortByScore))
+                primaryAction: UIAction { [unowned self] _ in
+                    setEditing(false, animated: true)
+                    playerOrdering = .byScore
+                })
         }
     }
     
@@ -160,40 +175,6 @@ private class PlayerDataSource: UITableViewDiffableDataSource<Int, Player> {
         // Delete the player
         if let player = itemIdentifier(for: indexPath), let id = player.id {
             try! AppDatabase.shared.deletePlayers(ids: [id])
-        }
-    }
-}
-
-
-// MARK: - Actions
-
-extension PlayerListViewController {
-    @IBAction func sortByName() {
-        setEditing(false, animated: true)
-        playerOrdering = .byName
-    }
-    
-    @IBAction func sortByScore() {
-        setEditing(false, animated: true)
-        playerOrdering = .byScore
-    }
-    
-    @IBAction func deletePlayers() {
-        setEditing(false, animated: true)
-        try! AppDatabase.shared.deleteAllPlayers()
-    }
-    
-    @IBAction func refresh() {
-        setEditing(false, animated: true)
-        try! AppDatabase.shared.refreshPlayers()
-    }
-    
-    @IBAction func stressTest() {
-        setEditing(false, animated: true)
-        for _ in 0..<50 {
-            DispatchQueue.global().async {
-                try! AppDatabase.shared.refreshPlayers()
-            }
         }
     }
 }
