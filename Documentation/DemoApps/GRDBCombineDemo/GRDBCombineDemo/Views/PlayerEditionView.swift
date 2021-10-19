@@ -25,7 +25,7 @@ struct PlayerEditionView: View {
 struct PlayerEditionView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            PlayerEditionView(player: Player.newRandom())
+            PlayerEditionView(player: Player.makeRandom())
                 .navigationBarTitle("Player Edition")
         }
     }
