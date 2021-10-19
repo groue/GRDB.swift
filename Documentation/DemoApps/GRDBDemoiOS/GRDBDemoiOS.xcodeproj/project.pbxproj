@@ -309,13 +309,13 @@
 		56B036051E8D9EBE003B6DA4 /* GRDBDemoiOS */ = {
 			isa = PBXGroup;
 			children = (
+				56B036121E8D9EBE003B6DA4 /* Info.plist */,
 				56B036191E8D9F38003B6DA4 /* AppDatabase.swift */,
 				56B036061E8D9EBE003B6DA4 /* AppDelegate.swift */,
 				56185BBE25B8036100B9C30F /* Persistence.swift */,
 				56B0361A1E8D9F38003B6DA4 /* Player.swift */,
 				56FE6F2524A90CE400711EDF /* SceneDelegate.swift */,
 				56FE6F4E24A9112900711EDF /* Resources */,
-				56FE6F5124A9118000711EDF /* Support */,
 				56FE6F4F24A9114200711EDF /* ViewControllers */,
 			);
 			path = GRDBDemoiOS;
@@ -338,14 +338,6 @@
 				56B036201E8D9F4C003B6DA4 /* PlayerListViewController.swift */,
 			);
 			path = ViewControllers;
-			sourceTree = "<group>";
-		};
-		56FE6F5124A9118000711EDF /* Support */ = {
-			isa = PBXGroup;
-			children = (
-				56B036121E8D9EBE003B6DA4 /* Info.plist */,
-			);
-			name = Support;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
