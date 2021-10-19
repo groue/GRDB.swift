@@ -30,7 +30,7 @@ struct PlayerRequest: Queryable {
         // granted by `appDatabase.databaseReader`.
         // Some apps will prefer to call a dedicated method of `appDatabase`.
         ValueObservation
-            .trackingConstantRegion(fetchValue(_:))
+            .tracking(fetchValue(_:))
             .publisher(
                 in: appDatabase.databaseReader,
                 // Immediate scheduling feeds the view right on subscription,

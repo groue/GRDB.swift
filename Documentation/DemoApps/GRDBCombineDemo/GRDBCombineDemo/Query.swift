@@ -69,7 +69,7 @@ extension EnvironmentValues {
 ///
 ///         func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
 ///             ValueObservation
-///                 .trackingConstantRegion(Player.fetchCount)
+///                 .tracking(Player.fetchCount)
 ///                 .publisher(in: appDatabase.databaseReader, scheduling: .immediate)
 ///                 .eraseToAnyPublisher()
 ///         }
@@ -96,7 +96,7 @@ protocol Queryable: Equatable {
 ///
 ///         func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
 ///             ValueObservation
-///                 .trackingConstantRegion(Player.fetchCount)
+///                 .tracking(Player.fetchCount)
 ///                 .publisher(in: appDatabase.databaseReader, scheduling: .immediate)
 ///                 .eraseToAnyPublisher()
 ///         }
