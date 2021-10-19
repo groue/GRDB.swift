@@ -126,26 +126,16 @@ class PlayerListViewController: UITableViewController {
 // MARK: - Navigation
 
 extension PlayerListViewController {
+    @IBSegueAction func makePlayerEditionViewController(_ coder: NSCoder) -> PlayerEditionViewController? {
+        guard let indexPath = tableView.indexPathForSelectedRow,
+              let player = dataSource.itemIdentifier(for: indexPath)
+        else { return nil }
+        return PlayerEditionViewController(coder, mode: .edition, player: player)
+    }
     
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if segue.identifier == "Edit" {
-            guard let controller = segue.destination as? PlayerEditionViewController,
-                  let indexPath = tableView.indexPathForSelectedRow,
-                  let player = dataSource.itemIdentifier(for: indexPath)
-            else { return }
-            controller.title = player.name
-            controller.player = player
-            controller.presentation = .push
-        }
-        else if segue.identifier == "New" {
-            guard let navigationController = segue.destination as? UINavigationController,
-                  let controller = navigationController.viewControllers.first as? PlayerEditionViewController
-            else { return }
-            setEditing(false, animated: true)
-            controller.title = "New Player"
-            controller.player = Player(id: nil, name: "", score: 0)
-            controller.presentation = .modal
-        }
+    @IBSegueAction func makePlayerCreationViewController(_ coder: NSCoder) -> PlayerEditionViewController? {
+        let player = Player(id: nil, name: "", score: 0)
+        return PlayerEditionViewController(coder, mode: .creation, player: player)
     }
     
     @IBAction func cancelPlayerEdition(_ segue: UIStoryboardSegue) {
