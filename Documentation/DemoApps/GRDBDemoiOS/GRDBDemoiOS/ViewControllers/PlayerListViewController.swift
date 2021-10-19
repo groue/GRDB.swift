@@ -10,7 +10,6 @@ class PlayerListViewController: UITableViewController {
     
     @IBOutlet private weak var newPlayerButtonItem: UIBarButtonItem!
     private var dataSource: PlayerDataSource!
-    private var animatesPlayersChange = false // Don't animate first update
     private var playersCancellable: DatabaseCancellable?
     private var playerOrdering: PlayerOrdering = .byScore {
         didSet {
@@ -95,35 +94,29 @@ class PlayerListViewController: UITableViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Int, Player>()
         snapshot.appendSections([0])
         snapshot.appendItems(players, toSection: 0)
-        
-        if animatesPlayersChange {
-            dataSource.apply(snapshot, animatingDifferences: true, completion: nil)
-        } else {
-            // Future updates will be animated
-            animatesPlayersChange = true
-            dataSource.apply(snapshot, animatingDifferences: false, completion: nil)
-        }
+        dataSource.apply(snapshot, animatingDifferences: true, completion: nil)
     }
     
     private func observePlayers() {
+        let request: QueryInterfaceRequest<Player>
         switch playerOrdering {
         case .byName:
-            playersCancellable = AppDatabase.shared.observePlayersOrderedByName(
-                onError: { error in fatalError("Unexpected error: \(error)") },
-                onChange: { [weak self] players in
-                    guard let self = self else { return }
-                    self.configureTitle(from: players)
-                    self.configureDataSource(from: players)
-                })
+            request = Player.all().orderedByName()
         case .byScore:
-            playersCancellable = AppDatabase.shared.observePlayersOrderedByScore(
+            request = Player.all().orderedByScore()
+        }
+        
+        playersCancellable = ValueObservation
+            .tracking(request.fetchAll(_:))
+            .start(
+                in: AppDatabase.shared.databaseReader,
+                scheduling: .immediate,
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
                     guard let self = self else { return }
                     self.configureTitle(from: players)
                     self.configureDataSource(from: players)
                 })
-        }
     }
 }
 

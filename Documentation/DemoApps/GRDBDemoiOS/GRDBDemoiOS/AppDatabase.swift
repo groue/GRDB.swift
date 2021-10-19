@@ -121,32 +121,13 @@ extension AppDatabase {
 
 // MARK: - Database Access: Reads
 
+// This demo app does not provide any specific reading method, and instead
+// gives an unrestricted read-only access to the rest of the application.
+// In your app, you are free to choose another path, and define focused
+// reading methods.
 extension AppDatabase {
-    /// Tracks changes in players ordered by name
-    func observePlayersOrderedByName(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping ([Player]) -> Void)
-    -> DatabaseCancellable
-    {
-        ValueObservation
-            .tracking(Player.all().orderedByName().fetchAll)
-            .start(
-                in: dbWriter,
-                onError: onError,
-                onChange: onChange)
-    }
-    
-    /// Tracks changes in players ordered by score
-    func observePlayersOrderedByScore(
-        onError: @escaping (Error) -> Void,
-        onChange: @escaping ([Player]) -> Void)
-    -> DatabaseCancellable
-    {
-        ValueObservation
-            .tracking(Player.all().orderedByScore().fetchAll)
-            .start(
-                in: dbWriter,
-                onError: onError,
-                onChange: onChange)
+    /// Provides a read-only access to the database
+    var databaseReader: DatabaseReader {
+        dbWriter
     }
 }

@@ -155,6 +155,10 @@ extension AppDatabase {
 
 // MARK: - Database Access: Reads
 
+// This demo app does not provide any specific reading method, and instead
+// gives an unrestricted read-only access to the rest of the application.
+// In your app, you are free to choose another path, and define focused
+// reading methods.
 extension AppDatabase {
     /// Provides a read-only access to the database
     var databaseReader: DatabaseReader {
