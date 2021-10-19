@@ -110,6 +110,8 @@ class PlayerListViewController: UITableViewController {
             .tracking(request.fetchAll(_:))
             .start(
                 in: AppDatabase.shared.databaseReader,
+                // Immediate scheduling feeds the data source right on subscription,
+                // and avoids an undesired animation when the application starts.
                 scheduling: .immediate,
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in

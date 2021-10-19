@@ -33,7 +33,9 @@ struct PlayerRequest: Queryable {
             .trackingConstantRegion(fetchValue(_:))
             .publisher(
                 in: appDatabase.databaseReader,
-                scheduling: .immediate) // Feed the view without delay
+                // Immediate scheduling feeds the view right on subscription,
+                // and avoids an undesired animation when the application starts.
+                scheduling: .immediate)
             .eraseToAnyPublisher()
     }
     
