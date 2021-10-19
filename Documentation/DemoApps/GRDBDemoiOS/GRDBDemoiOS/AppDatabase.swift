@@ -84,8 +84,7 @@ extension AppDatabase {
             } else {
                 // Insert a player
                 if Bool.random() {
-                    var player = Player.newRandom()
-                    try player.insert(db)
+                    _ = try Player.newRandom().inserted(db) // insert but ignore inserted id
                 }
                 
                 // Delete a random player
@@ -115,8 +114,7 @@ extension AppDatabase {
     /// Support for `createRandomPlayersIfEmpty()` and `refreshPlayers()`.
     private func createRandomPlayers(_ db: Database) throws {
         for _ in 0..<8 {
-            var player = Player.newRandom()
-            try player.insert(db)
+            _ = try Player.newRandom().inserted(db) // insert but ignore inserted id
         }
     }
 }
