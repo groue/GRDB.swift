@@ -215,6 +215,9 @@ extension ValueObservation: Refinable {
 extension ValueObservation {
     // MARK: - Asynchronous Observation
     
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    public typealias BufferingPolicy = AsyncThrowingStream<Reducer.Value, Error>.Continuation.BufferingPolicy
+    
     /// The database observation, as an asynchronous sequence of
     /// database changes.
     ///
@@ -226,10 +229,11 @@ extension ValueObservation {
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func values(
         in reader: DatabaseReader,
-        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
+        scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
+        bufferingPolicy: BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
     {
-        AsyncValueObservation { onError, onChange in
+        AsyncValueObservation(bufferingPolicy: bufferingPolicy) { onError, onChange in
             self.start(in: reader, scheduling: scheduler, onError: onError, onChange: onChange)
         }
     }
@@ -255,15 +259,14 @@ extension ValueObservation {
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 public struct AsyncValueObservation<Element>: AsyncSequence {
     public typealias AsyncIterator = Iterator
+    typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     typealias StartFunction = (
         _ onError: @escaping (Error) -> Void,
         _ onChange: @escaping (Element) -> Void)
         -> DatabaseCancellable
-    private var start: StartFunction
     
-    init(start: @escaping StartFunction) {
-        self.start = start
-    }
+    var bufferingPolicy: BufferingPolicy
+    var start: StartFunction
     
     public func makeAsyncIterator() -> Iterator {
         // This cancellable will be retained by the Iterator, which itself will
@@ -273,7 +276,7 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
         // cancel the observation when the Swift async runtime releases
         // the iterator.
         var cancellable: AnyDatabaseCancellable?
-        let stream = AsyncThrowingStream(Element.self, bufferingPolicy: .unbounded) { continuation in
+        let stream = AsyncThrowingStream(Element.self, bufferingPolicy: bufferingPolicy) { continuation in
             cancellable = AnyDatabaseCancellable(start(
                 // onError
                 { error in
