@@ -9,7 +9,7 @@ extension ValueObservation {
     public func shared(
         in reader: DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
-        extent: SharedValueObservationExtent)
+        extent: SharedValueObservationExtent = .whileObserved)
     -> SharedValueObservation<Reducer.Value>
     {
         SharedValueObservation(scheduling: scheduler, extent: extent) { onError, onChange in
