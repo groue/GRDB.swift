@@ -223,6 +223,12 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
             }
             
+            // Prefetched Rows?
+            if let prefetchedRows = row.prefetchedRows[key.stringValue] {
+                let decoder = PrefetchedRowsDecoder<R>(rows: prefetchedRows, codingPath: codingPath)
+                return try T(from: decoder)
+            }
+            
             // Key is not a column, and not a scope.
             return nil
         }
