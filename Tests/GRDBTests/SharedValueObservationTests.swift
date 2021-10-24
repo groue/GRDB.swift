@@ -94,6 +94,39 @@ class SharedValueObservationTests: GRDBTestCase {
         XCTAssertEqual(log.flush(), ["cancel"])
     }
     
+#if canImport(Combine)
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func test_immediate_publisher() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let publisher = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .shared(
+                in: dbQueue,
+                scheduling: .immediate)
+            .publisher()
+        
+        do {
+            let recorder = publisher.record()
+            try XCTAssertEqual(recorder.next().get(), 0)
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
+        }
+
+        do {
+            let recorder = publisher.record()
+            try XCTAssertEqual(recorder.next().get(), 1)
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 2)
+        }
+    }
+#endif
+    
     func test_immediate_whileObserved() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
@@ -326,7 +359,40 @@ class SharedValueObservationTests: GRDBTestCase {
         cancellable.cancel()
         XCTAssertEqual(log.flush(), ["cancel"])
     }
+    
+#if canImport(Combine)
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func test_async_publisher() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let publisher = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .shared(in: dbQueue) // default async
+            .publisher()
+        
+        do {
+            let recorder = publisher.record()
+            try XCTAssert(recorder.availableElements.get().isEmpty)
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 0)
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
+        }
 
+        do {
+            let recorder = publisher.record()
+            try XCTAssert(recorder.availableElements.get().isEmpty)
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 2)
+        }
+    }
+#endif
+    
     func test_async_whileObserved() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in

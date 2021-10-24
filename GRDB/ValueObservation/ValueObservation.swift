@@ -52,6 +52,11 @@ struct ValueObservationEvents: Refinable {
     var didCancel: (() -> Void)?
 }
 
+typealias ValueObservationStart<T> = (
+    _ onError: @escaping (Error) -> Void,
+    _ onChange: @escaping (T) -> Void)
+-> DatabaseCancellable
+
 extension ValueObservation: Refinable {
     
     // MARK: - Starting Observation
@@ -261,39 +266,30 @@ extension ValueObservation {
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
     {
-        return DatabasePublishers.Value(self, in: reader, scheduling: scheduler)
+        DatabasePublishers.Value { [weak reader] (onError, onChange) in
+            guard let reader = reader else {
+                return AnyDatabaseCancellable(cancel: { })
+            }
+            return self.start(
+                in: reader,
+                scheduling: scheduler,
+                onError: onError,
+                onChange: onChange)
+        }
     }
 }
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension DatabasePublishers {
-    fileprivate typealias Start<T> = (
-        _ onError: @escaping (Error) -> Void,
-        _ onChange: @escaping (T) -> Void) -> DatabaseCancellable
-    
     /// A publisher that tracks changes in the database.
     ///
     /// See `ValueObservation.publisher(in:scheduling:)`.
     public struct Value<Output>: Publisher {
         public typealias Failure = Error
-        private let start: Start<Output>
+        private let start: ValueObservationStart<Output>
         
-        init<Reducer>(
-            _ observation: ValueObservation<Reducer>,
-            in reader: DatabaseReader,
-            scheduling scheduler: ValueObservationScheduler)
-        where Reducer.Value == Output
-        {
-            start = { [weak reader] (onError, onChange) in
-                guard let reader = reader else {
-                    return AnyDatabaseCancellable(cancel: { })
-                }
-                return observation.start(
-                    in: reader,
-                    scheduling: scheduler,
-                    onError: onError,
-                    onChange: onChange)
-            }
+        init(start: @escaping ValueObservationStart<Output>) {
+            self.start = start
         }
         
         public func receive<S>(subscriber: S) where S: Subscriber, Failure == S.Failure, Output == S.Input {
@@ -309,7 +305,7 @@ extension DatabasePublishers {
     {
         private struct WaitingForDemand {
             let downstream: Downstream
-            let start: Start<Downstream.Input>
+            let start: ValueObservationStart<Downstream.Input>
         }
         
         private struct Observing {
@@ -336,7 +332,7 @@ extension DatabasePublishers {
         private var lock = NSRecursiveLock() // Allow re-entrancy
         
         init(
-            start: @escaping Start<Downstream.Input>,
+            start: @escaping ValueObservationStart<Downstream.Input>,
             downstream: Downstream)
         {
             state = .waitingForDemand(WaitingForDemand(

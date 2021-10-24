@@ -19,14 +19,9 @@ extension ValueObservation {
 }
 
 public final class SharedValueObservation<Element> {
-    typealias StartFunction = (
-        _ onError: @escaping (Error) -> Void,
-        _ onChange: @escaping (Element) -> Void)
-    -> DatabaseCancellable
-    
     private let scheduler: ValueObservationScheduler
     private let extent: SharedValueObservationExtent
-    private let startObservation: StartFunction
+    private let startObservation: ValueObservationStart<Element>
     private let lock = NSRecursiveLock() // support synchronous observation events
     
     // protected by lock
@@ -48,7 +43,7 @@ public final class SharedValueObservation<Element> {
     fileprivate init(
         scheduling scheduler: ValueObservationScheduler,
         extent: SharedValueObservationExtent,
-        startObservation: @escaping StartFunction)
+        startObservation: @escaping ValueObservationStart<Element>)
     {
         self.scheduler = scheduler
         self.extent = extent
@@ -105,6 +100,15 @@ public final class SharedValueObservation<Element> {
             }
         }
     }
+    
+#if canImport(Combine)
+    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    public func publisher() -> DatabasePublishers.Value<Element> {
+        DatabasePublishers.Value { onError, onChange in
+            self.start(onError: onError, onChange: onChange)
+        }
+    }
+#endif
     
     private func handleError(_ error: Error) {
         synchronized {
