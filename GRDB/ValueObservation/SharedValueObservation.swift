@@ -50,9 +50,11 @@ extension ValueObservation {
     /// and the first one is immediately notified when the start() method
     /// is called:
     ///
-    ///     let sharedObservation = observation.shared(
-    ///         in: dbQueue,
-    ///         scheduling: .immediate) // <-
+    ///     let sharedObservation = ValueObservation
+    ///         .tracking { db in try Player.fetchAll(db) }
+    ///         .shared(
+    ///             in: dbQueue,
+    ///             scheduling: .immediate) // <-
     ///
     ///     let cancellable = try sharedObservation.start(
     ///         onError: { error in ... },
@@ -63,6 +65,11 @@ extension ValueObservation {
     ///
     /// Note that the `.immediate` scheduler requires that the observation is
     /// subscribed from the main thread. It raises a fatal error otherwise.
+    ///
+    /// A shared observation starts observing the database as soon as it is
+    /// subscribed. You can choose if database observation should stop, or not,
+    /// when its number of subscriptions drops down to zero, with the `extent`
+    /// parameter. See `SharedValueObservationExtent` for available options.
     ///
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A Scheduler. By default, fresh values are
