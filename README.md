@@ -6224,7 +6224,7 @@ let sharedObservation = ValueObservation
 >         .sink(...)
 >     ```
 >
-> - Unlike `ValueObservation`, `SharedValueObservation` prevents the database from closing. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connectionn won't close. 
+> - Unlike `ValueObservation`, `SharedValueObservation` prevents the database from closing. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connection won't close. 
 
 
 ### ValueObservation Performance
