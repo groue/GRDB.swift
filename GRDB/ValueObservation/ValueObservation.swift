@@ -222,10 +222,6 @@ extension ValueObservation: Refinable {
 #if swift(>=5.5) && canImport(_Concurrency)
 extension ValueObservation {
     // MARK: - Asynchronous Observation
-    
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
-    public typealias BufferingPolicy = AsyncThrowingStream<Reducer.Value, Error>.Continuation.BufferingPolicy
-    
     /// The database observation, as an asynchronous sequence of
     /// database changes.
     ///
@@ -238,7 +234,7 @@ extension ValueObservation {
     public func values(
         in reader: DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
-        bufferingPolicy: BufferingPolicy = .unbounded)
+        bufferingPolicy: AsyncValueObservation<Reducer.Value>.BufferingPolicy = .unbounded)
     -> AsyncValueObservation<Reducer.Value>
     {
         AsyncValueObservation(bufferingPolicy: bufferingPolicy) { onError, onChange in
@@ -266,15 +262,11 @@ extension ValueObservation {
 /// - note: This async sequence never ends.
 @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 public struct AsyncValueObservation<Element>: AsyncSequence {
+    public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
-    typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
-    typealias StartFunction = (
-        _ onError: @escaping (Error) -> Void,
-        _ onChange: @escaping (Element) -> Void)
-        -> DatabaseCancellable
     
     var bufferingPolicy: BufferingPolicy
-    var start: StartFunction
+    var start: ValueObservationStart<Element>
     
     public func makeAsyncIterator() -> Iterator {
         // This cancellable will be retained by the Iterator, which itself will
