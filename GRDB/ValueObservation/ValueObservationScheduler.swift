@@ -59,6 +59,14 @@ public class ValueObservationScheduler {
     /// - important: this scheduler requires that the observation is started
     ///  from the main queue. A fatal error is raised otherwise.
     public static let immediate = ValueObservationScheduler(impl: ImmediateImpl())
+    
+    func scheduleInitial(_ action: @escaping () -> Void) {
+        if immediateInitialValue() {
+            action()
+        } else {
+            schedule(action)
+        }
+    }
 }
 
 private protocol ValueObservationSchedulerImpl {
