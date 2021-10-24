@@ -1,11 +1,69 @@
 import Foundation
 
+/// Controls the extent of the shared database observation
+/// of `SharedValueObservation`.
 public enum SharedValueObservationExtent {
+    /// The `SharedValueObservation` starts a single database observation, which
+    /// ends when the `SharedValueObservation` is deallocated and all
+    /// subscriptions terminated.
+    ///
+    /// Note that this extent prevents the observation from recovering from
+    /// database errors.
     case observationLifetime
+    
+    /// The `SharedValueObservation` ends database observation when the number
+    /// of subscriptions drops down to zero.
     case whileObserved
 }
 
 extension ValueObservation {
+    /// Returns a shared value observation that shares a single underlying
+    /// database observation for all subscriptions, and thus spares
+    /// database resources.
+    ///
+    /// For example:
+    ///
+    ///     let sharedObservation = ValueObservation
+    ///         .tracking { db in try Player.fetchAll(db) }
+    ///         .shared(in: dbQueue)
+    ///
+    /// The sharing only applies if you start observing the database from the
+    /// same `SharedValueObservation` instance:
+    ///
+    ///     // NOT shared
+    ///     let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
+    ///     let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
+    ///
+    ///     // Shared
+    ///     let sharedObservation = ValueObservation.tracking { db in ... }.shared(in: dbQueue)
+    ///     let cancellable1 = sharedObservation.start(...)
+    ///     let cancellable2 = sharedObservation.start(...)
+    ///
+    /// By default, fresh values are dispatched asynchronously on the
+    /// main queue. You can change this behavior by providing a scheduler.
+    /// For example, `.immediate` notifies all values on the main queue as well,
+    /// and the first one is immediately notified when the start() method
+    /// is called:
+    ///
+    ///     let sharedObservation = observation.shared(
+    ///         in: dbQueue,
+    ///         scheduling: .immediate) // <-
+    ///
+    ///     let cancellable = try sharedObservation.start(
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
+    ///     // <- here "fresh players" is already printed.
+    ///
+    /// Note that the `.immediate` scheduler requires that the observation is
+    /// subscribed from the main thread. It raises a fatal error otherwise.
+    ///
+    /// - parameter reader: A DatabaseReader.
+    /// - parameter scheduler: A Scheduler. By default, fresh values are
+    ///   dispatched asynchronously on the main queue.
+    /// - parameter extent: The extent of the shared database observation.
+    /// - returns: A `SharedValueObservation`
     public func shared(
         in reader: DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
@@ -18,6 +76,32 @@ extension ValueObservation {
     }
 }
 
+/// A shared value observation that shares a single underlying database
+/// observation for all subscriptions, and thus spares database resources.
+///
+/// For example:
+///
+///     let sharedObservation = ValueObservation
+///         .tracking { db in try Player.fetchAll(db) }
+///         .shared(in: dbQueue)
+///
+///     let cancellable = try sharedObservation.start(
+///         onError: { error in ... },
+///         onChange: { players: [Player] in
+///             print("Players have changed.")
+///         })
+///
+/// The sharing only applies if you start observing the database from the
+/// same `SharedValueObservation` instance:
+///
+///     // NOT shared
+///     let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
+///     let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
+///
+///     // Shared
+///     let sharedObservation = ValueObservation.tracking { db in ... }.shared(in: dbQueue)
+///     let cancellable1 = sharedObservation.start(...)
+///     let cancellable2 = sharedObservation.start(...)
 public final class SharedValueObservation<Element> {
     private let scheduler: ValueObservationScheduler
     private let extent: SharedValueObservationExtent
@@ -51,6 +135,27 @@ public final class SharedValueObservation<Element> {
         self.clients = []
     }
     
+    /// Starts observing the database.
+    ///
+    /// The observation lasts until the returned cancellable is cancelled
+    /// or deallocated.
+    ///
+    /// For example:
+    ///
+    ///     let sharedObservation = ValueObservation
+    ///         .tracking { db in try Player.fetchAll(db) }
+    ///         .shared(in: dbQueue)
+    ///
+    ///     let cancellable = try sharedObservation.start(
+    ///         onError: { error in ... },
+    ///         onChange: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
+    ///
+    /// - parameter onError: A closure that is provided eventual errors that
+    ///   happen during observation
+    /// - parameter onChange: A closure that is provided fresh values
+    /// - returns: a DatabaseCancellable
     public func start(
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Element) -> Void)
@@ -102,6 +207,22 @@ public final class SharedValueObservation<Element> {
     }
     
 #if canImport(Combine)
+    /// Creates a publisher which tracks changes in database values.
+    ///
+    /// For example:
+    ///
+    ///     let publisher = ValueObservation
+    ///         .tracking { db in try Player.fetchAll(db) }
+    ///         .shared(in: dbQueue)
+    ///         .publisher()
+    ///
+    ///     let cancellable = publisher.sink(
+    ///         receiveCompletion: { completion in ... },
+    ///         receiveValue: { players: [Player] in
+    ///             print("fresh players: \(players)")
+    ///         })
+    ///
+    /// - returns: A Combine publisher
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func publisher() -> DatabasePublishers.Value<Element> {
         DatabasePublishers.Value { onError, onChange in

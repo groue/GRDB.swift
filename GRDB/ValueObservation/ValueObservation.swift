@@ -95,6 +95,9 @@ extension ValueObservation: Refinable {
     ///         })
     ///     // <- here "fresh players" is already printed.
     ///
+    /// Note that the `.immediate` scheduler requires that the observation is
+    /// subscribed from the main thread. It raises a fatal error otherwise.
+    ///
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A Scheduler. By default, fresh values are
     ///   dispatched asynchronously on the main queue.
