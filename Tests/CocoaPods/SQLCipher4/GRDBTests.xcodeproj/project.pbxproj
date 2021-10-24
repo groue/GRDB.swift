@@ -445,6 +445,8 @@
 		564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
 		564A2159226C8F25001F64F1 /* db.SQLCipher3 in Resources */ = {isa = PBXBuildFile; fileRef = 564A2158226C8F24001F64F1 /* db.SQLCipher3 */; };
 		564A215A226C8F25001F64F1 /* db.SQLCipher3 in Resources */ = {isa = PBXBuildFile; fileRef = 564A2158226C8F24001F64F1 /* db.SQLCipher3 */; };
+		5691D97227257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
+		5691D97327257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
 		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		E158370AAEED49ECD53CE24A /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 67377FE4CDAD675809F93AD4 /* Pods_GRDBTests.framework */; };
 		F2B3C4250D67969FF3948955 /* Pods_GRDBTestsEncrypted.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */; };
@@ -675,6 +677,7 @@
 		564A1F6F226B89D6001F64F1 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		564A2158226C8F24001F64F1 /* db.SQLCipher3 */ = {isa = PBXFileReference; lastKnownFileType = file; path = db.SQLCipher3; sourceTree = SOURCE_ROOT; };
+		5691D97127257C930021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
 		67377FE4CDAD675809F93AD4 /* Pods_GRDBTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A4788C0F815F6C5E4EBDE12 /* Pods-GRDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTestsEncrypted.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -717,6 +720,7 @@
 		5641A16124A540C7004967E1 /* PublisherExpectations */ = {
 			isa = PBXGroup;
 			children = (
+				5691D97127257C930021D540 /* AvailableElements.swift */,
 				5641A16224A540C7004967E1 /* Finished.swift */,
 				5641A16324A540C7004967E1 /* NextOne.swift */,
 				5641A16424A540C7004967E1 /* Next.swift */,
@@ -1234,6 +1238,7 @@
 				56419FCA24A540A1004967E1 /* DatabasePoolBackupTests.swift in Sources */,
 				5641A04A24A540A1004967E1 /* FoundationNSStringTests.swift in Sources */,
 				5641A17824A540C7004967E1 /* Next.swift in Sources */,
+				5691D97227257C930021D540 /* AvailableElements.swift in Sources */,
 				5641A09624A540A1004967E1 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
 				5641A0EC24A540A1004967E1 /* AssociationPrefetchingObservationTests.swift in Sources */,
 				5641A01824A540A1004967E1 /* FoundationDateComponentsTests.swift in Sources */,
@@ -1457,6 +1462,7 @@
 				56419FCB24A540A1004967E1 /* DatabasePoolBackupTests.swift in Sources */,
 				5641A04B24A540A1004967E1 /* FoundationNSStringTests.swift in Sources */,
 				5641A17924A540C7004967E1 /* Next.swift in Sources */,
+				5691D97327257C930021D540 /* AvailableElements.swift in Sources */,
 				5641A09724A540A1004967E1 /* DatabaseValueConvertibleEscapingTests.swift in Sources */,
 				5641A0ED24A540A1004967E1 /* AssociationPrefetchingObservationTests.swift in Sources */,
 				5641A01924A540A1004967E1 /* FoundationDateComponentsTests.swift in Sources */,
