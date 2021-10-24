@@ -294,3 +294,21 @@ public final class SharedValueObservation<Element> {
         return try execute()
     }
 }
+
+#if swift(>=5.5) && canImport(_Concurrency)
+extension SharedValueObservation {
+    // MARK: - Asynchronous Observation
+    /// The database observation, as an asynchronous sequence of
+    /// database changes.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    public func values(bufferingPolicy: AsyncValueObservation<Element>.BufferingPolicy = .unbounded)
+    -> AsyncValueObservation<Element>
+    {
+        AsyncValueObservation(bufferingPolicy: bufferingPolicy) { onError, onChange in
+            self.start(onError: onError, onChange: onChange)
+        }
+    }
+}
+#endif

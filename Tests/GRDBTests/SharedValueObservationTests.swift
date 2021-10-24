@@ -601,6 +601,28 @@ class SharedValueObservationTests: GRDBTestCase {
         }
     }
 #endif
+
+#if swift(>=5.5) && canImport(_Concurrency)
+    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    func testAsyncAwait() async throws {
+        let dbQueue = try makeDatabaseQueue()
+        try await dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let values = ValueObservation
+            .tracking(Table("player").fetchCount)
+            .shared(in: dbQueue)
+            .values()
+        
+        for try await value in values {
+            XCTAssertEqual(value, 0)
+            break
+        }
+    }
+#endif
 }
 
 private class Log: TextOutputStream {
