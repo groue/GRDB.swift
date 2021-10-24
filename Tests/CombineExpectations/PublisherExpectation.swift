@@ -6,10 +6,21 @@ public enum PublisherExpectations { }
 
 /// The base protocol for PublisherExpectation. It is an implementation detail
 /// that you are not supposed to use, as shown by the underscore prefix.
+///
+/// :nodoc:
 public protocol _PublisherExpectationBase {
     /// Sets up an XCTestExpectation. This method is an implementation detail
     /// that you are not supposed to use, as shown by the underscore prefix.
     func _setup(_ expectation: XCTestExpectation)
+    
+    /// Returns an object that waits for the expectation. If nil, expectation
+    /// is waited by the XCTestCase.
+    func _makeWaiter() -> XCTWaiter?
+}
+
+extension _PublisherExpectationBase {
+    /// :nodoc:
+    public func _makeWaiter() -> XCTWaiter? { nil }
 }
 
 /// The protocol for publisher expectations.
@@ -94,7 +105,11 @@ extension XCTestCase {
     {
         let expectation = self.expectation(description: description)
         publisherExpectation._setup(expectation)
-        wait(for: [expectation], timeout: timeout)
+        if let waiter = publisherExpectation._makeWaiter() {
+            waiter.wait(for: [expectation], timeout: timeout)
+        } else {
+            wait(for: [expectation], timeout: timeout)
+        }
         return try publisherExpectation.get()
     }
 }

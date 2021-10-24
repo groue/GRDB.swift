@@ -277,21 +277,46 @@ public class Recorder<Input, Failure: Error>: Subscriber {
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension PublisherExpectations {
-    /// The type of the publisher expectation returned by Recorder.completion
+    /// The type of the publisher expectation returned by `Recorder.completion`.
     public typealias Completion<Input, Failure: Error> = Map<Recording<Input, Failure>, Subscribers.Completion<Failure>>
     
-    /// The type of the publisher expectation returned by Recorder.elements
+    /// The type of the publisher expectation returned by `Recorder.elements`.
     public typealias Elements<Input, Failure: Error> = Map<Recording<Input, Failure>, [Input]>
     
-    /// The type of the publisher expectation returned by Recorder.last
+    /// The type of the publisher expectation returned by `Recorder.last`.
     public typealias Last<Input, Failure: Error> = Map<Elements<Input, Failure>, Input?>
     
-    /// The type of the publisher expectation returned by Recorder.single
+    /// The type of the publisher expectation returned by `Recorder.single`.
     public typealias Single<Input, Failure: Error> = Map<Elements<Input, Failure>, Input>
 }
 
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 extension Recorder {
+    /// Returns a publisher expectation which waits for the timeout to expire,
+    /// or the recorded publisher to complete.
+    ///
+    /// When waiting for this expectation, the publisher error is thrown if
+    /// the publisher fails before the expectation has expired.
+    ///
+    /// Otherwise, an array of all elements published before the expectation
+    /// has expired is returned.
+    ///
+    /// Unlike other expectations, `availableElements` does not make a test fail
+    /// on timeout expiration. It just returns the elements published so far.
+    ///
+    /// For example:
+    ///
+    ///     // SUCCESS: no timeout, no error
+    ///     func testTimerPublishesIncreasingDates() throws {
+    ///         let publisher = Timer.publish(every: 0.01, on: .main, in: .common).autoconnect()
+    ///         let recorder = publisher.record()
+    ///         let dates = try wait(for: recorder.availableElements, timeout: ...)
+    ///         XCTAssertEqual(dates.sorted(), dates)
+    ///     }
+    public var availableElements: PublisherExpectations.AvailableElements<Input, Failure> {
+        PublisherExpectations.AvailableElements(recorder: self)
+    }
+    
     /// Returns a publisher expectation which waits for the recorded publisher
     /// to complete.
     ///
