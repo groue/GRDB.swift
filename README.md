@@ -6212,6 +6212,20 @@ let sharedObservation = ValueObservation
 //                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
+> :point_up: **Note**: `ValueObservation` and `SharedValueObservation` are nearly identical, but there are a few differences you should be aware of:
+>
+> - `SharedValueObservation` has no [operator](#valueobservation-operators) such as `map`. As a replacement, you may use Combine apis:
+>
+>     `swift`
+>     let sharedObservation = ValueObservation.tracking { ... }.shared(in: dbQueue)
+>     let cancellable = try sharedObservation
+>         .publisher() // Turn shared observation into a Combine Publisher
+>         .map { ... } // The map operator from Combine
+>         .sink(...)
+>     ```
+>
+> - Unlike `ValueObservation`, `SharedValueObservation` prevents the database from closing. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connectionn won't close. 
+
 
 ### ValueObservation Performance
 
