@@ -261,7 +261,7 @@ let sharedObservation = ValueObservation
     .shared(in: dbQueue)
 
 // A publisher with output [Player] and failure Error
-let publisher = sharedObservation.publisher(in: dbQueue)
+let publisher = sharedObservation.publisher()
 ```
 
 This publisher has the same behavior as SharedValueObservation.
