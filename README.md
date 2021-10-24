@@ -5817,6 +5817,7 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
 - [ValueObservation Usage](#valueobservation-usage)
 - [ValueObservation Scheduling](#valueobservation-scheduling)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
+- [ValueObservation Sharing](#valueobservation-sharing)
 - [ValueObservation Performance](#valueobservation-performance)
 - :blue_book: [Combine Publisher](Documentation/Combine.md#database-observation)
 
@@ -6146,6 +6147,86 @@ let observation = ValueObservation
 See also [ValueObservation.handleEvents](#valueobservationhandleevents).
 
 
+### ValueObservation Sharing
+
+**Sharing a database observation spares database resources.**
+
+For example:
+
+```swift
+// SharedValueObservation<[Player]>
+let sharedObservation = ValueObservation
+    .tracking { db in try Player.fetchAll(db) }
+    .shared(in: dbQueue)
+    
+let cancellable = try sharedObservation.start(
+    onError: { error in ... },
+    onChange: { players: [Player] in
+        print("fresh players: \(players)")
+    })
+```
+
+The sharing only applies if you start observing the database from the same `SharedValueObservation` instance:
+
+```swift
+// NOT shared
+let cancellable1 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
+let cancellable2 = ValueObservation.tracking { db in ... }.shared(in: dbQueue).start(...)
+
+// Shared
+let sharedObservation = ValueObservation.tracking { db in ... }.shared(in: dbQueue)
+let cancellable1 = sharedObservation.start(...)
+let cancellable2 = sharedObservation.start(...)
+```
+
+By default, fresh values are dispatched asynchronously on the main queue. You can change this behavior (see [ValueObservation Scheduling](#valueobservation-scheduling) for more information):
+
+```swift
+let sharedObservation = ValueObservation
+    .tracking { db in try Player.fetchAll(db) }
+    .shared(in: dbQueue, scheduling: .immediate)
+//                       ~~~~~~~~~~~~~~~~~~~~~~
+```
+
+A shared observation starts observing the database as soon as it is subscribed. You can choose if database observation should stop, or not, when its number of subscriptions drops down to zero, with the `extent` parameter:
+
+```swift
+// The default: stops observing the database when the number of subscriptions 
+// drops down to zero, and restart database observation on the next subscription.
+//
+// Database errors can be recovered by resubscribing to the shared observation.
+let sharedObservation = ValueObservation
+    .tracking { db in try Player.fetchAll(db) }
+    .shared(in: dbQueue, extent: .whileObserved)
+//                       ~~~~~~~~~~~~~~~~~~~~~~
+
+// Only stops observing the database when the shared observation is deallocated,
+// and all subscriptions are cancelled.
+//
+// This extent prevents the shared observation from recovering from database
+// errors. To recover from database errors, create a new shared
+// SharedValueObservation instance.
+let sharedObservation = ValueObservation
+    .tracking { db in try Player.fetchAll(db) }
+    .shared(in: dbQueue, extent: .observationLifetime)
+//                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
+
+> :point_up: **Note**: `ValueObservation` and `SharedValueObservation` are nearly identical, but there are a few differences you should be aware of:
+>
+> - `SharedValueObservation` has no [operator](#valueobservation-operators) such as `map`. As a replacement, you may use Combine apis:
+>     
+>     ```swift
+>     let sharedObservation = ValueObservation.tracking { ... }.shared(in: dbQueue)
+>     let cancellable = try sharedObservation
+>         .publisher() // Turn shared observation into a Combine Publisher
+>         .map { ... } // The map operator from Combine
+>         .sink(...)
+>     ```
+>
+> - Unlike `ValueObservation`, `SharedValueObservation` prevents the database from closing. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connection won't close. 
+
+
 ### ValueObservation Performance
 
 This chapter further describes runtime aspects of ValueObservation, and provides some optimization tips for demanding applications.
@@ -6168,20 +6249,7 @@ When needed, you can help GRDB optimize observations and reduce database content
     
 2. :bulb: **Tip**: Share observations when possible.
     
-    Each call to the `start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider sharing a single active observation.
-    
-    For example, with RxSwift and RxGRDB, you can use the `share(replay:scope:)` operator:
-    
-    ```swift
-    import GRDB
-    import RxGRDB
-    import RxSwift
-    
-    let observation = ValueObservation.tracking(Player.fetchAll)
-    let observable = observation.rx
-        .observe(in: dbQueue)
-        .share(replay: 1, scope: .whileConnected)
-    ```
+    Each call to `ValueObservation.start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider [sharing the observation](#valueobservation-sharing).
 
 3. :bulb: **Tip**: Use a [database pool](#database-pools), because it can perform multi-threaded database accesses.
 
