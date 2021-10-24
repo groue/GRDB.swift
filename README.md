@@ -6235,16 +6235,6 @@ When needed, you can help GRDB optimize observations and reduce database content
 2. :bulb: **Tip**: Share observations when possible.
     
     Each call to `ValueObservation.start` method triggers independent values refreshes. When several components of your app are interested in the same value, consider [sharing the observation](#valueobservation-sharing).
-    
-    For example:
-    
-    ```swift
-    let observation = ValueObservation.tracking { db in ... }
-    let sharedObservation = observation.shared(in: dbQueue)
-    let cancellable = sharedObservation.start(
-        onError: { error in ... },
-        onChange: { value in print("fresh value") })
-    ```
 
 3. :bulb: **Tip**: Use a [database pool](#database-pools), because it can perform multi-threaded database accesses.
 
