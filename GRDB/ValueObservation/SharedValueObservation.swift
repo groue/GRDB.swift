@@ -7,12 +7,17 @@ public enum SharedValueObservationExtent {
     /// ends when the `SharedValueObservation` is deallocated and all
     /// subscriptions terminated.
     ///
-    /// Note that this extent prevents the observation from recovering from
-    /// database errors.
+    /// This extent prevents the shared observation from recovering from
+    /// database errors. To recover from database errors, create a new shared
+    /// `SharedValueObservation` instance.
     case observationLifetime
     
     /// The `SharedValueObservation` ends database observation when the number
-    /// of subscriptions drops down to zero.
+    /// of subscriptions drops down to zero. The database observation restarts
+    /// on the next subscription.
+    ///
+    /// Database errors can be recovered by resubscribing to the
+    /// shared observation.
     case whileObserved
 }
 
@@ -236,8 +241,14 @@ public final class SharedValueObservation<Element> {
             let notifiedClients = clients
             
             // State change
-            lastResult = .failure(error)
             clients = []
+            if extent == .whileObserved {
+                isObserving = false
+                cancellable = nil
+                lastResult = nil
+            } else {
+                lastResult = .failure(error)
+            }
             
             // Side effect
             for client in notifiedClients {
@@ -265,6 +276,7 @@ public final class SharedValueObservation<Element> {
             if clients.isEmpty && extent == .whileObserved {
                 isObserving = false
                 cancellable = nil
+                lastResult = nil
             }
         }
     }

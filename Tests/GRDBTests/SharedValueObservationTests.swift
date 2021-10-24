@@ -489,9 +489,121 @@ class SharedValueObservationTests: GRDBTestCase {
         sharedObservation = nil
         XCTAssertEqual(log.flush(), [])
     }
+    
+#if canImport(Combine)
+    func test_error_recovery_observationLifetime() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let log = Log()
+        var fetchError: Error? = nil
+        let publisher = ValueObservation
+            .tracking { db -> Int in
+                if let error = fetchError { throw error }
+                return try Table("player").fetchCount(db)
+            }
+            .print(to: log)
+            .shared(in: dbQueue, extent: .observationLifetime)
+            .publisher()
+        
+        do {
+            let recorder1 = publisher.record()
+            let recorder2 = publisher.record()
+            
+            try XCTAssertEqual(wait(for: recorder1.next(), timeout: 1), 0)
+            try XCTAssertEqual(wait(for: recorder2.next(), timeout: 1), 0)
+            
+            fetchError = TestError()
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            
+            if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
+            if case .finished = try wait(for: recorder2.completion, timeout: 1) { XCTFail("Expected error") }
+            XCTAssertEqual(log.flush(), [
+                "start", "fetch", "value: 0", "tracked region: player(*)",
+                "database did change", "fetch", "failure: TestError()"])
+        }
+        
+        do {
+            let recorder = publisher.record()
+            if case .finished = try wait(for: recorder.completion, timeout: 1) { XCTFail("Expected error") }
+            XCTAssertEqual(log.flush(), [])
+        }
+        
+        do {
+            fetchError = nil
+            let recorder = publisher.record()
+            if case .finished = try wait(for: recorder.completion, timeout: 1) { XCTFail("Expected error") }
+            XCTAssertEqual(log.flush(), [])
+        }
+    }
+#endif
+    
+#if canImport(Combine)
+    func test_error_recovery_whileObserved() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "player") { t in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        let log = Log()
+        var fetchError: Error? = nil
+        let publisher = ValueObservation
+            .tracking { db -> Int in
+                if let error = fetchError { throw error }
+                return try Table("player").fetchCount(db)
+            }
+            .print(to: log)
+            .shared(in: dbQueue, extent: .whileObserved)
+            .publisher()
+        
+        do {
+            let recorder1 = publisher.record()
+            let recorder2 = publisher.record()
+            
+            try XCTAssertEqual(wait(for: recorder1.next(), timeout: 1), 0)
+            try XCTAssertEqual(wait(for: recorder2.next(), timeout: 1), 0)
+            
+            fetchError = TestError()
+            try dbQueue.write { try $0.execute(sql: "INSERT INTO player DEFAULT VALUES")}
+            
+            if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
+            if case .finished = try wait(for: recorder2.completion, timeout: 1) { XCTFail("Expected error") }
+            XCTAssertEqual(log.flush(), [
+                "start", "fetch", "value: 0", "tracked region: player(*)",
+                "database did change", "fetch", "failure: TestError()"])
+        }
+        
+        do {
+            let recorder = publisher.record()
+            if case .finished = try wait(for: recorder.completion, timeout: 1) { XCTFail("Expected error") }
+            XCTAssertEqual(log.flush(), ["start", "fetch", "failure: TestError()"])
+        }
+        
+        do {
+            fetchError = nil
+            let recorder = publisher.record()
+            try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
+            XCTAssertEqual(log.flush(), ["start", "fetch", "value: 1", "tracked region: player(*)"])
+        }
+    }
+#endif
 }
 
-fileprivate class Log: TextOutputStream {
+private class Log: TextOutputStream {
     var strings: [String] = []
     let lock = NSLock()
     
@@ -510,3 +622,5 @@ fileprivate class Log: TextOutputStream {
         return result
     }
 }
+
+private struct TestError: Error { }
