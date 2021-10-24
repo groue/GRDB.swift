@@ -95,8 +95,11 @@ class SharedValueObservationTests: GRDBTestCase {
     }
     
 #if canImport(Combine)
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func test_immediate_publisher() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
@@ -361,8 +364,11 @@ class SharedValueObservationTests: GRDBTestCase {
     }
     
 #if canImport(Combine)
-    @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func test_async_publisher() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "player") { t in
