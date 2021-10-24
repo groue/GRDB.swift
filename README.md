@@ -6154,6 +6154,7 @@ See also [ValueObservation.handleEvents](#valueobservationhandleevents).
 For example:
 
 ```swift
+// SharedValueObservation<[Player]>
 let sharedObservation = ValueObservation
     .tracking { db in try Player.fetchAll(db) }
     .shared(in: dbQueue)
