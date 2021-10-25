@@ -6149,15 +6149,18 @@ See also [ValueObservation.handleEvents](#valueobservationhandleevents).
 
 ### ValueObservation Sharing
 
-**Sharing a database observation spares database resources.**
+**Sharing a ValueObservation allows several components of your app to be notified of database changes, in an efficient way.**
 
-For example:
+A shared observation spares database resources. For example, when a database change happens, a fresh value is fetched only once, and then notified to all subscriptions.
+
+Usage:
 
 ```swift
 // SharedValueObservation<[Player]>
 let sharedObservation = ValueObservation
     .tracking { db in try Player.fetchAll(db) }
     .shared(in: dbQueue)
+//  ~~~~~~~~~~~~~~~~~~~~
     
 let cancellable = try sharedObservation.start(
     onError: { error in ... },
