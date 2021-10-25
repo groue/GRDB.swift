@@ -3,6 +3,7 @@ import SwiftUI
 /// The view that edits an existing player.
 struct PlayerEditionView: View {
     @Environment(\.appDatabase) private var appDatabase
+    @Environment(\.isPresented) private var isPresented
     private let player: Player
     @State private var form: PlayerForm
     
@@ -13,12 +14,16 @@ struct PlayerEditionView: View {
     
     var body: some View {
         PlayerFormView(form: $form)
-            .onDisappear {
-                Task {
-                    // save and ignore error
-                    var savedPlayer = player
-                    form.apply(to: &savedPlayer)
-                    try? await appDatabase.savePlayer(&savedPlayer)
+            .onChange(of: isPresented) { isPresented in
+                // Save when back button is pressed
+                if !isPresented {
+                    Task {
+                        var savedPlayer = player
+                        form.apply(to: &savedPlayer)
+                        // Ignore error because I don't know how to cancel the
+                        // back button and present the error
+                        try? await appDatabase.savePlayer(&savedPlayer)
+                    }
                 }
             }
     }
