@@ -5,6 +5,8 @@ Async/Await + SwiftUI Demo Application
 
 **This demo application is an Async/Await + SwiftUI application.** For a demo application that uses UIKit, see [GRDBDemoiOS](../GRDBDemoiOS/README.md), and for Combine + SwiftUI, see [GRDBCombineDemo](../GRDBCombineDemo/README.md).
 
+**Requirements**: iOS 15.0+ / Xcode 13.1+
+
 > :point_up: **Note**: This demo app is not a project template. Do not copy it as a starting point for your application. Instead, create a new project, choose a GRDB [installation method](../../../README.md#installation), and use the demo as an inspiration.
 
 The topics covered in this demo are:

@@ -415,7 +415,7 @@ extension DatabaseWriter {
     }
 }
 
-#if swift(>=5.5) && canImport(_Concurrency)
+#if compiler(>=5.5.1)
 extension DatabaseWriter {
     // MARK: - Asynchronous Database Access
     

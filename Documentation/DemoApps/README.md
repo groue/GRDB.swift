@@ -1,5 +1,6 @@
 Demo Applications
 =================
 
-- [UIKit Demo Application](GRDBDemoiOS/README.md): a storyboard-based UIKit application.
-- [Combine + SwiftUI Demo Application](GRDBCombineDemo/README.md): a Combine + SwiftUI application.
+- [GRDBDemoiOS](GRDBDemoiOS/README.md): a storyboard-based UIKit application.
+- [GRDBCombineDemo](GRDBCombineDemo/README.md): a Combine + SwiftUI application.
+- [GRDBAsyncDemo](GRDBAsyncDemo/README.md): a Async/Await + SwiftUI application.

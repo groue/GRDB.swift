@@ -295,7 +295,7 @@ public final class SharedValueObservation<Element> {
     }
 }
 
-#if swift(>=5.5) && canImport(_Concurrency)
+#if compiler(>=5.5.1)
 extension SharedValueObservation {
     // MARK: - Asynchronous Observation
     /// The database observation, as an asynchronous sequence of

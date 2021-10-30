@@ -30,7 +30,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()).makeSnapshot())
     }
     
-#if swift(>=5.5) && canImport(_Concurrency)
+#if compiler(>=5.5.1)
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     func testAsyncAwait_ReadCanRead() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -68,7 +68,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool().makeSnapshot())
     }
     
-#if swift(>=5.5) && canImport(_Concurrency)
+#if compiler(>=5.5.1)
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     func testAsyncAwait_ReadPreventsDatabaseModification() async throws {
         func test(_ dbReader: DatabaseReader) async throws {
@@ -107,7 +107,7 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()).makeSnapshot())
     }
     
-#if swift(>=5.5) && canImport(_Concurrency)
+#if compiler(>=5.5.1)
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     func testAsyncAwait_UnsafeReadCanRead() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
