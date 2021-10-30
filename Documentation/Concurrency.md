@@ -151,6 +151,28 @@ let newPlayerCount = try await dbQueue.write { db -> Int in
 
 Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
 
+> :point_up: **Note**: The `save` and `insert` [persistence methods](../README.md#persistablerecord-protocol) can trigger compiler errors in async contexts:
+>
+> ```swift
+> // Error: Mutation of captured var 'player' in concurrently-executing code
+> var player = Player(id: nil, name: "Arthur")
+> try await dbWriter.write { db in
+>     try player.insert(db)
+> }
+> print(player.id) // A non-nil id
+> ```
+>
+> When this happens, you may prefer the `saved` and `inserted` methods instead:
+>
+> ```swift
+> // OK
+> var player = Player(id: nil, name: "Arthur")
+> player = try await dbWriter.write { [player] db in
+>     return try player.inserted(db)
+> }
+> print(player.id) // A non-nil id
+> ```
+
 </details>
 
 <details>
