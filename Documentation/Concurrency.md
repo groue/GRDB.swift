@@ -245,7 +245,9 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 - <a id="guarantee-forbidden-writes"></a>**[Forbidden Writes]** - Inside a read database access, all attempts to write raise an error. *Why is it important?* - this enforces the immutability of the database during a read.
 - <a id="guarantee-non-reentrancy"></a>**[Non-Reentrancy]** - Database accesses are not reentrant. *Why is it important?* - this reduces the opportunities for deadlocks, and fosters the clear transaction boundaries of the [second concurrency rule](#rule-2).
 
-Some applications need to lift this safety net in order to achieve some SQLite operations. In this case, you will replace `read` and `write` with one of the methods below:
+These guarantees are important. They allow you to rely on the invariants of your database. They allow you to reason about the components of your application independently.
+
+Some applications, however, need to relax this safety net in order to achieve some SQLite operations. In this case, you will replace `read` and `write` with one of the methods below:
 
 - **Write outside of any transaction**  
   (Lifted guarantee: [Write Transactions])
