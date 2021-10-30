@@ -351,7 +351,7 @@ Documentation
 - [Unicode](#unicode)
 - [Memory Management](#memory-management)
 - [Data Protection](#data-protection)
-- [Concurrency](#concurrency)
+- [Concurrency]
 
 #### General Guides & Good Practices
 
@@ -493,7 +493,7 @@ let newPlaceCount = try dbQueue.write { db -> Int in
     
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
-**A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency](#concurrency) chapter.
+**A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency] guide.
 
 > :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS.
 
@@ -570,9 +570,9 @@ let newPlaceCount = try dbPool.write { db -> Int in
     
     When precise transaction handling is required, see [Transactions and Savepoints](#transactions-and-savepoints).
 
-- Database pools can take [snapshots](#database-snapshots) of the database.
+- Database pools can take [snapshots](Documentation/Concurrency.md#database-snapshots) of the database.
 
-**A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency](#concurrency) chapter for more details about database pools, how they differ from database queues, and advanced use cases.
+**A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency] guide for more details about database pools, how they differ from database queues, and advanced use cases.
 
 > :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
 
@@ -1606,7 +1606,7 @@ In order to customize the JSON format, provide a custom implementation of the `D
 
 **A transaction** is a fundamental tool of SQLite that guarantees [data consistency](https://www.sqlite.org/transactional.html) as well as [proper isolation](https://sqlite.org/isolation.html) between application threads and database connections.
 
-GRDB generally opens transactions for you, as a way to enforce its [concurrency guarantees](#concurrency), and provide maximal security for both your application data and application logic:
+GRDB generally opens transactions for you, as a way to enforce its [concurrency guarantees](Documentation/Concurrency.md#safe-and-unsafe-database-accesses), and provide maximal security for both your application data and application logic:
 
 ```swift
 // BEGIN TRANSACTION
@@ -2864,7 +2864,7 @@ try Place.deleteOne(db, key:...)         // DELETE
 
     It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
     
-    Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation: GRDB won't allow any concurrent thread to sneak in (see [concurrency](#concurrency)).
+    Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation: GRDB won't allow any concurrent thread to sneak in (see [Concurrency]).
 
 - `delete` returns whether a database row was deleted or not.
 
@@ -6842,7 +6842,7 @@ try dbPool.barrierWriteWithoutTransaction { db in
 > }
 > ```
 
-> :point_up: **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](#database-snapshots) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
+> :point_up: **Note**: The `DatabasePool.barrierWriteWithoutTransaction` method does not prevent [database snapshots](Documentation/Concurrency.md#database-snapshots) from accessing the database during the passphrase change, or after the new passphrase has been applied to the database. Those database accesses may throw errors. Applications should provide their own mechanism for invalidating open snapshots before the passphrase is changed.
 
 > :point_up: **Note**: Instead of changing the passphrase "in place" as described here, you can also export the database in a new encrypted database that uses the new passphrase. See [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database).
 
@@ -7487,552 +7487,6 @@ When a database is protected, an application that runs in the background on a lo
 You can catch those errors and wait for [UIApplicationDelegate.applicationProtectedDataDidBecomeAvailable(_:)](https://developer.apple.com/reference/uikit/uiapplicationdelegate/1623044-applicationprotecteddatadidbecom) or [UIApplicationProtectedDataDidBecomeAvailable](https://developer.apple.com/reference/uikit/uiapplicationprotecteddatadidbecomeavailable) notification in order to retry the failed database operation.
 
 
-## Concurrency
-
-- [Guarantees and Rules](#guarantees-and-rules)
-- [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools)
-- [Advanced DatabasePool](#advanced-databasepool)
-- [Database Snapshots](#database-snapshots)
-- [DatabaseWriter and DatabaseReader Protocols](#databasewriter-and-databasereader-protocols)
-- [Asynchronous APIs](#asynchronous-apis)
-- [Unsafe Concurrency APIs](#unsafe-concurrency-apis)
-- :blue_book: [Sharing a Database]
-
-
-### Guarantees and Rules
-
-GRDB ships with three concurrency modes:
-
-- [DatabaseQueue](#database-queues) opens a single database connection, and serializes all database accesses.
-- [DatabasePool](#database-pools) manages a pool of several database connections, and allows concurrent reads and writes.
-- [DatabaseSnapshot](#database-snapshots) opens a single read-only database connection on an unchanging database content, and (currently) serializes all database accesses
-
-**All foster application safety**: regardless of the concurrency mode you choose, GRDB provides you with the same guarantees, as long as you follow three rules.
-
-- :bowtie: **Guarantee 1: writes are always serialized**. At every moment, there is no more than a single thread that is writing into the database.
-    
-    > Database writes always happen in a unique serial dispatch queue, named the *writer protected dispatch queue*.
-
-- :bowtie: **Guarantee 2: reads are always isolated**. This means that they are guaranteed an immutable view of the database, and that you can perform subsequent fetches without fearing eventual concurrent writes to mess with your application logic:
-    
-    ```swift
-    try dbPool.read { db in // or dbQueue.read
-        // Guaranteed to be equal
-        let count1 = try Player.fetchCount(db)
-        let count2 = try Player.fetchCount(db)
-    }
-    ```
-    
-    > In [database queues](#database-queues), reads happen in the same protected dispatch queue as writes: isolation is just a consequence of the serialization of database accesses
-    >
-    > [Database pools](#database-pools) and [snapshots](#database-snapshots) both use the "snapshot isolation" made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
-
-- :bowtie: **Guarantee 3: requests don't fail**, unless a database constraint violation, a [programmer mistake](#error-handling), or a very low-level issue such as a disk error or an unreadable database file. GRDB grants *correct* use of SQLite, and particularly avoids locking errors and other SQLite misuses.
-
-Those guarantees hold as long as you follow three rules:
-
-- :point_up: **Rule 1**: Have a unique instance of DatabaseQueue or DatabasePool connected to any database file.
-    
-    This means that opening a new connection each time you access the database is a bad idea. Do share a single connection instead.
-    
-    See the [Demo Applications] for sample code that sets up a single database queue that is available throughout the application.
-    
-    See [Sharing a Database] for the specific setup required by applications that share their database files.
-    
-    ```swift
-    // SAFE CONCURRENCY
-    func fetchCurrentUser(_ db: Database) throws -> User? {
-        try User.fetchOne(db)
-    }
-    // dbQueue is a singleton defined somewhere in your app
-    let user = try dbQueue.read { db in // or dbPool.read
-        try fetchCurrentUser(db)
-    }
-    
-    // UNSAFE CONCURRENCY
-    // This method fails when some other thread is currently writing into
-    // the database.
-    func currentUser() throws -> User? {
-        let dbQueue = try DatabaseQueue(...)
-        return try dbQueue.read { db in
-            try User.fetchOne(db)
-        }
-    }
-    let user = try currentUser()
-    ```
-    
-- :point_up: **Rule 2**: Group related statements within a single call to a DatabaseQueue or DatabasePool database access method (or use [snapshots](#database-snapshots)).
-    
-    Database access methods isolate your groups of related statements against eventual database updates performed by other threads, and guarantee a consistent view of the database. This isolation is only guaranteed *inside* the closure argument of those methods. Two consecutive calls *do not* guarantee isolation:
-    
-    ```swift
-    // SAFE CONCURRENCY
-    try dbPool.read { db in  // or dbQueue.read
-        // Guaranteed to be equal:
-        let count1 = try Place.fetchCount(db)
-        let count2 = try Place.fetchCount(db)
-    }
-    
-    // UNSAFE CONCURRENCY
-    // Those two values may be different because some other thread may have
-    // modified the database between the two blocks:
-    let count1 = try dbPool.read { db in try Place.fetchCount(db) }
-    let count2 = try dbPool.read { db in try Place.fetchCount(db) }
-    ```
-    
-    In the same vein, when you fetch values that depends on some database updates, group them:
-    
-    ```swift
-    // SAFE CONCURRENCY
-    try dbPool.write { db in
-        // The count is guaranteed to be non-zero
-        try Place(...).insert(db)
-        let count = try Place.fetchCount(db)
-    }
-    
-    // UNSAFE CONCURRENCY
-    // The count may be zero because some other thread may have performed
-    // a deletion between the two blocks:
-    try dbPool.write { db in try Place(...).insert(db) }
-    let count = try dbPool.read { db in try Place.fetchCount(db) }
-    ```
-    
-    On that last example, see [Advanced DatabasePool](#advanced-databasepool) if you look after extra performance.
-    
-- :point_up: **Rule 3**: When you perform several modifications of the database that temporarily put the database in an inconsistent state, make sure those modifications are grouped within a [transaction](#transactions-and-savepoints).
-    
-    ```swift
-    // SAFE CONCURRENCY
-    try dbPool.write { db in               // or dbQueue.write
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-    }
-    
-    // SAFE CONCURRENCY
-    try dbPool.writeInTransaction { db in  // or dbQueue.inTransaction
-        try Credit(destinationAccount, amount).insert(db)
-        try Debit(sourceAccount, amount).insert(db)
-        return .commit
-    }
-    
-    // UNSAFE CONCURRENCY
-    try dbPool.writeWithoutTransaction { db in
-        try Credit(destinationAccount, amount).insert(db)
-        // <- Concurrent dbPool.read sees a partial db update here
-        try Debit(sourceAccount, amount).insert(db)
-    }
-    ```
-    
-    Without transaction, `DatabasePool.read { ... }` may see the first statement, but not the second, and access a database where the balance of accounts is not zero. A highly bug-prone situation.
-    
-    So do use [transactions](#transactions-and-savepoints) in order to guarantee database consistency across your application threads: that's what they are made for.
-
-
-### Differences between Database Queues and Pools
-
-Despite the common [guarantees and rules](#guarantees-and-rules) shared by [database queues](#database-queues) and [pools](#database-pools), those two database accessors don't have the same behavior.
-
-**Database queues** serialize all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database as time passes:
-
-![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabaseQueueScheduling.svg)
-
-**Database pools** also serialize all writes. But they allow concurrent reads and writes, and isolate reads so that they don't see changes performed by other threads. This gives a very different picture:
-
-![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabasePoolScheduling.svg)
-
-See how, with database pools, two reads can see different database states at the same time.
-
-For more information about database pools, grab information about SQLite [WAL mode](https://www.sqlite.org/wal.html) and [snapshot isolation](https://sqlite.org/isolation.html). See [Database Observation] when you look after automatic notifications of database changes.
-
-
-### Advanced DatabasePool
-
-- [The `concurrentRead` Method](#the-concurrentread-method)
-- [The `barrierWriteWithoutTransaction` Method](#the-barrierwritewithouttransaction-method)
-
-
-#### The `concurrentRead` Method
-
-[Database pools](#database-pools) are very concurrent, since all reads can run in parallel, and can even run during write operations. But writes are still serialized: at any given point in time, there is no more than a single thread that is writing into the database.
-
-When your application modifies the database, and then reads some value that depends on those modifications, you may want to avoid locking the writer queue longer than necessary:
-
-```swift
-try dbPool.write { db in
-    // Increment the number of players
-    try Player(...).insert(db)
-    
-    // Read the number of players. The writer queue is still locked :-(
-    let count = try Player.fetchCount(db)
-}
-```
-
-A wrong solution is to chain a write then a read, as below. Don't do that, because another thread may modify the database in between, and make the read unreliable:
-
-```swift
-// WRONG
-try dbPool.write { db in
-    // Increment the number of players
-    try Player(...).insert(db)
-}
-// <- other threads can write in the database here
-try dbPool.read { db in
-    // Read some random value :-(
-    let count = try Player.fetchCount(db)
-}
-```
-
-The correct solution is the `concurrentRead` method, which must be called from within a write block, outside of any transaction.
-
-`concurrentRead` returns a **future value** which you consume on any dispatch queue, with the `wait()` method:
-
-```swift
-// CORRECT
-let futureCount: DatabaseFuture<Int> = try dbPool.writeWithoutTransaction { db in
-    // increment the number of players
-    try Player(...).insert(db)
-    
-    // <- not in a transaction here
-    let futureCount = dbPool.concurrentRead { db
-        try Player.fetchCount(db)
-    }
-    return futureCount
-}
-// <- The writer queue has been unlocked :-)
-
-// Wait for the player count
-let count: Int = try futureCount.wait()
-```
-
-`concurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
-
-The closure can run concurrently with eventual updates performed after `concurrentRead`: those updates won't be visible from within the closure. In the example below, the number of players is guaranteed to be non-zero, even though it is fetched concurrently with the player deletion:
-
-```swift
-try dbPool.writeWithoutTransaction { db in
-    // Increment the number of players
-    try Player(...).insert(db)
-    
-    let futureCount = dbPool.concurrentRead { db
-        // Guaranteed to be non-zero
-        try Player.fetchCount(db)
-    }
-    
-    try Player.deleteAll(db)
-}
-```
-
-[Transaction Observers](#transactionobserver-protocol) can also use `concurrentRead` in their `databaseDidCommit` method in order to process database changes without blocking other threads that want to write into the database.
-
-
-#### The `barrierWriteWithoutTransaction` Method
-
-```swift
-try dbPool.barrierWriteWithoutTransaction { db in
-    // Exclusive database access
-}
-```
-
-The barrier write guarantees exclusive access to the database: the method blocks until all concurrent database accesses are completed, reads and writes, and postpones all other accesses until it completes.
-
-There is a known limitation: reads performed by [database snapshots](#database-snapshots) are out of scope, and may run concurrently with the barrier.
-
-
-
-### Database Snapshots
-
-**[Database pool](#database-pools) can take snapshots.** A database snapshot sees an unchanging database content, as it existed at the moment it was created.
-
-"Unchanging" means that a snapshot never sees any database modifications during all its lifetime. And yet it doesn't prevent database updates. This "magic" is made possible by SQLite's WAL mode (see [Isolation In SQLite](https://sqlite.org/isolation.html)).
-
-You create snapshots from a [database pool](#database-pools):
-
-```swift
-let snapshot = try dbPool.makeSnapshot()
-```
-
-You can create as many snapshots as you need, regardless of the [maximum number of readers](#databasepool-configuration) in the pool. A snapshot database connection is closed when the snapshot gets deinitialized.
-
-**A snapshot can be used from any thread.** Its `read` methods is synchronous, and blocks the current thread until your database statements are executed:
-
-```swift
-// Read values:
-try snapshot.read { db in
-    let players = try Player.fetchAll(db)
-    let playerCount = try Player.fetchCount(db)
-}
-
-// Extract a value from the database:
-let playerCount = try snapshot.read { db in
-    try Player.fetchCount(db)
-}
-```
-
-When you want to control the latest committed changes seen by a snapshot, create the snapshot from the pool's writer protected dispatch queue, outside of any transaction:
-
-```swift
-let snapshot1 = try dbPool.writeWithoutTransaction { db -> DatabaseSnapshot in
-    try db.inTransaction {
-        // delete all players
-        try Player.deleteAll()
-        return .commit
-    }
-    
-    // <- not in a transaction here
-    return dbPool.makeSnapshot()
-}
-// <- Other threads may modify the database here
-let snapshot2 = try dbPool.makeSnapshot()
-
-try snapshot1.read { db in
-    // Guaranteed to be zero
-    try Player.fetchCount(db)
-}
-
-try snapshot2.read { db in
-    // Could be anything
-    try Player.fetchCount(db)
-}
-```
-
-> :point_up: **Note**: snapshots currently serialize all database accesses. In the future, snapshots may allow concurrent reads.
-
-
-### DatabaseWriter and DatabaseReader Protocols
-
-Both DatabaseQueue and DatabasePool adopt the [DatabaseReader](http://groue.github.io/GRDB.swift/docs/5.12/Protocols/DatabaseReader.html) and [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/5.12/Protocols/DatabaseWriter.html) protocols. DatabaseSnapshot adopts DatabaseReader only.
-
-These protocols provide a unified API that let you write generic code that targets all concurrency modes. They fuel, for example:
-
-- [Migrations]
-- [DatabaseRegionObservation]
-- [ValueObservation]
-- [Combine Support]
-- [RxGRDB]
-
-Only five types adopt those protocols: DatabaseQueue, DatabasePool, DatabaseSnapshot, AnyDatabaseReader, and AnyDatabaseWriter. Expanding this set is not supported: any future GRDB release may break your custom writers and readers, without notice.
-
-DatabaseReader and DatabaseWriter provide the *smallest* common guarantees: they don't erase the differences between queues, pools, and snapshots. See for example [Differences between Database Queues and Pools](#differences-between-database-queues-and-pools).
-
-However, you can prevent some parts of your application from writing in the database by giving them a DatabaseReader:
-
-```swift
-// This class can read in the database, but can't write into it.
-class MyReadOnlyComponent {
-    let reader: DatabaseReader
-    
-    init(reader: DatabaseReader) {
-        self.reader = reader
-    }
-}
-
-let dbQueue: DatabaseQueue = ...
-let component = MyReadOnlyComponent(reader: dbQueue)
-```
-
-> :point_up: **Note**: DatabaseReader is not a **secure** way to prevent an application component from writing in the database, because write access is just a cast away:
->
-> ```swift
-> if let dbQueue = reader as? DatabaseQueue {
->     try dbQueue.write { ... }
-> }
-> ```
-
-
-### Asynchronous APIs
-
-**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide asynchronous database access methods.**
-
-- [`asyncRead`](#asyncread)
-- [`asyncWrite`](#asyncwrite)
-- [`asyncWriteWithoutTransaction`](#asyncwritewithouttransaction)
-- [`asyncConcurrentRead`](#asyncconcurrentread)
-
-
-#### `asyncRead`
-
-The `asyncRead` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue:
-
-```swift
-reader.asyncRead { (dbResult: Result<Database, Error>) in
-    do {
-        let db = try dbResult.get()
-        let players = try Player.fetchAll(db)
-    } catch {
-        // handle error
-    }
-}
-```
-
-The argument function accepts a standard `Result<Database, Error>` which may contain a failure if it was impossible to start a reading access to the database.
-
-Any attempt at modifying the database throws an error.
-
-When you use a [database queue](#database-queues) or a [database snapshot](#database-snapshots), the read has to wait for any eventual concurrent database access performed by this queue or snapshot to complete.
-
-When you use a [database pool](#database-pools), reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
-
-
-#### `asyncWrite`
-    
-The `asyncWrite` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, wrapped inside a [database transaction](#transactions-and-savepoints):
-
-```swift
-writer.asyncWrite({ (db: Database) in
-    try Player(...).insert(db)
-}, completion: { (db: Database, result: Result<Void, Error>) in
-    switch result {
-    case let .success:
-        // handle transaction success
-    case let .failure(error):
-        // handle transaction error
-    }
-})
-```
-
-`asyncWrite` accepts two function arguments. The first one executes your database updates. The second one is a completion function which accepts a database connection and the result of the asynchronous transaction.
-
-On the first unhandled error during database updates, all changes are reverted, the whole transaction is rollbacked, and the error is passed to the completion function.
-
-When the transaction completes successfully, the result of the first function is contained in the standard `Result` passed to the completion function:
-
-```swift
-writer.asyncWrite({ (db: Database) -> Int in
-    try Player(...).insert(db)
-    return try Player.fetchCount(db)
-}, completion: { (db: Database, result: Result<Int, Error>) in
-    switch result {
-    case let .success(newPlayerCount):
-        print("new player count: \(newPlayerCount)")
-    case let .failure(error):
-        // handle transaction error
-    }
-})
-```
-
-The scheduled asynchronous transaction has to wait for any eventual concurrent database write to complete before it can start.
-
-
-#### `asyncWriteWithoutTransaction`
-
-The `asyncWriteWithoutTransaction` method can be used from any thread. It submits your database statements for asynchronous execution on a protected dispatch queue, outside of any transaction:
-
-```swift
-writer.asyncWriteWithoutTransaction { (db: Database) in
-    do {
-        try Player(...).insert(db)
-    } catch {
-        // handle error
-    }
-}
-```
-
-**Writing outside of any transaction is dangerous.** You should almost always prefer the `asyncWrite` method described above. Please see [Transactions and Savepoints](#transactions-and-savepoints) for more information.
-
-The scheduled asynchronous updates have to wait for any eventual concurrent database write to complete before they can start.
-
-
-#### `asyncConcurrentRead`
-
-The `asyncConcurrentRead` method is available on database pools only. It is the asynchronous equivalent of the `concurrentRead` described in the [Advanced DatabasePool](#advanced-databasepool) chapter.
-
-It must be called from a writing dispatch queue, outside of any transaction. You'll get a fatal error otherwise.
-
-The closure argument is guaranteed to see the database in the last committed state at the moment this method is called. Eventual concurrent database updates are *not visible* inside the block.
-
-`asyncConcurrentRead` blocks until it can guarantee its closure argument an isolated access to the last committed state of the database. It then asynchronously executes the closure.
-
-In the example below, the number of players is fetched concurrently with the player insertion. Yet the future is guaranteed to return zero:
-
-```swift
-try writer.asyncWriteWithoutTransaction { db in
-    do {
-        // Delete all players
-        try Player.deleteAll()
-        
-        // <- not in a transaction here
-        // Count players concurrently
-        writer.asyncConcurrentRead { (dbResult: Result<Database, Error>) in
-            do {
-                let db = try dbResult.get()
-                // Guaranteed to be zero
-                let count = try Player.fetchCount(db)
-            } catch {
-                // handle error
-            }
-        }
-        
-        // Insert a player
-        try Player(...).insert(db)
-    } catch {
-        // handle error
-    }
-}
-```
-
-
-### Unsafe Concurrency APIs
-
-**Database queues, pools, snapshots, as well as their common protocols `DatabaseReader` and `DatabaseWriter` provide *unsafe* database access methods.** Unsafe APIs lift [concurrency guarantees](#guarantees-and-rules), and allow advanced yet unsafe patterns.
-
-- **`unsafeRead`**
-    
-    The `unsafeRead` method is synchronous, and blocks the current thread until your database statements are executed in a protected dispatch queue. GRDB does just the bare minimum to provide a database connection that can read.
-    
-    When used on a database pool, reads are no longer isolated:
-    
-    ```swift
-    dbPool.unsafeRead { db in
-        // Those two values may be different because some other thread
-        // may have inserted or deleted a player between the two requests:
-        let count1 = try Player.fetchCount(db)
-        let count2 = try Player.fetchCount(db)
-    }
-    ```
-    
-    When used on a database queue, the closure argument is allowed to write in the database.
-    
-- **`unsafeReentrantRead`**
-    
-    The `unsafeReentrantRead` behaves just as `unsafeRead` (see above), and allows reentrant calls:
-    
-    ```swift
-    dbPool.read { db1 in
-        // No "Database methods are not reentrant" fatal error:
-        dbPool.unsafeReentrantRead { db2 in
-            dbPool.unsafeReentrantRead { db3 in
-                ...
-            }
-        }
-    }
-    ```
-    
-    Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
-    
-    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
-    
-- **`unsafeReentrantWrite`**
-    
-    The `unsafeReentrantWrite` method is synchronous, and blocks the current thread until your database statements are executed in a protected dispatch queue. Writes are serialized: eventual concurrent database updates are postponed until the block has executed.
-    
-    Reentrant calls are allowed:
-    
-    ```swift
-    dbQueue.write { db1 in
-        // No "Database methods are not reentrant" fatal error:
-        dbQueue.unsafeReentrantWrite { db2 in
-            dbQueue.unsafeReentrantWrite { db3 in
-                ...
-            }
-        }
-    }
-    ```
-    
-    Reentrant database accesses make it very easy to break the second [safety rule](#guarantees-and-rules), which says: "group related statements within a single call to a DatabaseQueue or DatabasePool database access method.". Using a reentrant method is pretty much likely the sign of a wrong application architecture that needs refactoring.
-    
-    There is a single valid use case for reentrant methods, which is when you are unable to control database access scheduling.
-
-
 FAQ
 ===
 
@@ -8609,6 +8063,38 @@ This protocol has been renamed [TableRecord] in GRDB 3.0.
 
 This chapter has been superseded by [ValueObservation] and [DatabaseRegionObservation].
 
+#### Concurrency
+
+This chapter has [moved](Documentation/Concurrency.md).
+
+#### Guarantees and Rules
+
+This chapter is now split into [Concurrency Rules](Documentation/Concurrency.md#concurrency-rules) and [Safe and Unsafe Database Accesses](Documentation/Concurrency.md#safe-and-unsafe-database-accesses).
+
+#### Differences between Database Queues and Pools
+
+This chapter has [moved](Documentation/Concurrency.md#differences-between-database-queues-and-pools).
+
+#### Advanced DatabasePool
+
+This chapter has [moved](Documentation/Concurrency.md#advanced-databasepool).
+
+#### Database Snapshots
+
+This chapter has [moved](Documentation/Concurrency.md#database-snapshots).
+
+#### DatabaseWriter and DatabaseReader Protocols
+
+This chapter was removed. See the references of [DatabaseReader](http://groue.github.io/GRDB.swift/docs/5.12/Protocols/DatabaseReader.html) and [DatabaseWriter](http://groue.github.io/GRDB.swift/docs/5.12/Protocols/DatabaseWriter.html).
+
+#### Asynchronous APIs
+
+This chapter has [moved](Documentation/Concurrency.md#synchronous-and-asynchronous-database-accesses).
+
+#### Unsafe Concurrency APIs
+
+This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-accesses).
+
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
@@ -8642,6 +8128,7 @@ This chapter has been superseded by [ValueObservation] and [DatabaseRegionObserv
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
+[Concurrency]: Documentation/Concurrency.md
 [Demo Applications]: Documentation/DemoApps/README.md
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq

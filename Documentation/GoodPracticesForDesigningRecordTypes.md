@@ -803,8 +803,8 @@ Instead, have a look at [Database Observation]:
 [migrations]: Migrations.md
 [migration]: Migrations.md
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
-[Concurrency Guide]: ../README.md#concurrency
-[GRDB concurrency rules]: ../README.md#concurrency
+[Concurrency Guide]: Concurrency.md
+[GRDB concurrency rules]: Concurrency.md#concurrency-rules
 [PersistableRecord]: ../README.md#persistablerecord-protocol
 [Database Observation]: ../README.md#database-changes-observation
 [ValueObservation]: ../README.md#valueobservation
