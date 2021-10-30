@@ -5,9 +5,9 @@
 
 Concurrency is hard, and better avoided when you can. But sometimes your application will need it.
 
-Some apps do not want slow database accesses to stall the user interface. Database concurrency make is possible to move those slow database jobs off the main thread.
+Some apps do not want slow database accesses to stall the user interface. Database concurrency makes it possible to move those slow database jobs off the main thread.
 
-Concurrent database accesses also happen when the database file is shared accross several processes. Maybe you develop an iOS app that communicates with an extension through a shared database? This, honestly, is the most difficult setup, and there exists a dedicated [Sharing a Database] guide about it.
+Concurrent database accesses also happen when a database file is shared between several processes. Maybe you develop an iOS app that communicates with an extension through a shared database? This, honestly, is the most difficult setup, and there exists a dedicated [Sharing a Database] guide about it.
 
 **In all cases, and first and foremost, follow the [Concurrency Rules] right from the start.**
 
@@ -22,7 +22,7 @@ Concurrent database accesses also happen when the database file is shared accros
 
 ## Concurrency Rules
 
-**The two concurrency rules are all about SQLite.** This chapter of the GRDB documentation is just a way to remind you of the fundamental behaviors of SQLite.
+**The two concurrency rules are all about SQLite.** This chapter of the GRDB documentation is just a reminder of the fundamental behaviors of this robust database.
 
 <a id="rule-1"></a>:point_up: **[Rule 1](#rule-1): Connect to any database file only once**
 
@@ -39,9 +39,9 @@ Open one single [DatabaseQueue] or [DatabasePool] per database file, for the who
 
 <a id="rule-2"></a>:point_up: **[Rule 2](#rule-2): Mind your transactions**
 
-Database operations that are grouped in an SQLite transaction are guaranteed to be either fully saved on disk, or not at all. Transactions have an interesting property during read-only accesses as well: they guarantee a stable and immutable view of the database[^1]. In other words, transactions are the one and single tool that helps you enforce and rely on the important invariants of your database (such as "all credits have a matching debit", or "all books have an author").
+Database operations that are grouped in an SQLite transaction are guaranteed to be either fully saved on disk, or not at all. Read-only transactions have an interesting property as well: they guarantee a stable and immutable view of the database[^1], and do not see changes performed by eventual concurrent writes. In other words, transactions are the one and single tool that helps you enforce and rely on the important invariants of your database (such as "all credits have a matching debit", or "all books have an author").
 
-**You are responsible**, in your Swift code, for delimiting transactions, and you do so by grouping database accesses inside a pair of `{ db in ... }` brackets:
+**You are responsible**, in your Swift code, for delimiting transactions. You do so by grouping database accesses inside a pair of `{ db in ... }` brackets:
 
 ```swift
 try dbQueue.write { db in /* Inside a transaction */ }
@@ -49,7 +49,7 @@ try dbQueue.read { db in /* Inside a transaction */ }
 let observation = ValueObservation.tracking { db in /* Inside a transaction */ }`
 ```
 
-> *Why does this rule exist?* - Because GRDB and SQLite can not guess the invariants of your database for you.
+> *Why does this rule exist?* - Because GRDB and SQLite can not guess where to insert the transaction boundaries that protect the invariants of your database. This is your task.
 > 
 > *Practical advice* - See below a correct example, as well as frequent mistakes you should avoid:
 > 
@@ -218,7 +218,7 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 
 </details>
 
-> :point_up: **Note**: During one async access, all individual database operations (fetch, insert, etc.) are performed synchronously:
+> :point_up: **Note**: During one async access, all individual database operations (fetch, insert, etc.) remain synchronous:
 >
 > ```swift
 > // When you perform ONE async access...
@@ -232,7 +232,7 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 >
 > This is true for all async techniques (Swift concurrency, Combine, etc.)
 >
-> If you think about it, this is to be expected. Database operations from various concurrent accesses must not be interleaved. For example, this would allow one access to commit on disk the partial updates performed by another unfinished concurrent access.
+> This prevents the database operations from various concurrent accesses from being interleaved, with disastrous consequences. For example, one access must not be able to issue a `COMMIT` statement in the middle of an unfinished concurrent write!
 
 
 ## Safe and Unsafe Database Accesses
@@ -242,13 +242,13 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 - <a id="guarantee-serialized-writes"></a>**[Serialized Writes]** - All writes performed by one [DatabaseQueue] or [DatabasePool] instance are serialized. *Why is it important?* - this guarantee prevents [SQLITE_BUSY] errors during concurrent writes.
 - <a id="guarantee-write-transactions"></a>**[Write Transactions]** - All writes are wrapped in a transaction. *Why is it important?* - concurrent reads can not see partial database updates (even reads performed by other processes).
 - <a id="guarantee-isolated-reads"></a>**[Isolated Reads]** - All reads are wrapped in a transaction. *Why is it important?* - an isolated read sees a stable and immutable state of the database[^1], and does not see changes performed by eventual concurrent writes (even writes performed by other processes).
-- <a id="guarantee-failing-writes"></a>**[Failing Writes]** - Inside a read database access, all attempts to write raise an error. *Why is it important?* - this enforces the immutability of the database during a read.
+- <a id="guarantee-forbidden-writes"></a>**[Forbidden Writes]** - Inside a read database access, all attempts to write raise an error. *Why is it important?* - this enforces the immutability of the database during a read.
 - <a id="guarantee-non-reentrancy"></a>**[Non-Reentrancy]** - Database accesses are not reentrant. *Why is it important?* - this reduces the opportunities for deadlocks, and fosters the clear transaction boundaries of the [second concurrency rule](#rule-2).
 
-Some applications need to lift this safety net in order to achieve some SQLite operations. In this case, you will replace `read` and `write` with one of the methods below.
+Some applications need to lift this safety net in order to achieve some SQLite operations. In this case, you will replace `read` and `write` with one of the methods below:
 
 - **Write outside of any transaction**  
-  (Lifted guarantees: [Write Transactions])
+  (Lifted guarantee: [Write Transactions])
     
     ```swift
     try dbQueue.writeWithoutTransaction { db in ... }
@@ -257,7 +257,7 @@ Some applications need to lift this safety net in order to achieve some SQLite o
     `writeWithoutTransaction` is also available as an `async` function. You can also use `asyncWriteWithoutTransaction`.
 
 - **Write outside of any transaction, and prevents concurrent reads**  
-  (Lifted guarantees: [Write Transactions])
+  (Lifted guarantee: [Write Transactions])
     
     ```swift
     try dbQueue.barrierWriteWithoutTransaction { db in ... }
@@ -290,7 +290,7 @@ Some applications need to lift this safety net in order to achieve some SQLite o
     `unsafeReentrantWrite` has no async version.
     
 - **Read outside of any transaction**  
-  (Lifted guarantees: [Isolated Reads], [Failing Writes])
+  (Lifted guarantees: [Isolated Reads], [Forbidden Writes])
     
     ```swift
     try dbQueue.unsafeRead { db in ... }
@@ -299,7 +299,7 @@ Some applications need to lift this safety net in order to achieve some SQLite o
     `unsafeRead` is also available as an `async` function.
 
 - **Reentrant read, outside of any transaction**  
-  (Lifted guarantees: [Isolated Reads], [Failing Writes], [Non-Reentrancy])
+  (Lifted guarantees: [Isolated Reads], [Forbidden Writes], [Non-Reentrancy])
 
     ```swift
     try dbQueue.unsafeReentrantRead { db in ... }
@@ -329,7 +329,7 @@ Some applications need to lift this safety net in order to achieve some SQLite o
     }
     ```
     
-- The [Failing Writes] guarantee can only be lifted with [DatabaseQueue]. It can be restored with [`PRAGMA query_only`](https://www.sqlite.org/pragma.html#pragma_query_only).
+- The [Forbidden Writes] guarantee can only be lifted with [DatabaseQueue]. It can be restored with [`PRAGMA query_only`](https://www.sqlite.org/pragma.html#pragma_query_only).
 
 
 ## Differences between Database Queues and Pools
@@ -492,5 +492,5 @@ try snapshot2.read { db in
 [Serialized Writes]: #guarantee-serialized-writes
 [Write Transactions]: #guarantee-write-transactions
 [Isolated Reads]: #guarantee-isolated-reads
-[Failing Writes]: #guarantee-failing-writes
+[Forbidden Writes]: #guarantee-forbidden-writes
 [Non-Reentrancy]: #guarantee-non-reentrancy
