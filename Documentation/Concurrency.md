@@ -237,7 +237,7 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 
 ## Safe and Unsafe Database Accesses
 
-**You will generally use safe database access methods such as `read` and `write`.** In this context, "safe" means that a database access is concurrency-friendly, because it provides the following guarantees:
+**You will generally use the safe database access methods `read` and `write`.** In this context, "safe" means that a database access is concurrency-friendly, because it provides the following guarantees:
 
 - <a id="guarantee-serialized-writes"></a>**[Serialized Writes]** - All writes performed by one [DatabaseQueue] or [DatabasePool] instance are serialized. *Why is it important?* - this guarantee prevents [SQLITE_BUSY] errors during concurrent writes.
 - <a id="guarantee-write-transactions"></a>**[Write Transactions]** - All writes are wrapped in a transaction. *Why is it important?* - concurrent reads can not see partial database updates (even reads performed by other processes).
