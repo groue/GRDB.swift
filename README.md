@@ -7519,6 +7519,7 @@ FAQ
 **[FAQ: Errors](#faq-errors)**
 
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [Mutation of captured var in concurrently-executing code](#mutation-of-captured-var-in-concurrently-executing-code)
 - [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
@@ -7858,6 +7859,7 @@ If after all those steps (thanks you!), your observation is still failing you, p
 
 - :arrow_up: [FAQ]
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [Mutation of captured var in concurrently-executing code](#mutation-of-captured-var-in-concurrently-executing-code)
 - [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
@@ -7893,6 +7895,31 @@ You can also, when possible, write a single-line closure:
 let string = try dbQueue.read { db in
     try String.fetchOne(db, ...)
 }
+```
+
+
+### Mutation of captured var in concurrently-executing code
+
+The `insert` and `save` [persistence methods](#persistablerecord-protocol) can trigger a compiler error in async contexts:
+
+```swift
+var player = Player(id: nil, name: "Arthur")
+try await dbWriter.write { db in
+    // Error: Mutation of captured var 'player' in concurrently-executing code
+    try player.insert(db)
+}
+print(player.id) // A non-nil id
+```
+
+When this happens, prefer the `inserted` and `saved` methods instead:
+
+```swift
+// OK
+var player = Player(id: nil, name: "Arthur")
+player = try await dbWriter.write { [player] db in
+    return try player.inserted(db)
+}
+print(player.id) // A non-nil id
 ```
 
 

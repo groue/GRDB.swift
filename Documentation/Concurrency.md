@@ -151,28 +151,6 @@ let newPlayerCount = try await dbQueue.write { db -> Int in
 
 Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
 
-> :point_up: **Note**: The `save` and `insert` [persistence methods](../README.md#persistablerecord-protocol) can trigger compiler errors in async contexts:
->
-> ```swift
-> // Error: Mutation of captured var 'player' in concurrently-executing code
-> var player = Player(id: nil, name: "Arthur")
-> try await dbWriter.write { db in
->     try player.insert(db)
-> }
-> print(player.id) // A non-nil id
-> ```
->
-> When this happens, you may prefer the `saved` and `inserted` methods instead:
->
-> ```swift
-> // OK
-> var player = Player(id: nil, name: "Arthur")
-> player = try await dbWriter.write { [player] db in
->     return try player.inserted(db)
-> }
-> print(player.id) // A non-nil id
-> ```
-
 </details>
 
 <details>
@@ -264,12 +242,12 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 - <a id="guarantee-serialized-writes"></a>**[Serialized Writes]** - All writes performed by one [DatabaseQueue] or [DatabasePool] instance are serialized. *Why is it important?* - this guarantee prevents [SQLITE_BUSY] errors during concurrent writes.
 - <a id="guarantee-write-transactions"></a>**[Write Transactions]** - All writes are wrapped in a transaction. *Why is it important?* - concurrent reads can not see partial database updates (even reads performed by other processes).
 - <a id="guarantee-isolated-reads"></a>**[Isolated Reads]** - All reads are wrapped in a transaction. *Why is it important?* - an isolated read sees a stable and immutable state of the database[^1], and does not see changes performed by eventual concurrent writes (even writes performed by other processes).
-- <a id="guarantee-forbidden-writes"></a>**[Forbidden Writes]** - Inside a read database access, all attempts to write raise an error. *Why is it important?* - this enforces the immutability of the database during a read.
+- <a id="guarantee-forbidden-writes"></a>**[Forbidden Writes]** - Inside a read access, all attempts to write raise an error. *Why is it important?* - this enforces the immutability of the database during a read.
 - <a id="guarantee-non-reentrancy"></a>**[Non-Reentrancy]** - Database accesses are not reentrant. *Why is it important?* - this reduces the opportunities for deadlocks, and fosters the clear transaction boundaries of the [second concurrency rule](#rule-2).
 
-These guarantees are important. They allow you to rely on the invariants of your database. They allow you to reason about the components of your application independently.
+These guarantees allow you to rely on the invariants of your database. They allow you to reason about the components of your application independently.
 
-Some applications, however, need to relax this safety net in order to achieve some SQLite operations. In this case, you will replace `read` and `write` with one of the methods below:
+Some applications need to relax this safety net in order to achieve some SQLite operations. In this case, replace `read` and `write` with one of the methods below:
 
 - **Write outside of any transaction**  
   (Lifted guarantee: [Write Transactions])
@@ -340,7 +318,7 @@ Some applications, however, need to relax this safety net in order to achieve so
     
     `unsafeReentrantRead` has no async version.
 
-:warning: By using one of the methods above, you become responsible of the thread-safety of your application. Please understand the consequences of lifting each concurrency guarantee. Some guarantees can also be restored at your convenience:
+:point_up: **By using one of the methods above, you become responsible of the thread-safety of your application.** Please understand the consequences of lifting each concurrency guarantee. Some guarantees can also be restored at your convenience:
 
 - The [Write Transactions] and [Isolated Reads] guarantees can be restored at any point, by opening an [explicit transaction](../README.md#transactions-and-savepoints). For example:
     
