@@ -138,6 +138,8 @@ let newPlayerCount = try dbQueue.write { db -> Int in
 <details open>
     <summary><b>Swift concurrency</b> (async/await)</summary>
 
+[**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features)
+
 ```swift
 let playerCount = try await dbQueue.read { db in
     try Player.fetchCount(db)
