@@ -306,6 +306,8 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
     }
     
     /// An asynchronous iterator that supplies database changes one at a time.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public struct Iterator: AsyncIteratorProtocol {
         var iterator: AsyncThrowingStream<Element, Error>.AsyncIterator
         let cancellable: AnyDatabaseCancellable

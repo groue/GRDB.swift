@@ -447,6 +447,8 @@ extension DatabaseWriter {
     /// Asynchronously executes database updates, outside of any transaction,
     /// and returns the result.
     ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// Eventual concurrent reads may see partial updates unless you wrap them
     /// in a transaction.
     ///
@@ -468,6 +470,8 @@ extension DatabaseWriter {
     // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes database updates, outside of any transaction,
     /// and returns the result.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// Updates are guaranteed an exclusive access to the database. They wait
     /// until all pending writes and reads are completed. They postpone all
@@ -492,6 +496,8 @@ extension DatabaseWriter {
     }
     
     /// Erases the content of the database.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func erase() async throws {
         try await writeWithoutTransaction { try $0.erase() }
@@ -499,6 +505,8 @@ extension DatabaseWriter {
     
     /// Rebuilds the database file, repacking it into a minimal amount of
     /// disk space.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// See <https://www.sqlite.org/lang_vacuum.html> for more information.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
@@ -508,6 +516,8 @@ extension DatabaseWriter {
     
     /// Creates a new database file at the specified path with a minimum
     /// amount of disk space.
+    ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// See <https://www.sqlite.org/lang_vacuum.html#vacuuminto> for more information.
     ///

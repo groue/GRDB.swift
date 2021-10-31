@@ -383,6 +383,8 @@ extension DatabaseReader {
     // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes a function that accepts a database connection.
     ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    ///
     /// For example:
     ///
     ///     let count = try await reader.unsafeRead { db in
