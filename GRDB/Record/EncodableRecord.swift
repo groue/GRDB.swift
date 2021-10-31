@@ -374,6 +374,38 @@ public enum DatabaseDateEncodingStrategy {
     
     /// Encodes the result of the user-provided function
     case custom((Date) -> DatabaseValueConvertible?)
+    
+    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
+    private static let iso8601Formatter: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = .withInternetDateTime
+        return formatter
+    }()
+    
+    func encode(_ date: Date) -> DatabaseValueConvertible? {
+        switch self {
+        case .deferredToDate:
+            return date.databaseValue
+        case .timeIntervalSinceReferenceDate:
+            return date.timeIntervalSinceReferenceDate
+        case .timeIntervalSince1970:
+            return date.timeIntervalSince1970
+        case .millisecondsSince1970:
+            return Int64(floor(1000.0 * date.timeIntervalSince1970))
+        case .secondsSince1970:
+            return Int64(floor(date.timeIntervalSince1970))
+        case .iso8601:
+            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
+                return Self.iso8601Formatter.string(from: date)
+            } else {
+                fatalError("ISO8601DateFormatter is unavailable on this platform.")
+            }
+        case .formatted(let formatter):
+            return formatter.string(from: date)
+        case .custom(let format):
+            return format(date)
+        }
+    }
 }
 
 // MARK: - DatabaseUUIDEncodingStrategy
@@ -397,6 +429,15 @@ public enum DatabaseUUIDEncodingStrategy {
     
     /// Encodes UUIDs as strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     case string
+
+    func encode(_ uuid: UUID) -> DatabaseValueConvertible {
+        switch self {
+        case .deferredToUUID:
+            return uuid.databaseValue
+        case .string:
+            return uuid.uuidString
+        }
+    }
 }
 
 // MARK: - DatabaseColumnEncodingStrategy
