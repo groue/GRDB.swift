@@ -5795,7 +5795,7 @@ try dbQueue.write { db in
 
 Tracked changes are insertions, updates, and deletions that impact the tracked value, performed with the [query interface](#the-query-interface), or [raw SQL](#sqlite-api). This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
-> :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
+> :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite\_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
 
 **ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Applications] for sample code.
 
