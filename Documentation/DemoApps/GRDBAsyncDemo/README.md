@@ -1,7 +1,7 @@
 Async/Await + SwiftUI Demo Application
 ======================================
 
-<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBAsyncDemo/Screenshot.png" width="50%">
+<img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBCombineDemo/Screenshot.png" width="50%">
 
 **This demo application is an Async/Await + SwiftUI application.** For a demo application that uses UIKit, see [GRDBDemoiOS](../GRDBDemoiOS/README.md), and for Combine + SwiftUI, see [GRDBCombineDemo](../GRDBCombineDemo/README.md).
 
