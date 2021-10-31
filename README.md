@@ -8107,10 +8107,15 @@ let dbQueue = try DatabaseQueue(path: dbPath)
 
 ### How do I close a database connection?
     
-Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deinitialized, and all usages of this connection are completed.
+Database connections are automatically closed when they are deinitialized.
 
-Database accesses that run in background threads postpone the closing of connections.
+When the correct execution of your program depends on precise database closing, use the `close()` method:
 
+```swift
+try dbQueue.close()
+```
+
+This explicit `close()` may fail with an error. See the inline documentation of this method for more information. Generally speaking, you should not call this method: rely on automatic closing instead.
 
 ## FAQ: SQL
 
