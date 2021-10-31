@@ -312,7 +312,7 @@ Documentation
 
 #### Demo Applications & Frequently Asked Questions
 
-- [Demo Applications]: Two flavors: vanilla UIKit, and Combine + SwiftUI
+- [Demo Applications]: Three flavors: vanilla UIKit, Combine + SwiftUI, and Async/Await + SwiftUI.
 - [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
 
 #### Reference
