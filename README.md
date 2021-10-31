@@ -3094,7 +3094,7 @@ protocol EncodableRecord {
 }
 ```
 
-See [DatabaseColumnDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseColumnDecodingStrategy.html), [DatabaseColumnEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseColumnEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
+See [DatabaseColumnDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseColumnDecodingStrategy.html) and [DatabaseColumnEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseColumnEncodingStrategy.html) to learn about all available strategies.
 
 
 ### Date and UUID Coding Strategies
@@ -3118,55 +3118,40 @@ protocol EncodableRecord {
 
 See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
 
-> :point_up: **Note**: there is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
+There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
 
-> :point_up: **Note**: Customized date and uuid handling only apply during the encoding and decoding of database rows to and from records. *They do not apply* when you define requests based on date or uuid values.
+Customized date and uuid handling apply:
+
+- When encoding and decoding database rows to and from records (fetching and persistence methods).
+- In primary key requests (`fetchOne(_:id:)`, `filter(id:)`, `deleteAll(_:keys:)`, etc.)
+
+*They do not apply* in other requests based on date or uuid values.
 
 So make sure that dates and uuids are properly encoded in your requests. For example:
 
 ```swift
-struct Player: Codable, FetchableRecord, PersistableRecord {
+struct Player: Codable, FetchableRecord, PersistableRecord, Identifiable {
     // UUIDs are stored as strings
     static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
-    var uuid: UUID
+    var id: UUID
     ...
 }
 
 try dbQueue.write { db in
     let uuid = UUID()
-    let player = Player(uuid: uuid, ...)
+    let player = Player(id: uuid, ...)
     
-    // Inserts a player in the database, with a string uuid
+    // OK: inserts a player in the database, with a string uuid
     try player.insert(db)
     
-    // BAD: performs a blob-based query, fails to find the inserted player
-    _ = try Player.filter(Column("uuid") == uuid).fetchOne(db)
+    // OK: performs a string-based query, finds the inserted player
     _ = try Player.filter(id: uuid).fetchOne(db)
-    
-    // GOOD: performs a string-based query, finds the inserted player
-    _ = try Player.filter(Column("uuid") == uuid.uuidString).fetchOne(db)
-    _ = try Player.filter(id: uuid.uuidString).fetchOne(db)
-}
-```
 
-The [Good Practices for Designing Record Types](Documentation/GoodPracticesForDesigningRecordTypes.md) suggest to define a specific method in such situation:
-
-```swift
-extension DerivableRequest where RowDecoder == Player {
-    func filter(uuid: UUID) -> Self {
-        filter(Column("uuid") == uuid.uuidString)
-    }
-}
-
-try dbQueue.write { db in
-    let uuid = UUID()
-    let player = Player(uuid: uuid, ...)
+    // NOT OK: performs a blob-based query, fails to find the inserted player
+    _ = try Player.filter(Column("id") == uuid).fetchOne(db)
     
-    // Inserts a player in the database, with a string uuid
-    try player.insert(db)
-    
-    // GOOD: performs a string-based query, finds the inserted player
-    _ = try Player.all().filter(uuid: uuid).fetchOne(db)
+    // OK: performs a string-based query, finds the inserted player
+    _ = try Player.filter(Column("id") == uuid.uuidString).fetchOne(db)
 }
 ```
 
