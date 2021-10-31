@@ -86,6 +86,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1079](https://github.com/groue/GRDB.swift/pull/1079) by [@groue](https://github.com/groue): Async / Await
 - **New**: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
+- **New**: A new `close()` method allows precise closing of database connections.
 - **Fixed**: Filtering records by primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
 - **Documentation Update**: The [Concurrency Guide](Documentation/Concurrency.md) has been fully rewritten, and introduces the new support for Swift concurrency (async/await).
 - **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) was updated for the new support for customized date and uuid primary key coding.

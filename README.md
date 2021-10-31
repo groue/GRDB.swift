@@ -5796,7 +5796,7 @@ try dbQueue.write { db in
 
 Tracked changes are insertions, updates, and deletions that impact the tracked value, performed with the [query interface](#the-query-interface), or [raw SQL](#sqlite-api). This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
-> :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
+> :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite\_master`), and changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables.
 
 **ValueObservation is the preferred GRDB tool for keeping your user interface synchronized with the database.** See the [Demo Applications] for sample code.
 
@@ -6152,6 +6152,8 @@ See also [ValueObservation.handleEvents](#valueobservationhandleevents).
 
 
 ### ValueObservation Sharing
+
+[**:fire: EXPERIMENTAL**](#what-are-experimental-features)
 
 **Sharing a ValueObservation allows several components of your app to be notified of database changes, in an efficient way.**
 
@@ -7579,10 +7581,15 @@ let dbQueue = try DatabaseQueue(path: dbPath)
 
 ### How do I close a database connection?
     
-Database connections are managed by [database queues](#database-queues) and [pools](#database-pools). A connection is closed when its database queue or pool is deinitialized, and all usages of this connection are completed.
+Database connections are automatically closed when they are deinitialized.
 
-Database accesses that run in background threads postpone the closing of connections.
+When the correct execution of your program depends on precise database closing, use the `close()` method:
 
+```swift
+try dbQueue.close()
+```
+
+This explicit `close()` may fail with an error. See the inline documentation of this method for more information. Generally speaking, you should not call this method: rely on automatic closing instead.
 
 ## FAQ: SQL
 

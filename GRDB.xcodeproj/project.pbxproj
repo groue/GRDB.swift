@@ -1373,6 +1373,7 @@
 		56419A6C24A51601004967E1 /* Support.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Support.swift; sourceTree = "<group>"; };
 		56419A6D24A51601004967E1 /* DatabaseRegionObservationPublisherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseRegionObservationPublisherTests.swift; sourceTree = "<group>"; };
 		56419A6E24A51601004967E1 /* ValueObservationPublisherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValueObservationPublisherTests.swift; sourceTree = "<group>"; };
+		5643676D272EDF2400C718C7 /* Scripts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Scripts; sourceTree = "<group>"; };
 		564448821EF56B1B00DD2861 /* DatabaseAfterNextTransactionCommitTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseAfterNextTransactionCommitTests.swift; sourceTree = "<group>"; };
 		564A50C61BFF4B7F00B3A3A2 /* DatabaseCollationTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseCollationTests.swift; sourceTree = "<group>"; };
 		564CE43021AA901800652B19 /* ValueObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValueObserver.swift; sourceTree = "<group>"; };
@@ -2459,6 +2460,7 @@
 				DC10500F19C904DD00D8CA30 /* Tests */,
 				DC3773F419C8CBB3004FCF85 /* Products */,
 				564390D42414FC2C00BA61E6 /* Frameworks */,
+				5643676D272EDF2400C718C7 /* Scripts */,
 			);
 			indentWidth = 4;
 			sourceTree = "<group>";
@@ -2859,7 +2861,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
 		};
 		56EB54FA22C9115E00850069 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2877,7 +2879,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
 		};
 		AAA4DCFA230F1E0600C74B15 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2895,7 +2897,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if which swiftlint >/dev/null; then\n  swiftlint\nelse\n  echo \"warning: SwiftLint not installed, download from https://github.com/realm/SwiftLint\"\nfi\n";
+			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

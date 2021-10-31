@@ -61,6 +61,10 @@ public class DatabaseSnapshot: DatabaseReader {
             try? db.commit()
         }
     }
+    
+    public func close() throws {
+        try serializedDatabase.sync { try $0.close() }
+    }
 }
 
 // DatabaseReader

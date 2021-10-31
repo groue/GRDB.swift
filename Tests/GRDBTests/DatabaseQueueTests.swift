@@ -193,4 +193,80 @@ class DatabaseQueueTests: GRDBTestCase {
         try test(qos: .background)
         try test(qos: .userInitiated)
     }
+    
+    // MARK: - Closing
+    
+    func testClose() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.close()
+        
+        // After close, access throws SQLITE_MISUSE
+        do {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+            }
+            XCTFail("Expected Error")
+        } catch DatabaseError.SQLITE_MISUSE { }
+        
+        // After close, closing is a noop
+        try dbQueue.close()
+    }
+    
+    func testCloseAfterUse() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "SELECT * FROM sqlite_master")
+        }
+        try dbQueue.close()
+        
+        // After close, access throws SQLITE_MISUSE
+        do {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+            }
+            XCTFail("Expected Error")
+        } catch DatabaseError.SQLITE_MISUSE { }
+        
+        // After close, closing is a noop
+        try dbQueue.close()
+    }
+    
+    func testCloseWithCachedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            _ = try db.cachedStatement(sql: "SELECT * FROM sqlite_master")
+        }
+        try dbQueue.close()
+        
+        // After close, access throws SQLITE_MISUSE
+        do {
+            try dbQueue.inDatabase { db in
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+            }
+            XCTFail("Expected Error")
+        } catch DatabaseError.SQLITE_MISUSE { }
+        
+        // After close, closing is a noop
+        try dbQueue.close()
+    }
+    
+    func testFailedClose() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let statement = try dbQueue.inDatabase { db in
+            try db.makeStatement(sql: "SELECT * FROM sqlite_master")
+        }
+        
+        try withExtendedLifetime(statement) {
+            do {
+                try dbQueue.close()
+                XCTFail("Expected Error")
+            } catch DatabaseError.SQLITE_BUSY { }
+        }
+        XCTAssert(lastMessage!.contains("unfinalized statement: SELECT * FROM sqlite_master"))
+        
+        // Database is not closed: no error
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "SELECT * FROM sqlite_master")
+        }
+    }
 }

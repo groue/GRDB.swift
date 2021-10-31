@@ -358,4 +358,80 @@ class DatabaseSnapshotTests: GRDBTestCase {
             XCTAssertNotNil(db.schemaCache[.main].primaryKey("t"))
         }
     }
+    
+    // MARK: - Closing
+    
+    func testClose() throws {
+        let snapshot = try makeDatabasePool().makeSnapshot()
+        try snapshot.close()
+        
+        // After close, access throws SQLITE_MISUSE
+        do {
+            try snapshot.read { db in
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+            }
+            XCTFail("Expected Error")
+        } catch DatabaseError.SQLITE_MISUSE { }
+        
+        // After close, closing is a noop
+        try snapshot.close()
+    }
+    
+    func testCloseAfterUse() throws {
+        let snapshot = try makeDatabasePool().makeSnapshot()
+        try snapshot.read { db in
+            try db.execute(sql: "SELECT * FROM sqlite_master")
+        }
+        try snapshot.close()
+        
+        // After close, access throws SQLITE_MISUSE
+        do {
+            try snapshot.read { db in
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+            }
+            XCTFail("Expected Error")
+        } catch DatabaseError.SQLITE_MISUSE { }
+        
+        // After close, closing is a noop
+        try snapshot.close()
+    }
+    
+    func testCloseWithCachedStatement() throws {
+        let snapshot = try makeDatabasePool().makeSnapshot()
+        try snapshot.read { db in
+            _ = try db.cachedStatement(sql: "SELECT * FROM sqlite_master")
+        }
+        try snapshot.close()
+        
+        // After close, access throws SQLITE_MISUSE
+        do {
+            try snapshot.read { db in
+                try db.execute(sql: "SELECT * FROM sqlite_master")
+            }
+            XCTFail("Expected Error")
+        } catch DatabaseError.SQLITE_MISUSE { }
+        
+        // After close, closing is a noop
+        try snapshot.close()
+    }
+    
+    func testFailedClose() throws {
+        let snapshot = try makeDatabasePool().makeSnapshot()
+        let statement = try snapshot.read { db in
+            try db.makeStatement(sql: "SELECT * FROM sqlite_master")
+        }
+        
+        try withExtendedLifetime(statement) {
+            do {
+                try snapshot.close()
+                XCTFail("Expected Error")
+            } catch DatabaseError.SQLITE_BUSY { }
+        }
+        XCTAssert(lastMessage!.contains("unfinalized statement: SELECT * FROM sqlite_master"))
+        
+        // Database is not closed: no error
+        try snapshot.read { db in
+            try db.execute(sql: "SELECT * FROM sqlite_master")
+        }
+    }
 }

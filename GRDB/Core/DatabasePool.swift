@@ -7,7 +7,10 @@ import UIKit
 /// A DatabasePool grants concurrent accesses to an SQLite database.
 public final class DatabasePool: DatabaseWriter {
     private let writer: SerializedDatabase
-    private var readerPool: Pool<SerializedDatabase>!
+    
+    /// The pool of reader connections.
+    /// It is constant, until close() sets it to nil.
+    private var readerPool: Pool<SerializedDatabase>?
     
     @LockedBox var databaseSnapshotCount = 0
     
@@ -153,7 +156,7 @@ public final class DatabasePool: DatabaseWriter {
     /// executed the *body* block.
     fileprivate func forEachConnection(_ body: (Database) -> Void) {
         writer.sync(body)
-        readerPool.forEach { $0.sync(body) }
+        readerPool?.forEach { $0.sync(body) }
     }
 }
 
@@ -169,8 +172,8 @@ extension DatabasePool {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
         // Release readers memory by closing all connections
-        readerPool.barrier {
-            readerPool.removeAll()
+        readerPool?.barrier {
+            readerPool?.removeAll()
         }
     }
     
@@ -222,11 +225,27 @@ extension DatabasePool {
 
 extension DatabasePool: DatabaseReader {
     
+    public func close() throws {
+        try readerPool?.barrier {
+            // Close writer connection first. If we can't close it,
+            // don't close readers.
+            try writer.sync { try $0.close() }
+            
+            // OK writer is closed. Now close readers and
+            // eventually prevent any future read access
+            defer { readerPool = nil }
+            
+            try readerPool?.forEach { reader in
+                try reader.sync { try $0.close() }
+            }
+        }
+    }
+    
     // MARK: - Interrupting Database Operations
     
     public func interrupt() {
         writer.interrupt()
-        readerPool.forEach { $0.interrupt() }
+        readerPool?.forEach { $0.interrupt() }
     }
     
     // MARK: - Database Suspension
@@ -280,6 +299,9 @@ extension DatabasePool: DatabaseReader {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
+        guard let readerPool = readerPool else {
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+        }
         return try readerPool.get { reader in
             try reader.sync { db in
                 var result: T? = nil
@@ -305,7 +327,10 @@ extension DatabasePool: DatabaseReader {
             .makeDispatchQueue(label: label)
             .async {
                 do {
-                    let (reader, releaseReader) = try self.readerPool.get()
+                    guard let readerPool = self.readerPool else {
+                        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+                    }
+                    let (reader, releaseReader) = try readerPool.get()
                     
                     // Second async jump because sync could deadlock if
                     // configuration has a serial targetQueue.
@@ -345,7 +370,10 @@ extension DatabasePool: DatabaseReader {
                 }
                 
                 do {
-                    let (reader, releaseReader) = try self.readerPool.get()
+                    guard let readerPool = self.readerPool else {
+                        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+                    }
+                    let (reader, releaseReader) = try readerPool.get()
                     
                     // Second async jump because sync could deadlock if
                     // configuration has a serial targetQueue.
@@ -377,6 +405,9 @@ extension DatabasePool: DatabaseReader {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
+        guard let readerPool = readerPool else {
+            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+        }
         return try readerPool.get { reader in
             try reader.sync { db in
                 try db.clearSchemaCacheIfNeeded()
@@ -421,6 +452,9 @@ extension DatabasePool: DatabaseReader {
         if let reader = currentReader {
             return try reader.reentrantSync(value)
         } else {
+            guard let readerPool = readerPool else {
+                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+            }
             return try readerPool.get { reader in
                 try reader.sync { db in
                     try db.clearSchemaCacheIfNeeded()
@@ -508,6 +542,9 @@ extension DatabasePool: DatabaseReader {
         let isolationSemaphore = DispatchSemaphore(value: 0)
         
         do {
+            guard let readerPool = readerPool else {
+                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+            }
             let (reader, releaseReader) = try readerPool.get()
             reader.async { db in
                 defer {
@@ -592,12 +629,16 @@ extension DatabasePool: DatabaseReader {
     /// Eventual concurrent read-only accesses are not invalidated: they will
     /// proceed until completion.
     public func invalidateReadOnlyConnections() {
-        readerPool.removeAll()
+        readerPool?.removeAll()
     }
     
     /// Returns a reader that can be used from the current dispatch queue,
     /// if any.
     private var currentReader: SerializedDatabase? {
+        guard let readerPool = readerPool else {
+            return nil
+        }
+        
         var readers: [SerializedDatabase] = []
         readerPool.forEach { reader in
             // We can't check for reader.onValidQueue here because
@@ -626,13 +667,15 @@ extension DatabasePool: DatabaseReader {
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        try readerPool.barrier {
+        // TODO: throw instead of crashing when the database is closed
+        try readerPool!.barrier {
             try writer.sync(updates)
         }
     }
     
     public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
-        readerPool.asyncBarrier {
+        // TODO: throw instead of crashing when the database is closed
+        readerPool!.asyncBarrier {
             self.writer.sync(updates)
         }
     }
