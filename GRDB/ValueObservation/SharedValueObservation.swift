@@ -26,6 +26,8 @@ extension ValueObservation {
     /// database observation for all subscriptions, and thus spares
     /// database resources.
     ///
+    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+    /// 
     /// For example:
     ///
     ///     let sharedObservation = ValueObservation
@@ -88,6 +90,8 @@ extension ValueObservation {
     }
 }
 
+/// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
+///
 /// A shared value observation that shares a single underlying database
 /// observation for all subscriptions, and thus spares database resources.
 ///

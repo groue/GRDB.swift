@@ -6134,6 +6134,8 @@ See also [ValueObservation.handleEvents](#valueobservationhandleevents).
 
 ### ValueObservation Sharing
 
+[**:fire: EXPERIMENTAL**](#what-are-experimental-features)
+
 **Sharing a ValueObservation allows several components of your app to be notified of database changes, in an efficient way.**
 
 A shared observation spares database resources. For example, when a database change happens, a fresh value is fetched only once, and then notified to all subscriptions.
