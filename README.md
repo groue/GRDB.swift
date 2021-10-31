@@ -5890,7 +5890,7 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
 <details open>
     <summary>Async sequence example</summary>
     
-[**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features)
+[**:fire: EXPERIMENTAL**](#what-are-experimental-features)
 
 ```swift
 let observation = ValueObservation.tracking(Player.fetchAll)
