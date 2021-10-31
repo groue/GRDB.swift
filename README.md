@@ -6190,7 +6190,7 @@ let sharedObservation = ValueObservation
     .shared(in: dbQueue, extent: .whileObserved)
 //                       ~~~~~~~~~~~~~~~~~~~~~~
 
-// Only stops observing the database when the shared observation is deallocated,
+// Only stops observing the database when the shared observation is deinitialized,
 // and all subscriptions are cancelled.
 //
 // This extent prevents the shared observation from recovering from database
@@ -6214,7 +6214,7 @@ let sharedObservation = ValueObservation
 >         .sink(...)
 >     ```
 >
-> - Unlike `ValueObservation`, `SharedValueObservation` prevents the database from closing. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connection won't close. 
+> - Unlike `ValueObservation`, `SharedValueObservation` retains the database connection. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connection won't be deinitialized. 
 
 
 ### ValueObservation Performance
