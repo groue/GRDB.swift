@@ -86,6 +86,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
 - **Fixed**: Filtering records by primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
+- **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) was updated for the new support for customized date and uuid primary key coding.
 - **Documentation Update**: A new [Testing for Record Existence](README.md#testing-for-record-existence) chapter describes the new `request.isEmpty(_:)`, `Record.exists(_:id:)` and `Record.exists(_:key:)` methods.
 - **Documentation Update**: A new [ValueObservation Sharing](README.md#valueobservation-sharing) chapter describes how to share database observations and spare database resources.
 
