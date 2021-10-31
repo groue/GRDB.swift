@@ -5885,7 +5885,7 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
     cancellable.cancel()
     ```
 
-**As a convenience**, ValueObservation can be turned into an async sequence, a Combine publisher, or a RxSwift Observable:
+**As a convenience**, ValueObservation can be turned into an async sequence, a Combine publisher, or an RxSwift observable:
 
 <details open>
     <summary>Async sequence example</summary>
@@ -5922,7 +5922,7 @@ See [Combine Support] for more information.
 </details>
 
 <details>
-    <summary>RxGRDB example</summary>
+    <summary>RxSwift example</summary>
     
 ```swift
 import GRDB
