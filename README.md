@@ -72,6 +72,7 @@ GRDB ships with:
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
 - [Database Observation]: Observe database changes and transactions.
+- [Async/Await Support]: `try await` your database.
 - [Combine Support]: Access and observe the database with Combine publishers.
 - [RxSwift Support](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
 - [Full-Text Search]
@@ -5884,7 +5885,21 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
     cancellable.cancel()
     ```
 
-**As a convenience**, ValueObservation can be turned into a Combine publisher, or a RxSwift Observable (see [Combine Support] and the companion library [RxGRDB]):
+**As a convenience**, ValueObservation can be turned into an async sequence, a Combine publisher, or a RxSwift Observable:
+
+<details open>
+    <summary>Async sequence example</summary>
+    
+[**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features)
+
+```swift
+let observation = ValueObservation.tracking(Player.fetchAll)
+for try await players in observation.values(in: dbQueue) {
+    print("fresh players", players)
+}
+```
+
+</details>
 
 <details>
     <summary>Combine example</summary>
@@ -5901,6 +5916,8 @@ let cancellable = observation.publisher(in: dbQueue).sink(
         print("fresh players", players)
     })
 ```
+
+See [Combine Support] for more information.
 
 </details>
 
@@ -5920,6 +5937,8 @@ let disposable = observation.rx.observe(in: dbQueue).subscribe(
     },
     onError: { error in ... })
 ```
+
+See the companion library [RxGRDB] for more information.
 
 </details>
 
@@ -6530,7 +6549,7 @@ do {
 > :point_up: **Note**: the databaseDidChange(with:) and databaseWillCommit() callbacks must not touch the SQLite database. This limitation does not apply to databaseDidCommit and databaseDidRollback which can use their database argument.
 
 
-[DatabaseRegionObservation], [ValueObservation], [Combine Support], and [RxGRDB] are all based on the TransactionObserver protocol.
+[DatabaseRegionObservation] and [ValueObservation] are based on the TransactionObserver protocol.
 
 See also [TableChangeObserver.swift](https://gist.github.com/groue/2e21172719e634657dfd), which shows a transaction observer that notifies of modified database tables with NSNotificationCenter.
 
@@ -8140,6 +8159,7 @@ This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-a
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
+[Async/Await Support]: Documentation/Concurrency.md
 [Concurrency]: Documentation/Concurrency.md
 [Demo Applications]: Documentation/DemoApps/README.md
 [Sharing a Database]: Documentation/SharingADatabase.md
