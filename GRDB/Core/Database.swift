@@ -26,7 +26,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - SQLite C API
     
     /// The raw SQLite connection, suitable for the SQLite C API.
-    public let sqliteConnection: SQLiteConnection
+    /// It is constant, until close() sets it to nil.
+    public var sqliteConnection: SQLiteConnection?
     
     // MARK: - Configuration
     
@@ -112,7 +113,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // > connection while this routine is running, then the return value
         // > is undefined.
         SchedulingWatchdog.preconditionValidQueue(self)
-        if isClosed { return false } // Support for SerializedDatabase.deinit
+        if sqliteConnection == nil { return false } // Support for SerializedDatabase.deinit
         return sqlite3_get_autocommit(sqliteConnection) == 0
     }
     
@@ -182,7 +183,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     private var functions = Set<DatabaseFunction>()
     private var collations = Set<DatabaseCollation>()
     private var _readOnlyDepth = 0 // Modify with beginReadOnly/endReadOnly
-    private var isClosed = false
     
     // MARK: - Initializer
     
@@ -197,7 +197,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     
     deinit {
-        assert(isClosed)
+        assert(sqliteConnection == nil)
     }
     
     // MARK: - Database Opening
@@ -216,7 +216,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             // https://www.sqlite.org/c3ref/close.html
             // > Calling sqlite3_close() or sqlite3_close_v2() with a NULL
             // > pointer argument is a harmless no-op.
-            sqlite3_close(sqliteConnection)
+            _ = sqlite3_close(sqliteConnection) // ignore result code
             throw DatabaseError(resultCode: code)
         }
         if let sqliteConnection = sqliteConnection {
@@ -368,36 +368,80 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Database Closing
     
-    /// This method must be called before database deallocation
-    func close() {
+    /// Closes a connection with `sqlite3_close`. This method is intended for
+    /// the public `close()` function. It may fail.
+    func close() throws {
         SchedulingWatchdog.preconditionValidQueue(self)
         
-        if isClosed {
+        guard let sqliteConnection = sqliteConnection else {
+            // Already closed
             return
         }
         
         configuration.SQLiteConnectionWillClose?(sqliteConnection)
         internalStatementCache.clear()
         publicStatementCache.clear()
-        Database.closeConnection(sqliteConnection)
-        isClosed = true
+        
+        // https://www.sqlite.org/c3ref/close.html
+        // > If the database connection is associated with unfinalized prepared
+        // > statements or unfinished sqlite3_backup objects then
+        // > sqlite3_close() will leave the database connection open and
+        // > return SQLITE_BUSY.
+        let code = sqlite3_close(sqliteConnection)
+        guard code == SQLITE_OK else {
+            if let log = Self.logError {
+                if code == SQLITE_BUSY {
+                    // Let the user know about unfinalized statements that did
+                    // prevent the connection from closing properly.
+                    var stmt: SQLiteStatement? = sqlite3_next_stmt(sqliteConnection, nil)
+                    while stmt != nil {
+                        log(ResultCode(rawValue: code), "unfinalized statement: \(String(cString: sqlite3_sql(stmt)))")
+                        stmt = sqlite3_next_stmt(sqliteConnection, stmt)
+                    }
+                }
+            }
+            
+            throw DatabaseError(resultCode: code, message: lastErrorMessage)
+        }
+        
+        self.sqliteConnection = nil
         configuration.SQLiteConnectionDidClose?()
     }
     
-    private static func closeConnection(_ sqliteConnection: SQLiteConnection) {
+    /// Closes a connection with `sqlite3_close_v2`. This method is intended for
+    /// deallocated connections.
+    func close_v2() {
+        SchedulingWatchdog.preconditionValidQueue(self)
+        
+        guard let sqliteConnection = sqliteConnection else {
+            // Already closed
+            return
+        }
+        
+        configuration.SQLiteConnectionWillClose?(sqliteConnection)
+        internalStatementCache.clear()
+        publicStatementCache.clear()
+        
         // https://www.sqlite.org/c3ref/close.html
         // > If sqlite3_close_v2() is called with unfinalized prepared
         // > statements and/or unfinished sqlite3_backups, then the database
         // > connection becomes an unusable "zombie" which will automatically
         // > be deallocated when the last prepared statement is finalized or the
         // > last sqlite3_backup is finished.
+        // >
+        // > The sqlite3_close_v2() interface is intended for use with host
+        // > languages that are garbage collected, and where the order in which
+        // > destructors are called is arbitrary.
         let code = sqlite3_close_v2(sqliteConnection)
-        if code != SQLITE_OK, let log = logError {
+        if code != SQLITE_OK, let log = Self.logError {
             // A rare situation where GRDB doesn't fatalError on
             // unprocessed errors.
             let message = String(cString: sqlite3_errmsg(sqliteConnection))
             log(ResultCode(rawValue: code), "could not close database: \(message)")
         }
+        
+        self.sqliteConnection = nil
+        configuration.SQLiteConnectionDidClose?()
     }
     
     // MARK: - Limits

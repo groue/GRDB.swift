@@ -24,6 +24,28 @@ public protocol DatabaseReader: AnyObject {
     /// The database configuration
     var configuration: Configuration { get }
     
+    /// Closes the database connection with the `sqlite3_close()` function.
+    ///
+    /// **Note**: You DO NOT HAVE to call this method, and you SHOULD NOT call
+    /// it unless the correct execution of your program depends on precise
+    /// database closing. Database connections are automatically closed when
+    /// they are deinitialized, and this is sufficient for most applications.
+    ///
+    /// If this method does not throw, then the database is properly closed, and
+    /// every future database access will throw a `DatabaseError` of
+    /// code `SQLITE_MISUSE`.
+    ///
+    /// Otherwise, there exists concurrent database accesses or living prepared
+    /// statements that prevent the database from closing, and this method
+    /// throws a `DatabaseError` of code `SQLITE_BUSY`.
+    /// See <https://www.sqlite.org/c3ref/close.html> for more information.
+    ///
+    /// After an error has been thrown, the database may still be opened, and
+    /// you can keep on accessing it. It may also remain in a "zombie" state,
+    /// in which case it will throw `SQLITE_MISUSE` for all future
+    /// database accesses.
+    func close() throws
+    
     // MARK: - Interrupting Database Operations
     
     /// This method causes any pending database operation to abort and return at
@@ -404,6 +426,10 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     public var configuration: Configuration {
         base.configuration
+    }
+    
+    public func close() throws {
+        try base.close()
     }
     
     // MARK: - Interrupting Database Operations

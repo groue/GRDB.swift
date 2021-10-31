@@ -615,6 +615,10 @@ public final class AnyDatabaseWriter: DatabaseWriter {
         base.configuration
     }
     
+    public func close() throws {
+        try base.close()
+    }
+    
     // MARK: - Interrupting Database Operations
     
     public func interrupt() {

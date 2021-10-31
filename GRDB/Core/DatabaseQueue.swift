@@ -69,6 +69,10 @@ public final class DatabaseQueue: DatabaseWriter {
         // Explicit unregistration is required before OS X 10.11.
         NotificationCenter.default.removeObserver(self)
     }
+    
+    public func close() throws {
+        try writer.sync { try $0.close() }
+    }
 }
 
 extension DatabaseQueue {
