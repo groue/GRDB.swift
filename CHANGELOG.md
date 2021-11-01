@@ -82,14 +82,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Release
 
 - **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3
-- **New**: [#1078](https://github.com/groue/GRDB.swift/pull/1078) by [@groue](https://github.com/groue): More convenience methods (non-mutating persistence methods, and existence-checking methods)
+- **New**: [#1078](https://github.com/groue/GRDB.swift/pull/1078) by [@groue](https://github.com/groue): Non-mutating persistence methods `saved` and `inserted`, and existence-checking methods `isEmpty` and `exists`
 - **New**: [#1079](https://github.com/groue/GRDB.swift/pull/1079) by [@groue](https://github.com/groue): Async / Await
 - **New**: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
 - **New**: A new `close()` method allows precise closing of database connections.
-- **Fixed**: Filtering records by primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
+- **New**: Filtering records by primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
+- **Documentation Update**: The [Demo apps](Documentation/DemoApps/) are updated for iOS 15, and [GRDBAsyncDemo](Documentation/DemoApps/GRDBAsyncDemo) is a new demo app that uses async/await.
 - **Documentation Update**: The [Concurrency Guide](Documentation/Concurrency.md) has been fully rewritten, and introduces the new support for Swift concurrency (async/await).
-- **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) was updated for the new support for customized date and uuid primary key coding.
+- **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) chapter was updated for the new support for customized date and uuid primary key coding.
 - **Documentation Update**: A new [Testing for Record Existence](README.md#testing-for-record-existence) chapter describes the new `request.isEmpty(_:)`, `Record.exists(_:id:)` and `Record.exists(_:key:)` methods.
 - **Documentation Update**: A new [ValueObservation Sharing](README.md#valueobservation-sharing) chapter describes how to share database observations and spare database resources.
 
