@@ -530,7 +530,7 @@ class ValueObservationTests: GRDBTestCase {
             
             let cancellationExpectation = expectation(description: "cancelled")
             let observation = ValueObservation
-                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .trackingConstantRegion(Table("t").fetchCount)
                 .handleEvents(didCancel: { cancellationExpectation.fulfill() })
             
             let task = Task { () -> [Int] in
@@ -566,7 +566,7 @@ class ValueObservationTests: GRDBTestCase {
             
             let cancellationExpectation = expectation(description: "cancelled")
             let observation = ValueObservation
-                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .trackingConstantRegion(Table("t").fetchCount)
                 .handleEvents(didCancel: { cancellationExpectation.fulfill() })
             
             let task = Task { @MainActor () -> [Int] in
@@ -602,7 +602,7 @@ class ValueObservationTests: GRDBTestCase {
             
             let cancellationExpectation = expectation(description: "cancelled")
             let observation = ValueObservation
-                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .trackingConstantRegion(Table("t").fetchCount)
                 .handleEvents(didCancel: { cancellationExpectation.fulfill() })
             
             let task = Task { () -> [Int] in
@@ -642,7 +642,7 @@ class ValueObservationTests: GRDBTestCase {
             
             let cancellationExpectation = expectation(description: "cancelled")
             let observation = ValueObservation
-                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .trackingConstantRegion(Table("t").fetchCount)
                 .handleEvents(didCancel: { cancellationExpectation.fulfill() })
             
             let task = Task { @MainActor () -> [Int] in
@@ -680,7 +680,7 @@ class ValueObservationTests: GRDBTestCase {
             let valueExpectation = expectation(description: "value")
             valueExpectation.assertForOverFulfill = false
             let observation = ValueObservation
-                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .trackingConstantRegion(Table("t").fetchCount)
                 .handleEvents(
                     didReceiveValue: { _ in valueExpectation.fulfill() },
                     didCancel: { cancellationExpectation.fulfill() })
