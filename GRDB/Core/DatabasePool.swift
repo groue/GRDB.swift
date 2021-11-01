@@ -426,7 +426,10 @@ extension DatabasePool: DatabaseReader {
             .makeDispatchQueue(label: label)
             .async {
                 do {
-                    let (reader, releaseReader) = try self.readerPool.get()
+                    guard let readerPool = self.readerPool else {
+                        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+                    }
+                    let (reader, releaseReader) = try readerPool.get()
                     
                     // Second async jump because sync could deadlock if
                     // configuration has a serial targetQueue.
