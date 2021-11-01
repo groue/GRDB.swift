@@ -8037,7 +8037,7 @@ FAQ
 
 - [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
 - [What Are Experimental Features?](#what-are-experimental-features)
-- [Does GRDB support library evolution and ABI stability?](does-grdb-support-library-evolution-and-abi-stability)
+- [Does GRDB support library evolution and ABI stability?](#does-grdb-support-library-evolution-and-abi-stability)
 
 **[FAQ: Associations](#faq-associations)**
 
@@ -8171,7 +8171,7 @@ db.trace { event in
 - :arrow_up: [FAQ]
 - [How do I monitor the duration of database statements execution?](#how-do-i-monitor-the-duration-of-database-statements-execution)
 - [What Are Experimental Features?](#what-are-experimental-features)
-- [Does GRDB support library evolution and ABI stability?](does-grdb-support-library-evolution-and-abi-stability)
+- [Does GRDB support library evolution and ABI stability?](#does-grdb-support-library-evolution-and-abi-stability)
 
 ### How do I monitor the duration of database statements execution?
 
@@ -8197,6 +8197,14 @@ try dbQueue.read { db in
     // Prints "0.003s SELECT * FROM player WHERE name = 'O''Brien'"
 }
 ```
+
+### What Are Experimental Features?
+
+Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](http://semver.org) apply: no breaking change will happen until the next major version of the library.
+
+There is an exception, though: *experimental features*, marked with the "**:fire: EXPERIMENTAL**" badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
+
+Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
 
 ### Does GRDB support library evolution and ABI stability?
 
@@ -8518,15 +8526,6 @@ let players: [Player] = try dbQueue.read { db in
     return try Player.fetchAll(db, sql: "SELECT * FROM player WHERE name LIKE ?", arguments: [pattern])
 }
 ```
-
-
-### What Are Experimental Features?
-
-Since GRDB 1.0, all backwards compatibility guarantees of [semantic versioning](http://semver.org) apply: no breaking change will happen until the next major version of the library.
-
-There is an exception, though: *experimental features*, marked with the "**:fire: EXPERIMENTAL**" badge. Those are advanced features that are too young, or lack user feedback. They are not stabilized yet.
-
-Those experimental features are not protected by semantic versioning, and may break between two minor releases of the library. To help them becoming stable, [your feedback](https://github.com/groue/GRDB.swift/issues) is greatly appreciated.
 
 
 Sample Code
