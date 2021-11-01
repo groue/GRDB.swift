@@ -676,40 +676,35 @@ class ValueObservationTests: GRDBTestCase {
             // We need something to change
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
-            let cancellationExpectation = expectation(description: "cancelled")
-            let valueExpectation = expectation(description: "value")
-            valueExpectation.assertForOverFulfill = false
-            let observation = ValueObservation
-                .trackingConstantRegion(Table("t").fetchCount)
-                .handleEvents(
-                    didReceiveValue: { _ in valueExpectation.fulfill() },
-                    didCancel: { cancellationExpectation.fulfill() })
+            let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
             
-            struct TestError: Error { }
-            do {
-                try await withThrowingTaskGroup(of: Void.self) { group in
-                    group.addTask {
-                        // Infinite loop
-                        for try await _ in observation.values(in: writer) {
-                            try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
-                        }
-                    }
-                    group.addTask {
-                        // Throw after a delay
-                        try await Task.sleep(nanoseconds: 1_000_000)
-                        throw TestError()
-                    }
-                    
-                    for try await _ in group { }
-                }
-                XCTFail("Expected error")
-            } catch is TestError {
-            } catch {
-                XCTFail("Unexpected error \(error)")
+            let cancellationExpectation = expectation(description: "cancelled")
+            let cancelledObservation = observation.handleEvents(didCancel: {
+                cancellationExpectation.fulfill()
+            })
+            
+            // Launch a task that we'll cancel
+            let cancelledTask = Task {
+                // Infinite loop
+                for try await _ in cancelledObservation.values(in: writer) { }
             }
             
-            // A value was observed, and observation was ended
-            wait(for: [valueExpectation, cancellationExpectation], timeout: 2)
+            // Lanch the task that cancels
+            Task {
+                for try await count in observation.values(in: writer) {
+                    if count == 3 {
+                        cancelledTask.cancel()
+                        break
+                    } else {
+                        try await writer.write {
+                            try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                        }
+                    }
+                }
+            }
+            
+            // Make sure observation was cancelled with the task
+            wait(for: [cancellationExpectation], timeout: 2)
         }
         
         try await AsyncTest(test)
