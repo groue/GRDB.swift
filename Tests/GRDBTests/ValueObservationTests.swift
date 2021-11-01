@@ -684,9 +684,10 @@ class ValueObservationTests: GRDBTestCase {
             })
             
             // Launch a task that we'll cancel
-            let cancelledTask = Task {
-                // Infinite loop
+            let cancelledTask = Task<String, Error> {
+                // Loops until cancelled
                 for try await _ in cancelledObservation.values(in: writer) { }
+                return "cancelled loop"
             }
             
             // Lanch the task that cancels
@@ -703,7 +704,11 @@ class ValueObservationTests: GRDBTestCase {
                 }
             }
             
-            // Make sure observation was cancelled with the task
+            // Make sure loop has ended in the cancelled task
+            let cancelledValue = try await cancelledTask.value
+            XCTAssertEqual(cancelledValue, "cancelled loop")
+            
+            // Make sure observation was cancelled as well
             wait(for: [cancellationExpectation], timeout: 2)
         }
         
