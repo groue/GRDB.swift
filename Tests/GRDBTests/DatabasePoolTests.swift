@@ -191,8 +191,14 @@ class DatabasePoolTests: GRDBTestCase {
                 XCTFail("Expected Error")
             } catch DatabaseError.SQLITE_BUSY { }
         }
-        // Check for sqlite3_close_v2() logging:
-        XCTAssert(lastMessage!.contains("close deferred due to unfinalized statement: \"SELECT * FROM sqlite_master\""))
+        
+        // The error message can be:
+        // - unfinalized statement: SELECT * FROM sqlite_master
+        // - close deferred due to unfinalized statement: "SELECT * FROM sqlite_master"
+        //
+        // The first comes from GRDB, and the second, depending on the SQLite
+        // version, from `sqlite3_close_v2()`. Write the test so that it always pass:
+        XCTAssert(lastMessage!.contains("unfinalized statement"))
         
         // Database is in a zombie state.
         // In the zombie state, access throws SQLITE_MISUSE
