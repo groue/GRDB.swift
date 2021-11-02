@@ -218,19 +218,19 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 
 </details>
 
-> :point_up: **Note**: During one async access, all individual database operations (fetch, insert, etc.) remain synchronous:
+> :point_up: **Note**: During one async access, all individual database operations grouped inside (fetch, insert, etc.) are synchronous:
 >
 > ```swift
 > // When you perform ONE async access...
 > try await dbQueue.write { db in
->     // ALL database operations are performed synchronously:
+>     // ... ALL database operations are performed synchronously:
 >     try Player(...).insert(db)
 >     try Player(...).insert(db)
 >     let players = try Player.fetchAll(db)
 > }
 > ```
 >
-> This is true for all async techniques (Swift concurrency, Combine, etc.)
+> This is true for all async techniques (Swift concurrency, Combine, etc.).
 >
 > This prevents the database operations from various concurrent accesses from being interleaved, with disastrous consequences. For example, one access must not be able to issue a `COMMIT` statement in the middle of an unfinished concurrent write!
 
