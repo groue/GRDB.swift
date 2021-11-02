@@ -20,7 +20,7 @@ The other chapters cover, with more details, the fundamentals of SQLite concurre
 
 ## Concurrency Rules
 
-**The two concurrency rules are all about SQLite.** This database is robust, reliable, and it takes great care of your data: don't miss an opportunity to put it on your side!
+**The two concurrency rules are strongly recommended practices.** They are all about SQLite, a robust and reliable database that takes great care of your data: don't miss an opportunity to put it on your side!
 
 <a id="rule-1"></a>:point_up: **[Rule 1](#rule-1): Connect to any database file only once**
 
