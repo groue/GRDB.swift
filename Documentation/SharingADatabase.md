@@ -1,7 +1,7 @@
 Sharing a Database
 ==================
 
-This chapter describes a recommended setup that applies as soon as several processes want to access a same SQLite database.
+**This guide describes a recommended setup that applies as soon as several processes want to access the same SQLite database.** It complements the [Concurrency](Concurrency.md) guide, that you should read first.
 
 On iOS for example, you can share database files between multiple processes by storing them in an [App Group Container](https://developer.apple.com/documentation/foundation/nsfilemanager/1412643-containerurlforsecurityapplicati). On macOS as well, several processes may want to open the same database, according to their particular sandboxing contexts.
 

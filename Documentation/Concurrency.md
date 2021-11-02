@@ -1,15 +1,13 @@
 :twisted_rightwards_arrows: Concurrency
 =======================================
 
-**This guide describes how GRDB helps your app deal with database concurrency.**
+**GRDB helps your app deal with SQLite concurrency.**
 
-Concurrency is hard, and better avoided when you can. But sometimes your application will need it.
-
-Some apps do not want slow database accesses to stall the user interface. Database concurrency makes it possible to move those slow database jobs off the main thread.
-
-Concurrent database accesses also happen when a database file is shared between several processes. Maybe you develop an iOS app that communicates with an extension through a shared database? This, honestly, is the most difficult setup, and there exists a dedicated [Sharing a Database] guide about it.
+If your app moves slow database jobs off the main thread, so that the user interface remains responsive, then this guide is for you. In the case of apps that share a database with other processes, such as an iOS app and its extensions, don't miss the dedicated [Sharing a Database] guide after this one.
 
 **In all cases, and first and foremost, follow the [Concurrency Rules] right from the start.**
+
+The other chapters cover, with more details, the fundamentals of SQLite concurrency, and how GRDB makes it manageable from your Swift code.
 
 - [Concurrency Rules]
 - [Synchronous and Asynchronous Database Accesses]
@@ -22,7 +20,7 @@ Concurrent database accesses also happen when a database file is shared between 
 
 ## Concurrency Rules
 
-**The two concurrency rules are all about SQLite.** This chapter of the GRDB documentation is just a reminder of the fundamental behaviors of this robust database.
+**The two concurrency rules are all about SQLite.** This database is robust, reliable, and it takes great care of your data: don't miss an opportunity to put it on your side!
 
 <a id="rule-1"></a>:point_up: **[Rule 1](#rule-1): Connect to any database file only once**
 
