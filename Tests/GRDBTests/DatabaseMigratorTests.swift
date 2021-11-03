@@ -848,4 +848,166 @@ class DatabaseMigratorTests : GRDBTestCase {
             XCTAssertEqual(migrator.migrations, ["foo", "bar"])
         }
     }
+    
+    func testMigrationForeignKeyChecks() throws {
+        let foreignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            """
+        let transientForeignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            DELETE FROM child;
+            """
+        
+        // Foreign key violation
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            try dbQueue.read { db in
+                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            try dbQueue.read { db in
+                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+        
+        // Transient foreign key violation
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            try dbQueue.read { db in
+                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+    }
+    
+    func testUnsafeWithoutDeferredForeignKeyChecks() throws {
+        let foreignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            """
+        let transientForeignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            DELETE FROM child;
+            """
+        
+        // Foreign key violation
+        do {
+            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                // The unique opportunity for corrupt data
+                try XCTAssertFalse(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+        do {
+            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            try dbQueue.read { db in
+                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+        
+        // Transient foreign key violation
+        do {
+            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+            try dbQueue.read { db in
+                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+        do {
+            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            try dbQueue.read { db in
+                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
+            }
+        }
+    }
+    
+    func testUnsafeWithoutDeferredForeignKeyChecks_applies_to_newly_registered_migrations() throws {
+        let foreignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            """
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("A") { db in
+            try db.execute(sql: foreignKeyViolation)
+        }
+        migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+        migrator.registerMigration("B") { db in
+            XCTFail("Should not run")
+        }
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            try migrator.migrate(dbQueue)
+            XCTFail("Expected error")
+        } catch DatabaseError.SQLITE_CONSTRAINT { }
+    }
 }
