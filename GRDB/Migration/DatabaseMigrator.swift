@@ -252,6 +252,7 @@ public struct DatabaseMigrator {
     }
     
     private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {
+        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
         let appliedIdentifiers = try self.appliedMigrations(db)
         
         // Subsequent migration must not be applied
@@ -271,7 +272,6 @@ public struct DatabaseMigrator {
             return
         }
         
-        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
         for migration in unappliedMigrations {
             try migration.run(db)
         }
