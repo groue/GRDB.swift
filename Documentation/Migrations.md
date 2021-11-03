@@ -2,6 +2,15 @@
 
 **Migrations** are a convenient way to alter your database schema over time in a consistent and easy way.
 
+- [Migrations Overview]
+- [The `eraseDatabaseOnSchemaChange` Option]
+- [Advanced Database Schema Changes]
+- [Foreign Key Checks]
+- [Asynchronous Migrations]
+
+
+## Migrations Overview
+
 Migrations run in order, once and only once. When a user upgrades your application, only non-applied migrations are run.
 
 Inside each migration, you typically [define and update your database tables](../README.md#database-schema) according to your evolving application needs:
@@ -31,7 +40,7 @@ migrator.registerMigration("v2") { db in
 
 **Each migration runs in a separate transaction.** Should one throw an error, its transaction is rollbacked, subsequent migrations do not run, and the error is eventually thrown by `migrator.migrate(dbQueue)`.
 
-**Migrations run with deferred foreign key checks.** This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail).
+**Migrations run with deferred foreign key checks.** This means that eventual foreign key violations are only checked at the end of the migration (and they make the migration fail). See [Foreign Key Checks] below for more information.
 
 **The memory of applied migrations is stored in the database itself** (in a reserved table).
 
@@ -119,6 +128,76 @@ migrator.registerMigration("AddNotNullCheckOnName") { db in
 }
 ```
 
+Please check [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes) in the SQLite documentation for further information.
+
+
+## Foreign Key Checks
+
+You'll need to read this chapter if your migrations spend a lot of time performing foreign key checks, and you are looking for a mitigation.
+
+What are we talking about? SQLite has [limited support](https://www.sqlite.org/lang_altertable.html) for database schema change, and this unfortunately creates unwanted churn regarding foreign keys. In order to accept any kind of schema changes, GRDB migration runs, by default, with deferred foreign key checks. They precisely apply the technique described in [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes):
+
+1. Disable foreign keys
+2. Start a transaction
+3. Apply migration
+4. Run [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check) to verify that the schema change did not break any foreign key constraints.
+5. Commit
+6. Reenable foreign keys
+
+The step 4 can take a long time.
+
+**Mitigation technique 1: immediate foreign key checks**
+
+If you register a migration with `.immediate` foreign key checks, the migration will not disable foreign keys, and avoid the slow `PRAGMA foreign_key_check`:
+
+```swift
+migrator.registerMigration("slow", foreignKeyChecks: .immediate) { db in ... }
+```
+
+1. Start a transaction
+2. Apply migration
+3. Commit
+
+Such a migration still guarantees that no foreign key constraint is broken. But it can not run the kind of migrations covered by [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes).
+
+**Mitigation technique 2: unsafely disable deferred foreign key checks**
+
+You can ask the migrator to never run `PRAGMA foreign_key_check` for all newly registered migrations:
+
+```swift
+migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+migrator.registerMigration("unchecked") { db in ... }
+```
+
+1. Disable foreign keys
+2. Start a transaction
+3. Apply migration
+4. Commit
+5. Reenable foreign keys
+
+You keep the ability to run any kind of migration. But the migrator can no longer guarantees that foreign key constraints are honored :warning:
+
+Individual migrations can still immediately check their foreign keys (as long as they do not require the technique described by [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes)):
+
+```swift
+migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+migrator.registerMigration("unchecked") { db in ... }
+migrator.registerMigration("checked", foreignKeyChecks: .immediate) { db in ... }
+```
+
+Since such a migrator does not guarantee that foreign key constraints are honored, you may want to check them at some point, with [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check):
+
+```swift
+try migrator.migrate(dbQueue)
+let foreignKeyViolationExists = try dbQueue.read { db 
+    try Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty() == false
+}
+if foreignKeyViolationExists {
+    // Well, too bad
+}
+```
+
+
 ## Asynchronous Migrations
 
 `DatabaseMigrator` provides two ways to migrate a database in an asynchronous way.
@@ -142,3 +221,11 @@ let publisher = migrator.migratePublisher(dbQueue)
 ```
 
 This publisher completes on the main queue, unless you provide a specific [scheduler](https://developer.apple.com/documentation/combine/scheduler) to the `receiveOn` argument.
+
+
+
+[Migrations Overview]: #migrations-overview
+[The `eraseDatabaseOnSchemaChange` Option]: #the-erasedatabaseonschemachange-option
+[Advanced Database Schema Changes]: #advanced-database-schema-changes
+[Foreign Key Checks]: #foreign-key-checks
+[Asynchronous Migrations]: #asynchronous-migrations
