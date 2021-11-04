@@ -229,7 +229,7 @@ In order to check for foreign key violations, the `checkForeignKeyViolations()` 
 
 ```swift
 // SQLite error 19: foreign key constraint failed from player(teamId) to team(id),
-// in [id:1 teamId:2 name:"O'Brien" score: 1000]
+// in [id:1 teamId:2 name:"O'Brien" score:1000]
 try db.checkForeignKeyViolations()
 ```
 
