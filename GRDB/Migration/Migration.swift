@@ -67,7 +67,7 @@ struct Migration {
                     // > then run PRAGMA foreign_key_check to verify that the
                     // > schema change did not break any foreign
                     // > key constraints.
-                    try db.checkForeignKeyViolations()
+                    try db.checkForeignKeys()
                     
                     // > 11. Commit the transaction started in step 2.
                     return .commit

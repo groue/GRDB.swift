@@ -873,7 +873,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { try $0.checkForeignKeyViolations() }
+            try dbQueue.read { try $0.checkForeignKeys() }
         }
         do {
             var migrator = DatabaseMigrator()
@@ -885,7 +885,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { try $0.checkForeignKeyViolations() }
+            try dbQueue.read { try $0.checkForeignKeys() }
         }
         
         // Transient foreign key violation
@@ -896,7 +896,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             let dbQueue = try makeDatabaseQueue()
             try migrator.migrate(dbQueue)
-            try dbQueue.read { try $0.checkForeignKeyViolations() }
+            try dbQueue.read { try $0.checkForeignKeys() }
         }
         do {
             var migrator = DatabaseMigrator()
@@ -908,7 +908,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { try $0.checkForeignKeyViolations() }
+            try dbQueue.read { try $0.checkForeignKeys() }
         }
     }
     
@@ -935,7 +935,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             try migrator.migrate(dbQueue)
             do {
                 // The unique opportunity for corrupt data!
-                try dbQueue.read { try $0.checkForeignKeyViolations() }
+                try dbQueue.read { try $0.checkForeignKeys() }
                 XCTFail("Expected foreign key violation")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
         }
@@ -949,7 +949,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { try $0.checkForeignKeyViolations() }
+            try dbQueue.read { try $0.checkForeignKeys() }
         }
         
         // Transient foreign key violation
@@ -960,7 +960,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             let dbQueue = try makeDatabaseQueue()
             try migrator.migrate(dbQueue)
-            try dbQueue.read { try $0.checkForeignKeyViolations() }
+            try dbQueue.read { try $0.checkForeignKeys() }
         }
         do {
             var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
@@ -972,7 +972,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { try $0.checkForeignKeyViolations() }
+            try dbQueue.read { try $0.checkForeignKeys() }
         }
     }
     

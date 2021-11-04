@@ -162,7 +162,7 @@ The detailed sequence of operations is described below, some of them are perform
 
 SQLite makes it [difficult](https://www.sqlite.org/lang_altertable.html) to perform some schema changes, and this creates very undesired churn w.r.t. foreign keys. GRDB makes its best to hide those problems to you, but you might have to deal with them one day, especially if your database becomes *very big*:
 
-You'll need to read this chapter if you are looking for a mitigation to the time spent by migrations performing foreign key checks. You'll know this by instrumenting your migrations, and looking for the time spent in the `checkForeignKeyViolations` method. See [Advanced Database Schema Changes] right above to know what are those foreign key checks.
+You'll need to read this chapter if you are looking for a mitigation to the time spent by migrations performing foreign key checks. You'll know this by instrumenting your migrations, and looking for the time spent in the `checkForeignKeys` method. See [Advanced Database Schema Changes] right above to know what are those foreign key checks.
 
 **Your first mitigation technique is immediate foreign key checks.**
 
@@ -209,7 +209,7 @@ In order to prevent foreign key violations from being committed to disk, you can
         
         // Throws an error and stops migrations if there exists a
         // foreign key violation in the 'player' table.
-        try db.checkForeignKeyViolations(in: "player")
+        try db.checkForeignKeys(in: "player")
     }
     ```
 
@@ -220,16 +220,16 @@ In order to prevent foreign key violations from being committed to disk, you can
     
     // Throws an error if there exists any foreign key violation.
     try dbQueue.read { db in
-        try db.checkForeignKeyViolations()
+        try db.checkForeignKeys()
     }
     ```
 
-In order to check for foreign key violations, the `checkForeignKeyViolations()` and `checkForeignKeyViolations(in:)` methods are recommended over the raw use of the [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check). Those methods throw a nicely detailed DatabaseError that contains a lot of debugging information:
+In order to check for foreign key violations, the `checkForeignKeys()` and `checkForeignKeys(in:)` methods are recommended over the raw use of the [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check). Those methods throw a nicely detailed DatabaseError that contains a lot of debugging information:
 
 ```swift
 // SQLite error 19: foreign key constraint failed from player(teamId) to team(id),
 // in [id:1 teamId:2 name:"O'Brien" score:1000]
-try db.checkForeignKeyViolations()
+try db.checkForeignKeys()
 ```
 
 You can also iterate a lazy [cursor](../README.md#cursors) of all individual foreign key violations found in the database:

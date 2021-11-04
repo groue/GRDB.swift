@@ -479,14 +479,14 @@ extension Database {
     
     /// Throws a DatabaseError of extended code `SQLITE_CONSTRAINT_FOREIGNKEY`
     /// if there exists a foreign key violation in the database.
-    public func checkForeignKeyViolations() throws {
-        try checkForeignKeyViolations(from: foreignKeyViolations())
+    public func checkForeignKeys() throws {
+        try checkForeignKeys(from: foreignKeyViolations())
     }
     
     /// Throws a DatabaseError of extended code `SQLITE_CONSTRAINT_FOREIGNKEY`
     /// if there exists a foreign key violation in the table.
-    public func checkForeignKeyViolations(in tableName: String) throws {
-        try checkForeignKeyViolations(from: foreignKeyViolations(in: tableName))
+    public func checkForeignKeys(in tableName: String) throws {
+        try checkForeignKeys(from: foreignKeyViolations(in: tableName))
     }
     
     private func foreignKeyViolations(in table: TableIdentifier) throws -> RecordCursor<ForeignKeyViolation> {
@@ -495,7 +495,7 @@ extension Database {
             """)
     }
     
-    private func checkForeignKeyViolations(from violations: RecordCursor<ForeignKeyViolation>) throws {
+    private func checkForeignKeys(from violations: RecordCursor<ForeignKeyViolation>) throws {
         guard let violation = try violations.next() else {
             return
         }

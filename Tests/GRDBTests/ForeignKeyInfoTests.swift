@@ -177,7 +177,7 @@ class ForeignKeyInfoTests: GRDBTestCase {
         }
     }
     
-    func testCheckForeignKeyViolations() throws {
+    func testCheckForeignKeys() throws {
         try makeDatabaseQueue().writeWithoutTransaction { db in
             try db.execute(sql: """
                 CREATE TABLE parent(id TEXT NOT NULL PRIMARY KEY);
@@ -187,7 +187,7 @@ class ForeignKeyInfoTests: GRDBTestCase {
                 """)
             
             do {
-                try db.checkForeignKeyViolations()
+                try db.checkForeignKeys()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
@@ -205,7 +205,7 @@ class ForeignKeyInfoTests: GRDBTestCase {
                 """)
             
             do {
-                try db.checkForeignKeyViolations()
+                try db.checkForeignKeys()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
@@ -223,7 +223,7 @@ class ForeignKeyInfoTests: GRDBTestCase {
                 """)
             
             do {
-                try db.checkForeignKeyViolations()
+                try db.checkForeignKeys()
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
