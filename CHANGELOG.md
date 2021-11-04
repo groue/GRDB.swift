@@ -84,12 +84,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3
 - **New**: [#1078](https://github.com/groue/GRDB.swift/pull/1078) by [@groue](https://github.com/groue): More convenience methods (non-mutating persistence methods, and existence-checking methods)
 - **New**: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
+- **New**: [#1095](https://github.com/groue/GRDB.swift/pull/1095) by [@groue](https://github.com/groue): Precise foreign key checks for migrations
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
 - **New**: A new `close()` method allows precise closing of database connections.
 - **Fixed**: Filtering records by primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
 - **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) was updated for the new support for customized date and uuid primary key coding.
 - **Documentation Update**: A new [Testing for Record Existence](README.md#testing-for-record-existence) chapter describes the new `request.isEmpty(_:)`, `Record.exists(_:id:)` and `Record.exists(_:key:)` methods.
 - **Documentation Update**: A new [ValueObservation Sharing](README.md#valueobservation-sharing) chapter describes how to share database observations and spare database resources.
+- **Documentation Update**: The [Migrations](Documentation/Migrations.md) guide has a much more detailed description of how you can mitigate that difficulties that SQLite creates around foreign keys during schema changes.
 
 ## 5.12.0
 
