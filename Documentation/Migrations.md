@@ -114,8 +114,7 @@ The `eraseDatabaseOnSchemaChange` option triggers a recreation of the database i
 If SQLite does not directly support all kinds of schema alterations, you can make arbitrary changes to the schema design of any table using a sequence of operations, as in the example below:
 
 ```swift
-migrator.registerMigration("AddNotNullCheckOnName") { db in
-    // Add a NOT NULL constraint on player.name:
+migrator.registerMigration("Add NOT NULL check on player.name") { db in
     try db.create(table: "new_player") { t in
         t.autoIncrementedPrimaryKey("id")
         t.column("name", .text).notNull()
@@ -165,9 +164,9 @@ SQLite makes it [difficult](https://www.sqlite.org/lang_altertable.html) to perf
 
 You'll need to read this chapter if you are looking for a mitigation to the time spent by migrations performing foreign key checks. You'll know this by instrumenting your migrations, and looking for the time spent in the `checkForeignKeyViolations` method. See [Advanced Database Schema Changes] right above to know what are those foreign key checks.
 
-**Your first mitigation technique are immediate foreign key checks.**
+**Your first mitigation technique is immediate foreign key checks.**
 
-If you register a migration with `.immediate` foreign key checks, the migration will not disable foreign keys, and won't need to perform the full check of all foreign keys in your database:
+If you register a migration with `.immediate` foreign key checks, the migration will not temporarily disable foreign keys, and won't need to perform a deferred full check of all foreign keys in your database:
 
 ```swift
 migrator.registerMigration("make it faster please", foreignKeyChecks: .immediate) { db in
@@ -233,25 +232,34 @@ In order to check for foreign key violations, the `checkForeignKeyViolations()` 
 try db.checkForeignKeyViolations()
 ```
 
-If you want to precisely introspect each foreign key violation, you will use instead:
+You can also iterate a lazy [cursor](../README.md#cursors) of all individual foreign key violations found in the database:
 
 ```swift
 let violations = try db.foreignKeyViolations()
 while let violation = try violations.next() {
     // The name of the table that contains the `REFERENCES` clause
-    print(violation.originTable)
+    violation.originTable
     
     // The rowid of the row that contains the invalid `REFERENCES` clause, or
     // nil if the origin table is a `WITHOUT ROWID` table.
-    print(violation.originRowID)
+    violation.originRowID
     
     // The name of the table that is referred to.
-    print(violation.destinationTable)
+    violation.destinationTable
     
     // The id of the specific foreign key constraint that failed. This id
     // matches `ForeignKeyInfo.id`. See `Database.foreignKeys(on:)` for more
     // information.
-    print(violation.foreignKeyId)
+    violation.foreignKeyId
+    
+    // Plain description:
+    // "Foreign key violation from player to team, in rowid 1"
+    String(describing: violation)
+    
+    // Rich description:
+    // "foreign key constraint failed from player(teamId) to team(id),
+    //  in [id:1 teamId:2 name:"O'Brien" score:1000]"
+    try violation.failureDescription(db)
 }
 ```
 
