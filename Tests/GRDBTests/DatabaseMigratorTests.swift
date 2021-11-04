@@ -398,9 +398,9 @@ class DatabaseMigratorTests : GRDBTestCase {
                 // The first migration should be committed.
                 // The second migration should be rollbacked.
                 
-                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+                XCTAssertEqual(error.message, #"foreign key constraint failed from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
                 
                 let names = try dbQueue.inDatabase { db in
                     try String.fetchAll(db, sql: "SELECT name FROM persons")
@@ -418,9 +418,9 @@ class DatabaseMigratorTests : GRDBTestCase {
                 // The second migration should be rollbacked.
                 
                 let error = error as! DatabaseError
-                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+                XCTAssertEqual(error.message, #"foreign key constraint failed from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
                 
                 let names = try! String.fetchAll(db, sql: "SELECT name FROM persons")
                 XCTAssertEqual(names, ["Arthur"])
@@ -461,9 +461,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             // Migration 1 and 2 should be committed.
             // Migration 3 should not be committed.
             
-            XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+            XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-            XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+            XCTAssertEqual(error.message, #"foreign key constraint failed from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
             
             try dbQueue.inDatabase { db in
                 // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
@@ -872,7 +872,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             do {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
-            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
             try dbQueue.read { db in
                 try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
             }
@@ -886,7 +886,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             do {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
-            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
             try dbQueue.read { db in
                 try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
             }
@@ -913,7 +913,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             do {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
-            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
             try dbQueue.read { db in
                 try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
             }
@@ -955,7 +955,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             do {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
-            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
             try dbQueue.read { db in
                 try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
             }
@@ -982,7 +982,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             do {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
-            } catch DatabaseError.SQLITE_CONSTRAINT { }
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
             try dbQueue.read { db in
                 try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
             }
@@ -1008,6 +1008,6 @@ class DatabaseMigratorTests : GRDBTestCase {
         do {
             try migrator.migrate(dbQueue)
             XCTFail("Expected error")
-        } catch DatabaseError.SQLITE_CONSTRAINT { }
+        } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
     }
 }

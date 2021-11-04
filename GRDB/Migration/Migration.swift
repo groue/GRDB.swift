@@ -67,23 +67,7 @@ struct Migration {
                     // > then run PRAGMA foreign_key_check to verify that the
                     // > schema change did not break any foreign
                     // > key constraints.
-                    if try db
-                        .makeStatement(sql: "PRAGMA foreign_key_check")
-                        .makeCursor()
-                        .isEmpty() == false
-                    {
-                        // https://www.sqlite.org/pragma.html#pragma_foreign_key_check
-                        //
-                        // PRAGMA foreign_key_check does not return an error,
-                        // but the list of violated foreign key constraints.
-                        //
-                        // Let's turn any violation into an
-                        // SQLITE_CONSTRAINT_FOREIGNKEY error, and rollback
-                        // the transaction.
-                        throw DatabaseError(
-                            resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY,
-                            message: "FOREIGN KEY constraint failed")
-                    }
+                    try db.checkForeignKeyViolations()
                     
                     // > 11. Commit the transaction started in step 2.
                     return .commit
