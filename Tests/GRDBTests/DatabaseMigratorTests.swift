@@ -873,9 +873,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { db in
-                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            try dbQueue.read { try $0.checkForeignKeyViolations() }
         }
         do {
             var migrator = DatabaseMigrator()
@@ -887,9 +885,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { db in
-                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            try dbQueue.read { try $0.checkForeignKeyViolations() }
         }
         
         // Transient foreign key violation
@@ -900,9 +896,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             let dbQueue = try makeDatabaseQueue()
             try migrator.migrate(dbQueue)
-            try dbQueue.read { db in
-                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            try dbQueue.read { try $0.checkForeignKeyViolations() }
         }
         do {
             var migrator = DatabaseMigrator()
@@ -914,9 +908,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { db in
-                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            try dbQueue.read { try $0.checkForeignKeyViolations() }
         }
     }
     
@@ -941,10 +933,11 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             let dbQueue = try makeDatabaseQueue()
             try migrator.migrate(dbQueue)
-            try dbQueue.read { db in
-                // The unique opportunity for corrupt data
-                try XCTAssertFalse(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            do {
+                // The unique opportunity for corrupt data!
+                try dbQueue.read { try $0.checkForeignKeyViolations() }
+                XCTFail("Expected foreign key violation")
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
         }
         do {
             var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
@@ -956,9 +949,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { db in
-                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            try dbQueue.read { try $0.checkForeignKeyViolations() }
         }
         
         // Transient foreign key violation
@@ -969,9 +960,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             let dbQueue = try makeDatabaseQueue()
             try migrator.migrate(dbQueue)
-            try dbQueue.read { db in
-                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            try dbQueue.read { try $0.checkForeignKeyViolations() }
         }
         do {
             var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
@@ -983,9 +972,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try migrator.migrate(dbQueue)
                 XCTFail("Expected error")
             } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
-            try dbQueue.read { db in
-                try XCTAssertTrue(Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty())
-            }
+            try dbQueue.read { try $0.checkForeignKeyViolations() }
         }
     }
     
