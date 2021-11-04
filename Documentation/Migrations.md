@@ -111,9 +111,7 @@ The `eraseDatabaseOnSchemaChange` option triggers a recreation of the database i
 
 ## Advanced Database Schema Changes
 
-SQLite does not support many schema changes, and won't let you drop a table column with "ALTER TABLE ... DROP COLUMN ...", for example.
-
-Yet any kind of schema change is still possible, by recreating tables:
+If SQLite does not directly support all kinds of schema alterations, you can make arbitrary changes to the schema design of any table using a sequence of operations, as in the example below:
 
 ```swift
 migrator.registerMigration("AddNotNullCheckOnName") { db in
@@ -128,75 +126,134 @@ migrator.registerMigration("AddNotNullCheckOnName") { db in
 }
 ```
 
-Please check [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes) in the SQLite documentation for further information.
+This technique is described in SQLite documentation: [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes).
+
+The detailed sequence of operations is described below, some of them are performed by GRDB, and others by your code:
+
+1. GRDB: If foreign key constraints are enabled, disable them using PRAGMA foreign_keys=OFF.
+
+2. GRDB: Start a transaction.
+
+3. **Your code**: Remember the format of all indexes, triggers, and views associated with table X. This information will be needed in step 8 below. One way to do this is to run a query like the following: `SELECT type, sql FROM sqlite_schema WHERE tbl_name='X'`.
+
+4. **Your code**: Use `CREATE TABLE` to construct a new table "new_X" that is in the desired revised format of table X. Make sure that the name "new_X" does not collide with any existing table name, of course.
+
+5. **Your code**: Transfer content from X into new_X using a statement like: `INSERT INTO new_X SELECT ... FROM X`.
+
+6. **Your code**: Drop the old table X: `DROP TABLE X`.
+
+7. **Your code**: Change the name of new_X to X using: `ALTER TABLE new_X RENAME TO X`.
+
+8. **Your code**: Use `CREATE INDEX`, `CREATE TRIGGER`, and `CREATE VIEW` to reconstruct indexes, triggers, and views associated with table X. Perhaps use the old format of the triggers, indexes, and views saved from step 3 above as a guide, making changes as appropriate for the alteration.
+
+9. **Your code**: If any views refer to table X in a way that is affected by the schema change, then drop those views using `DROP VIEW` and recreate them with whatever changes are necessary to accommodate the schema change using `CREATE VIEW`.
+
+10. GRDB: If foreign key constraints were originally enabled then run [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check) to verify that the schema change did not break any foreign key constraints.
+
+11. GRDB: Commit the transaction started in step 2.
+
+12. GRDB: If foreign keys constraints were originally enabled, reenable them now.
+
+> :point_up: **Note**: Take care to follow the procedure above precisely, in the same order, or you might corrupt triggers, views, and foreign key constraints. Have a second look at [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes) if necessary.
+>
+> :point_up: **Note**: By default, all migrations perform, at step 10, a full check of all foreign keys in your database. When your database is big, those checks may have a noticeable impact on migration performances. See [Foreign Key Checks] for a discussion of your ways to avoid this toll.
 
 
 ## Foreign Key Checks
 
-You'll need to read this chapter if your migrations spend a lot of time performing foreign key checks, and you are looking for a mitigation.
+SQLite makes it [difficult](https://www.sqlite.org/lang_altertable.html) to perform some schema changes, and this creates very undesired churn w.r.t. foreign keys. GRDB makes its best to hide those problems to you, but you might have to deal with them one day, especially if your database becomes *very big*:
 
-What are we talking about? SQLite has [limited support](https://www.sqlite.org/lang_altertable.html) for database schema change, and this unfortunately creates unwanted churn regarding foreign keys. In order to accept any kind of schema changes, GRDB migration runs, by default, with deferred foreign key checks. They precisely apply the technique described in [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes):
+You'll need to read this chapter if you are looking for a mitigation to the time spent by migrations performing foreign key checks. You'll know this by instrumenting your migrations, and looking for the time spent in the `checkForeignKeyViolations` method. See [Advanced Database Schema Changes] right above to know what are those foreign key checks.
 
-1. Disable foreign keys
-2. Start a transaction
-3. Apply migration
-4. Run [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check) to verify that the schema change did not break any foreign key constraints.
-5. Commit
-6. Reenable foreign keys
+**Your first mitigation technique are immediate foreign key checks.**
 
-The step 4 can take a long time.
-
-**Mitigation technique 1: immediate foreign key checks**
-
-If you register a migration with `.immediate` foreign key checks, the migration will not disable foreign keys, and avoid the slow `PRAGMA foreign_key_check`:
+If you register a migration with `.immediate` foreign key checks, the migration will not disable foreign keys, and won't need to perform the full check of all foreign keys in your database:
 
 ```swift
-migrator.registerMigration("slow", foreignKeyChecks: .immediate) { db in ... }
-```
-
-1. Start a transaction
-2. Apply migration
-3. Commit
-
-Such a migration still guarantees that no foreign key constraint is broken. But it can not run the kind of migrations covered by [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes).
-
-**Mitigation technique 2: unsafely disable deferred foreign key checks**
-
-You can ask the migrator to never run `PRAGMA foreign_key_check` for all newly registered migrations:
-
-```swift
-migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
-migrator.registerMigration("unchecked") { db in ... }
-```
-
-1. Disable foreign keys
-2. Start a transaction
-3. Apply migration
-4. Commit
-5. Reenable foreign keys
-
-You keep the ability to run any kind of migration. But the migrator can no longer guarantees that foreign key constraints are honored :warning:
-
-Individual migrations can still immediately check their foreign keys (as long as they do not require the technique described by [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes)):
-
-```swift
-migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
-migrator.registerMigration("unchecked") { db in ... }
-migrator.registerMigration("checked", foreignKeyChecks: .immediate) { db in ... }
-```
-
-Since such a migrator does not guarantee that foreign key constraints are honored, you may want to check them at some point, with [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check):
-
-```swift
-try migrator.migrate(dbQueue)
-let foreignKeyViolationExists = try dbQueue.read { db 
-    try Row.fetchCursor(db, sql: "PRAGMA foreign_key_check").isEmpty() == false
-}
-if foreignKeyViolationExists {
-    // Well, too bad
+migrator.registerMigration("make it faster please", foreignKeyChecks: .immediate) { db in
+    try db.create(table: ...)                    // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ...
 }
 ```
 
+Such a migration is much faster, and it still guarantees that no foreign key constraint is broken. But it can not run the kind of migrations covered by [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes). In this case, you'll need to use the second mitigation technique:
+
+**Your second mitigation technique is to disable deferred foreign key checks.**
+
+You can ask the migrator to stop performing foreign key checks for all newly registered migrations.
+
+:warning: If you use this technique, your app becomes responsible for preventing foreign key violations from being committed to disk!
+
+```swift
+migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+
+// From now on, migrations are unchecked!
+migrator.registerMigration("fast but unchecked") { db in ... }
+```
+
+In order to prevent foreign key violations from being committed to disk, you can:
+
+- Run migrations with immediate foreign key check, as long as they do not require the technique described by [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes):
+
+    ```swift
+    migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+    migrator.registerMigration("unchecked") { db in ... }
+    migrator.registerMigration("checked", foreignKeyChecks: .immediate) { db in ... }
+    ```
+
+- Perform foreign key checks on some tables only:
+
+    ```swift
+    migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+    migrator.registerMigration("partially checked") { db in
+        ...
+        
+        // Throws an error and stops migrations if there exists a
+        // foreign key violation in the 'player' table.
+        try db.checkForeignKeyViolations(in: "player")
+    }
+    ```
+
+- Perform a full check of foreign keys, eventually:
+    
+    ```swift
+    try migrator.migrate(dbQueue)
+    
+    // Throws an error if there exists any foreign key violation.
+    try dbQueue.read { db in
+        try db.checkForeignKeyViolations()
+    }
+    ```
+
+In order to check for foreign key violations, the `checkForeignKeyViolations()` and `checkForeignKeyViolations(in:)` methods are recommended over the raw use of the [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check). Those methods throw a nicely detailed DatabaseError that contains a lot of debugging information:
+
+```swift
+// SQLite error 19: foreign key constraint failed from player(teamId) to team(id),
+// in [id:1 teamId:2 name:"O'Brien" score: 1000]
+try db.checkForeignKeyViolations()
+```
+
+If you want to precisely introspect each foreign key violation, you will use instead:
+
+```swift
+let violations = try db.foreignKeyViolations()
+while let violation = try violations.next() {
+    // The name of the table that contains the `REFERENCES` clause
+    print(violation.originTable)
+    
+    // The rowid of the row that contains the invalid `REFERENCES` clause, or
+    // nil if the origin table is a `WITHOUT ROWID` table.
+    print(violation.originRowID)
+    
+    // The name of the table that is referred to.
+    print(violation.destinationTable)
+    
+    // The id of the specific foreign key constraint that failed. This id
+    // matches `ForeignKeyInfo.id`. See `Database.foreignKeys(on:)` for more
+    // information.
+    print(violation.foreignKeyId)
+}
+```
 
 ## Asynchronous Migrations
 
