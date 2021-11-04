@@ -920,7 +920,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    func testUnsafeWithoutDeferredForeignKeyChecks() throws {
+    func testDisablingDeferredForeignKeyChecks() throws {
         let foreignKeyViolation = """
             CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
             CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
@@ -935,7 +935,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // Foreign key violation
         do {
-            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
             migrator.registerMigration("A") { db in
                 try db.execute(sql: foreignKeyViolation)
             }
@@ -947,7 +947,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
         do {
-            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
             migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
                 try db.execute(sql: foreignKeyViolation)
             }
@@ -963,7 +963,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         
         // Transient foreign key violation
         do {
-            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
             migrator.registerMigration("A") { db in
                 try db.execute(sql: transientForeignKeyViolation)
             }
@@ -974,7 +974,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
         }
         do {
-            var migrator = DatabaseMigrator().unsafeWithoutDeferredForeignKeyChecks()
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
             migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
                 try db.execute(sql: transientForeignKeyViolation)
             }
@@ -989,7 +989,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
     }
     
-    func testUnsafeWithoutDeferredForeignKeyChecks_applies_to_newly_registered_migrations() throws {
+    func test_disablingDeferredForeignKeyChecks_applies_to_newly_registered_migrations_only() throws {
         let foreignKeyViolation = """
             CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
             CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
@@ -1000,7 +1000,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         migrator.registerMigration("A") { db in
             try db.execute(sql: foreignKeyViolation)
         }
-        migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+        migrator = migrator.disablingDeferredForeignKeyChecks()
         migrator.registerMigration("B") { db in
             XCTFail("Should not run")
         }

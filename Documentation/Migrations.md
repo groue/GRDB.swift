@@ -185,7 +185,7 @@ You can ask the migrator to stop performing foreign key checks for all newly reg
 :warning: If you use this technique, your app becomes responsible for preventing foreign key violations from being committed to disk!
 
 ```swift
-migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+migrator = migrator.disablingDeferredForeignKeyChecks()
 
 // From now on, migrations are unchecked!
 migrator.registerMigration("fast but unchecked") { db in ... }
@@ -196,7 +196,7 @@ In order to prevent foreign key violations from being committed to disk, you can
 - Run migrations with immediate foreign key check, as long as they do not require the technique described by [Making Other Kinds Of Table Schema Changes](https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes):
 
     ```swift
-    migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+    migrator = migrator.disablingDeferredForeignKeyChecks()
     migrator.registerMigration("unchecked") { db in ... }
     migrator.registerMigration("checked", foreignKeyChecks: .immediate) { db in ... }
     ```
@@ -204,7 +204,7 @@ In order to prevent foreign key violations from being committed to disk, you can
 - Perform foreign key checks on some tables only:
 
     ```swift
-    migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+    migrator = migrator.disablingDeferredForeignKeyChecks()
     migrator.registerMigration("partially checked") { db in
         ...
         

@@ -53,7 +53,7 @@ public struct DatabaseMigrator {
         /// are checked right before changes are committed on disk.
         ///
         /// These deferred checks are not executed if the migrator comes
-        /// from `unsafeWithoutDeferredForeignKeyChecks()`.
+        /// from `disablingDeferredForeignKeyChecks()`.
         ///
         /// Deferred foreign key checks are necessary for migrations that
         /// perform schema changes as described in
@@ -122,7 +122,7 @@ public struct DatabaseMigrator {
     ///         // Runs with immediate foreign key checks
     ///     }
     ///
-    ///     migrator = migrator.unsafeWithoutDeferredForeignKeyChecks()
+    ///     migrator = migrator.disablingDeferredForeignKeyChecks()
     ///     migrator.registerMigration("C") { db in
     ///         // Runs with disabled foreign key checks
     ///     }
@@ -133,7 +133,7 @@ public struct DatabaseMigrator {
     /// - warning: Before using this unsafe method, try to run your migrations with
     /// `.immediate` foreign key checks, if possible. This may enhance migration
     /// performances, while preserving the database integrity guarantee.
-    public func unsafeWithoutDeferredForeignKeyChecks() -> DatabaseMigrator {
+    public func disablingDeferredForeignKeyChecks() -> DatabaseMigrator {
         with { $0.defersForeignKeyChecks = false }
     }
     
@@ -158,7 +158,7 @@ public struct DatabaseMigrator {
     ///       disabled foreign keys, until foreign keys are checked right before
     ///       changes are committed on disk. These deferred checks are not
     ///       executed if the migrator comes
-    ///       from `unsafeWithoutDeferredForeignKeyChecks()`.
+    ///       from `disablingDeferredForeignKeyChecks()`.
     ///
     ///       The `.immediate` checks have the migration run with foreign
     ///       keys enabled.
