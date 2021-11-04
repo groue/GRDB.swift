@@ -111,7 +111,7 @@ public protocol EncodableRecord {
     /// For example:
     ///
     ///     struct Player: PersistableProtocol, Encodable {
-    ///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .string
+    ///         static let databaseUUIDEncodingStrategy: DatabaseUUIDEncodingStrategy = .uppercaseString
     ///
     ///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
     ///         var uuid: UUID
@@ -126,7 +126,7 @@ public protocol EncodableRecord {
     /// For example:
     ///
     ///     struct Player: PersistableProtocol, Encodable {
-    ///         static let databaseColumnEncodingStrategy: DatabaseUUIDEncodingStrategy = .convertToSnakeCase
+    ///         static let databaseColumnEncodingStrategy: DatabaseColumnEncodingStrategy = .convertToSnakeCase
     ///
     ///         // encoded as player_id
     ///         var playerID: String
@@ -416,7 +416,7 @@ public enum DatabaseDateEncodingStrategy {
 /// For example:
 ///
 ///     struct Player: EncodableProtocol, Encodable {
-///         static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
+///         static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
 ///
 ///         // encoded in a string like "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
 ///         var uuid: UUID
@@ -427,15 +427,24 @@ public enum DatabaseUUIDEncodingStrategy {
     /// It encodes UUIDs as 16-bytes data blobs.
     case deferredToUUID
     
-    /// Encodes UUIDs as strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
-    case string
-
+    /// Encodes UUIDs as uppercased strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+    case uppercaseString
+    
+    /// Encodes UUIDs as lowercased strings such as "e621e1f8-c36c-495a-93fc-0c247a3e6e5f"
+    case lowercaseString
+    
+    /// Encodes UUIDs as uppercased strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
+    @available(*, deprecated, renamed: "uppercaseString")
+    public static var string: Self { .uppercaseString }
+    
     func encode(_ uuid: UUID) -> DatabaseValueConvertible {
         switch self {
         case .deferredToUUID:
             return uuid.databaseValue
-        case .string:
+        case .uppercaseString:
             return uuid.uuidString
+        case .lowercaseString:
+            return uuid.uuidString.lowercased()
         }
     }
 }

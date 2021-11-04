@@ -3122,7 +3122,7 @@ protocol EncodableRecord {
 
 See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
 
-There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
+There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs and uuid strings, both uppercase and lowercase).
 
 Customized date and uuid handling apply:
 
@@ -3136,7 +3136,7 @@ So make sure that dates and uuids are properly encoded in your requests. For exa
 ```swift
 struct Player: Codable, FetchableRecord, PersistableRecord, Identifiable {
     // UUIDs are stored as strings
-    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
+    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
     var id: UUID
     ...
 }
