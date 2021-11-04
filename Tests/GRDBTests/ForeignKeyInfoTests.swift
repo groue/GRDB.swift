@@ -191,8 +191,8 @@ class ForeignKeyInfoTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
-                XCTAssertEqual(error.message, #"foreign key constraint failed from child(parentId) to parent(id), in [id:13 parentId:"1"]"#)
-                XCTAssertEqual(error.description, #"SQLite error 19: foreign key constraint failed from child(parentId) to parent(id), in [id:13 parentId:"1"]"#)
+                XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from child(parentId) to parent(id), in [id:13 parentId:"1"]"#)
+                XCTAssertEqual(error.description, #"SQLite error 19: FOREIGN KEY constraint violation - from child(parentId) to parent(id), in [id:13 parentId:"1"]"#)
             }
         }
         
@@ -209,8 +209,8 @@ class ForeignKeyInfoTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
-                XCTAssertEqual(error.message, #"foreign key constraint failed from child(parentA, parentB) to parent(a, b), in [id:13 parentA:"foo" parentB:"bar"]"#)
-                XCTAssertEqual(error.description, #"SQLite error 19: foreign key constraint failed from child(parentA, parentB) to parent(a, b), in [id:13 parentA:"foo" parentB:"bar"]"#)
+                XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from child(parentA, parentB) to parent(a, b), in [id:13 parentA:"foo" parentB:"bar"]"#)
+                XCTAssertEqual(error.description, #"SQLite error 19: FOREIGN KEY constraint violation - from child(parentA, parentB) to parent(a, b), in [id:13 parentA:"foo" parentB:"bar"]"#)
             }
         }
         
@@ -227,8 +227,8 @@ class ForeignKeyInfoTests: GRDBTestCase {
             } catch let error as DatabaseError {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
-                XCTAssertEqual(error.message, "foreign key constraint failed from child(parentA, parentB) to parent(a, b)")
-                XCTAssertEqual(error.description, "SQLite error 19: foreign key constraint failed from child(parentA, parentB) to parent(a, b)")
+                XCTAssertEqual(error.message, "FOREIGN KEY constraint violation - from child(parentA, parentB) to parent(a, b)")
+                XCTAssertEqual(error.description, "SQLite error 19: FOREIGN KEY constraint violation - from child(parentA, parentB) to parent(a, b)")
             }
         }
     }

@@ -227,7 +227,7 @@ In order to prevent foreign key violations from being committed to disk, you can
 In order to check for foreign key violations, the `checkForeignKeys()` and `checkForeignKeys(in:)` methods are recommended over the raw use of the [`PRAGMA foreign_key_check`](https://www.sqlite.org/pragma.html#pragma_foreign_key_check). Those methods throw a nicely detailed DatabaseError that contains a lot of debugging information:
 
 ```swift
-// SQLite error 19: foreign key constraint failed from player(teamId) to team(id),
+// SQLite error 19: FOREIGN KEY constraint violation - from player(teamId) to team(id),
 // in [id:1 teamId:2 name:"O'Brien" score:1000]
 try db.checkForeignKeys()
 ```
@@ -257,7 +257,7 @@ while let violation = try violations.next() {
     String(describing: violation)
     
     // Rich description:
-    // "foreign key constraint failed from player(teamId) to team(id),
+    // "FOREIGN KEY constraint violation - from player(teamId) to team(id),
     //  in [id:1 teamId:2 name:"O'Brien" score:1000]"
     try violation.failureDescription(db)
 }

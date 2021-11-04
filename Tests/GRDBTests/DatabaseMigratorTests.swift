@@ -400,7 +400,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message, #"foreign key constraint failed from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
+                XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
                 
                 let names = try dbQueue.inDatabase { db in
                     try String.fetchAll(db, sql: "SELECT name FROM persons")
@@ -420,7 +420,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 let error = error as! DatabaseError
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message, #"foreign key constraint failed from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
+                XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
                 
                 let names = try! String.fetchAll(db, sql: "SELECT name FROM persons")
                 XCTAssertEqual(names, ["Arthur"])
@@ -463,7 +463,7 @@ class DatabaseMigratorTests : GRDBTestCase {
             
             XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-            XCTAssertEqual(error.message, #"foreign key constraint failed from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
+            XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
             
             try dbQueue.inDatabase { db in
                 // Arthur inserted (migration 1), Barbara (migration 3) not inserted.

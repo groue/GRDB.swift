@@ -808,7 +808,7 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     
     /// Returns a precise description of the foreign key violation.
     ///
-    /// For example: 'foreign key constraint failed from player(teamId) to team(id),
+    /// For example: 'FOREIGN KEY constraint violation - from player(teamId) to team(id),
     /// in [id:1 teamId:2 name:"O'Brien" score: 1000]'
     public func failureDescription(_ db: Database) throws -> String {
         // Grab detailed information, if possible, for better error message
@@ -822,12 +822,12 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
         var description: String
         if let foreignKey = foreignKey {
             description = """
-                foreign key constraint failed \
+                FOREIGN KEY constraint violation - \
                 from \(originTable)(\(foreignKey.originColumns.joined(separator: ", "))) \
                 to \(destinationTable)(\(foreignKey.destinationColumns.joined(separator: ", ")))
                 """
         } else {
-            description = "foreign key constraint failed from \(originTable) to \(destinationTable)"
+            description = "FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable)"
         }
         
         if let originRow = originRow {
