@@ -15,8 +15,8 @@ class PlayerEditionViewController: UITableViewController {
     /// The presentation mode
     let mode: Mode
     
-    @IBOutlet private weak var cancelBarButtonItem: UIBarButtonItem!
-    @IBOutlet private weak var commitBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var cancelButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var saveButtonItem: UIBarButtonItem!
     @IBOutlet private weak var nameCell: UITableViewCell!
     @IBOutlet private weak var nameTextField: UITextField!
     @IBOutlet private weak var scoreCell: UITableViewCell!
@@ -68,8 +68,8 @@ extension PlayerEditionViewController {
         switch mode {
         case .creation:
             navigationItem.title = "New Player"
-            navigationItem.leftBarButtonItem = cancelBarButtonItem
-            navigationItem.rightBarButtonItem = commitBarButtonItem
+            navigationItem.leftBarButtonItem = cancelButtonItem
+            navigationItem.rightBarButtonItem = saveButtonItem
         case .edition:
             navigationItem.title = player.name
             navigationItem.leftBarButtonItem = nil
@@ -105,9 +105,7 @@ extension PlayerEditionViewController: UITextFieldDelegate {
     
     @IBAction func textFieldDidChange(_ textField: UITextField) {
         // User has edited the player: prevent interactive dismissal
-        if case .creation = mode {
-            isModalInPresentation = true
-        }
+        isModalInPresentation = true
     }
     
     private func configureForm() {

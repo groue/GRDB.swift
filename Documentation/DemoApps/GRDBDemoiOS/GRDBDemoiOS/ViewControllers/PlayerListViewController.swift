@@ -109,7 +109,21 @@ class PlayerListViewController: UITableViewController {
         var snapshot = NSDiffableDataSourceSnapshot<Int, Player>()
         snapshot.appendSections([0])
         snapshot.appendItems(players, toSection: 0)
-        dataSource.apply(snapshot, animatingDifferences: true, completion: nil)
+        
+        // Remember selection
+        let selectedPlayerId = tableView.indexPathForSelectedRow.flatMap {
+            dataSource.itemIdentifier(for: $0)?.id
+        }
+        
+        // Avoid a UIKit warning; don't animate when popping from edition
+        let animated = view.window != nil
+        
+        dataSource.apply(snapshot, animatingDifferences: animated, completion: {
+            // Restore selection
+            if let index = players.firstIndex(where: { $0.id == selectedPlayerId }) {
+                self.tableView.selectRow(at: IndexPath(row: index, section: 0), animated: false, scrollPosition: .none)
+            }
+        })
     }
     
     private func observePlayers() {
