@@ -175,6 +175,7 @@ Those observables do not access the database until they are subscribed. They com
 ```swift
 dbQueue.asyncRead { (dbResult: Result<Database, Error>) in
     do {
+        // Maybe read access could not be established
         let db = try dbResult.get()
         let playerCount = try Player.fetchCount(db)
         ... // Handle playerCount
@@ -187,6 +188,7 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
     try Player(id: 12, name: "Arthur").insert(db)
     return try Player.fetchCount(db)
 }, completion: { (db: Database, result: Result<Int, Error>) in
+    // Handle write transaction result:
     switch result {
     case let .success(newPlayerCount):
         ... // Handle newPlayerCount
@@ -387,6 +389,7 @@ try dbPool.writeWithoutTransaction { db in
     // <- Not in a transaction here
     dbPool.asyncConcurrentRead { dbResult in
         do {
+            // Maybe read access could not be established
             let db = try dbResult.get()
             let newPlayerCount = try Player.fetchCount(db)
             // Handle newPlayerCount
