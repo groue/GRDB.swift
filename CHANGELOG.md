@@ -81,10 +81,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
-- **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3
+- **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3 and Xcode 12.
+- **New**: :star: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
+- **New**: :star: [#1095](https://github.com/groue/GRDB.swift/pull/1095) by [@groue](https://github.com/groue): Precise foreign key checks for migrations
 - **New**: [#1078](https://github.com/groue/GRDB.swift/pull/1078) by [@groue](https://github.com/groue): Non-mutating persistence methods `saved` and `inserted`, and existence-checking methods `isEmpty` and `exists`
-- **New**: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
-- **New**: [#1095](https://github.com/groue/GRDB.swift/pull/1095) by [@groue](https://github.com/groue): Precise foreign key checks for migrations
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
 - **New**: The `close()` method allows precise closing of database connections.
 - **New**: Filtering records by single-column primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
@@ -94,8 +94,6 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Documentation Update**: :star: The [Migrations](Documentation/Migrations.md) guide has a much more detailed description of how you can mitigate that difficulties that SQLite creates around foreign keys during schema changes.
 - **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) chapter describes the new support for date and uuid primary key coding in requests by single-column primary key.
 - **Documentation Update**: A new [Testing for Record Existence](README.md#testing-for-record-existence) chapter describes the new `request.isEmpty(_:)`, `Record.exists(_:id:)` and `Record.exists(_:key:)` methods.
-- **Documentation Update**: A new [ValueObservation Sharing](README.md#valueobservation-sharing) chapter describes how to share database observations and spare database resources.
-- **Documentation Update**: The [Migrations](Documentation/Migrations.md) guide has a much more detailed description of how you can mitigate that difficulties that SQLite creates around foreign keys during schema changes.
 
 ## 5.12.0
 
