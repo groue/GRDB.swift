@@ -112,6 +112,12 @@ public protocol DatabaseReader: AnyObject {
     /// Synchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
+    /// For example:
+    ///
+    ///     let count = try reader.read { db in
+    ///         try Player.fetchCount(db)
+    ///     }
+    ///
     /// The `value` function runs in an isolated fashion: eventual concurrent
     /// database updates are not visible from the function:
     ///
@@ -178,6 +184,12 @@ public protocol DatabaseReader: AnyObject {
     
     /// Synchronously executes a function that accepts a database
     /// connection, and returns its result.
+    ///
+    /// For example:
+    ///
+    ///     let count = try reader.unsafeRead { db in
+    ///         try Player.fetchCount(db)
+    ///     }
     ///
     /// The guarantees of the `read` method are lifted:
     ///
