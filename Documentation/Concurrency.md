@@ -326,7 +326,7 @@ Despite the common [guarantees](#safe-and-unsafe-database-accesses) and [rules](
 
 ![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
-See how, with database pools, two reads can see different database states at the same time. This may look scary, but the correct way to think about it is that database queues are no less scary than database pools! Practically speaking, you can write robust code, if you consider that:
+See how, with database pools, two reads can see different database states at the same time. This may look scary, but the correct way to think about it is that database queues are no less scary than database pools! Practically speaking, you can write robust code, that works equally well with both database queues and pools, if you consider that:
 
 - You are absolutely sure, when you perform a write access, that you deal with the latest database state. This is enforced by SQLite, which does simply not support parallel writes. To this end, database queues and pools make sure [only one thread can write](#guarantee-serialized-writes). And writes performed by other processes can only trigger [SQLITE_BUSY] errors that you can handle.
 
