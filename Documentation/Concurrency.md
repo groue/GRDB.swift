@@ -122,14 +122,14 @@ let newPlayerCount = try dbQueue.write { db -> Int in
 }
 ```
 
-> :point_up: **Note**: It is a programmer error to perform a sync access from any other database access (this restriction can be lifted: see [Safe and Unsafe Database Accesses]):
-> 
-> ```swift
-> try dbQueue.write { db in
->     // Fatal Error: Database methods are not reentrant.
->     try dbQueue.write { db in ... }
-> }
-> ```
+It is a programmer error to perform a sync access from any other database access (this restriction can be lifted: see [Safe and Unsafe Database Accesses]):
+
+```swift
+try dbQueue.write { db in
+    // Fatal Error: Database methods are not reentrant.
+    try dbQueue.write { db in ... }
+}
+```
 
 :twisted_rightwards_arrows: **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are three ways to access the database asynchronously:
 
@@ -198,21 +198,21 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 
 </details>
 
-> :point_up: **Note**: During one async access, all individual database operations grouped inside (fetch, insert, etc.) are synchronous:
->
-> ```swift
-> // When you perform ONE async access...
-> dbQueue.writePublisher { db in
->     // ... ALL database operations are performed synchronously:
->     try Player(...).insert(db)
->     try Player(...).insert(db)
->     let players = try Player.fetchAll(db)
-> }
-> ```
->
-> This is true for all async techniques.
->
-> This prevents the database operations from various concurrent accesses from being interleaved, with disastrous consequences. For example, one access must not be able to issue a `COMMIT` statement in the middle of an unfinished concurrent write!
+During one async access, all individual database operations grouped inside (fetch, insert, etc.) are synchronous:
+
+```swift
+// One asynchronous access...
+dbQueue.writePublisher { db in
+    // ... always performs synchronous database operations:
+    try Player(...).insert(db)
+    try Player(...).insert(db)
+    let players = try Player.fetchAll(db)
+}
+```
+
+This is true for all async techniques.
+
+This prevents the database operations from various concurrent accesses from being interleaved, with disastrous consequences. For example, one access must not be able to issue a `COMMIT` statement in the middle of an unfinished concurrent write!
 
 
 ## Safe and Unsafe Database Accesses
