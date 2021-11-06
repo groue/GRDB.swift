@@ -419,7 +419,7 @@ try dbPool.writeWithoutTransaction { db in
 
 `concurrentRead` and `asyncConcurrentRead` block until they can guarantee their closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes this closure.
 
-In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, no other threads can write:
+In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, no other thread can write:
 
 ![DatabasePoolConcurrentRead](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolConcurrentRead.svg)
 
