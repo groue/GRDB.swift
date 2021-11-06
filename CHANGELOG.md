@@ -87,11 +87,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1095](https://github.com/groue/GRDB.swift/pull/1095) by [@groue](https://github.com/groue): Precise foreign key checks for migrations
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
 - **New**: The `close()` method allows precise closing of database connections.
+- **New**: Filtering records by single-column primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
 - **New**: `DatabaseUUIDEncodingStrategy.lowercaseString` can encode UUID as a lowercased string. For clarity, the `string` strategy has been deprecated and renamed `uppercaseString`.
-- **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) was updated for the new support for customized date and uuid primary key coding.
-- **New**: Filtering records by primary key now properly encodes dates and uuids according to the customized strategies (`filter(id:)`, `deleteAll(_:keys:)`, etc.)
-- **Documentation Update**: The [Concurrency Guide](Documentation/Concurrency.md) has been rewritten for enhanced clarity.
-- **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) chapter was updated for the new support for customized date and uuid primary key coding.
+- **Documentation Update**: :star: The [Concurrency Guide](Documentation/Concurrency.md) has been rewritten for enhanced clarity.
+- **Documentation Update**: :star: A new [ValueObservation Sharing](README.md#valueobservation-sharing) chapter describes how to share database observations and spare database resources.
+- **Documentation Update**: :star: The [Migrations](Documentation/Migrations.md) guide has a much more detailed description of how you can mitigate that difficulties that SQLite creates around foreign keys during schema changes.
+- **Documentation Update**: The [Date and UUID Coding Strategies](README.md#date-and-uuid-coding-strategies) chapter describes the new support for date and uuid primary key coding in requests by single-column primary key.
 - **Documentation Update**: A new [Testing for Record Existence](README.md#testing-for-record-existence) chapter describes the new `request.isEmpty(_:)`, `Record.exists(_:id:)` and `Record.exists(_:key:)` methods.
 - **Documentation Update**: A new [ValueObservation Sharing](README.md#valueobservation-sharing) chapter describes how to share database observations and spare database resources.
 - **Documentation Update**: The [Migrations](Documentation/Migrations.md) guide has a much more detailed description of how you can mitigate that difficulties that SQLite creates around foreign keys during schema changes.

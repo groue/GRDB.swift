@@ -253,7 +253,7 @@ while let violation = try violations.next() {
     violation.foreignKeyId
     
     // Plain description:
-    // "Foreign key violation from player to team, in rowid 1"
+    // "FOREIGN KEY constraint violation - from player to team, in rowid 1"
     String(describing: violation)
     
     // Rich description:

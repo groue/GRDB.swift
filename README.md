@@ -3127,7 +3127,7 @@ There is no customization of uuid decoding, because UUID can already decode all 
 Customized date and uuid handling apply:
 
 - When encoding and decoding database rows to and from records (fetching and persistence methods).
-- In primary key requests (`fetchOne(_:id:)`, `filter(id:)`, `deleteAll(_:keys:)`, etc.)
+- In requests by single-column primary key: `fetchOne(_:id:)`, `filter(id:)`, `deleteAll(_:keys:)`, etc.
 
 *They do not apply* in other requests based on date or uuid values.
 

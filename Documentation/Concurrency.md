@@ -13,6 +13,7 @@ The other chapters cover, with more details, the fundamentals of SQLite concurre
 - [Synchronous and Asynchronous Database Accesses]
 - [Safe and Unsafe Database Accesses]
 - [Differences between Database Queues and Pools]
+- [Think Concurrently]
 - [Advanced DatabasePool]
 - [Database Snapshots]
 - [Sharing a Database]
@@ -326,13 +327,25 @@ Despite the common [guarantees](#safe-and-unsafe-database-accesses) and [rules](
 
 ![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
-See how, with database pools, two reads can see different database states at the same time. This may look scary, but the correct way to think about it is that database queues are no less scary than database pools! Practically speaking, you can write robust code, that works equally well with both database queues and pools, if you consider that:
+See how, with database pools, two reads can see different database states at the same time. This may look scary! Please see the next [Think Concurrently] chapter below for a relief.
 
-- You are absolutely sure, when you perform a write access, that you deal with the latest database state. This is enforced by SQLite, which does simply not support parallel writes. To this end, database queues and pools make sure [only one thread can write](#guarantee-serialized-writes). And writes performed by other processes can only trigger [SQLITE_BUSY] errors that you can handle.
 
-- Whenever you fetch some data from a database queue or pool, it is better to consider it as _immediately_ stale. This is because nothing prevents other application threads or processes from overwriting the value you have just fetched:
+## Think Concurrently
+
+Despite their [differences](#differences-between-database-queues-and-pools), you can write robust code that works equally well with both database queues and pools.
+
+This allows your app to switch between queues and pools, at your convenience:
+
+- The [demo applications] share the same database code for the on-disk pool that feeds the app, and the in-memory queue that feeds tests and SwiftUI previews. This makes sure tests and previews run fast, without any temporary file, with the same behavior as the app.
+- Applications that perform slow write transactions (when saving a lot of data from a remote server, for example) may want to replace their queue with a pool so that the reads that feed their user interface can run in parallel.
+
+All you need is a little "concurrent thinking", based on those two basic facts:
+
+- You are sure, when you perform a write access, that you deal with the latest database state. This is enforced by SQLite, which simply can't perform parallel writes. To this end, database queues and pools make sure [only one thread can write](#guarantee-serialized-writes). And writes performed by other processes can only trigger [SQLITE_BUSY] errors [that you can handle](SharingADatabase.md).
+
+- Whenever you fetch some data, from a database queue or from a pool, consider it as _immediately_ stale. This is because nothing prevents other application threads or processes from overwriting the value you have just fetched:
     
-    <img align="right" src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/ConcurrencyMeme.jpg" width="50%">
+    <img align="right" src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/TwoCookiesLeft.jpg" width="50%">
     
     ```swift
     // or dbQueue.write, for that matter
@@ -342,14 +355,14 @@ See how, with database pools, two reads can see different database states at the
     
     // At this point, the number of cookies on disk
     // may have already changed.
-    print("There are \(cookieCount) cookies in the database")
+    print("We have \(cookieCount) cookies left")
     ```
     
     Fortunately:
     
-    - If you intend to display database values on screen, use [ValueObservation]: it always eventually notifies the latest state of the database. This way, you won't display stale values for a long time.
+    - If you intend to display database values on screen, use [ValueObservation]: it always eventually notifies the latest state of the database. This way, you won't display stale values for a long time [^2].
     
-    - The next write access is the perfect place to check your assumptions.
+    - The next write access is the moment of truth!
 
 
 ## Advanced DatabasePool
@@ -477,10 +490,13 @@ try snapshot2.read { db in
 
 [^1]: This immutable view of the database is called [snapshot isolation](https://www.sqlite.org/isolation.html).
 
+[^2]: After the database has been changed on disk, GRDB has to fetch the fresh value, and then hop to the main thread. Only then your screen can be updated.
+
 [Concurrency Rules]: #concurrency-rules
 [Synchronous and Asynchronous Database Accesses]: #synchronous-and-asynchronous-database-accesses
 [Safe and Unsafe Database Accesses]: #safe-and-unsafe-database-accesses
 [Differences between Database Queues and Pools]: #differences-between-database-queues-and-pools
+[Think Concurrently]: #think-concurrently
 [Advanced DatabasePool]: #advanced-databasepool
 [Database Snapshots]: #database-snapshots
 [DatabaseQueue]: ../README.md#database-queues
@@ -498,3 +514,4 @@ try snapshot2.read { db in
 [Isolated Reads]: #guarantee-isolated-reads
 [Forbidden Writes]: #guarantee-forbidden-writes
 [Non-Reentrancy]: #guarantee-non-reentrancy
+[demo applications]: DemoApps
