@@ -322,7 +322,7 @@ Despite the common [guarantees](#safe-and-unsafe-database-accesses) and [rules](
 
 ![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabaseQueueScheduling.svg)
 
-[DatabasePool] manages a pool of several database connections, and allows concurrent reads and writes. It serializes all writes. Reads are isolated so that they don't see changes performed by other threads. This gives a very different picture:
+[DatabasePool] manages a pool of several database connections, and allows concurrent reads and writes. It serializes all writes (the [Serialized Writes] guarantee). Reads are isolated so that they don't see changes performed by other threads (the [Isolated Reads] guarantee). This gives a very different picture:
 
 ![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
