@@ -320,11 +320,11 @@ Despite the common [guarantees](#safe-and-unsafe-database-accesses) and [rules](
 
 [DatabaseQueue] opens a single database connection, and serializes all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database as time passes:
 
-![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabaseQueueScheduling.svg)
+![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabaseQueueScheduling.svg)
 
 [DatabasePool] manages a pool of several database connections, and allows concurrent reads and writes. It serializes all writes. Reads are isolated so that they don't see changes performed by other threads. This gives a very different picture:
 
-![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabasePoolScheduling.svg)
+![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
 See how, with database pools, two reads can see different database states at the same time. This may look scary, but there is a simple way to think about it. After all, most applications are generally interested in the latest state of the database:
 
@@ -401,6 +401,10 @@ try dbPool.writeWithoutTransaction { db in
 ```
 
 `concurrentRead` and `asyncConcurrentRead` block until they can guarantee their closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes this closure.
+
+In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, other threads can not write:
+
+![DatabasePoolConcurrentRead](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolConcurrentRead.svg)
 
 [Transaction Observers](../README.md#transactionobserver-protocol) can also use those methods in their `databaseDidCommit` method, in order to process database changes without blocking other threads that want to write into the database.
 
