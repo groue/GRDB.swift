@@ -229,6 +229,13 @@ extension DatabasePool: DatabaseReader {
         try readerPool?.barrier {
             // Close writer connection first. If we can't close it,
             // don't close readers.
+            //
+            // This allows us to exit this method as fully closed (read and
+            // writes fail), or not closed at all (reads and writes succeed).
+            //
+            // Unfortunately, this introduces a regression for
+            // https://github.com/groue/GRDB.swift/issues/739.
+            // TODO: fix this regression.
             try writer.sync { try $0.close() }
             
             // OK writer is closed. Now close readers and
@@ -299,7 +306,7 @@ extension DatabasePool: DatabaseReader {
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool = readerPool else {
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+            throw DatabaseError.connectionIsClosed()
         }
         return try readerPool.get { reader in
             try reader.sync { db in
@@ -327,7 +334,7 @@ extension DatabasePool: DatabaseReader {
             .async {
                 do {
                     guard let readerPool = self.readerPool else {
-                        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+                        throw DatabaseError.connectionIsClosed()
                     }
                     let (reader, releaseReader) = try readerPool.get()
                     
@@ -370,7 +377,7 @@ extension DatabasePool: DatabaseReader {
                 
                 do {
                     guard let readerPool = self.readerPool else {
-                        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+                        throw DatabaseError.connectionIsClosed()
                     }
                     let (reader, releaseReader) = try readerPool.get()
                     
@@ -404,7 +411,7 @@ extension DatabasePool: DatabaseReader {
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
         guard let readerPool = readerPool else {
-            throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+            throw DatabaseError.connectionIsClosed()
         }
         return try readerPool.get { reader in
             try reader.sync { db in
@@ -419,7 +426,7 @@ extension DatabasePool: DatabaseReader {
             return try reader.reentrantSync(value)
         } else {
             guard let readerPool = readerPool else {
-                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+                throw DatabaseError.connectionIsClosed()
             }
             return try readerPool.get { reader in
                 try reader.sync { db in
@@ -509,7 +516,7 @@ extension DatabasePool: DatabaseReader {
         
         do {
             guard let readerPool = readerPool else {
-                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+                throw DatabaseError.connectionIsClosed()
             }
             let (reader, releaseReader) = try readerPool.get()
             reader.async { db in

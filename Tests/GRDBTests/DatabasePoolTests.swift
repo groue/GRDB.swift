@@ -177,6 +177,9 @@ class DatabasePoolTests: GRDBTestCase {
         try dbPool.write { db in
             try db.execute(sql: "SELECT * FROM sqlite_master")
         }
+        try dbPool.read { db in
+            try db.execute(sql: "SELECT * FROM sqlite_master")
+        }
     }
     
     func testCloseFailedDueToReader() throws {
