@@ -35,10 +35,9 @@ struct AppView: View {
                         ordering: $players.ordering,
                         willChange: {
                             // onChange(of: $players.wrappedValue.ordering)
-                            // reveals a bug in SwiftUI: the List remains in
-                            // editing mode if the editMode is changed during
+                            // is not able to leave the editing mode during
                             // the animation of the list content.
-                            // Word around: stop editing *before* the ordering
+                            // Workaround: stop editing before the ordering
                             // is changed, and the list content is updated.
                             stopEditing()
                         }))
