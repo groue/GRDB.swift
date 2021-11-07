@@ -7,7 +7,7 @@ This document exposes its inner organization, so that you can leverage the most 
 
 In the diagram below, protocols are pale blue and have rounded corners, and standard types are grey rectangles. Solid arrows read "inherits from", and dashed arrows read "produces". Generic types are marked as such, as well as "PATs" (protocols with associated types).
 
-<img src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/QueryInterfaceOrganization2.png" width="100%">
+<img src="https://github.com/groue/GRDB.swift/raw/master/Documentation/Images/QueryInterfaceOrganization2.png" width="100%">
 
 Diagram items are described below:
 
