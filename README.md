@@ -2827,47 +2827,51 @@ struct Player: Encodable, MutablePersistableRecord {
 [Record](#record-class) subclasses and types that adopt [PersistableRecord] are given default implementations for methods that insert, update, and delete:
 
 ```swift
-// Instance methods
-try place.save(db)                       // INSERT or UPDATE
-try place.insert(db)                     // INSERT
-try place.update(db)                     // UPDATE
-try place.update(db, columns: ...)       // UPDATE
-try place.updateChanges(db, from: ...)   // Maybe UPDATE
-try place.updateChanges(db) { ... }      // Maybe UPDATE
-try place.updateChanges(db)              // Maybe UPDATE (Record class only)
-try place.delete(db)                     // DELETE
-try place.exists(db)
-let savedPlace = try place.saved(db)     // INSERT or UPDATE (non-mutating)
-let insertedPlace try place.inserted(db) // INSERT (non-mutating)
+// INSERT
+try place.insert(db)
+let insertedPlace = try place.inserted(db) // non-mutating
+
+// UPDATE
+try place.update(db)
+try place.update(db, columns: ["title"])
+
+// Maybe UPDATE
+try place.updateChanges(db, from: otherPlace)
+try place.updateChanges(db) { $0.isFavorite = true }
+try place.updateChanges(db) // Record class only
+
+// INSERT or UPDATE
+try place.save(db)
+let savedPlace = place.saved(db) // non-mutating
+
+// DELETE
+try place.delete(db)
+
+// EXISTENCE CHECK
+let exists = try place.exists(db)
 ```
 
 The [TableRecord] protocol comes with batch operations:
 
 ```swift
-// Type methods
-try Place.updateAll(db, ...)             // UPDATE
-try Place.deleteAll(db)                  // DELETE
-try Place.deleteAll(db, ids:...)         // DELETE
-try Place.deleteAll(db, keys:...)        // DELETE
-try Place.deleteOne(db, id:...)          // DELETE
-try Place.deleteOne(db, key:...)         // DELETE
+// UPDATE
+try Place.updateAll(db, ...)
+
+// DELETE
+try Place.deleteAll(db)
+try Place.deleteAll(db, ids:...)
+try Place.deleteAll(db, keys:...)
+try Place.deleteOne(db, id:...)
+try Place.deleteOne(db, key:...)
 ```
 
-- `insert`, `update`, `save` and `delete` can throw a [DatabaseError](#error-handling).
+- All those methods can throw a [DatabaseError](#error-handling).
 
-- `update` and `updateChanges` can also throw a [PersistenceError](#persistenceerror), should the update fail because there is no matching row in the database.
-    
-    When saving an object that may or may not already exist in the database, prefer the `save` method:
+- `update` and `updateChanges` throw [PersistenceError](#persistenceerror) if the database does not contain any row for the primary key of the record.
 
-- `updateAll` performs a batch update. See [Update Requests](#update-requests).
+- `save` makes sure your values are stored in the database. It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
 
-- `save` makes sure your values are stored in the database.
-
-    It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
-    
-    Despite the fact that it may execute two SQL statements, `save` behaves as an atomic operation: GRDB won't allow any concurrent thread to sneak in (see [Concurrency]).
-
-- `delete` returns whether a database row was deleted or not.
+- `delete` and `deleteOne` returns whether a database row was deleted or not. `deleteAll` returns the number of deleted rows. `updateAll` returns the number of updated rows. `updateChanges` returns whether a database row was updated or not.
 
 **All primary keys are supported**, including composite primary keys that span several columns, and the [implicit rowid primary key](#the-implicit-rowid-primary-key).
 
@@ -3119,12 +3123,12 @@ protocol EncodableRecord {
 
 See [DatabaseDateDecodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseDateDecodingStrategy.html), [DatabaseDateEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseDateEncodingStrategy.html), and [DatabaseUUIDEncodingStrategy](https://groue.github.io/GRDB.swift/docs/5.12/Enums/DatabaseUUIDEncodingStrategy.html) to learn about all available strategies.
 
-There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs, and uuid strings).
+There is no customization of uuid decoding, because UUID can already decode all its encoded variants (16-bytes blobs and uuid strings, both uppercase and lowercase).
 
 Customized date and uuid handling apply:
 
 - When encoding and decoding database rows to and from records (fetching and persistence methods).
-- In primary key requests (`fetchOne(_:id:)`, `filter(id:)`, `deleteAll(_:keys:)`, etc.)
+- In requests by single-column primary key: `fetchOne(_:id:)`, `filter(id:)`, `deleteAll(_:keys:)`, etc.
 
 *They do not apply* in other requests based on date or uuid values.
 
@@ -3133,7 +3137,7 @@ So make sure that dates and uuids are properly encoded in your requests. For exa
 ```swift
 struct Player: Codable, FetchableRecord, PersistableRecord, Identifiable {
     // UUIDs are stored as strings
-    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.string
+    static let databaseUUIDEncodingStrategy = DatabaseUUIDEncodingStrategy.uppercaseString
     var id: UUID
     ...
 }

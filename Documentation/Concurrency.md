@@ -13,6 +13,7 @@ The other chapters cover, with more details, the fundamentals of SQLite concurre
 - [Synchronous and Asynchronous Database Accesses]
 - [Safe and Unsafe Database Accesses]
 - [Differences between Database Queues and Pools]
+- [Concurrent Thinking]
 - [Advanced DatabasePool]
 - [Database Snapshots]
 - [Sharing a Database]
@@ -122,18 +123,18 @@ let newPlayerCount = try dbQueue.write { db -> Int in
 }
 ```
 
-> :point_up: **Note**: It is a programmer error to perform a sync access from any other database access (this restriction can be lifted: see [Safe and Unsafe Database Accesses]):
-> 
-> ```swift
-> try dbQueue.write { db in
->     // Fatal Error: Database methods are not reentrant.
->     try dbQueue.write { db in ... }
-> }
-> ```
+It is a programmer error to perform a sync access from any other database access (this restriction can be lifted: see [Safe and Unsafe Database Accesses]):
 
-:twisted_rightwards_arrows: **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are four ways to access the database asynchronously:
+```swift
+try dbQueue.write { db in
+    // Fatal Error: Database methods are not reentrant.
+    try dbQueue.write { db in ... }
+}
+```
 
-<details open>
+:twisted_rightwards_arrows: **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are three ways to access the database asynchronously:
+
+<details>
     <summary><b>Swift concurrency</b> (async/await)</summary>
 
 [**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features)
@@ -195,6 +196,7 @@ Those observables do not access the database until they are subscribed. They com
 ```swift
 dbQueue.asyncRead { (dbResult: Result<Database, Error>) in
     do {
+        // Maybe read access could not be established
         let db = try dbResult.get()
         let playerCount = try Player.fetchCount(db)
         ... // Handle playerCount
@@ -207,6 +209,7 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
     try Player(id: 12, name: "Arthur").insert(db)
     return try Player.fetchCount(db)
 }, completion: { (db: Database, result: Result<Int, Error>) in
+    // Handle write transaction result:
     switch result {
     case let .success(newPlayerCount):
         ... // Handle newPlayerCount
@@ -218,21 +221,21 @@ dbQueue.asyncWrite({ (db: Database) -> Int in
 
 </details>
 
-> :point_up: **Note**: During one async access, all individual database operations grouped inside (fetch, insert, etc.) are synchronous:
->
-> ```swift
-> // When you perform ONE async access...
-> try await dbQueue.write { db in
->     // ... ALL database operations are performed synchronously:
->     try Player(...).insert(db)
->     try Player(...).insert(db)
->     let players = try Player.fetchAll(db)
-> }
-> ```
->
-> This is true for all async techniques (Swift concurrency, Combine, etc.).
->
-> This prevents the database operations from various concurrent accesses from being interleaved, with disastrous consequences. For example, one access must not be able to issue a `COMMIT` statement in the middle of an unfinished concurrent write!
+During one async access, all individual database operations grouped inside (fetch, insert, etc.) are synchronous:
+
+```swift
+// One asynchronous access...
+try await dbQueue.write { db in
+    // ... always performs synchronous database operations:
+    try Player(...).insert(db)
+    try Player(...).insert(db)
+    let players = try Player.fetchAll(db)
+}
+```
+
+This is true for all async techniques.
+
+This prevents the database operations from various concurrent accesses from being interleaved, with disastrous consequences. For example, one access must not be able to issue a `COMMIT` statement in the middle of an unfinished concurrent write!
 
 
 ## Safe and Unsafe Database Accesses
@@ -269,7 +272,7 @@ Some applications need to relax this safety net, in order to achieve specific SQ
     
     You will use this method, for example, when you [change the password](../README.md#changing-the-passphrase-of-an-encrypted-database) of an encrypted database.
     
-    `barrierWriteWithoutTransaction` is also available as an `async` function.
+    `barrierWriteWithoutTransaction` is also available as an `async` function. You can also use `asyncBarrierWriteWithoutTransaction`.
 
 - **Reentrant write outside of any transaction**  
   (Lifted guarantees: [Write Transactions], [Non-Reentrancy])
@@ -338,19 +341,48 @@ Despite the common [guarantees](#safe-and-unsafe-database-accesses) and [rules](
 
 [DatabaseQueue] opens a single database connection, and serializes all database accesses, reads, and writes. There is never more than one thread that uses the database. In the image below, we see how three threads can see the database as time passes:
 
-![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabaseQueueScheduling.svg)
+![DatabaseQueueScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabaseQueueScheduling.svg)
 
-[DatabasePool] manages a pool of several database connections, and allows concurrent reads and writes. It serializes all writes. Reads are isolated so that they don't see changes performed by other threads. This gives a very different picture:
+[DatabasePool] manages a pool of several database connections, and allows concurrent reads and writes thanks to the [WAL mode](https://www.sqlite.org/wal.html). A database pool serializes all writes (the [Serialized Writes] guarantee). Reads are isolated so that they don't see changes performed by other threads (the [Isolated Reads] guarantee). This gives a very different picture:
 
-![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/master/Documentation/Images/DatabasePoolScheduling.svg)
+![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
-See how, with database pools, two reads can see different database states at the same time. This may look scary, but there is a simple way to think about it. After all, most applications are generally interested in the latest state of the database:
+See how, with database pools, two reads can see different database states at the same time. This may look scary! Please see the next [Concurrent Thinking] chapter below for a relief.
 
-- You are sure, when you perform a write access, that you deal with the latest database state. This is because SQLite does not support parallel writes, even from other processes.
 
-- When your application wants to synchronize the information displayed on screen with the database, use [ValueObservation].
+## Concurrent Thinking
 
-For more information about database pools, grab information about SQLite [WAL mode](https://www.sqlite.org/wal.html) and [snapshot isolation](https://sqlite.org/isolation.html).
+Despite their [differences](#differences-between-database-queues-and-pools), you can write robust code that works equally well with both database queues and pools.
+
+This allows your app to switch between queues and pools, at your convenience:
+
+- The [demo applications] share the same database code for the on-disk pool that feeds the app, and the in-memory queue that feeds tests and SwiftUI previews. This makes sure tests and previews run fast, without any temporary file, with the same behavior as the app.
+- Applications that perform slow write transactions (when saving a lot of data from a remote server, for example) may want to replace their queue with a pool so that the reads that feed their user interface can run in parallel.
+
+All you need is a little "concurrent thinking", based on those two basic facts:
+
+- You are sure, when you perform a write access, that you deal with the latest database state on disk. This is enforced by SQLite, which simply can't perform parallel writes, and by GRDB database queues and pools, which make sure [only one thread can write](#guarantee-serialized-writes). As for writes performed by other processes, they can only trigger [SQLITE_BUSY] errors [that you can handle](SharingADatabase.md).
+
+- Whenever you extract some data from a database access, immediately consider it as _stale_. It is stale, whether you use a database queue or a database pool. It is stale because nothing prevents other application threads or processes from overwriting the value you have just fetched:
+    
+    <img align="right" src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/TwoCookiesLeft.jpg" width="50%">
+    
+    ```swift
+    // or dbQueue.write, for that matter
+    let cookieCount = dbPool.read { db in
+        try Cookie.fetchCount(db)
+    }
+    
+    // At this point, the number of cookies on disk
+    // may have already changed.
+    print("We have \(cookieCount) cookies left")
+    ```
+    
+    Does this mean you can't rely on anything? Of course not:
+    
+    - If you intend to display the database content on screen, use [ValueObservation]: it always eventually notifies the latest state of the database. You won't display stale values for a long time [^2].
+    
+    - As said above, the moment of truth is the next write access!
 
 
 ## Advanced DatabasePool
@@ -407,6 +439,7 @@ try dbPool.writeWithoutTransaction { db in
     // <- Not in a transaction here
     dbPool.asyncConcurrentRead { dbResult in
         do {
+            // Maybe read access could not be established
             let db = try dbResult.get()
             let newPlayerCount = try Player.fetchCount(db)
             // Handle newPlayerCount
@@ -418,6 +451,10 @@ try dbPool.writeWithoutTransaction { db in
 ```
 
 `concurrentRead` and `asyncConcurrentRead` block until they can guarantee their closure argument an isolated access to the database, in the exact state left by the last transaction. It then asynchronously executes this closure.
+
+In the illustration below, the striped band shows the delay needed for the reading thread to acquire isolation. Until then, no other thread can write:
+
+![DatabasePoolConcurrentRead](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolConcurrentRead.svg)
 
 [Transaction Observers](../README.md#transactionobserver-protocol) can also use those methods in their `databaseDidCommit` method, in order to process database changes without blocking other threads that want to write into the database.
 
@@ -473,10 +510,13 @@ try snapshot2.read { db in
 
 [^1]: This immutable view of the database is called [snapshot isolation](https://www.sqlite.org/isolation.html).
 
+[^2]: After the database has been changed on disk, GRDB has to fetch the fresh value, and then hop to the main thread. Only then your screen can be updated.
+
 [Concurrency Rules]: #concurrency-rules
 [Synchronous and Asynchronous Database Accesses]: #synchronous-and-asynchronous-database-accesses
 [Safe and Unsafe Database Accesses]: #safe-and-unsafe-database-accesses
 [Differences between Database Queues and Pools]: #differences-between-database-queues-and-pools
+[Concurrent Thinking]: #concurrent-thinking
 [Advanced DatabasePool]: #advanced-databasepool
 [Database Snapshots]: #database-snapshots
 [DatabaseQueue]: ../README.md#database-queues
@@ -494,3 +534,4 @@ try snapshot2.read { db in
 [Isolated Reads]: #guarantee-isolated-reads
 [Forbidden Writes]: #guarantee-forbidden-writes
 [Non-Reentrancy]: #guarantee-non-reentrancy
+[demo applications]: DemoApps

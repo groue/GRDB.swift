@@ -10,8 +10,12 @@ private enum StrategyDeferredToUUID: StrategyProvider {
     static let strategy: DatabaseUUIDEncodingStrategy = .deferredToUUID
 }
 
-private enum StrategyString: StrategyProvider {
-    static let strategy: DatabaseUUIDEncodingStrategy = .string
+private enum StrategyUppercaseString: StrategyProvider {
+    static let strategy: DatabaseUUIDEncodingStrategy = .uppercaseString
+}
+
+private enum StrategyLowercaseString: StrategyProvider {
+    static let strategy: DatabaseUUIDEncodingStrategy = .lowercaseString
 }
 
 private struct RecordWithUUID<Strategy: StrategyProvider>: EncodableRecord, Encodable {
@@ -66,27 +70,51 @@ extension DatabaseUUIDEncodingStrategyTests {
     }
 }
 
-// MARK: - string
+// MARK: - UppercaseString
 
 extension DatabaseUUIDEncodingStrategyTests {
-    func testString() {
-        testNullEncoding(strategy: StrategyString.self)
+    func testUppercaseString() {
+        testNullEncoding(strategy: StrategyUppercaseString.self)
         
         test(
-            strategy: StrategyString.self,
+            strategy: StrategyUppercaseString.self,
             encodesUUID: UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
             as: "61626364-6566-6768-696A-6B6C6D6E6F70")
         
         test(
-            strategy: StrategyString.self,
+            strategy: StrategyUppercaseString.self,
             encodesUUID: UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!,
             as: "56E7D8D3-E9E4-48B6-968E-8D102833AF00")
         
         let uuid = UUID()
         test(
-            strategy: StrategyString.self,
+            strategy: StrategyUppercaseString.self,
             encodesUUID: uuid,
             as: uuid.uuidString.uppercased()) // Assert stable casing
+    }
+}
+
+// MARK: - LowercaseString
+
+extension DatabaseUUIDEncodingStrategyTests {
+    func testLowercaseString() {
+        testNullEncoding(strategy: StrategyLowercaseString.self)
+        
+        test(
+            strategy: StrategyLowercaseString.self,
+            encodesUUID: UUID(uuidString: "61626364-6566-6768-696A-6B6C6D6E6F70")!,
+            as: "61626364-6566-6768-696a-6b6c6d6e6f70")
+        
+        test(
+            strategy: StrategyLowercaseString.self,
+            encodesUUID: UUID(uuidString: "56e7d8d3-e9e4-48b6-968e-8d102833af00")!,
+            as: "56e7d8d3-e9e4-48b6-968e-8d102833af00")
+        
+        let uuid = UUID()
+        test(
+            strategy: StrategyLowercaseString.self,
+            encodesUUID: uuid,
+            as: uuid.uuidString.lowercased()) // Assert stable casing
     }
 }
 
@@ -116,16 +144,30 @@ extension DatabaseUUIDEncodingStrategyTests {
             }
             
             do {
-                let request = Table<RecordWithUUID<StrategyString>>("t").filter(key: uuids[0])
+                let request = Table<RecordWithUUID<StrategyUppercaseString>>("t").filter(key: uuids[0])
                 try assertEqualSQL(db, request, """
                     SELECT * FROM "t" WHERE "id" = '61626364-6566-6768-696A-6B6C6D6E6F70'
                     """)
             }
-            
+
             do {
-                let request = Table<RecordWithUUID<StrategyString>>("t").filter(keys: uuids)
+                let request = Table<RecordWithUUID<StrategyUppercaseString>>("t").filter(keys: uuids)
                 try assertEqualSQL(db, request, """
                     SELECT * FROM "t" WHERE "id" IN ('61626364-6566-6768-696A-6B6C6D6E6F70', '56E7D8D3-E9E4-48B6-968E-8D102833AF00')
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithUUID<StrategyLowercaseString>>("t").filter(key: uuids[0])
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" = '61626364-6566-6768-696a-6b6c6d6e6f70'
+                    """)
+            }
+
+            do {
+                let request = Table<RecordWithUUID<StrategyLowercaseString>>("t").filter(keys: uuids)
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" IN ('61626364-6566-6768-696a-6b6c6d6e6f70', '56e7d8d3-e9e4-48b6-968e-8d102833af00')
                     """)
             }
         }
@@ -158,16 +200,30 @@ extension DatabaseUUIDEncodingStrategyTests {
             }
             
             do {
-                let request = Table<RecordWithUUID<StrategyString>>("t").filter(id: uuids[0])
+                let request = Table<RecordWithUUID<StrategyUppercaseString>>("t").filter(id: uuids[0])
                 try assertEqualSQL(db, request, """
                     SELECT * FROM "t" WHERE "id" = '61626364-6566-6768-696A-6B6C6D6E6F70'
                     """)
             }
             
             do {
-                let request = Table<RecordWithUUID<StrategyString>>("t").filter(ids: uuids)
+                let request = Table<RecordWithUUID<StrategyUppercaseString>>("t").filter(ids: uuids)
                 try assertEqualSQL(db, request, """
                     SELECT * FROM "t" WHERE "id" IN ('61626364-6566-6768-696A-6B6C6D6E6F70', '56E7D8D3-E9E4-48B6-968E-8D102833AF00')
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithUUID<StrategyLowercaseString>>("t").filter(id: uuids[0])
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" = '61626364-6566-6768-696a-6b6c6d6e6f70'
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithUUID<StrategyLowercaseString>>("t").filter(ids: uuids)
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" IN ('61626364-6566-6768-696a-6b6c6d6e6f70', '56e7d8d3-e9e4-48b6-968e-8d102833af00')
                     """)
             }
         }
@@ -200,16 +256,30 @@ extension DatabaseUUIDEncodingStrategyTests {
             }
             
             do {
-                try Table<RecordWithUUID<StrategyString>>("t").deleteOne(db, id: uuids[0])
+                try Table<RecordWithUUID<StrategyUppercaseString>>("t").deleteOne(db, id: uuids[0])
                 XCTAssertEqual(lastSQLQuery, """
                     DELETE FROM "t" WHERE "id" = '61626364-6566-6768-696A-6B6C6D6E6F70'
                     """)
             }
             
             do {
-                try Table<RecordWithUUID<StrategyString>>("t").deleteAll(db, ids: uuids)
+                try Table<RecordWithUUID<StrategyUppercaseString>>("t").deleteAll(db, ids: uuids)
                 XCTAssertEqual(lastSQLQuery, """
                     DELETE FROM "t" WHERE "id" IN ('61626364-6566-6768-696A-6B6C6D6E6F70', '56E7D8D3-E9E4-48B6-968E-8D102833AF00')
+                    """)
+            }
+            
+            do {
+                try Table<RecordWithUUID<StrategyLowercaseString>>("t").deleteOne(db, id: uuids[0])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "t" WHERE "id" = '61626364-6566-6768-696a-6b6c6d6e6f70'
+                    """)
+            }
+            
+            do {
+                try Table<RecordWithUUID<StrategyLowercaseString>>("t").deleteAll(db, ids: uuids)
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "t" WHERE "id" IN ('61626364-6566-6768-696a-6b6c6d6e6f70', '56e7d8d3-e9e4-48b6-968e-8d102833af00')
                     """)
             }
         }

@@ -501,9 +501,9 @@ class DatabaseMigratorTests : GRDBTestCase {
                 // The first migration should be committed.
                 // The second migration should be rollbacked.
                 
-                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+                XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
                 
                 let names = try dbQueue.inDatabase { db in
                     try String.fetchAll(db, sql: "SELECT name FROM persons")
@@ -521,9 +521,9 @@ class DatabaseMigratorTests : GRDBTestCase {
                 // The second migration should be rollbacked.
                 
                 let error = error as! DatabaseError
-                XCTAssert(error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+                XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-                XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+                XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
                 
                 let names = try! String.fetchAll(db, sql: "SELECT name FROM persons")
                 XCTAssertEqual(names, ["Arthur"])
@@ -564,9 +564,9 @@ class DatabaseMigratorTests : GRDBTestCase {
             // Migration 1 and 2 should be committed.
             // Migration 3 should not be committed.
             
-            XCTAssert((error.resultCode == error.extendedResultCode) || error.extendedResultCode == .SQLITE_CONSTRAINT_FOREIGNKEY)
+            XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
-            XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
+            XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
             
             try dbQueue.inDatabase { db in
                 // Arthur inserted (migration 1), Barbara (migration 3) not inserted.
@@ -950,5 +950,154 @@ class DatabaseMigratorTests : GRDBTestCase {
             migrator.registerMigration("bar", migrate: { _ in })
             XCTAssertEqual(migrator.migrations, ["foo", "bar"])
         }
+    }
+    
+    func testMigrationForeignKeyChecks() throws {
+        let foreignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            """
+        let transientForeignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            DELETE FROM child;
+            """
+        
+        // Foreign key violation
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
+            try dbQueue.read { try $0.checkForeignKeys() }
+        }
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
+            try dbQueue.read { try $0.checkForeignKeys() }
+        }
+        
+        // Transient foreign key violation
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+            try dbQueue.read { try $0.checkForeignKeys() }
+        }
+        do {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
+            try dbQueue.read { try $0.checkForeignKeys() }
+        }
+    }
+    
+    func testDisablingDeferredForeignKeyChecks() throws {
+        let foreignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            """
+        let transientForeignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            DELETE FROM child;
+            """
+        
+        // Foreign key violation
+        do {
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+            do {
+                // The unique opportunity for corrupt data!
+                try dbQueue.read { try $0.checkForeignKeys() }
+                XCTFail("Expected foreign key violation")
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
+        }
+        do {
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: foreignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
+            try dbQueue.read { try $0.checkForeignKeys() }
+        }
+        
+        // Transient foreign key violation
+        do {
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
+            migrator.registerMigration("A") { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            try migrator.migrate(dbQueue)
+            try dbQueue.read { try $0.checkForeignKeys() }
+        }
+        do {
+            var migrator = DatabaseMigrator().disablingDeferredForeignKeyChecks()
+            migrator.registerMigration("A", foreignKeyChecks: .immediate) { db in
+                try db.execute(sql: transientForeignKeyViolation)
+            }
+            let dbQueue = try makeDatabaseQueue()
+            do {
+                try migrator.migrate(dbQueue)
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
+            try dbQueue.read { try $0.checkForeignKeys() }
+        }
+    }
+    
+    func test_disablingDeferredForeignKeyChecks_applies_to_newly_registered_migrations_only() throws {
+        let foreignKeyViolation = """
+            CREATE TABLE parent(id INTEGER NOT NULL PRIMARY KEY);
+            CREATE TABLE child(parentId INTEGER REFERENCES parent(id));
+            INSERT INTO child (parentId) VALUES (1);
+            """
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("A") { db in
+            try db.execute(sql: foreignKeyViolation)
+        }
+        migrator = migrator.disablingDeferredForeignKeyChecks()
+        migrator.registerMigration("B") { db in
+            XCTFail("Should not run")
+        }
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            try migrator.migrate(dbQueue)
+            XCTFail("Expected error")
+        } catch DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY { }
     }
 }

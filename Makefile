@@ -50,7 +50,14 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with
 # `xcrun xctrace list devices` (or the deprecated `instruments -s devices`).
-ifeq ($(XCODEVERSION),13.0)
+ifeq ($(XCODEVERSION),13.1)
+  MAX_SWIFT_VERSION = 5.5
+  MIN_SWIFT_VERSION = 5.3
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=15.0"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=13.7"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=15.0"
+  #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4" TODO: restore
+else ifeq ($(XCODEVERSION),13.0)
   MAX_SWIFT_VERSION = 5.5
   MIN_SWIFT_VERSION = 5.3
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=15.0"
@@ -126,15 +133,17 @@ else
 endif
 
 # We test framework test suites, and if GRBD can be installed in an application:
-test: test_framework test_install
+test: test_framework test_archive test_install test_demo_apps
 
 test_framework: test_framework_darwin
 test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_SQLCipher test_SPM
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS test_framework_GRDBtvOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
+test_archive: test_archive_GRDBOSX_xcframework
 test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
+test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo
 
 test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
 
@@ -233,6 +242,7 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBtvOS_minTarget:
+ifdef MIN_TVOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBtvOS \
@@ -240,6 +250,7 @@ test_framework_GRDBtvOS_minTarget:
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
+endif
 
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
@@ -317,6 +328,24 @@ test_SPM:
 	$(SWIFT) build
 	$(SWIFT) build -c release
 	set -o pipefail && $(SWIFT) test $(XCPRETTY)
+
+test_archive_GRDBOSX_xcframework:
+	rm -rf Tests/products
+	mkdir Tests/products
+	$(XCODEBUILD) archive \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBOSX \
+	  -configuration Release \
+	  -destination "generic/platform=macOS" \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  -archivePath "$(PWD)/Tests/products/GRDB.xcarchive" \
+	  SKIP_INSTALL=NO \
+	  BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+	$(XCODEBUILD) -create-xcframework \
+	  -framework '$(PWD)/Tests/products/GRDB.xcarchive/Products/Library/Frameworks/GRDB.framework' \
+	  -output '$(PWD)/Tests/products/GRDB.xcframework'
 
 test_install_manual:
 	$(XCODEBUILD) \
@@ -408,6 +437,24 @@ else
 	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDB
 	@exit 1
 endif
+
+test_GRDBDemoiOS:
+	$(XCODEBUILD) \
+	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
+	  -scheme GRDBDemoiOS \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+
+test_GRDBCombineDemo:
+	$(XCODEBUILD) \
+	  -project Documentation/DemoApps/GRDBCombineDemo/GRDBCombineDemo.xcodeproj \
+	  -scheme GRDBCombineDemo \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_performance:
 	$(XCODEBUILD) \
