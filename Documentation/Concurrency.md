@@ -132,7 +132,7 @@ try dbQueue.write { db in
 }
 ```
 
-:twisted_rightwards_arrows: **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are three ways to access the database asynchronously:
+:twisted_rightwards_arrows: **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are four ways to access the database asynchronously:
 
 <details>
     <summary><b>Swift concurrency</b> (async/await)</summary>
