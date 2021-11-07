@@ -4,7 +4,7 @@ import GRDB
 import SQLite
 #endif
 
-private let expectedRowCount = 100_000
+private let expectedRowCount = 200_000
 
 /// Here we test the extraction of row values by column index.
 class FetchPositionalValuesTests: XCTestCase {

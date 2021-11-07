@@ -357,10 +357,9 @@ class SharedValueObservationTests: GRDBTestCase {
             })
         
         wait(for: [exp], timeout: 1)
-        log.flush() // Ignore eventual notification of value: 3
-
+        
         cancellable.cancel()
-        XCTAssertEqual(log.flush(), ["cancel"])
+        XCTAssertTrue(log.flush().contains("cancel")) // Ignore eventual notification of value: 3
     }
     
 #if canImport(Combine)

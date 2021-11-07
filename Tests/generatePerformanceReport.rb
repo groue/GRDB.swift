@@ -51,18 +51,33 @@ DERIVED_DATA = tmp
 SPM_CHECKOUTS = File.join(DERIVED_DATA, 'SourcePackages', 'checkouts')
 
 # Extract versions
-grdb_version = info_plist_version('Support/Info.plist')
-fmdb_version = info_plist_version("#{SPM_CHECKOUTS}/fmdb/src/fmdb/Info.plist")
-sqlite_swift_version = git_tag_version("#{SPM_CHECKOUTS}/SQLite.swift")
-realm_version = git_tag_version("#{SPM_CHECKOUTS}/realm-cocoa")
-`xcodebuild -version` =~ /Xcode (.*)$/; xcode_version = $1
-`curl -s https://support-sp.apple.com/sp/product?cc=$(system_profiler SPHardwareDataType | awk '/Serial/ {print $4}' | cut -c 9-)` =~ /<configCode>(.*)<\/configCode>/; hardware = $1
-STDERR.puts "GRDB #{grdb_version}"
-STDERR.puts "FMDB #{fmdb_version}"
-STDERR.puts "SQLite.swift #{sqlite_swift_version}"
-STDERR.puts "Realm #{realm_version}"
-STDERR.puts "Xcode #{xcode_version}"
-STDERR.puts "Hardware #{hardware}"
+GRDB_VERSION = info_plist_version('Support/Info.plist')
+FMDB_VERSION = info_plist_version("#{SPM_CHECKOUTS}/fmdb/src/fmdb/Info.plist")
+SQLITE_SWIFT_VERSION = git_tag_version("#{SPM_CHECKOUTS}/SQLite.swift")
+REALM_VERSION = git_tag_version("#{SPM_CHECKOUTS}/realm-cocoa")
+
+`xcodebuild -version` =~ /Xcode (.*)$/
+XCODE_VERSION = $1
+
+# Hardware name: https://apple.stackexchange.com/a/98089
+`curl -s https://support-sp.apple.com/sp/product?cc=$(
+  system_profiler SPHardwareDataType \
+  | awk '/Serial/ {print $4}' \
+  | cut -c 9-)` =~ /<configCode>(.*)<\/configCode>/
+hardware = $1
+if hardware
+  HARDWARE = hardware
+else
+  # in case the previous technique does not work
+  HARDWARE = `system_profiler SPHardwareDataType | awk '/Model Identifier/ {print $3}'`.chomp
+end
+
+STDERR.puts "GRDB_VERSION: #{GRDB_VERSION}"
+STDERR.puts "FMDB_VERSION: #{FMDB_VERSION}"
+STDERR.puts "SQLITE_SWIFT_VERSION: #{SQLITE_SWIFT_VERSION}"
+STDERR.puts "REALM_VERSION: #{REALM_VERSION}"
+STDERR.puts "XCODE_VERSION: #{XCODE_VERSION}"
+STDERR.puts "HARDWARE: #{HARDWARE}"
 
 # Generate
 puts <<-REPORT
@@ -70,9 +85,9 @@ puts <<-REPORT
 
 *Last updated #{Date.today.strftime('%B %-d, %Y')}*
 
-Below are performance benchmarks made on for [GRDB #{grdb_version}](https://github.com/groue/GRDB.swift), [FMDB #{fmdb_version}](https://github.com/ccgus/fmdb), and [SQLite.swift #{sqlite_swift_version}](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm #{realm_version}](https://realm.io) and the raw use of the SQLite C API from Swift.
+Below are performance benchmarks made on for [GRDB #{GRDB_VERSION}](https://github.com/groue/GRDB.swift), [FMDB #{FMDB_VERSION}](https://github.com/ccgus/fmdb), and [SQLite.swift #{SQLITE_SWIFT_VERSION}](https://github.com/stephencelis/SQLite.swift). They are compared to Core Data, [Realm #{REALM_VERSION}](https://realm.io) and the raw use of the SQLite C API from Swift.
 
-This report was generated on a #{hardware}, with Xcode #{xcode_version}, by running the following command:
+This report was generated on a #{HARDWARE}, with Xcode #{XCODE_VERSION}, by running the following command:
 
 ```sh
 make test_performance | Tests/parsePerformanceTests.rb | Tests/generatePerformanceReport.rb
@@ -115,13 +130,13 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchPositionalValuesTests.swift))
         
-        This test fetches 100000 rows of 10 ints and extracts each int given its position in the row.
+        This test fetches 200000 rows of 10 ints and extracts each int given its position in the row.
         
         It uses FMDB's `-[FMResultSet longForColumnIndex:]`, GRDB's `Row.value(atIndex:)`, and the low-level SQL API of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertPositionalValuesTests.swift))
         
-        This test inserts 20000 rows of 10 ints, by setting query arguments given their position.
+        This test inserts 50000 rows of 10 ints, by setting query arguments given their position.
         
         It uses FMDB's `-[FMDatabase executeUpdate:withArgumentsInArray:]` with statement caching, GRDB's `UpdateStatement.execute(arguments:Array)`, and the low-level SQL API of SQLite.swift.
 
@@ -129,13 +144,13 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchNamedValuesTests.swift))
         
-        This test fetches 100000 rows of 10 ints and extracts each int given its column name.
+        This test fetches 200000 rows of 10 ints and extracts each int given its column name.
         
         It uses FMDB's `-[FMResultSet longForColumn:]`, GRDB's `Row.value(named:)`, and the high-level query builder of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertNamedValuesTests.swift))
         
-        This test inserts 20000 rows of 10 ints, by setting query arguments given their argument name.
+        This test inserts 50000 rows of 10 ints, by setting query arguments given their argument name.
         
         It uses FMDB's `-[FMDatabase executeUpdate:withParameterDictionary:]` with statement caching, GRDB's `UpdateStatement.execute(arguments:Dictionary)`, and the high-level query builder of SQLite.swift.
 
@@ -143,25 +158,25 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordStructTests.swift))
         
-        This test fetches an array of 100000 record objects initiated from rows of 10 ints.
+        This test fetches an array of 200000 record objects initiated from rows of 10 ints.
         
         It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [FetchableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#fetchablerecord-protocol) protocol, and the values returned by the high-level query builder of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordStructTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's [PersistableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#persistablerecord-protocol) protocol.
+        This tests inserts 50000 records with the persistence method provided by GRDB's [PersistableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#persistablerecord-protocol) protocol.
 
 - **Codable Records**:
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordDecodableTests.swift))
         
-        This test fetches an array of 100000 record objects initiated from rows of 10 ints.
+        This test fetches an array of 200000 record objects initiated from rows of 10 ints.
         
         It builds records from GRDB's built-in support for the [Decodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordEncodableTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's built-in support for the [Encodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
+        This tests inserts 50000 records with the persistence method provided by GRDB's built-in support for the [Encodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
 
 - **Optimized Records**:
 
@@ -177,11 +192,11 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordClassTests.swift))
         
-        This test fetches an array of 100000 record objects initiated from rows of 10 ints.
+        This test fetches an array of 200000 record objects initiated from rows of 10 ints.
         
         It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordClassTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
+        This tests inserts 50000 records with the persistence method provided by GRDB's [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
 REPORT
