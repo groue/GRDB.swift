@@ -341,15 +341,15 @@ This allows your app to switch between queues and pools, at your convenience:
 
 All you need is a little "concurrent thinking", based on those two basic facts:
 
-- You are sure, when you perform a write access, that you deal with the latest database state. This is enforced by SQLite, which simply can't perform parallel writes, and by GRDB database queues and pools, which make sure [only one thread can write](#guarantee-serialized-writes). As for writes performed by other processes, they can only trigger [SQLITE_BUSY] errors [that you can handle](SharingADatabase.md).
+- You are sure, when you perform a write access, that you deal with the latest database state on disk. This is enforced by SQLite, which simply can't perform parallel writes, and by GRDB database queues and pools, which make sure [only one thread can write](#guarantee-serialized-writes). As for writes performed by other processes, they can only trigger [SQLITE_BUSY] errors [that you can handle](SharingADatabase.md).
 
-- Whenever you fetch some data, from a database queue or from a pool, consider it as _immediately_ stale. This is because nothing prevents other application threads or processes from overwriting the value you have just fetched:
+- Whenever you extract some data from a database access, immediately consider it as _stale_. It is stale, whether you use a database queue or a database pool. It is stale because nothing prevents other application threads or processes from overwriting the value you have just fetched:
     
     <img align="right" src="https://github.com/groue/GRDB.swift/raw/development/Documentation/Images/TwoCookiesLeft.jpg" width="50%">
     
     ```swift
     // or dbQueue.write, for that matter
-    let cookieCount = dbQueue.read { db in
+    let cookieCount = dbPool.read { db in
         try Cookie.fetchCount(db)
     }
     
@@ -358,11 +358,11 @@ All you need is a little "concurrent thinking", based on those two basic facts:
     print("We have \(cookieCount) cookies left")
     ```
     
-    Fortunately:
+    Does this mean you can't rely on anything? Of course not:
     
-    - If you intend to display database values on screen, use [ValueObservation]: it always eventually notifies the latest state of the database. This way, you won't display stale values for a long time [^2].
+    - If you intend to display the database content on screen, use [ValueObservation]: it always eventually notifies the latest state of the database. You won't display stale values for a long time [^2].
     
-    - The next write access is the moment of truth!
+    - As said above, the moment of truth is the next write access!
 
 
 ## Advanced DatabasePool
