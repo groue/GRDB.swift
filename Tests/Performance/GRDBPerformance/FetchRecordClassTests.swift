@@ -5,7 +5,7 @@ import CoreData
 import RealmSwift
 #endif
 
-private let expectedRowCount = 100_000
+private let expectedRowCount = 200_000
 
 /// Here we test the extraction of model objects able to tell if they were
 /// modified since last fetched from the database.

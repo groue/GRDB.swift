@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private let insertedRowCount = 20_000
+private let insertedRowCount = 50_000
 
 /// A record optimized for batch insert performance
 private struct Item: Codable, FetchableRecord, PersistableRecord {

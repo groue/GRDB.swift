@@ -115,13 +115,13 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchPositionalValuesTests.swift))
         
-        This test fetches 100000 rows of 10 ints and extracts each int given its position in the row.
+        This test fetches 200000 rows of 10 ints and extracts each int given its position in the row.
         
         It uses FMDB's `-[FMResultSet longForColumnIndex:]`, GRDB's `Row.value(atIndex:)`, and the low-level SQL API of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertPositionalValuesTests.swift))
         
-        This test inserts 20000 rows of 10 ints, by setting query arguments given their position.
+        This test inserts 50000 rows of 10 ints, by setting query arguments given their position.
         
         It uses FMDB's `-[FMDatabase executeUpdate:withArgumentsInArray:]` with statement caching, GRDB's `UpdateStatement.execute(arguments:Array)`, and the low-level SQL API of SQLite.swift.
 
@@ -129,13 +129,13 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchNamedValuesTests.swift))
         
-        This test fetches 100000 rows of 10 ints and extracts each int given its column name.
+        This test fetches 200000 rows of 10 ints and extracts each int given its column name.
         
         It uses FMDB's `-[FMResultSet longForColumn:]`, GRDB's `Row.value(named:)`, and the high-level query builder of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertNamedValuesTests.swift))
         
-        This test inserts 20000 rows of 10 ints, by setting query arguments given their argument name.
+        This test inserts 50000 rows of 10 ints, by setting query arguments given their argument name.
         
         It uses FMDB's `-[FMDatabase executeUpdate:withParameterDictionary:]` with statement caching, GRDB's `UpdateStatement.execute(arguments:Dictionary)`, and the high-level query builder of SQLite.swift.
 
@@ -143,25 +143,25 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordStructTests.swift))
         
-        This test fetches an array of 100000 record objects initiated from rows of 10 ints.
+        This test fetches an array of 200000 record objects initiated from rows of 10 ints.
         
         It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [FetchableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#fetchablerecord-protocol) protocol, and the values returned by the high-level query builder of SQLite.swift.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordStructTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's [PersistableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#persistablerecord-protocol) protocol.
+        This tests inserts 50000 records with the persistence method provided by GRDB's [PersistableRecord](https://github.com/groue/GRDB.swift/blob/master/README.md#persistablerecord-protocol) protocol.
 
 - **Codable Records**:
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordDecodableTests.swift))
         
-        This test fetches an array of 100000 record objects initiated from rows of 10 ints.
+        This test fetches an array of 200000 record objects initiated from rows of 10 ints.
         
         It builds records from GRDB's built-in support for the [Decodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordEncodableTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's built-in support for the [Encodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
+        This tests inserts 50000 records with the persistence method provided by GRDB's built-in support for the [Encodable standard protocols](https://github.com/groue/GRDB.swift/blob/master/README.md#codable-records).
 
 - **Optimized Records**:
 
@@ -177,11 +177,11 @@ As a bottom line, the raw SQLite C API is used as efficiently as possible, witho
 
     - **Fetch** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/FetchRecordClassTests.swift))
         
-        This test fetches an array of 100000 record objects initiated from rows of 10 ints.
+        This test fetches an array of 200000 record objects initiated from rows of 10 ints.
         
         It builds records from FMDB's `-[FMResultSet resultDictionary]`, GRDB's built-in [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
     
     - **Insert** ([source](https://github.com/groue/GRDB.swift/blob/master/Tests/Performance/GRDBPerformance/InsertRecordClassTests.swift))
         
-        This tests inserts 20000 records with the persistence method provided by GRDB's [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
+        This tests inserts 50000 records with the persistence method provided by GRDB's [Record](https://github.com/groue/GRDB.swift/blob/master/README.md#record-class) class.
 REPORT

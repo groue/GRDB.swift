@@ -4,7 +4,7 @@ import GRDB
 import SQLite
 #endif
 
-private let expectedRowCount = 100_000
+private let expectedRowCount = 200_000
 
 private struct Item {
     var i0: Int
