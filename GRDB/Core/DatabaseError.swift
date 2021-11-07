@@ -258,6 +258,12 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     }
 }
 
+extension DatabaseError {
+    static func connectionIsClosed() -> Self {
+        DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+    }
+}
+
 // Support for `catch DatabaseError.SQLITE_XXX`
 extension DatabaseError {
     public static let SQLITE_OK = ResultCode.SQLITE_OK

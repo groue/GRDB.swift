@@ -191,7 +191,7 @@ let newPlayerCount = dbQueue.writePublisher { db -> Int in
 
 The difference is that the last fetches are performed in the `thenRead` function. This function accepts two arguments: a readonly database connection, and the result of the `updates` function. This allows you to pass information from a function to the other (it is ignored in the sample code above).
 
-When you use a [database pool], this method applies a scheduling optimization: the `thenRead` function sees the database in the state left by the `updates` function, and yet does not block any concurrent writes. This can reduce database write contention. See [Advanced DatabasePool](../README.md#advanced-databasepool) for more information.
+When you use a [database pool], this method applies a scheduling optimization: the `thenRead` function sees the database in the state left by the `updates` function, and yet does not block any concurrent writes. This can reduce database write contention. See [Advanced DatabasePool](Concurrency.md#advanced-databasepool) for more information.
 
 When you use a [database queue], the results are guaranteed to be identical, but no scheduling optimization is applied.
 
@@ -205,6 +205,7 @@ It completes on the main queue, unless you provide a specific [scheduler] to the
 Database Observation publishers are based on [ValueObservation] and [DatabaseRegionObservation]. Please refer to their documentation for more information. If your application needs change notifications that are not built as Combine publishers, check the general [Database Changes Observation] chapter.
 
 - [`ValueObservation.publisher(in:scheduling:)`]
+- [`SharedValueObservation.publisher()`]
 - [`DatabaseRegionObservation.publisher(in:)`]
 
 
@@ -248,6 +249,22 @@ This publisher has the same behavior as ValueObservation:
     Note that the `.immediate` scheduler requires that the publisher is subscribed from the main thread. It raises a fatal error otherwise.
 
 See [ValueObservation Scheduling](../README.md#valueobservation-scheduling) for more information.
+
+
+#### `SharedValueObservation.publisher()`
+
+[SharedValueObservation] tracks changes in database values. You can turn it into a Combine publisher:
+
+```swift
+let sharedObservation = ValueObservation
+    .tracking { db in try Player.fetchAll(db) }
+    .shared(in: dbQueue)
+
+// A publisher with output [Player] and failure Error
+let publisher = sharedObservation.publisher()
+```
+
+This publisher has the same behavior as SharedValueObservation.
 
 
 #### `DatabaseRegionObservation.publisher(in:)`
@@ -374,8 +391,10 @@ let cancellable = hallOfFamePublisher.sink(
 [Demo Application]: DemoApps/GRDBCombineDemo/README.md
 [SQLite]: http://sqlite.org
 [ValueObservation]: ../README.md#valueobservation
+[SharedValueObservation]: ../README.md#valueobservation-sharing
 [`DatabaseRegionObservation.publisher(in:)`]: #databaseregionobservationpublisherin
 [`ValueObservation.publisher(in:scheduling:)`]: #valueobservationpublisherinscheduling
+[`SharedValueObservation.publisher()`]: #sharedvalueobservationpublisher
 [`readPublisher(receiveOn:value:)`]: #databasereaderreadpublisherreceiveonvalue
 [`writePublisher(receiveOn:updates:)`]: #databasewriterwritepublisherreceiveonupdates
 [`writePublisher(receiveOn:updates:thenRead:)`]: #databasewriterwritepublisherreceiveonupdatesthenread
@@ -383,5 +402,5 @@ let cancellable = hallOfFamePublisher.sink(
 [configured]: ../README.md#databasepool-configuration
 [database pool]: ../README.md#database-pools
 [database queue]: ../README.md#database-queues
-[database snapshot]: ../README.md#database-snapshots
+[database snapshot]: Concurrency.md#database-snapshots
 [scheduler]: https://developer.apple.com/documentation/combine/scheduler

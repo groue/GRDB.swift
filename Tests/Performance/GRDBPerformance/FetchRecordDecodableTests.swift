@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private let expectedRowCount = 100_000
+private let expectedRowCount = 200_000
 
 /// Here we test the extraction of Decodable GRDB records.
 class FetchRecordDecodableTests: XCTestCase {

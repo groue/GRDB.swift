@@ -118,7 +118,7 @@ Starting points:
 
 GRDB has a strong focus on safe concurrency. Not only safe as "does not crash", but safe as "actively protects your application data". The topic is discussed in (too) many places:
 
-- [Concurrency Guide](README.md#concurrency)
+- [Concurrency Guide](Documentation/Concurrency.md)
 - [Why Adopt GRDB?](https://github.com/groue/GRDB.swift/blob/master/Documentation/WhyAdoptGRDB.md#strong-and-clear-multi-threading-guarantees)
 - [Four different ways to handle SQLite concurrency](https://medium.com/@gwendal.roue/four-different-ways-to-handle-sqlite-concurrency-db3bcc74d00e)
 - [Good Practices for Designing Record Types](https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md#fetch-in-time)
@@ -313,7 +313,7 @@ Features that blur this focus are non-goals:
 [Non-Goals]: #non-goals
 [Report Bugs]: #report-bugs
 [RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[Concurrency]: #concurrency
+[Concurrency]: Documentation/Concurrency.md
 [Sponsoring and Professional Support]: #sponsoring-and-professional-support
 [SQL Console in the Debugger]: #sql-console-in-the-debugger
 [SQLCipher in a Shared App Container]: #sqlcipher-in-a-shared-app-container

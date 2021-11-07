@@ -1,3 +1,18 @@
+import Foundation
+
+// MARK: - TypedRequest
+
+/// The protocol for all requests that know how database rows should
+/// be interpreted.
+public protocol TypedRequest {
+    /// The type that can decode database rows.
+    ///
+    /// In the request below, it is Book:
+    ///
+    ///     let request = Book.all()
+    associatedtype RowDecoder
+}
+
 // MARK: - SelectionRequest
 
 /// The protocol for all requests that can refine their selection.
@@ -221,7 +236,7 @@ public protocol TableRequest {
     func aliased(_ alias: TableAlias) -> Self
 }
 
-extension TableRequest where Self: FilteredRequest {
+extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     
     /// Creates a request filtered by primary key.
     ///
@@ -246,7 +261,38 @@ extension TableRequest where Self: FilteredRequest {
     -> Self
     where Sequence.Element: DatabaseValueConvertible
     {
-        let keys = Array(keys)
+        // In order to encode keys in the database, we perform a runtime check
+        // for EncodableRecord, and look for a customized encoding strategy.
+        // Such dynamic dispatch is unusual in GRDB, but static dispatch
+        // (customizing TableRequest where RowDecoder: EncodableRecord) would
+        // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
+        // `deleteAll(_:ids:)` etc.
+        if let recordType = RowDecoder.self as? EncodableRecord.Type {
+            if Sequence.Element.self == Date.self {
+                let strategy = recordType.databaseDateEncodingStrategy
+                let keys = keys.compactMap { strategy.encode($0 as! Date)?.databaseValue }
+                return filter(rawKeys: keys)
+            } else if Sequence.Element.self == UUID.self {
+                let strategy = recordType.databaseUUIDEncodingStrategy
+                let keys = keys.map { strategy.encode($0 as! UUID).databaseValue }
+                return filter(rawKeys: keys)
+            }
+        }
+        
+        return filter(rawKeys: keys)
+    }
+    
+    /// Creates a request filtered by primary key.
+    ///
+    ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
+    ///     let request = try Player...filter(encodedKeys: [1, 2, 3])
+    ///
+    /// - parameter keys: A collection of primary keys
+    func filter<Sequence: Swift.Sequence>(rawKeys: Sequence)
+    -> Self
+    where Sequence.Element: DatabaseValueConvertible
+    {
+        let keys = Array(rawKeys)
         if keys.isEmpty {
             return none()
         }
@@ -309,8 +355,16 @@ extension TableRequest where Self: FilteredRequest {
                     return key
                         // Preserve ordering of columns in the unique index
                         .sorted { (kv1, kv2) in
-                            let index1 = lowercaseColumns.firstIndex(of: kv1.key.lowercased())!
-                            let index2 = lowercaseColumns.firstIndex(of: kv2.key.lowercased())!
+                            guard let index1 = lowercaseColumns.firstIndex(of: kv1.key.lowercased()) else {
+                                // We allow extra columns which are not in the unique key
+                                // Put them last in the query
+                                return false
+                            }
+                            guard let index2 = lowercaseColumns.firstIndex(of: kv2.key.lowercased()) else {
+                                // We allow extra columns which are not in the unique key
+                                // Put them last in the query
+                                return true
+                            }
                             return index1 < index2
                         }
                         .map { (column, value) in Column(column) == value }
@@ -324,7 +378,7 @@ extension TableRequest where Self: FilteredRequest {
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRequest
 where Self: FilteredRequest,
-      Self: JoinableRequest, // for RowDecoder
+      Self: TypedRequest,
       RowDecoder: Identifiable,
       RowDecoder.ID: DatabaseValueConvertible
 {
@@ -355,7 +409,7 @@ where Self: FilteredRequest,
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
 extension TableRequest
 where Self: FilteredRequest,
-      Self: JoinableRequest, // for RowDecoder
+      Self: TypedRequest,
       RowDecoder: Identifiable,
       RowDecoder.ID: _OptionalProtocol,
       RowDecoder.ID.Wrapped: DatabaseValueConvertible
@@ -612,21 +666,7 @@ public protocol _JoinableRequest {
 }
 
 /// The protocol for all requests that can be associated.
-public protocol JoinableRequest: _JoinableRequest {
-    /// The record type that can be associated to.
-    ///
-    /// In the request below, it is Book:
-    ///
-    ///     let request = Book.all()
-    ///
-    /// In the `belongsTo` association below, it is Author:
-    ///
-    ///     struct Book: TableRecord {
-    ///         // BelongsToAssociation<Book, Author>
-    ///         static let author = belongsTo(Author.self)
-    ///     }
-    associatedtype RowDecoder
-}
+public protocol JoinableRequest: TypedRequest, _JoinableRequest { }
 
 extension JoinableRequest {
     /// Creates a request that prefetches an association.

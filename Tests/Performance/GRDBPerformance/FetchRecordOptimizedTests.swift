@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-private let expectedRowCount = 100_000
+private let expectedRowCount = 200_000
 
 /// A record optimized for fetching performance
 private struct Item: Codable, FetchableRecord, PersistableRecord {

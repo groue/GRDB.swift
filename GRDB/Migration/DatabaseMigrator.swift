@@ -47,6 +47,27 @@ import Foundation
 ///
 ///     try migrator.migrate(dbQueue)
 public struct DatabaseMigrator {
+    /// Controls how migrations handle foreign keys constraints.
+    public enum ForeignKeyChecks {
+        /// The migration runs with disabled foreign keys, until foreign keys
+        /// are checked right before changes are committed on disk.
+        ///
+        /// These deferred checks are not executed if the migrator comes
+        /// from `disablingDeferredForeignKeyChecks()`.
+        ///
+        /// Deferred foreign key checks are necessary for migrations that
+        /// perform schema changes as described in
+        /// <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
+        case deferred
+        
+        /// The migration runs for foreign keys on.
+        ///
+        /// Immediate foreign key checks are not compatible with migrations that
+        /// perform schema changes as described in
+        /// <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
+        case immediate
+    }
+    
     /// When the `eraseDatabaseOnSchemaChange` flag is true, the migrator will
     /// automatically wipe out the full database content, and recreate the whole
     /// database from scratch, if it detects that a migration has changed its
@@ -72,10 +93,48 @@ public struct DatabaseMigrator {
     /// 2. When the database content can easily be recreated, such as a cache
     ///     for some downloaded data.
     public var eraseDatabaseOnSchemaChange = false
+    private var defersForeignKeyChecks = true
     private var _migrations: [Migration] = []
     
     /// A new migrator.
     public init() {
+    }
+    
+    // MARK: - Disabling Foreign Key Checks
+    
+    /// Returns a migrator that will not perform deferred foreign key checks in
+    /// all newly registered migrations.
+    ///
+    /// The returned migrator is _unsafe_, because it no longer guarantees the
+    /// integrity of the database. It is your responsibility to register
+    /// migrations that do not break foreign key constraints.
+    ///
+    /// Running migrations without foreign key checks can improve migration
+    /// performance on huge databases.
+    ///
+    /// Example:
+    ///
+    ///     var migrator = DatabaseMigrator()
+    ///     migrator.registerMigration("A") { db in
+    ///         // Runs with deferred foreign key checks
+    ///     }
+    ///     migrator.registerMigration("B", foreignKeyChecks: .immediate) { db in
+    ///         // Runs with immediate foreign key checks
+    ///     }
+    ///
+    ///     migrator = migrator.disablingDeferredForeignKeyChecks()
+    ///     migrator.registerMigration("C") { db in
+    ///         // Runs with disabled foreign key checks
+    ///     }
+    ///     migrator.registerMigration("D", foreignKeyChecks: .immediate) { db in
+    ///         // Runs with immediate foreign key checks
+    ///     }
+    ///
+    /// - warning: Before using this unsafe method, try to run your migrations with
+    /// `.immediate` foreign key checks, if possible. This may enhance migration
+    /// performances, while preserving the database integrity guarantee.
+    public func disablingDeferredForeignKeyChecks() -> DatabaseMigrator {
+        with { $0.defersForeignKeyChecks = false }
     }
     
     // MARK: - Registering Migrations
@@ -92,10 +151,40 @@ public struct DatabaseMigrator {
     ///
     /// - parameters:
     ///     - identifier: The migration identifier.
+    ///     - foreignKeyChecks: This parameter is ignored if the database has
+    ///       not enabled foreign keys.
+    ///
+    ///       The default `.deferred` checks have the migration run with
+    ///       disabled foreign keys, until foreign keys are checked right before
+    ///       changes are committed on disk. These deferred checks are not
+    ///       executed if the migrator comes
+    ///       from `disablingDeferredForeignKeyChecks()`.
+    ///
+    ///       The `.immediate` checks have the migration run with foreign
+    ///       keys enabled.
+    ///
+    ///       Only use `.immediate` if you are sure that the migration does not
+    ///       perform schema changes described in
+    ///       <https://www.sqlite.org/lang_altertable.html#making_other_kinds_of_table_schema_changes>
     ///     - block: The migration block that performs SQL statements.
     /// - precondition: No migration with the same same as already been registered.
-    public mutating func registerMigration(_ identifier: String, migrate: @escaping (Database) throws -> Void) {
-        registerMigration(Migration(identifier: identifier, migrate: migrate))
+    public mutating func registerMigration(
+        _ identifier: String,
+        foreignKeyChecks: ForeignKeyChecks = .deferred,
+        migrate: @escaping (Database) throws -> Void)
+    {
+        let migrationChecks: Migration.ForeignKeyChecks
+        switch foreignKeyChecks {
+        case .deferred:
+            if defersForeignKeyChecks {
+                migrationChecks = .deferred
+            } else {
+                migrationChecks = .disabled
+            }
+        case .immediate:
+            migrationChecks = .immediate
+        }
+        registerMigration(Migration(identifier: identifier, foreignKeyChecks: migrationChecks, migrate: migrate))
     }
     
     // MARK: - Applying Migrations
@@ -252,6 +341,7 @@ public struct DatabaseMigrator {
     }
     
     private func runMigrations(_ db: Database, upTo targetIdentifier: String) throws {
+        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
         let appliedIdentifiers = try self.appliedMigrations(db)
         
         // Subsequent migration must not be applied
@@ -271,7 +361,6 @@ public struct DatabaseMigrator {
             return
         }
         
-        try db.execute(sql: "CREATE TABLE IF NOT EXISTS grdb_migrations (identifier TEXT NOT NULL PRIMARY KEY)")
         for migration in unappliedMigrations {
             try migration.run(db)
         }
@@ -346,6 +435,8 @@ public struct DatabaseMigrator {
         try runMigrations(db, upTo: targetIdentifier)
     }
 }
+
+extension DatabaseMigrator: Refinable { }
 
 #if canImport(Combine)
 extension DatabaseMigrator {

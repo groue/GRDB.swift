@@ -5,7 +5,7 @@ import CoreData
 import RealmSwift
 #endif
 
-private let insertedRowCount = 20_000
+private let insertedRowCount = 50_000
 
 // Here we insert record classes.
 class InsertRecordClassTests: XCTestCase {

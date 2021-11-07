@@ -59,7 +59,7 @@ final class SerializedDatabase {
                 //
                 // So let's close the database now. The deinitializer
                 // will only close the database if needed.
-                db.close()
+                db.close_v2()
                 throw error
             }
         }
@@ -68,7 +68,7 @@ final class SerializedDatabase {
     deinit {
         // Database may be deallocated in its own queue: allow reentrancy
         reentrantSync { db in
-            db.close()
+            db.close_v2()
         }
     }
     

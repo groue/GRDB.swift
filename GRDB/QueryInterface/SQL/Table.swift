@@ -1236,6 +1236,97 @@ extension Table {
     }
 }
 
+// MARK: - Check Existence by Single-Column Primary Key
+
+extension Table {
+    /// Returns whether a row exists for this primary key.
+    ///
+    ///     try Table("player").exists(db, key: 123)
+    ///     try Table("country").exists(db, key: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     try Table("document").exists(db, key: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A primary key value.
+    /// - returns: Whether a row exists for this primary key.
+    public func exists<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
+    throws -> Bool
+    where PrimaryKeyType: DatabaseValueConvertible
+    {
+        try !filter(key: key).isEmpty(db)
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Table
+where RowDecoder: Identifiable,
+      RowDecoder.ID: DatabaseValueConvertible
+{
+    /// Returns whether a row exists for this primary key.
+    ///
+    ///     try Table<Player>("player").exists(db, id: 123)
+    ///     try Table<Country>("player").exists(db, id: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     try Table<Document>("document").exists(db, id: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a row exists for this primary key.
+    public func exists(_ db: Database, id: RowDecoder.ID) throws -> Bool {
+        try !filter(id: id).isEmpty(db)
+    }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Table
+where RowDecoder: Identifiable,
+      RowDecoder.ID: _OptionalProtocol,
+      RowDecoder.ID.Wrapped: DatabaseValueConvertible
+{
+    /// Returns whether a row exists for this primary key.
+    ///
+    ///     try Table<Player>("player").exists(db, id: 123)
+    ///     try Table<Country>("country").exists(db, id: "FR")
+    ///
+    /// When the table has no explicit primary key, GRDB uses the hidden
+    /// "rowid" column:
+    ///
+    ///     try Table<Document>("document").exists(db, id: 1)
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - id: A primary key value.
+    /// - returns: Whether a row exists for this primary key.
+    public func exists(_ db: Database, id: RowDecoder.ID.Wrapped) throws -> Bool {
+        try !filter(id: id).isEmpty(db)
+    }
+}
+
+// MARK: - Check Existence by Key
+
+extension Table {
+    /// Returns whether a row exists for this unique key (primary key or any key
+    /// with a unique index on it).
+    ///
+    ///     Table("player").exists(db, key: ["name": Arthur"])
+    ///
+    /// - parameters:
+    ///     - db: A database connection.
+    ///     - key: A dictionary of values.
+    /// - returns: Whether a row exists for this key.
+    public func exists(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+        try !filter(key: key).isEmpty(db)
+    }
+}
+
 // MARK: - Deleting by Single-Column Primary Key
 
 extension Table {
@@ -1343,16 +1434,16 @@ where RowDecoder: Identifiable,
     /// database row was deleted.
     ///
     ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, id: 123)
+    ///     try Table<Player>("player").deleteOne(db, id: 123)
     ///
     ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Country.deleteOne(db, id: "FR")
+    ///     try Table<Country>("country").deleteOne(db, id: "FR")
     ///
     /// When the table has no explicit primary key, GRDB uses the hidden
     /// "rowid" column:
     ///
     ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, id: 1)
+    ///     try Table<Document>("document").deleteOne(db, id: 1)
     ///
     /// - parameters:
     ///     - db: A database connection.

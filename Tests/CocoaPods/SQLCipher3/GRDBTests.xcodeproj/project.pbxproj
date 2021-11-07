@@ -443,6 +443,8 @@
 		5641A1BD24A540D6004967E1 /* PublisherExpectation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5641A19F24A540D6004967E1 /* PublisherExpectation.swift */; };
 		564A2026226B89E1001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
 		564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
+		5691D97527257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
+		5691D97627257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		98AB0B01EB11B33719AE412E /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE2436BF42B9FCD6552E7076 /* Pods_GRDBTests.framework */; };
 		F2B3C4250D67969FF3948955 /* Pods_GRDBTestsEncrypted.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */; };
@@ -672,6 +674,7 @@
 		564A1F22226B876D001F64F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		564A1F6F226B89D6001F64F1 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5691D97427257CE40021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
 		6A4788C0F815F6C5E4EBDE12 /* Pods-GRDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTestsEncrypted.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		83BFB5733A86DAA3D0BEE684 /* Pods-GRDBTestsEncrypted.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.debug.xcconfig"; sourceTree = "<group>"; };
@@ -727,6 +730,7 @@
 		5641A19724A540D6004967E1 /* PublisherExpectations */ = {
 			isa = PBXGroup;
 			children = (
+				5691D97427257CE40021D540 /* AvailableElements.swift */,
 				5641A19824A540D6004967E1 /* Finished.swift */,
 				5641A19924A540D6004967E1 /* NextOne.swift */,
 				5641A19A24A540D6004967E1 /* Next.swift */,
@@ -1228,6 +1232,7 @@
 				56419E3124A54062004967E1 /* SQLLiteralTests.swift in Sources */,
 				56419E5924A54062004967E1 /* ValueObservationDatabaseValueConvertibleTests.swift in Sources */,
 				56419DC524A54062004967E1 /* AssociationHasManyOrderingTests.swift in Sources */,
+				5691D97527257CE40021D540 /* AvailableElements.swift in Sources */,
 				56419E1B24A54062004967E1 /* RowFetchTests.swift in Sources */,
 				56419ED924A54063004967E1 /* AssociationHasOneSQLTests.swift in Sources */,
 				56419EAB24A54063004967E1 /* DatabaseValueTests.swift in Sources */,
@@ -1451,6 +1456,7 @@
 				56419E3224A54062004967E1 /* SQLLiteralTests.swift in Sources */,
 				56419E5A24A54062004967E1 /* ValueObservationDatabaseValueConvertibleTests.swift in Sources */,
 				56419DC624A54062004967E1 /* AssociationHasManyOrderingTests.swift in Sources */,
+				5691D97627257CE40021D540 /* AvailableElements.swift in Sources */,
 				56419E1C24A54062004967E1 /* RowFetchTests.swift in Sources */,
 				56419EDA24A54063004967E1 /* AssociationHasOneSQLTests.swift in Sources */,
 				56419EAC24A54063004967E1 /* DatabaseValueTests.swift in Sources */,

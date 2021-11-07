@@ -61,6 +61,10 @@ public class DatabaseSnapshot: DatabaseReader {
             try? db.commit()
         }
     }
+    
+    public func close() throws {
+        try serializedDatabase.sync { try $0.close() }
+    }
 }
 
 // DatabaseReader
@@ -74,48 +78,25 @@ extension DatabaseSnapshot {
     
     // MARK: - Reading from Database
     
-    /// Synchronously executes a read-only block that takes a database
-    /// connection, and returns its result.
-    ///
-    ///     let players = try snapshot.read { db in
-    ///         try Player.fetchAll(...)
-    ///     }
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
     public func read<T>(_ block: (Database) throws -> T) rethrows -> T {
         try serializedDatabase.sync(block)
     }
     
-    /// Asynchronously executes a read-only block in a protected dispatch queue.
-    ///
-    ///     let players = try snapshot.asyncRead { dbResult in
-    ///         do {
-    ///             let db = try dbResult.get()
-    ///             let count = try Player.fetchCount(db)
-    ///         } catch {
-    ///             // Handle error
-    ///         }
-    ///     }
-    ///
-    /// - parameter block: A block that accesses the database.
-    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
-        serializedDatabase.async { block(.success($0)) }
+    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
+        serializedDatabase.async { value(.success($0)) }
     }
     
     /// :nodoc:
-    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
-        serializedDatabase.weakAsync { block($0.map { .success($0) }) }
+    public func _weakAsyncRead(_ value: @escaping (Result<Database, Error>?) -> Void) {
+        serializedDatabase.weakAsync { value($0.map { .success($0) }) }
     }
     
-    /// :nodoc:
-    public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        try serializedDatabase.sync(block)
+    public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
+        try serializedDatabase.sync(value)
     }
     
-    /// :nodoc:
-    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) throws -> T {
-        try serializedDatabase.reentrantSync(block)
+    public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {
+        try serializedDatabase.reentrantSync(value)
     }
     
     // MARK: - Database Observation

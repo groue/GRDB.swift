@@ -69,6 +69,10 @@ public final class DatabaseQueue: DatabaseWriter {
         // Explicit unregistration is required before OS X 10.11.
         NotificationCenter.default.removeObserver(self)
     }
+    
+    public func close() throws {
+        try writer.sync { try $0.close() }
+    }
 }
 
 extension DatabaseQueue {
@@ -174,49 +178,20 @@ extension DatabaseQueue {
     
     // MARK: - Reading from Database
     
-    /// Synchronously executes a read-only block in a protected dispatch queue,
-    /// and returns its result.
-    ///
-    ///     let players = try dbQueue.read { db in
-    ///         try Player.fetchAll(db)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// Attempts to write in the database from this method throw a DatabaseError
-    /// of resultCode `SQLITE_READONLY`.
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    public func read<T>(_ block: (Database) throws -> T) throws -> T {
+    public func read<T>(_ value: (Database) throws -> T) throws -> T {
         try writer.sync { db in
             // The transaction guarantees snapshot isolation against eventual
             // external connection.
             var result: T?
             try db.inTransaction(.deferred) {
-                result = try db.readOnly { try block(db) }
+                result = try db.readOnly { try value(db) }
                 return .commit
             }
             return result!
         }
     }
     
-    /// Asynchronously executes a read-only block in a protected dispatch queue.
-    ///
-    ///     let players = try dbQueue.asyncRead { dbResult in
-    ///         do {
-    ///             let db = try dbResult.get()
-    ///             let count = try Player.fetchCount(db)
-    ///         } catch {
-    ///             // Handle error
-    ///         }
-    ///     }
-    ///
-    /// Attempts to write in the database from this method throw a DatabaseError
-    /// of resultCode `SQLITE_READONLY`.
-    ///
-    /// - parameter block: A block that accesses the database.
-    public func asyncRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+    public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         writer.async { db in
             do {
                 // The transaction guarantees snapshot isolation against eventual
@@ -224,11 +199,11 @@ extension DatabaseQueue {
                 try db.beginTransaction(.deferred)
                 try db.beginReadOnly()
             } catch {
-                block(.failure(error))
+                value(.failure(error))
                 return
             }
             
-            block(.success(db))
+            value(.success(db))
             
             // Ignore error because we can not notify it.
             try? db.endReadOnly()
@@ -237,10 +212,10 @@ extension DatabaseQueue {
     }
     
     /// :nodoc:
-    public func _weakAsyncRead(_ block: @escaping (Result<Database, Error>?) -> Void) {
+    public func _weakAsyncRead(_ value: @escaping (Result<Database, Error>?) -> Void) {
         writer.weakAsync { db in
             guard let db = db else {
-                block(nil)
+                value(nil)
                 return
             }
             
@@ -250,11 +225,11 @@ extension DatabaseQueue {
                 try db.beginTransaction(.deferred)
                 try db.beginReadOnly()
             } catch {
-                block(.failure(error))
+                value(.failure(error))
                 return
             }
             
-            block(.success(db))
+            value(.success(db))
             
             // Ignore error because we can not notify it.
             try? db.endReadOnly()
@@ -262,39 +237,15 @@ extension DatabaseQueue {
         }
     }
     
-    /// Synchronously executes a block in a protected dispatch queue, and
-    /// returns its result.
-    ///
-    ///     let players = try dbQueue.unsafeRead { db in
-    ///         try Player.fetchAll(db)
-    ///     }
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
-    ///
-    /// :nodoc:
-    public func unsafeRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        try writer.sync(block)
+    public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
+        try writer.sync(value)
     }
     
-    /// Synchronously executes a block in a protected dispatch queue, and
-    /// returns its result.
-    ///
-    ///     let players = try dbQueue.unsafeReentrantRead { db in
-    ///         try Player.fetchAll(db)
-    ///     }
-    ///
-    /// This method is reentrant. It is unsafe because it fosters dangerous
-    /// concurrency practices.
-    ///
-    /// :nodoc:
-    public func unsafeReentrantRead<T>(_ block: (Database) throws -> T) rethrows -> T {
-        try writer.reentrantSync(block)
+    public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) rethrows -> T {
+        try writer.reentrantSync(value)
     }
     
-    public func concurrentRead<T>(_ block: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
+    public func concurrentRead<T>(_ value: @escaping (Database) throws -> T) -> DatabaseFuture<T> {
         // DatabaseQueue can't perform parallel reads.
         // Perform a blocking read instead.
         return DatabaseFuture(Result {
@@ -306,7 +257,7 @@ extension DatabaseQueue {
                 // external connection.
                 var result: T?
                 try db.inTransaction(.deferred) {
-                    result = try db.readOnly { try block(db) }
+                    result = try db.readOnly { try value(db) }
                     return .commit
                 }
                 return result!
@@ -317,7 +268,7 @@ extension DatabaseQueue {
     /// Performs the same job as asyncConcurrentRead.
     ///
     /// :nodoc:
-    public func spawnConcurrentRead(_ block: @escaping (Result<Database, Error>) -> Void) {
+    public func spawnConcurrentRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         // Check that we're on the writer queue...
         writer.execute { db in
             // ... and that no transaction is opened.
@@ -327,11 +278,11 @@ extension DatabaseQueue {
                 try db.beginTransaction(.deferred)
                 try db.beginReadOnly()
             } catch {
-                block(.failure(error))
+                value(.failure(error))
                 return
             }
             
-            block(.success(db))
+            value(.success(db))
             
             // Ignore error because we can not notify it.
             try? db.endReadOnly()
@@ -378,41 +329,14 @@ extension DatabaseQueue {
         }
     }
     
-    /// Synchronously executes database updates in a protected dispatch queue,
-    /// outside of any transaction, and returns the result.
-    ///
-    /// Eventual concurrent database accesses are postponed until the updates
-    /// are completed.
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameter updates: The updates to the database.
-    /// - throws: The error thrown by the updates.
     public func writeWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
     }
     
-    /// Synchronously executes database updates in a protected dispatch queue,
-    /// outside of any transaction, and returns the result.
-    ///
-    /// Eventual concurrent database accesses are postponed until the updates
-    /// are completed.
-    ///
-    /// This method is *not* reentrant.
-    ///
-    /// - parameter updates: The updates to the database.
-    /// - throws: The error thrown by the updates.
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
     }
     
-    /// Asynchronously executes database updates in a protected dispatch queue,
-    /// outside of any transaction, and returns the result.
-    ///
-    /// Eventual concurrent database accesses are postponed until the updates
-    /// are completed.
-    ///
-    /// - parameter updates: The updates to the database.
     public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         writer.async(updates)
     }
@@ -420,35 +344,24 @@ extension DatabaseQueue {
     /// Synchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
     ///
-    ///     // INSERT INTO player ...
-    ///     let players = try dbQueue.inDatabase { db in
-    ///         try Player(...).insert(db)
-    ///     }
+    /// Eventual concurrent database updates are postponed until the updates
+    /// are completed.
+    ///
+    /// Eventual concurrent reads may see partial updates unless you wrap them
+    /// in a transaction.
     ///
     /// This method is *not* reentrant.
     ///
-    /// - parameter block: A block that accesses the database.
-    /// - throws: The error thrown by the block.
+    /// - parameter updates: The updates to the database.
+    /// - throws: The error thrown by the updates.
     public func inDatabase<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.sync(updates)
     }
     
-    /// Synchronously executes database updates in a protected dispatch queue, and
-    /// returns the result.
-    ///
-    ///     // INSERT INTO player ...
-    ///     try dbQueue.unsafeReentrantWrite { db in
-    ///         try Player(...).insert(db)
-    ///     }
-    ///
-    /// This method is reentrant. It is unsafe because it fosters dangerous
-    /// concurrency practices.
     public func unsafeReentrantWrite<T>(_ updates: (Database) throws -> T) rethrows -> T {
         try writer.reentrantSync(updates)
     }
     
-    /// Asynchronously executes database updates in a protected dispatch queue,
-    /// outside of any transaction.
     public func asyncWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
         writer.async(updates)
     }

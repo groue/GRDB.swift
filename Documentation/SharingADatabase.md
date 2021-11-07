@@ -1,7 +1,7 @@
 Sharing a Database
 ==================
 
-This chapter describes a recommended setup that applies as soon as several processes want to access a same SQLite database.
+**This guide describes a recommended setup that applies as soon as several processes want to access the same SQLite database.** It complements the [Concurrency](Concurrency.md) guide, that you should read first.
 
 On iOS for example, you can share database files between multiple processes by storing them in an [App Group Container](https://developer.apple.com/documentation/foundation/nsfilemanager/1412643-containerurlforsecurityapplicati). On macOS as well, several processes may want to open the same database, according to their particular sandboxing contexts.
 
@@ -152,7 +152,6 @@ If several processes want to write in the database, configure the database pool 
 ```swift
 var configuration = Configuration()
 configuration.busyMode = .timeout(/* a TimeInterval */)
-configuration.defaultTransactionKind = .immediate
 let dbPool = try DatabasePool(path: ..., configuration: configuration)
 ```
 
@@ -161,7 +160,7 @@ With such a setup, you may still get `SQLITE_BUSY` (5, "database is locked") err
 ```swift
 do {
     try dbPool.write { db in ... }
-} catch let error as DatabaseError where error.resultCode == .SQLITE_BUSY {
+} catch DatabaseError.SQLITE_BUSY {
     // Another process won't let you write. Deal with it.
 }
 ```
@@ -251,7 +250,7 @@ See https://developer.apple.com/documentation/xcode/understanding-the-exception-
     ```swift
     do {
         try dbPool.write { db in ... }
-    } catch let error as DatabaseError where error.isInterruptionError {
+    } catch DatabaseError.SQLITE_INTERRUPT, DatabaseError.SQLITE_ABORT {
         // Oops, the database is suspended.
         // Maybe try again after database is resumed?
     }

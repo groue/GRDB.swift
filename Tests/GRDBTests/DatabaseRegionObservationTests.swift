@@ -2,6 +2,41 @@ import XCTest
 import GRDB
 
 class DatabaseRegionObservationTests: GRDBTestCase {
+    func testDatabaseRegionObservation_FullDatabase() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write {
+            try $0.execute(sql: "CREATE TABLE t1(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+            try $0.execute(sql: "CREATE TABLE t2(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
+        }
+
+        let notificationExpectation = expectation(description: "notification")
+        notificationExpectation.assertForOverFulfill = true
+        notificationExpectation.expectedFulfillmentCount = 3
+        
+        var observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
+        observation.extent = .databaseLifetime
+
+        var count = 0
+        _ = try observation.start(in: dbQueue) { db in
+            count += 1
+            notificationExpectation.fulfill()
+        }
+        
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (1, 'foo')")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (1, 'foo')")
+        }
+        try dbQueue.write { db in
+            try db.execute(sql: "INSERT INTO t1 (id, name) VALUES (2, 'foo')")
+            try db.execute(sql: "INSERT INTO t2 (id, name) VALUES (2, 'foo')")
+        }
+        waitForExpectations(timeout: 1, handler: nil)
+        
+        XCTAssertEqual(count, 3)
+    }
+    
     func testDatabaseRegionObservationVariadic() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write {

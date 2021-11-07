@@ -4,7 +4,7 @@ import GRDB
 import SQLite
 #endif
 
-private let insertedRowCount = 20_000
+private let insertedRowCount = 50_000
 
 // Here we insert rows, referencing statement arguments by name.
 class InsertNamedValuesTests: XCTestCase {
