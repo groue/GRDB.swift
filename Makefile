@@ -56,7 +56,7 @@ ifeq ($(XCODEVERSION),13.1)
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=15.0"
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=13.7"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=15.0"
-  #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4"
+  #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4" TODO: restore
 else ifeq ($(XCODEVERSION),13.0)
   MAX_SWIFT_VERSION = 5.5
   MIN_SWIFT_VERSION = 5.3
@@ -241,6 +241,7 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBtvOS_minTarget:
+ifdef MIN_TVOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDBtvOS \
@@ -248,6 +249,7 @@ test_framework_GRDBtvOS_minTarget:
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
 	  $(XCPRETTY)
+endif
 
 test_framework_GRDBCustomSQLiteOSX: SQLiteCustom
 	$(XCODEBUILD) \
