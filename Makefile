@@ -133,7 +133,7 @@ else
 endif
 
 # We test framework test suites, and if GRBD can be installed in an application:
-test: test_framework test_install
+test: test_framework test_install test_demo_apps
 
 test_framework: test_framework_darwin
 test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_SQLCipher test_SPM
@@ -142,6 +142,7 @@ test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRD
 test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
 test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
+test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo
 
 test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
 
@@ -415,6 +416,24 @@ else
 	@echo CocoaPods must be installed for test_CocoaPodsLint_GRDB
 	@exit 1
 endif
+
+test_GRDBDemoiOS:
+	$(XCODEBUILD) \
+	  -project Documentation/DemoApps/GRDBDemoiOS/GRDBDemoiOS.xcodeproj \
+	  -scheme GRDBDemoiOS \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+
+test_GRDBCombineDemo:
+	$(XCODEBUILD) \
+	  -project Documentation/DemoApps/GRDBCombineDemo/GRDBCombineDemo.xcodeproj \
+	  -scheme GRDBCombineDemo \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
 
 test_performance:
 	$(XCODEBUILD) \
