@@ -13,7 +13,7 @@ The other chapters cover, with more details, the fundamentals of SQLite concurre
 - [Synchronous and Asynchronous Database Accesses]
 - [Safe and Unsafe Database Accesses]
 - [Differences between Database Queues and Pools]
-- [Think Concurrently]
+- [Concurrent Thinking]
 - [Advanced DatabasePool]
 - [Database Snapshots]
 - [Sharing a Database]
@@ -327,10 +327,10 @@ Despite the common [guarantees](#safe-and-unsafe-database-accesses) and [rules](
 
 ![DatabasePoolScheduling](https://cdn.rawgit.com/groue/GRDB.swift/development/Documentation/Images/DatabasePoolScheduling.svg)
 
-See how, with database pools, two reads can see different database states at the same time. This may look scary! Please see the next [Think Concurrently] chapter below for a relief.
+See how, with database pools, two reads can see different database states at the same time. This may look scary! Please see the next [Concurrent Thinking] chapter below for a relief.
 
 
-## Think Concurrently
+## Concurrent Thinking
 
 Despite their [differences](#differences-between-database-queues-and-pools), you can write robust code that works equally well with both database queues and pools.
 
@@ -496,7 +496,7 @@ try snapshot2.read { db in
 [Synchronous and Asynchronous Database Accesses]: #synchronous-and-asynchronous-database-accesses
 [Safe and Unsafe Database Accesses]: #safe-and-unsafe-database-accesses
 [Differences between Database Queues and Pools]: #differences-between-database-queues-and-pools
-[Think Concurrently]: #think-concurrently
+[Concurrent Thinking]: #concurrent-thinking
 [Advanced DatabasePool]: #advanced-databasepool
 [Database Snapshots]: #database-snapshots
 [DatabaseQueue]: ../README.md#database-queues
