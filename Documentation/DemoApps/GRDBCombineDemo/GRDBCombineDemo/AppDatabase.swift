@@ -1,4 +1,5 @@
 import Combine
+import Foundation
 import GRDB
 
 /// AppDatabase lets the application access the database.

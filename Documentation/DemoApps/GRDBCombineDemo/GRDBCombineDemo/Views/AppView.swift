@@ -1,11 +1,12 @@
+import Query
 import SwiftUI
 
 /// The main application view
 struct AppView: View {
-    /// Database access
+    /// Write access to the database
     @Environment(\.appDatabase) private var appDatabase
     
-    /// The `players` property is kept up-to-date with the list of players.
+    /// The `players` property is automatically updated when the database changes
     @Query(PlayerRequest(ordering: .byScore)) private var players: [Player]
     
     /// We'll need to leave edit mode in several occasions.

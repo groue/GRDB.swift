@@ -8171,7 +8171,7 @@ This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-a
 [Combine Support]: Documentation/Combine.md
 [Async/Await Support]: Documentation/Concurrency.md
 [Concurrency]: Documentation/Concurrency.md
-[Demo Applications]: Documentation/DemoApps/README.md
+[Demo Applications]: Documentation/DemoApps
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq
 [Database Observation]: #database-changes-observation

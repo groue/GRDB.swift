@@ -1,6 +1,13 @@
 Demo Applications
 =================
 
-- [GRDBDemoiOS](GRDBDemoiOS/README.md): a storyboard-based UIKit application.
-- [GRDBCombineDemo](GRDBCombineDemo/README.md): a Combine + SwiftUI application.
-- [GRDBAsyncDemo](GRDBAsyncDemo/README.md): a Async/Await + SwiftUI application.
+- [GRDBDemoiOS]: a storyboard-based UIKit application.
+- [GRDBCombineDemo]: a Combine + SwiftUI application.
+- [GRDBAsyncDemo]: a Async/Await + SwiftUI application.
+
+Both [GRDBCombineDemo] and [GRDBAsyncDemo] use the same `@Query` property wrapper, that lets SwiftUI views automatically update their content when the database changes. It is defined in the shared [Query] package. You can copy and embed this package into your application, or just the `Query.swift` file.
+
+[GRDBDemoiOS]: GRDBDemoiOS
+[GRDBCombineDemo]: GRDBCombineDemo
+[GRDBAsyncDemo]: GRDBAsyncDemo
+[Query]: Query

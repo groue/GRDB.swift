@@ -1,5 +1,6 @@
 import Combine
 import GRDB
+import Query
 
 /// A player request can be used with the `@Query` property wrapper in order to
 /// feed a view with a list of players.
@@ -19,13 +20,14 @@ struct PlayerRequest: Queryable {
         case byName
     }
     
+    /// The ordering used by the player request.
     var ordering: Ordering
     
-    // MARK: - Queryable
+    // MARK: - Queryable Implementation
     
     static var defaultValue: [Player] { [] }
     
-    func valuePublisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
+    func publisher(in appDatabase: AppDatabase) -> AnyPublisher<[Player], Error> {
         // Build the publisher from the general-purpose read-only access
         // granted by `appDatabase.databaseReader`.
         // Some apps will prefer to call a dedicated method of `appDatabase`.
@@ -33,8 +35,9 @@ struct PlayerRequest: Queryable {
             .tracking(fetchValue(_:))
             .publisher(
                 in: appDatabase.databaseReader,
-                // Immediate scheduling feeds the view right on subscription,
-                // and avoids an undesired animation when the application starts.
+                // The `.immediate` scheduling feeds the view right on
+                // subscription, and avoids an undesired animation when the
+                // application starts.
                 scheduling: .immediate)
             .eraseToAnyPublisher()
     }
