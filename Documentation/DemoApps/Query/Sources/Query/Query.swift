@@ -109,7 +109,6 @@ public struct Query<QueryableType: Queryable>: DynamicProperty {
         private var cancellable: AnyCancellable?
         
         init() { }
-        deinit { print("Tracker.deinit") }
         
         func startTrackingIfNecessary(in database: QueryableType.DatabaseContext) {
             guard let request = request else {
