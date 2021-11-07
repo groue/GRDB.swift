@@ -152,7 +152,6 @@ If several processes want to write in the database, configure the database pool 
 ```swift
 var configuration = Configuration()
 configuration.busyMode = .timeout(/* a TimeInterval */)
-configuration.defaultTransactionKind = .immediate
 let dbPool = try DatabasePool(path: ..., configuration: configuration)
 ```
 
