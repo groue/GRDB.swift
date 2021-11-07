@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.13.x` Releases - [5.13.0](#5130)
 - `5.12.x` Releases - [5.12.0](#5120)
 - `5.11.x` Releases - [5.11.0](#5110)
 - `5.10.x` Releases - [5.10.0](#5100)
@@ -79,7 +80,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 5.13.0
+
+Released November 7, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.12.0...v5.13.0)
 
 - **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3 and Xcode 12
 - **New**: :star: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
