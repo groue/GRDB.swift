@@ -1,6 +1,6 @@
 /// An internal struct that defines a migration.
 struct Migration {
-    public enum ForeignKeyChecks {
+    enum ForeignKeyChecks {
         case deferred
         case immediate
         case disabled

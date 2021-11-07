@@ -800,9 +800,14 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     
     public var description: String {
         if let originRowID = originRowID {
-            return "FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable), in rowid \(originRowID)"
+            return """
+                FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable), \
+                in rowid \(originRowID)
+                """
         } else {
-            return "FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable)"
+            return """
+                FOREIGN KEY constraint violation - from \(originTable) to \(destinationTable)
+                """
         }
     }
     
