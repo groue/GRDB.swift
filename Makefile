@@ -50,7 +50,14 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with
 # `xcrun xctrace list devices` (or the deprecated `instruments -s devices`).
-ifeq ($(XCODEVERSION),13.0)
+ifeq ($(XCODEVERSION),13.1)
+  MAX_SWIFT_VERSION = 5.5
+  MIN_SWIFT_VERSION = 5.3
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=15.0"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=13.7"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=15.0"
+  #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4"
+else ifeq ($(XCODEVERSION),13.0)
   MAX_SWIFT_VERSION = 5.5
   MIN_SWIFT_VERSION = 5.3
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=15.0"
