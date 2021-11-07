@@ -2,6 +2,7 @@ import SwiftUI
 
 /// The view that edits an existing player.
 struct PlayerEditionView: View {
+    /// Write access to the database
     @Environment(\.appDatabase) private var appDatabase
     @Environment(\.isPresented) private var isPresented
     private let player: Player

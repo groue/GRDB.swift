@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PlayerList: View {
-    /// Database access
+    /// Write access to the database
     @Environment(\.appDatabase) private var appDatabase
     
     /// The players in the list
