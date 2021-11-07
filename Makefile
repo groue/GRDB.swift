@@ -143,7 +143,7 @@ test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
 test_archive: test_archive_GRDBOSX_xcframework
 test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
-test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo
+test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo test_GRDBAsyncDemo
 
 test_framework_GRDBOSX: test_framework_GRDBOSX_maxSwift test_framework_GRDBOSX_minSwift
 
@@ -451,6 +451,15 @@ test_GRDBCombineDemo:
 	$(XCODEBUILD) \
 	  -project Documentation/DemoApps/GRDBCombineDemo/GRDBCombineDemo.xcodeproj \
 	  -scheme GRDBCombineDemo \
+	  -destination $(MAX_IOS_DESTINATION) \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  $(TEST_ACTIONS) \
+	  $(XCPRETTY)
+
+test_GRDBAsyncDemo:
+	$(XCODEBUILD) \
+	  -project Documentation/DemoApps/GRDBAsyncDemo/GRDBAsyncDemo.xcodeproj \
+	  -scheme GRDBAsyncDemo \
 	  -destination $(MAX_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS) \
