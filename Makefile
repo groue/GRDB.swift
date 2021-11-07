@@ -133,13 +133,14 @@ else
 endif
 
 # We test framework test suites, and if GRBD can be installed in an application:
-test: test_framework test_install test_demo_apps
+test: test_framework test_archive test_install test_demo_apps
 
 test_framework: test_framework_darwin
 test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_SQLCipher test_SPM
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS test_framework_GRDBtvOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
 test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
+test_archive: test_archive_GRDBOSX_xcframework
 test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
 test_demo_apps: test_GRDBDemoiOS test_GRDBCombineDemo
@@ -327,6 +328,24 @@ test_SPM:
 	$(SWIFT) build
 	$(SWIFT) build -c release
 	set -o pipefail && $(SWIFT) test $(XCPRETTY)
+
+test_archive_GRDBOSX_xcframework:
+	rm -rf Tests/products
+	mkdir Tests/products
+	$(XCODEBUILD) archive \
+	  -project GRDB.xcodeproj \
+	  -scheme GRDBOSX \
+	  -configuration Release \
+	  -destination "generic/platform=macOS" \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  'OTHER_SWIFT_FLAGS=$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' \
+	  'GCC_PREPROCESSOR_DEFINITIONS=$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1' \
+	  -archivePath "$(PWD)/Tests/products/GRDB.xcarchive" \
+	  SKIP_INSTALL=NO \
+	  BUILD_LIBRARY_FOR_DISTRIBUTION=YES
+	$(XCODEBUILD) -create-xcframework \
+	  -framework '$(PWD)/Tests/products/GRDB.xcarchive/Products/Library/Frameworks/GRDB.framework' \
+	  -output '$(PWD)/Tests/products/GRDB.xcframework'
 
 test_install_manual:
 	$(XCODEBUILD) \

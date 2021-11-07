@@ -112,3 +112,6 @@ Tests/SPM/Packages
 
 # Ruby
 .ruby-version
+
+# Test products
+Tests/products
