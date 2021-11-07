@@ -341,7 +341,7 @@ This allows your app to switch between queues and pools, at your convenience:
 
 All you need is a little "concurrent thinking", based on those two basic facts:
 
-- You are sure, when you perform a write access, that you deal with the latest database state. This is enforced by SQLite, which simply can't perform parallel writes. To this end, database queues and pools make sure [only one thread can write](#guarantee-serialized-writes). And writes performed by other processes can only trigger [SQLITE_BUSY] errors [that you can handle](SharingADatabase.md).
+- You are sure, when you perform a write access, that you deal with the latest database state. This is enforced by SQLite, which simply can't perform parallel writes, and by GRDB database queues and pools, which make sure [only one thread can write](#guarantee-serialized-writes). As for writes performed by other processes, they can only trigger [SQLITE_BUSY] errors [that you can handle](SharingADatabase.md).
 
 - Whenever you fetch some data, from a database queue or from a pool, consider it as _immediately_ stale. This is because nothing prevents other application threads or processes from overwriting the value you have just fetched:
     
