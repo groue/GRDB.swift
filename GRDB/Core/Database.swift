@@ -1243,11 +1243,23 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Backup
     
-    func backup(
+    public func backup(
+        to dbDest: Database,
+        pageStepSize: Int32 = -1,
+        progress: ((DatabaseBackupProgress) -> ())? = nil)
+    throws
+    {
+        try backupInternal(
+            to: dbDest,
+            pageStepSize: pageStepSize,
+            afterBackupStep: progress)
+    }
+
+    func backupInternal(
         to dbDest: Database,
         pageStepSize: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: ((Progress) -> Void)? = nil)
+        afterBackupStep: ((DatabaseBackupProgress) -> Void)? = nil)
     throws
     {
         guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", sqliteConnection, "main") else {
@@ -1259,13 +1271,17 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         afterBackupInit?()
         
+        let progress = DatabaseBackupProgressImpl()
+        
         do {
             backupLoop: while true {
+                guard !progress.cancelRequested else {
+                    throw DatabaseBackupCancelled(progress: progress)
+                }
                 let rc = sqlite3_backup_step(backup, pageStepSize)
-                let pageCount = sqlite3_backup_pagecount(backup)
-                let completedCount = pageCount - sqlite3_backup_remaining(backup)
-                let progress = Progress(totalUnitCount: Int64(pageCount))
-                progress.completedUnitCount = Int64(completedCount)
+                let totalPages = Int(sqlite3_backup_pagecount(backup))
+                let completedPages = totalPages - Int(sqlite3_backup_remaining(backup))
+                progress.updateProgress(totalPages: totalPages, completedPages: completedPages)
                 switch rc {
                 case SQLITE_DONE:
                     afterBackupStep?(progress)
@@ -1290,6 +1306,32 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         // The schema of the destination database has changed:
         dbDest.clearSchemaCache()
+    }
+    
+    private class DatabaseBackupProgressImpl: DatabaseBackupProgress {
+        public private(set) var totalPages: Int
+        public private(set) var completedPages: Int
+        
+        public var isFinished: Bool {
+            totalPages == completedPages
+        }
+        
+        fileprivate var cancelRequested: Bool
+        
+        fileprivate init() {
+            totalPages = 0
+            completedPages = 0
+            cancelRequested = false
+        }
+        
+        public func cancel() {
+            cancelRequested = true
+        }
+        
+        fileprivate func updateProgress(totalPages: Int, completedPages: Int) {
+            self.totalPages = totalPages
+            self.completedPages = completedPages
+        }
     }
 }
 

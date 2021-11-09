@@ -2,7 +2,6 @@
 import Combine
 #endif
 import Dispatch
-import Foundation
 
 /// `DatabaseReader` is the protocol for all types that can fetch values from
 /// an SQLite database.
@@ -284,17 +283,8 @@ extension DatabaseReader {
     /// the progress of the backup operation.
     public func backup(
         to writer: DatabaseWriter,
-        progress: ((Progress) -> ())? = nil)
-    throws
-    {
-        try backup(to: writer, pageStepSize: 100, progress: progress)
-    }
-    
-    /// A module-private function to pass the page step size for testing
-    func backup(
-        to writer: DatabaseWriter,
         pageStepSize: Int32 = -1,
-        progress: ((Progress) -> ())? = nil)
+        progress: ((DatabaseBackupProgress) -> ())? = nil)
     throws
     {
         try writer.writeWithoutTransaction { dbDest in
@@ -309,11 +299,11 @@ extension DatabaseReader {
         to dbDest: Database,
         pageStepSize: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: ((Progress) -> Void)? = nil)
+        afterBackupStep: ((DatabaseBackupProgress) -> Void)? = nil)
     throws
     {
         try read { dbFrom in
-            try dbFrom.backup(
+            try dbFrom.backupInternal(
                 to: dbDest,
                 pageStepSize: pageStepSize,
                 afterBackupInit: afterBackupInit,
