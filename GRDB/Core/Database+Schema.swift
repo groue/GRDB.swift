@@ -818,7 +818,7 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     public func failureDescription(_ db: Database) throws -> String {
         // Grab detailed information, if possible, for better error message
         let originRow = try originRowID.flatMap { rowid in
-            try Row.fetchOne(db, sql: "SELECT * FROM \(originTable) WHERE rowid = \(rowid)")
+            try Row.fetchOne(db, sql: "SELECT * FROM \(originTable.quotedDatabaseIdentifier) WHERE rowid = \(rowid)")
         }
         let foreignKey = try db.foreignKeys(on: originTable).first(where: { foreignKey in
             foreignKey.id == foreignKeyId
