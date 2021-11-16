@@ -777,19 +777,19 @@ public struct IndexInfo {
 /// See <https://www.sqlite.org/pragma.html#pragma_foreign_key_check>
 public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     /// The name of the table that contains the `REFERENCES` clause
-    var originTable: String
+    public var originTable: String
     
     /// The rowid of the row that contains the invalid `REFERENCES` clause, or
     /// nil if the origin table is a `WITHOUT ROWID` table.
-    var originRowID: Int64?
+    public var originRowID: Int64?
     
     /// The name of the table that is referred to.
-    var destinationTable: String
+    public var destinationTable: String
     
     /// The id of the specific foreign key constraint that failed. This id
     /// matches `ForeignKeyInfo.id`. See `Database.foreignKeys(on:)` for more
     /// information.
-    var foreignKeyId: Int
+    public var foreignKeyId: Int
     
     public init(row: Row) {
         originTable = row[0]
