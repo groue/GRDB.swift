@@ -496,16 +496,9 @@ extension Database {
     }
     
     private func checkForeignKeys(from violations: RecordCursor<ForeignKeyViolation>) throws {
-        guard let violation = try violations.next() else {
-            return
+        if let violation = try violations.next() {
+            throw violation.databaseError(self)
         }
-        
-        // Grab detailed information, if possible, for better error message.
-        // If detailed information is not available, fallback to plain description.
-        let message = (try? violation.failureDescription(self)) ?? String(describing: violation)
-        throw DatabaseError(
-            resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY,
-            message: message)
     }
     
     /// Returns the actual name of the database table, in the main or temp
@@ -842,6 +835,16 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
         }
         
         return description
+    }
+    
+    /// Returns a DatabaseError of extended code `SQLITE_CONSTRAINT_FOREIGNKEY`
+    public func databaseError(_ db: Database) -> DatabaseError {
+        // Grab detailed information, if possible, for better error message.
+        // If detailed information is not available, fallback to plain description.
+        let message = (try? failureDescription(db)) ?? String(describing: self)
+        return DatabaseError(
+            resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY,
+            message: message)
     }
 }
 

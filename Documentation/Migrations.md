@@ -260,6 +260,9 @@ while let violation = try violations.next() {
     // "FOREIGN KEY constraint violation - from player(teamId) to team(id),
     //  in [id:1 teamId:2 name:"O'Brien" score:1000]"
     try violation.failureDescription(db)
+    
+    // Turn violation into a DatabaseError
+    throw violation.databaseError(db)
 }
 ```
 
