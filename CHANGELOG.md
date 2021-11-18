@@ -80,6 +80,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fix**: `ForeignKeyViolation.failureDescription(_:)` now accepts table names that require quoting.
+- **Fix**: Add missing `public` qualifier on `ForeignKeyViolation` properties.
+- **New**: `ForeignKeyViolation.databaseError(_:)` turns a foreign key violation into a `DatabaseError`.
+
 ## 5.13.0
 
 Released November 7, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.12.0...v5.13.0)
