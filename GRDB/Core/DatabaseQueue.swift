@@ -47,6 +47,7 @@ public final class DatabaseQueue: DatabaseWriter {
         #endif
     }
     
+    #warning("TODO GRDB6: throwing in-memory DatabaseQueue initializer")
     /// Opens an in-memory SQLite database.
     ///
     ///     let dbQueue = DatabaseQueue()
