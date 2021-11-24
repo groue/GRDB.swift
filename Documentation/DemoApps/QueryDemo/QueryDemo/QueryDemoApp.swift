@@ -3,7 +3,7 @@ import Query
 import SwiftUI
 
 @main
-struct QuerySideEffectsApp: App {
+struct QueryDemoApp: App {
     var body: some Scene {
         WindowGroup {
             AppView()

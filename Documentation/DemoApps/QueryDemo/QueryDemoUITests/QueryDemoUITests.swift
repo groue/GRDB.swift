@@ -1,13 +1,13 @@
 //
-//  QuerySideEffectsUITests.swift
-//  QuerySideEffectsUITests
+//  QueryDemoUITests.swift
+//  QueryDemoUITests
 //
 //  Created by Gwendal Roué on 07/11/2021.
 //
 
 import XCTest
 
-class QuerySideEffectsUITests: XCTestCase {
+class QueryDemoUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

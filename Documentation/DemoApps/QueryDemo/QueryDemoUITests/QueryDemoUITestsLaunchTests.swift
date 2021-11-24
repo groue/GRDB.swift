@@ -1,13 +1,13 @@
 //
-//  QuerySideEffectsUITestsLaunchTests.swift
-//  QuerySideEffectsUITests
+//  QueryDemoUITestsLaunchTests.swift
+//  QueryDemoUITests
 //
 //  Created by Gwendal Roué on 07/11/2021.
 //
 
 import XCTest
 
-class QuerySideEffectsUITestsLaunchTests: XCTestCase {
+class QueryDemoUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true
