@@ -2,19 +2,19 @@ import Query
 import SwiftUI
 import GRDB
 
+/// The main application view
 struct AppView: View {
     /// A helper `Identifiable` type that can feed SwiftUI `sheet(item:onDismiss:content:)`
     private struct EditedPlayer: Identifiable {
         var id: Int64
     }
     
-    @Environment(\.dbQueue) private var dbQueue
     @Query(PlayerRequest()) private var player
     @State private var editedPlayer: EditedPlayer?
     
     var body: some View {
         VStack {
-            informationHeader(playerExists: player != nil)
+            informationHeader(showCreateButton: player == nil)
             
             Spacer()
             
@@ -35,17 +35,13 @@ struct AppView: View {
         }
     }
     
-    private func informationHeader(playerExists: Bool) -> some View {
+    private func informationHeader(showCreateButton: Bool) -> some View {
         VStack {
-            Text("The application observes the database and displays information about the player.")
+            Text("The `@Query` demo application observes the database and displays information about the player.")
                 .informationStyle()
             
-            if !playerExists {
-                Button("Create a Player") {
-                    try! dbQueue.write { db in
-                        _ = try Player.makeRandom().inserted(db)
-                    }
-                }
+            if showCreateButton {
+                CreateButton("Create a Player")
             }
         }
         .informationBox()
@@ -55,25 +51,21 @@ struct AppView: View {
         VStack(spacing: 10) {
             Text("**What if another application component deletes the player at the most unexpected moment?**")
                 .informationStyle()
-            Button("Delete Player") {
-                _ = try! dbQueue.write(Player.deleteAll)
-            }
+            DeleteButton("Delete Player")
+            
             Spacer().frame(height: 10)
             Text("What if the player is deleted soon after the Edit button is hit?")
                 .informationStyle()
-            Button("Edit Player Then Delete") {
+            DeleteButton("Delete After Editing", after: {
                 editPlayer(id: id)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    _ = try! dbQueue.write(Player.deleteAll)
-                }
-            }
+            })
+            
             Spacer().frame(height: 10)
             Text("What if the player is deleted right before the Edit button is hit?")
                 .informationStyle()
-            Button("Delete Then Edit Player") {
-                _ = try! dbQueue.write(Player.deleteAll)
+            DeleteButton("Delete Before Editing", before: {
                 editPlayer(id: id)
-            }
+            })
         }
         .informationBox()
     }
@@ -83,8 +75,14 @@ struct AppView: View {
     }
 }
 
-struct AppView_Previews: PreviewProvider {
+struct AppView_Previews_Empty: PreviewProvider {
     static var previews: some View {
         AppView()
+    }
+}
+
+struct AppView_Previews_Populated: PreviewProvider {
+    static var previews: some View {
+        AppView().environment(\.dbQueue, populatedDatabaseQueue())
     }
 }

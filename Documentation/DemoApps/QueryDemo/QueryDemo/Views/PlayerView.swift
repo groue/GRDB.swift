@@ -6,25 +6,30 @@ struct PlayerView: View {
     
     var body: some View {
         HStack {
-            AsyncImage(
-                url: URL(string: "https://picsum.photos/seed/\(player.photoID)/200"),
-                content: { image in
-                    image.resizable()
-                },
-                placeholder: {
-                    ProgressView()
-                })
-                .frame(width: 70, height: 70)
-                .cornerRadius(10)
+            avatar()
+            
             VStack(alignment: .leading) {
-                Text(player.name).bold()
+                Text(player.name).bold().font(.title3)
                 Text("Score: \(player.score)")
             }
-            .padding(.vertical, 10)
+            
             Spacer()
+            
             Button("Edit", action: edit)
-                .buttonStyle(.borderedProminent)
         }
+    }
+    
+    func avatar() -> some View {
+        AsyncImage(
+            url: URL(string: "https://picsum.photos/seed/\(player.photoID)/200"),
+            content: { image in
+                image.resizable()
+            },
+            placeholder: {
+                ProgressView()
+            })
+            .frame(width: 70, height: 70)
+            .cornerRadius(10)
     }
 }
 

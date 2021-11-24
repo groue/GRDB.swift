@@ -1,6 +1,7 @@
 import GRDB
 import SwiftUI
 
+/// The view that edits a player
 struct PlayerFormView: View {
     @Environment(\.dbQueue) var dbQueue
     var player: Player
@@ -8,24 +9,25 @@ struct PlayerFormView: View {
     var body: some View {
         Stepper(
             "Score: \(player.score)",
-            onIncrement: {
-                modifyPlayer { $0.score += 10 }
-            },
-            onDecrement: {
-                modifyPlayer { $0.score = max(0, $0.score - 10) }
-            })
-
+            onIncrement: { updateScore { $0 += 10 } },
+            onDecrement: { updateScore { $0 = max(0, $0 - 10) } })
     }
     
-    private func modifyPlayer(_ transform: (inout Player) -> Void) {
+    private func updateScore(_ transform: (inout Int) -> Void) {
         do {
             _ = try dbQueue.write { db in
                 var player = player
-                try player.updateChanges(db, with: transform)
+                try player.updateChanges(db) {
+                    transform(&$0.score)
+                }
             }
         } catch PersistenceError.recordNotFound {
-            // Oops, player no longer exists.
-            // Ignore this error: it is handled in PlayerPresenceView.
+            // Oops, player does not exist.
+            // Ignore this error: `PlayerPresenceView` will dismiss.
+            //
+            // You can comment out this specific handling of
+            // `PersistenceError.recordNotFound`, run the preview, change the
+            // score, and see what happens.
         } catch {
             fatalError("\(error)")
         }

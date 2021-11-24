@@ -2,8 +2,11 @@ import GRDB
 import Query
 import SwiftUI
 
+/// The sheet for player edition.
+///
+/// In this demo app, this view don't want to remain on screen
+/// whenever the edited player no longer exists in the database.
 struct PlayerPresenceView: View {
-    @Environment(\.dbQueue) private var dbQueue
     @Environment(\.dismiss) private var dismiss
     @Query<PlayerPresenceRequest> private var playerPresence: PlayerPresence
     @State var gonePlayerAlertPresented = false
@@ -24,9 +27,7 @@ struct PlayerPresenceView: View {
                         VStack(spacing: 10) {
                             Text("**What if another application component deletes the player at the most unexpected moment?**")
                                 .informationStyle()
-                            Button("Delete Player") {
-                                _ = try! dbQueue.write(Player.deleteAll)
-                            }
+                            DeleteButton("Delete Player")
                         }
                         .informationBox()
                     }
@@ -43,7 +44,7 @@ struct PlayerPresenceView: View {
             }
         }
         .alert("Ooops, player is gone.", isPresented: $gonePlayerAlertPresented, actions: {
-            Button("OK") { dismiss() }
+            Button("Dismiss") { dismiss() }
         })
         .onAppear {
             if !playerPresence.exists {
@@ -60,7 +61,9 @@ struct PlayerPresenceView: View {
 
 struct PlayerPresenceView_Previews_Existing: PreviewProvider {
     static var previews: some View {
-        PlayerPresenceView(id: 1)
+        let playerId: Int64 = 1
+        let dbQueue = populatedDatabaseQueue(playerId: playerId)
+        PlayerPresenceView(id: playerId).environment(\.dbQueue, dbQueue)
     }
 }
 

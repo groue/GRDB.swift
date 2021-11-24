@@ -11,23 +11,15 @@ struct QueryDemoApp: App {
     }
 }
 
-let demoDatabaseQueue: DatabaseQueue = {
-    let dbQueue = DatabaseQueue()
-    try! dbQueue.write { db in
-        try db.create(table: "player") { t in
-            t.autoIncrementedPrimaryKey("id")
-            t.column("name", .text).notNull()
-            t.column("score", .integer).notNull()
-            t.column("photoID", .integer).notNull()
-        }
-        // insert a random player (and ignore generated id)
-        _ = try Player.makeRandom().inserted(db)
-    }
-    return dbQueue
-}()
+// MARK: - Give SwiftUI access to the database
+//
+// Define a new environment key that grants access to a DatabaseQueue.
+//
+// The technique is documented at
+// <https://developer.apple.com/documentation/swiftui/environmentkey>.
 
 private struct DatabaseQueueKey: EnvironmentKey {
-    static var defaultValue: DatabaseQueue { demoDatabaseQueue }
+    static let defaultValue = emptyDatabaseQueue()
 }
 
 extension EnvironmentValues {
@@ -36,6 +28,10 @@ extension EnvironmentValues {
         set { self[DatabaseQueueKey.self] = newValue }
     }
 }
+
+// In this demo app, views observe the database with the @Query property
+// wrapper, defined in the local Query package. Its documentation recommends to
+// define a dedicated initializer for `dbQueue` access, so we comply:
 
 extension Query where QueryableType.DatabaseContext == DatabaseQueue {
     init(_ query: QueryableType) {

@@ -17,7 +17,6 @@ struct GRDBAsyncDemoApp: App {
 // The technique is documented at
 // <https://developer.apple.com/documentation/swiftui/environmentkey>.
 
-/// The environment key that lets SwiftUI access the database.
 private struct AppDatabaseKey: EnvironmentKey {
     static var defaultValue: AppDatabase { .empty() }
 }

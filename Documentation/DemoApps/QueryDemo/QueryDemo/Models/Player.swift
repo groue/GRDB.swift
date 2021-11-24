@@ -19,9 +19,9 @@ extension Player {
         "Zazie", "Zoé"]
     
     /// Creates a new player with random name and random score
-    static func makeRandom() -> Player {
+    static func makeRandom(id: ID = nil) -> Player {
         Player(
-            id: nil,
+            id: id,
             name: names.randomElement()!,
             score: 10 * Int.random(in: 0...100),
             photoID: Int.random(in: 0...1000))
