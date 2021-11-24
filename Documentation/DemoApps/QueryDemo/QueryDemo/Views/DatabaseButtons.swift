@@ -10,10 +10,12 @@ struct CreateButton: View {
     }
     
     var body: some View {
-        Button(titleKey) {
+        Button {
             try! dbQueue.write { db in
                 _ = try Player.makeRandom().inserted(db)
             }
+        } label: {
+            Label(titleKey, systemImage: "plus")
         }
     }
 }
@@ -57,7 +59,7 @@ struct DeleteButton: View {
     }
     
     var body: some View {
-        Button(titleKey) {
+        Button {
             switch mode {
             case .deleteAfter:
                 action?()
@@ -69,6 +71,28 @@ struct DeleteButton: View {
                 _ = try! dbQueue.write(Player.deleteAll)
                 action?()
             }
+        } label: {
+            Label(titleKey, systemImage: "trash")
         }
+    }
+}
+
+import Query
+struct DatabaseButtons_Previews: PreviewProvider {
+    struct Preview: View {
+        @Query(PlayerCountRequest()) var playerCount: Int
+        var body: some View {
+            VStack {
+                Text("Number of players: \(playerCount)")
+                CreateButton("Create Player")
+                DeleteButton("Delete Players")
+            }
+            .informationBox()
+            .padding()
+        }
+    }
+    
+    static var previews: some View {
+        Preview()
     }
 }

@@ -2,6 +2,7 @@ import Combine
 import GRDB
 import Query
 
+/// A @Query request that observes the _presence_ of the player in the database.
 struct PlayerPresenceRequest: Queryable {
     static var defaultValue: PlayerPresence { .missing }
     

@@ -5,7 +5,7 @@ struct InformationStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
-            .foregroundColor(Color(uiColor: UIColor.secondaryLabel))
+            .foregroundColor(.purple)
             .font(.callout)
     }
 }
@@ -16,7 +16,7 @@ struct InformationBox: ViewModifier {
         content
             .padding()
             .frame(maxWidth: .infinity, alignment: .center)
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(Color.purple.opacity(0.07))
             .buttonStyle(.borderedProminent)
             .tint(.purple)
             .cornerRadius(10)

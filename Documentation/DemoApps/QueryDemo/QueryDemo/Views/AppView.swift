@@ -13,43 +13,44 @@ struct AppView: View {
     @State private var editedPlayer: EditedPlayer?
     
     var body: some View {
-        VStack {
-            informationHeader(showCreateButton: player == nil)
-            
-            Spacer()
-            
-            if let player = player, let id = player.id {
-                PlayerView(player: player, edit: {
-                    editPlayer(id: id)
-                })
-                Spacer()
-                informationFooter(id: id)
-            } else {
-                Text("The database contains no player.")
-                Spacer()
+        NavigationView {
+            VStack {
+                if let player = player, let id = player.id {
+                    PlayerView(player: player, edit: { editPlayer(id: id) })
+                        .padding(.vertical)
+                    
+                    Spacer()
+                    populatedFooter(id: id)
+                } else {
+                    PlayerView(player: .placeholder)
+                        .padding(.vertical)
+                        .redacted(reason: .placeholder)
+                    
+                    Spacer()
+                    emptyFooter()
+                }
             }
-        }
-        .padding(.horizontal)
-        .sheet(item: $editedPlayer) { player in
-            PlayerPresenceView(id: player.id)
+            .padding(.horizontal)
+            .sheet(item: $editedPlayer) { player in
+                PlayerPresenceView(id: player.id)
+            }
+            .navigationTitle("@Query demo")
         }
     }
     
-    private func informationHeader(showCreateButton: Bool) -> some View {
+    private func emptyFooter() -> some View {
         VStack {
-            Text("The `@Query` demo application observes the database and displays information about the player.")
+            Text("The demo application observes the database and displays information about the player.")
                 .informationStyle()
             
-            if showCreateButton {
-                CreateButton("Create a Player")
-            }
+            CreateButton("Create a Player")
         }
         .informationBox()
     }
     
-    private func informationFooter(id: Int64) -> some View {
+    private func populatedFooter(id: Int64) -> some View {
         VStack(spacing: 10) {
-            Text("**What if another application component deletes the player at the most unexpected moment?**")
+            Text("What if another application component deletes the player at the most unexpected moment?")
                 .informationStyle()
             DeleteButton("Delete Player")
             

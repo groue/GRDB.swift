@@ -26,6 +26,9 @@ extension Player {
             score: 10 * Int.random(in: 0...100),
             photoID: Int.random(in: 0...1000))
     }
+    
+    /// A placeholder Player
+    static let placeholder = Player(name: "xxxxxx", score: 100, photoID: 1)
 }
 
 extension Player: FetchableRecord, MutablePersistableRecord {

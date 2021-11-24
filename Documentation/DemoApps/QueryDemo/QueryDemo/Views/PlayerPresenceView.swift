@@ -25,7 +25,7 @@ struct PlayerPresenceView: View {
                     
                     if playerPresence.exists {
                         VStack(spacing: 10) {
-                            Text("**What if another application component deletes the player at the most unexpected moment?**")
+                            Text("What if another application component deletes the player at the most unexpected moment?s")
                                 .informationStyle()
                             DeleteButton("Delete Player")
                         }
