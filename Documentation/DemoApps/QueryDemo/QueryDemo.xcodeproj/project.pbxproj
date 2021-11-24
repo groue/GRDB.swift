@@ -57,6 +57,7 @@
 		56519DB4274EAC7400ED16D8 /* Persistence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Persistence.swift; sourceTree = "<group>"; };
 		56519DB6274EAFD700ED16D8 /* DatabaseButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseButtons.swift; sourceTree = "<group>"; };
 		56519DB8274EC27500ED16D8 /* PlayerCountRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerCountRequest.swift; sourceTree = "<group>"; };
+		56519DBA274EC7C300ED16D8 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		56F8A185273802970011ACBE /* QueryDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QueryDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		56F8A188273802970011ACBE /* QueryDemoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueryDemoApp.swift; sourceTree = "<group>"; };
 		56F8A18A273802970011ACBE /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
@@ -134,6 +135,7 @@
 		56F8A17C273802970011ACBE = {
 			isa = PBXGroup;
 			children = (
+				56519DBA274EC7C300ED16D8 /* README.md */,
 				56F8A1B2273802A50011ACBE /* GRDB.swift */,
 				56F8A1B3273802AB0011ACBE /* Query */,
 				56F8A187273802970011ACBE /* QueryDemo */,
