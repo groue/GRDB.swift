@@ -118,7 +118,7 @@ struct AllPlayers: Queryable {
 }
 ```
 
-The `Queryable` protocol has two requirements: a default value, and a Combine publisher. The publisher is built from the `DatabaseQueue` stored in the environment (you'll adapt this sample code if you prefer another type). The publisher tracks database changes, usually with GRDB [ValueObservation]. The default value is used until the publisher publishes its initial value.
+The `Queryable` protocol has two requirements: a default value, and a Combine publisher. The publisher is built from the `DatabaseQueue` stored in the environment (you'll adapt this sample code if you prefer another type). The publisher tracks database changes with GRDB [ValueObservation]. The default value is used until the publisher publishes its initial value.
 
 In the above sample code, we make sure the views are *immediately* fed with database content with the `scheduling: .immediate` option. This prevents any "blank state", or "flash of missing content".
 
