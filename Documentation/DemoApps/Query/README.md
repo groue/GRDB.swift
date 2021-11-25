@@ -26,9 +26,11 @@ struct PlayerList: View {
 
 **`@Query` solves a tricky problem.** It makes sure SwiftUI views are *immediately* rendered with the database content you expect.
 
-For example, when you display a `List` that animates it changes, you usually do not want to see an animation for the *initial* state of the list.
+For example, when you display a `List` that animates it changes, you do not want to see an animation for the *initial* state of the list (or to write the code that prevents it).
 
-All techniques based on `onAppear` suffer from this "double-rendering" problem and its side effects. By contrast, `@Query` has you covered.
+You also want your SwiftUI previews to display the expected values *without having to run them*.
+
+Techniques based on [`onAppear(perform:)`](https://developer.apple.com/documentation/swiftui/view/onappear(perform:)), [`onReceive(_:perform)`](https://developer.apple.com/documentation/swiftui/view/onreceive(_:perform:)) and similar methods suffer from this "double-rendering" problem and its side effects. By contrast, `@Query` has you fully covered.
 
 ## Usage
 

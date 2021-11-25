@@ -76,14 +76,9 @@ struct AppView: View {
     }
 }
 
-struct AppView_Previews_Empty: PreviewProvider {
+struct AppView_Previews: PreviewProvider {
     static var previews: some View {
         AppView()
-    }
-}
-
-struct AppView_Previews_Populated: PreviewProvider {
-    static var previews: some View {
         AppView().environment(\.dbQueue, populatedDatabaseQueue())
     }
 }
