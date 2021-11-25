@@ -9,7 +9,9 @@ struct AppView: View {
         var id: Int64
     }
     
-    @Query(PlayerRequest()) private var player
+    @Query(PlayerRequest())
+    private var player: Player?
+    
     @State private var editedPlayer: EditedPlayer?
     
     var body: some View {
@@ -34,7 +36,7 @@ struct AppView: View {
             .sheet(item: $editedPlayer) { player in
                 PlayerPresenceView(id: player.id)
             }
-            .navigationTitle("@Query demo")
+            .navigationTitle("@Query Demo")
         }
     }
     

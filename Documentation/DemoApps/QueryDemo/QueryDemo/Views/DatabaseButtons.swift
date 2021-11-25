@@ -80,7 +80,9 @@ struct DeleteButton: View {
 import Query
 struct DatabaseButtons_Previews: PreviewProvider {
     struct Preview: View {
-        @Query(PlayerCountRequest()) var playerCount: Int
+        @Query(PlayerCountRequest())
+        var playerCount: Int
+        
         var body: some View {
             VStack {
                 Text("Number of players: \(playerCount)")

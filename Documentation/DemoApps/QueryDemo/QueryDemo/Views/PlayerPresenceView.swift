@@ -8,7 +8,10 @@ import SwiftUI
 /// whenever the edited player no longer exists in the database.
 struct PlayerPresenceView: View {
     @Environment(\.dismiss) private var dismiss
-    @Query<PlayerPresenceRequest> private var playerPresence: PlayerPresence
+    
+    @Query<PlayerPresenceRequest>
+    private var playerPresence: PlayerPresence
+    
     @State var gonePlayerAlertPresented = false
     
     init(id: Int64) {

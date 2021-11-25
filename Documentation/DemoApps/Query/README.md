@@ -8,7 +8,8 @@ import SwiftUI
 
 /// A view that displays an always up-to-date list of players in the database.
 struct PlayerList: View {
-    @Query(AllPlayers()) var players: [Player]
+    @Query(AllPlayers())
+    var players: [Player]
     
     var body: some View {
         List(players) { player in
@@ -21,6 +22,11 @@ struct PlayerList: View {
 `@Query` is for GRDB what [`@FetchRequest`](https://developer.apple.com/documentation/swiftui/fetchrequest) is for Core Data. 
 
 `@Query` is more a sample code than a standalone package. To use it, copy and embed this package in your application, or just the [Query.swift](Sources/Query/Query.swift) file.
+
+- [Why @Query?]
+- [Usage]
+- [How to Handle Database Errors?]
+- [Demo Applications]
 
 ## Why @Query?
 
@@ -125,7 +131,8 @@ import Query
 import SwiftUI
 
 struct PlayerList: View {
-    @Query(AllPlayers(), in: \.dbQueue) var players
+    @Query(AllPlayers(), in: \.dbQueue)
+    var players: [Player]
     
     var body: some View {
         List(players) { player in
@@ -144,7 +151,8 @@ struct PlayerList: View {
 ```swift
 struct PlayerList: View {
     // Ordering can change through the $players.ordering binding.
-    @Query(AllPlayers(ordering: .byScore)) var players
+    @Query(AllPlayers(ordering: .byScore))
+    var players: [Player]
     ...
 }
 ```
@@ -163,12 +171,39 @@ This improves clarity at the call site:
 
 ```swift
 struct PlayerList: View {
-    @Query(AllPlayers()) var players
+    @Query(AllPlayers())
+    var players: [Player]
     ...
 }
 ```
 
-## Demo applications
+## How to Handle Database Errors?
+
+**By default, `@Query` ignores errors** published by `Queryable` types. The SwiftUI views are just not updated whenever an error occurs. If the database is unavailable when the view appears, `@Query` will just output the default value.
+
+You can restore error handling by publishing a `Result`, as in the example below: 
+
+```swift
+import Combine
+import GRDB
+import Query
+
+struct AllPlayers: Queryable {
+    static var defaultValue: Result<[Player], Error> { .success([]) }
+    
+    func publisher(in dbQueue: DatabaseQueue) -> AnyPublisher<Result<[Player], Error>, Never> {
+        ValueObservation
+            .tracking { db in try Player.fetchAll(db) }
+            .publisher(in: dbQueue, scheduling: .immediate)
+            .map { players in .success(players) }
+            .catch { error in Just(.failure(error)) }
+            .eraseToAnyPublisher()
+    }
+}
+```
+
+
+## Demo Applications
 
 See the [demo applications] for various examples of apps that use `@Query`.
 
@@ -177,6 +212,10 @@ See the [demo applications] for various examples of apps that use `@Query`.
 🙌 `@Query` was vastly inspired from [Core Data and SwiftUI](https://davedelong.com/blog/2021/04/03/core-data-and-swiftui/) by [@davedelong](https://github.com/davedelong), with critical improvements contributed by [@steipete](https://github.com/steipete). Many thanks to both of you!
 
 
+[Why @Query?]: #why-query
+[Usage]: #usage
+[How to Handle Database Errors?]: #how-to-handle-database-errors
 [DatabaseQueue]: ../../../README.md#database-queues
 [demo applications]: ..
+[Demo Applications]: ..
 [ValueObservation]: ../../../README.md#valueobservation

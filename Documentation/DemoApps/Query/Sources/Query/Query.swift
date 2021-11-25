@@ -33,16 +33,18 @@ import SwiftUI
 
 /// The protocol for types that feed the `@Query` property wrapper.
 public protocol Queryable: Equatable {
-    /// The type of the Database
+    /// The type of the database found in the SwiftUI environment.
     associatedtype DatabaseContext
     
     /// The type of the value publisher
     associatedtype ValuePublisher: Publisher
     
-    /// The default value, used whenever the database is not available
+    /// The default value, used until the publisher publishes its initial value.
+    /// It is never used if the publisher publishes its initial value right
+    /// on subscription.
     static var defaultValue: Value { get }
     
-    /// Returns a publisher of database values
+    /// Publishes database values
     func publisher(in database: DatabaseContext) -> ValuePublisher
 }
 
@@ -68,14 +70,14 @@ public struct Query<Request: Queryable>: DynamicProperty {
         tracker.value ?? Request.defaultValue
     }
     
-    /// A binding to the query, that lets your views modify it.
+    /// A binding to the request, that lets your views modify it.
     public var projectedValue: Binding<Request> {
         Binding(
             get: { tracker.request ?? initialRequest },
             set: { tracker.request = $0 })
     }
     
-    /// Creates a `Query`, given a queryable value, and a key path to the
+    /// Creates a `Query`, given a queryable request, and a key path to the
     /// database in the environment.
     public init(
         _ request: Request,
