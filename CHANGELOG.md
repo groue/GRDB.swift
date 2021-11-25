@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.14.x` Releases - [5.14.0](#5140)
 - `5.13.x` Releases - [5.13.0](#5130)
 - `5.12.x` Releases - [5.12.0](#5120)
 - `5.11.x` Releases - [5.11.0](#5110)
@@ -79,6 +80,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.14.0
+
+Released November 25, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.13.0...v5.14.0)
+
+- **Fix**: `ForeignKeyViolation.failureDescription(_:)` now accepts table names that require quoting.
+- **Fix**: Add missing `public` qualifier on `ForeignKeyViolation` properties.
+- **New**: `ForeignKeyViolation.databaseError(_:)` turns a foreign key violation into a `DatabaseError`.
+- **Documentation Update**: the demo apps were modernized for iOS 15+. The SwiftUI demo app now uses the [GRDBQuery](https://github.com/groue/GRDBQuery) package in order to update its views according to the database content.
 
 ## 5.13.0
 

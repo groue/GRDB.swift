@@ -5,6 +5,8 @@ Combine + SwiftUI Demo Application
 
 **This demo application is a Combine + SwiftUI application.** For a demo application that uses UIKit, see [GRDBDemoiOS](../GRDBDemoiOS/README.md).
 
+**Requirements**: iOS 15.0+ / Xcode 12+
+
 > :point_up: **Note**: This demo app is not a project template. Do not copy it as a starting point for your application. Instead, create a new project, choose a GRDB [installation method](../../../README.md#installation), and use the demo as an inspiration.
 
 The topics covered in this demo are:
@@ -23,7 +25,7 @@ The topics covered in this demo are:
 
 - [AppDatabase.swift](GRDBCombineDemo/AppDatabase.swift)
     
-    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](../../Migrations.md) in order to setup the database schema, and [ValueObservation](../../../README.md#valueobservation) in order to let the application observe database changes.
+    `AppDatabase` is the type that grants database access. It uses [DatabaseMigrator](../../Migrations.md) in order to setup the database schema.
 
 - [Persistence.swift](GRDBCombineDemo/Persistence.swift)
     
@@ -33,11 +35,11 @@ The topics covered in this demo are:
     
     `Player` is a [Record](../../../README.md#records) type, able to read and write in the database. It conforms to the standard Codable protocol in order to gain all advantages of [Codable Records](../../../README.md#codable-records).
 
-- [PlayerRequest.swift](GRDBCombineDemo/PlayerRequest.swift), [Query.swift](GRDBCombineDemo/Query.swift), [AppView.swift](GRDBCombineDemo/Views/AppView.swift)
+- [PlayerRequest.swift](GRDBCombineDemo/PlayerRequest.swift), [AppView.swift](GRDBCombineDemo/Views/AppView.swift)
     
     `PlayerRequest` defines the player requests used by the app (sorted by score, or by name).
     
-    `PlayerRequest` feeds the `@Query` property wrapper. `@Query`, inspired by [this article](https://davedelong.com/blog/2021/04/03/core-data-and-swiftui/), allows SwiftUI views to display up-to-date database content thanks to GRDB's [ValueObservation](../../../README.md#valueobservation).
+    `PlayerRequest` feeds the `@Query` property wrapper (`@Query`, defined in [GRDBQuery](https://github.com/groue/GRDBQuery), allows SwiftUI views to display up-to-date database content).
     
     `AppView` is the SwiftUI view that uses `@Query` in order to feed its player list.
 

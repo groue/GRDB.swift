@@ -496,16 +496,9 @@ extension Database {
     }
     
     private func checkForeignKeys(from violations: RecordCursor<ForeignKeyViolation>) throws {
-        guard let violation = try violations.next() else {
-            return
+        if let violation = try violations.next() {
+            throw violation.databaseError(self)
         }
-        
-        // Grab detailed information, if possible, for better error message.
-        // If detailed information is not available, fallback to plain description.
-        let message = (try? violation.failureDescription(self)) ?? String(describing: violation)
-        throw DatabaseError(
-            resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY,
-            message: message)
     }
     
     /// Returns the actual name of the database table, in the main or temp
@@ -777,19 +770,19 @@ public struct IndexInfo {
 /// See <https://www.sqlite.org/pragma.html#pragma_foreign_key_check>
 public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     /// The name of the table that contains the `REFERENCES` clause
-    var originTable: String
+    public var originTable: String
     
     /// The rowid of the row that contains the invalid `REFERENCES` clause, or
     /// nil if the origin table is a `WITHOUT ROWID` table.
-    var originRowID: Int64?
+    public var originRowID: Int64?
     
     /// The name of the table that is referred to.
-    var destinationTable: String
+    public var destinationTable: String
     
     /// The id of the specific foreign key constraint that failed. This id
     /// matches `ForeignKeyInfo.id`. See `Database.foreignKeys(on:)` for more
     /// information.
-    var foreignKeyId: Int
+    public var foreignKeyId: Int
     
     public init(row: Row) {
         originTable = row[0]
@@ -818,7 +811,7 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     public func failureDescription(_ db: Database) throws -> String {
         // Grab detailed information, if possible, for better error message
         let originRow = try originRowID.flatMap { rowid in
-            try Row.fetchOne(db, sql: "SELECT * FROM \(originTable) WHERE rowid = \(rowid)")
+            try Row.fetchOne(db, sql: "SELECT * FROM \(originTable.quotedDatabaseIdentifier) WHERE rowid = \(rowid)")
         }
         let foreignKey = try db.foreignKeys(on: originTable).first(where: { foreignKey in
             foreignKey.id == foreignKeyId
@@ -842,6 +835,16 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
         }
         
         return description
+    }
+    
+    /// Returns a DatabaseError of extended code `SQLITE_CONSTRAINT_FOREIGNKEY`
+    public func databaseError(_ db: Database) -> DatabaseError {
+        // Grab detailed information, if possible, for better error message.
+        // If detailed information is not available, fallback to plain description.
+        let message = (try? failureDescription(db)) ?? String(describing: self)
+        return DatabaseError(
+            resultCode: .SQLITE_CONSTRAINT_FOREIGNKEY,
+            message: message)
     }
 }
 
