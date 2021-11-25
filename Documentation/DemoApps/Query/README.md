@@ -110,9 +110,11 @@ struct AllPlayers: Queryable {
 }
 ```
 
+The `Queryable` protocol has two requirements: a default value, and a Combine publisher. The publisher tracks database changes, usually with GRDB [ValueObservation]. The default value is used until the publisher publishes its initial value.
+
 Note in the above sample code how we make sure the views are immediately fed with database content with the `scheduling: .immediate` option.
 
-You will want to remove this option for database requests that are too slow. Without `scheduling: .immediate`, views will be initially fed with the `defaultValue`, and the database content will be notified later. In the meantime, your view can display some waiting indicator, or a [redacted](https://developer.apple.com/documentation/swiftui/view/redacted(reason:)) placeholder. 
+You will want to remove this option for database requests that are too slow. Without `scheduling: .immediate`, views will be initially fed with the default value, and the database content will be notified later. In the meantime, your view can display some waiting indicator, or a [redacted](https://developer.apple.com/documentation/swiftui/view/redacted(reason:)) placeholder. 
 
 **Finally**, you can define a SwiftUI view that automatically updates its content when the database changes:
 
@@ -169,5 +171,6 @@ struct PlayerList: View {
 🙌 `@Query` was vastly inspired from [Core Data and SwiftUI](https://davedelong.com/blog/2021/04/03/core-data-and-swiftui/) by [@davedelong](https://github.com/davedelong), with critical improvements contributed by [@steipete](https://github.com/steipete). Many thanks to both of you!
 
 
-[DatabaseQueue]: https://github.com/groue/GRDB.swift/blob/master/README.md#database-queues
-[demo applications]: https://github.com/groue/GRDB.swift/tree/master/Documentation/DemoApps
+[DatabaseQueue]: ../../../README.md#database-queues
+[demo applications]: ..
+[ValueObservation]: ../../../README.md#valueobservation
