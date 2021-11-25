@@ -34,8 +34,8 @@ extension EnvironmentValues {
 // wrapper, defined in the local Query package. Its documentation recommends to
 // define a dedicated initializer for `dbQueue` access, so we comply:
 
-extension Query where QueryableType.DatabaseContext == DatabaseQueue {
-    init(_ query: QueryableType) {
-        self.init(query, in: \.dbQueue)
+extension Query where Request.DatabaseContext == DatabaseQueue {
+    init(_ request: Request) {
+        self.init(request, in: \.dbQueue)
     }
 }

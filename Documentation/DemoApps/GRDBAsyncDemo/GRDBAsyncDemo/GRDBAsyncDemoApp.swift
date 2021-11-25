@@ -32,9 +32,9 @@ extension EnvironmentValues {
 // wrapper, defined in the local Query package. Its documentation recommends to
 // define a dedicated initializer for `appDatabase` access, so we comply:
 
-extension Query where QueryableType.DatabaseContext == AppDatabase {
-    /// Convenience initializer for queries that feed from `AppDatabase`.
-    init(_ query: QueryableType) {
-        self.init(query, in: \.appDatabase)
+extension Query where Request.DatabaseContext == AppDatabase {
+    /// Convenience initializer for requests that feed from `AppDatabase`.
+    init(_ request: Request) {
+        self.init(request, in: \.appDatabase)
     }
 }

@@ -54,22 +54,22 @@ extension Queryable {
 /// The property wrapper that tells SwiftUI about changes in the database.
 /// See `Queryable`.
 @propertyWrapper
-public struct Query<QueryableType: Queryable>: DynamicProperty {
+public struct Query<Request: Queryable>: DynamicProperty {
     /// Database access
-    @Environment private var database: QueryableType.DatabaseContext
+    @Environment private var database: Request.DatabaseContext
     
     /// The object that keeps on observing the database as long as it is alive.
     @StateObject private var tracker = Tracker()
     
-    private let initialRequest: QueryableType
+    private let initialRequest: Request
     
     /// The observed value.
-    public var wrappedValue: QueryableType.Value {
-        tracker.value ?? QueryableType.defaultValue
+    public var wrappedValue: Request.Value {
+        tracker.value ?? Request.defaultValue
     }
     
     /// A binding to the query, that lets your views modify it.
-    public var projectedValue: Binding<QueryableType> {
+    public var projectedValue: Binding<Request> {
         Binding(
             get: { tracker.request ?? initialRequest },
             set: { tracker.request = $0 })
@@ -78,8 +78,8 @@ public struct Query<QueryableType: Queryable>: DynamicProperty {
     /// Creates a `Query`, given a queryable value, and a key path to the
     /// database in the environment.
     public init(
-        _ request: QueryableType,
-        in keyPath: KeyPath<EnvironmentValues, QueryableType.DatabaseContext>)
+        _ request: Request,
+        in keyPath: KeyPath<EnvironmentValues, Request.DatabaseContext>)
     {
         _database = Environment(keyPath)
         initialRequest = request
@@ -96,8 +96,8 @@ public struct Query<QueryableType: Queryable>: DynamicProperty {
     
     /// The object that keeps on observing the database as long as it is alive.
     private class Tracker: ObservableObject {
-        private(set) var value: QueryableType.Value?
-        var request: QueryableType? {
+        private(set) var value: Request.Value?
+        var request: Request? {
             willSet {
                 if request != newValue {
                     // Stop tracking, and tell SwiftUI about the update
@@ -110,7 +110,7 @@ public struct Query<QueryableType: Queryable>: DynamicProperty {
         
         init() { }
         
-        func startTrackingIfNecessary(in database: QueryableType.DatabaseContext) {
+        func startTrackingIfNecessary(in database: Request.DatabaseContext) {
             guard let request = request else {
                 // No request set
                 return
