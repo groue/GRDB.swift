@@ -110,6 +110,10 @@ struct AllPlayers: Queryable {
 }
 ```
 
+Note in the above sample code how we make sure the views are immediately fed with database content with the `scheduling: .immediate` option.
+
+You will want to remove this option for database requests that are too slow. Without `scheduling: .immediate`, views will be initially fed with the `defaultValue`, and the database content will be notified later. In the meantime, your view can display some waiting indicator, or a [redacted](https://developer.apple.com/documentation/swiftui/view/redacted(reason:)) placeholder. 
+
 **Finally**, you can define a SwiftUI view that automatically updates its content when the database changes:
 
 ```swift
