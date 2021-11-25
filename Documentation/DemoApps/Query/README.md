@@ -109,7 +109,7 @@ struct AllPlayers: Queryable {
     
     func publisher(in dbQueue: DatabaseQueue) -> AnyPublisher<[Player], Error> {
         ValueObservation
-            .tracking { db in try Player.fetchAll(db) }
+            .tracking(Player.fetchAll)
             // The `.immediate` scheduling feeds the view right on subscription,
             // and avoids an initial rendering with an empty list:
             .publisher(in: dbQueue, scheduling: .immediate)
@@ -193,7 +193,7 @@ struct AllPlayers: Queryable {
     
     func publisher(in dbQueue: DatabaseQueue) -> AnyPublisher<Result<[Player], Error>, Never> {
         ValueObservation
-            .tracking { db in try Player.fetchAll(db) }
+            .tracking(Player.fetchAll)
             .publisher(in: dbQueue, scheduling: .immediate)
             .map { players in .success(players) }
             .catch { error in Just(.failure(error)) }
