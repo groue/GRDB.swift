@@ -24,7 +24,7 @@ struct PlayerList: View {
 
 ## Why @Query?
 
-**`@Query` solves a tricky problem.** It makes sure SwiftUI views are *immediately* rendered with the database content you expect.
+**`@Query` solves a tricky SwiftUI challenge.** It makes sure SwiftUI views are *immediately* rendered with the database content you expect.
 
 For example, when you display a `List` that animates it changes, you do not want to see an animation for the *initial* state of the list (or to write the code that prevents it).
 
