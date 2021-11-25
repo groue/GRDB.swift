@@ -1,39 +1,42 @@
 import UIKit
 
 class PlayerEditionViewController: UITableViewController {
-    enum Presentation {
-        /// Modal presentation: edition ends with the "Commit" unwind segue.
-        case modal
+    enum Mode {
+        /// Edition ends with the "Commit" unwind segue.
+        case creation
         
-        /// Push presentation: edition ends when user hits the back button.
-        case push
+        /// Edition ends when user hits the back button.
+        case edition
     }
     
     /// The edited player
-    var player: Player! {
-        didSet {
-            configureForm()
-        }
-    }
+    private(set) var player: Player
     
     /// The presentation mode
-    var presentation: Presentation! {
-        didSet {
-            configureNavigationItem()
-        }
-    }
+    let mode: Mode
     
-    @IBOutlet private weak var cancelBarButtonItem: UIBarButtonItem!
-    @IBOutlet private weak var commitBarButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var cancelButtonItem: UIBarButtonItem!
+    @IBOutlet private weak var saveButtonItem: UIBarButtonItem!
     @IBOutlet private weak var nameCell: UITableViewCell!
     @IBOutlet private weak var nameTextField: UITextField!
     @IBOutlet private weak var scoreCell: UITableViewCell!
     @IBOutlet private weak var scoreTextField: UITextField!
     
+    init?(_ coder: NSCoder, mode: Mode, player: Player) {
+        self.mode = mode
+        self.player = player
+        super.init(coder: coder)
+    }
+    
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        configureForm()
         configureNavigationItem()
+        configureForm()
     }
 }
 
@@ -55,24 +58,22 @@ extension PlayerEditionViewController {
     override func willMove(toParent parent: UIViewController?) {
         super.willMove(toParent: parent)
         
-        if case .push = presentation, parent == nil {
+        if mode == .edition, parent == nil {
             // Self is popping from its navigation controller
             saveChanges()
         }
     }
     
     private func configureNavigationItem() {
-        guard isViewLoaded else { return }
-        
-        if let presentation = presentation {
-            switch presentation {
-            case .modal:
-                navigationItem.leftBarButtonItem = cancelBarButtonItem
-                navigationItem.rightBarButtonItem = commitBarButtonItem
-            case .push:
-                navigationItem.leftBarButtonItem = nil
-                navigationItem.rightBarButtonItem = nil
-            }
+        switch mode {
+        case .creation:
+            navigationItem.title = "New Player"
+            navigationItem.leftBarButtonItem = cancelButtonItem
+            navigationItem.rightBarButtonItem = saveButtonItem
+        case .edition:
+            navigationItem.title = player.name
+            navigationItem.leftBarButtonItem = nil
+            navigationItem.rightBarButtonItem = nil
         }
     }
 }
@@ -104,14 +105,10 @@ extension PlayerEditionViewController: UITextFieldDelegate {
     
     @IBAction func textFieldDidChange(_ textField: UITextField) {
         // User has edited the player: prevent interactive dismissal
-        if case .modal = presentation {
-            isModalInPresentation = true
-        }
+        isModalInPresentation = true
     }
     
     private func configureForm() {
-        guard isViewLoaded else { return }
-        
         nameTextField.text = player.name
         
         if player.score == 0 && player.id == nil {
@@ -122,9 +119,7 @@ extension PlayerEditionViewController: UITextFieldDelegate {
     }
     
     private func saveChanges() {
-        guard var player = self.player else {
-            return
-        }
+        var player = self.player
         player.name = nameTextField.text ?? ""
         player.score = scoreTextField.text.flatMap { Int($0) } ?? 0
         try! AppDatabase.shared.savePlayer(&player)
