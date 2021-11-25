@@ -73,17 +73,10 @@ struct MyApp: App {
 You will feed SwiftUI previews with databases that you want to preview:
 
 ```swift
-struct PlayerList_Previews_Empty: PreviewProvider {
+struct MyView_Previews: PreviewProvider {
     static var previews: some View {
-        PlayerList()
-            .environment(\.dbQueue, /* some database with an empty table of players */)
-    }
-}
-
-struct PlayerList_Previews_Populated: PreviewProvider {
-    static var previews: some View {
-        PlayerList()
-            .environment(\.dbQueue, /* some database with an non-empty table of players */)
+        MyView().environment(\.dbQueue, /* empty table of players */)
+        MyView().environment(\.dbQueue, /* non-empty table of players */)
     }
 }
 ```
@@ -158,7 +151,7 @@ extension Query where Request.DatabaseContext == DatabaseQueue {
 This improves clarity at the call site:
 
 ```swift
-struct MyPlayerList: View {
+struct PlayerList: View {
     @Query(AllPlayers()) var players
     ...
 }

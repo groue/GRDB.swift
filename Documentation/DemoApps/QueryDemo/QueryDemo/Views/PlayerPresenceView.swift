@@ -59,16 +59,11 @@ struct PlayerPresenceView: View {
     }
 }
 
-struct PlayerPresenceView_Previews_Existing: PreviewProvider {
+struct PlayerPresenceView_Previews: PreviewProvider {
     static var previews: some View {
         let playerId: Int64 = 1
         let dbQueue = populatedDatabaseQueue(playerId: playerId)
         PlayerPresenceView(id: playerId).environment(\.dbQueue, dbQueue)
-    }
-}
-
-struct PlayerPresenceView_Previews_Missing: PreviewProvider {
-    static var previews: some View {
         PlayerPresenceView(id: -1)
     }
 }
