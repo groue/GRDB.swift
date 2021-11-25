@@ -32,7 +32,7 @@ struct PlayerList: View {
 
 **`@Query` solves a tricky SwiftUI challenge.** It makes sure SwiftUI views are *immediately* rendered with the database content you expect.
 
-For example, when you display a `List` that animates it changes, you do not want to see an animation for the *initial* state of the list (or to prevent this undesired animation with extra code).
+For example, when you display a `List` that animates it changes, you do not want to see an animation for the *initial* state of the list, or to prevent this undesired animation with extra code.
 
 You also want your SwiftUI previews to display the expected values *without having to run them*.
 
