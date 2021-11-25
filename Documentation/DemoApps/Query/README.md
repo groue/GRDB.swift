@@ -22,6 +22,14 @@ struct PlayerList: View {
 
 `@Query` is more a sample code than a standalone package. To use it, copy and embed this package in your application, or just the [Query.swift](Sources/Query/Query.swift) file.
 
+## Why @Query?
+
+**`@Query` solves a tricky problem.** It makes sure SwiftUI views are *immediately* rendered with the database content you expect.
+
+For example, when you display a `List` that animates it changes, you usually do not want to see an animation for the *initial* state of the list.
+
+All techniques based on `onAppear` suffer from this "double-rendering" problem and its side effects. By contrast, `@Query` has you covered.
+
 ## Usage
 
 **To use `@Query`, first define a new environment key that grants access to the database.**
@@ -98,7 +106,9 @@ struct AllPlayers: Queryable {
     func publisher(in dbQueue: DatabaseQueue) -> AnyPublisher<[Player], Error> {
         ValueObservation
             .tracking { db in try Player.fetchAll(db) }
-            .publisher(in: dbQueue)
+            // The `.immediate` scheduling feeds the view right on subscription,
+            // and avoids an initial rendering with an empty list:
+            .publisher(in: dbQueue, scheduling: .immediate)
             .eraseToAnyPublisher()
     }
 }
