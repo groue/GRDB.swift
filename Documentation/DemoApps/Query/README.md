@@ -166,7 +166,7 @@ struct MyPlayerList: View {
 
 ---
 
-`@Query` was vastly inspired from [Core Data and SwiftUI](https://davedelong.com/blog/2021/04/03/core-data-and-swiftui/) by [Dave DeLong](https://github.com/davedelong). Many thanks!
+🙌 `@Query` was vastly inspired from [Core Data and SwiftUI](https://davedelong.com/blog/2021/04/03/core-data-and-swiftui/) by [@davedelong](https://github.com/davedelong), with critical improvements contributed by [@steipete](https://github.com/steipete). Many thanks to both of you!
 
 
 [DatabaseQueue]: https://github.com/groue/GRDB.swift/blob/master/README.md#database-queues
