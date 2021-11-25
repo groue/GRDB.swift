@@ -73,10 +73,13 @@ struct MyApp: App {
 You will feed SwiftUI previews with databases that you want to preview:
 
 ```swift
-struct MyView_Previews: PreviewProvider {
+struct PlayerList_Previews: PreviewProvider {
     static var previews: some View {
-        MyView().environment(\.dbQueue, /* empty table of players */)
-        MyView().environment(\.dbQueue, /* non-empty table of players */)
+        // Empty list
+        PlayerList().environment(\.dbQueue, /* empty table of players */)
+        
+        // Non-empty list
+        PlayerList().environment(\.dbQueue, /* non-empty table of players */)
     }
 }
 ```
