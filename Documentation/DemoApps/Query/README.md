@@ -2,11 +2,31 @@
 
 This package provides the `@Query` property wrapper, that lets your SwiftUI views automatically update their content when the database changes.
 
-You can copy and embed this package in your application, or just the [Query.swift](Sources/Query/Query.swift) file. 
+```swift
+import Query
+import SwiftUI
+
+/// A view that displays an always up-to-date list of players in the database.
+struct PlayerList: View {
+    @Query(AllPlayers()) var players: [Player]
+    
+    var body: some View {
+        List(players) { player in
+            Text(player.name)
+        }
+    }
+}
+```
+
+`@Query` is for GRDB what [`@FetchRequest`](https://developer.apple.com/documentation/swiftui/fetchrequest) is for Core Data. 
+
+`@Query` is more a sample code than a standalone package. To use it, copy and embed this package in your application, or just the [Query.swift](Sources/Query/Query.swift) file.
+
+## Usage
 
 **To use `@Query`, first define a new environment key that grants access to the database.**
 
-In the example below, we define a new `dbQueue` environment key whose value is a GRDB [DatabaseQueue]. Some other apps, like the GRDB [demo applications], can choose another name and another type.
+In the example below, we define a new `dbQueue` environment key whose value is a GRDB [DatabaseQueue]. Some other apps, like the GRDB [demo applications], can choose another name and another type, such as a "database manager" that encapsulates database accesses.
 
 The [EnvironmentKey](https://developer.apple.com/documentation/swiftui/environmentkey) documentation describes the procedure:
 
@@ -41,6 +61,26 @@ struct MyApp: App {
     }
 }
 ```
+
+You will feed SwiftUI previews with databases that you want to preview:
+
+```swift
+struct PlayerList_Previews_Empty: PreviewProvider {
+    static var previews: some View {
+        PlayerList()
+            .environment(\.dbQueue, /* some database with an empty table of players */)
+    }
+}
+
+struct PlayerList_Previews_Populated: PreviewProvider {
+    static var previews: some View {
+        PlayerList()
+            .environment(\.dbQueue, /* some database with an non-empty table of players */)
+    }
+}
+```
+
+See the GRDB [demo applications] for examples of such setups.
 
 **Next, define a `Queryable` type for each database request you want to observe.**
 

@@ -19,6 +19,7 @@ struct QueryDemoApp: App {
 // <https://developer.apple.com/documentation/swiftui/environmentkey>.
 
 private struct DatabaseQueueKey: EnvironmentKey {
+    /// The default dbQueue is an empty in-memory database of players
     static let defaultValue = emptyDatabaseQueue()
 }
 
