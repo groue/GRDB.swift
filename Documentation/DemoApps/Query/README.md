@@ -118,11 +118,11 @@ struct AllPlayers: Queryable {
 }
 ```
 
-The `Queryable` protocol has two requirements: a default value, and a Combine publisher. The publisher tracks database changes, usually with GRDB [ValueObservation]. The default value is used until the publisher publishes its initial value.
+The `Queryable` protocol has two requirements: a default value, and a Combine publisher. The publisher is built from the `DatabaseQueue` stored in the environment (you'll adapt this sample code if you prefer another type). The publisher tracks database changes, usually with GRDB [ValueObservation]. The default value is used until the publisher publishes its initial value.
 
-Note in the above sample code how we make sure the views are immediately fed with database content with the `scheduling: .immediate` option.
+In the above sample code, we make sure the views are *immediately* fed with database content with the `scheduling: .immediate` option. This prevents any "blank state", or "flash of missing content".
 
-You will want to remove this option for database requests that are too slow. Without `scheduling: .immediate`, views will be initially fed with the default value, and the database content will be notified later. In the meantime, your view can display some waiting indicator, or a [redacted](https://developer.apple.com/documentation/swiftui/view/redacted(reason:)) placeholder. 
+The `scheduling: .immediate` option should be removed for database requests that are too slow. In this case, views are initially fed with the default value, and the database content is notified later, when it becomes available. In the meantime, your view can display some waiting indicator, or a [redacted](https://developer.apple.com/documentation/swiftui/view/redacted(reason:)) placeholder. 
 
 **Finally**, you can define a SwiftUI view that automatically updates its content when the database changes:
 
