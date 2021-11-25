@@ -1,4 +1,4 @@
-import Query
+import GRDBQuery
 import SwiftUI
 
 @main
@@ -29,7 +29,7 @@ extension EnvironmentValues {
 }
 
 // In this demo app, views observe the database with the @Query property
-// wrapper, defined in the local Query package. Its documentation recommends to
+// wrapper, defined in the GRDBQuery package. Its documentation recommends to
 // define a dedicated initializer for `appDatabase` access, so we comply:
 
 extension Query where Request.DatabaseContext == AppDatabase {

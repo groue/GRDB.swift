@@ -1,6 +1,6 @@
 import Combine
 import GRDB
-import Query
+import GRDBQuery
 
 /// A player request can be used with the `@Query` property wrapper in order to
 /// feed a view with a list of players.

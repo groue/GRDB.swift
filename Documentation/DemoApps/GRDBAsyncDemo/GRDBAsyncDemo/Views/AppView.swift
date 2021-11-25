@@ -1,4 +1,4 @@
-import Query
+import GRDBQuery
 import SwiftUI
 
 /// The main application view

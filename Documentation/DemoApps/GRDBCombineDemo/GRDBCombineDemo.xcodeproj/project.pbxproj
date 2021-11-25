@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		56026CAC25B8A7EF00D1DF3F /* PlayerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56026CAA25B8A7EF00D1DF3F /* PlayerTests.swift */; };
 		56026CAD25B8A7EF00D1DF3F /* AppDatabaseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56026CAB25B8A7EF00D1DF3F /* AppDatabaseTests.swift */; };
+		56519DC7274FC85600ED16D8 /* GRDBQuery in Frameworks */ = {isa = PBXBuildFile; productRef = 56519DC6274FC85600ED16D8 /* GRDBQuery */; };
 		5671723A261B23C800423B6F /* PlayerList.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56717239261B23C800423B6F /* PlayerList.swift */; };
 		56717252261B334D00423B6F /* PlayerRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56717251261B334D00423B6F /* PlayerRequestTests.swift */; };
 		567C3E1A2520B6DE0011F6E9 /* GRDBCombineDemoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567C3E192520B6DE0011F6E9 /* GRDBCombineDemoApp.swift */; };
@@ -25,7 +26,6 @@
 		567C3E7A2520BB650011F6E9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 567C3E772520BB650011F6E9 /* LaunchScreen.storyboard */; };
 		56B6D1092619EC1B003CC455 /* PlayerRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D1082619EC1B003CC455 /* PlayerRequest.swift */; };
 		56F8A1202735989D0011ACBE /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 56F8A11F2735989D0011ACBE /* GRDB */; };
-		56F8A125273599D50011ACBE /* Query in Frameworks */ = {isa = PBXBuildFile; productRef = 56F8A124273599D50011ACBE /* Query */; };
 		78E2F9E6261EEC22005D1F7F /* GRDBCombineDemoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78E2F9E5261EEC22005D1F7F /* GRDBCombineDemoUITests.swift */; };
 /* End PBXBuildFile section */
 
@@ -82,7 +82,6 @@
 		567C3E782520BB650011F6E9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		56B6D1082619EC1B003CC455 /* PlayerRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerRequest.swift; sourceTree = "<group>"; };
 		56F8A11C2735988F0011ACBE /* GRDB.swift */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GRDB.swift; path = ../../..; sourceTree = "<group>"; };
-		56F8A121273599220011ACBE /* Query */ = {isa = PBXFileReference; lastKnownFileType = folder; name = Query; path = ../Query; sourceTree = "<group>"; };
 		78E2F9E3261EEC22005D1F7F /* GRDBCombineDemoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBCombineDemoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		78E2F9E5261EEC22005D1F7F /* GRDBCombineDemoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GRDBCombineDemoUITests.swift; sourceTree = "<group>"; };
 		78E2F9E7261EEC22005D1F7F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -100,8 +99,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				56519DC7274FC85600ED16D8 /* GRDBQuery in Frameworks */,
 				56F8A1202735989D0011ACBE /* GRDB in Frameworks */,
-				56F8A125273599D50011ACBE /* Query in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,7 +144,6 @@
 				567C3E172520B6DE0011F6E9 /* Products */,
 				567C3E4D2520B70E0011F6E9 /* Frameworks */,
 				56F8A11C2735988F0011ACBE /* GRDB.swift */,
-				56F8A121273599220011ACBE /* Query */,
 			);
 			sourceTree = "<group>";
 		};
@@ -244,13 +242,12 @@
 			buildRules = (
 			);
 			dependencies = (
-				56F8A123273599D20011ACBE /* PBXTargetDependency */,
 				56F8A11E273598960011ACBE /* PBXTargetDependency */,
 			);
 			name = GRDBCombineDemo;
 			packageProductDependencies = (
 				56F8A11F2735989D0011ACBE /* GRDB */,
-				56F8A124273599D50011ACBE /* Query */,
+				56519DC6274FC85600ED16D8 /* GRDBQuery */,
 			);
 			productName = GRBCombineDemo;
 			productReference = 567C3E162520B6DE0011F6E9 /* GRDBCombineDemo.app */;
@@ -305,6 +302,9 @@
 				Base,
 			);
 			mainGroup = 567C3E0D2520B6DE0011F6E9;
+			packageReferences = (
+				56519DC5274FC85600ED16D8 /* XCRemoteSwiftPackageReference "GRDBQuery" */,
+			);
 			productRefGroup = 567C3E172520B6DE0011F6E9 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -391,10 +391,6 @@
 		56F8A11E273598960011ACBE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			productRef = 56F8A11D273598960011ACBE /* GRDB */;
-		};
-		56F8A123273599D20011ACBE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			productRef = 56F8A122273599D20011ACBE /* Query */;
 		};
 		78E2F9E9261EEC22005D1F7F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -698,7 +694,23 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		56519DC5274FC85600ED16D8 /* XCRemoteSwiftPackageReference "GRDBQuery" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDBQuery";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
+		56519DC6274FC85600ED16D8 /* GRDBQuery */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 56519DC5274FC85600ED16D8 /* XCRemoteSwiftPackageReference "GRDBQuery" */;
+			productName = GRDBQuery;
+		};
 		56F8A11D273598960011ACBE /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GRDB;
@@ -706,14 +718,6 @@
 		56F8A11F2735989D0011ACBE /* GRDB */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = GRDB;
-		};
-		56F8A122273599D20011ACBE /* Query */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Query;
-		};
-		56F8A124273599D50011ACBE /* Query */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = Query;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

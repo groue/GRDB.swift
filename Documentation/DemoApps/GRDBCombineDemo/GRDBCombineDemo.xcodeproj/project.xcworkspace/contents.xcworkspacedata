@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "self:/Users/groue/Documents/git/groue/GRDB.swift/Documentation/DemoApps/GRBCombineDemo/GRDBCombineDemo.xcodeproj">
+      location = "self:">
    </FileRef>
 </Workspace>
