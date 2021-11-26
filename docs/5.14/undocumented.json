@@ -1,0 +1,1531 @@
+{
+  "warnings": [
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Database+Statements.swift",
+      "line": 470,
+      "symbol": "SQLStatementCursor",
+      "symbol_kind": "source.lang.swift.decl.class",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 48,
+      "symbol": "ResultCode.SQLITE_OK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 49,
+      "symbol": "ResultCode.SQLITE_ERROR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 50,
+      "symbol": "ResultCode.SQLITE_INTERNAL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 51,
+      "symbol": "ResultCode.SQLITE_PERM",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 52,
+      "symbol": "ResultCode.SQLITE_ABORT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 53,
+      "symbol": "ResultCode.SQLITE_BUSY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 54,
+      "symbol": "ResultCode.SQLITE_LOCKED",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 55,
+      "symbol": "ResultCode.SQLITE_NOMEM",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 56,
+      "symbol": "ResultCode.SQLITE_READONLY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 57,
+      "symbol": "ResultCode.SQLITE_INTERRUPT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 58,
+      "symbol": "ResultCode.SQLITE_IOERR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 59,
+      "symbol": "ResultCode.SQLITE_CORRUPT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 60,
+      "symbol": "ResultCode.SQLITE_NOTFOUND",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 61,
+      "symbol": "ResultCode.SQLITE_FULL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 62,
+      "symbol": "ResultCode.SQLITE_CANTOPEN",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 63,
+      "symbol": "ResultCode.SQLITE_PROTOCOL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 64,
+      "symbol": "ResultCode.SQLITE_EMPTY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 65,
+      "symbol": "ResultCode.SQLITE_SCHEMA",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 66,
+      "symbol": "ResultCode.SQLITE_TOOBIG",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 67,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 68,
+      "symbol": "ResultCode.SQLITE_MISMATCH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 69,
+      "symbol": "ResultCode.SQLITE_MISUSE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 70,
+      "symbol": "ResultCode.SQLITE_NOLFS",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 71,
+      "symbol": "ResultCode.SQLITE_AUTH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 72,
+      "symbol": "ResultCode.SQLITE_FORMAT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 73,
+      "symbol": "ResultCode.SQLITE_RANGE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 74,
+      "symbol": "ResultCode.SQLITE_NOTADB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 75,
+      "symbol": "ResultCode.SQLITE_NOTICE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 76,
+      "symbol": "ResultCode.SQLITE_WARNING",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 77,
+      "symbol": "ResultCode.SQLITE_ROW",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 78,
+      "symbol": "ResultCode.SQLITE_DONE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 85,
+      "symbol": "ResultCode.SQLITE_ERROR_MISSING_COLLSEQ",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 86,
+      "symbol": "ResultCode.SQLITE_ERROR_RETRY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 87,
+      "symbol": "ResultCode.SQLITE_ERROR_SNAPSHOT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 88,
+      "symbol": "ResultCode.SQLITE_IOERR_READ",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 89,
+      "symbol": "ResultCode.SQLITE_IOERR_SHORT_READ",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 90,
+      "symbol": "ResultCode.SQLITE_IOERR_WRITE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 91,
+      "symbol": "ResultCode.SQLITE_IOERR_FSYNC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 92,
+      "symbol": "ResultCode.SQLITE_IOERR_DIR_FSYNC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 93,
+      "symbol": "ResultCode.SQLITE_IOERR_TRUNCATE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 94,
+      "symbol": "ResultCode.SQLITE_IOERR_FSTAT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 95,
+      "symbol": "ResultCode.SQLITE_IOERR_UNLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 96,
+      "symbol": "ResultCode.SQLITE_IOERR_RDLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 97,
+      "symbol": "ResultCode.SQLITE_IOERR_DELETE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 98,
+      "symbol": "ResultCode.SQLITE_IOERR_BLOCKED",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 99,
+      "symbol": "ResultCode.SQLITE_IOERR_NOMEM",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 100,
+      "symbol": "ResultCode.SQLITE_IOERR_ACCESS",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 101,
+      "symbol": "ResultCode.SQLITE_IOERR_CHECKRESERVEDLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 102,
+      "symbol": "ResultCode.SQLITE_IOERR_LOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 103,
+      "symbol": "ResultCode.SQLITE_IOERR_CLOSE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 104,
+      "symbol": "ResultCode.SQLITE_IOERR_DIR_CLOSE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 105,
+      "symbol": "ResultCode.SQLITE_IOERR_SHMOPEN",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 106,
+      "symbol": "ResultCode.SQLITE_IOERR_SHMSIZE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 107,
+      "symbol": "ResultCode.SQLITE_IOERR_SHMLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 108,
+      "symbol": "ResultCode.SQLITE_IOERR_SHMMAP",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 109,
+      "symbol": "ResultCode.SQLITE_IOERR_SEEK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 110,
+      "symbol": "ResultCode.SQLITE_IOERR_DELETE_NOENT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 111,
+      "symbol": "ResultCode.SQLITE_IOERR_MMAP",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 112,
+      "symbol": "ResultCode.SQLITE_IOERR_GETTEMPPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 113,
+      "symbol": "ResultCode.SQLITE_IOERR_CONVPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 114,
+      "symbol": "ResultCode.SQLITE_IOERR_VNODE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 115,
+      "symbol": "ResultCode.SQLITE_IOERR_AUTH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 116,
+      "symbol": "ResultCode.SQLITE_IOERR_BEGIN_ATOMIC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 117,
+      "symbol": "ResultCode.SQLITE_IOERR_COMMIT_ATOMIC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 118,
+      "symbol": "ResultCode.SQLITE_IOERR_ROLLBACK_ATOMIC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 119,
+      "symbol": "ResultCode.SQLITE_LOCKED_SHAREDCACHE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 120,
+      "symbol": "ResultCode.SQLITE_LOCKED_VTAB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 121,
+      "symbol": "ResultCode.SQLITE_BUSY_RECOVERY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 122,
+      "symbol": "ResultCode.SQLITE_BUSY_SNAPSHOT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 123,
+      "symbol": "ResultCode.SQLITE_CANTOPEN_NOTEMPDIR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 124,
+      "symbol": "ResultCode.SQLITE_CANTOPEN_ISDIR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 125,
+      "symbol": "ResultCode.SQLITE_CANTOPEN_FULLPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 126,
+      "symbol": "ResultCode.SQLITE_CANTOPEN_CONVPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 127,
+      "symbol": "ResultCode.SQLITE_CANTOPEN_DIRTYWAL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 128,
+      "symbol": "ResultCode.SQLITE_CORRUPT_VTAB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 129,
+      "symbol": "ResultCode.SQLITE_CORRUPT_SEQUENCE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 130,
+      "symbol": "ResultCode.SQLITE_READONLY_RECOVERY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 131,
+      "symbol": "ResultCode.SQLITE_READONLY_CANTLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 132,
+      "symbol": "ResultCode.SQLITE_READONLY_ROLLBACK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 133,
+      "symbol": "ResultCode.SQLITE_READONLY_DBMOVED",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 134,
+      "symbol": "ResultCode.SQLITE_READONLY_CANTINIT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 135,
+      "symbol": "ResultCode.SQLITE_READONLY_DIRECTORY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 136,
+      "symbol": "ResultCode.SQLITE_ABORT_ROLLBACK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 137,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_CHECK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 138,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_COMMITHOOK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 139,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_FOREIGNKEY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 140,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_FUNCTION",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 141,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_NOTNULL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 142,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_PRIMARYKEY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 143,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_TRIGGER",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 144,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_UNIQUE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 145,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_VTAB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 146,
+      "symbol": "ResultCode.SQLITE_CONSTRAINT_ROWID",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 147,
+      "symbol": "ResultCode.SQLITE_NOTICE_RECOVER_WAL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 148,
+      "symbol": "ResultCode.SQLITE_NOTICE_RECOVER_ROLLBACK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 149,
+      "symbol": "ResultCode.SQLITE_WARNING_AUTOINDEX",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 150,
+      "symbol": "ResultCode.SQLITE_AUTH_USER",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 151,
+      "symbol": "ResultCode.SQLITE_OK_LOAD_PERMANENTLY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 269,
+      "symbol": "DatabaseError.SQLITE_OK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 270,
+      "symbol": "DatabaseError.SQLITE_ERROR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 271,
+      "symbol": "DatabaseError.SQLITE_INTERNAL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 272,
+      "symbol": "DatabaseError.SQLITE_PERM",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 273,
+      "symbol": "DatabaseError.SQLITE_ABORT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 274,
+      "symbol": "DatabaseError.SQLITE_BUSY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 275,
+      "symbol": "DatabaseError.SQLITE_LOCKED",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 276,
+      "symbol": "DatabaseError.SQLITE_NOMEM",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 277,
+      "symbol": "DatabaseError.SQLITE_READONLY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 278,
+      "symbol": "DatabaseError.SQLITE_INTERRUPT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 279,
+      "symbol": "DatabaseError.SQLITE_IOERR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 280,
+      "symbol": "DatabaseError.SQLITE_CORRUPT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 281,
+      "symbol": "DatabaseError.SQLITE_NOTFOUND",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 282,
+      "symbol": "DatabaseError.SQLITE_FULL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 283,
+      "symbol": "DatabaseError.SQLITE_CANTOPEN",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 284,
+      "symbol": "DatabaseError.SQLITE_PROTOCOL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 285,
+      "symbol": "DatabaseError.SQLITE_EMPTY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 286,
+      "symbol": "DatabaseError.SQLITE_SCHEMA",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 287,
+      "symbol": "DatabaseError.SQLITE_TOOBIG",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 288,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 289,
+      "symbol": "DatabaseError.SQLITE_MISMATCH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 290,
+      "symbol": "DatabaseError.SQLITE_MISUSE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 291,
+      "symbol": "DatabaseError.SQLITE_NOLFS",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 292,
+      "symbol": "DatabaseError.SQLITE_AUTH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 293,
+      "symbol": "DatabaseError.SQLITE_FORMAT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 294,
+      "symbol": "DatabaseError.SQLITE_RANGE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 295,
+      "symbol": "DatabaseError.SQLITE_NOTADB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 296,
+      "symbol": "DatabaseError.SQLITE_NOTICE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 297,
+      "symbol": "DatabaseError.SQLITE_WARNING",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 298,
+      "symbol": "DatabaseError.SQLITE_ROW",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 299,
+      "symbol": "DatabaseError.SQLITE_DONE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 300,
+      "symbol": "DatabaseError.SQLITE_ERROR_MISSING_COLLSEQ",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 301,
+      "symbol": "DatabaseError.SQLITE_ERROR_RETRY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 302,
+      "symbol": "DatabaseError.SQLITE_ERROR_SNAPSHOT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 303,
+      "symbol": "DatabaseError.SQLITE_IOERR_READ",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 304,
+      "symbol": "DatabaseError.SQLITE_IOERR_SHORT_READ",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 305,
+      "symbol": "DatabaseError.SQLITE_IOERR_WRITE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 306,
+      "symbol": "DatabaseError.SQLITE_IOERR_FSYNC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 307,
+      "symbol": "DatabaseError.SQLITE_IOERR_DIR_FSYNC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 308,
+      "symbol": "DatabaseError.SQLITE_IOERR_TRUNCATE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 309,
+      "symbol": "DatabaseError.SQLITE_IOERR_FSTAT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 310,
+      "symbol": "DatabaseError.SQLITE_IOERR_UNLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 311,
+      "symbol": "DatabaseError.SQLITE_IOERR_RDLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 312,
+      "symbol": "DatabaseError.SQLITE_IOERR_DELETE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 313,
+      "symbol": "DatabaseError.SQLITE_IOERR_BLOCKED",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 314,
+      "symbol": "DatabaseError.SQLITE_IOERR_NOMEM",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 315,
+      "symbol": "DatabaseError.SQLITE_IOERR_ACCESS",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 316,
+      "symbol": "DatabaseError.SQLITE_IOERR_CHECKRESERVEDLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 317,
+      "symbol": "DatabaseError.SQLITE_IOERR_LOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 318,
+      "symbol": "DatabaseError.SQLITE_IOERR_CLOSE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 319,
+      "symbol": "DatabaseError.SQLITE_IOERR_DIR_CLOSE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 320,
+      "symbol": "DatabaseError.SQLITE_IOERR_SHMOPEN",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 321,
+      "symbol": "DatabaseError.SQLITE_IOERR_SHMSIZE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 322,
+      "symbol": "DatabaseError.SQLITE_IOERR_SHMLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 323,
+      "symbol": "DatabaseError.SQLITE_IOERR_SHMMAP",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 324,
+      "symbol": "DatabaseError.SQLITE_IOERR_SEEK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 325,
+      "symbol": "DatabaseError.SQLITE_IOERR_DELETE_NOENT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 326,
+      "symbol": "DatabaseError.SQLITE_IOERR_MMAP",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 327,
+      "symbol": "DatabaseError.SQLITE_IOERR_GETTEMPPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 328,
+      "symbol": "DatabaseError.SQLITE_IOERR_CONVPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 329,
+      "symbol": "DatabaseError.SQLITE_IOERR_VNODE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 330,
+      "symbol": "DatabaseError.SQLITE_IOERR_AUTH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 331,
+      "symbol": "DatabaseError.SQLITE_IOERR_BEGIN_ATOMIC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 332,
+      "symbol": "DatabaseError.SQLITE_IOERR_COMMIT_ATOMIC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 333,
+      "symbol": "DatabaseError.SQLITE_IOERR_ROLLBACK_ATOMIC",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 334,
+      "symbol": "DatabaseError.SQLITE_LOCKED_SHAREDCACHE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 335,
+      "symbol": "DatabaseError.SQLITE_LOCKED_VTAB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 336,
+      "symbol": "DatabaseError.SQLITE_BUSY_RECOVERY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 337,
+      "symbol": "DatabaseError.SQLITE_BUSY_SNAPSHOT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 338,
+      "symbol": "DatabaseError.SQLITE_CANTOPEN_NOTEMPDIR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 339,
+      "symbol": "DatabaseError.SQLITE_CANTOPEN_ISDIR",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 340,
+      "symbol": "DatabaseError.SQLITE_CANTOPEN_FULLPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 341,
+      "symbol": "DatabaseError.SQLITE_CANTOPEN_CONVPATH",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 342,
+      "symbol": "DatabaseError.SQLITE_CANTOPEN_DIRTYWAL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 343,
+      "symbol": "DatabaseError.SQLITE_CORRUPT_VTAB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 344,
+      "symbol": "DatabaseError.SQLITE_CORRUPT_SEQUENCE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 345,
+      "symbol": "DatabaseError.SQLITE_READONLY_RECOVERY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 346,
+      "symbol": "DatabaseError.SQLITE_READONLY_CANTLOCK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 347,
+      "symbol": "DatabaseError.SQLITE_READONLY_ROLLBACK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 348,
+      "symbol": "DatabaseError.SQLITE_READONLY_DBMOVED",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 349,
+      "symbol": "DatabaseError.SQLITE_READONLY_CANTINIT",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 350,
+      "symbol": "DatabaseError.SQLITE_READONLY_DIRECTORY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 351,
+      "symbol": "DatabaseError.SQLITE_ABORT_ROLLBACK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 352,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_CHECK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 353,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_COMMITHOOK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 354,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_FOREIGNKEY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 355,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_FUNCTION",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 356,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_NOTNULL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 357,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_PRIMARYKEY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 358,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_TRIGGER",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 359,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_UNIQUE",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 360,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_VTAB",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 361,
+      "symbol": "DatabaseError.SQLITE_CONSTRAINT_ROWID",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 362,
+      "symbol": "DatabaseError.SQLITE_NOTICE_RECOVER_WAL",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 363,
+      "symbol": "DatabaseError.SQLITE_NOTICE_RECOVER_ROLLBACK",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 364,
+      "symbol": "DatabaseError.SQLITE_WARNING_AUTOINDEX",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 365,
+      "symbol": "DatabaseError.SQLITE_AUTH_USER",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseError.swift",
+      "line": 366,
+      "symbol": "DatabaseError.SQLITE_OK_LOAD_PERMANENTLY",
+      "symbol_kind": "source.lang.swift.decl.var.static",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseRegion.swift",
+      "line": 370,
+      "symbol": "AnyDatabaseRegionConvertible.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseRegion.swift",
+      "line": 374,
+      "symbol": "AnyDatabaseRegionConvertible.init(_:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/DatabaseWriter.swift",
+      "line": 298,
+      "symbol": "DatabaseWriter.remove(transactionObserver:)",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/FetchRequest.swift",
+      "line": 96,
+      "symbol": "AdaptedFetchRequest.sqlSubquery",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/FetchRequest.swift",
+      "line": 138,
+      "symbol": "AnyFetchRequest.sqlSubquery",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/SQLRequest.swift",
+      "line": 143,
+      "symbol": "SQLRequest.sqlSubquery",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
+      "line": 20,
+      "symbol": "StatementBinding",
+      "symbol_kind": "source.lang.swift.decl.extension",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
+      "line": 294,
+      "symbol": "SelectStatement",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
+      "line": 297,
+      "symbol": "UpdateStatement",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
+      "line": 438,
+      "symbol": "StatementBinding",
+      "symbol_kind": "source.lang.swift.decl.protocol",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
+      "line": 534,
+      "symbol": "StatementArguments.isEmpty",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Fixit/GRDB-5.0.swift",
+      "line": 198,
+      "symbol": "SQLLiteral",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Fixit/GRDB-5.0.swift",
+      "line": 221,
+      "symbol": "SQLiteral",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/Request/QueryInterfaceRequest.swift",
+      "line": 38,
+      "symbol": "QueryInterfaceRequest.sqlSubquery",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/SQL/SQLExpression.swift",
+      "line": 366,
+      "symbol": "SQLAssociativeBinaryOperator",
+      "symbol_kind": "source.lang.swift.decl.typealias",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/SQL/SQLSubquery.swift",
+      "line": 90,
+      "symbol": "SQLSubqueryable.sqlSubquery",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/SQL/SQLSubquery.swift",
+      "line": 96,
+      "symbol": "SQLSubquery.sqlSubquery",
+      "symbol_kind": "source.lang.swift.decl.var.instance",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/Schema/TableDefinition.swift",
+      "line": 748,
+      "symbol": "ColumnDefinition.GeneratedColumnQualification.virtual",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/Schema/TableDefinition.swift",
+      "line": 749,
+      "symbol": "ColumnDefinition.GeneratedColumnQualification.stored",
+      "symbol_kind": "source.lang.swift.decl.enumelement",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/QueryInterface/Schema/VirtualTableModule.swift",
+      "line": 60,
+      "symbol": "VirtualTableConfiguration",
+      "symbol_kind": "source.lang.swift.decl.struct",
+      "warning": "undocumented"
+    },
+    {
+      "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Utils/Inflections.swift",
+      "line": 54,
+      "symbol": "Inflections.init()",
+      "symbol_kind": "source.lang.swift.decl.function.method.instance",
+      "warning": "undocumented"
+    }
+  ],
+  "source_directory": "/Users/groue/Documents/git/groue/GRDB.swift"
+}
