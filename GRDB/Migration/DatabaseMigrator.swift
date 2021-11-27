@@ -328,9 +328,9 @@ public struct DatabaseMigrator {
     public func completedMigrations(_ db: Database) throws -> [String] {
         let appliedIdentifiers = try appliedMigrations(db)
         let knownIdentifiers = _migrations.map(\.identifier)
-        return Array(zip(appliedIdentifiers, knownIdentifiers)
-                        .prefix(while: { $0 == $1 })
-                        .map { $0.0 })
+        return zip(appliedIdentifiers, knownIdentifiers)
+            .prefix(while: { (applied: String, known: String) in applied == known })
+            .map { $0.0 }
     }
     
     /// Returns true if all migrations are applied.

@@ -150,8 +150,8 @@ public final class Statement {
     
     // Returns ["id", nil", "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
     fileprivate lazy var sqliteArgumentNames: [String?] = {
-        (0..<self.sqliteArgumentCount).map {
-            guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, Int32($0 + 1)) else {
+        (0..<Int32(self.sqliteArgumentCount)).map {
+            guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, $0 + 1) else {
                 return nil
             }
             return String(String(cString: cString).dropFirst()) // Drop initial ":", "@", "$"
