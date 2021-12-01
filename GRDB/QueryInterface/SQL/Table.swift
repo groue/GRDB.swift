@@ -33,6 +33,12 @@ extension Table where RowDecoder == Row {
     }
 }
 
+extension Table: DatabaseRegionConvertible {
+    public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
+        DatabaseRegion(table: tableName)
+    }
+}
+
 // MARK: Request Derivation
 
 extension Table {
