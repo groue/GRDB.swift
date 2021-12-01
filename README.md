@@ -6669,7 +6669,7 @@ After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChan
 
 A request knows which database modifications can impact its results. It can communicate this information to [transaction observers](#transactionobserver-protocol) by the way of a DatabaseRegion.
 
-DatabaseRegion fuels, for example, [ValueObservation and DatabaseRegionObservation].
+DatabaseRegion fuels, for example, [ValueObservation] and [DatabaseRegionObservation].
 
 **A region notifies *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
