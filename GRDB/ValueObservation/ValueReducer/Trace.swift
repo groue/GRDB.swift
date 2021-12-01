@@ -5,7 +5,7 @@ extension ValueReducers {
         let willFetch: () -> Void
         let didReceiveValue: (Base.Value) -> Void
         /// :nodoc:
-        public var _isSelectedRegionDeterministic: Bool { base._isSelectedRegionDeterministic }
+        public var _trackingMode: _ValueReducerTrackingMode { base._trackingMode }
         
         /// :nodoc:
         public func _fetch(_ db: Database) throws -> Base.Fetched {

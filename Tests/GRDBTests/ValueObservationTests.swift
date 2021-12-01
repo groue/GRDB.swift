@@ -141,6 +141,177 @@ class ValueObservationTests: GRDBTestCase {
         }
     }
     
+    // MARK: - Constant Explicit Region
+    
+    func testTrackingExplicitRegion() throws {
+        class TestStream: TextOutputStream {
+            @LockedBox var strings: [String] = []
+            func write(_ string: String) {
+                strings.append(string)
+            }
+        }
+        
+        // Test behavior with DatabaseQueue, DatabasePool, etc
+        do {
+            try assertValueObservation(
+                ValueObservation
+                    .tracking(region: .fullDatabase, fetch: Table("t").fetchCount),
+                records: [0, 1, 1, 2, 3, 4],
+                setup: { db in
+                    try db.execute(sql: """
+                        CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                        """)
+                },
+                recordedUpdates: { db in
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.execute(sql: "UPDATE t SET id = id")
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                    try db.inTransaction {
+                        try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                        try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                        try db.execute(sql: "DELETE FROM t WHERE id = 1")
+                        return .commit
+                    }
+                    try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                })
+        }
+        
+        // Track only table "t"
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.execute(sql: """
+                    CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                    CREATE TABLE other(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                    """)
+            }
+            
+            let logger = TestStream()
+            let observation = ValueObservation.tracking(
+                region: Table("t"),
+                fetch: Table("t").fetchCount)
+                .print(to: logger)
+            
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 2
+            let cancellable = observation.start(
+                in: dbQueue,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { _ in
+                    expectation.fulfill()
+            })
+            try withExtendedLifetime(cancellable) {
+                try dbQueue.writeWithoutTransaction { db in
+                    try db.execute(sql: """
+                        INSERT INTO other DEFAULT VALUES;
+                        INSERT INTO t DEFAULT VALUES;
+                        """)
+                }
+                wait(for: [expectation], timeout: 4)
+                XCTAssertEqual(logger.strings, [
+                    "start",
+                    "tracked region: t(*)",
+                    "fetch",
+                    "value: 0",
+                    "database did change",
+                    "fetch",
+                    "value: 1",
+                ])
+            }
+        }
+        
+        // Track only table "other"
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.execute(sql: """
+                    CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                    CREATE TABLE other(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                    """)
+            }
+            
+            let logger = TestStream()
+            let observation = ValueObservation.tracking(
+                region: Table("other"),
+                fetch: Table("t").fetchCount)
+                .print(to: logger)
+            
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 2
+            let cancellable = observation.start(
+                in: dbQueue,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { _ in
+                    expectation.fulfill()
+            })
+            try withExtendedLifetime(cancellable) {
+                try dbQueue.writeWithoutTransaction { db in
+                    try db.execute(sql: """
+                        INSERT INTO other DEFAULT VALUES;
+                        INSERT INTO t DEFAULT VALUES;
+                        """)
+                }
+                wait(for: [expectation], timeout: 4)
+                XCTAssertEqual(logger.strings, [
+                    "start",
+                    "tracked region: other(*)",
+                    "fetch",
+                    "value: 0",
+                    "database did change",
+                    "fetch",
+                    "value: 0",
+                ])
+            }
+        }
+        
+        // Track both "t" and "other"
+        do {
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.execute(sql: """
+                    CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                    CREATE TABLE other(id INTEGER PRIMARY KEY AUTOINCREMENT);
+                    """)
+            }
+            
+            let logger = TestStream()
+            let observation = ValueObservation.tracking(
+                region: Table("t"), Table("other"),
+                fetch: Table("t").fetchCount)
+                .print(to: logger)
+            
+            let expectation = self.expectation(description: "")
+            expectation.expectedFulfillmentCount = 3
+            let cancellable = observation.start(
+                in: dbQueue,
+                onError: { error in XCTFail("Unexpected error: \(error)") },
+                onChange: { _ in
+                    expectation.fulfill()
+            })
+            try withExtendedLifetime(cancellable) {
+                try dbQueue.writeWithoutTransaction { db in
+                    try db.execute(sql: """
+                        INSERT INTO other DEFAULT VALUES;
+                        INSERT INTO t DEFAULT VALUES;
+                        """)
+                }
+                wait(for: [expectation], timeout: 4)
+                XCTAssertEqual(logger.strings, [
+                    "start",
+                    "tracked region: other(*),t(*)",
+                    "fetch",
+                    "value: 0",
+                    "database did change",
+                    "fetch",
+                    "value: 0",
+                    "database did change",
+                    "fetch",
+                    "value: 1",
+                ])
+            }
+        }
+    }
+
     // MARK: - Snapshot Optimization
     
     func testDisallowedSnapshotOptimizationWithAsyncScheduler() throws {

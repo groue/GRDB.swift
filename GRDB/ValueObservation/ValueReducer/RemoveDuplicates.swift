@@ -14,7 +14,7 @@ extension ValueReducers {
         private var base: Base
         private var previousValue: Base.Value?
         /// :nodoc:
-        public var _isSelectedRegionDeterministic: Bool { base._isSelectedRegionDeterministic }
+        public var _trackingMode: _ValueReducerTrackingMode { base._trackingMode }
         
         init(_ base: Base) {
             self.base = base

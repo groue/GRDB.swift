@@ -242,7 +242,7 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
     private var __fetch: (Database) throws -> Fetched
     private var __value: (Fetched) -> Value?
     
-    public var _isSelectedRegionDeterministic: Bool { false }
+    public var _trackingMode: _ValueReducerTrackingMode { .nonConstantRegionRecordedFromSelection }
     
     public init(
         fetch: @escaping (Database) throws -> Fetched,

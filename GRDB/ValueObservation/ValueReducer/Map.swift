@@ -18,7 +18,7 @@ extension ValueReducers {
         private var base: Base
         private let transform: (Base.Value) -> Value
         /// :nodoc:
-        public var _isSelectedRegionDeterministic: Bool { base._isSelectedRegionDeterministic }
+        public var _trackingMode: _ValueReducerTrackingMode { base._trackingMode }
         
         init(_ base: Base, _ transform: @escaping (Base.Value) -> Value) {
             self.base = base

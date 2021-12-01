@@ -496,7 +496,97 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        .init(makeReducer: { .init(isSelectedRegionDeterministic: true, fetch: fetch) })
+        .init(makeReducer: { ValueReducers.Fetch(trackingMode: .constantRegionRecordedFromSelection, fetch: fetch) })
+    }
+    
+    /// Creates a `ValueObservation` that notifies the values returned by the
+    /// `fetch` function whenever a database transaction has an impact on the
+    /// given regions.
+    ///
+    /// The tracked region *is not* automatically inferred from the requests
+    /// performed in the `fetch` function.
+    ///
+    /// For example:
+    ///
+    ///     // Tracks the full database
+    ///     let observation = ValueObservation.tracking
+    ///         region: .fullDatabase,
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks the full 'player' table
+    ///     let observation = ValueObservation.tracking
+    ///         region: Player.all(),
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks the row with id 42 in the 'player' table
+    ///     let observation = ValueObservation.tracking
+    ///         region: Player.filter(id: 42),
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks the 'score' column in the 'player' table
+    ///     let observation = ValueObservation.tracking
+    ///         region: Player.select(max(Column("score")),
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks both the 'player' and 'team' tables
+    ///     let observation = ValueObservation.tracking
+    ///         region: Player.all(), Team.all(),
+    ///         fetch: { db in ... })
+    ///
+    /// - parameter region: A list of observed regions.
+    /// - parameter fetch: A function that fetches the observed value from
+    ///   the database.
+    public static func tracking<Value>(
+        region: DatabaseRegionConvertible...,
+        fetch: @escaping (Database) throws -> Value)
+    -> ValueObservation<ValueReducers.Fetch<Value>>
+    {
+        tracking(regions: region, fetch: fetch)
+    }
+    
+    /// Creates a `ValueObservation` that notifies the values returned by the
+    /// `fetch` function whenever a database transaction has an impact on the
+    /// given regions.
+    ///
+    /// The tracked region *is not* automatically inferred from the requests
+    /// performed in the `fetch` function.
+    ///
+    /// For example:
+    ///
+    ///     // Tracks the full database
+    ///     let observation = ValueObservation.tracking
+    ///         regions: [.fullDatabase],
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks the full 'player' table
+    ///     let observation = ValueObservation.tracking
+    ///         regions: [Player.all()],
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks the row with id 42 in the 'player' table
+    ///     let observation = ValueObservation.tracking
+    ///         regions: [Player.filter(id: 42)],
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks the 'score' column in the 'player' table
+    ///     let observation = ValueObservation.tracking
+    ///         regions: [Player.select(max(Column("score"))],
+    ///         fetch: { db in ... })
+    ///
+    ///     // Tracks both the 'player' and 'team' tables
+    ///     let observation = ValueObservation.tracking
+    ///         regions: [Player.all(), Team.all()],
+    ///         fetch: { db in ... })
+    ///
+    /// - parameter regions: A list of observed regions.
+    /// - parameter fetch: A function that fetches the observed value from
+    ///   the database.
+    public static func tracking<Value>(
+        regions: [DatabaseRegionConvertible],
+        fetch: @escaping (Database) throws -> Value)
+    -> ValueObservation<ValueReducers.Fetch<Value>>
+    {
+        .init(makeReducer: { ValueReducers.Fetch(trackingMode: .constantRegion(regions), fetch: fetch) })
     }
     
     /// Creates a `ValueObservation` that notifies the values returned by the
@@ -521,7 +611,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        .init(makeReducer: { .init(isSelectedRegionDeterministic: false, fetch: fetch) })
+        .init(makeReducer: { ValueReducers.Fetch(trackingMode: .nonConstantRegionRecordedFromSelection, fetch: fetch) })
     }
     
     /// Creates a `ValueObservation` that notifies the values returned by the
