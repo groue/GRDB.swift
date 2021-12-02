@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.15.x` Releases - [5.15.0](#5150)
 - `5.14.x` Releases - [5.14.0](#5140)
 - `5.13.x` Releases - [5.13.0](#5130)
 - `5.12.x` Releases - [5.12.0](#5120)
@@ -80,6 +81,14 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.15.0
+
+Released December 2, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.14.0...v5.15.0)
+
+- **Fixed**: `ValueObservation` now always fetches fresh values in an isolated fashion. This prevents all risks of fetching inconsistent data even if an external connection modifies the database.
+- **New**: `Table` now conforms to `DatabaseRegionConvertible`. You can write `DatabaseRegionObservation(tracking: Table("player"))`.
+- **New**: [#1102](https://github.com/groue/GRDB.swift/pull/1102) by [@groue](https://github.com/groue): Explicit tracked region for ValueObservation
 
 ## 5.14.0
 

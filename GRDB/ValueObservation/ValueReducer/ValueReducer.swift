@@ -8,10 +8,6 @@ public protocol _ValueReducer {
     /// The type of observed values
     associatedtype Value
     
-    /// Returns whether the database region selected by the `fetch(_:)` method
-    /// is constant.
-    var _isSelectedRegionDeterministic: Bool { get }
-    
     /// Fetches database values upon changes in an observed database region.
     ///
     /// ValueReducer semantics require that this method does not depend on
@@ -37,24 +33,8 @@ public protocol _ValueReducer {
 public protocol ValueReducer: _ValueReducer { }
 
 extension ValueReducer {
-    func fetch(_ db: Database, requiringWriteAccess: Bool) throws -> Fetched {
-        if requiringWriteAccess {
-            var fetchedValue: Fetched?
-            try db.inSavepoint {
-                fetchedValue = try _fetch(db)
-                return .commit
-            }
-            return fetchedValue!
-        } else {
-            return try db.readOnly {
-                try _fetch(db)
-            }
-        }
-    }
-    
-    mutating func fetchAndReduce(_ db: Database, requiringWriteAccess: Bool) throws -> Value? {
-        let fetchedValue = try fetch(db, requiringWriteAccess: requiringWriteAccess)
-        return _value(fetchedValue)
+    mutating func fetchAndReduce(_ db: Database) throws -> Value? {
+        try _value(_fetch(db))
     }
 }
 
@@ -66,8 +46,6 @@ public enum ValueReducers {
     // ValueObservation<ValueReducers.Auto>.tracking(_:).
     /// :nodoc:
     public enum Auto: ValueReducer {
-        /// :nodoc:
-        public var _isSelectedRegionDeterministic: Bool { preconditionFailure() }
         /// :nodoc:
         public func _fetch(_ db: Database) throws -> Never { preconditionFailure() }
         /// :nodoc:

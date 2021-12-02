@@ -310,15 +310,10 @@ extension DatabasePool: DatabaseReader {
         }
         return try readerPool.get { reader in
             try reader.sync { db in
-                var result: T? = nil
-                // The block isolation comes from the DEFERRED transaction.
-                // See DatabasePoolTests.testReadMethodIsolationOfBlock().
-                try db.inTransaction(.deferred) {
+                try db.isolated {
                     try db.clearSchemaCacheIfNeeded()
-                    result = try value(db)
-                    return .commit
+                    return try value(db)
                 }
-                return result!
             }
         }
     }

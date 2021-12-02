@@ -22,7 +22,7 @@ To release a new GRDB version:
     - Support/Info.plist
 - Commit and tag
 - Check tag authors: `git for-each-ref --format '%(refname) %(authorname)' refs/tags`
-- Push to the master branch
+- Push to the master & development branch
 - `pod trunk push --allow-warnings GRDB.swift.podspec`
 - `make doc`, and update index.html in the `gh-pages` branch
 - Update http://github.com/groue/WWDCCompanion
