@@ -155,7 +155,7 @@ class ValueObservationTests: GRDBTestCase {
         do {
             try assertValueObservation(
                 ValueObservation
-                    .tracking(region: .fullDatabase, fetch: Table("t").fetchCount),
+                    .tracking(region: DatabaseRegion.fullDatabase, fetch: Table("t").fetchCount),
                 records: [0, 1, 1, 2, 3, 4],
                 setup: { db in
                     try db.execute(sql: """
