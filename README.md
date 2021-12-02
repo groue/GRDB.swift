@@ -6683,17 +6683,22 @@ After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChan
 
 ### DatabaseRegion
 
-**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/5.14/Structs/DatabaseRegion.html) is a type that helps observing changes in the results of a database [request](#requests)**.
+A `DatabaseRegion` is a reunion of database tables, and combination of columns and rows (identified by their rowid):
 
-A request knows which database modifications can impact its results. It can communicate this information to [transaction observers](#transactionobserver-protocol) by the way of a DatabaseRegion.
+    |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
+    |-------|   |-------|   |-------|   |-------|   |-------|
+    |x|x|x|x|   |x| | | |   |x|x|x|x|   |x|x| |x|   | | | | |
+    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | |x| | |
+    |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
+    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
 
-DatabaseRegion fuels, for example, [ValueObservation] and [DatabaseRegionObservation].
+DatabaseRegion helps [ValueObservation] and [DatabaseRegionObservation] track changes in the database through the [TransactionObserver](#transactionobserver-protocol) protocol.
 
-**A region notifies *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+**Note that observing a database region spots *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
-For more details, see the [reference](http://groue.github.io/GRDB.swift/docs/5.14/Structs/DatabaseRegion.html#/s:4GRDB14DatabaseRegionV10isModified2bySbAA0B5EventV_tF).
+For more details, see the [reference](https://groue.github.io/GRDB.swift/docs/5.14/Structs/DatabaseRegion.html).
 
 
 #### The DatabaseRegionConvertible Protocol
