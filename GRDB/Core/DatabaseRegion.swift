@@ -60,6 +60,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
         self.init(tableRegions: [:])
     }
     
+    // TODO: @available(*, deprecated, message: "In order to specify a table region, prefer `Table(tableName)`")
     /// Creates a region that spans all rows and columns of a database table.
     ///
     /// - parameter table: A table name.
