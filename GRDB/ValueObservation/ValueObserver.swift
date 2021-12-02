@@ -23,6 +23,11 @@ final class ValueObserver<Reducer: ValueReducer> {
     private let reduceQueue: DispatchQueue
     private var isChanged = false
     private let onChange: (Reducer.Value) -> Void
+    
+    // This lock protects `_isCompleted`.
+    // It also protects `reducer` because of what is likely a compiler bug:
+    // - <https://github.com/groue/GRDB.swift/issues/1026>
+    // - <https://github.com/groue/GRDB.swift/pull/1025>
     private var lock = NSRecursiveLock() // protects _isCompleted and reducer
     
     init(
