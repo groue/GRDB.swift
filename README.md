@@ -5807,6 +5807,7 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
 - [ValueObservation Scheduling](#valueobservation-scheduling)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Sharing](#valueobservation-sharing)
+- [Specifying the Region Tracked by ValueObservation](#specifying-the-region-tracked-by-valueobservation)
 - [ValueObservation Performance](#valueobservation-performance)
 - :blue_book: [Combine Publisher](Documentation/Combine.md#database-observation)
 
@@ -6224,6 +6225,23 @@ let sharedObservation = ValueObservation
 >
 > - Unlike `ValueObservation`, `SharedValueObservation` retains the database connection. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connection won't be deinitialized. 
 
+
+### Specifying the Region Tracked by ValueObservation
+
+While the standard `ValueObservation.tracking { db in ... }` method lets you track changes to a fetched value and receive any changes to it, sometimes your use case might require more granular control. 
+
+Consider a scenario where you'd like to get a specific Player's row, but only when their `score` column changes. You can use `tracking(region:fetch:)` to do just that:
+
+```swift
+let observation = ValueObservation.tracking(
+    // Define what database region constitutes a "change"
+    region: Player.select(Column("score")).filter(id: 1),
+    // Define what to fetch upon such change
+    fetch: { db in try Player.fetchOne(db, id: 1) }
+)
+```
+
+This overload of `ValueObservation` lets you entirely separate the **observed region** from the **fetched value** itself, providing utmost flexibility. See [DatabaseRegionConvertible] for more information.
 
 ### ValueObservation Performance
 
@@ -6690,6 +6708,23 @@ protocol DatabaseRegionConvertible {
 
 All [requests](#requests) adopt this protocol, and this allows them to be observed with [DatabaseRegionObservation] and [ValueObservation].
 
+For example:
+
+```swift
+// An observation triggered by all changes to the database
+DatabaseRegionObservation(tracking: .fullDatabase)
+
+// An observation triggered by all changes to the player table
+DatabaseRegionObservation(tracking: Table("player"))
+
+// An observation triggered by all changes to the row with rowid 1 in the player table
+DatabaseRegionObservation(tracking: Player.filter(id: 1))
+
+// An observation triggered by all changes to the score column of the player table
+DatabaseRegionObservation(tracking: SQLRequest("SELECT score FROM player"))
+```
+
+Note that specifying a region as a request _does not run the request_. In the above example, `Player.filter(id: 1)` and `SELECT score FROM player` are never executed. They are only _compiled_ by SQLite, so that GRDB understands the tables, rows, and columns that constitute the database region.
 
 ### Support for SQLite Pre-Update Hooks
 
