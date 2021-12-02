@@ -99,15 +99,21 @@ extension ValueObserver: TransactionObserver {
             // Synchronously
             fetchedFuture = DatabaseFuture(Result {
                 try recordingSelectedRegionIfNeeded(db) {
-                    try synchronized {
-                        try reducer.fetch(db, requiringWriteAccess: requiresWriteAccess)
+                    try db.isolated(readOnly: !requiresWriteAccess) {
+                        try synchronized {
+                            try reducer._fetch(db)
+                        }
                     }
                 }
             })
         } else {
             // Concurrently
             guard let writer = writer else { return }
-            fetchedFuture = writer.concurrentRead { db in try self.synchronized { try self.reducer._fetch(db) } }
+            fetchedFuture = writer.concurrentRead { db in
+                try self.synchronized {
+                    try self.reducer._fetch(db)
+                }
+            }
         }
         
         // 2. Reduce
@@ -151,8 +157,10 @@ extension ValueObserver {
     /// Fetch an observed value, and moves the reducer forward.
     func fetchValue(_ db: Database) throws -> Reducer.Value? {
         try recordingSelectedRegionIfNeeded(db) {
-            try synchronized {
-                try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess)
+            try db.isolated(readOnly: !requiresWriteAccess) {
+                try synchronized {
+                    try reducer.fetchAndReduce(db)
+                }
             }
         }
     }

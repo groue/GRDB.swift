@@ -25,7 +25,8 @@ extension ValueReducers {
         
         /// :nodoc:
         public func _fetch(_ db: Database) throws -> Value {
-            try __fetch(db)
+            assert(db.isInsideTransaction, "Fetching in a non-isolated way is illegal")
+            return try __fetch(db)
         }
         
         /// :nodoc:

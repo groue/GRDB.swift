@@ -212,7 +212,7 @@ extension ValueObservation: Refinable {
     /// Returns the value.
     func fetchValue(_ db: Database) throws -> Reducer.Value {
         var reducer = makeReducer()
-        guard let value = try reducer.fetchAndReduce(db, requiringWriteAccess: requiresWriteAccess) else {
+        guard let value = try reducer.fetchAndReduce(db) else {
             fatalError("Contract broken: reducer has no initial value")
         }
         return value
