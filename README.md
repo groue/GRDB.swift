@@ -5935,6 +5935,8 @@ See the companion library [RxGRDB] for more information.
 **Generally speaking**:
 
 - ValueObservation notifies an initial value before the eventual changes.
+- ValueObservation only notifies changes committed to disk.
+- By default, ValueObservation notifies a fresh value whenever any of its component is modified (any fetched column, row, etc.). This can be [configured](#specifying-the-region-tracked-by-valueobservation).
 - By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
 - ValueObservation may coalesce subsequent changes into a single notification.
 - ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
@@ -5943,7 +5945,7 @@ See the companion library [RxGRDB] for more information.
     - An error occurs.
     - The database connection is closed.
 
-Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
+Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation]. If you need to process uncommitted changes, see [TransactionObserver](#transactionobserver-protocol).
 
 
 ### ValueObservation Scheduling
