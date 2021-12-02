@@ -1008,6 +1008,21 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }
     }
     
+    /// Runs the block with an isolation level equal or greater than
+    /// snapshot isolation.
+    func isolated<T>(readOnly: Bool = false, _ block: () throws -> T) throws -> T {
+        var result: T?
+        try inSavepoint {
+            if readOnly {
+                result = try self.readOnly(block)
+            } else {
+                result = try block()
+            }
+            return .commit
+        }
+        return result!
+    }
+    
     /// Executes a block inside a savepoint.
     ///
     ///     try dbQueue.inDatabase do {

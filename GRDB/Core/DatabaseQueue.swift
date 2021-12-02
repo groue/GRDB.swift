@@ -180,14 +180,9 @@ extension DatabaseQueue {
     
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         try writer.sync { db in
-            // The transaction guarantees snapshot isolation against eventual
-            // external connection.
-            var result: T?
-            try db.inTransaction(.deferred) {
-                result = try db.readOnly { try value(db) }
-                return .commit
+            try db.isolated(readOnly: true) {
+                try value(db)
             }
-            return result!
         }
     }
     
@@ -249,18 +244,11 @@ extension DatabaseQueue {
         // DatabaseQueue can't perform parallel reads.
         // Perform a blocking read instead.
         return DatabaseFuture(Result {
-            // Check that we're on the writer queue...
+            // Check that we're on the writer queue, as documented
             try writer.execute { db in
-                // ... and that no transaction is opened.
-                GRDBPrecondition(!db.isInsideTransaction, "must not be called from inside a transaction.")
-                // The transaction guarantees snapshot isolation against eventual
-                // external connection.
-                var result: T?
-                try db.inTransaction(.deferred) {
-                    result = try db.readOnly { try value(db) }
-                    return .commit
+                try db.isolated(readOnly: true) {
+                    try value(db)
                 }
-                return result!
             }
         })
     }
