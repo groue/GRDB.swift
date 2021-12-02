@@ -242,8 +242,6 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
     private var __fetch: (Database) throws -> Fetched
     private var __value: (Fetched) -> Value?
     
-    public var _isSelectedRegionDeterministic: Bool { false }
-    
     public init(
         fetch: @escaping (Database) throws -> Fetched,
         value: @escaping (Fetched) -> Value?)

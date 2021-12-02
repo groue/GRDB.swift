@@ -5807,6 +5807,7 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
 - [ValueObservation Scheduling](#valueobservation-scheduling)
 - [ValueObservation Operators](#valueobservation-operators): [map](#valueobservationmap), [removeDuplicates](#valueobservationremoveduplicates), ...
 - [ValueObservation Sharing](#valueobservation-sharing)
+- [Specifying the Region Tracked by ValueObservation](#specifying-the-region-tracked-by-valueobservation)
 - [ValueObservation Performance](#valueobservation-performance)
 - :blue_book: [Combine Publisher](Documentation/Combine.md#database-observation)
 
@@ -5934,6 +5935,8 @@ See the companion library [RxGRDB] for more information.
 **Generally speaking**:
 
 - ValueObservation notifies an initial value before the eventual changes.
+- ValueObservation only notifies changes committed to disk.
+- By default, ValueObservation notifies a fresh value whenever any of its component is modified (any fetched column, row, etc.). This can be [configured](#specifying-the-region-tracked-by-valueobservation).
 - By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
 - ValueObservation may coalesce subsequent changes into a single notification.
 - ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
@@ -5942,7 +5945,7 @@ See the companion library [RxGRDB] for more information.
     - An error occurs.
     - The database connection is closed.
 
-Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation], and the low-level [TransactionObserver Protocol](#transactionobserver-protocol).
+Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation]. If you need to process uncommitted changes, see [TransactionObserver](#transactionobserver-protocol).
 
 
 ### ValueObservation Scheduling
@@ -6224,6 +6227,23 @@ let sharedObservation = ValueObservation
 >
 > - Unlike `ValueObservation`, `SharedValueObservation` retains the database connection. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connection won't be deinitialized. 
 
+
+### Specifying the Region Tracked by ValueObservation
+
+While the standard `ValueObservation.tracking { db in ... }` method lets you track changes to a fetched value and receive any changes to it, sometimes your use case might require more granular control. 
+
+Consider a scenario where you'd like to get a specific Player's row, but only when their `score` column changes. You can use `tracking(region:fetch:)` to do just that:
+
+```swift
+let observation = ValueObservation.tracking(
+    // Define what database region constitutes a "change"
+    region: Player.select(Column("score")).filter(id: 1),
+    // Define what to fetch upon such change
+    fetch: { db in try Player.fetchOne(db, id: 1) }
+)
+```
+
+This overload of `ValueObservation` lets you entirely separate the **observed region** from the **fetched value** itself, providing utmost flexibility. See [DatabaseRegionConvertible] for more information.
 
 ### ValueObservation Performance
 
@@ -6665,17 +6685,22 @@ After `stopObservingDatabaseChangesUntilNextTransaction()`, the `databaseDidChan
 
 ### DatabaseRegion
 
-**[DatabaseRegion](https://groue.github.io/GRDB.swift/docs/5.14/Structs/DatabaseRegion.html) is a type that helps observing changes in the results of a database [request](#requests)**.
+A `DatabaseRegion` is a reunion of database tables, and combination of columns and rows (identified by their rowid):
 
-A request knows which database modifications can impact its results. It can communicate this information to [transaction observers](#transactionobserver-protocol) by the way of a DatabaseRegion.
+    |Table1 |   |Table2 |   |Table3 |   |Table4 |   |Table5 |
+    |-------|   |-------|   |-------|   |-------|   |-------|
+    |x|x|x|x|   |x| | | |   |x|x|x|x|   |x|x| |x|   | | | | |
+    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | |x| | |
+    |x|x|x|x|   |x| | | |   | | | | |   |x|x| |x|   | | | | |
+    |x|x|x|x|   |x| | | |   | | | | |   | | | | |   | | | | |
 
-DatabaseRegion fuels, for example, [ValueObservation] and [DatabaseRegionObservation].
+DatabaseRegion helps [ValueObservation] and [DatabaseRegionObservation] track changes in the database through the [TransactionObserver](#transactionobserver-protocol) protocol.
 
-**A region notifies *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
+**Note that observing a database region spots *potential* changes, not *actual* changes in the results of a request.** A change is notified if and only if a statement has actually modified the tracked tables and columns by inserting, updating, or deleting a row.
 
 For example, if you observe the region of `Player.select(max(Column("score")))`, then you'll get be notified of all changes performed on the `score` column of the `player` table (updates, insertions and deletions), even if they do not modify the value of the maximum score. However, you will not get any notification for changes performed on other database tables, or updates to other columns of the player table.
 
-For more details, see the [reference](http://groue.github.io/GRDB.swift/docs/5.14/Structs/DatabaseRegion.html#/s:4GRDB14DatabaseRegionV10isModified2bySbAA0B5EventV_tF).
+For more details, see the [reference](https://groue.github.io/GRDB.swift/docs/5.14/Structs/DatabaseRegion.html).
 
 
 #### The DatabaseRegionConvertible Protocol
@@ -6690,6 +6715,23 @@ protocol DatabaseRegionConvertible {
 
 All [requests](#requests) adopt this protocol, and this allows them to be observed with [DatabaseRegionObservation] and [ValueObservation].
 
+For example:
+
+```swift
+// An observation triggered by all changes to the database
+DatabaseRegionObservation(tracking: .fullDatabase)
+
+// An observation triggered by all changes to the player table
+DatabaseRegionObservation(tracking: Table("player"))
+
+// An observation triggered by all changes to the row with rowid 1 in the player table
+DatabaseRegionObservation(tracking: Player.filter(id: 1))
+
+// An observation triggered by all changes to the score column of the player table
+DatabaseRegionObservation(tracking: SQLRequest("SELECT score FROM player"))
+```
+
+Note that specifying a region as a request _does not run the request_. In the above example, `Player.filter(id: 1)` and `SELECT score FROM player` are never executed. They are only _compiled_ by SQLite, so that GRDB understands the tables, rows, and columns that constitute the database region.
 
 ### Support for SQLite Pre-Update Hooks
 

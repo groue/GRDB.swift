@@ -13,8 +13,6 @@ extension ValueReducers {
     public struct RemoveDuplicates<Base: ValueReducer>: ValueReducer where Base.Value: Equatable {
         private var base: Base
         private var previousValue: Base.Value?
-        /// :nodoc:
-        public var _isSelectedRegionDeterministic: Bool { base._isSelectedRegionDeterministic }
         
         init(_ base: Base) {
             self.base = base
