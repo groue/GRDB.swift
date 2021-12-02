@@ -17,8 +17,6 @@ extension ValueReducers {
     public struct Map<Base: ValueReducer, Value>: ValueReducer {
         private var base: Base
         private let transform: (Base.Value) -> Value
-        /// :nodoc:
-        public var _trackingMode: _ValueReducerTrackingMode { base._trackingMode }
         
         init(_ base: Base, _ transform: @escaping (Base.Value) -> Value) {
             self.base = base

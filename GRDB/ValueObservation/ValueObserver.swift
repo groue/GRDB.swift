@@ -5,7 +5,7 @@ import Foundation
 final class ValueObserver<Reducer: ValueReducer> {
     var isCompleted: Bool { synchronized { _isCompleted } }
     let events: ValueObservationEvents
-    let trackingMode: _ValueReducerTrackingMode
+    let trackingMode: ValueObservationTrackingMode
     private var observedRegion: DatabaseRegion? {
         didSet {
             if let willTrackRegion = events.willTrackRegion,
@@ -35,6 +35,7 @@ final class ValueObserver<Reducer: ValueReducer> {
         events: ValueObservationEvents,
         reducer: Reducer,
         requiresWriteAccess: Bool,
+        trackingMode: ValueObservationTrackingMode,
         writer: DatabaseWriter,
         scheduler: ValueObservationScheduler,
         reduceQueue: DispatchQueue,
@@ -43,11 +44,11 @@ final class ValueObserver<Reducer: ValueReducer> {
         self.events = events
         self.reducer = reducer
         self.requiresWriteAccess = requiresWriteAccess
+        self.trackingMode = trackingMode
         self.writer = writer
         self.scheduler = scheduler
         self.reduceQueue = reduceQueue
         self.onChange = onChange
-        self.trackingMode = reducer._trackingMode
     }
     
     convenience init(
@@ -61,6 +62,7 @@ final class ValueObserver<Reducer: ValueReducer> {
             events: observation.events,
             reducer: observation.makeReducer(),
             requiresWriteAccess: observation.requiresWriteAccess,
+            trackingMode: observation.trackingMode,
             writer: writer,
             scheduler: scheduler,
             reduceQueue: reduceQueue,

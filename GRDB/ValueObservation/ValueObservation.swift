@@ -22,10 +22,6 @@ import Foundation
 public struct ValueObservation<Reducer: ValueReducer> {
     var events = ValueObservationEvents()
     
-    /// The reducer is created when observation starts, and is triggered upon
-    /// each database change.
-    var makeReducer: () -> Reducer
-    
     /// Default is false. Set this property to true when the observation
     /// requires write access in order to fetch fresh values. Fetches are then
     /// wrapped inside a savepoint.
@@ -34,14 +30,50 @@ public struct ValueObservation<Reducer: ValueReducer> {
     /// observation is less efficient than a read-only observation.
     public var requiresWriteAccess = false
     
+    var trackingMode: ValueObservationTrackingMode
+    
+    /// The reducer is created when observation starts, and is triggered upon
+    /// each database change.
+    var makeReducer: () -> Reducer
+    
     /// Returns a ValueObservation with a transformed reducer.
     func mapReducer<R>(_ transform: @escaping (Reducer) -> R) -> ValueObservation<R> {
         let makeReducer = self.makeReducer
         return ValueObservation<R>(
             events: events,
-            makeReducer: { transform(makeReducer()) },
-            requiresWriteAccess: requiresWriteAccess)
+            requiresWriteAccess: requiresWriteAccess,
+            trackingMode: trackingMode,
+            makeReducer: { transform(makeReducer()) })
     }
+}
+
+enum ValueObservationTrackingMode {
+    /// The tracked region is constant and explicit.
+    ///
+    /// Use case:
+    ///
+    ///     // Tracked Region is always the full player table
+    ///     ValueObservation.trackingConstantRegion(Player.all()) { db in ... }
+    case constantRegion([DatabaseRegionConvertible])
+    
+    /// The tracked region is constant and inferred from the fetched values.
+    ///
+    /// Use case:
+    ///
+    ///     // Tracked Region is always the full player table
+    ///     ValueObservation.trackingConstantRegion { db in Player.fetchAll(db) }
+    case constantRegionRecordedFromSelection
+    
+    /// The tracked region is not constant, and inferred from the fetched values.
+    ///
+    /// Use case:
+    ///
+    ///     // Tracked Region is the one row of the table, and it changes on
+    ///     // each fetch.
+    ///     ValueObservation.tracking { db in
+    ///         try Player.fetchOne(db, id: Int.random(in: 1.1000))
+    ///     }
+    case nonConstantRegionRecordedFromSelection
 }
 
 struct ValueObservationEvents: Refinable {
@@ -496,7 +528,9 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        .init(makeReducer: { ValueReducers.Fetch(trackingMode: .constantRegionRecordedFromSelection, fetch: fetch) })
+        .init(
+            trackingMode: .constantRegionRecordedFromSelection,
+            makeReducer: { ValueReducers.Fetch(fetch: fetch) })
     }
     
     /// Creates a `ValueObservation` that notifies the values returned by the
@@ -586,7 +620,9 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        .init(makeReducer: { ValueReducers.Fetch(trackingMode: .constantRegion(regions), fetch: fetch) })
+        .init(
+            trackingMode: .constantRegion(regions),
+            makeReducer: { ValueReducers.Fetch(fetch: fetch) })
     }
     
     /// Creates a `ValueObservation` that notifies the values returned by the
@@ -611,7 +647,9 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
         _ fetch: @escaping (Database) throws -> Value)
     -> ValueObservation<ValueReducers.Fetch<Value>>
     {
-        .init(makeReducer: { ValueReducers.Fetch(trackingMode: .nonConstantRegionRecordedFromSelection, fetch: fetch) })
+        .init(
+            trackingMode: .nonConstantRegionRecordedFromSelection,
+            makeReducer: { ValueReducers.Fetch(fetch: fetch) })
     }
     
     /// Creates a `ValueObservation` that notifies the values returned by the

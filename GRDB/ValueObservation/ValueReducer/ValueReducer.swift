@@ -8,9 +8,6 @@ public protocol _ValueReducer {
     /// The type of observed values
     associatedtype Value
     
-    /// The tracked region
-    var _trackingMode: _ValueReducerTrackingMode { get }
-    
     /// Fetches database values upon changes in an observed database region.
     ///
     /// ValueReducer semantics require that this method does not depend on
@@ -32,38 +29,6 @@ public protocol _ValueReducer {
     mutating func _value(_ fetched: Fetched) -> Value?
 }
 
-/// Implementation details of `ValueReducer`.
-///
-/// :nodoc:
-public enum _ValueReducerTrackingMode {
-    /// The tracked region is constant and explicit.
-    ///
-    /// Use case:
-    ///
-    ///     // Tracked Region is always the full player table
-    ///     ValueObservation.trackingConstantRegion(Player.all()) { db in ... }
-    case constantRegion([DatabaseRegionConvertible])
-    
-    /// The tracked region is constant and inferred from the fetched values.
-    ///
-    /// Use case:
-    ///
-    ///     // Tracked Region is always the full player table
-    ///     ValueObservation.trackingConstantRegion { db in Player.fetchAll(db) }
-    case constantRegionRecordedFromSelection
-    
-    /// The tracked region is not constant, and inferred from the fetched values.
-    ///
-    /// Use case:
-    ///
-    ///     // Tracked Region is the one row of the table, and it changes on
-    ///     // each fetch.
-    ///     ValueObservation.tracking { db in
-    ///         try Player.fetchOne(db, id: Int.random(in: 1.1000))
-    ///     }
-    case nonConstantRegionRecordedFromSelection
-}
-
 /// The `ValueReducer` protocol supports `ValueObservation`.
 public protocol ValueReducer: _ValueReducer { }
 
@@ -81,8 +46,6 @@ public enum ValueReducers {
     // ValueObservation<ValueReducers.Auto>.tracking(_:).
     /// :nodoc:
     public enum Auto: ValueReducer {
-        /// :nodoc:
-        public var _trackingMode: _ValueReducerTrackingMode { preconditionFailure() }
         /// :nodoc:
         public func _fetch(_ db: Database) throws -> Never { preconditionFailure() }
         /// :nodoc:

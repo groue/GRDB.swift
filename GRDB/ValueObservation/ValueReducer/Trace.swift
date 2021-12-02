@@ -4,8 +4,6 @@ extension ValueReducers {
         var base: Base
         let willFetch: () -> Void
         let didReceiveValue: (Base.Value) -> Void
-        /// :nodoc:
-        public var _trackingMode: _ValueReducerTrackingMode { base._trackingMode }
         
         /// :nodoc:
         public func _fetch(_ db: Database) throws -> Base.Fetched {

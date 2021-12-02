@@ -618,23 +618,25 @@ class ValueObservationTests: GRDBTestCase {
                 var cancellable: DatabaseCancellable? = nil
                 _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
                 var shouldStopObservation = false
-                let observation = ValueObservation(makeReducer: {
-                    AnyValueReducer<Void, Void>(
-                        fetch: { _ in
-                            if shouldStopObservation {
-                                cancellable = nil /* deallocation */
-                            }
-                            shouldStopObservation = true
-                    },
-                        value: { _ in () })
-                })
+                let observation = ValueObservation(
+                    trackingMode: .nonConstantRegionRecordedFromSelection,
+                    makeReducer: {
+                        AnyValueReducer<Void, Void>(
+                            fetch: { _ in
+                                if shouldStopObservation {
+                                    cancellable = nil /* deallocation */
+                                }
+                                shouldStopObservation = true
+                            },
+                            value: { _ in () })
+                    })
                 cancellable = observation.start(
                     in: dbWriter,
                     scheduling: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
                     onChange: { _ in
                         notificationExpectation.fulfill()
-                })
+                    })
             }
 
             try dbWriter.write { db in
@@ -660,24 +662,26 @@ class ValueObservationTests: GRDBTestCase {
                 var cancellable: DatabaseCancellable? = nil
                 _ = cancellable // Avoid "Variable 'cancellable' was written to, but never read" warning
                 var shouldStopObservation = false
-                let observation = ValueObservation(makeReducer: {
-                    AnyValueReducer<Void, Void>(
-                        fetch: { _ in },
-                        value: { _ in
-                            if shouldStopObservation {
-                                cancellable = nil /* deallocation right before notification */
-                            }
-                            shouldStopObservation = true
-                            return ()
+                let observation = ValueObservation(
+                    trackingMode: .nonConstantRegionRecordedFromSelection,
+                    makeReducer: {
+                        AnyValueReducer<Void, Void>(
+                            fetch: { _ in },
+                            value: { _ in
+                                if shouldStopObservation {
+                                    cancellable = nil /* deallocation right before notification */
+                                }
+                                shouldStopObservation = true
+                                return ()
+                            })
                     })
-                })
                 cancellable = observation.start(
                     in: dbWriter,
                     scheduling: .immediate,
                     onError: { error in XCTFail("Unexpected error: \(error)") },
                     onChange: { _ in
                         notificationExpectation.fulfill()
-                })
+                    })
             }
             
             try dbWriter.write { db in
