@@ -1186,6 +1186,22 @@ extension Table {
     {
         all().joining(required: association)
     }
+    
+#warning("TODO: document")
+    public func annotated<A: Association>(withOptional association: A)
+    -> QueryInterfaceRequest<RowDecoder>
+    where A.OriginRowDecoder == RowDecoder
+    {
+        all().annotated(withOptional: association)
+    }
+    
+#warning("TODO: document")
+    public func annotated<A: Association>(withRequired association: A)
+    -> QueryInterfaceRequest<RowDecoder>
+    where A.OriginRowDecoder == RowDecoder
+    {
+        all().annotated(withRequired: association)
+    }
 }
 
 // MARK: - Association Aggregates

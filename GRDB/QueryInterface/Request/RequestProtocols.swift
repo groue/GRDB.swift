@@ -703,6 +703,34 @@ extension JoinableRequest {
     }
 }
 
+extension JoinableRequest where Self: SelectionRequest {
+#warning("TODO: document")
+    public func annotated<A: Association>(withOptional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        let alias = TableAlias()
+        let selection = association._sqlAssociation.destination.relation.selectionPromise
+        return self
+            .joining(optional: association.aliased(alias))
+            .annotated(with: { db in
+                try selection.resolve(db).map { selection in
+                    selection.qualified(with: alias)
+                }
+            })
+    }
+    
+#warning("TODO: document")
+    public func annotated<A: Association>(withRequired association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        let selection = association._sqlAssociation.destination.relation.selectionPromise
+        let alias = TableAlias()
+        return self
+            .joining(required: association.aliased(alias))
+            .annotated(with: { db in
+                try selection.resolve(db).map { selection in
+                    selection.qualified(with: alias)
+                }
+            })
+    }
+}
+
 // MARK: - DerivableRequest
 
 /// The base protocol for all requests that can be refined.

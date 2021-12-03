@@ -620,6 +620,22 @@ extension TableRecord {
     {
         all().joining(required: association)
     }
+    
+#warning("TODO: document")
+    public static func annotated<A: Association>(withOptional association: A)
+    -> QueryInterfaceRequest<Self>
+    where A.OriginRowDecoder == Self
+    {
+        all().annotated(withOptional: association)
+    }
+    
+#warning("TODO: document")
+    public static func annotated<A: Association>(withRequired association: A)
+    -> QueryInterfaceRequest<Self>
+    where A.OriginRowDecoder == Self
+    {
+        all().annotated(withRequired: association)
+    }
 }
 
 // MARK: - Aggregates
