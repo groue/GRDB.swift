@@ -41,6 +41,7 @@ GRDB Associations
     - [Aggregate Operations]
     - [Isolation of Multiple Aggregates]
 - [DerivableRequest Protocol]
+- [Associations In Depth]
 
 **[FAQ]**
 
@@ -2603,3 +2604,4 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [common table expressions]: CommonTableExpressions.md
 [Common Table Expressions]: CommonTableExpressions.md
 [Associations to Common Table Expressions]: CommonTableExpressions.md#associations-to-common-table-expressions
+[Associations In Depth]: AssociationsInDepth.md
