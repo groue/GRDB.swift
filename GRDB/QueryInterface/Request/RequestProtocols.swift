@@ -704,7 +704,36 @@ extension JoinableRequest {
 }
 
 extension JoinableRequest where Self: SelectionRequest {
-#warning("TODO: document")
+    /// Creates a request which appends *columns of an associated record* to
+    /// the current selection.
+    ///
+    ///     // SELECT player.*, team.color
+    ///     // FROM player LEFT JOIN team ...
+    ///     let teamColor = Player.team.select(Column("color"))
+    ///     let request = Player.all().annotated(withOptional: teamColor)
+    ///
+    /// This method performs the same SQL request as `including(optional:)`.
+    /// The difference is in the shape of Decodable records that decode such
+    /// a request: the associated columns can be decoded at the same level as
+    /// the main record:
+    ///
+    ///     struct PlayerWithTeamColor: FetchableRecord, Decodable {
+    ///         var player: Player
+    ///         var color: String?
+    ///     }
+    ///     let players = try dbQueue.read { db in
+    ///         try request
+    ///             .asRequest(of: PlayerWithTeamColor.self)
+    ///             .fetchAll(db)
+    ///     }
+    ///
+    /// Note: this is a convenience method. You can build the same request with
+    /// `TableAlias`, `annotated(with:)`, and `joining(optional:)`:
+    ///
+    ///     let teamAlias = TableAlias()
+    ///     let request = Player.all()
+    ///         .annotated(with: teamAlias[Column("color")])
+    ///         .joining(optional: Player.team.aliased(teamAlias))
     public func annotated<A: Association>(withOptional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         let alias = TableAlias()
         let selection = association._sqlAssociation.destination.relation.selectionPromise
@@ -717,7 +746,36 @@ extension JoinableRequest where Self: SelectionRequest {
             })
     }
     
-#warning("TODO: document")
+    /// Creates a request which appends *columns of an associated record* to
+    /// the current selection.
+    ///
+    ///     // SELECT player.*, team.color
+    ///     // FROM player JOIN team ...
+    ///     let teamColor = Player.team.select(Column("color"))
+    ///     let request = Player.all().annotated(withRequired: teamColor)
+    ///
+    /// This method performs the same SQL request as `including(required:)`.
+    /// The difference is in the shape of Decodable records that decode such
+    /// a request: the associated columns can be decoded at the same level as
+    /// the main record:
+    ///
+    ///     struct PlayerWithTeamColor: FetchableRecord, Decodable {
+    ///         var player: Player
+    ///         var color: String
+    ///     }
+    ///     let players = try dbQueue.read { db in
+    ///         try request
+    ///             .asRequest(of: PlayerWithTeamColor.self)
+    ///             .fetchAll(db)
+    ///     }
+    ///
+    /// Note: this is a convenience method. You can build the same request with
+    /// `TableAlias`, `annotated(with:)`, and `joining(required:)`:
+    ///
+    ///     let teamAlias = TableAlias()
+    ///     let request = Player.all()
+    ///         .annotated(with: teamAlias[Column("color")])
+    ///         .joining(required: Player.team.aliased(teamAlias))
     public func annotated<A: Association>(withRequired association: A) -> Self where A.OriginRowDecoder == RowDecoder {
         let selection = association._sqlAssociation.destination.relation.selectionPromise
         let alias = TableAlias()
