@@ -842,13 +842,15 @@ let novels = try author
 
 ## Joining And Prefetching Associated Records
 
-**You build requests that involve several records with the following "joining methods":**
+**You build requests that involve associations with the following "joining methods":**
 
 - `joining(optional: association)`
 - `joining(required: association)`
 - `including(optional: association)`
 - `including(required: association)`
 - `including(all: associationToMany)`
+- `annotated(withOptional: association)`
+- `annotated(withRequired: association)`
 
 Before we describe them in detail, let's see a few requests they can build:
 
@@ -865,10 +867,9 @@ let request = Author
 let request = Book
     .including(required: Book.author)
 
-/// All books with their respective author, sorted by title
+/// All books with their respective author country
 let request = Book
-    .including(required: Book.author)
-    .order(Column("title"))
+    .annotated(withRequired: Book.author.select(Column("country")))
 
 /// All books written by a French author
 let request = Book
@@ -879,9 +880,11 @@ The pattern is always the same: you start from a base request, that you extend w
 
 **To choose the joining method you need, you ask yourself two questions:**
 
-1. Should the associated records be fetched along with the base records?
+1. Should the columns of the associated records be fetched along with the base records?
     
-    If yes, use `including(...)`. Otherwise, use `joining(...)`.
+    - If not, use `joining(...)`.
+    - If you only need a few columns of the associated record, use `annotated(...)`.
+    - Otherwise, use `including(...)`.
     
     For example, to load books with their respective author, you use `including(required:)`:
     
@@ -898,7 +901,22 @@ The pattern is always the same: you start from a base request, that you extend w
     let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
     ```
     
-    And to load authors with their respective books, you use `including(all:)`:
+    To load books with their respective author country, you use `annotated(withRequired:)`:
+    
+    ```swift
+    // All books with their respective author country
+    let request = Book
+        .annotated(withRequired: Book.author.select(Column("country")))
+    
+    // This request can feed the following record:
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var country: String // the country of the required associated author
+    }
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    ```
+    
+    To load authors with their respective books, you use `including(all:)`:
     
     ```swift
     // All authors with their respective books
@@ -943,7 +961,22 @@ The pattern is always the same: you start from a base request, that you extend w
     let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
     ```
     
-    You can remember to use `optional` when the fetched associated records should feed optional Swift values, of type `Author?`. Conversely, when the fetched results feed non-optional values of type `Author`, prefer `required`.
+    And to load all books with their respective author countries, even if the book has no recorded author, you'd use `annotated(withOptional:)`:
+    
+    ```swift
+    // All books with their respective (eventual) authors
+    let request = Book
+        .annotated(withOptional: Book.author.select(Column("country")))
+    
+    // This request can feed the following record:
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var country: String? // the country of the optional associated author
+    }
+    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    ```
+    
+    You can remember to use `including(optional:)` when the fetched associated records should feed optional Swift values, of type `Author?`. Conversely, when the fetched results feed non-optional values of type `Author`, prefer `including(required:)`.
     
     Another way to describe the difference is that `required` filters the fetched results in order to discard missing associated records, when `optional` does not filter anything, and lets missing values pass through.
     
@@ -961,6 +994,12 @@ The pattern is always the same: you start from a base request, that you extend w
     
     // SELECT book.*, author.* FROM book JOIN author ON author.id = book.authorID
     Book.including(required: Book.author)
+    
+    // SELECT book.*, author.country FROM book LEFT JOIN author ON author.id = book.authorID
+    Book.annotated(withOptional: Book.author.select(Column("country")))
+    
+    // SELECT book.*, author.country FROM book JOIN author ON author.id = book.authorID
+    Book.annotated(withRequired: Book.author.select(Column("country")))
     ```
 
 
