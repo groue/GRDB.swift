@@ -7,9 +7,9 @@ import Foundation
 public protocol TypedRequest {
     /// The type that can decode database rows.
     ///
-    /// In the request below, it is Book:
+    /// In the request below, it is Player:
     ///
-    ///     let request = Book.all()
+    ///     let request = Player.all()
     associatedtype RowDecoder
 }
 
@@ -825,20 +825,20 @@ extension DerivableRequest {
     
     /// Creates a request which appends *aggregates* to the current selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
-    ///     // FROM player LEFT JOIN book ...
-    ///     var request = Player.all()
-    ///     request = request.annotated(with: Player.books.count)
+    ///     // SELECT team.*, COUNT(DISTINCT player.id) AS playerCount
+    ///     // FROM team LEFT JOIN player ...
+    ///     var request = Team.all()
+    ///     request = request.annotated(with: Team.players.count)
     public func annotated(with aggregates: AssociationAggregate<RowDecoder>...) -> Self {
         annotated(with: aggregates)
     }
     
     /// Creates a request which appends *aggregates* to the current selection.
     ///
-    ///     // SELECT player.*, COUNT(DISTINCT book.id) AS bookCount
-    ///     // FROM player LEFT JOIN book ...
-    ///     var request = Player.all()
-    ///     request = request.annotated(with: [Player.books.count])
+    ///     // SELECT team.*, COUNT(DISTINCT player.id) AS playerCount
+    ///     // FROM team LEFT JOIN player ...
+    ///     var request = team.all()
+    ///     request = request.annotated(with: [Team.players.count])
     public func annotated(with aggregates: [AssociationAggregate<RowDecoder>]) -> Self {
         aggregates.reduce(self) { request, aggregate in
             request.annotated(with: aggregate)
@@ -848,11 +848,11 @@ extension DerivableRequest {
     /// Creates a request which appends the provided aggregate *predicate* to
     /// the eventual set of already applied predicates.
     ///
-    ///     // SELECT player.*
-    ///     // FROM player LEFT JOIN book ...
-    ///     // HAVING COUNT(DISTINCT book.id) = 0
-    ///     var request = Player.all()
-    ///     request = request.having(Player.books.isEmpty)
+    ///     // SELECT team.*
+    ///     // FROM team LEFT JOIN player ...
+    ///     // HAVING COUNT(DISTINCT player.id) = 0
+    ///     var request = Team.all()
+    ///     request = request.having(Team.players.isEmpty)
     public func having(_ predicate: AssociationAggregate<RowDecoder>) -> Self {
         var request = self
         let expression = predicate.prepare(&request)
