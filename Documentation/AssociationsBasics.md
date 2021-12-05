@@ -1001,7 +1001,7 @@ let bookInfos = try Book
 
 ### `including(all:)`
 
-For example, fetch authors along their books:
+For example, fetch authors along with their books:
 
 ```swift
 // SELECT author.* FROM author
