@@ -842,164 +842,512 @@ let novels = try author
 
 ## Joining And Prefetching Associated Records
 
-**You build requests that involve associations with the following "joining methods":**
+You build requests that involve associations with one of the following "joining methods":
 
-- `joining(optional: association)`
-- `joining(required: association)`
-- `including(optional: association)`
-- `including(required: association)`
-- `including(all: associationToMany)`
-- `annotated(withOptional: association)`
-- `annotated(withRequired: association)`
+- Prefetch associated records:
+    - [`including(required:)`]
+    - [`including(optional:)`]
+    - [`including(all:)`]
+- Prefetch only a few columns of an associated record:
+    - [`annotated(withRequired:)`]
+    - [`annotated(withOptional:)`]
+    - [`including(all:)`]
+- Join associated records without prefetching:
+    - [`joining(required:)`]
+    - [`joining(optional:)`]
+- [Choosing a Joining Method Given the Shape of the Decoded Type]
 
-Before we describe them in detail, let's see a few requests they can build:
+### `including(required:)`
+
+For example, fetch books along with their author:
 
 ```swift
-/// All authors with their respective books
-let request = Author
-    .including(all: Author.books)
-
-/// All authors with their awarded books
-let request = Author
-    .including(all: Author.books.having(Book.awards.isEmpty == false))
-
-/// All books with their respective author
-let request = Book
-    .including(required: Book.author)
-
-/// All books with their respective author country
-let request = Book
-    .annotated(withRequired: Book.author.select(Column("country")))
-
-/// All books written by a French author
-let request = Book
-    .joining(required: Book.author.filter(Column("countryCode") == "FR"))
+// SELECT book.*, author.*
+// FROM book
+// JOIN author ON author.id = book.authorId
+let request = Book.including(required: Book.author)
 ```
 
-The pattern is always the same: you start from a base request, that you extend with one of the joining methods.
+This method accepts any association. It has the base record fetched along with one associated record, which is "included" in the fetched results. When the associated record does not exist, records are not present in the fetched results: the associated record is "required".
 
-**To choose the joining method you need, you ask yourself two questions:**
+To fetch results from such a request, you define a dedicated record type:
 
-1. Should the columns of the associated records be fetched along with the base records?
-    
-    - If not, use `joining(...)`.
-    - If you only need a few columns of the associated record, use `annotated(...)`.
-    - Otherwise, use `including(...)`.
-    
-    For example, to load books with their respective author, you use `including(required:)`:
-    
+```swift
+// Fetch all books along with their author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book     // The base record
+    var author: Author // The required associated record
+}
+let bookInfos = try Book
+    .including(required: Book.author)
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+The CodingKey for the `BookInfo.author` property must match the association key of the `Book.author` association. The association key is, by default, the name of the associated database table. This can be configured with the association `forKey(_:)` method:
+
+```swift
+struct Author: TableRecord {
+    static let databaseTableName = "writer"
+}
+struct Book: TableRecord {
+    // Replace the defaut "writer" association key with "author"
+    static let author = belongsTo(Author.self).forKey("author")
+}
+
+// Fetch all books along with their author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book
+    var author: Author // Matches the "author" association key
+}
+let bookInfos = try Book
+    .including(required: Book.author)
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+When you only need a few columns of the associated record, define a partial type with one property per selected column of the associated record:
+
+```swift
+// Fetch all books along with the name and country of their author
+struct BookInfo: Decodable, FetchableRecord {
+    struct PartialAuthor: Decodable {
+        var name: String
+        var country: String
+    }
+    var book: Book
+    var author: PartialAuthor
+}
+let bookInfos = try Book
+    .including(required: Book.author.select(Column("name"), Column("country")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+But if you'd rather avoid this extra partial type, prefer [`annotated(withRequired:)`]:
+
+```swift
+// Fetch all books along with the country of their author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book
+    var country: String
+}
+let bookInfos = try Book
+    .annotated(withRequired: Book.author.select(Column("country")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+### `including(optional:)`
+
+For example, fetch books along with their eventual author:
+
+```swift
+// SELECT book.*, author.* 
+// FROM book
+// LEFT JOIN author ON author.id = book.authorId
+let request = Book.including(optional: Book.author)
+```
+
+This method accepts any association. It has the base record fetched along with one associated record, which is "included" in the fetched results. The associated record can be missing: it is "optional".
+
+To fetch results from such a request, you define a dedicated record type:
+
+```swift
+// Fetch all books along with their eventual author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book      // The base record
+    var author: Author? // The optional associated record
+}
+let bookInfos = try Book
+    .including(optional: Book.author)
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+The CodingKey for the `BookInfo.author` property must match the association key of the `Book.author` association. See [`including(required:)`] for more information.
+
+When you only need a few columns of the associated record, define a partial type with one property per selected column of the associated record:
+
+```swift
+// Fetch all books along with the name and country of their eventual author
+struct BookInfo: Decodable, FetchableRecord {
+    struct PartialAuthor: Decodable {
+        var name: String
+        var country: String
+    }
+    var book: Book
+    var author: PartialAuthor?
+}
+let bookInfos = try Book
+    .including(optional: Book.author.select(Column("name"), Column("country")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+But if you'd rather avoid this extra partial type, prefer [`annotated(withOptional:)`]:
+
+```swift
+// Fetch all books along with the country of their eventual author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book
+    var country: String?
+}
+let bookInfos = try Book
+    .annotated(withOptional: Book.author.select(Column("country")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+### `including(all:)`
+
+For example, fetch authors along their books:
+
+```swift
+// SELECT author.* FROM author
+// SELECT book.* FROM book WHERE authorId IN (...)
+let request = Author.including(all: Author.books)
+```
+
+This method accepts any to-many association ([HasMany] or [HasManyThrough]). It has the base record fetched along with all its associated records, which are "included" in the fetched results.
+
+To fetch results from such a request, you define a dedicated record type:
+
+```swift
+// Fetch all authors along with their books
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author // The base record
+    var books: [Book]  // A collection of associated records
+}
+let authorInfos = try Author
+    .including(all: Author.books)
+    .asRequest(of: AuthorInfo.self)
+    .fetchAll(db)
+```
+
+The associated records can be stored into an Array as in the above example, but also a Set, and generally speaking any decodable Swift collection.
+
+The CodingKey for the `AuthorInfo.books` property must match the association key of the `Author.books` association. The association key is, by default, the pluralized name of the associated database table. This can be configured with the association `forKey(_:)` method:
+
+```swift
+struct Book: TableRecord {
+    static let databaseTableName = "publication"
+}
+struct Author: TableRecord {
+    // Replace the defaut "publications" association key with "books"
+    static let books = hasMany(Book.self).forKey("books")
+}
+
+// Fetch all authors along with their books
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var books: [Book] // Matches the "books" association key
+}
+let authorInfos = try Author
+    .including(all: Author.books)
+    .asRequest(of: AuthorInfo.self)
+    .fetchAll(db)
+```
+
+When you only need a few columns of the associated records, define a partial type with one property per selected column of the associated record:
+
+```swift
+// Fetch all authors along with the titles and years of their books
+struct AuthorInfo: Decodable, FetchableRecord {
+    struct PartialBook: Decodable {
+        var title: String
+        var year: Int
+    }
+    var author: Author
+    var books: [PartialBook]
+}
+let authorInfos = try Author
+    .including(all: Author.books.select(Column("title"), Column("year")))
+    .asRequest(of: AuthorInfo.self)
+    .fetchAll(db)
+```
+
+And when you need a single column of the associated records, use the association `forKey(_:)` method in order to match the name of the decoded property:
+
+```swift
+// Fetch all authors along with the titles of their books
+struct AuthorInfo: Decodable, FetchableRecord {
+    var author: Author
+    var bookTitles: [String]
+}
+let authorInfos = try Author
+    .including(all: Author.books
+        .select(Column("title"))
+        .forKey("bookTitles"))
+    .asRequest(of: AuthorInfo.self)
+    .fetchAll(db)
+```
+
+### `annotated(withRequired:)`
+
+For example, fetch books along with the name and country of their author:
+
+```swift
+// SELECT book.*, author.name, author.country
+// FROM book
+// JOIN author ON author.id = book.authorId
+let request = Book.annotated(withRequired: Book.author.select(Column("name"), Column("country")))
+```
+
+This method accepts any association. The base record is annotated with the selected columns of one associated record. When the associated record does not exist, records are not present in the fetched results: the associated record is "required".
+
+To fetch results from such a request, you define a dedicated record type:
+
+```swift
+// Fetch all books along with the name and country of their author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book      // The base record
+    var name: String    // A column of the required associated record
+    var country: String // A column of the required associated record
+}
+let bookInfos = try Book
+    .annotated(withRequired: Book.author.select(Column("name"), Column("country")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+If the name of a column of the associated record is also the name of a column of the base record, rename the associated column with the column `forKey(_:)` method, and accordingly rename the property of the decoded record type:
+
+```swift
+// Fetch all books along with the name of their author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book
+    var authorName: String
+}
+let bookInfos = try Book
+    .annotated(withRequired: Book.author.select(Column("name").forKey("authorName")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+### `annotated(withOptional:)`
+
+For example, fetch books along with the name and country of their eventual author:
+
+```swift
+// SELECT book.*, author.name, author.country
+// FROM book
+// LEFT JOIN author ON author.id = book.authorId
+let request = Book.annotated(withOptional: Book.author.select(Column("name"), Column("country")))
+```
+
+This method accepts any association. The base record is annotated with the selected columns of one associated record. When the associated record does not exist, the columns of the associated record are NULL: the associated record is "optional".
+
+To fetch results from such a request, you define a dedicated record type:
+
+```swift
+// Fetch all books along with the name of their eventual author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book       // The base record
+    var name: String?    // A column of the optional associated record
+    var country: String? // A column of the optional associated record
+}
+let bookInfos = try Book
+    .annotated(withOptional: Book.author.select(Column("name"), Column("country")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+If the name of a column of the associated record is also the name of a column of the base record, rename the associated column with the column `forKey(_:)` method, and accordingly rename the property of the decoded record type:
+
+```swift
+// Fetch all books along with the name of their eventual author
+struct BookInfo: Decodable, FetchableRecord {
+    var book: Book
+    var authorName: String?
+}
+let bookInfos = try Book
+    .annotated(withOptional: Book.author.select(Column("name").forKey("authorName")))
+    .asRequest(of: BookInfo.self)
+    .fetchAll(db)
+```
+
+### `joining(required:)`
+
+For example, fetch books by French authors:
+
+```swift
+// SELECT book.*
+// FROM book
+// JOIN author ON author.id = book.authorId
+//            AND author.country = 'France'
+let request = Book.joining(required: Book.author.filter(Column("country") == "France"))
+```
+
+This method accepts any association. It has the base record "joined" with one associated record, which is not included in the fetched results. When the associated record does not exist, the base record is not present in the fetched results: the associated record is "required".
+
+To fetch results from such a request, you do not need to define a dedicated record type:
+
+```swift
+// Fetch all books by French authors
+let books = try Book
+    .joining(required: Book.author.filter(Column("country") == "France"))
+    .fetchAll(db)
+```
+
+
+### `joining(optional:)`
+
+```swift
+// SELECT book.*
+// FROM book 
+// LEFT JOIN author ON author.id = book.authorId
+let request = Book.joining(optional: Book.author)
+```
+
+This method accepts any association. It has the base record "joined" with one associated record, which is not included in the fetched results. The associated record can be missing: it is "optional".
+
+This method has no observable effect unless the associated record is used in a way or another. We'll see examples later in this documentation.
+
+### Choosing a Joining Method Given the Shape of the Decoded Type
+
+In the description of the [joining methods] above, we have seen that you need to define dedicated record types in order to prefetch associated records. Each joining method needs a dedicated record type to have a specific shape.
+
+In this chapter, we take the reversed perspective. We list various shapes of decoded record types. When you find the type you want, you'll know the joining method you need.
+
+> :point_up: **Note**: If you don't find the type you want, chances are that you are fighting the framework, and should reconsider your position. Your escape hatch is the low-level apis described in [Decoding a Joined Request with FetchableRecord].
+
+- [`including(required:)`]
+
     ```swift
-    // All books with their respective author
-    let request = Book
+    struct BookInfo: Decodable, FetchableRecord {
+        var book: Book     // The base record
+        var author: Author // The associated record
+    }
+    
+    let bookInfos = try Book
         .including(required: Book.author)
-    
-    // This request can feed the following record:
-    struct BookInfo: FetchableRecord, Decodable {
-        var book: Book
-        var author: Author // the required associated author
-    }
-    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+        .asRequest(of: BookInfo.self)
+        .fetchAll(db)
     ```
     
-    To load books with their respective author country, you use `annotated(withRequired:)`:
-    
     ```swift
-    // All books with their respective author country
-    let request = Book
-        .annotated(withRequired: Book.author.select(Column("country")))
-    
-    // This request can feed the following record:
-    struct BookInfo: FetchableRecord, Decodable {
-        var book: Book
-        var country: String // the country of the required associated author
+    struct BookInfo: Decodable, FetchableRecord {
+        struct PartialAuthor: Decodable {
+            var name: String
+            var country: String
+        }
+        var book: Book            // The base record
+        var author: PartialAuthor // The partial associated record
     }
-    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
-    ```
     
-    To load authors with their respective books, you use `including(all:)`:
-    
-    ```swift
-    // All authors with their respective books
-    let request = Author
-        .including(all: Author.books)
-    
-    // This request can feed the following record:
-    struct AuthorInfo: FetchableRecord, Decodable {
-        var author: Author
-        var books: [Book] // all associated books
-    }
-    let authorInfos: [AuthorInfo] = try AuthorInfo.fetchAll(db, request)
-    ```
-    
-    On the other side, to load all books written by a French author, you sure need to filter authors, but you don't need them to be present in the fetched results. You prefer `joining`:
-    
-    ```swift
-    // All books written by a French author
-    let request = Book
-        .joining(required: Book.author.filter(Column("countryCode") == "FR"))
-    
-    // This request feeds the Book record:
-    let books: [Book] = try request.fetchAll(db)
+    let bookInfos = try Book
+        .including(required: Book.author.select(Column("name"), Column("country")))
+        .asRequest(of: BookInfo.self)
+        .fetchAll(db)
     ```
 
-2. For to-one associations, should the request allow missing associated records?
-    
-    If yes, choose the `optional` variant. Otherwise, choose `required`.
-    
-    For example, to load all books with their respective authors, even if the book has no recorded author, you'd use `including(optional:)`:
+- [`annotated(withRequired:)`]
     
     ```swift
-    // All books with their respective (eventual) authors
-    let request = Book
+    struct BookInfo: Decodable, FetchableRecord {
+        var book: Book         // The base record
+        var authorName: String // A column of the associated record
+        var country: String    // A column of the associated record
+    }
+    
+    let bookInfos = try Book
+        .annotated(withRequired: Book.author.select(
+            Column("name").forKey("authorName"), 
+            Column("country")))
+        .asRequest(of: BookInfo.self)
+        .fetchAll(db)
+    ```
+
+- [`including(optional:)`]
+
+    ```swift
+    struct BookInfo: Decodable, FetchableRecord {
+        var book: Book      // The base record
+        var author: Author? // The eventual associated record
+    }
+    
+    let bookInfos = try Book
         .including(optional: Book.author)
-    
-    // This request can feed the following record:
-    struct BookInfo: FetchableRecord, Decodable {
-        var book: Book
-        var author: Author? // the optional associated author
-    }
-    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+        .asRequest(of: BookInfo.self)
+        .fetchAll(db)
     ```
     
-    And to load all books with their respective author countries, even if the book has no recorded author, you'd use `annotated(withOptional:)`:
+    ```swift
+    struct BookInfo: Decodable, FetchableRecord {
+        struct PartialAuthor: Decodable {
+            var name: String
+            var country: String
+        }
+        var book: Book             // The base record
+        var author: PartialAuthor? // The eventual partial associated record
+    }
+    
+    let bookInfos = try Book
+        .including(optional: Book.author.select(Column("name"), Column("country")))
+        .asRequest(of: BookInfo.self)
+        .fetchAll(db)
+    ```
+
+- [`annotated(withOptional:)`]
     
     ```swift
-    // All books with their respective (eventual) authors
-    let request = Book
-        .annotated(withOptional: Book.author.select(Column("country")))
-    
-    // This request can feed the following record:
-    struct BookInfo: FetchableRecord, Decodable {
-        var book: Book
-        var country: String? // the country of the optional associated author
+    struct BookInfo: Decodable, FetchableRecord {
+        var book: Book          // The base record
+        var authorName: String? // A column of the eventual associated record
+        var country: String?    // A column of the eventual associated record
     }
-    let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
+    
+    let bookInfos = try Book
+        .annotated(withOptional: Book.author.select(
+            Column("name").forKey("authorName"), 
+            Column("country")))
+        .asRequest(of: BookInfo.self)
+        .fetchAll(db)
+    ```
+
+- [`including(all:)`]
+    
+    ```swift
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author // The base record
+        var books: [Book]  // A collection of associated records
+    }
+    
+    let authorInfos = try Author
+        .including(all: Author.books)
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
     ```
     
-    You can remember to use `including(optional:)` when the fetched associated records should feed optional Swift values, of type `Author?`. Conversely, when the fetched results feed non-optional values of type `Author`, prefer `including(required:)`.
+    ```swift
+    struct AuthorInfo: Decodable, FetchableRecord {
+        struct PartialBook: Decodable {
+            var title: String
+            var year: Int
+        }
+        var author: Author       // The base record
+        var books: [PartialBook] // A collection of partial associated records
+    }
     
-    Another way to describe the difference is that `required` filters the fetched results in order to discard missing associated records, when `optional` does not filter anything, and lets missing values pass through.
-    
-    Finally, readers who speak SQL may compare `optional` with left joins, and `required` with inner joins:
+    let authorInfos = try Author
+        .including(all: Author.books.select(Column("title"), Column("year")))
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
+    ```
     
     ```swift
-    // SELECT book.* FROM book LEFT JOIN author ON author.id = book.authorID
-    Book.joining(optional: Book.author)
+    struct AuthorInfo: Decodable, FetchableRecord {
+        var author: Author       // The base record
+        var bookTitles: [String] // A collection of one column of the associated records
+    }
     
-    // SELECT book.* FROM book JOIN author ON author.id = book.authorID
-    Book.joining(required: Book.author)
-    
-    // SELECT book.*, author.* FROM book LEFT JOIN author ON author.id = book.authorID
-    Book.including(optional: Book.author)
-    
-    // SELECT book.*, author.* FROM book JOIN author ON author.id = book.authorID
-    Book.including(required: Book.author)
-    
-    // SELECT book.*, author.country FROM book LEFT JOIN author ON author.id = book.authorID
-    Book.annotated(withOptional: Book.author.select(Column("country")))
-    
-    // SELECT book.*, author.country FROM book JOIN author ON author.id = book.authorID
-    Book.annotated(withRequired: Book.author.select(Column("country")))
+    let authorInfos = try Author
+        .including(all: Author.books
+            .select(Column("title"))
+            .forKey("bookTitles"))
+        .asRequest(of: AuthorInfo.self)
+        .fetchAll(db)
     ```
 
 
@@ -2607,6 +2955,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [Requesting Associated Records]: #requesting-associated-records
 [requests for associated records]: #requesting-associated-records
 [Joining And Prefetching Associated Records]: #joining-and-prefetching-associated-records
+[joining methods]: #joining-and-prefetching-associated-records
 [Filtering Associations]: #filtering-associations
 [Sorting Associations]: #sorting-associations
 [Columns Selected by an Association]: #columns-selected-by-an-association
@@ -2642,3 +2991,11 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 [common table expressions]: CommonTableExpressions.md
 [Common Table Expressions]: CommonTableExpressions.md
 [Associations to Common Table Expressions]: CommonTableExpressions.md#associations-to-common-table-expressions
+[`including(required:)`]: #includingrequired
+[`including(optional:)`]: #includingoptional
+[`including(all:)`]: #includingall
+[`annotated(withRequired:)`]: #annotatedwithrequired
+[`annotated(withOptional:)`]: #annotatedwithoptional
+[`joining(required:)`]: #joiningrequired
+[`joining(optional:)`]: #joiningoptional
+[Choosing a Joining Method Given the Shape of the Decoded Type]: #choosing-a-joining-method-given-the-shape-of-the-decoded-type
