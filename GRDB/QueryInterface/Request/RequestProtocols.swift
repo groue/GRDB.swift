@@ -735,6 +735,7 @@ extension JoinableRequest where Self: SelectionRequest {
     ///         .annotated(with: teamAlias[Column("color")])
     ///         .joining(optional: Player.team.aliased(teamAlias))
     public func annotated<A: Association>(withOptional association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        // TODO: find a way to prefix the selection with the association key
         let alias = TableAlias()
         let selection = association._sqlAssociation.destination.relation.selectionPromise
         return self
@@ -777,6 +778,7 @@ extension JoinableRequest where Self: SelectionRequest {
     ///         .annotated(with: teamAlias[Column("color")])
     ///         .joining(required: Player.team.aliased(teamAlias))
     public func annotated<A: Association>(withRequired association: A) -> Self where A.OriginRowDecoder == RowDecoder {
+        // TODO: find a way to prefix the selection with the association key
         let selection = association._sqlAssociation.destination.relation.selectionPromise
         let alias = TableAlias()
         return self
