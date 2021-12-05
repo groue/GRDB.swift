@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.16.x` Releases - [5.16.0](#5160)
 - `5.15.x` Releases - [5.15.0](#5150)
 - `5.14.x` Releases - [5.14.0](#5140)
 - `5.13.x` Releases - [5.13.0](#5130)
@@ -82,7 +83,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 5.16.0
+
+Released December 5, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.15.0...v5.16.0)
 
 - **New**: [#1106](https://github.com/groue/GRDB.swift/pull/1106) by [@groue](https://github.com/groue): Sugar for fetching only a few columns of associated records
 - **Documentation Update**: The [Joining And Prefetching Associated Records](Documentation/AssociationsBasics.md#joining-and-prefetching-associated-records) chapter was fully rewritten. The joining methods `including(required:)` and others are much more detailed, with an exploration of frequent use cases.
