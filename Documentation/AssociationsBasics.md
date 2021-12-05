@@ -1206,7 +1206,7 @@ This method has no observable effect unless the associated record is used in a w
 
 ### Choosing a Joining Method Given the Shape of the Decoded Type
 
-In the description of the [joining methods] above, we have seen that you need to define dedicated record types in order to prefetch associated records. Each joining method needs a dedicated record type to have a specific shape.
+In the description of the [joining methods] above, we have seen that you need to define dedicated record types in order to prefetch associated records. Each joining method needs a dedicated record type that has a specific shape.
 
 In this chapter, we take the reversed perspective. We list various shapes of decoded record types. When you find the type you want, you'll know the joining method you need.
 
