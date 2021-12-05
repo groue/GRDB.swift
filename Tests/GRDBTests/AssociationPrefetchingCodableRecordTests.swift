@@ -130,6 +130,46 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                     }
                 }
                 
+                // ContiguousArray
+                do {
+                    struct Record: FetchableRecord, Decodable, Equatable {
+                        var a: A
+                        var bs: ContiguousArray<B>
+                    }
+                    
+                    // Record.fetchAll
+                    do {
+                        let records = try Record.fetchAll(db, request)
+                        XCTAssertEqual(records, [
+                            Record(
+                                a: A(row: ["cola1": 1, "cola2": "a1"]),
+                                bs: [
+                                    B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                    B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                                ]),
+                            Record(
+                                a: A(row: ["cola1": 2, "cola2": "a2"]),
+                                bs: [
+                                    B(row: ["colb1": 6, "colb2": 2, "colb3": "b3"]),
+                                ]),
+                            Record(
+                                a: A(row: ["cola1": 3, "cola2": "a3"]),
+                                bs: []),
+                            ])
+                    }
+                    
+                    // Record.fetchOne
+                    do {
+                        let record = try Record.fetchOne(db, request)!
+                        XCTAssertEqual(record, Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            bs: [
+                                B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
+                                B(row: ["colb1": 5, "colb2": 1, "colb3": "b2"]),
+                            ]))
+                    }
+                }
+
                 // Set
                 do {
                     struct Record: FetchableRecord, Decodable, Equatable {

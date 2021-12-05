@@ -53,6 +53,28 @@ private struct AWithRequiredBAndOptionalC: FetchableRecord {
     }
 }
 
+private struct AWithCName: FetchableRecord {
+    var a: A
+    var cName: String?
+    
+    init(row: Row) {
+        a = A(row: row)
+        cName = row["cName"]
+    }
+}
+
+private struct AWithRequiredBNameAndOptionalCName: FetchableRecord {
+    var a: A
+    var bName: String
+    var cName: String?
+    
+    init(row: Row) {
+        a = A(row: row)
+        bName = row["bName"]
+        cName = row["cName"]
+    }
+}
+
 /// Test support for FetchableRecord records
 class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
     
@@ -96,6 +118,19 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
         XCTAssertEqual(records[0].c.name, "c1")
     }
     
+    func testAnnotatedWithRequired() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = A.annotated(withRequired: A.c.select(Column("name").forKey("cName"))).order(sql: "a.id")
+        let records = try dbQueue.inDatabase { try AWithCName.fetchAll($0, request) }
+        
+        XCTAssertEqual(records.count, 1)
+        
+        XCTAssertEqual(records[0].a.id, 1)
+        XCTAssertEqual(records[0].a.bId, 1)
+        XCTAssertEqual(records[0].a.name, "a1")
+        XCTAssertEqual(records[0].cName, "c1")
+    }
+    
     func testIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = A.including(optional: A.c).order(sql: "a.id")
@@ -118,6 +153,29 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
         XCTAssertNil(records[2].a.bId)
         XCTAssertEqual(records[2].a.name, "a3")
         XCTAssertNil(records[2].c)
+    }
+    
+    func testAnnotatedWithOptional() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = A.annotated(withOptional: A.c.select(Column("name").forKey("cName"))).order(sql: "a.id")
+        let records = try dbQueue.inDatabase { try AWithCName.fetchAll($0, request) }
+        
+        XCTAssertEqual(records.count, 3)
+        
+        XCTAssertEqual(records[0].a.id, 1)
+        XCTAssertEqual(records[0].a.bId, 1)
+        XCTAssertEqual(records[0].a.name, "a1")
+        XCTAssertEqual(records[0].cName, "c1")
+
+        XCTAssertEqual(records[1].a.id, 2)
+        XCTAssertEqual(records[1].a.bId, 2)
+        XCTAssertEqual(records[1].a.name, "a2")
+        XCTAssertNil(records[1].cName)
+
+        XCTAssertEqual(records[2].a.id, 3)
+        XCTAssertNil(records[2].a.bId)
+        XCTAssertEqual(records[2].a.name, "a3")
+        XCTAssertNil(records[2].cName)
     }
     
     func testJoiningRequired() throws {
@@ -176,5 +234,28 @@ class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
         XCTAssertEqual(records[1].b.id, 2)
         XCTAssertEqual(records[1].b.name, "b2")
         XCTAssertNil(records[1].c)
+    }
+    
+    func testAnnotatedWithOptionalAnnotatedWithRequiredPivot() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = A
+            .annotated(withOptional: A.c.select(Column("name").forKey("cName")))
+            .annotated(withRequired: A.b.select(Column("name").forKey("bName")))
+            .order(sql: "a.id")
+        let records = try dbQueue.inDatabase { try AWithRequiredBNameAndOptionalCName.fetchAll($0, request) }
+        
+        XCTAssertEqual(records.count, 2)
+        
+        XCTAssertEqual(records[0].a.id, 1)
+        XCTAssertEqual(records[0].a.bId, 1)
+        XCTAssertEqual(records[0].a.name, "a1")
+        XCTAssertEqual(records[0].bName, "b1")
+        XCTAssertEqual(records[0].cName, "c1")
+        
+        XCTAssertEqual(records[1].a.id, 2)
+        XCTAssertEqual(records[1].a.bId, 2)
+        XCTAssertEqual(records[1].a.name, "a2")
+        XCTAssertEqual(records[1].bName, "b2")
+        XCTAssertNil(records[1].cName)
     }
 }

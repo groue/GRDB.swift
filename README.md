@@ -7824,11 +7824,9 @@ struct BookInfo: Decodable, FetchableRecord {
         // SELECT book.*, author.name AS authorName
         // FROM book
         // LEFT JOIN author ON author.id = book.authorID
-        let authorAlias = TableAlias()
-        let authorName = authorAlias[Author.Columns.name].forKey(CodingKeys.authorName)
+        let authorName = Author.Columns.name.forKey(CodingKeys.authorName)
         return Book
-            .annotated(with: authorName)
-            .joining(optional: Book.author.aliased(authorAlias))
+            .annotated(withOptional: Book.author.select(authorName))
             .asRequest(of: BookInfo.self)
     }
 }
@@ -7838,13 +7836,9 @@ let bookInfos: [BookInfo] = try dbQueue.read { db in
 }
 ```
 
-By using a TableAlias, you can refer to an author column from a request of books.
-
 By defining the request as a static method of BookInfo, you have access to the private `CodingKeys.authorName`, and a compiler-checked SQL column name.
 
-By using the `annotated(with:)` method, you append the author name to the top-level selection that can be decoded by the ad-hoc record.
-
-By using the `joining()` method, you make sure no author column is selected, but the one declared in `annotated(with:)`.
+By using the `annotated(withOptional:)` method, you append the author name to the top-level selection that can be decoded by the ad-hoc record.
 
 By using `asRequest(of:)`, you enhance the type-safety of your request.
 
