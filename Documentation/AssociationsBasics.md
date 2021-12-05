@@ -870,7 +870,7 @@ let request = Book.including(required: Book.author)
 
 This method accepts any association. It has the base record fetched along with one associated record, which is "included" in the fetched results. When the associated record does not exist, records are not present in the fetched results: the associated record is "required".
 
-To fetch results from such a request, you define a dedicated record type:
+**To fetch results from such a request**, you define a dedicated record type:
 
 ```swift
 // Fetch all books along with their author
@@ -884,7 +884,7 @@ let bookInfos = try Book
     .fetchAll(db)
 ```
 
-The CodingKey for the `BookInfo.author` property must match the association key of the `Book.author` association. The association key is, by default, the name of the associated database table. This can be configured with the association `forKey(_:)` method:
+**The CodingKey for the `BookInfo.author` property must match the association key of the `Book.author` association.** The association key is, by default, the name of the associated database table. This can be configured with the association `forKey(_:)` method:
 
 ```swift
 struct Author: TableRecord {
@@ -906,7 +906,7 @@ let bookInfos = try Book
     .fetchAll(db)
 ```
 
-When you only need a few columns of the associated record, define a partial type with one property per selected column of the associated record:
+**When you only need a few columns of the associated record**, you can define a partial type with one property per selected column of the associated record:
 
 ```swift
 // Fetch all books along with the name and country of their author
@@ -951,7 +951,7 @@ let request = Book.including(optional: Book.author)
 
 This method accepts any association. It has the base record fetched along with one associated record, which is "included" in the fetched results. The associated record can be missing: it is "optional".
 
-To fetch results from such a request, you define a dedicated record type:
+**To fetch results from such a request**, you define a dedicated record type:
 
 ```swift
 // Fetch all books along with their eventual author
@@ -965,9 +965,9 @@ let bookInfos = try Book
     .fetchAll(db)
 ```
 
-The CodingKey for the `BookInfo.author` property must match the association key of the `Book.author` association. See [`including(required:)`] for more information.
+**The CodingKey for the `BookInfo.author` property must match the association key of the `Book.author` association.** See [`including(required:)`] for more information.
 
-When you only need a few columns of the associated record, define a partial type with one property per selected column of the associated record:
+**When you only need a few columns of the associated record**, you can define a partial type with one property per selected column of the associated record:
 
 ```swift
 // Fetch all books along with the name and country of their eventual author
@@ -1011,7 +1011,7 @@ let request = Author.including(all: Author.books)
 
 This method accepts any to-many association ([HasMany] or [HasManyThrough]). It has the base record fetched along with all its associated records, which are "included" in the fetched results.
 
-To fetch results from such a request, you define a dedicated record type:
+**To fetch results from such a request**, you define a dedicated record type:
 
 ```swift
 // Fetch all authors along with their books
@@ -1027,7 +1027,7 @@ let authorInfos = try Author
 
 The associated records can be stored into an Array as in the above example, but also a Set, and generally speaking any decodable Swift collection.
 
-The CodingKey for the `AuthorInfo.books` property must match the association key of the `Author.books` association. The association key is, by default, the pluralized name of the associated database table. This can be configured with the association `forKey(_:)` method:
+**The CodingKey for the `AuthorInfo.books` property must match the association key of the `Author.books` association.** The association key is, by default, the pluralized name of the associated database table. This can be configured with the association `forKey(_:)` method:
 
 ```swift
 struct Book: TableRecord {
@@ -1049,7 +1049,7 @@ let authorInfos = try Author
     .fetchAll(db)
 ```
 
-When you only need a few columns of the associated records, define a partial type with one property per selected column of the associated record:
+**When you only need a few columns of the associated records**, you can define a partial type with one property per selected column of the associated record:
 
 ```swift
 // Fetch all authors along with the titles and years of their books
@@ -1067,7 +1067,7 @@ let authorInfos = try Author
     .fetchAll(db)
 ```
 
-And when you need a single column of the associated records, use the association `forKey(_:)` method in order to match the name of the decoded property:
+When you need a single column of the associated records, avoid the extra partial type, and instead use the association `forKey(_:)` method in order to match the name of the decoded property:
 
 ```swift
 // Fetch all authors along with the titles of their books
@@ -1096,7 +1096,7 @@ let request = Book.annotated(withRequired: Book.author.select(Column("name"), Co
 
 This method accepts any association. The base record is annotated with the selected columns of one associated record. When the associated record does not exist, records are not present in the fetched results: the associated record is "required".
 
-To fetch results from such a request, you define a dedicated record type:
+**To fetch results from such a request**, you define a dedicated record type:
 
 ```swift
 // Fetch all books along with the name and country of their author
@@ -1138,7 +1138,7 @@ let request = Book.annotated(withOptional: Book.author.select(Column("name"), Co
 
 This method accepts any association. The base record is annotated with the selected columns of one associated record. When the associated record does not exist, the columns of the associated record are NULL: the associated record is "optional".
 
-To fetch results from such a request, you define a dedicated record type:
+**To fetch results from such a request**, you define a dedicated record type:
 
 ```swift
 // Fetch all books along with the name of their eventual author
@@ -1190,7 +1190,6 @@ let books = try Book
     .fetchAll(db)
 ```
 
-
 ### `joining(optional:)`
 
 ```swift
@@ -1203,6 +1202,7 @@ let request = Book.joining(optional: Book.author)
 This method accepts any association. It has the base record "joined" with one associated record, which is not included in the fetched results. The associated record can be missing: it is "optional".
 
 This method has no observable effect unless the associated record is used in a way or another. We'll see examples later in this documentation.
+
 
 ### Choosing a Joining Method Given the Shape of the Decoded Type
 
