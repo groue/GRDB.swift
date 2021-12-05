@@ -1630,7 +1630,7 @@ let teamInfos = try Team
 
 ## Columns Selected by an Association
 
-By default, associated records include all their columns:
+By default, associated records, like all records, include all their columns:
 
 ```swift
 // SELECT book.*, author.*
@@ -1641,7 +1641,9 @@ let request = Book.including(required: Book.author)
 
 **The selection can be changed for each individual request, or for all requests including a given type.**
 
-To specify the selection of an associated record in a specific request, use the `select` method:
+To specify the default selection for a given record type, see [Columns Selected by a Request](../README.md#columns-selected-by-a-request).
+
+To specify the selection in a specific request, use the `select` method:
 
 ```swift
 // SELECT book.*, author.id, author.name
@@ -1651,7 +1653,7 @@ let restrictedAuthor = Book.author.select(Column("id"), Column("name"))
 let request = Book.including(required: restrictedAuthor)
 ```
 
-To specify the default selection for all inclusions of a given type, see [Columns Selected by a Request](../README.md#columns-selected-by-a-request).
+In order to fetch from such requests of partial records, see the documentation of the [joining methods].
 
 
 ## Further Refinements to Associations
