@@ -36,6 +36,16 @@ private struct PlayerWithOptionalTeam: FetchableRecord {
     }
 }
 
+private struct PlayerWithTeamName: FetchableRecord {
+    var player: Player
+    var teamName: String?
+    
+    init(row: Row) {
+        player = Player(row: row)
+        teamName = row["teamName"]
+    }
+}
+
 /// Test support for FetchableRecord records
 class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
     
@@ -71,6 +81,19 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
         XCTAssertEqual(records[0].team.name, "Reds")
     }
     
+    func testAnnotatedWithRequired() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player
+            .annotated(withRequired: Player.team.select(Column("name").forKey("teamName")))
+            .asRequest(of: PlayerWithTeamName.self)
+        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records[0].player.id, 1)
+        XCTAssertEqual(records[0].player.teamId, 1)
+        XCTAssertEqual(records[0].player.name, "Arthur")
+        XCTAssertEqual(records[0].teamName, "Reds")
+    }
+    
     func testIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player
@@ -89,6 +112,22 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
         XCTAssertNil(records[1].team)
     }
     
+    func testAnnotatedWithOptional() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player
+            .annotated(withOptional: Player.team.select(Column("name").forKey("teamName")))
+            .asRequest(of: PlayerWithTeamName.self)
+        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
+        XCTAssertEqual(records.count, 2)
+        XCTAssertEqual(records[0].player.id, 1)
+        XCTAssertEqual(records[0].player.teamId, 1)
+        XCTAssertEqual(records[0].player.name, "Arthur")
+        XCTAssertEqual(records[0].teamName, "Reds")
+        XCTAssertEqual(records[1].player.id, 2)
+        XCTAssertEqual(records[1].player.name, "Barbara")
+        XCTAssertNil(records[1].teamName)
+    }
+    
     func testJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(required: Player.team)
@@ -99,7 +138,7 @@ class AssociationBelongsToFetchableRecordTests: GRDBTestCase {
         XCTAssertEqual(players[0].name, "Arthur")
     }
     
-    func testJoiningsOptional() throws {
+    func testJoiningOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player.joining(optional: Player.team)
         let players = try dbQueue.inDatabase { try request.fetchAll($0) }

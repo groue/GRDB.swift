@@ -27,6 +27,11 @@ private struct PlayerWithOptionalTeam: Decodable, FetchableRecord {
     static let team = Player.team.forKey(CodingKeys.team)
 }
 
+private struct PlayerWithTeamName: Decodable, FetchableRecord {
+    var player: Player
+    var teamName: String?
+}
+
 extension QueryInterfaceRequest where RowDecoder == Player {
     func filter(teamName: String) -> QueryInterfaceRequest<Player> {
         joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
@@ -74,6 +79,19 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
         XCTAssertEqual(records[0].team.name, "Reds")
     }
     
+    func testAnnotatedWithRequired() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player
+            .annotated(withRequired: Player.team.select(Column("name").forKey("teamName")))
+            .asRequest(of: PlayerWithTeamName.self)
+        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records[0].player.id, 1)
+        XCTAssertEqual(records[0].player.teamId, 1)
+        XCTAssertEqual(records[0].player.name, "Arthur")
+        XCTAssertEqual(records[0].teamName, "Reds")
+    }
+    
     func testIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = Player
@@ -90,6 +108,22 @@ class AssociationBelongsToDecodableRecordTests: GRDBTestCase {
         XCTAssertNil(records[1].player.teamId)
         XCTAssertEqual(records[1].player.name, "Barbara")
         XCTAssertNil(records[1].team)
+    }
+    
+    func testAnnotatedWithOptional() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = Player
+            .annotated(withOptional: Player.team.select(Column("name").forKey("teamName")))
+            .asRequest(of: PlayerWithTeamName.self)
+        let records = try dbQueue.inDatabase { try request.fetchAll($0) }
+        XCTAssertEqual(records.count, 2)
+        XCTAssertEqual(records[0].player.id, 1)
+        XCTAssertEqual(records[0].player.teamId, 1)
+        XCTAssertEqual(records[0].player.name, "Arthur")
+        XCTAssertEqual(records[0].teamName, "Reds")
+        XCTAssertEqual(records[1].player.id, 2)
+        XCTAssertEqual(records[1].player.name, "Barbara")
+        XCTAssertNil(records[1].teamName)
     }
     
     func testJoiningRequired() throws {

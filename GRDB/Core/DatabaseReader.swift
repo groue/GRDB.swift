@@ -519,7 +519,11 @@ extension DatabaseReader {
     {
         if scheduler.immediateInitialValue() {
             do {
-                let value = try unsafeReentrantRead(observation.fetchValue)
+                let value = try unsafeReentrantRead { db in
+                    try db.isolated(readOnly: true) {
+                        try observation.fetchValue(db)
+                    }
+                }
                 onChange(value)
             } catch {
                 observation.events.didFail?(error)

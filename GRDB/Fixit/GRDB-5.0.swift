@@ -21,9 +21,6 @@ extension AnyFetchRequest {
 
 @available(*, unavailable, message: "Custom reducers are no longer supported. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
 public struct AnyValueReducer<Fetched, Value>: ValueReducer {
-    public var _isSelectedRegionDeterministic: Bool
-    { preconditionFailure() }
-    
     public init(fetch: @escaping (Database) throws -> Fetched, value: @escaping (Fetched) -> Value?)
     { preconditionFailure() }
     
@@ -559,9 +556,6 @@ extension ValueObservation where Reducer.Value: Equatable {
 extension ValueReducers {
     @available(*, unavailable)
     public enum Unavailable<T>: ValueReducer {
-        public var _isSelectedRegionDeterministic: Bool
-        { preconditionFailure() }
-        
         public func _fetch(_ db: Database) throws -> Never
         { preconditionFailure() }
         

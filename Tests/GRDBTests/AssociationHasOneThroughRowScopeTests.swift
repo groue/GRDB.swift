@@ -74,6 +74,22 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
         XCTAssertEqual(rows[0].scopes["b"]!.scopes["c"]!.unscoped, ["id":1, "name":"c1"])
     }
     
+    func testDefaultScopeAnnotatedWithRequired() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = A.annotated(withRequired: A.defaultC).order(sql: "a.id")
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "id":1, "name":"c1"])
+    }
+    
+    func testDefaultScopeAnnotatedWithRequiredCustomSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = A.annotated(withRequired: A.defaultC.select(Column("name").forKey("cName"))).order(sql: "a.id")
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "cName":"c1"])
+    }
+    
     func testDefaultScopeIncludingOptional() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = A.including(optional: A.defaultC).order(sql: "a.id")
@@ -100,6 +116,30 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
         XCTAssertEqual(rows[2].scopes["b"]!.scopes["c"]!.unscoped, ["id":nil, "name":nil])
     }
     
+    func testDefaultScopeAnnotatedWithOptional() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = A.annotated(withOptional: A.defaultC).order(sql: "a.id")
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        
+        XCTAssertEqual(rows.count, 3)
+        
+        XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "id":1, "name":"c1"])
+        XCTAssertEqual(rows[1], ["id":2, "bId":2, "name":"a2", "id":nil, "name":nil])
+        XCTAssertEqual(rows[2], ["id":3, "bId":nil, "name":"a3", "id":nil, "name":nil])
+    }
+
+    func testDefaultScopeAnnotatedWithOptionalCustomSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        let request = A.annotated(withOptional: A.defaultC.select(Column("name").forKey("cName"))).order(sql: "a.id")
+        let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+        
+        XCTAssertEqual(rows.count, 3)
+        
+        XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "cName":"c1"])
+        XCTAssertEqual(rows[1], ["id":2, "bId":2, "name":"a2", "cName":nil])
+        XCTAssertEqual(rows[2], ["id":3, "bId":nil, "name":"a3", "cName":nil])
+    }
+
     func testDefaultScopeJoiningRequired() throws {
         let dbQueue = try makeDatabaseQueue()
         let request = A.joining(required: A.defaultC).order(sql: "a.id")
@@ -183,5 +223,61 @@ class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
         XCTAssertEqual(rows[1].scopes["b"]!.unscoped, ["id":2, "cId":nil, "name":"b2"])
         XCTAssertEqual(Set(rows[1].scopes["b"]!.scopes.names), ["c"])
         XCTAssertEqual(rows[1].scopes["b"]!.scopes["c"]!.unscoped, ["id":nil, "name":nil])
+    }
+    
+    func testDefaultScopeAnnotatedWithOptionalAnnotatedWithRequiredPivot() throws {
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let request = A
+                .annotated(withOptional: A.defaultC)
+                .annotated(withRequired: A.defaultB)
+                .order(sql: "a.id")
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            
+            XCTAssertEqual(rows.count, 2)
+            
+            XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "id":1, "name":"c1", "id":1, "cId":1, "name":"b1"])
+            XCTAssertEqual(rows[1], ["id":2, "bId":2, "name":"a2", "id":nil, "name":nil, "id":2, "cId":nil, "name":"b2"])
+        }
+        do {
+            let request = A
+                .annotated(withRequired: A.defaultB)
+                .annotated(withOptional: A.defaultC)
+                .order(sql: "a.id")
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            
+            XCTAssertEqual(rows.count, 2)
+            
+            XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "id":1, "cId":1, "name":"b1", "id":1, "name":"c1"])
+            XCTAssertEqual(rows[1], ["id":2, "bId":2, "name":"a2", "id":2, "cId":nil, "name":"b2", "id":nil, "name":nil])
+        }
+    }
+    
+    func testDefaultScopeAnnotatedWithOptionalAnnotatedWithRequiredPivotCustomSelection() throws {
+        let dbQueue = try makeDatabaseQueue()
+        do {
+            let request = A
+                .annotated(withOptional: A.defaultC.select(Column("name").forKey("cName")))
+                .annotated(withRequired: A.defaultB.select(Column("name").forKey("bName")))
+                .order(sql: "a.id")
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            
+            XCTAssertEqual(rows.count, 2)
+            
+            XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "cName":"c1", "bName":"b1"])
+            XCTAssertEqual(rows[1], ["id":2, "bId":2, "name":"a2", "cName":nil, "bName":"b2"])
+        }
+        do {
+            let request = A
+                .annotated(withRequired: A.defaultB.select(Column("name").forKey("bName")))
+                .annotated(withOptional: A.defaultC.select(Column("name").forKey("cName")))
+                .order(sql: "a.id")
+            let rows = try dbQueue.inDatabase { try Row.fetchAll($0, request) }
+            
+            XCTAssertEqual(rows.count, 2)
+            
+            XCTAssertEqual(rows[0], ["id":1, "bId":1, "name":"a1", "bName":"b1", "cName":"c1"])
+            XCTAssertEqual(rows[1], ["id":2, "bId":2, "name":"a2", "bName":"b2", "cName":nil])
+        }
     }
 }
