@@ -23,6 +23,7 @@ enum RowDecodingError: Error {
         @usableFromInline
         let debugDescription: String
         
+        // TODO: replace with a Sendable copy of row
         /// The row that could not be decoded
         let row: Row
         
@@ -111,6 +112,11 @@ enum RowDecodingError: Error {
                 """))
     }
 }
+
+#if compiler(>=5.5.1)
+extension RowKey: Sendable { }
+extension RowDecodingError.Context: Sendable { }
+#endif
 
 @usableFromInline
 struct RowDecodingContext {

@@ -880,3 +880,7 @@ extension StatementArguments {
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }
 }
+
+#if compiler(>=5.5.1)
+extension StatementArguments: Sendable { }
+#endif

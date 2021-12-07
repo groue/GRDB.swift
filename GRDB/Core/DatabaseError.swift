@@ -189,6 +189,10 @@ extension ResultCode {
     }
 }
 
+#if compiler(>=5.5.1)
+extension ResultCode: Sendable { }
+#endif
+
 /// DatabaseError wraps an SQLite error.
 public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     

@@ -251,7 +251,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual error thrown by the registered migration blocks.
     @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) async throws {
-        try await writer.barrierWriteWithoutTransaction { db in
+        try await writer.barrierWriteWithoutTransaction { [self] db in
             try migrate(db, upTo: targetIdentifier)
         }
     }
