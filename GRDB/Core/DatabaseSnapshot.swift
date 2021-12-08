@@ -6,8 +6,8 @@ import Dispatch
 /// See DatabasePool.makeSnapshot()
 ///
 /// For more information, read about "snapshot isolation" at <https://sqlite.org/isolation.html>
-public class DatabaseSnapshot: DatabaseReader {
-    private var serializedDatabase: SerializedDatabase
+public final class DatabaseSnapshot: DatabaseReader {
+    private let serializedDatabase: SerializedDatabase
     
     /// The database configuration
     public var configuration: Configuration {

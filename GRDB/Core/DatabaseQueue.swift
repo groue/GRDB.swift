@@ -6,7 +6,7 @@ import UIKit
 
 /// A DatabaseQueue serializes access to an SQLite database.
 public final class DatabaseQueue: DatabaseWriter {
-    private var writer: SerializedDatabase
+    private let writer: SerializedDatabase
     
     // MARK: - Configuration
     

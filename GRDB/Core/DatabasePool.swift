@@ -160,6 +160,11 @@ public final class DatabasePool: DatabaseWriter {
     }
 }
 
+#if swift(>=5.5.2) && canImport(_Concurrency)
+// TODO: can we remove @unchecked?
+extension DatabasePool: @unchecked Sendable { }
+#endif
+
 extension DatabasePool {
     
     // MARK: - Memory management

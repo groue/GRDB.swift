@@ -19,7 +19,7 @@ import Dispatch
 /// connection to the database. Should you have to cope with external
 /// connections, protect yourself with transactions, and be ready to setup a
 /// [busy handler](https://www.sqlite.org/c3ref/busy_handler.html).
-public protocol DatabaseReader: AnyObject {
+public protocol DatabaseReader: AnyObject, GRDBSendable {
     
     /// The database configuration
     var configuration: Configuration { get }
