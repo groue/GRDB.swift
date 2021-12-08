@@ -377,8 +377,13 @@ class DatabaseWriterTests : GRDBTestCase {
 #endif
     
 #if compiler(>=5.5.2) && canImport(_Concurrency)
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    @available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *) // async + vacuum into
     func testAsyncAwait_vacuumInto() async throws {
+        // Prevent SQLCipher failures
+        guard sqlite3_libversion_number() >= 3027000 else {
+            throw XCTSkip("VACUUM INTO is not available")
+        }
+        
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
                 try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
