@@ -92,15 +92,20 @@ extension DatabaseQueue {
     /// as much memory as possible.
     private func setupMemoryManagement() {
         let center = NotificationCenter.default
+        
+        // Use raw notification names because of
+        // FB9801372 (UIApplication.didReceiveMemoryWarningNotification should not be declared @MainActor)
+        // TODO: Reuse UIApplication.didReceiveMemoryWarningNotification when possible.
+        // TODO: Reuse UIApplication.didEnterBackgroundNotification when possible.
         center.addObserver(
             self,
             selector: #selector(DatabaseQueue.applicationDidReceiveMemoryWarning(_:)),
-            name: UIApplication.didReceiveMemoryWarningNotification,
+            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
             object: nil)
         center.addObserver(
             self,
             selector: #selector(DatabaseQueue.applicationDidEnterBackground(_:)),
-            name: UIApplication.didEnterBackgroundNotification,
+            name: NSNotification.Name(rawValue: "UIApplicationDidEnterBackgroundNotification"),
             object: nil)
     }
     
