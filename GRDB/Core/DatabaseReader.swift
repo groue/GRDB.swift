@@ -316,29 +316,29 @@ extension DatabaseReader {
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
         to writer: DatabaseWriter,
-        pageStepSize: Int32 = -1,
+        pagesPerStep: Int32 = -1,
         progress: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> ())? = nil)
     throws
     {
-        try writer.writeWithoutTransaction { dbDest in
+        try writer.writeWithoutTransaction { destDb in
             try backup(
-                to: dbDest,
-                pageStepSize: pageStepSize,
+                to: destDb,
+                pagesPerStep: pagesPerStep,
                 afterBackupStep: progress)
         }
     }
     
     func backup(
-        to dbDest: Database,
-        pageStepSize: Int32 = -1,
+        to destDb: Database,
+        pagesPerStep: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
         afterBackupStep: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> Void)? = nil)
     throws
     {
         try read { dbFrom in
             try dbFrom.backupInternal(
-                to: dbDest,
-                pageStepSize: pageStepSize,
+                to: destDb,
+                pagesPerStep: pagesPerStep,
                 afterBackupInit: afterBackupInit,
                 afterBackupStep: afterBackupStep)
         }

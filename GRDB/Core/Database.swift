@@ -1248,15 +1248,16 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// The `backup` method blocks the current thread until the destination
     /// database contains the same contents as the source database.
     ///
-    /// When the source is a DatabasePool, concurrent writes can happen during
-    /// the backup. Those writes may, or may not, be reflected in the backup,
-    /// but they won't trigger any error.
-    ///
     /// Usage:
     ///
-    ///     let source: Database = ...
-    ///     let destination: Database = ...
-    ///     try source.backup(to: destination)
+    ///     let source: DatabaseQueue = ...
+    ///     let destination: DatabaseQueue = ...
+    ///     try source.write { sourceDb in
+    ///         try destination.barrierWriteWithoutTransaction { destDb in
+    ///             try sourceDb.backup(to: destDb)
+    ///         }
+    ///     }
+    ///
     ///
     /// When you're after progress reporting during backup, you'll want to
     /// perform the backup in several steps. Each step copies the number of
@@ -1264,8 +1265,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// for more information:
     ///
     ///     // Backup with progress reporting
-    ///     try source.backup(
-    ///         to: destination,
+    ///     try sourceDb.backup(
+    ///         to: destDb,
     ///         pagesPerStep: ...,
     ///         progress: { (completedPageCount, totalPageCount) in
     ///            print("\(completedPageCount) pages copied out of \(totalPageCount)")
@@ -1278,7 +1279,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// `completedPageCount == totalPageCount` is silently ignored.
     ///
     /// - parameters:
-    ///     - writer: The destination database.
+    ///     - destDb: The destination database.
     ///     - pagesPerStep: The number of database pages copied on each backup
     ///       step. By default, all pages are copied in one single step.
     ///     - progress: An optional function that is notified of the backup
@@ -1288,26 +1289,26 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// - throws: The error thrown by `progress` if the backup is abandoned, or
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
-        to dbDest: Database,
-        pageStepSize: Int32 = -1,
+        to destDb: Database,
+        pagesPerStep: Int32 = -1,
         progress: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> ())? = nil)
     throws
     {
         try backupInternal(
-            to: dbDest,
-            pageStepSize: pageStepSize,
+            to: destDb,
+            pagesPerStep: pagesPerStep,
             afterBackupStep: progress)
     }
     
     func backupInternal(
-        to dbDest: Database,
-        pageStepSize: Int32 = -1,
+        to destDb: Database,
+        pagesPerStep: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
         afterBackupStep: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> Void)? = nil)
     throws
     {
-        guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", sqliteConnection, "main") else {
-            throw DatabaseError(resultCode: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
+        guard let backup = sqlite3_backup_init(destDb.sqliteConnection, "main", sqliteConnection, "main") else {
+            throw DatabaseError(resultCode: destDb.lastErrorCode, message: destDb.lastErrorMessage)
         }
         guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {
             throw DatabaseError()
@@ -1317,7 +1318,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         do {
             backupLoop: while true {
-                let rc = sqlite3_backup_step(backup, pageStepSize)
+                let rc = sqlite3_backup_step(backup, pagesPerStep)
                 let totalPages = Int(sqlite3_backup_pagecount(backup))
                 let completedPages = totalPages - Int(sqlite3_backup_remaining(backup))
                 switch rc {
@@ -1327,7 +1328,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 case SQLITE_OK:
                     try afterBackupStep?(completedPages, totalPages)
                 case let code:
-                    throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
+                    throw DatabaseError(resultCode: code, message: destDb.lastErrorMessage)
                 }
             }
         } catch {
@@ -1339,11 +1340,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         case SQLITE_OK:
             break
         case let code:
-            throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
+            throw DatabaseError(resultCode: code, message: destDb.lastErrorMessage)
         }
         
         // The schema of the destination database has changed:
-        dbDest.clearSchemaCache()
+        destDb.clearSchemaCache()
     }
 }
 

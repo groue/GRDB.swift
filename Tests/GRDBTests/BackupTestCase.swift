@@ -34,7 +34,7 @@ class BackupTestCase: GRDBTestCase {
         try setupBackupDestination(destination)
 
         XCTAssertThrowsError(
-            try source.backup(to: destination, pageStepSize: 1) { completedPages, totalPages in
+            try source.backup(to: destination, pagesPerStep: 1) { completedPages, totalPages in
                 XCTAssertLessThan(completedPages, totalPages)
                 throw AbandonBackupError()
             }
@@ -48,7 +48,7 @@ class BackupTestCase: GRDBTestCase {
         }
 
         var progressCount: Int = 1
-        try source.backup(to: destination, pageStepSize: 1) { completedPages, totalPages in
+        try source.backup(to: destination, pagesPerStep: 1) { completedPages, totalPages in
             let expectedCompletedPages = progressCount
             XCTAssertEqual(expectedCompletedPages, completedPages)
             if completedPages != totalPages {
@@ -81,10 +81,10 @@ class BackupTestCase: GRDBTestCase {
         let sourceDbPageCount = try setupBackupSource(source)
         try setupBackupDestination(destination)
 
-        try source.write { dbSource in
-            try destination.barrierWriteWithoutTransaction { dbDest in
+        try source.write { sourceDb in
+            try destination.barrierWriteWithoutTransaction { destDb in
                 XCTAssertThrowsError(
-                    try dbSource.backup(to: dbDest, pageStepSize: 1) { completedPages, totalPages in
+                    try sourceDb.backup(to: destDb, pagesPerStep: 1) { completedPages, totalPages in
                         XCTAssertLessThan(completedPages, totalPages)
                         throw AbandonBackupError()
                     }
@@ -102,7 +102,7 @@ class BackupTestCase: GRDBTestCase {
         try source.write { dbSource in
             try destination.barrierWriteWithoutTransaction { dbDest in
                 var progressCount: Int = 1
-                try dbSource.backup(to: dbDest, pageStepSize: 1) { completedPages, totalPages in
+                try dbSource.backup(to: dbDest, pagesPerStep: 1) { completedPages, totalPages in
                     let expectedCompletedPages = progressCount
                     XCTAssertEqual(expectedCompletedPages, completedPages)
                     if completedPages != totalPages {
