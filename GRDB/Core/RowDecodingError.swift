@@ -23,9 +23,10 @@ enum RowDecodingError: Error {
         @usableFromInline
         let debugDescription: String
         
-        // TODO: replace with a Sendable copy of row
+        let rowImpl: ArrayRowImpl // Sendable
+        
         /// The row that could not be decoded
-        let row: Row
+        var row: Row { Row(impl: rowImpl) }
         
         /// Nil for RowDecodingError.keyNotFound, in order to avoid redundancy
         let key: RowKey?
@@ -38,7 +39,7 @@ enum RowDecodingError: Error {
         
         init(decodingContext: RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
-            self.row = decodingContext.row
+            self.rowImpl = ArrayRowImpl(columns: decodingContext.row)
             self.key = decodingContext.key
             self.sql = decodingContext.sql
             self.statementArguments = decodingContext.statementArguments

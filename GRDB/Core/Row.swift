@@ -2188,11 +2188,13 @@ extension RowImpl {
 
 // TODO: merge with StatementCopyRowImpl eventually?
 /// See Row.init(dictionary:)
-private struct ArrayRowImpl: RowImpl {
+struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
-    init(columns: [(String, DatabaseValue)]) {
-        self.columns = columns
+    init<C>(columns: C)
+    where C: Collection, C.Element == (String, DatabaseValue)
+    {
+        self.columns = Array(columns)
     }
     
     var count: Int { columns.count }
@@ -2216,6 +2218,10 @@ private struct ArrayRowImpl: RowImpl {
         row
     }
 }
+
+#if compiler(>=5.5.1)
+extension ArrayRowImpl: Sendable { }
+#endif
 
 
 // TODO: merge with ArrayRowImpl eventually?
