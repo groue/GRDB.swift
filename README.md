@@ -72,7 +72,7 @@ GRDB ships with:
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
 - [Database Observation]: Observe database changes and transactions.
-- [Async/Await Support]: `try await` your database.
+- [Swift Concurrency]: `try await` your database (Xcode 13.2+).
 - [Combine Support]: Access and observe the database with Combine publishers.
 - [RxSwift Support](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
 - [Full-Text Search]
@@ -8205,7 +8205,7 @@ This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-a
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
-[Async/Await Support]: Documentation/Concurrency.md
+[Swift Concurrency]: Documentation/Concurrency.md
 [Concurrency]: Documentation/Concurrency.md
 [Demo Applications]: Documentation/DemoApps
 [Sharing a Database]: Documentation/SharingADatabase.md
