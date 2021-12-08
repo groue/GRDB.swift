@@ -279,12 +279,45 @@ extension DatabaseReader {
     /// the backup. Those writes may, or may not, be reflected in the backup,
     /// but they won't trigger any error.
     ///
-    /// The `backup` method uses the optional `progress` callback to report
-    /// the progress of the backup operation.
+    /// Usage:
+    ///
+    ///     let source: DatabaseQueue = ...
+    ///     let destination: DatabaseQueue = ...
+    ///     try source.backup(to: destination)
+    ///
+    /// When you're after progress reporting during backup, you'll want to
+    /// perform the backup in several steps. Each step copies the number of
+    /// _database pages_ you specify. See <https://www.sqlite.org/c3ref/backup_finish.html>
+    /// for more information:
+    ///
+    ///     // Backup with progress reporting
+    ///     try source.backup(
+    ///         to: destination,
+    ///         pagesPerStep: ...,
+    ///         progress: { (completedPageCount, totalPageCount) in
+    ///            print("\(completedPageCount) pages copied out of \(totalPageCount)")
+    ///         })
+    ///
+    /// The `progress` callback will be called at least once—when
+    /// `completedPageCount == totalPageCount`. If `progress` throws
+    /// when `completedPageCount < totalPageCount`, the backup is aborted
+    /// and the error is rethrown. An error thrown from `progress` when
+    /// `completedPageCount == totalPageCount` is silently ignored.
+    ///
+    /// - parameters:
+    ///     - writer: The destination database.
+    ///     - pagesPerStep: The number of database pages copied on each backup
+    ///       step. By default, all pages are copied in one single step.
+    ///     - progress: An optional function that is notified of the backup
+    ///       progress.
+    ///     - completedPageCount: The number of copied pages.
+    ///     - totalPageCount: The total number of pages to be copied.
+    /// - throws: The error thrown by `progress` if the backup is abandoned, or
+    ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
         to writer: DatabaseWriter,
         pageStepSize: Int32 = -1,
-        progress: ((DatabaseBackupProgress) -> ())? = nil)
+        progress: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> ())? = nil)
     throws
     {
         try writer.writeWithoutTransaction { dbDest in
@@ -299,7 +332,7 @@ extension DatabaseReader {
         to dbDest: Database,
         pageStepSize: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: ((DatabaseBackupProgress) -> Void)? = nil)
+        afterBackupStep: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> Void)? = nil)
     throws
     {
         try read { dbFrom in
