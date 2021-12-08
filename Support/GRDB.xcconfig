@@ -6,7 +6,7 @@ MODULEMAP_FILE = $(SRCROOT)/Support/module.modulemap
 
 // Enable concurrency warning in Swift 5.5
 // https://twitter.com/olebegemann/status/1421144304127463427?lang=en
-OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks
+// OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks
 
 // Slow compilation hunt:
 // OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-long-expression-type-checking=100 -Xfrontend -warn-long-function-bodies=100
