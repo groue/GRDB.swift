@@ -415,7 +415,7 @@ extension DatabaseWriter {
     }
 }
 
-#if compiler(>=5.5.1)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
 extension DatabaseWriter {
     // MARK: - Asynchronous Database Access
     
@@ -434,7 +434,7 @@ extension DatabaseWriter {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates, or by the
     ///   wrapping transaction.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func write<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWrite(updates, completion: { _, result in
@@ -454,7 +454,7 @@ extension DatabaseWriter {
     ///
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func writeWithoutTransaction<T>(_ updates: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncWriteWithoutTransaction { db in
@@ -479,7 +479,7 @@ extension DatabaseWriter {
     ///
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func barrierWriteWithoutTransaction<T>(
         _ updates: @Sendable @escaping (Database) throws -> T)
     async throws -> T
@@ -498,7 +498,7 @@ extension DatabaseWriter {
     /// Erases the content of the database.
     ///
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func erase() async throws {
         try await writeWithoutTransaction { try $0.erase() }
     }
@@ -509,7 +509,7 @@ extension DatabaseWriter {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     ///
     /// See <https://www.sqlite.org/lang_vacuum.html> for more information.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func vacuum() async throws {
         try await writeWithoutTransaction { try $0.execute(sql: "VACUUM") }
     }
@@ -522,7 +522,7 @@ extension DatabaseWriter {
     /// See <https://www.sqlite.org/lang_vacuum.html#vacuuminto> for more information.
     ///
     /// - Parameter filePath: file path for new database
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func vacuum(into filePath: String) async throws {
         try await writeWithoutTransaction {
             try $0.execute(sql: "VACUUM INTO ?", arguments: [filePath])

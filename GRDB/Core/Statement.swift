@@ -881,6 +881,4 @@ extension StatementArguments {
     }
 }
 
-#if compiler(>=5.5.1)
-extension StatementArguments: Sendable { }
-#endif
+extension StatementArguments: GRDBSendable { }

@@ -266,8 +266,8 @@ class DatabaseWriterTests : GRDBTestCase {
         try DatabaseQueue().backup(to: dbQueue)
     }
     
-#if compiler(>=5.5.1)
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_write() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -288,8 +288,8 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.1)
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_writeWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -313,8 +313,8 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.1)
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_barrierWriteWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -338,8 +338,8 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.1)
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_erase() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -358,8 +358,8 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.1)
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_vacuum() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in
@@ -376,8 +376,8 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.1)
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_vacuumInto() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
             try dbWriter.write { db in

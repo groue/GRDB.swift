@@ -204,7 +204,7 @@ public struct DatabaseMigrator {
         try migrate(writer, upTo: lastMigration.identifier)
     }
     
-    #if compiler(>=5.5.1)
+    #if compiler(>=5.5.2) && canImport(_Concurrency)
     /// Iterate migrations in the same order as they were registered. If a
     /// migration has not yet been applied, its block is executed in
     /// a transaction.
@@ -214,7 +214,7 @@ public struct DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func migrate(_ writer: DatabaseWriter) async throws {
         guard let lastMigration = _migrations.last else {
             return
@@ -238,7 +238,7 @@ public struct DatabaseMigrator {
         }
     }
     
-    #if compiler(>=5.5.1)
+    #if compiler(>=5.5.2) && canImport(_Concurrency)
     /// Iterate migrations in the same order as they were registered, up to the
     /// provided target. If a migration has not yet been applied, its block is
     /// executed in a transaction.
@@ -249,7 +249,7 @@ public struct DatabaseMigrator {
     ///   where migrations should apply.
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) async throws {
         try await writer.barrierWriteWithoutTransaction { [self] db in
             try migrate(db, upTo: targetIdentifier)

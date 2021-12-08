@@ -2188,7 +2188,7 @@ extension RowImpl {
 
 // TODO: merge with StatementCopyRowImpl eventually?
 /// See Row.init(dictionary:)
-struct ArrayRowImpl: RowImpl {
+struct ArrayRowImpl: RowImpl, GRDBSendable {
     let columns: [(String, DatabaseValue)]
     
     init<C>(columns: C)
@@ -2218,10 +2218,6 @@ struct ArrayRowImpl: RowImpl {
         row
     }
 }
-
-#if compiler(>=5.5.1)
-extension ArrayRowImpl: Sendable { }
-#endif
 
 
 // TODO: merge with ArrayRowImpl eventually?

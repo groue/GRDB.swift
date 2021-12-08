@@ -694,10 +694,10 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-#if compiler(>=5.5.1)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
     // MARK: - Async Await
     
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_prefix() async throws {
         func test(writer: DatabaseWriter) async throws {
             // We need something to change
@@ -733,7 +733,7 @@ class ValueObservationTests: GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_prefix_immediate_scheduling() async throws {
         func test(writer: DatabaseWriter) async throws {
             // We need something to change
@@ -769,7 +769,7 @@ class ValueObservationTests: GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_break() async throws {
         func test(writer: DatabaseWriter) async throws {
             // We need something to change
@@ -809,7 +809,7 @@ class ValueObservationTests: GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_immediate_break() async throws {
         func test(writer: DatabaseWriter) async throws {
             // We need something to change
@@ -845,7 +845,7 @@ class ValueObservationTests: GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_values_cancelled() async throws {
         func test(writer: DatabaseWriter) async throws {
             // We need something to change

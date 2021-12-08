@@ -329,7 +329,7 @@ extension DatabaseReader {
     }
 }
 
-#if compiler(>=5.5.1)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
 extension DatabaseReader {
     // MARK: - Asynchronous Database Access
     
@@ -367,7 +367,7 @@ extension DatabaseReader {
     /// - parameter value: A function that accesses the database.
     /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func read<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncRead { result in
@@ -410,7 +410,7 @@ extension DatabaseReader {
     /// - parameter value: A function that accesses the database.
     /// - throws: The error thrown by `value`, or any `DatabaseError` that would
     ///   happen while establishing the read access to the database.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func unsafeRead<T>(_ value: @Sendable @escaping (Database) throws -> T) async throws -> T {
         try await withUnsafeThrowingContinuation { continuation in
             asyncUnsafeRead { result in

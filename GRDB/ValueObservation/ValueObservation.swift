@@ -251,7 +251,7 @@ extension ValueObservation: Refinable {
     }
 }
 
-#if compiler(>=5.5.1)
+#if compiler(>=5.5.2) && canImport(_Concurrency)
 extension ValueObservation {
     // MARK: - Asynchronous Observation
     /// The database observation, as an asynchronous sequence of
@@ -262,7 +262,7 @@ extension ValueObservation {
     /// - parameter reader: A DatabaseReader.
     /// - parameter scheduler: A Scheduler. By default, fresh values are
     ///   dispatched asynchronously on the main queue.
-    @available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     public func values(
         in reader: DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
@@ -292,7 +292,7 @@ extension ValueObservation {
 /// See `ValueObservation` for more information.
 ///
 /// - note: This async sequence never ends.
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+@available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public struct AsyncValueObservation<Element>: AsyncSequence {
     public typealias BufferingPolicy = AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy
     public typealias AsyncIterator = Iterator
