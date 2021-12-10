@@ -9,4 +9,5 @@ WATCHOS_DEPLOYMENT_TARGET = 2.0
 
 // Enable concurrency warning in Swift 5.5
 // https://twitter.com/olebegemann/status/1421144304127463427?lang=en
-OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks
+// Those as commented out by default, until minimum support Xcode version can handle them.
+// OTHER_SWIFT_FLAGS = $(inherited) -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks
