@@ -2188,7 +2188,7 @@ extension RowImpl {
 
 // TODO: merge with StatementCopyRowImpl eventually?
 /// See Row.init(dictionary:)
-struct ArrayRowImpl: RowImpl, GRDBSendable {
+struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
     init<C>(columns: C)
@@ -2218,6 +2218,12 @@ struct ArrayRowImpl: RowImpl, GRDBSendable {
         row
     }
 }
+
+#if swift(>=5.5) && canImport(_Concurrency)
+// @unchecked because columns property is not inferred as Sendable
+// TODO: remove this @unchecked when compiler can handle tuples.
+extension ArrayRowImpl: @unchecked Sendable { }
+#endif
 
 
 // TODO: merge with ArrayRowImpl eventually?

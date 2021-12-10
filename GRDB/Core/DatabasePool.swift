@@ -160,8 +160,8 @@ public final class DatabasePool: DatabaseWriter {
     }
 }
 
-#if swift(>=5.5.2) && canImport(_Concurrency)
-// TODO: can we remove @unchecked?
+#if swift(>=5.5) && canImport(_Concurrency)
+// @unchecked because of databaseSnapshotCount and readerPool
 extension DatabasePool: @unchecked Sendable { }
 #endif
 

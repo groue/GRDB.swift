@@ -14,10 +14,13 @@ public final class DatabaseSnapshot: DatabaseReader {
         serializedDatabase.configuration
     }
     
-    #if SQLITE_ENABLE_SNAPSHOT
+#if SQLITE_ENABLE_SNAPSHOT
+    typealias Version = UnsafeMutablePointer<sqlite3_snapshot>
     // Support for ValueObservation in DatabasePool
-    private(set) var version: UnsafeMutablePointer<sqlite3_snapshot>?
-    #endif
+    let version: Version?
+#else
+    typealias Version = Void
+#endif
     
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
         var configuration = DatabasePool.readerConfiguration(configuration)
@@ -28,8 +31,8 @@ public final class DatabaseSnapshot: DatabaseReader {
             configuration: configuration,
             defaultLabel: defaultLabel,
             purpose: purpose)
-        
-        try serializedDatabase.sync { db in
+
+        let version: Version? = try serializedDatabase.sync { db in
             // Assert WAL mode
             let journalMode = try String.fetchOne(db, sql: "PRAGMA journal_mode")
             guard journalMode == "wal" else {
@@ -45,9 +48,15 @@ public final class DatabaseSnapshot: DatabaseReader {
             #if SQLITE_ENABLE_SNAPSHOT
             // We must expect an error: https://www.sqlite.org/c3ref/snapshot_get.html
             // > At least one transaction must be written to it first.
-            version = try? db.takeVersionSnapshot()
+            return try? db.takeVersionSnapshot()
+            #else
+            return nil
             #endif
         }
+        
+        #if SQLITE_ENABLE_SNAPSHOT
+        self.version = version
+        #endif
     }
     
     deinit {
