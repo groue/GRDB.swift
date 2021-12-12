@@ -288,20 +288,18 @@ extension Database {
     private func tableHasRowID(_ table: TableIdentifier) throws -> Bool {
         // Not need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
-        do {
-            // Use a distinctive alias so that we better understand in the
-            // future why this query appears in the error log.
-            // https://github.com/groue/GRDB.swift/issues/945#issuecomment-804896196
-            //
-            // TODO: find a way to know if a table is WITHOUT ROWID without
-            // generating an error.
-            _ = try makeStatement(sql: """
-                SELECT rowid AS checkWithoutRowidOptimization FROM \(table.quotedDatabaseIdentifier)
-                """)
-            return true
-        } catch DatabaseError.SQLITE_ERROR {
-            return false
-        }
+        //
+        // Use a distinctive alias so that we better understand in the
+        // future why this query appears in the error log.
+        // https://github.com/groue/GRDB.swift/issues/945#issuecomment-804896196
+        //
+        // We don't use `try makeStatement(sql:)` in order to avoid throwing an
+        // error (this annoys users who set a breakpoint on Swift errors).
+        let sql = "SELECT rowid AS checkWithoutRowidOptimization FROM \(table.quotedDatabaseIdentifier)"
+        var statement: SQLiteStatement? = nil
+        let code = sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
+        defer { sqlite3_finalize(statement) }
+        return code == SQLITE_OK
     }
     
     /// The indexes on table named `tableName`.
