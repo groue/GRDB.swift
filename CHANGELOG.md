@@ -90,6 +90,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: Support for the [`TOTAL` aggregate function](https://www.sqlite.org/lang_aggfunc.html#sumunc). You can use `total` in Swift, at all places `sum` is available.
 - **New**: `ValueObservation.removeDuplicates(by:)` with a closure argument.
 - **New**: Testing for the existence of an associated record with `TableAlias.exists` now supports associated views, and associated tables WITHOUT ROWID that have a compound primary key.
+- **Fixed**: `Database.primaryKey(_:)` throws when given the name of a view.
 
 ## 5.16.0
 
