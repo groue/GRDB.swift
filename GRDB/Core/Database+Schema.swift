@@ -199,6 +199,12 @@ extension Database {
             return primaryKey.value
         }
         
+        if try !tableExists(table) {
+            // Views, CTEs, etc.
+            schemaCache[table.schemaID].set(primaryKey: .missing, forTable: table.name)
+            return nil
+        }
+        
         // https://www.sqlite.org/pragma.html
         //
         // > PRAGMA database.table_info(table-name);
@@ -288,20 +294,18 @@ extension Database {
     private func tableHasRowID(_ table: TableIdentifier) throws -> Bool {
         // Not need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
-        do {
-            // Use a distinctive alias so that we better understand in the
-            // future why this query appears in the error log.
-            // https://github.com/groue/GRDB.swift/issues/945#issuecomment-804896196
-            //
-            // TODO: find a way to know if a table is WITHOUT ROWID without
-            // generating an error.
-            _ = try makeStatement(sql: """
-                SELECT rowid AS checkWithoutRowidOptimization FROM \(table.quotedDatabaseIdentifier)
-                """)
-            return true
-        } catch DatabaseError.SQLITE_ERROR {
-            return false
-        }
+        //
+        // Use a distinctive alias so that we better understand in the
+        // future why this query appears in the error log.
+        // https://github.com/groue/GRDB.swift/issues/945#issuecomment-804896196
+        //
+        // We don't use `try makeStatement(sql:)` in order to avoid throwing an
+        // error (this annoys users who set a breakpoint on Swift errors).
+        let sql = "SELECT rowid AS checkWithoutRowidOptimization FROM \(table.quotedDatabaseIdentifier)"
+        var statement: SQLiteStatement? = nil
+        let code = sqlite3_prepare_v2(sqliteConnection, sql, -1, &statement, nil)
+        defer { sqlite3_finalize(statement) }
+        return code == SQLITE_OK
     }
     
     /// The indexes on table named `tableName`.
@@ -526,7 +530,7 @@ extension Database {
 
 extension Database {
     
-    /// The columns in the table named `tableName`.
+    /// The columns in the table, or view, named `tableName`.
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func columns(in tableName: String) throws -> [ColumnInfo] {
@@ -656,6 +660,29 @@ extension Database {
             return index.columns
         }
         return nil
+    }
+    
+    /// Returns the columns to check for NULL in order to check if the row exist.
+    ///
+    /// The returned array is never empty.
+    func existenceCheckColumns(in tableName: String) throws -> [String] {
+        if try tableExists(tableName) {
+            // Table: only check the primary key columns for existence
+            let primaryKey = try self.primaryKey(tableName)
+            if let rowIDColumn = primaryKey.rowIDColumn {
+                // Prefer the user-provided name of the rowid
+                return [rowIDColumn]
+            } else if primaryKey.tableHasRowID {
+                // Prefer the rowid
+                return [Column.rowID.name]
+            } else {
+                // WITHOUT ROWID table: use primary key columns
+                return primaryKey.columns
+            }
+        } else {
+            // View: check all columns for existence
+            return try columns(in: tableName).map(\.name)
+        }
     }
 }
 

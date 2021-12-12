@@ -136,6 +136,14 @@ public struct SQLExpression {
         ///     document.rowid
         ///     country.code
         case qualifiedFastPrimaryKey(TableAlias)
+        
+        /// An expression that is true iff the row exists:
+        ///
+        /// - For tables with a rowid, it is true iff the rowid is not null.
+        /// - For tables WITHOUT ROWID, it is true iff any primary key column is not null.
+        /// - For views, it is true iff any column is not null.
+        /// - For CTEs, it is not implemented yet.
+        case qualifiedExists(TableAlias, isNegated: Bool)
     }
     
     /// `BooleanTest` supports truthiness tests.
@@ -669,23 +677,36 @@ extension SQLExpression {
     
     // MARK: Deferred
     
+    // TODO: replace with something that can work for WITHOUT ROWID table with a multi-columns primary key.
     /// An expression that picks the fastest available primary key.
     ///
     /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
-    /// Future versions of GRDB may use [row values](https://www.sqlite.org/rowvalue.html).
     ///
     ///     id
     ///     rowid
     ///     code
     static let fastPrimaryKey = SQLExpression(impl: .fastPrimaryKey)
     
+    // TODO: replace with something that can work for WITHOUT ROWID table with a multi-columns primary key.
     /// A qualified "fast primary key" (see `SQLExpression.fastPrimaryKey`).
+    ///
+    /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
     ///
     ///     player.id
     ///     document.rowid
     ///     country.code
     static func qualifiedFastPrimaryKey(_ alias: TableAlias) -> Self {
         self.init(impl: .qualifiedFastPrimaryKey(alias))
+    }
+    
+    /// An expression that is true iff the row exists:
+    ///
+    /// - For tables with a rowid, it is true iff the rowid is not null.
+    /// - For tables WITHOUT ROWID, it is true iff any primary key column is not null.
+    /// - For views, it is true iff any column is not null.
+    /// - For CTEs, it is not implemented yet.
+    static func qualifiedExists(_ alias: TableAlias) -> Self {
+        self.init(impl: .qualifiedExists(alias, isNegated: false))
     }
 }
 
@@ -993,6 +1014,22 @@ extension SQLExpression {
             return try SQLExpression
                 .qualifiedColumn(column, alias)
                 .sql(context, wrappedInParenthesis: wrappedInParenthesis)
+            
+        case let .qualifiedExists(alias, isNegated: isNegated):
+            // Works with tables and views.
+            // TODO: add support for CTEs eventually.
+            let existenceCheckColumns = try context.db.existenceCheckColumns(in: alias.tableName)
+            if isNegated {
+                return try existenceCheckColumns
+                    .map { SQLExpression.qualifiedColumn($0, alias) == nil }
+                    .joined(operator: .and)
+                    .sql(context, wrappedInParenthesis: wrappedInParenthesis)
+            } else {
+                return try existenceCheckColumns
+                    .map { SQLExpression.qualifiedColumn($0, alias) != nil }
+                    .joined(operator: .or)
+                    .sql(context, wrappedInParenthesis: wrappedInParenthesis)
+            }
         }
     }
     
@@ -1335,6 +1372,18 @@ extension SQLExpression {
                 return .isEmpty(expression, isNegated: !isNegated)
             }
             
+        case let .qualifiedExists(alias, isNegated: isNegated):
+            switch test {
+            case .true:
+                return .compare(.equal, self, true.sqlExpression)
+                
+            case .false:
+                return .compare(.equal, self, false.sqlExpression)
+                
+            case .falsey:
+                return SQLExpression(impl: .qualifiedExists(alias, isNegated: !isNegated))
+            }
+            
         default:
             switch test {
             case .true:
@@ -1421,6 +1470,7 @@ extension SQLExpression {
         case .databaseValue,
              .qualifiedColumn,
              .qualifiedFastPrimaryKey,
+             .qualifiedExists,
              .subquery,
              .exists:
             return self

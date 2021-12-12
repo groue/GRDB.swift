@@ -2331,6 +2331,7 @@ for info in authorInfos {
 - `books.max(column)`
 - `books.average(column)`
 - `books.sum(column)`
+- `books.total(column)`
 
 
 ### Annotating a Request with Aggregates
@@ -2379,6 +2380,9 @@ The default name is built from the aggregating method, the **[association key](#
 | `Author.books.max(Column("year"))`      | `books` | `year`   | `maxBookYear`      |
 | `Author.books.average(Column("price"))` | `books` | `price`  | `averageBookPrice` |
 | `Author.books.sum(Column("awards"))`    | `books` | `awards` | `bookAwardsSum`    |
+| `Author.books.total(Column("awards"))`  | `books` | `awards` | `bookAwardsSum` ¹  |
+
+¹ The default name of the `total` aggregate has a `Sum` suffix, just like the `sum` aggregate. Both compute sums, one with the `SUM` SQL function, the other with `TOTAL`. See [SQLite documentation](https://www.sqlite.org/lang_aggfunc.html#sumunc) for the difference between these aggregate functions.
 
 Those default names are lost whenever an aggregate is modified (negated, added, multiplied, whatever).
 
@@ -2653,6 +2657,23 @@ Aggregates can be modified and combined with Swift operators:
     let request = Team.annotated(with: Team.players.min(Column("score")) ?? 0)
     ```
 
+- SQL functions `ABS` and `LENGTH` are available as the `abs` and `length` Swift functions:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT "team".*, ABS(MAX("player"."score"))
+    FROM "team"
+    LEFT JOIN "player" ON ("player"."teamId" = "team"."id")
+    GROUP BY "team"."id"
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Team.annotated(with: abs(Team.players.max(Column("score"))))
+    ```
     
 ### Isolation of Multiple Aggregates
 
