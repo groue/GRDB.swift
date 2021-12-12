@@ -4188,7 +4188,7 @@ try db.create(table: "example") { t in ... }
 try db.create(table: "example", temporary: true, ifNotExists: true) { t in ... }
 ```
 
-> :bulb: **Tip**: database table names should be singular, and camel-cased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, 'httpRequest'.
+> :bulb: **Tip**: database table names should be singular, and camelCased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, `httpRequest`.
 >
 > This will help you using [Associations] when you need them. Database table names that follow another naming convention are totally OK, but you will need to perform extra configuration.
 >
