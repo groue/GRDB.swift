@@ -437,8 +437,7 @@ public class TableAlias: Hashable {
     ///         return try request.fetchAll(db)
     ///     }
     public var exists: SQLExpression {
-        // TODO: this fails with SQL views. Can we do something?
-        SQLExpression.qualifiedFastPrimaryKey(self) != nil
+        SQLExpression.qualifiedExists(self)
     }
     
     /// :nodoc:

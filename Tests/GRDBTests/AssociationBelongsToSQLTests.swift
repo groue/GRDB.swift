@@ -2000,28 +2000,114 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             static let author = belongsTo(Author.self)
         }
         
-        struct Author: TableRecord {
+        struct Author: TableRecord { }
+        
+        do {
+            // Primary key is the rowid:
+            // Existence check is performed on the primary key.
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.create(table: "author") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                }
+                try db.create(table: "book") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("authorID", .integer).references("author")
+                }
+                
+                let authorAlias = TableAlias()
+                let request = Book
+                    .joining(optional: Book.author.aliased(authorAlias))
+                    .filter(!authorAlias.exists)
+                try assertEqualSQL(db, request, """
+                    SELECT "book".* FROM "book" \
+                    LEFT JOIN "author" ON "author"."id" = "book"."authorID" \
+                    WHERE "author"."id" IS NULL
+                    """)
+            }
         }
         
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.write { db in
-            try db.create(table: "author") { t in
-                t.autoIncrementedPrimaryKey("id")
+        do {
+            // Primary key is not the rowid:
+            // Existence check is performed on the rowid.
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.create(table: "author") { t in
+                    t.column("id", .text).primaryKey()
+                }
+                try db.create(table: "book") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("authorID", .text).references("author")
+                }
+                
+                let authorAlias = TableAlias()
+                let request = Book
+                    .joining(optional: Book.author.aliased(authorAlias))
+                    .filter(!authorAlias.exists)
+                try assertEqualSQL(db, request, """
+                    SELECT "book".* FROM "book" \
+                    LEFT JOIN "author" ON "author"."id" = "book"."authorID" \
+                    WHERE "author"."rowid" IS NULL
+                    """)
             }
-            try db.create(table: "book") { t in
-                t.autoIncrementedPrimaryKey("id")
-                t.column("authorID", .integer).references("author")
+        }
+        
+        do {
+            // Compound primary key, WITHOUT ROWID optimization:
+            // Existence check is performed on the primary key.
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.create(table: "author", withoutRowID: true) { t in
+                    t.column("a", .text).notNull()
+                    t.column("b", .text).notNull()
+                    t.primaryKey(["a", "b"])
+                }
+                try db.create(table: "book") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("authorA", .text)
+                    t.column("authorB", .text)
+                    t.foreignKey(["authorA", "authorB"], references: "author")
+                }
+                
+                let authorAlias = TableAlias()
+                let request = Book
+                    .joining(optional: Book.author.aliased(authorAlias))
+                    .filter(!authorAlias.exists)
+                try assertEqualSQL(db, request, """
+                    SELECT "book".* FROM "book" \
+                    LEFT JOIN "author" ON ("author"."a" = "book"."authorA") AND ("author"."b" = "book"."authorB") \
+                    WHERE ("author"."a" IS NULL) AND ("author"."b" IS NULL)
+                    """)
             }
-            
-            let authorAlias = TableAlias()
-            let request = Book
-                .joining(optional: Book.author.aliased(authorAlias))
-                .filter(!authorAlias.exists)
-            try assertEqualSQL(db, request, """
-                SELECT "book".* FROM "book" \
-                LEFT JOIN "author" ON "author"."id" = "book"."authorID" \
-                WHERE "author"."id" IS NULL
-                """)
+        }
+        
+        do {
+            // View: existence check is performed on all columns.
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { db in
+                try db.create(table: "author") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("name", .text)
+                }
+                try db.create(table: "book") { t in
+                    t.autoIncrementedPrimaryKey("id")
+                    t.column("authorID", .integer)
+                }
+                try db.execute(sql: """
+                    CREATE VIEW authorView AS SELECT * FROM author
+                    """)
+                
+                let association = Book.belongsTo(Table("authorView"), using: ForeignKey(["authorId"], to: ["id"]))
+                let authorAlias = TableAlias()
+                let request = Book
+                    .joining(optional: association.aliased(authorAlias))
+                    .filter(!authorAlias.exists)
+                try assertEqualSQL(db, request, """
+                    SELECT "book".* FROM "book" \
+                    LEFT JOIN "authorView" ON "authorView"."id" = "book"."authorId" \
+                    WHERE ("authorView"."id" IS NULL) AND ("authorView"."name" IS NULL)
+                    """)
+            }
         }
     }
 }

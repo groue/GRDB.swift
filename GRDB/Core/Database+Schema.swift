@@ -530,7 +530,7 @@ extension Database {
 
 extension Database {
     
-    /// The columns in the table named `tableName`.
+    /// The columns in the table, or view, named `tableName`.
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func columns(in tableName: String) throws -> [ColumnInfo] {
@@ -660,6 +660,29 @@ extension Database {
             return index.columns
         }
         return nil
+    }
+    
+    /// Returns the columns to check for NULL in order to check if the row exist.
+    ///
+    /// The returned array is never empty.
+    func existenceCheckColumns(in tableName: String) throws -> [String] {
+        if try tableExists(tableName) {
+            // Table: only check the primary key columns for existence
+            let primaryKey = try self.primaryKey(tableName)
+            if let rowIDColumn = primaryKey.rowIDColumn {
+                // Prefer the user-provided name of the rowid
+                return [rowIDColumn]
+            } else if primaryKey.tableHasRowID {
+                // Prefer the rowid
+                return [Column.rowID.name]
+            } else {
+                // WITHOUT ROWID table: use primary key columns
+                return primaryKey.columns
+            }
+        } else {
+            // View: check all columns for existence
+            return try columns(in: tableName).map(\.name)
+        }
     }
 }
 
