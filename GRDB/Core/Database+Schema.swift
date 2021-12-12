@@ -199,6 +199,12 @@ extension Database {
             return primaryKey.value
         }
         
+        if try !tableExists(table) {
+            // Views, CTEs, etc.
+            schemaCache[table.schemaID].set(primaryKey: .missing, forTable: table.name)
+            return nil
+        }
+        
         // https://www.sqlite.org/pragma.html
         //
         // > PRAGMA database.table_info(table-name);
