@@ -1095,5 +1095,22 @@ public func ?? <RowDecoder>(
         .with { $0.key = lhs.key } // Preserve key
 }
 
-// TODO: add support for ABS(aggregate)
-// TODO: add support for LENGTH(aggregate)
+// MARK: - ABS(...)
+
+/// Returns an aggregate that evaluates to the absolute value of the
+/// input aggregate.
+public func abs<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
+-> AssociationAggregate<RowDecoder>
+{
+    aggregate.map(abs)
+}
+
+// MARK: - LENGTH(...)
+
+/// Returns an aggregate that evaluates the `LENGTH` SQL function on the
+/// input aggregate.
+public func length<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
+-> AssociationAggregate<RowDecoder>
+{
+    aggregate.map(length)
+}

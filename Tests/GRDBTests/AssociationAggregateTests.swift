@@ -1412,4 +1412,54 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[3].minPlayerScore, 0)
         }
     }
+    
+    func testAbs() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: abs(Team.players.max(Column("score"))))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, ABS(MAX("player"."score")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: abs(Team.players.max(Column("score"))).forKey("foo"))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, ABS(MAX("player"."score")) AS "foo" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
+    
+    func testLength() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                // This is a meaningless request, but this is enough for this test
+                let request = Team.annotated(with: length(Team.players.max(Column("score"))))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, LENGTH(MAX("player"."score")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                // This is a meaningless request, but this is enough for this test
+                let request = Team.annotated(with: length(Team.players.max(Column("score"))).forKey("foo"))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, LENGTH(MAX("player"."score")) AS "foo" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
 }

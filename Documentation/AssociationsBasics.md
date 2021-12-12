@@ -2653,6 +2653,23 @@ Aggregates can be modified and combined with Swift operators:
     let request = Team.annotated(with: Team.players.min(Column("score")) ?? 0)
     ```
 
+- SQL functions `ABS` and `LENGTH` are available as the `abs` and `length` Swift functions:
+
+    <details>
+        <summary>SQL</summary>
+    
+    ```sql
+    SELECT "team".*, ABS(MAX("player"."score"))
+    FROM "team"
+    LEFT JOIN "player" ON ("player"."teamId" = "team"."id")
+    GROUP BY "team"."id"
+    ```
+    
+    </details>
+    
+    ```swift
+    let request = Team.annotated(with: abs(Team.players.max(Column("score"))))
+    ```
     
 ### Isolation of Multiple Aggregates
 
