@@ -83,6 +83,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: `DatabaseRegion(table: tableName)` is deprecated. Use `Table(tableName)` instead.
+
 ## 5.16.0
 
 Released December 5, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.15.0...v5.16.0)
