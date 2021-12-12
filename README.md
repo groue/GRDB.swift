@@ -5939,7 +5939,7 @@ See the companion library [RxGRDB] for more information.
 - By default, ValueObservation notifies a fresh value whenever any of its component is modified (any fetched column, row, etc.). This can be [configured](#specifying-the-region-tracked-by-valueobservation).
 - By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
 - ValueObservation may coalesce subsequent changes into a single notification.
-- ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates()](#valueobservationremoveduplicates) method.
+- ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates](#valueobservationremoveduplicates) method.
 - The database observation stops when any of those conditions is met:
     - The cancellable returned by the `start` method is cancelled or deinitialized.
     - An error occurs.
@@ -6041,7 +6041,7 @@ The transformation function does not block any database access. This makes the `
 
 #### ValueObservation.removeDuplicates
 
-The `removeDuplicates` operator filters out consecutive equal values. The observed values must adopt the standard Equatable protocol.
+The `removeDuplicates()` and `removeDuplicates(by:)` operators filter out consecutive equal values:
 
 For example:
 
@@ -6052,7 +6052,7 @@ let observation = ValueObservation
     .removeDuplicates()
 ```
 
-:bulb: **Tip**: When the observed value does not adopt Equatable, you can observe distinct raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue), before converting them to the desired type. For example, the previous observation can be rewritten as below:
+:bulb: **Tip**: When the observed value does not adopt Equatable, and it is impractical to provide a custom comparison function, you can observe distinct raw database values such as [Row](#row-queries) or [DatabaseValue](#databasevalue), before converting them to the desired type. For example, the previous observation can be rewritten as below:
 
 ```swift
 // An observation of distinct Player?
@@ -6254,7 +6254,7 @@ This chapter further describes runtime aspects of ValueObservation, and provides
 
 For example, if you track the maximum score of players, all transactions that impact the `score` column of the `player` database table (any update, insertion, or deletion) trigger the observation, even if the maximum score itself is not changed.
 
-You can filter out undesired duplicate notifications with the [removeDuplicates()](#valueobservationremoveduplicates) method.
+You can filter out undesired duplicate notifications with the [removeDuplicates](#valueobservationremoveduplicates) method.
 
 
 **ValueObservation can create database contention.** In other words, active observations take a toll on the constrained database resources. When triggered by impactful transactions, observations fetch fresh values, and can delay read and write database accesses of other application components.
