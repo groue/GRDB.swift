@@ -1344,6 +1344,17 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT SUM(\"age\" / 2) FROM \"readers\"")
     }
     
+    func testTotalExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age))),
+            "SELECT TOTAL(\"age\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age / 2))),
+            "SELECT TOTAL(\"age\" / 2) FROM \"readers\"")
+    }
+    
     
     // MARK: - LIKE operator
     

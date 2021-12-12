@@ -87,6 +87,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **New**: `DatabaseRegion(table: tableName)` is deprecated. Use `Table(tableName)` instead.
 - **New**: The `ABS` and `LENGTH` SQL functions are now available on association aggregates, through `abs(aggregate)` and `length(aggregate)`.
+- **New**: Support for the [`TOTAL` aggregate function](https://www.sqlite.org/lang_aggfunc.html#sumunc). You can use `total` in Swift, at all places `sum` is available.
 
 ## 5.16.0
 

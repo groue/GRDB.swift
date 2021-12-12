@@ -101,10 +101,29 @@ public func min(_ value: SQLSpecificExpressible) -> SQLExpression {
 
 /// Returns an expression that evaluates the `SUM` SQL function.
 ///
+/// See <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+///
+/// See also `total(_:)`.
+///
 ///     // SUM(amount)
 ///     sum(Column("amount"))
 public func sum(_ value: SQLSpecificExpressible) -> SQLExpression {
     .aggregate("SUM", [value.sqlExpression])
+}
+
+
+// MARK: - TOTAL(...)
+
+/// Returns an expression that evaluates the `TOTAL` SQL function.
+///
+/// See <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+///
+/// See also `sum(_:)`.
+///
+///     // TOTAL(amount)
+///     total(Column("amount"))
+public func total(_ value: SQLSpecificExpressible) -> SQLExpression {
+    .aggregate("TOTAL", [value.sqlExpression])
 }
 
 
