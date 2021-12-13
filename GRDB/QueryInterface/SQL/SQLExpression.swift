@@ -452,6 +452,17 @@ extension SQLExpression {
         if case let .collated(expression, collationName) = expression.impl {
             // Prefer: expression BETWEEN lowerBound AND upperBound COLLATE collation
             // over:   (expression COLLATE collation) BETWEEN lowerBound AND upperBound
+            //
+            // This transformation was introduced in GRDB v0.42.0, for the first
+            // release of the query interface:
+            // https://github.com/groue/GRDB.swift/blob/3b3cb6bdecdfaac6e3d55bb7ecccf22f2749140f/GRDB/FetchRequest/SQLSupport/Collation.swift#L224-L239
+            // The commit is a big squash, and we've lost the original intent.
+            // It is likely just an SQL aesthetic preference of mine.
+            //
+            // According to https://www.sqlite.org/datatype3.html#assigning_collating_sequences_from_sql
+            // this rewriting should not have any functional impact. Yet if any
+            // user complains eventually, we should just remove this rewriting
+            // rule without any resistance.
             return collated(between(
                                 expression: expression,
                                 lowerBound: lowerBound,
@@ -473,6 +484,8 @@ extension SQLExpression {
     ///     <lhs> <= <rhs>
     ///     <lhs> LIKE <rhs>
     static func binary(_ op: BinaryOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
+        // See `between(expression:lowerBound:upperBound:isNegated:)` for some
+        // explanation of these rewriting rules.
         if case let .collated(lhs, collationName) = lhs.impl {
             // Prefer: lhs <= rhs COLLATE collation
             // over:   (lhs COLLATE collation) <= rhs
@@ -570,6 +583,8 @@ extension SQLExpression {
     ///
     /// See also `SQLExpression.equal(_:_:)`.
     static func compare(_ op: EqualityOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
+        // See `between(expression:lowerBound:upperBound:isNegated:)` for some
+        // explanation of these rewriting rules.
         if case let .collated(lhs, collationName) = lhs.impl {
             // Prefer: lhs = rhs COLLATE collation
             // over:   (lhs COLLATE collation) = rhs
@@ -618,7 +633,57 @@ extension SQLExpression {
     ///
     ///     <expression> COLLATE <collation>
     static func collated(_ expression: SQLExpression, _ collationName: Database.CollationName) -> Self {
-        self.init(impl: .collated(expression, collationName))
+        switch expression.impl {
+        case let .in(expression, collection, isNegated: isNegated):
+            // According to https://www.sqlite.org/datatype3.html#assigning_collating_sequences_from_sql
+            //
+            // > The collating sequence used for expressions of the form
+            // > "x IN (y, z, ...)" is the collating sequence of x. If an
+            // > explicit collating sequence is required on an IN operator it
+            // > should be applied to the left operand, like this:
+            // > "x COLLATE nocase IN (y,z, ...)".
+            //
+            // Indeed:
+            //
+            //      $ sqlite3
+            //      SQLite version 3.32.3 2020-06-18 14:16:19
+            //      sqlite> SELECT 'a' IN ('A') COLLATE NOCASE;
+            //      0
+            //      sqlite> SELECT ('a' COLLATE NOCASE) IN ('A');
+            //      1
+            //
+            // Conclusion: "x IN (y,z, ...) COLLATE nocase" can not match the
+            // user intent. We could fatal error. Or warn. Or just make it work:
+            //
+            // Prefer: (expression COLLATE collation) IN (...)
+            // over:   expression IN (...) COLLATE collation
+            return .in(.collated(expression, collationName), collection, isNegated: isNegated)
+            
+        case let .associativeBinary(op, expressions):
+            // The expression rewrite performed for the `IN` operator above
+            // allows the user to have the following Swift code match the intent:
+            //
+            //      // name COLLATE NOCASE IN ('foo', 'bar')
+            //      ["foo", "bar"].contains(Column("name")).collating(.nocase)
+            //      ["foo", "bar"].contains(Column("name").collating(.nocase))
+            //
+            // The BETWEEN case is supported as well (see
+            // `between(expression:lowerBound:upperBound:isNegated:)`):
+            //
+            //      // name BETWEEN 'foo' AND 'bar' COLLATE NOCASE
+            //      ("foo"..."bar").contains(Column("name")).collating(.nocase)
+            //      ("foo"..."bar").contains(Column("name").collating(.nocase))
+            //
+            // We just miss support for non-closed ranges:
+            //
+            //      // (name >= 'foo' COLLATE NOCASE) AND (name < 'bar' COLLATE NOCASE)
+            //      ("foo"..<"bar").contains(Column("name")).collating(.nocase)
+            //      ("foo"..<"bar").contains(Column("name").collating(.nocase))
+            return .associativeBinary(op, expressions.map { $0.collating(collationName) })
+            
+        default:
+            return self.init(impl: .collated(expression, collationName))
+        }
     }
     
     // MARK: Functions
