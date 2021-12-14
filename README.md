@@ -72,6 +72,7 @@ GRDB ships with:
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
 - [Database Observation]: Observe database changes and transactions.
+- [Swift Concurrency]: `try await` your database (Xcode 13.2+).
 - [Combine Support]: Access and observe the database with Combine publishers.
 - [RxSwift Support](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
 - [Full-Text Search]
@@ -312,7 +313,7 @@ Documentation
 
 #### Demo Applications & Frequently Asked Questions
 
-- [Demo Applications]: Two flavors: vanilla UIKit, and Combine + SwiftUI
+- [Demo Applications]: Three flavors: vanilla UIKit, Combine + SwiftUI, and Async/Await + SwiftUI.
 - [FAQ]: [Opening Connections](#faq-opening-connections), [Associations](#faq-associations), etc.
 
 #### Reference
@@ -5889,7 +5890,21 @@ Tracked changes are insertions, updates, and deletions that impact the tracked v
     cancellable.cancel()
     ```
 
-**As a convenience**, ValueObservation can be turned into a Combine publisher, or a RxSwift Observable (see [Combine Support] and the companion library [RxGRDB]):
+**As a convenience**, ValueObservation can be turned into an async sequence, a Combine publisher, or an RxSwift observable:
+
+<details open>
+    <summary>Async sequence example</summary>
+    
+[**:fire: EXPERIMENTAL**](#what-are-experimental-features)
+
+```swift
+let observation = ValueObservation.tracking(Player.fetchAll)
+for try await players in observation.values(in: dbQueue) {
+    print("fresh players", players)
+}
+```
+
+</details>
 
 <details>
     <summary>Combine example</summary>
@@ -7556,6 +7571,7 @@ FAQ
 **[FAQ: Errors](#faq-errors)**
 
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [Mutation of captured var in concurrently-executing code](#mutation-of-captured-var-in-concurrently-executing-code)
 - [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
@@ -7902,6 +7918,7 @@ If after all those steps (thanks you!), your observation is still failing you, p
 
 - :arrow_up: [FAQ]
 - [Generic parameter 'T' could not be inferred](#generic-parameter-t-could-not-be-inferred)
+- [Mutation of captured var in concurrently-executing code](#mutation-of-captured-var-in-concurrently-executing-code)
 - [SQLite error 1 "no such column"](#sqlite-error-1-no-such-column)
 - [SQLite error 10 "disk I/O error", SQLite error 23 "not authorized"](#sqlite-error-10-disk-io-error-sqlite-error-23-not-authorized)
 - [SQLite error 21 "wrong number of statement arguments" with LIKE queries](#sqlite-error-21-wrong-number-of-statement-arguments-with-like-queries)
@@ -7937,6 +7954,31 @@ You can also, when possible, write a single-line closure:
 let string = try dbQueue.read { db in
     try String.fetchOne(db, ...)
 }
+```
+
+
+### Mutation of captured var in concurrently-executing code
+
+The `insert` and `save` [persistence methods](#persistablerecord-protocol) can trigger a compiler error in async contexts:
+
+```swift
+var player = Player(id: nil, name: "Arthur")
+try await dbWriter.write { db in
+    // Error: Mutation of captured var 'player' in concurrently-executing code
+    try player.insert(db)
+}
+print(player.id) // A non-nil id
+```
+
+When this happens, prefer the `inserted` and `saved` methods instead:
+
+```swift
+// OK
+var player = Player(id: nil, name: "Arthur")
+player = try await dbWriter.write { [player] db in
+    return try player.inserted(db)
+}
+print(player.id) // A non-nil id
 ```
 
 
@@ -8163,8 +8205,9 @@ This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-a
 [custom SQLite build]: Documentation/CustomSQLiteBuilds.md
 [Combine]: https://developer.apple.com/documentation/combine
 [Combine Support]: Documentation/Combine.md
+[Swift Concurrency]: Documentation/Concurrency.md
 [Concurrency]: Documentation/Concurrency.md
-[Demo Applications]: Documentation/DemoApps/README.md
+[Demo Applications]: Documentation/DemoApps
 [Sharing a Database]: Documentation/SharingADatabase.md
 [FAQ]: #faq
 [Database Observation]: #database-changes-observation

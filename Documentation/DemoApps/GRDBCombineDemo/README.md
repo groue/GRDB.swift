@@ -3,7 +3,7 @@ Combine + SwiftUI Demo Application
 
 <img align="right" src="https://github.com/groue/GRDB.swift/raw/master/Documentation/DemoApps/GRDBCombineDemo/Screenshot.png" width="50%">
 
-**This demo application is a Combine + SwiftUI application.** For a demo application that uses UIKit, see [GRDBDemoiOS](../GRDBDemoiOS/README.md).
+**This demo application is a Combine + SwiftUI application.** For a demo application that uses UIKit, see [GRDBDemoiOS](../GRDBDemoiOS/README.md), and for Async/Await + SwiftUI, see [GRDBAsyncDemo](../GRDBAsyncDemo/README.md).
 
 **Requirements**: iOS 15.0+ / Xcode 12+
 

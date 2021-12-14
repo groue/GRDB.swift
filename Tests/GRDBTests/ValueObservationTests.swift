@@ -693,4 +693,204 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabaseQueue())
         try test(makeDatabasePool())
     }
+    
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    // MARK: - Async Await
+    
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_values_prefix() async throws {
+        func test(writer: DatabaseWriter) async throws {
+            // We need something to change
+            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let cancellationExpectation = expectation(description: "cancelled")
+            let observation = ValueObservation
+                .trackingConstantRegion(Table("t").fetchCount)
+                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
+            
+            let task = Task { () -> [Int] in
+                var counts: [Int] = []
+                
+                for try await count in try observation.values(in: writer).prefix(while: { $0 < 3 }) {
+                    counts.append(count)
+                    try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
+                }
+                return counts
+            }
+            
+            let counts = try await task.value
+            
+            // All values were published
+            assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
+            
+            // Observation was ended
+            wait(for: [cancellationExpectation], timeout: 2)
+        }
+        
+        try await AsyncTest(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_values_prefix_immediate_scheduling() async throws {
+        func test(writer: DatabaseWriter) async throws {
+            // We need something to change
+            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let cancellationExpectation = expectation(description: "cancelled")
+            let observation = ValueObservation
+                .trackingConstantRegion(Table("t").fetchCount)
+                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
+            
+            let task = Task { @MainActor () -> [Int] in
+                var counts: [Int] = []
+                
+                for try await count in try observation.values(in: writer, scheduling: .immediate).prefix(while: { $0 < 3 }) {
+                    counts.append(count)
+                    try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
+                }
+                return counts
+            }
+            
+            let counts = try await task.value
+            
+            // All values were published
+            assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
+            
+            // Observation was ended
+            wait(for: [cancellationExpectation], timeout: 2)
+        }
+        
+        try await AsyncTest(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_values_break() async throws {
+        func test(writer: DatabaseWriter) async throws {
+            // We need something to change
+            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let cancellationExpectation = expectation(description: "cancelled")
+            let observation = ValueObservation
+                .trackingConstantRegion(Table("t").fetchCount)
+                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
+            
+            let task = Task { () -> [Int] in
+                var counts: [Int] = []
+                
+                for try await count in observation.values(in: writer) {
+                    counts.append(count)
+                    if count == 2 {
+                        break
+                    } else {
+                        try await writer.write { try $0.execute(sql: "INSERT INTO t DEFAULT VALUES") }
+                    }
+                }
+                return counts
+            }
+            
+            let counts = try await task.value
+            
+            // All values were published
+            assertValueObservationRecordingMatch(recorded: counts, expected: [0, 1, 2])
+            
+            // Observation was ended
+            wait(for: [cancellationExpectation], timeout: 2)
+        }
+        
+        try await AsyncTest(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_values_immediate_break() async throws {
+        func test(writer: DatabaseWriter) async throws {
+            // We need something to change
+            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let cancellationExpectation = expectation(description: "cancelled")
+            let observation = ValueObservation
+                .trackingConstantRegion(Table("t").fetchCount)
+                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
+            
+            let task = Task { @MainActor () -> [Int] in
+                var counts: [Int] = []
+                
+                for try await count in observation.values(in: writer, scheduling: .immediate) {
+                    counts.append(count)
+                    break
+                }
+                return counts
+            }
+            
+            let counts = try await task.value
+            
+            // A single value was published
+            assertValueObservationRecordingMatch(recorded: counts, expected: [0])
+            
+            // Observation was ended
+            wait(for: [cancellationExpectation], timeout: 2)
+        }
+        
+        try await AsyncTest(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+    
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_values_cancelled() async throws {
+        func test(writer: DatabaseWriter) async throws {
+            // We need something to change
+            try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
+            
+            let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
+            
+            let cancellationExpectation = expectation(description: "cancelled")
+            let cancelledObservation = observation.handleEvents(didCancel: {
+                cancellationExpectation.fulfill()
+            })
+            
+            // Launch a task that we'll cancel
+            let cancelledTask = Task<String, Error> {
+                // Loops until cancelled
+                for try await _ in cancelledObservation.values(in: writer) { }
+                return "cancelled loop"
+            }
+            
+            // Lanch the task that cancels
+            Task {
+                for try await count in observation.values(in: writer) {
+                    if count == 3 {
+                        cancelledTask.cancel()
+                        break
+                    } else {
+                        try await writer.write {
+                            try $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                        }
+                    }
+                }
+            }
+            
+            // Make sure loop has ended in the cancelled task
+            let cancelledValue = try await cancelledTask.value
+            XCTAssertEqual(cancelledValue, "cancelled loop")
+            
+            // Make sure observation was cancelled as well
+            wait(for: [cancellationExpectation], timeout: 2)
+        }
+        
+        try await AsyncTest(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+#endif
 }

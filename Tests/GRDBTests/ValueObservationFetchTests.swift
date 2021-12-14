@@ -196,7 +196,7 @@ class ValueObservationFetchTests: GRDBTestCase {
     func testRemoveDuplicates() throws {
         try assertValueObservation(
             ValueObservation
-                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .trackingConstantRegion(Table("t").fetchCount)
                 .removeDuplicates(),
             records: [0, 1, 2],
             setup: { db in

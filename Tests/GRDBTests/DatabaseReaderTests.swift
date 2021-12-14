@@ -30,6 +30,28 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()).makeSnapshot())
     }
     
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_ReadCanRead() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test(_ dbReader: DatabaseReader) async throws {
+            let count = try await dbReader.read { db in
+                try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+            }
+            XCTAssertEqual(count, 0)
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+        try await test(setup(makeDatabasePool()).makeSnapshot())
+    }
+#endif
+    
     func testReadPreventsDatabaseModification() throws {
         func test(_ dbReader: DatabaseReader) throws {
             do {
@@ -46,6 +68,24 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(makeDatabasePool().makeSnapshot())
     }
     
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_ReadPreventsDatabaseModification() async throws {
+        func test(_ dbReader: DatabaseReader) async throws {
+            do {
+                try await dbReader.read { db in
+                    try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+                }
+                XCTFail("Expected error")
+            } catch DatabaseError.SQLITE_READONLY {
+            }
+        }
+        
+        try await test(makeDatabaseQueue())
+        try await test(makeDatabasePool())
+        try await test(makeDatabasePool().makeSnapshot())
+    }
+#endif
     // MARK: - UnsafeRead
     
     func testUnsafeReadCanRead() throws {
@@ -66,6 +106,28 @@ class DatabaseReaderTests : GRDBTestCase {
         try test(setup(makeDatabasePool()))
         try test(setup(makeDatabasePool()).makeSnapshot())
     }
+    
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_UnsafeReadCanRead() async throws {
+        func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
+            try dbWriter.write { db in
+                try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
+            }
+            return dbWriter
+        }
+        func test(_ dbReader: DatabaseReader) async throws {
+            let count = try await dbReader.unsafeRead { db in
+                try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")
+            }
+            XCTAssertEqual(count, 0)
+        }
+        
+        try await test(setup(makeDatabaseQueue()))
+        try await test(setup(makeDatabasePool()))
+        try await test(setup(makeDatabasePool()).makeSnapshot())
+    }
+#endif
     
     // MARK: - UnsafeReentrantRead
     
