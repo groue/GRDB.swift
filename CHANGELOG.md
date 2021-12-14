@@ -92,6 +92,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: `ValueObservation.removeDuplicates(by:)` with a closure argument.
 - **New**: Testing for the existence of an associated record with `TableAlias.exists` now supports associated views, and associated tables WITHOUT ROWID that have a compound primary key.
 - **Fixed**: `Database.primaryKey(_:)` throws when given the name of a view.
+- **Documentation Update**: :star: The [Concurrency Guide](Documentation/Concurrency.md) was updated for the new support for asynchronous Swift.
+- **Documentation Update**: :star: [GRDBAsyncDemo](Documentation/DemoApps/GRDBAsyncDemo/README.md) is a new SwiftUI demo app that uses the new async apis.
+- **Documentation Update**: A new FAQ gives hints for avoiding a [Mutation of captured var in concurrently-executing code](README.md##mutation-of-captured-var-in-concurrently-executing-code) compiler error.
 
 ## 5.16.0
 
