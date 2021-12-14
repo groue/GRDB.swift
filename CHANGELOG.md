@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.17.x` Releases - [5.17.0](#5170)
 - `5.16.x` Releases - [5.16.0](#5160)
 - `5.15.x` Releases - [5.15.0](#5150)
 - `5.14.x` Releases - [5.14.0](#5140)
@@ -83,7 +84,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 5.17.0
+
+Released December 14, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.16.0...v5.17.0)
 
 - **New**: :star: [#1079](https://github.com/groue/GRDB.swift/pull/1079) by [@groue](https://github.com/groue): Async / Await
 - **New**: `DatabaseRegion(table: tableName)` is deprecated. Use `Table(tableName)` instead.
