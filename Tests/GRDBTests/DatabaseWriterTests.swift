@@ -394,7 +394,9 @@ class DatabaseWriterTests : GRDBTestCase {
             let intoPath = NSTemporaryDirectory().appending(ProcessInfo.processInfo.globallyUniqueString).appending("-vacuum-into-db.sqlite")
             try await dbWriter.vacuum(into: intoPath)
             do {
-                let dbQueue = try DatabaseQueue(path: intoPath)
+                // open newly created file and ensure table was copied, and
+                // encrypted like the original.
+                let dbQueue = try DatabaseQueue(path: intoPath, configuration: dbWriter.configuration)
                 let tableExists = try await dbQueue.read { try $0.tableExists("t") }
                 XCTAssertTrue(tableExists)
             }
