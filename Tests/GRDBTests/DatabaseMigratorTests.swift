@@ -98,6 +98,54 @@ class DatabaseMigratorTests : GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
     
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_NonEmptyMigratorSync() async throws {
+        func test(writer: DatabaseWriter) async throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("createPersons") { db in
+                try db.execute(sql: """
+                    CREATE TABLE persons (
+                        id INTEGER PRIMARY KEY,
+                        name TEXT)
+                    """)
+            }
+            migrator.registerMigration("createPets") { db in
+                try db.execute(sql: """
+                    CREATE TABLE pets (
+                        id INTEGER PRIMARY KEY,
+                        masterID INTEGER NOT NULL
+                                 REFERENCES persons(id)
+                                 ON DELETE CASCADE ON UPDATE CASCADE,
+                        name TEXT)
+                    """)
+            }
+            
+            var migrator2 = migrator
+            migrator2.registerMigration("destroyPersons") { db in
+                try db.execute(sql: "DROP TABLE pets")
+            }
+            
+            try await migrator.migrate(writer)
+            try await writer.read { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertTrue(try db.tableExists("pets"))
+            }
+            
+            try await migrator2.migrate(writer)
+            try await writer.read { db in
+                XCTAssertTrue(try db.tableExists("persons"))
+                XCTAssertFalse(try db.tableExists("pets"))
+            }
+        }
+        
+        try await AsyncTest(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+#endif
+    
     func testNonEmptyMigratorAsync() throws {
         func test(writer: DatabaseWriter) throws {
             var migrator = DatabaseMigrator()
@@ -374,6 +422,61 @@ class DatabaseMigratorTests : GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
+
+#if compiler(>=5.5.2) && canImport(_Concurrency)
+    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
+    func testAsyncAwait_MigrateUpTo() async throws {
+        func test(writer: DatabaseWriter) async throws {
+            var migrator = DatabaseMigrator()
+            migrator.registerMigration("a") { db in
+                try db.execute(sql: "CREATE TABLE a (id INTEGER PRIMARY KEY)")
+            }
+            migrator.registerMigration("b") { db in
+                try db.execute(sql: "CREATE TABLE b (id INTEGER PRIMARY KEY)")
+            }
+            migrator.registerMigration("c") { db in
+                try db.execute(sql: "CREATE TABLE c (id INTEGER PRIMARY KEY)")
+            }
+            
+            // one step
+            try await migrator.migrate(writer, upTo: "a")
+            try await writer.read { db in
+                XCTAssertTrue(try db.tableExists("a"))
+                XCTAssertFalse(try db.tableExists("b"))
+            }
+            
+            // zero step
+            try await migrator.migrate(writer, upTo: "a")
+            try await writer.read { db in
+                XCTAssertTrue(try db.tableExists("a"))
+                XCTAssertFalse(try db.tableExists("b"))
+            }
+            
+            // two steps
+            try await migrator.migrate(writer, upTo: "c")
+            try await writer.read { db in
+                XCTAssertTrue(try db.tableExists("a"))
+                XCTAssertTrue(try db.tableExists("b"))
+                XCTAssertTrue(try db.tableExists("c"))
+            }
+            
+            // zero step
+            try await migrator.migrate(writer, upTo: "c")
+            try await migrator.migrate(writer)
+            
+            // fatal error: undefined migration: "missing"
+            // try migrator.migrate(writer, upTo: "missing")
+            
+            // fatal error: database is already migrated beyond migration "b"
+            // try migrator.migrate(writer, upTo: "b")
+        }
+        
+        try await AsyncTest(test)
+            .run { DatabaseQueue() }
+            .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
+            .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
+    }
+#endif
     
     func testMigrationFailureTriggersRollback() throws {
         var migrator = DatabaseMigrator()

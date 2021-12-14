@@ -162,7 +162,7 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE \"name\" NOT BETWEEN 'A' AND 'z'")
     }
     
-    func testContainsWithCollation() throws {
+    func testContainsCollated() throws {
         let dbQueue = try makeDatabaseQueue()
         
         try dbQueue.read { db in
@@ -216,6 +216,60 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             "SELECT * FROM \"readers\" WHERE (\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE)")
     }
     
+    func testCollatedContains() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        try dbQueue.read { db in
+            // Reminder of the SQLite behavior
+            // https://sqlite.org/datatype3.html#assigning_collating_sequences_from_sql
+            // > If an explicit collating sequence is required on an IN operator
+            // > it should be applied to the left operand, like this:
+            // > "x COLLATE nocase IN (y,z, ...)".
+            try XCTAssertFalse(Bool.fetchOne(db, sql: "SELECT 'arthur' IN ('ARTHUR') COLLATE NOCASE")!)
+            try XCTAssertTrue(Bool.fetchOne(db, sql: "SELECT 'arthur' COLLATE NOCASE IN ('ARTHUR')")!)
+        }
+        
+        // Array.contains(): IN operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(["arthur", "barbara"].contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(!["arthur", "barbara"].contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) NOT IN ('arthur', 'barbara')")
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter((["arthur", "barbara"] as [SQLExpressible]).contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
+        
+        // Sequence.contains(): IN operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(AnySequence(["arthur", "barbara"]).contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" COLLATE NOCASE) IN ('arthur', 'barbara')")
+        
+        // Sequence.contains(): = operator
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(AnySequence([Col.name]).contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE \"name\" = \"name\" COLLATE NOCASE")
+        
+        // Sequence.contains(): false
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(EmptyCollection<Int>().contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE 0 COLLATE NOCASE")
+        
+        // ClosedInterval: BETWEEN operator
+        let closedInterval = "A"..."z"
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(closedInterval.contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE \"name\" BETWEEN 'A' AND 'z' COLLATE NOCASE")
+        
+        // HalfOpenInterval:  min <= x < max
+        let halfOpenInterval = "A"..<"z"
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.filter(halfOpenInterval.contains(Col.name).collating(.nocase))),
+            "SELECT * FROM \"readers\" WHERE (\"name\" >= 'A' COLLATE NOCASE) AND (\"name\" < 'z' COLLATE NOCASE)")
+    }
+
     func testSubqueryContains() throws {
         let dbQueue = try makeDatabaseQueue()
         
@@ -1342,6 +1396,17 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
         XCTAssertEqual(
             sql(dbQueue, tableRequest.select(sum(Col.age / 2))),
             "SELECT SUM(\"age\" / 2) FROM \"readers\"")
+    }
+    
+    func testTotalExpression() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age))),
+            "SELECT TOTAL(\"age\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(total(Col.age / 2))),
+            "SELECT TOTAL(\"age\" / 2) FROM \"readers\"")
     }
     
     

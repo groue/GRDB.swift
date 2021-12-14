@@ -382,6 +382,43 @@ class AssociationAggregateTests: GRDBTestCase {
         }
     }
     
+    func testAnnotatedWithHasManyDefaultTotal() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.players.total(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: TeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, TOTAL("player"."score") AS "playerScoreSum" \
+                FROM "team" \
+                LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 4)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].playerScoreSum, 1100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].playerScoreSum, 1500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertEqual(teamInfos[2].playerScoreSum, 0)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].playerScoreSum, 0)
+        }
+    }
+    
     func testAnnotatedWithHasManyMultipleDefaultAggregates() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
@@ -621,6 +658,43 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[2].team.id, 3)
             XCTAssertEqual(teamInfos[2].team.name, "Greens")
             XCTAssertNil(teamInfos[2].customPlayerScoreSum)
+            
+            XCTAssertEqual(teamInfos[3].team.id, 4)
+            XCTAssertEqual(teamInfos[3].team.name, "Oranges")
+            XCTAssertEqual(teamInfos[3].customPlayerScoreSum, 0)
+        }
+    }
+    
+    func testAnnotatedWithHasManyCustomTotal() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            let request = Team
+                .annotated(with: Team.customPlayers.total(Column("score")))
+                .orderByPrimaryKey()
+                .asRequest(of: CustomTeamInfo.self)
+            
+            try assertEqualSQL(db, request, """
+                SELECT "team".*, TOTAL("player"."score") AS "customPlayerScoreSum" \
+                FROM "team" \
+                LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                GROUP BY "team"."id" \
+                ORDER BY "team"."id"
+                """)
+            
+            let teamInfos = try request.fetchAll(db)
+            XCTAssertEqual(teamInfos.count, 4)
+            
+            XCTAssertEqual(teamInfos[0].team.id, 1)
+            XCTAssertEqual(teamInfos[0].team.name, "Reds")
+            XCTAssertEqual(teamInfos[0].customPlayerScoreSum, 1100)
+            
+            XCTAssertEqual(teamInfos[1].team.id, 2)
+            XCTAssertEqual(teamInfos[1].team.name, "Blues")
+            XCTAssertEqual(teamInfos[1].customPlayerScoreSum, 1500)
+            
+            XCTAssertEqual(teamInfos[2].team.id, 3)
+            XCTAssertEqual(teamInfos[2].team.name, "Greens")
+            XCTAssertEqual(teamInfos[2].customPlayerScoreSum, 0)
             
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
@@ -1410,6 +1484,56 @@ class AssociationAggregateTests: GRDBTestCase {
             XCTAssertEqual(teamInfos[3].team.id, 4)
             XCTAssertEqual(teamInfos[3].team.name, "Oranges")
             XCTAssertEqual(teamInfos[3].minPlayerScore, 0)
+        }
+    }
+    
+    func testAbs() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                let request = Team.annotated(with: abs(Team.players.max(Column("score"))))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, ABS(MAX("player"."score")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                let request = Team.annotated(with: abs(Team.players.max(Column("score"))).forKey("foo"))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, ABS(MAX("player"."score")) AS "foo" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+        }
+    }
+    
+    func testLength() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.read { db in
+            do {
+                // This is a meaningless request, but this is enough for this test
+                let request = Team.annotated(with: length(Team.players.max(Column("score"))))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, LENGTH(MAX("player"."score")) \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
+            do {
+                // This is a meaningless request, but this is enough for this test
+                let request = Team.annotated(with: length(Team.players.max(Column("score"))).forKey("foo"))
+                try assertEqualSQL(db, request, """
+                    SELECT "team".*, LENGTH(MAX("player"."score")) AS "foo" \
+                    FROM "team" \
+                    LEFT JOIN "player" ON "player"."teamId" = "team"."id" \
+                    GROUP BY "team"."id"
+                    """)
+            }
         }
     }
 }

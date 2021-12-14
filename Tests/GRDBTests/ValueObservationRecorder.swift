@@ -394,7 +394,7 @@ extension XCTestCase {
             // Both missing and repeated values are allowed in the recorded values.
             // This is because of asynchronous DatabasePool observations.
             if recordedSuffix.isEmpty {
-                XCTFail("missing expected value \(value) - \(message())", file: file, line: line)
+                XCTFail("missing expected value \(value) - \(message()) in \(recordedValues)", file: file, line: line)
             }
         }
         

@@ -9,7 +9,7 @@ final class SerializedDatabase {
     var configuration: Configuration { db.configuration }
     
     /// The path to the database file
-    var path: String
+    let path: String
     
     /// The dispatch queue
     private let queue: DispatchQueue
@@ -257,3 +257,10 @@ final class SerializedDatabase {
             line: line)
     }
 }
+
+#if swift(>=5.5) && canImport(_Concurrency)
+// @unchecked because the wrapped `Database` itself is not Sendable.
+// It happens the job of SerializedDatabase is precisely to provide thread-safe
+// access to `Database`.
+extension SerializedDatabase: @unchecked Sendable { }
+#endif

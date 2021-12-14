@@ -3,6 +3,35 @@ import XCTest
 
 class PrimaryKeyInfoTests: GRDBTestCase {
     
+    func testMissingTable() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                _ = try db.primaryKey("items")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such table: items")
+                XCTAssertEqual(error.description, "SQLite error 1: no such table: items")
+            }
+        }
+    }
+    
+    func testView() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE VIEW items AS SELECT 1")
+            do {
+                _ = try db.primaryKey("items")
+                XCTFail("Expected Error")
+            } catch let error as DatabaseError {
+                XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
+                XCTAssertEqual(error.message, "no such table: items")
+                XCTAssertEqual(error.description, "SQLite error 1: no such table: items")
+            }
+        }
+    }
+    
     func testHiddenRowID() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

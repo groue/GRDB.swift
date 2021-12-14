@@ -1,6 +1,6 @@
 /// A key that is used to decode a value in a row
 @usableFromInline
-enum RowKey: Hashable {
+enum RowKey: Hashable, GRDBSendable {
     /// A column name
     case columnName(String)
     
@@ -18,13 +18,15 @@ enum RowKey: Hashable {
 @usableFromInline
 enum RowDecodingError: Error {
     @usableFromInline
-    struct Context: CustomDebugStringConvertible {
+    struct Context: CustomDebugStringConvertible, GRDBSendable {
         /// A description of what went wrong, for debugging purposes.
         @usableFromInline
         let debugDescription: String
         
+        let rowImpl: ArrayRowImpl // Sendable
+        
         /// The row that could not be decoded
-        let row: Row
+        var row: Row { Row(impl: rowImpl) }
         
         /// Nil for RowDecodingError.keyNotFound, in order to avoid redundancy
         let key: RowKey?
@@ -37,7 +39,7 @@ enum RowDecodingError: Error {
         
         init(decodingContext: RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
-            self.row = decodingContext.row
+            self.rowImpl = ArrayRowImpl(columns: decodingContext.row)
             self.key = decodingContext.key
             self.sql = decodingContext.sql
             self.statementArguments = decodingContext.statementArguments

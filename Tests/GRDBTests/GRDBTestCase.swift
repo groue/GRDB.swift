@@ -5,7 +5,7 @@ import XCTest
 // Support for Database.logError
 var lastResultCode: ResultCode? = nil
 var lastMessage: String? = nil
-var logErrorSetup: Void = {
+let logErrorSetup: Void = {
     let lock = NSLock()
     Database.logError = { (resultCode, message) in
         lock.lock()

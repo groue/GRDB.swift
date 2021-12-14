@@ -227,6 +227,9 @@ extension AssociationToMany {
     ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
     ///
     ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
+    ///
+    /// This aggregate invokes the `SUM` SQL function. See also `total(_:)`, and
+    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     @available(*, deprecated, message: "Did you mean sum(Column(...))? If not, prefer sum(value.databaseValue) instead.") // swiftlint:disable:this line_length
     public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(.aggregate("SUM", [expression.sqlExpression]))
@@ -255,10 +258,45 @@ extension AssociationToMany {
     ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
     ///
     ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
+    ///
+    /// This aggregate invokes the `SUM` SQL function. See also `total(_:)`, and
+    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
     public func sum(_ expression: SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(.aggregate("SUM", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
+            return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
+        } else {
+            return aggregate
+        }
+    }
+    
+    /// Creates an aggregate which evaluate to the sum of the given expression
+    /// in associated records.
+    ///
+    /// When the summed expression is a column, the aggregate has a default
+    /// name which is "[key][Column]Sum", where key is the key of the
+    /// association. For example:
+    ///
+    /// For example:
+    ///
+    ///     struct TeamInfo: FetchableRecord, Decodable {
+    ///         var team: Team
+    ///         var playerScoreSum: Double
+    ///     }
+    ///     let request = Team.annotated(with: Team.players.total(Column("score")))
+    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
+    ///
+    ///     let teams: [Team] = try Team.having(Team.players.total(Column("score")) > 100).fetchAll(db)
+    ///
+    /// This aggregate invokes the `TOTAL` SQL function. See also `sum(_:)`, and
+    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
+    public func total(_ expression: SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
+        let aggregate = makeAggregate(.aggregate("TOTAL", [expression.sqlExpression]))
+        if let column = expression as? ColumnExpression {
+            let name = key.singularizedName
+            // Yes we use the `Sum` suffix instead of `Total`. Both `total(_:)`
+            // and `sum(_:)` compute sums.
             return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
         } else {
             return aggregate
@@ -1095,5 +1133,22 @@ public func ?? <RowDecoder>(
         .with { $0.key = lhs.key } // Preserve key
 }
 
-// TODO: add support for ABS(aggregate)
-// TODO: add support for LENGTH(aggregate)
+// MARK: - ABS(...)
+
+/// Returns an aggregate that evaluates to the absolute value of the
+/// input aggregate.
+public func abs<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
+-> AssociationAggregate<RowDecoder>
+{
+    aggregate.map(abs)
+}
+
+// MARK: - LENGTH(...)
+
+/// Returns an aggregate that evaluates the `LENGTH` SQL function on the
+/// input aggregate.
+public func length<RowDecoder>(_ aggregate: AssociationAggregate<RowDecoder>)
+-> AssociationAggregate<RowDecoder>
+{
+    aggregate.map(length)
+}

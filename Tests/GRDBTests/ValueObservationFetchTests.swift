@@ -192,11 +192,11 @@ class ValueObservationFetchTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO T (NAME) VALUES ('Barbara')")
         })
     }
-
-    func testRemoveDuplicated() throws {
+    
+    func testRemoveDuplicates() throws {
         try assertValueObservation(
             ValueObservation
-                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .trackingConstantRegion(Table("t").fetchCount)
                 .removeDuplicates(),
             records: [0, 1, 2],
             setup: { db in
@@ -206,6 +206,38 @@ class ValueObservationFetchTests: GRDBTestCase {
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
                 try db.execute(sql: "UPDATE t SET id = id")
                 try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        })
+    }
+    
+    func testRemoveDuplicatesBy() throws {
+        try assertValueObservation(
+            ValueObservation
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .removeDuplicates(by: ==),
+            records: [0, 1, 2],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+                try db.execute(sql: "UPDATE t SET id = id")
+                try db.execute(sql: "INSERT INTO t DEFAULT VALUES")
+        })
+    }
+    
+    func testRemoveDuplicatesBy2() throws {
+        try assertValueObservation(
+            ValueObservation
+                .trackingConstantRegion { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                .removeDuplicates(by: { _, _ in false }),
+            records: [0, 1, 1, 2],
+            setup: { db in
+                try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+        },
+            recordedUpdates: { db in
+                try db.execute(sql: "INSERT INTO T DEFAULT VALUES")
+                try db.execute(sql: "UPDATE T SET ID = ID")
+                try db.execute(sql: "INSERT INTO T DEFAULT VALUES")
         })
     }
 }
