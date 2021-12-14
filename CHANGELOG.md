@@ -85,6 +85,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
+- **New**: :star: [#1079](https://github.com/groue/GRDB.swift/pull/1079) by [@groue](https://github.com/groue): Async / Await
 - **New**: `DatabaseRegion(table: tableName)` is deprecated. Use `Table(tableName)` instead.
 - **New**: The `ABS` and `LENGTH` SQL functions are now available on association aggregates, through `abs(aggregate)` and `length(aggregate)`.
 - **New**: Support for the [`TOTAL` aggregate function](https://www.sqlite.org/lang_aggfunc.html#sumunc). You can use `total` in Swift, at all places `sum` is available.
@@ -125,7 +126,6 @@ Released November 7, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/comp
 - **Breaking Change**: [#1076](https://github.com/groue/GRDB.swift/pull/1076) by [@groue](https://github.com/groue): Require Swift 5.3 and Xcode 12
 - **New**: :star: [#1088](https://github.com/groue/GRDB.swift/pull/1088) by [@groue](https://github.com/groue): Shared ValueObservation
 - **New**: :star: [#1095](https://github.com/groue/GRDB.swift/pull/1095) by [@groue](https://github.com/groue): Precise foreign key checks for migrations
-- **New**: :star: [#1079](https://github.com/groue/GRDB.swift/pull/1079) by [@groue](https://github.com/groue): Async / Await
 - **New**: [#1078](https://github.com/groue/GRDB.swift/pull/1078) by [@groue](https://github.com/groue): Non-mutating persistence methods `saved` and `inserted`, and existence-checking methods `isEmpty` and `exists`
 - **New**: `DatabasePool.erase()` prevents concurrent reads until it has completed.
 - **New**: The `close()` method allows precise closing of database connections.
