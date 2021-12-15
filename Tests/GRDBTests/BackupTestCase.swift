@@ -34,32 +34,35 @@ class BackupTestCase: GRDBTestCase {
         try setupBackupDestination(destination)
 
         XCTAssertThrowsError(
-            try source.backup(to: destination, pagesPerStep: 1) { completedPages, totalPages in
-                XCTAssertLessThan(completedPages, totalPages)
+            try source.backup(to: destination, pagesPerStep: 1) { progress in
+                XCTAssertLessThan(progress.completedPageCount, progress.totalPageCount)
+                XCTAssertFalse(progress.isCompleted)
                 throw AbandonBackupError()
             }
         )
 
-        // Assert that the items table is as it was before the backup was abandoned.
-        // Is this a valid assertion?
         try destination.read { db in
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT id FROM items")!, 1)
         }
 
         var progressCount: Int = 1
-        try source.backup(to: destination, pagesPerStep: 1) { completedPages, totalPages in
+        var isCompleted: Bool = false
+        try source.backup(to: destination, pagesPerStep: 1) { progress in
             let expectedCompletedPages = progressCount
-            XCTAssertEqual(expectedCompletedPages, completedPages)
-            if completedPages != totalPages {
+            XCTAssertEqual(expectedCompletedPages, progress.completedPageCount)
+            if progress.completedPageCount != progress.totalPageCount {
                 progressCount += 1
-            } else {
-                // Should not re-throw since completedPages == totalPages
+            }
+            if progress.isCompleted {
+                isCompleted = true
+                // Should not re-throw
                 throw AbandonBackupError()
             }
         }
         
         XCTAssertEqual(sourceDbPageCount, progressCount)
+        XCTAssertTrue(isCompleted)
         
         try destination.read { db in
             XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM items")!, 1)
@@ -84,8 +87,8 @@ class BackupTestCase: GRDBTestCase {
         try source.write { sourceDb in
             try destination.barrierWriteWithoutTransaction { destDb in
                 XCTAssertThrowsError(
-                    try sourceDb.backup(to: destDb, pagesPerStep: 1) { completedPages, totalPages in
-                        XCTAssertLessThan(completedPages, totalPages)
+                    try sourceDb.backup(to: destDb, pagesPerStep: 1) { progress in
+                        XCTAssertLessThan(progress.completedPageCount, progress.totalPageCount)
                         throw AbandonBackupError()
                     }
                 )
@@ -102,18 +105,22 @@ class BackupTestCase: GRDBTestCase {
         try source.write { dbSource in
             try destination.barrierWriteWithoutTransaction { dbDest in
                 var progressCount: Int = 1
-                try dbSource.backup(to: dbDest, pagesPerStep: 1) { completedPages, totalPages in
+                var isCompleted: Bool = false
+                try dbSource.backup(to: dbDest, pagesPerStep: 1) { progress in
                     let expectedCompletedPages = progressCount
-                    XCTAssertEqual(expectedCompletedPages, completedPages)
-                    if completedPages != totalPages {
+                    XCTAssertEqual(expectedCompletedPages, progress.completedPageCount)
+                    if progress.completedPageCount != progress.totalPageCount {
                         progressCount += 1
-                    } else {
-                        // Should not re-throw since completedPages == totalPages
+                    }
+                    if progress.isCompleted {
+                        isCompleted = true
+                        // Should not re-throw
                         throw AbandonBackupError()
                     }
                 }
                 
                 XCTAssertEqual(sourceDbPageCount, progressCount)
+                XCTAssertTrue(isCompleted)
             }
         }
         

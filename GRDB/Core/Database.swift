@@ -1267,16 +1267,19 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///     // Backup with progress reporting
     ///     try sourceDb.backup(
     ///         to: destDb,
-    ///         pagesPerStep: ...,
-    ///         progress: { (completedPageCount, totalPageCount) in
-    ///            print("\(completedPageCount) pages copied out of \(totalPageCount)")
-    ///         })
+    ///         pagesPerStep: ...)
+    ///         { backupProgress in
+    ///            print("Database backup progress:", backupProgress)
+    ///         }
     ///
     /// The `progress` callback will be called at least once—when
-    /// `completedPageCount == totalPageCount`. If `progress` throws
-    /// when `completedPageCount < totalPageCount`, the backup is aborted
-    /// and the error is rethrown. An error thrown from `progress` when
-    /// `completedPageCount == totalPageCount` is silently ignored.
+    /// `backupProgress.isCompleted == true`. If the callback throws
+    /// when `backupProgress.isCompleted == false`, the backup is aborted
+    /// and the error is rethrown.  If the callback throws when
+    /// `backupProgress.isCompleted == true`, backup completion is
+    /// unaffected and the error is silently ignored.
+    ///
+    /// See also `DatabaseReader.backup()`.
     ///
     /// - parameters:
     ///     - destDb: The destination database.
@@ -1284,14 +1287,12 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///       step. By default, all pages are copied in one single step.
     ///     - progress: An optional function that is notified of the backup
     ///       progress.
-    ///     - completedPageCount: The number of copied pages.
-    ///     - totalPageCount: The total number of pages to be copied.
     /// - throws: The error thrown by `progress` if the backup is abandoned, or
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
         to destDb: Database,
         pagesPerStep: Int32 = -1,
-        progress: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> ())? = nil)
+        progress: ((DatabaseBackupProgress) throws -> ())? = nil)
     throws
     {
         try backupInternal(
@@ -1304,7 +1305,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         to destDb: Database,
         pagesPerStep: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> Void)? = nil)
+        afterBackupStep: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
         guard let backup = sqlite3_backup_init(destDb.sqliteConnection, "main", sqliteConnection, "main") else {
@@ -1321,12 +1322,15 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 let rc = sqlite3_backup_step(backup, pagesPerStep)
                 let totalPages = Int(sqlite3_backup_pagecount(backup))
                 let completedPages = totalPages - Int(sqlite3_backup_remaining(backup))
+                let progress = DatabaseBackupProgress(completedPageCount: completedPages,
+                                                      totalPageCount: totalPages,
+                                                      isCompleted: rc == SQLITE_DONE)
                 switch rc {
                 case SQLITE_DONE:
-                    try? afterBackupStep?(completedPages, totalPages)
+                    try? afterBackupStep?(progress)
                     break backupLoop
                 case SQLITE_OK:
-                    try afterBackupStep?(completedPages, totalPages)
+                    try afterBackupStep?(progress)
                 case let code:
                     throw DatabaseError(resultCode: code, message: destDb.lastErrorMessage)
                 }

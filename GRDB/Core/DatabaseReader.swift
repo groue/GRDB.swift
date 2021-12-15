@@ -293,16 +293,19 @@ extension DatabaseReader {
     ///     // Backup with progress reporting
     ///     try source.backup(
     ///         to: destination,
-    ///         pagesPerStep: ...,
-    ///         progress: { (completedPageCount, totalPageCount) in
-    ///            print("\(completedPageCount) pages copied out of \(totalPageCount)")
-    ///         })
+    ///         pagesPerStep: ...)
+    ///         { backupProgress in
+    ///            print("Database backup progress:", backupProgress)
+    ///         }
     ///
     /// The `progress` callback will be called at least once—when
-    /// `completedPageCount == totalPageCount`. If `progress` throws
-    /// when `completedPageCount < totalPageCount`, the backup is aborted
-    /// and the error is rethrown. An error thrown from `progress` when
-    /// `completedPageCount == totalPageCount` is silently ignored.
+    /// `backupProgress.isCompleted == true`. If the callback throws
+    /// when `backupProgress.isCompleted == false`, the backup is aborted
+    /// and the error is rethrown.  If the callback throws when
+    /// `backupProgress.isCompleted == true`, backup completion is
+    /// unaffected and the error is silently ignored.
+    ///
+    /// See also `Database.backup()`.
     ///
     /// - parameters:
     ///     - writer: The destination database.
@@ -310,14 +313,12 @@ extension DatabaseReader {
     ///       step. By default, all pages are copied in one single step.
     ///     - progress: An optional function that is notified of the backup
     ///       progress.
-    ///     - completedPageCount: The number of copied pages.
-    ///     - totalPageCount: The total number of pages to be copied.
     /// - throws: The error thrown by `progress` if the backup is abandoned, or
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
         to writer: DatabaseWriter,
         pagesPerStep: Int32 = -1,
-        progress: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> ())? = nil)
+        progress: ((DatabaseBackupProgress) throws -> ())? = nil)
     throws
     {
         try writer.writeWithoutTransaction { destDb in
@@ -332,7 +333,7 @@ extension DatabaseReader {
         to destDb: Database,
         pagesPerStep: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: ((_ completedPageCount: Int, _ totalPageCount: Int) throws -> Void)? = nil)
+        afterBackupStep: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
         try read { dbFrom in

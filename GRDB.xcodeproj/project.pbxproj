@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E13D2F32769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
+		4E13D2F42769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
+		4E13D2F52769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
+		4E13D2F62769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
 		4ED4BB592731DD25008B127D /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4BB582731DD25008B127D /* BackupTestCase.swift */; };
 		4ED4BB5A2731DD25008B127D /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4BB582731DD25008B127D /* BackupTestCase.swift */; };
 		4ED4BB5B2731DD25008B127D /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4BB582731DD25008B127D /* BackupTestCase.swift */; };
@@ -1269,6 +1273,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseBackupProgress.swift; sourceTree = "<group>"; };
 		4ED4BB582731DD25008B127D /* BackupTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
 		56012B542573EED000B4925B /* CommonTableExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpressionTests.swift; sourceTree = "<group>"; };
 		56012B742574048B00B4925B /* CommonTableExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpression.swift; sourceTree = "<group>"; };
@@ -2329,6 +2334,7 @@
 				56A238711B9C75030082EB20 /* Database.swift */,
 				566B91221FA4CF810012D5B0 /* Database+Schema.swift */,
 				566B91081FA4C3960012D5B0 /* Database+Statements.swift */,
+				4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */,
 				566B91121FA4C3F50012D5B0 /* DatabaseCollation.swift */,
 				56A238731B9C75030082EB20 /* DatabaseError.swift */,
 				564F9C2C1F075DD200877A00 /* DatabaseFunction.swift */,
@@ -2918,6 +2924,7 @@
 				565490CE1D5AE252005622CB /* NSNull.swift in Sources */,
 				5656A8202295B12F001FF3FF /* SQLAssociation.swift in Sources */,
 				565490E41D5AE252005622CB /* TableRecord.swift in Sources */,
+				4E13D2F52769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				564CE5AE21B8FAB400652B19 /* DatabaseRegionObservation.swift in Sources */,
 				565490CF1D5AE252005622CB /* NSNumber.swift in Sources */,
 				56CEB51F1EAA328900BFAF62 /* FTS5+QueryInterface.swift in Sources */,
@@ -3121,6 +3128,7 @@
 				560D924C1C672C4B00F4F92B /* TableRecord.swift in Sources */,
 				56A2FA3B24424F4700E97D23 /* Export.swift in Sources */,
 				569BBA4F229170F900478429 /* Inflections+English.swift in Sources */,
+				4E13D2F42769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				5656A81F2295B12F001FF3FF /* SQLAssociation.swift in Sources */,
 				5617294F223533F40006E219 /* EncodableRecord.swift in Sources */,
 				563B8FAD24A1CE44007A48C9 /* DatabasePublishers.swift in Sources */,
@@ -3725,6 +3733,7 @@
 				AAA4DCA7230F1E0600C74B15 /* TableRecord.swift in Sources */,
 				56A2FA3D24424F4800E97D23 /* Export.swift in Sources */,
 				AAA4DCA8230F1E0600C74B15 /* Inflections+English.swift in Sources */,
+				4E13D2F62769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				AAA4DCA9230F1E0600C74B15 /* SQLAssociation.swift in Sources */,
 				AAA4DCAA230F1E0600C74B15 /* EncodableRecord.swift in Sources */,
 				563B8FAF24A1CE44007A48C9 /* DatabasePublishers.swift in Sources */,
@@ -4094,6 +4103,7 @@
 				5698AD181DAAD17A0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				56A2FA3624424D2A00E97D23 /* Export.swift in Sources */,
 				56B964B11DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
+				4E13D2F32769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				560A37A71C8FF6E500949E71 /* SerializedDatabase.swift in Sources */,
 				563B8FAC24A1CE43007A48C9 /* DatabasePublishers.swift in Sources */,
 				5605F1691C672E4000235C62 /* NSString.swift in Sources */,

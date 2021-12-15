@@ -7,10 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4ECF7776273AFAFD001685F5 /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF7773273AFAFD001685F5 /* DatabaseBackupProgress.swift */; };
-		4ECF7777273AFAFD001685F5 /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF7773273AFAFD001685F5 /* DatabaseBackupProgress.swift */; };
-		4ECF7778273AFAFD001685F5 /* DatabaseBackupCancelled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF7775273AFAFD001685F5 /* DatabaseBackupCancelled.swift */; };
-		4ECF7779273AFAFD001685F5 /* DatabaseBackupCancelled.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF7775273AFAFD001685F5 /* DatabaseBackupCancelled.swift */; };
+		4E13D2F82769BC230037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F72769BC230037588C /* DatabaseBackupProgress.swift */; };
+		4E13D2F92769BC230037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F72769BC230037588C /* DatabaseBackupProgress.swift */; };
 		4ECF777D273AFBA9001685F5 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF777A273AFB72001685F5 /* BackupTestCase.swift */; };
 		4ECF777E273AFBAB001685F5 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ECF777A273AFB72001685F5 /* BackupTestCase.swift */; };
 		56012B6A2573FAE700B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B682573FAE600B4925B /* CommonTableExpressionTests.swift */; };
@@ -778,8 +776,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		4ECF7773273AFAFD001685F5 /* DatabaseBackupProgress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseBackupProgress.swift; sourceTree = "<group>"; };
-		4ECF7775273AFAFD001685F5 /* DatabaseBackupCancelled.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseBackupCancelled.swift; sourceTree = "<group>"; };
+		4E13D2F72769BC230037588C /* DatabaseBackupProgress.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseBackupProgress.swift; sourceTree = "<group>"; };
 		4ECF777A273AFB72001685F5 /* BackupTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
 		56012B682573FAE600B4925B /* CommonTableExpressionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonTableExpressionTests.swift; sourceTree = "<group>"; };
 		56012B80257404A300B4925B /* CommonTableExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpression.swift; sourceTree = "<group>"; };
@@ -1796,8 +1793,7 @@
 				56A238711B9C75030082EB20 /* Database.swift */,
 				566B91221FA4CF810012D5B0 /* Database+Schema.swift */,
 				566B91081FA4C3960012D5B0 /* Database+Statements.swift */,
-				4ECF7775273AFAFD001685F5 /* DatabaseBackupCancelled.swift */,
-				4ECF7773273AFAFD001685F5 /* DatabaseBackupProgress.swift */,
+				4E13D2F72769BC230037588C /* DatabaseBackupProgress.swift */,
 				566B91121FA4C3F50012D5B0 /* DatabaseCollation.swift */,
 				56A238731B9C75030082EB20 /* DatabaseError.swift */,
 				564F9C2C1F075DD200877A00 /* DatabaseFunction.swift */,
@@ -2355,6 +2351,7 @@
 				5656A87E2295BD56001FF3FF /* SQLAssociation.swift in Sources */,
 				F3BA80131CFB2876003DC1BA /* DatabaseValue.swift in Sources */,
 				56C0539822ACEECD0029D27D /* ValueReducer.swift in Sources */,
+				4E13D2F92769BC230037588C /* DatabaseBackupProgress.swift in Sources */,
 				56A2FA3A24424F4200E97D23 /* Export.swift in Sources */,
 				56B964B61DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
 				F3BA80171CFB2876003DC1BA /* RowAdapter.swift in Sources */,
@@ -2395,8 +2392,6 @@
 				5656A8A82295BF44001FF3FF /* DatabasePromise.swift in Sources */,
 				5656A86E2295BD56001FF3FF /* HasManyThroughAssociation.swift in Sources */,
 				56894FE8260658A500268F4D /* Decimal.swift in Sources */,
-				4ECF7779273AFAFD001685F5 /* DatabaseBackupCancelled.swift in Sources */,
-				4ECF7777273AFAFD001685F5 /* DatabaseBackupProgress.swift in Sources */,
 				566BE7162342541F00A8254B /* LockedBox.swift in Sources */,
 				F3BA80111CFB2876003DC1BA /* DatabaseSchemaCache.swift in Sources */,
 				F3BA80281CFB2891003DC1BA /* StandardLibrary.swift in Sources */,
@@ -2725,6 +2720,7 @@
 				5656A87D2295BD56001FF3FF /* SQLAssociation.swift in Sources */,
 				F3BA806F1CFB2E55003DC1BA /* DatabaseValue.swift in Sources */,
 				56C0539722ACEECD0029D27D /* ValueReducer.swift in Sources */,
+				4E13D2F82769BC230037588C /* DatabaseBackupProgress.swift in Sources */,
 				56A2FA3924424F4200E97D23 /* Export.swift in Sources */,
 				56B964B31DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
 				F3BA80731CFB2E55003DC1BA /* RowAdapter.swift in Sources */,
@@ -2765,8 +2761,6 @@
 				5656A8A72295BF44001FF3FF /* DatabasePromise.swift in Sources */,
 				5656A86D2295BD56001FF3FF /* HasManyThroughAssociation.swift in Sources */,
 				56894FE3260658A400268F4D /* Decimal.swift in Sources */,
-				4ECF7778273AFAFD001685F5 /* DatabaseBackupCancelled.swift in Sources */,
-				4ECF7776273AFAFD001685F5 /* DatabaseBackupProgress.swift in Sources */,
 				566BE7152342541F00A8254B /* LockedBox.swift in Sources */,
 				F3BA806D1CFB2E55003DC1BA /* DatabaseSchemaCache.swift in Sources */,
 				F3BA80841CFB2E67003DC1BA /* StandardLibrary.swift in Sources */,
