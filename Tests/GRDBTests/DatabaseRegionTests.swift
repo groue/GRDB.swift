@@ -8,12 +8,12 @@ class DatabaseRegionTests : GRDBTestCase {
         let regions = [
             DatabaseRegion.fullDatabase,
             DatabaseRegion(),
-            DatabaseRegion.fullTable("foo"),
+            DatabaseRegion(table: "foo"),
             DatabaseRegion(table: "foo", columns: ["a", "b"]),
             DatabaseRegion(table: "foo", columns: ["b", "c"]),
             DatabaseRegion(table: "foo", rowIds: [1, 2]),
             DatabaseRegion(table: "foo", rowIds: [2, 3]),
-            DatabaseRegion.fullTable("bar")]
+            DatabaseRegion(table: "bar")]
         
         for (i1, s1) in regions.enumerated() {
             for (i2, s2) in regions.enumerated() {
@@ -27,8 +27,8 @@ class DatabaseRegionTests : GRDBTestCase {
         
         // Case insensitivity
         XCTAssertEqual(
-            DatabaseRegion.fullTable("foo"),
-            DatabaseRegion.fullTable("FOO"))
+            DatabaseRegion(table: "foo"),
+            DatabaseRegion(table: "FOO"))
         XCTAssertEqual(
             DatabaseRegion(table: "foo", columns: ["a", "b"]),
             DatabaseRegion(table: "FOO", columns: ["A", "B"]))
@@ -38,12 +38,12 @@ class DatabaseRegionTests : GRDBTestCase {
         let regions = [
             DatabaseRegion.fullDatabase,
             DatabaseRegion(),
-            DatabaseRegion.fullTable("foo"),
+            DatabaseRegion(table: "foo"),
             DatabaseRegion(table: "foo", columns: ["a", "b"]),
             DatabaseRegion(table: "foo", columns: ["b", "c"]),
             DatabaseRegion(table: "foo", rowIds: [1, 2]),
             DatabaseRegion(table: "foo", rowIds: [2, 3]),
-            DatabaseRegion.fullTable("bar")]
+            DatabaseRegion(table: "bar")]
         
         var unions: [DatabaseRegion] = []
         for s1 in regions {
@@ -146,12 +146,12 @@ class DatabaseRegionTests : GRDBTestCase {
         let regions = [
             DatabaseRegion.fullDatabase,
             DatabaseRegion(),
-            DatabaseRegion.fullTable("foo"),
+            DatabaseRegion(table: "foo"),
             DatabaseRegion(table: "foo", columns: ["a", "b"]),
             DatabaseRegion(table: "foo", columns: ["b", "c"]),
             DatabaseRegion(table: "foo", rowIds: [1, 2]),
             DatabaseRegion(table: "foo", rowIds: [2, 3]),
-            DatabaseRegion.fullTable("bar")]
+            DatabaseRegion(table: "bar")]
         
         var intersection: [DatabaseRegion] = []
         for s1 in regions {
@@ -266,13 +266,13 @@ class DatabaseRegionTests : GRDBTestCase {
             do {
                 // Select the rowid
                 let statement = try db.makeStatement(sql: "SELECT id FROM foo")
-                let expectedRegion = DatabaseRegion.fullTable("foo")
+                let expectedRegion = DatabaseRegion(table: "foo")
                 XCTAssertEqual(statement.databaseRegion, expectedRegion)
                 XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
             }
             do {
                 let statement = try db.makeStatement(sql: "SELECT ID FROM FOO")
-                let expectedRegion = DatabaseRegion.fullTable("foo")
+                let expectedRegion = DatabaseRegion(table: "foo")
                 XCTAssertEqual(statement.databaseRegion, expectedRegion)
                 XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
             }
@@ -318,7 +318,7 @@ class DatabaseRegionTests : GRDBTestCase {
                     XCTAssertEqual(statement.databaseRegion, expectedRegion)
                     XCTAssertEqual(statement.databaseRegion.description, "full database")
                 } else {
-                    let expectedRegion = DatabaseRegion.fullTable("foo")
+                    let expectedRegion = DatabaseRegion(table: "foo")
                     XCTAssertEqual(statement.databaseRegion, expectedRegion)
                     XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
                 }
@@ -330,7 +330,7 @@ class DatabaseRegionTests : GRDBTestCase {
                     XCTAssertEqual(statement.databaseRegion, expectedRegion)
                     XCTAssertEqual(statement.databaseRegion.description, "full database")
                 } else {
-                    let expectedRegion = DatabaseRegion.fullTable("foo")
+                    let expectedRegion = DatabaseRegion(table: "foo")
                     XCTAssertEqual(statement.databaseRegion, expectedRegion)
                     XCTAssertEqual(statement.databaseRegion.description, "FOO(*)")
                 }
@@ -755,7 +755,7 @@ class DatabaseRegionTests : GRDBTestCase {
         
         do {
             // Complex selection
-            let region = DatabaseRegion.fullTable("foo")
+            let region = DatabaseRegion(table: "foo")
                 .union(DatabaseRegion(table: "bar", columns: ["a"])
                     .intersection(DatabaseRegion(table: "bar", rowIds: [1])))
             XCTAssertEqual(region.description, "bar(a)[1],foo(*)")

@@ -74,7 +74,7 @@ final class StatementAuthorizer {
             guard let columnName = cString2.map(String.init) else { return SQLITE_OK }
             if columnName.isEmpty {
                 // SELECT COUNT(*) FROM table
-                selectedRegion.formUnion(DatabaseRegion.fullTable(tableName))
+                selectedRegion.formUnion(DatabaseRegion(table: tableName))
             } else {
                 // SELECT column FROM table
                 selectedRegion.formUnion(DatabaseRegion(table: tableName, columns: [columnName]))

@@ -35,7 +35,7 @@ extension Table where RowDecoder == Row {
 
 extension Table: DatabaseRegionConvertible {
     public func databaseRegion(_ db: Database) throws -> DatabaseRegion {
-        DatabaseRegion.fullTable(tableName)
+        DatabaseRegion(table: tableName)
     }
 }
 

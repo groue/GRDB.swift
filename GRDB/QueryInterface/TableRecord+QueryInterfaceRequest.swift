@@ -150,15 +150,6 @@ extension TableRecord {
         all().annotated(with: selection)
     }
     
-    /// Creates a request with the provided *predicate*.
-    ///
-    ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
-    ///     let request = Player.filter(Column("email") == "arthur@example.com")
-    @available(*, deprecated, message: "Did you mean filter(id:) or filter(key:)? If not, prefer filter(value.databaseValue) instead. See also none().") // swiftlint:disable:this line_length
-    public static func filter(_ predicate: SQLExpressible) -> QueryInterfaceRequest<Self> {
-        all().filter(predicate.sqlExpression)
-    }
-    
     // Accept SQLSpecificExpressible instead of SQLExpressible, so that we
     // prevent the `Player.filter(42)` misuse.
     // See https://github.com/groue/GRDB.swift/pull/864

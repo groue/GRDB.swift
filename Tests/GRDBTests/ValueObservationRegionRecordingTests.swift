@@ -23,7 +23,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             do {
-                var region = DatabaseRegion.fullTable("player")
+                var region = DatabaseRegion(table: "player")
                 db.recordingSelection(&region) { }
                 XCTAssertEqual(region.description, "player(*)")
             }
@@ -45,7 +45,7 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
             }
             
             do {
-                var region = DatabaseRegion.fullTable("player")
+                var region = DatabaseRegion(table: "player")
                 _ = try db.recordingSelection(&region) {
                     _ = try Row.fetchAll(db, sql: "SELECT * FROM team")
                 }

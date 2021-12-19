@@ -751,30 +751,4 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
             trackingMode: .nonConstantRegionRecordedFromSelection,
             makeReducer: { ValueReducers.Fetch(fetch: fetch) })
     }
-    
-    /// Creates a `ValueObservation` that notifies the values returned by the
-    /// `fetch` function whenever a database transaction changes them.
-    ///
-    /// For example:
-    ///
-    ///     let observation = ValueObservation.tracking { db in
-    ///         try Player.fetchAll(db)
-    ///     }
-    ///
-    ///     let cancellable = try observation.start(
-    ///         in: dbQueue,
-    ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
-    ///             print("Players have changed")
-    ///         })
-    ///
-    /// - parameter fetch: A function that fetches the observed value from
-    ///   the database.
-    @available(*, deprecated, renamed: "tracking(_:)")
-    public static func trackingVaryingRegion<Value>(
-        _ fetch: @escaping (Database) throws -> Value)
-    -> ValueObservation<ValueReducers.Fetch<Value>>
-    {
-        tracking(fetch)
-    }
 }

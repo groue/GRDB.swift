@@ -74,25 +74,6 @@ extension SQLSelection {
         }
     }
     
-    /// TODO: remove when `count(_ counted: SQLSelectable)` is removed.
-    var countExpression: SQLExpression {
-        switch impl {
-        case .allColumns:
-            return .countAll
-            
-        case .qualifiedAllColumns:
-            // COUNT(player.*) is not valid SQL
-            fatalError("Uncountable selection")
-            
-        case let .expression(expression),
-             let .aliasedExpression(expression, _):
-            return .count(expression)
-            
-        case let .literal(sqlLiteral):
-            return .count(sqlLiteral.sqlExpression)
-        }
-    }
-    
     /// If the selection can be counted, return how to count it.
     func count(distinct: Bool) -> SQLCount? {
         switch impl {

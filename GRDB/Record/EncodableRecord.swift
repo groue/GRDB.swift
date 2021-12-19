@@ -433,10 +433,6 @@ public enum DatabaseUUIDEncodingStrategy {
     /// Encodes UUIDs as lowercased strings such as "e621e1f8-c36c-495a-93fc-0c247a3e6e5f"
     case lowercaseString
     
-    /// Encodes UUIDs as uppercased strings such as "E621E1F8-C36C-495A-93FC-0C247A3E6E5F"
-    @available(*, deprecated, renamed: "uppercaseString")
-    public static var string: Self { .uppercaseString }
-    
     func encode(_ uuid: UUID) -> DatabaseValueConvertible {
         switch self {
         case .deferredToUUID:
