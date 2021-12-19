@@ -31,10 +31,17 @@ let package = Package(
             path: "Tests",
             exclude: [
                 "CocoaPods",
-                "CustomSQLite",
                 "Crash",
+                "CustomSQLite",
+                "Info.plist",
                 "Performance",
                 "SPM",
+                "generatePerformanceReport.rb",
+                "parsePerformanceTests.rb",
+            ],
+            resources: [
+                .copy("GRDBTests/Betty.jpeg"),
+                .copy("GRDBTests/InflectionsTests.json"),
             ])
     ],
     swiftLanguageVersions: [.v5]

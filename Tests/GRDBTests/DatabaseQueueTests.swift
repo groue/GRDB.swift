@@ -4,11 +4,8 @@ import GRDB
 
 class DatabaseQueueTests: GRDBTestCase {
     
-    // Until SPM tests can load resources, disable this test for SPM.
-    #if !SWIFT_PACKAGE
     func testInvalidFileFormat() throws {
         do {
-            let testBundle = Bundle(for: type(of: self))
             let url = testBundle.url(forResource: "Betty", withExtension: "jpeg")!
             guard (try? Data(contentsOf: url)) != nil else {
                 XCTFail("Missing file")
@@ -23,7 +20,6 @@ class DatabaseQueueTests: GRDBTestCase {
                 "file is not a database"].contains(error.message!))
         }
     }
-    #endif
     
     func testAddRemoveFunction() throws {
         // Adding a function and then removing it should succeed
