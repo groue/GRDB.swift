@@ -545,9 +545,9 @@
 		567DAF221EAB61ED00FC0928 /* grdb_config.h in Headers */ = {isa = PBXBuildFile; fileRef = 567DAF141EAB61ED00FC0928 /* grdb_config.h */; settings = {ATTRIBUTES = (Private, ); }; };
 		567DAF351EAB789800FC0928 /* DatabaseLogErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */; };
 		567DAF391EAB789800FC0928 /* DatabaseLogErrorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */; };
-		567ECE4F2222E431009245CA /* GRDB-5.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* GRDB-5.0.swift */; };
-		567ECE502222E431009245CA /* GRDB-5.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* GRDB-5.0.swift */; };
-		567ECE512222E431009245CA /* GRDB-5.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* GRDB-5.0.swift */; };
+		567ECE4F2222E431009245CA /* Fixits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* Fixits.swift */; };
+		567ECE502222E431009245CA /* Fixits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* Fixits.swift */; };
+		567ECE512222E431009245CA /* Fixits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* Fixits.swift */; };
 		567F45A81F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
 		567F45AC1F888B2600030B59 /* TruncateOptimizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */; };
 		568068311EBBA26100EFB8AA /* SQLRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 568068301EBBA26100EFB8AA /* SQLRequestTests.swift */; };
@@ -1012,7 +1012,7 @@
 		AAA4DCD0230F1E0600C74B15 /* SQLInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 569D6DDD220EF9E100A058A9 /* SQLInterpolation.swift */; };
 		AAA4DCD1230F1E0600C74B15 /* DatabaseError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A238731B9C75030082EB20 /* DatabaseError.swift */; };
 		AAA4DCD2230F1E0600C74B15 /* HasManyAssociation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EAFB20944C7B00F46237 /* HasManyAssociation.swift */; };
-		AAA4DCD3230F1E0600C74B15 /* GRDB-5.0.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* GRDB-5.0.swift */; };
+		AAA4DCD3230F1E0600C74B15 /* Fixits.swift in Sources */ = {isa = PBXBuildFile; fileRef = 567ECE4E2222E431009245CA /* Fixits.swift */; };
 		AAA4DCD4230F1E0600C74B15 /* TableDefinition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566AD8B11D5318F4002EC1A8 /* TableDefinition.swift */; };
 		AAA4DCD5230F1E0600C74B15 /* FTS5WrapperTokenizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5698AD201DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift */; };
 		AAA4DCD6230F1E0600C74B15 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED82210731A00945324 /* SQLRequest.swift */; };
@@ -1480,7 +1480,7 @@
 		567A80521D41350C00C7DCEC /* IndexInfoTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = IndexInfoTests.swift; sourceTree = "<group>"; };
 		567DAF141EAB61ED00FC0928 /* grdb_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = grdb_config.h; sourceTree = "<group>"; };
 		567DAF341EAB789800FC0928 /* DatabaseLogErrorTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseLogErrorTests.swift; sourceTree = "<group>"; };
-		567ECE4E2222E431009245CA /* GRDB-5.0.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "GRDB-5.0.swift"; sourceTree = "<group>"; };
+		567ECE4E2222E431009245CA /* Fixits.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Fixits.swift; sourceTree = "<group>"; };
 		567F45A71F888B2600030B59 /* TruncateOptimizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TruncateOptimizationTests.swift; sourceTree = "<group>"; };
 		568068301EBBA26100EFB8AA /* SQLRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SQLRequestTests.swift; sourceTree = "<group>"; };
 		5682D71A239582AA004B58C4 /* DatabaseSuspensionTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DatabaseSuspensionTests.swift; sourceTree = "<group>"; };
@@ -2398,14 +2398,6 @@
 			path = ValueReducer;
 			sourceTree = "<group>";
 		};
-		56D7E449221595FE0052464B /* Fixit */ = {
-			isa = PBXGroup;
-			children = (
-				567ECE4E2222E431009245CA /* GRDB-5.0.swift */,
-			);
-			path = Fixit;
-			sourceTree = "<group>";
-		};
 		56DAA2C41DE99D8D006E10C8 /* Cursor */ = {
 			isa = PBXGroup;
 			children = (
@@ -2500,8 +2492,8 @@
 			isa = PBXGroup;
 			children = (
 				56A2FA3524424D2A00E97D23 /* Export.swift */,
+				567ECE4E2222E431009245CA /* Fixits.swift */,
 				56A2386F1B9C75030082EB20 /* Core */,
-				56D7E449221595FE0052464B /* Fixit */,
 				5698AC291D9E5A480056AF8C /* FTS */,
 				56A238911B9C750B0082EB20 /* Migration */,
 				56300B6D1C53F592005A543B /* QueryInterface */,
@@ -2965,7 +2957,7 @@
 				563EF45D2163309F007DAACD /* Inflections.swift in Sources */,
 				569D6DE0220EF9E100A058A9 /* SQLInterpolation.swift in Sources */,
 				5611620A25757583007AAF99 /* JoinAssociation.swift in Sources */,
-				567ECE512222E431009245CA /* GRDB-5.0.swift in Sources */,
+				567ECE512222E431009245CA /* Fixits.swift in Sources */,
 				565490BF1D5AE236005622CB /* DatabaseValueConvertible.swift in Sources */,
 				566B91191FA4C3F50012D5B0 /* DatabaseCollation.swift in Sources */,
 				560233C62724234F00529DF3 /* SharedValueObservation.swift in Sources */,
@@ -3166,7 +3158,7 @@
 				569D6DDF220EF9E100A058A9 /* SQLInterpolation.swift in Sources */,
 				56A238821B9C75030082EB20 /* DatabaseError.swift in Sources */,
 				5653EB0D20944C7C00F46237 /* HasManyAssociation.swift in Sources */,
-				567ECE502222E431009245CA /* GRDB-5.0.swift in Sources */,
+				567ECE502222E431009245CA /* Fixits.swift in Sources */,
 				566AD8B51D5318F4002EC1A8 /* TableDefinition.swift in Sources */,
 				5698AD241DABAEFA0056AF8C /* FTS5WrapperTokenizer.swift in Sources */,
 				568ECB1925D9161600B71526 /* SQLSubquery.swift in Sources */,
@@ -3769,7 +3761,7 @@
 				AAA4DCD0230F1E0600C74B15 /* SQLInterpolation.swift in Sources */,
 				AAA4DCD1230F1E0600C74B15 /* DatabaseError.swift in Sources */,
 				AAA4DCD2230F1E0600C74B15 /* HasManyAssociation.swift in Sources */,
-				AAA4DCD3230F1E0600C74B15 /* GRDB-5.0.swift in Sources */,
+				AAA4DCD3230F1E0600C74B15 /* Fixits.swift in Sources */,
 				AAA4DCD4230F1E0600C74B15 /* TableDefinition.swift in Sources */,
 				AAA4DCD5230F1E0600C74B15 /* FTS5WrapperTokenizer.swift in Sources */,
 				568ECB1B25D9161600B71526 /* SQLSubquery.swift in Sources */,
@@ -4133,7 +4125,7 @@
 				569D6DDE220EF9E100A058A9 /* SQLInterpolation.swift in Sources */,
 				568D131F2207213E00674B58 /* SQLQueryGenerator.swift in Sources */,
 				5605F15D1C672E4000235C62 /* DatabaseDateComponents.swift in Sources */,
-				567ECE4F2222E431009245CA /* GRDB-5.0.swift in Sources */,
+				567ECE4F2222E431009245CA /* Fixits.swift in Sources */,
 				56894FB72606589700268F4D /* Decimal.swift in Sources */,
 				56B964B91DA51D0A0002DA19 /* FTS5Pattern.swift in Sources */,
 				56FBFEDA2210731A00945324 /* SQLRequest.swift in Sources */,
