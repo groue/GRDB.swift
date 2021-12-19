@@ -13,7 +13,6 @@ private class UserRecord : Record {
     override class var databaseSelection: [SQLSelectable] { super.databaseSelection }
     override func encode(to container: inout PersistenceContainer) { super.encode(to: &container) }
     override func didInsert(with rowID: Int64, for column: String?) { super.didInsert(with: rowID, for: column) }
-    override func copy() -> Self { preconditionFailure() }
     override func insert(_ db: Database) throws { try super.insert(db) }
     override func update(_ db: Database, columns: Set<String>) throws { try super.update(db, columns: columns) }
     override func delete(_ db: Database) throws -> Bool { try super.delete(db) }
