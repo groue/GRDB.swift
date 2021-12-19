@@ -1,6 +1,6 @@
 /// A key that is used to decode a value in a row
 @usableFromInline
-enum RowKey: Hashable, GRDBSendable {
+enum RowKey: Hashable, Sendable {
     /// A column name
     case columnName(String)
     
@@ -18,7 +18,7 @@ enum RowKey: Hashable, GRDBSendable {
 @usableFromInline
 enum RowDecodingError: Error {
     @usableFromInline
-    struct Context: CustomDebugStringConvertible, GRDBSendable {
+    struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
         @usableFromInline
         let debugDescription: String

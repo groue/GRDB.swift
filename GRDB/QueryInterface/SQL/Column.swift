@@ -52,12 +52,10 @@ extension ColumnExpression {
     }
 }
 
-#if compiler(>=5.5)
 extension ColumnExpression where Self == Column {
     /// The hidden rowID column
     public static var rowID: Self { Column.rowID }
 }
-#endif
 
 /// A column in a database table.
 ///

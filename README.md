@@ -3,7 +3,7 @@
 <p align="center"><strong>A toolkit for SQLite databases, with a focus on application development</strong></p>
 
 <p align="center">
-    <a href="https://developer.apple.com/swift/"><img alt="Swift 5.3" src="https://img.shields.io/badge/swift-5.3-orange.svg?style=flat"></a>
+    <a href="https://developer.apple.com/swift/"><img alt="Swift 5.5" src="https://img.shields.io/badge/swift-5.5-orange.svg?style=flat"></a>
     <a href="https://developer.apple.com/swift/"><img alt="Platforms" src="https://img.shields.io/cocoapods/p/GRDB.swift.svg"></a>
     <a href="https://github.com/groue/GRDB.swift/blob/master/LICENSE"><img alt="License" src="https://img.shields.io/github/license/groue/GRDB.swift.svg?maxAge=2592000"></a>
     <a href="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml"><img alt="CI Status" src="https://github.com/groue/GRDB.swift/actions/workflows/CI.yml/badge.svg?branch=master"></a>
@@ -13,7 +13,7 @@
 
 **Latest release**: February 6, 2022 • [version 5.21.0](https://github.com/groue/GRDB.swift/tree/v5.21.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
 
-**Requirements**: iOS 11.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; SQLite 3.8.5+ &bull; Swift 5.3+ / Xcode 12+
+**Requirements**: iOS 11.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; SQLite 3.8.5+ &bull; Swift 5.5+ / Xcode 13+
 
 | Swift version  | GRDB version                                                |
 | -------------- | ----------------------------------------------------------- |

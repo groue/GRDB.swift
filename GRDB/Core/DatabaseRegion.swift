@@ -356,13 +356,11 @@ public protocol DatabaseRegionConvertible {
     func databaseRegion(_ db: Database) throws -> DatabaseRegion
 }
 
-#if compiler(>=5.5)
 extension DatabaseRegionConvertible where Self == DatabaseRegion {
     /// The region that covers the full database: all columns and all rows
     /// from all tables.
     public static var fullDatabase: Self { DatabaseRegion.fullDatabase }
 }
-#endif
 
 extension DatabaseRegion: DatabaseRegionConvertible {
     /// :nodoc:

@@ -954,4 +954,4 @@ extension StatementArguments {
     }
 }
 
-extension StatementArguments: GRDBSendable { }
+extension StatementArguments: Sendable { }

@@ -36,11 +36,7 @@ private class Person : Record, Hashable {
     }
     
     required init(row: Row) {
-        #if compiler(>=5.5)
         id = row[.rowID]
-        #else
-        id = row[Column.rowID]
-        #endif
         age = row["age"]
         name = row["name"]
         creationDate = row["creationDate"]

@@ -32,12 +32,6 @@ public protocol _OptionalProtocol {
 /// :nodoc:
 extension Optional: _OptionalProtocol { }
 
-#if swift(>=5.5) && canImport(_Concurrency)
-public typealias GRDBSendable = Swift.Sendable
-#else
-public typealias GRDBSendable = Any
-#endif
-
 // MARK: - Internal
 
 /// Reserved for GRDB: do not use.
