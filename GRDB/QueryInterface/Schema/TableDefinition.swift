@@ -29,7 +29,7 @@ extension Database {
         temporary: Bool = false,
         ifNotExists: Bool = false,
         withoutRowID: Bool = false,
-        body: (TableDefinition) -> Void)
+        body: (TableDefinition) throws -> Void)
     throws
     {
         let definition = TableDefinition(
@@ -37,7 +37,7 @@ extension Database {
             temporary: temporary,
             ifNotExists: ifNotExists,
             withoutRowID: withoutRowID)
-        body(definition)
+        try body(definition)
         let sql = try definition.sql(self)
         try execute(sql: sql)
     }

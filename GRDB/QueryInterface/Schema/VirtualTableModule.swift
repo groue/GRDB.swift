@@ -126,14 +126,14 @@ extension Database {
         virtualTable tableName: String,
         ifNotExists: Bool = false,
         using module: Module,
-        _ body: ((Module.TableDefinition) -> Void)? = nil)
+        _ body: ((Module.TableDefinition) throws -> Void)? = nil)
     throws
     {
         // Define virtual table
         let configuration = VirtualTableConfiguration(ifNotExists: ifNotExists)
         let definition = module.makeTableDefinition(configuration: configuration)
         if let body = body {
-            body(definition)
+            try body(definition)
         }
         
         // Create virtual table
