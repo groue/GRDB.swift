@@ -189,9 +189,9 @@ public struct SQLExpression {
         /// If true, (a • b) is a bijective function of a, and a bijective
         /// function of b.
         ///
-        /// `+` and `||` (concat) are bijective.
+        /// `||` (concat) is bijective.
         ///
-        /// `AND`, `OR` and `*` are not.
+        /// `AND`, `OR`, `+` and `*` are not.
         let isBijective: Bool
         
         /// Creates a binary operator
@@ -212,7 +212,7 @@ public struct SQLExpression {
             sql: "+",
             neutralValue: 0.databaseValue,
             strictlyAssociative: false,
-            bijective: true)
+            bijective: false)
         
         /// The `*` binary operator
         ///
@@ -814,19 +814,6 @@ extension SQLExpression {
         case let .qualifiedColumn(name, a):
             if alias == a {
                 return name
-            } else {
-                return nil
-            }
-            
-        case let .binary(op, lhs, rhs):
-            guard acceptsBijection && op == .subtract else {
-                return nil
-            }
-            
-            if lhs.isConstantInRequest {
-                return try rhs.column(db, for: alias, acceptsBijection: acceptsBijection)
-            } else if rhs.isConstantInRequest {
-                return try lhs.column(db, for: alias, acceptsBijection: acceptsBijection)
             } else {
                 return nil
             }
