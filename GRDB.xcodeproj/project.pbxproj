@@ -2861,7 +2861,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 		56EB54FA22C9115E00850069 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2879,7 +2879,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 		AAA4DCFA230F1E0600C74B15 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2897,7 +2897,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

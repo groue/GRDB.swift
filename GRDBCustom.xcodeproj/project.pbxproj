@@ -2227,7 +2227,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 		56EB54FD22C9119B00850069 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2245,7 +2245,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 		EED476F01CFD0B290026A4EC /* Copy .example configuration files (if no USER customizations exist) */ = {
 			isa = PBXShellScriptBuildPhase;
