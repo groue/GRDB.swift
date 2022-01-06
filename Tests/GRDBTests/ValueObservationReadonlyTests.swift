@@ -66,7 +66,7 @@ class ValueObservationReadonlyTests: GRDBTestCase {
         try assertValueObservation(
             observation,
             fails: { (_: TestError, writer: DatabaseWriter) in
-                let count = try writer.read { try Int.fetchOne($0, sql: "SELECT COUNT(*) FROM t")! }
+                let count = try writer.read(Table("t").fetchCount)
                 XCTAssertEqual(count, 0)
         },
             setup: { db in

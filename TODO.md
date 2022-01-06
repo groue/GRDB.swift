@@ -23,6 +23,9 @@
 - [ ] Grab all FTS tokens in a string
 - [ ] GRDB 6: decoding errors
 - [ ] GRDB 6: conflict resolution in persistence methods
+- [ ] GRDB 6: UPSERT
+- [ ] GRDB 6: support for RETURNING
+- [ ] GRDB 6: allow mutating `update` (for timestamps)
 - [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commmit and the end of the editing session.
     * Create an edition SQLite connection with an open transaction (a new kind of DatabaseWriter with a save() method)
     * All other writes will fail with SQLITE_BUSY. Unless they are schedules in a target dispatch queue which is paused during the edition.
@@ -37,7 +40,6 @@
 - [ ] Support for more kinds of joins: https://github.com/groue/GRDB.swift/issues/740
 - [ ] HasAndBelongsToMany: https://github.com/groue/GRDB.swift/issues/711
 - [ ] Support UNION https://github.com/groue/GRDB.swift/issues/671 (https://www.sqlite.org/lang_select.html#compound)
-- [ ] request.exists(db) as an alternative to fetchOne(db) != nil. Can generate optimized SQL.
 - [ ] Measure the duration of transactions 
 - [ ] Improve SQL generation for `Player.....fetchCount(db)`, especially with distinct. Try to avoid `SELECT COUNT(*) FROM (SELECT DISTINCT player.* ...)`
 - [ ] Alternative technique for custom SQLite builds: see the Podfile at https://github.com/CocoaPods/CocoaPods/issues/9104, and https://github.com/clemensg/sqlite3pod
@@ -52,7 +54,6 @@
     - [ ] CASE x WHEN w1 THEN r1 WHEN w2 THEN r2 ELSE r3 END https://www.sqlite.org/lang_expr.html
 - [ ] Allow concurrent reads from a snapshot
 - [ ] Check https://sqlite.org/sqlar.html
-- [ ] FTS: prefix queries
 - [ ] More schema alterations
 - [ ] Database.clearSchemaCache() is fine, but what about dbPool readers? Can we invalidate the cache for a whole pool?
 

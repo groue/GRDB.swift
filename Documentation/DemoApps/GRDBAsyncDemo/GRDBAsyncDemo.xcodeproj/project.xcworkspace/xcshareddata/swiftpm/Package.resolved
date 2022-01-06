@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "GRDBQuery",
+        "repositoryURL": "https://github.com/groue/GRDBQuery",
+        "state": {
+          "branch": null,
+          "revision": "4301166cd2aee9ce37b4057c9a58f5cc3bbeae06",
+          "version": "0.1.0"
+        }
+      }
+    ]
+  },
+  "version": 1
+}

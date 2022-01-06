@@ -313,15 +313,6 @@ class TableRecordDeleteTests: GRDBTestCase {
                     """)
             }
             do {
-                try Player.all().group(Column.rowID + 1).deleteAll(db)
-                XCTAssertEqual(self.lastSQLQuery, """
-                    DELETE FROM "player" WHERE "id" IN (\
-                    SELECT "id" \
-                    FROM "player" \
-                    GROUP BY "rowid" + 1)
-                    """)
-            }
-            do {
                 try Player.all().group(-Column("id")).deleteAll(db)
                 XCTAssertEqual(self.lastSQLQuery, """
                     DELETE FROM "player" WHERE "id" IN (\

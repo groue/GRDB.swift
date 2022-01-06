@@ -136,6 +136,14 @@ public struct SQLExpression {
         ///     document.rowid
         ///     country.code
         case qualifiedFastPrimaryKey(TableAlias)
+        
+        /// An expression that is true iff the row exists:
+        ///
+        /// - For tables with a rowid, it is true iff the rowid is not null.
+        /// - For tables WITHOUT ROWID, it is true iff any primary key column is not null.
+        /// - For views, it is true iff any column is not null.
+        /// - For CTEs, it is not implemented yet.
+        case qualifiedExists(TableAlias, isNegated: Bool)
     }
     
     /// `BooleanTest` supports truthiness tests.
@@ -181,9 +189,9 @@ public struct SQLExpression {
         /// If true, (a • b) is a bijective function of a, and a bijective
         /// function of b.
         ///
-        /// `+` and `||` (concat) are bijective.
+        /// `||` (concat) is bijective.
         ///
-        /// `AND`, `OR` and `*` are not.
+        /// `AND`, `OR`, `+` and `*` are not.
         let isBijective: Bool
         
         /// Creates a binary operator
@@ -204,7 +212,7 @@ public struct SQLExpression {
             sql: "+",
             neutralValue: 0.databaseValue,
             strictlyAssociative: false,
-            bijective: true)
+            bijective: false)
         
         /// The `*` binary operator
         ///
@@ -444,6 +452,17 @@ extension SQLExpression {
         if case let .collated(expression, collationName) = expression.impl {
             // Prefer: expression BETWEEN lowerBound AND upperBound COLLATE collation
             // over:   (expression COLLATE collation) BETWEEN lowerBound AND upperBound
+            //
+            // This transformation was introduced in GRDB v0.42.0, for the first
+            // release of the query interface:
+            // https://github.com/groue/GRDB.swift/blob/3b3cb6bdecdfaac6e3d55bb7ecccf22f2749140f/GRDB/FetchRequest/SQLSupport/Collation.swift#L224-L239
+            // The commit is a big squash, and we've lost the original intent.
+            // It is likely just an SQL aesthetic preference of mine.
+            //
+            // According to https://www.sqlite.org/datatype3.html#assigning_collating_sequences_from_sql
+            // this rewriting should not have any functional impact. Yet if any
+            // user complains eventually, we should just remove this rewriting
+            // rule without any resistance.
             return collated(between(
                                 expression: expression,
                                 lowerBound: lowerBound,
@@ -465,6 +484,8 @@ extension SQLExpression {
     ///     <lhs> <= <rhs>
     ///     <lhs> LIKE <rhs>
     static func binary(_ op: BinaryOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
+        // See `between(expression:lowerBound:upperBound:isNegated:)` for some
+        // explanation of these rewriting rules.
         if case let .collated(lhs, collationName) = lhs.impl {
             // Prefer: lhs <= rhs COLLATE collation
             // over:   (lhs COLLATE collation) <= rhs
@@ -562,6 +583,8 @@ extension SQLExpression {
     ///
     /// See also `SQLExpression.equal(_:_:)`.
     static func compare(_ op: EqualityOperator, _ lhs: SQLExpression, _ rhs: SQLExpression) -> Self {
+        // See `between(expression:lowerBound:upperBound:isNegated:)` for some
+        // explanation of these rewriting rules.
         if case let .collated(lhs, collationName) = lhs.impl {
             // Prefer: lhs = rhs COLLATE collation
             // over:   (lhs COLLATE collation) = rhs
@@ -610,7 +633,57 @@ extension SQLExpression {
     ///
     ///     <expression> COLLATE <collation>
     static func collated(_ expression: SQLExpression, _ collationName: Database.CollationName) -> Self {
-        self.init(impl: .collated(expression, collationName))
+        switch expression.impl {
+        case let .in(expression, collection, isNegated: isNegated):
+            // According to https://www.sqlite.org/datatype3.html#assigning_collating_sequences_from_sql
+            //
+            // > The collating sequence used for expressions of the form
+            // > "x IN (y, z, ...)" is the collating sequence of x. If an
+            // > explicit collating sequence is required on an IN operator it
+            // > should be applied to the left operand, like this:
+            // > "x COLLATE nocase IN (y,z, ...)".
+            //
+            // Indeed:
+            //
+            //      $ sqlite3
+            //      SQLite version 3.32.3 2020-06-18 14:16:19
+            //      sqlite> SELECT 'a' IN ('A') COLLATE NOCASE;
+            //      0
+            //      sqlite> SELECT ('a' COLLATE NOCASE) IN ('A');
+            //      1
+            //
+            // Conclusion: "x IN (y,z, ...) COLLATE nocase" can not match the
+            // user intent. We could fatal error. Or warn. Or just make it work:
+            //
+            // Prefer: (expression COLLATE collation) IN (...)
+            // over:   expression IN (...) COLLATE collation
+            return .in(.collated(expression, collationName), collection, isNegated: isNegated)
+            
+        case let .associativeBinary(op, expressions):
+            // The expression rewrite performed for the `IN` operator above
+            // allows the user to have the following Swift code match the intent:
+            //
+            //      // name COLLATE NOCASE IN ('foo', 'bar')
+            //      ["foo", "bar"].contains(Column("name")).collating(.nocase)
+            //      ["foo", "bar"].contains(Column("name").collating(.nocase))
+            //
+            // The BETWEEN case is supported as well (see
+            // `between(expression:lowerBound:upperBound:isNegated:)`):
+            //
+            //      // name BETWEEN 'foo' AND 'bar' COLLATE NOCASE
+            //      ("foo"..."bar").contains(Column("name")).collating(.nocase)
+            //      ("foo"..."bar").contains(Column("name").collating(.nocase))
+            //
+            // We just miss support for non-closed ranges:
+            //
+            //      // (name >= 'foo' COLLATE NOCASE) AND (name < 'bar' COLLATE NOCASE)
+            //      ("foo"..<"bar").contains(Column("name")).collating(.nocase)
+            //      ("foo"..<"bar").contains(Column("name").collating(.nocase))
+            return .associativeBinary(op, expressions.map { $0.collating(collationName) })
+            
+        default:
+            return self.init(impl: .collated(expression, collationName))
+        }
     }
     
     // MARK: Functions
@@ -669,23 +742,36 @@ extension SQLExpression {
     
     // MARK: Deferred
     
+    // TODO: replace with something that can work for WITHOUT ROWID table with a multi-columns primary key.
     /// An expression that picks the fastest available primary key.
     ///
     /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
-    /// Future versions of GRDB may use [row values](https://www.sqlite.org/rowvalue.html).
     ///
     ///     id
     ///     rowid
     ///     code
     static let fastPrimaryKey = SQLExpression(impl: .fastPrimaryKey)
     
+    // TODO: replace with something that can work for WITHOUT ROWID table with a multi-columns primary key.
     /// A qualified "fast primary key" (see `SQLExpression.fastPrimaryKey`).
+    ///
+    /// It crashes for WITHOUT ROWID table with a multi-columns primary key.
     ///
     ///     player.id
     ///     document.rowid
     ///     country.code
     static func qualifiedFastPrimaryKey(_ alias: TableAlias) -> Self {
         self.init(impl: .qualifiedFastPrimaryKey(alias))
+    }
+    
+    /// An expression that is true iff the row exists:
+    ///
+    /// - For tables with a rowid, it is true iff the rowid is not null.
+    /// - For tables WITHOUT ROWID, it is true iff any primary key column is not null.
+    /// - For views, it is true iff any column is not null.
+    /// - For CTEs, it is not implemented yet.
+    static func qualifiedExists(_ alias: TableAlias) -> Self {
+        self.init(impl: .qualifiedExists(alias, isNegated: false))
     }
 }
 
@@ -728,19 +814,6 @@ extension SQLExpression {
         case let .qualifiedColumn(name, a):
             if alias == a {
                 return name
-            } else {
-                return nil
-            }
-            
-        case let .binary(op, lhs, rhs):
-            guard acceptsBijection && op == .subtract else {
-                return nil
-            }
-            
-            if lhs.isConstantInRequest {
-                return try rhs.column(db, for: alias, acceptsBijection: acceptsBijection)
-            } else if rhs.isConstantInRequest {
-                return try lhs.column(db, for: alias, acceptsBijection: acceptsBijection)
             } else {
                 return nil
             }
@@ -993,6 +1066,22 @@ extension SQLExpression {
             return try SQLExpression
                 .qualifiedColumn(column, alias)
                 .sql(context, wrappedInParenthesis: wrappedInParenthesis)
+            
+        case let .qualifiedExists(alias, isNegated: isNegated):
+            // Works with tables and views.
+            // TODO: add support for CTEs eventually.
+            let existenceCheckColumns = try context.db.existenceCheckColumns(in: alias.tableName)
+            if isNegated {
+                return try existenceCheckColumns
+                    .map { SQLExpression.qualifiedColumn($0, alias) == nil }
+                    .joined(operator: .and)
+                    .sql(context, wrappedInParenthesis: wrappedInParenthesis)
+            } else {
+                return try existenceCheckColumns
+                    .map { SQLExpression.qualifiedColumn($0, alias) != nil }
+                    .joined(operator: .or)
+                    .sql(context, wrappedInParenthesis: wrappedInParenthesis)
+            }
         }
     }
     
@@ -1335,6 +1424,18 @@ extension SQLExpression {
                 return .isEmpty(expression, isNegated: !isNegated)
             }
             
+        case let .qualifiedExists(alias, isNegated: isNegated):
+            switch test {
+            case .true:
+                return .compare(.equal, self, true.sqlExpression)
+                
+            case .false:
+                return .compare(.equal, self, false.sqlExpression)
+                
+            case .falsey:
+                return SQLExpression(impl: .qualifiedExists(alias, isNegated: !isNegated))
+            }
+            
         default:
             switch test {
             case .true:
@@ -1421,6 +1522,7 @@ extension SQLExpression {
         case .databaseValue,
              .qualifiedColumn,
              .qualifiedFastPrimaryKey,
+             .qualifiedExists,
              .subquery,
              .exists:
             return self

@@ -132,7 +132,27 @@ try dbQueue.write { db in
 }
 ```
 
-:twisted_rightwards_arrows: **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are three ways to access the database asynchronously:
+:twisted_rightwards_arrows: **An async access does not block the current thread.** Instead, it notifies you when the database operations are completed. There are four ways to access the database asynchronously:
+
+<details>
+    <summary><b>Swift concurrency</b> (async/await)</summary>
+
+[**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features) GRDB support for Swift concurrency requires Xcode 13.2+.
+
+```swift
+let playerCount = try await dbQueue.read { db in
+    try Player.fetchCount(db)
+}
+
+let newPlayerCount = try await dbQueue.write { db -> Int in
+    try Player(id: 12, name: "Arthur").insert(db)
+    return try Player.fetchCount(db)
+}
+```
+
+Note the identical method names: `read`, `write`. The async version is only available in async Swift functions.
+
+</details>
 
 <details>
     <summary><b>Combine publishers</b></summary>
@@ -205,7 +225,7 @@ During one async access, all individual database operations grouped inside (fetc
 
 ```swift
 // One asynchronous access...
-dbQueue.writePublisher { db in
+try await dbQueue.write { db in
     // ... always performs synchronous database operations:
     try Player(...).insert(db)
     try Player(...).insert(db)
@@ -237,7 +257,7 @@ Some applications need to relax this safety net, in order to achieve specific SQ
     try dbQueue.writeWithoutTransaction { db in ... }
     ```
     
-    You can also use `asyncWriteWithoutTransaction`.
+    `writeWithoutTransaction` is also available as an `async` function. You can also use `asyncWriteWithoutTransaction`.
 
 - **Write outside of any transaction, and prevents concurrent reads**  
   (Lifted guarantee: [Write Transactions])
@@ -252,7 +272,7 @@ Some applications need to relax this safety net, in order to achieve specific SQ
     
     You will use this method, for example, when you [change the password](../README.md#changing-the-passphrase-of-an-encrypted-database) of an encrypted database.
     
-    You can also use `asyncBarrierWriteWithoutTransaction`.
+    `barrierWriteWithoutTransaction` is also available as an `async` function. You can also use `asyncBarrierWriteWithoutTransaction`.
 
 - **Reentrant write outside of any transaction**  
   (Lifted guarantees: [Write Transactions], [Non-Reentrancy])
@@ -279,7 +299,7 @@ Some applications need to relax this safety net, in order to achieve specific SQ
     try dbQueue.unsafeRead { db in ... }
     ```
     
-    `unsafeRead` has no async version.
+    `unsafeRead` is also available as an `async` function.
 
 - **Reentrant read, outside of any transaction**  
   (Lifted guarantees: [Isolated Reads], [Forbidden Writes], [Non-Reentrancy])

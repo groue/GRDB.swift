@@ -895,9 +895,9 @@ public enum DatabaseEventKind {
     var modifiedRegion: DatabaseRegion {
         switch self {
         case let .delete(tableName):
-            return DatabaseRegion(table: tableName)
+            return DatabaseRegion.fullTable(tableName)
         case let .insert(tableName):
-            return DatabaseRegion(table: tableName)
+            return DatabaseRegion.fullTable(tableName)
         case let .update(tableName, updatedColumnNames):
             return DatabaseRegion(table: tableName, columns: updatedColumnNames)
         }

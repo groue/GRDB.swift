@@ -493,7 +493,7 @@ extension ColumnDecoder: SingleValueDecodingContainer {
 }
 
 @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
-private var iso8601Formatter: ISO8601DateFormatter = {
+private let iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = .withInternetDateTime
     return formatter

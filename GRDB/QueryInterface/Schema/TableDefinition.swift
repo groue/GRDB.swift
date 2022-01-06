@@ -29,7 +29,7 @@ extension Database {
         temporary: Bool = false,
         ifNotExists: Bool = false,
         withoutRowID: Bool = false,
-        body: (TableDefinition) -> Void)
+        body: (TableDefinition) throws -> Void)
     throws
     {
         let definition = TableDefinition(
@@ -37,7 +37,7 @@ extension Database {
             temporary: temporary,
             ifNotExists: ifNotExists,
             withoutRowID: withoutRowID)
-        body(definition)
+        try body(definition)
         let sql = try definition.sql(self)
         try execute(sql: sql)
     }
@@ -96,7 +96,7 @@ extension Database {
     ///     - table: The name of the indexed table.
     ///     - columns: The indexed columns.
     ///     - unique: If true, creates a unique index.
-    ///     - ifNotExists: If false, no error is thrown if index already exists.
+    ///     - ifNotExists: If true, no error is thrown if index already exists.
     ///     - condition: If not nil, creates a partial index
     ///       (see <https://www.sqlite.org/partialindex.html>).
     public func create(

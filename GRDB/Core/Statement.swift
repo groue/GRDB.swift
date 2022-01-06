@@ -880,3 +880,5 @@ extension StatementArguments {
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"
     }
 }
+
+extension StatementArguments: GRDBSendable { }

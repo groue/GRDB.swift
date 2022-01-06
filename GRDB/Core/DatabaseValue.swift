@@ -157,6 +157,14 @@ extension DatabaseValue: StatementBinding {
     }
 }
 
+extension DatabaseValue: GRDBSendable { }
+
+#if swift(>=5.5) && canImport(_Concurrency)
+// @unchecked due to Foundation.Data not conforming to Sendable
+// TODO: Remove @unchecked when Foundation has been upgraded
+extension DatabaseValue.Storage: @unchecked Sendable { }
+#endif
+
 // MARK: - Hashable & Equatable
 
 // Hashable

@@ -50,4 +50,7 @@
    <FileRef
       location = "group:Documentation/DemoApps/GRDBCombineDemo/GRDBCombineDemo.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:Documentation/DemoApps/GRDBAsyncDemo/GRDBAsyncDemo.xcodeproj">
+   </FileRef>
 </Workspace>
