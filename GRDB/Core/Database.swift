@@ -1320,11 +1320,12 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         do {
             backupLoop: while true {
                 let rc = sqlite3_backup_step(backup, pagesPerStep)
-                let totalPages = Int(sqlite3_backup_pagecount(backup))
-                let completedPages = totalPages - Int(sqlite3_backup_remaining(backup))
-                let progress = DatabaseBackupProgress(completedPageCount: completedPages,
-                                                      totalPageCount: totalPages,
-                                                      isCompleted: rc == SQLITE_DONE)
+                let totalPageCount = Int(sqlite3_backup_pagecount(backup))
+                let remainingPageCount = Int(sqlite3_backup_remaining(backup))
+                let progress = DatabaseBackupProgress(
+                    remainingPageCount: remainingPageCount,
+                    totalPageCount: totalPageCount,
+                    isCompleted: rc == SQLITE_DONE)
                 switch rc {
                 case SQLITE_DONE:
                     try? afterBackupStep?(progress)
