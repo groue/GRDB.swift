@@ -308,21 +308,68 @@ extension DatabaseReader {
     /// When the source is a DatabasePool, concurrent writes can happen during
     /// the backup. Those writes may, or may not, be reflected in the backup,
     /// but they won't trigger any error.
-    public func backup(to writer: DatabaseWriter) throws {
-        try writer.writeWithoutTransaction { dbDest in
-            try backup(to: dbDest)
+    ///
+    /// Usage:
+    ///
+    ///     let source: DatabaseQueue = ...
+    ///     let destination: DatabaseQueue = ...
+    ///     try source.backup(to: destination)
+    ///
+    /// When you're after progress reporting during backup, you'll want to
+    /// perform the backup in several steps. Each step copies the number of
+    /// _database pages_ you specify. See <https://www.sqlite.org/c3ref/backup_finish.html>
+    /// for more information:
+    ///
+    ///     // Backup with progress reporting
+    ///     try source.backup(
+    ///         to: destination,
+    ///         pagesPerStep: ...)
+    ///         { backupProgress in
+    ///            print("Database backup progress:", backupProgress)
+    ///         }
+    ///
+    /// The `progress` callback will be called at least once—when
+    /// `backupProgress.isCompleted == true`. If the callback throws
+    /// when `backupProgress.isCompleted == false`, the backup is aborted
+    /// and the error is rethrown.  If the callback throws when
+    /// `backupProgress.isCompleted == true`, backup completion is
+    /// unaffected and the error is silently ignored.
+    ///
+    /// See also `Database.backup()`.
+    ///
+    /// - parameters:
+    ///     - writer: The destination database.
+    ///     - pagesPerStep: The number of database pages copied on each backup
+    ///       step. By default, all pages are copied in one single step.
+    ///     - progress: An optional function that is notified of the backup
+    ///       progress.
+    /// - throws: The error thrown by `progress` if the backup is abandoned, or
+    ///   any `DatabaseError` that would happen while performing the backup.
+    public func backup(
+        to writer: DatabaseWriter,
+        pagesPerStep: Int32 = -1,
+        progress: ((DatabaseBackupProgress) throws -> ())? = nil)
+    throws
+    {
+        try writer.writeWithoutTransaction { destDb in
+            try backup(
+                to: destDb,
+                pagesPerStep: pagesPerStep,
+                afterBackupStep: progress)
         }
     }
     
     func backup(
-        to dbDest: Database,
+        to destDb: Database,
+        pagesPerStep: Int32 = -1,
         afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: (() -> Void)? = nil)
+        afterBackupStep: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
         try read { dbFrom in
-            try dbFrom.backup(
-                to: dbDest,
+            try dbFrom.backupInternal(
+                to: destDb,
+                pagesPerStep: pagesPerStep,
                 afterBackupInit: afterBackupInit,
                 afterBackupStep: afterBackupStep)
         }

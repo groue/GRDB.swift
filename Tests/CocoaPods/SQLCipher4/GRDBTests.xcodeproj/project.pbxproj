@@ -445,6 +445,8 @@
 		564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
 		564A2159226C8F25001F64F1 /* db.SQLCipher3 in Resources */ = {isa = PBXBuildFile; fileRef = 564A2158226C8F24001F64F1 /* db.SQLCipher3 */; };
 		564A215A226C8F25001F64F1 /* db.SQLCipher3 in Resources */ = {isa = PBXBuildFile; fileRef = 564A2158226C8F24001F64F1 /* db.SQLCipher3 */; };
+		565A27C927871FE500659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27C827871FE500659A62 /* BackupTestCase.swift */; };
+		565A27CA27871FE500659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27C827871FE500659A62 /* BackupTestCase.swift */; };
 		5691D97227257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
 		5691D97327257C930021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97127257C930021D540 /* AvailableElements.swift */; };
 		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -677,6 +679,7 @@
 		564A1F6F226B89D6001F64F1 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		564A2158226C8F24001F64F1 /* db.SQLCipher3 */ = {isa = PBXFileReference; lastKnownFileType = file; path = db.SQLCipher3; sourceTree = SOURCE_ROOT; };
+		565A27C827871FE500659A62 /* BackupTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
 		5691D97127257C930021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
 		67377FE4CDAD675809F93AD4 /* Pods_GRDBTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6A4788C0F815F6C5E4EBDE12 /* Pods-GRDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.debug.xcconfig"; sourceTree = "<group>"; };
@@ -803,6 +806,7 @@
 				56419F4424A54097004967E1 /* AssociationPrefetchingSQLTests.swift */,
 				56419F5024A54098004967E1 /* AssociationRowScopeSearchTests.swift */,
 				56419F9E24A5409D004967E1 /* AssociationTableAliasTestsSQLTests.swift */,
+				565A27C827871FE500659A62 /* BackupTestCase.swift */,
 				56419F6B24A5409A004967E1 /* CGFloatTests.swift */,
 				56419F6524A54099004967E1 /* ColumnExpressionTests.swift */,
 				56419F9324A5409D004967E1 /* ColumnInfoTests.swift */,
@@ -1219,6 +1223,7 @@
 				5641A03624A540A1004967E1 /* DatabaseQueueReleaseMemoryTests.swift in Sources */,
 				5641A0AE24A540A1004967E1 /* DatabaseConfigurationTests.swift in Sources */,
 				5641A0CA24A540A1004967E1 /* DatabaseUUIDEncodingStrategyTests.swift in Sources */,
+				565A27C927871FE500659A62 /* BackupTestCase.swift in Sources */,
 				56419FD624A540A1004967E1 /* DatabaseRegionTests.swift in Sources */,
 				5641A0A824A540A1004967E1 /* JoinSupportTests.swift in Sources */,
 				5641A0D424A540A1004967E1 /* FoundationUUIDTests.swift in Sources */,
@@ -1443,6 +1448,7 @@
 				5641A03724A540A1004967E1 /* DatabaseQueueReleaseMemoryTests.swift in Sources */,
 				5641A0AF24A540A1004967E1 /* DatabaseConfigurationTests.swift in Sources */,
 				5641A0CB24A540A1004967E1 /* DatabaseUUIDEncodingStrategyTests.swift in Sources */,
+				565A27CA27871FE500659A62 /* BackupTestCase.swift in Sources */,
 				56419FD724A540A1004967E1 /* DatabaseRegionTests.swift in Sources */,
 				5641A0A924A540A1004967E1 /* JoinSupportTests.swift in Sources */,
 				5641A0D524A540A1004967E1 /* FoundationUUIDTests.swift in Sources */,

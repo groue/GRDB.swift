@@ -1243,14 +1243,73 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Backup
     
-    func backup(
-        to dbDest: Database,
-        afterBackupInit: (() -> Void)? = nil,
-        afterBackupStep: (() -> Void)? = nil)
+    /// Copies the database contents into another database.
+    ///
+    /// The `backup` method blocks the current thread until the destination
+    /// database contains the same contents as the source database.
+    ///
+    /// Usage:
+    ///
+    ///     let source: DatabaseQueue = ...
+    ///     let destination: DatabaseQueue = ...
+    ///     try source.write { sourceDb in
+    ///         try destination.barrierWriteWithoutTransaction { destDb in
+    ///             try sourceDb.backup(to: destDb)
+    ///         }
+    ///     }
+    ///
+    ///
+    /// When you're after progress reporting during backup, you'll want to
+    /// perform the backup in several steps. Each step copies the number of
+    /// _database pages_ you specify. See <https://www.sqlite.org/c3ref/backup_finish.html>
+    /// for more information:
+    ///
+    ///     // Backup with progress reporting
+    ///     try sourceDb.backup(
+    ///         to: destDb,
+    ///         pagesPerStep: ...)
+    ///         { backupProgress in
+    ///            print("Database backup progress:", backupProgress)
+    ///         }
+    ///
+    /// The `progress` callback will be called at least once—when
+    /// `backupProgress.isCompleted == true`. If the callback throws
+    /// when `backupProgress.isCompleted == false`, the backup is aborted
+    /// and the error is rethrown.  If the callback throws when
+    /// `backupProgress.isCompleted == true`, backup completion is
+    /// unaffected and the error is silently ignored.
+    ///
+    /// See also `DatabaseReader.backup()`.
+    ///
+    /// - parameters:
+    ///     - destDb: The destination database.
+    ///     - pagesPerStep: The number of database pages copied on each backup
+    ///       step. By default, all pages are copied in one single step.
+    ///     - progress: An optional function that is notified of the backup
+    ///       progress.
+    /// - throws: The error thrown by `progress` if the backup is abandoned, or
+    ///   any `DatabaseError` that would happen while performing the backup.
+    public func backup(
+        to destDb: Database,
+        pagesPerStep: Int32 = -1,
+        progress: ((DatabaseBackupProgress) throws -> ())? = nil)
     throws
     {
-        guard let backup = sqlite3_backup_init(dbDest.sqliteConnection, "main", sqliteConnection, "main") else {
-            throw DatabaseError(resultCode: dbDest.lastErrorCode, message: dbDest.lastErrorMessage)
+        try backupInternal(
+            to: destDb,
+            pagesPerStep: pagesPerStep,
+            afterBackupStep: progress)
+    }
+    
+    func backupInternal(
+        to destDb: Database,
+        pagesPerStep: Int32 = -1,
+        afterBackupInit: (() -> Void)? = nil,
+        afterBackupStep: ((DatabaseBackupProgress) throws -> Void)? = nil)
+    throws
+    {
+        guard let backup = sqlite3_backup_init(destDb.sqliteConnection, "main", sqliteConnection, "main") else {
+            throw DatabaseError(resultCode: destDb.lastErrorCode, message: destDb.lastErrorMessage)
         }
         guard Int(bitPattern: backup) != Int(SQLITE_ERROR) else {
             throw DatabaseError()
@@ -1260,14 +1319,21 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         do {
             backupLoop: while true {
-                switch sqlite3_backup_step(backup, -1) {
+                let rc = sqlite3_backup_step(backup, pagesPerStep)
+                let totalPageCount = Int(sqlite3_backup_pagecount(backup))
+                let remainingPageCount = Int(sqlite3_backup_remaining(backup))
+                let progress = DatabaseBackupProgress(
+                    remainingPageCount: remainingPageCount,
+                    totalPageCount: totalPageCount,
+                    isCompleted: rc == SQLITE_DONE)
+                switch rc {
                 case SQLITE_DONE:
-                    afterBackupStep?()
+                    try? afterBackupStep?(progress)
                     break backupLoop
                 case SQLITE_OK:
-                    afterBackupStep?()
+                    try afterBackupStep?(progress)
                 case let code:
-                    throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
+                    throw DatabaseError(resultCode: code, message: destDb.lastErrorMessage)
                 }
             }
         } catch {
@@ -1279,11 +1345,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         case SQLITE_OK:
             break
         case let code:
-            throw DatabaseError(resultCode: code, message: dbDest.lastErrorMessage)
+            throw DatabaseError(resultCode: code, message: destDb.lastErrorMessage)
         }
         
         // The schema of the destination database has changed:
-        dbDest.clearSchemaCache()
+        destDb.clearSchemaCache()
     }
 }
 

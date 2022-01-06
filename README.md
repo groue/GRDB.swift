@@ -7051,6 +7051,42 @@ The `backup` method blocks the current thread until the destination database con
 
 When the source is a [database pool](#database-pools), concurrent writes can happen during the backup. Those writes may, or may not, be reflected in the backup, but they won't trigger any error.
 
+`Database` has an analogous `backup` method.
+
+```swift
+let source: DatabaseQueue = ...      // or DatabasePool
+let destination: DatabaseQueue = ... // or DatabasePool
+try source.write { sourceDb in
+    try destination.barrierWriteWithoutTransaction { destDb in
+        try sourceDb.backup(to: destDb)
+    }
+}
+```
+
+This method allows for the choice of source and destination `Database` handles with which to backup the database.
+
+### Backup Progress Reporting
+
+The `backup` methods take optional `pagesPerStep` and `progress` parameters. Together these parameters can be used to track a database backup in progress and abort an incomplete backup.
+
+When `pagesPerStep` is provided, the database backup is performed in _steps_. At each step, no more than `pagesPerStep` database pages are copied from the source to the destination. The backup proceeds one step at a time until all pages have been copied.
+
+When a `progress` callback is provided, `progress` is called after every backup step, including the last. Even if a non-default `pagesPerStep` is specified or the backup is otherwise completed in a single step, the `progress` callback will be called.
+
+```swift
+try source.backup(
+    to: destination,
+    pagesPerStep: ...)
+    { backupProgress in
+       print("Database backup progress:", backupProgress)
+    }
+```
+
+### Aborting an Incomplete Backup
+
+If a call to `progress` throws when `backupProgress.isComplete == false`, the backup will be aborted and the error rethrown. However, if a call to `progress` throws when `backupProgress.isComplete == true`, the backup is unaffected and the error is silently ignored.
+
+> :warning: **Warning**: Passing non-default values of `pagesPerStep` or `progress` to the backup methods is an advanced API intended to provide additional capabilities to expert users. GRDB's backup API provides a faithful, low-level wrapper to the underlying SQLite online backup API. GRDB's documentation is not a comprehensive substitute for the official SQLite [documentation of their backup API](https://www.sqlite.org/c3ref/backup_finish.html).
 
 ## Interrupt a Database
 
