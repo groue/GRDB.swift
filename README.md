@@ -5131,7 +5131,7 @@ LIMIT ...    -- 9
     ```swift
     // SELECT * FROM player WHERE score >= 1000
     let minScore = 1000
-    let request = Player.select(literal: "score >= \(minScore)")
+    let request = Player.filter(literal: "score >= \(minScore)")
     ```
     
     The WHERE clause can be provided with a mix of Swift and [SQL Interpolation]:
