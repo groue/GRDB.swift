@@ -3,10 +3,11 @@
 ### Pull Request Checklist
 
 <!--
-Please verify that your pull request checks those boxes:
+Please check all those boxes:
 -->
 
-- [ ] This pull request is submitted against the `development` branch.
-- [ ] Inline documentation has been updated.
-- [ ] README.md or another dedicated guide has been updated.
-- [ ] Changes are tested.
+- [ ] BRANCH: This pull request is submitted against the `development` branch.
+- [ ] DOCUMENTATION: Inline documentation has been updated.
+- [ ] DOCUMENTATION: README.md or another dedicated guide has been updated.
+- [ ] TESTS: Changes are tested.
+- [ ] TESTS: The `make smokeTest` terminal command runs without failure (see https://github.com/groue/GRDB.swift/blob/master/CONTRIBUTING.md).
