@@ -4943,6 +4943,28 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     // SELECT * FROM document WHERE document MATCH 'sqlite database'
     Document.matching(pattern)
     ```
+- `AS`
+    
+    To give an alias to an expression, use the `forKey` method:
+    
+    ```swift
+    // SELECT (score + bonus) AS total
+    // FROM player
+    Player.select((Column("score") + Column("bonus")).forKey("total"))
+    ```
+    
+    If you need to refer to this aliased column in another place of the request, use a detached column:
+    
+    ```swift
+    // SELECT (score + bonus) AS total
+    // FROM player 
+    // ORDER BY total
+    Player
+        .select((Column("score") + Column("bonus")).forKey("total"))
+        .order(Column("total").detached)
+    ```
+    
+    Unlike `Column("total")`, the detached column `Column("total").detached` is never associated to the "player" table, so it is always rendered as `total` in the generated SQL, even when the request involves other tables via an [association](Documentation/AssociationsBasics.md) or a [common table expression].
 
 
 ### SQL Functions
