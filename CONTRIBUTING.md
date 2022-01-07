@@ -42,16 +42,22 @@ How you can Contribute
     
     You can run tests from `GRDB.xcworkspace`, after selecting your target (GRDBOSX, GRDBiOS, GRDBtvOS, from `GRDB.xcodeproj` or `GRDBCustom.xcodeproj`).
     
-    Other tests are available in the terminal:
+    Before submitting a pull request, please run in the terminal:
     
     ```sh
-    # Run the full test suite with the current Xcode version (this takes time).
-    make test
-    
-    # Run only a few tests (this takes less time).
     make smokeTest
     ```
-
+    
+    The "smoke tests" perform minimal testing of the system SQLite, SQLCipher, custom SQLite builds, as well as SPM integration.
+    
+    Before a release, the full test suite must pass:
+    
+    ```sh
+    make test
+    ```
+    
+    The full test suite performs many more checks, such as the ability to archive an XCFramework, various installation methods, the demo apps, etc.
+    
 6. **Please respect the existing coding style**
     
     - Get familiar with the [Swift API Design Guidelines](https://www.swift.org/documentation/api-design-guidelines/).
@@ -67,7 +73,7 @@ How you can Contribute
     
     GRDB is "documentation-driven", which means that nothing ships until it is supported by documentation that makes sense. Documentation makes sense when someone who is not you is able to figure out what is the purpose of your contribution, how to use it, and what are its eventual caveats and corner cases. When the documentation is hard to write, or reveals too many caveats, it is the sign that the api needs to be fixed.
     
-8. **Open a pull request with your changes!**
+8. **Open a pull request with your changes (targetting the `development` branch)!**
 
 9. **If you are granted a push access to the repository**, check [ReleaseProcess.md](Documentation/ReleaseProcess.md) in order to publish a new GRDB version.
 
