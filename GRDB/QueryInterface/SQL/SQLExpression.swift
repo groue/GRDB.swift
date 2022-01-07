@@ -1821,7 +1821,6 @@ extension SQLSpecificExpressible {
 
 // MARK: - SQL Selection Support
 
-/// :nodoc:
 extension SQLSpecificExpressible {
     /// Returns an aliased column.
     ///
