@@ -175,4 +175,23 @@ class ColumnInfoTests: GRDBTestCase {
         }
         #endif
     }
+    
+    func testIssue1124() throws {
+        class Observer: TransactionObserver {
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
+            func databaseDidChange(with event: DatabaseEvent) { }
+            func databaseDidCommit(_ db: Database) { }
+            func databaseDidRollback(_ db: Database) { }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        dbQueue.add(transactionObserver: Observer(), extent: .databaseLifetime)
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE VIRTUAL TABLE t1 USING rtree(id,minX,maxX,minY,maxY);
+                CREATE TABLE t2 (a);
+                ALTER TABLE t2 RENAME TO t3;
+                """)
+            _ = try db.columns(in: "t1")
+        }
+    }
 }
