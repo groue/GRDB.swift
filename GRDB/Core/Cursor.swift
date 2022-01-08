@@ -225,6 +225,9 @@ public protocol Cursor: AnyObject {
     /// Advances to the next element and returns it, or nil if no next element
     /// exists. Once nil has been returned, all subsequent calls return nil.
     func next() throws -> Element?
+    
+    /// Calls the given closure on each element in the cursor.
+    func forEach(_ body: (Element) throws -> Void) throws
 }
 
 extension Cursor {
@@ -654,12 +657,14 @@ extension Cursor where Element: StringProtocol {
 /// having the same Element type, hiding the specifics of the underlying
 /// cursor.
 public final class AnyCursor<Element>: Cursor {
-    private let element: () throws -> Element?
+    private let _next: () throws -> Element?
+    private let _forEach: ((Element) throws -> Void) throws -> Void
     
     /// Creates a cursor that wraps a base cursor but whose type depends only on
     /// the base cursor’s element type
     public init<C: Cursor>(_ base: C) where C.Element == Element {
-        element = base.next
+        _next = base.next
+        _forEach = base.forEach
     }
     
     /// Creates a cursor that wraps a base iterator but whose type depends only
@@ -676,12 +681,17 @@ public final class AnyCursor<Element>: Cursor {
     }
     
     /// Creates a cursor that wraps the given closure in its next() method
-    public init(_ body: @escaping () throws -> Element?) {
-        element = body
+    public init(_ next: @escaping () throws -> Element?) {
+        _next = next
+        _forEach = {
+            while let element = try next() {
+                try $0(element)
+            }
+        }
     }
     
     public func next() throws -> Element? {
-        try element()
+        try _next()
     }
 }
 
