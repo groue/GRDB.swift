@@ -176,6 +176,8 @@ class ColumnInfoTests: GRDBTestCase {
         #endif
     }
     
+    // Regression test for https://github.com/groue/GRDB.swift/issues/1124
+    // See also https://sqlite.org/forum/forumpost/721da02ba2
     func testIssue1124() throws {
         class Observer: TransactionObserver {
             func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
