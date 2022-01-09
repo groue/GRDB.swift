@@ -4134,6 +4134,7 @@ So don't miss the [SQL API](#sqlite-api).
 - [Expressions](#expressions)
     - [SQL Operators](#sql-operators)
     - [SQL Functions](#sql-functions)
+- [Embedding SQL in Query Interface Requests]
 - [Fetching from Requests]
 - [Fetching by Key](#fetching-by-key)
 - [Testing for Record Existence](#testing-for-record-existence)
@@ -4710,7 +4711,7 @@ Feed [requests](#requests) with SQL expressions built from your Swift code:
 
 ### SQL Operators
 
-GRDB comes with a Swift version of many SQLite [built-in operators](https://sqlite.org/lang_expr.html#operators), listed below. But not all: see [Adding support for missing SQL functions or operators](#adding-support-for-missing-sql-functions-or-operators).
+GRDB comes with a Swift version of many SQLite [built-in operators](https://sqlite.org/lang_expr.html#operators), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL operators.
 
 - `=`, `<>`, `<`, `<=`, `>`, `>=`, `IS`, `IS NOT`
     
@@ -4943,11 +4944,33 @@ GRDB comes with a Swift version of many SQLite [built-in operators](https://sqli
     // SELECT * FROM document WHERE document MATCH 'sqlite database'
     Document.matching(pattern)
     ```
+- `AS`
+    
+    To give an alias to an expression, use the `forKey` method:
+    
+    ```swift
+    // SELECT (score + bonus) AS total
+    // FROM player
+    Player.select((Column("score") + Column("bonus")).forKey("total"))
+    ```
+    
+    If you need to refer to this aliased column in another place of the request, use a detached column:
+    
+    ```swift
+    // SELECT (score + bonus) AS total
+    // FROM player 
+    // ORDER BY total
+    Player
+        .select((Column("score") + Column("bonus")).forKey("total"))
+        .order(Column("total").detached)
+    ```
+    
+    Unlike `Column("total")`, the detached column `Column("total").detached` is never associated to the "player" table, so it is always rendered as `total` in the generated SQL, even when the request involves other tables via an [association](Documentation/AssociationsBasics.md) or a [common table expression].
 
 
 ### SQL Functions
 
-GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Adding support for missing SQL functions or operators](#adding-support-for-missing-sql-functions-or-operators).
+GRDB comes with a Swift version of many SQLite [built-in functions](https://sqlite.org/lang_corefunc.html), listed below. But not all: see [Embedding SQL in Query Interface Requests] for a way to add support for missing SQL functions.
 
 - `ABS`, `AVG`, `COUNT`, `DATETIME`, `JULIANDAY`, `LENGTH`, `MAX`, `MIN`, `SUM`, `TOTAL`:
     
@@ -5014,22 +5037,138 @@ GRDB comes with a Swift version of many SQLite [built-in functions](https://sqli
     Player.select(f.apply(nameColumn))
     ```
 
-### Adding support for missing SQL functions or operators
+## Embedding SQL in Query Interface Requests
 
-When you spot an SQL function or operator that misses its Swift version, you can define it right into your application code.
+You will sometimes want to extend your query interface requests with SQL snippets. This can happen because GRDB does not provide a Swift interface for some SQL function or operator, or because you want to use an SQLite construct that GRDB does not support.
 
-For example, you can add support for the `DATE` function, thanks to [SQL Interpolation]:
+Support for extensibility is large, but not unlimited. All the SQL queries built by the query interface request have the shape below. _If you need something else, you'll have to use [raw SQL requests](#sqlite-api)._
 
-```swift
-func date(_ value: SQLSpecificExpressible) -> SQLExpression {
-    SQL("DATE(\(value))").sqlExpression
-}
-
-// SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
-let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+```sql
+WITH ...     -- 1
+SELECT ...   -- 2
+FROM ...     -- 3
+JOIN ...     -- 4
+WHERE ...    -- 5
+GROUP BY ... -- 6
+HAVING ...   -- 7
+ORDER BY ... -- 8
+LIMIT ...    -- 9
 ```
 
-See the [Query Interface Organization] for more information about `SQLSpecificExpressible` and `SQLExpression`.
+1. `WITH ...`: see [Common Table Expressions].
+
+2. `SELECT ...`
+
+    The selection can be provided as raw SQL:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien'), score FROM player
+    let request = Player.select(sql: "IFNULL(name, 'O''Brien'), score")
+    
+    // SELECT IFNULL(name, 'O''Brien'), score FROM player
+    let defaultName = "O'Brien"
+    let request = Player.select(sql: "IFNULL(name, ?), score", arguments: [suffix])
+    ```
+
+    The selection can be provided with [SQL Interpolation]:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien'), score FROM player
+    let defaultName = "O'Brien"
+    let request = Player.select(literal: "IFNULL(name, \(defaultName)), score")
+    ```
+    
+    The selection can be provided with a mix of Swift and [SQL Interpolation]:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
+    let defaultName = "O'Brien"
+    let displayName: SQL = "IFNULL(\(Column("name")), \(defaultName)) AS displayName"
+    let request = Player.select(displayName, Column("score"))
+    ```
+    
+    When the custom SQL snippet should behave as a full-fledged expression, with support for the `+` Swift operator, the `forKey` aliasing method, and all other [SQL Operators](#sql-operators), build an _expression literal_ with the `SQL.sqlExpression` method:
+    
+    ```swift
+    // SELECT IFNULL(name, 'O''Brien') AS displayName, score FROM player
+    let defaultName = "O'Brien"
+    let displayName = SQL("IFNULL(\(Column("name")), \(defaultName))").sqlExpression
+    let request = Player.select(displayName.forKey("displayName"), Column("score"))
+    ```
+    
+    Such expression literals allow you to build a reusable support library of SQL functions or operators that are missing from the query interface. For example, you can define a Swift `date` function:
+    
+    ```swift
+    func date(_ value: SQLSpecificExpressible) -> SQLExpression {
+        SQL("DATE(\(value))").sqlExpression
+    }
+    
+    // SELECT * FROM "player" WHERE DATE("createdAt") = '2020-01-23'
+    let request = Player.filter(date(Column("createdAt")) == "2020-01-23")
+    ```
+    
+    See the [Query Interface Organization] for more information about `SQLSpecificExpressible` and `SQLExpression`.
+    
+3. `FROM ...`: only one table is supported here. You can not customize this SQL part.
+
+4. `JOIN ...`: joins are fully controlled by [Associations]. You can not customize this SQL part.
+
+5. `WHERE ...`
+    
+    The WHERE clause can be provided as raw SQL:
+    
+    ```swift
+    // SELECT * FROM player WHERE score >= 1000
+    let request = Player.filter(sql: "score >= 1000")
+    
+    // SELECT * FROM player WHERE score >= 1000
+    let minScore = 1000
+    let request = Player.filter(sql: "score >= ?", arguments: [minScore])
+    ```
+
+    The WHERE clause can be provided with [SQL Interpolation]:
+    
+    ```swift
+    // SELECT * FROM player WHERE score >= 1000
+    let minScore = 1000
+    let request = Player.filter(literal: "score >= \(minScore)")
+    ```
+    
+    The WHERE clause can be provided with a mix of Swift and [SQL Interpolation]:
+    
+    ```swift
+    // SELECT * FROM player WHERE (score >= 1000) AND (team = 'red')
+    let minScore = 1000
+    let scoreCondition: SQL = "\(Column("score")) >= \(minScore)"
+    let request = Player.filter(scoreCondition && Column("team") == "red")
+    ```
+    
+    See `SELECT ...` above for more SQL Interpolation examples.
+    
+6. `GROUP BY ...`
+
+    The GROUP BY clause can be provided as raw SQL, SQL Interpolation, or a mix of Swift and SQL Interpolation, just as the selection and the WHERE clause (see above).
+    
+7. `HAVING ...`
+
+    The HAVING clause can be provided as raw SQL, SQL Interpolation, or a mix of Swift and SQL Interpolation, just as the selection and the WHERE clause (see above).
+    
+8. `ORDER BY ...`
+
+    The ORDER BY clause can be provided as raw SQL, SQL Interpolation, or a mix of Swift and SQL Interpolation, just as the selection and the WHERE clause (see above).
+    
+    In order to support the `desc` and `asc` query interface operators, and the `reversed()` query interface method, you must provide your orderings as _expression literals_ with the `SQL.sqlExpression` method:
+    
+    ```swift
+    // SELECT * FROM "player" 
+    // ORDER BY (score + bonus) ASC, name DESC
+    let total = SQL("(score + bonus)").sqlExpression
+    let request = Player
+        .order(total.desc, Column("name"))
+        .reversed()
+    ```
+    
+9. `LIMIT ...`: use the `limit(_:offset:)` method. You can not customize this SQL part.
 
 
 ## Fetching from Requests
@@ -8208,6 +8347,9 @@ This chapter has [moved](Documentation/Concurrency.md#synchronous-and-asynchrono
 
 This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-accesses).
 
+### Adding support for missing SQL functions or operators
+
+This chapter was renamed to [Embedding SQL in Query Interface Requests].
 
 [Associations]: Documentation/AssociationsBasics.md
 [Beyond FetchableRecord]: #beyond-fetchablerecord
@@ -8221,6 +8363,7 @@ This chapter has [moved](Documentation/Concurrency.md#safe-and-unsafe-database-a
 [Column Names Coding Strategies]: #column-names-coding-strategies
 [Date and UUID Coding Strategies]: #date-and-uuid-coding-strategies
 [Fetching from Requests]: #fetching-from-requests
+[Embedding SQL in Query Interface Requests]: #embedding-sql-in-query-interface-requests
 [Full-Text Search]: Documentation/FullTextSearch.md
 [Migrations]: Documentation/Migrations.md
 [The Implicit RowID Primary Key]: #the-implicit-rowid-primary-key
