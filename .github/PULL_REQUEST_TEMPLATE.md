@@ -3,7 +3,7 @@
 ### Pull Request Checklist
 
 <!--
-Please check all those boxes:
+Please check the boxes that apply to your pull request:
 -->
 
 - [ ] CONTRIBUTING: You have read https://github.com/groue/GRDB.swift/blob/master/CONTRIBUTING.md
