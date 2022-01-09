@@ -84,6 +84,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1075](https://github.com/groue/GRDB.swift/pull/1075) by [@mallman](https://github.com/mallman): Progress-reporting database backups
+- **New**: [#1129](https://github.com/groue/GRDB.swift/pull/1129) by [@groue](https://github.com/groue): Detached columns
+- **Fixed**: [#1120](https://github.com/groue/GRDB.swift/pull/1120) by [@jnross](https://github.com/jnross): Fix typos
+- **Fixed**: [#1121](https://github.com/groue/GRDB.swift/pull/1121) by [@byohay](https://github.com/byohay): Quote PROJECT_DIR and SRCROOT environment variables
+- **Documentation Update**: A new [Embedding SQL in Query Interface Requests](README.md#embedding-sql-in-query-interface-requests) chapter describes the ways to leverage your SQL skills and extend GRDB apis.
+
+
 ## 5.17.0
 
 Released December 14, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.16.0...v5.17.0)
@@ -98,6 +107,8 @@ Released December 14, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/com
 - **Documentation Update**: :star: The [Concurrency Guide](Documentation/Concurrency.md) was updated for the new support for asynchronous Swift.
 - **Documentation Update**: :star: [GRDBAsyncDemo](Documentation/DemoApps/GRDBAsyncDemo/README.md) is a new SwiftUI demo app that uses the new async apis.
 - **Documentation Update**: A new FAQ gives hints for avoiding a [Mutation of captured var in concurrently-executing code](README.md##mutation-of-captured-var-in-concurrently-executing-code) compiler error.
+- **Documentation Update**: [#1107](https://github.com/groue/GRDB.swift/pull/1107) by [@tcwalther](https://github.com/tcwalther): Fix docstring for Database.create(index: ...)
+- **Documentation Update**: [#1110](https://github.com/groue/GRDB.swift/pull/1110) by [@maxhumber](https://github.com/maxhumber): Minor changes to a tip in the README
 
 ## 5.16.0
 

@@ -230,4 +230,48 @@ class ColumnExpressionTests: GRDBTestCase {
             try assertEqualSQL(db, request, "SELECT \"full_name\" = 'foo' FROM \"player\"")
         }
     }
+    
+    func testDetachedColumn() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.create(table: "t") { t in t.column("a") }
+            
+            // Regular columns are qualified
+            do {
+                let alias = TableAlias(name: "custom")
+                let request = Table("t")
+                    .aliased(alias)
+                    .order(Column("a"))
+                let sql = try request.makePreparedRequest(db).statement.sql
+                XCTAssertEqual(sql, """
+                    SELECT "custom".* FROM "t" "custom" ORDER BY "custom"."a"
+                    """)
+            }
+            
+            // Detached columns are NOT qualified
+            do {
+                let alias = TableAlias(name: "custom")
+                let request = Table("t")
+                    .aliased(alias)
+                    .order(Column("a").detached)
+                let sql = try request.makePreparedRequest(db).statement.sql
+                XCTAssertEqual(sql, """
+                    SELECT "custom".* FROM "t" "custom" ORDER BY "a"
+                    """)
+            }
+            
+            // Detached columns are quoted
+            do {
+                let alias = TableAlias(name: "custom")
+                let request = Table("t")
+                    .aliased(alias)
+                    .select(Column("a").forKey("order"))
+                    .order(Column("order").detached)
+                let sql = try request.makePreparedRequest(db).statement.sql
+                XCTAssertEqual(sql, """
+                    SELECT "custom"."a" AS "order" FROM "t" "custom" ORDER BY "order"
+                    """)
+            }
+        }
+    }
 }
