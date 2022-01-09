@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.18.x` Releases - [5.17.0](#5180)
 - `5.17.x` Releases - [5.17.0](#5170)
 - `5.16.x` Releases - [5.16.0](#5160)
 - `5.15.x` Releases - [5.15.0](#5150)
@@ -84,7 +85,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 5.18.0
+
+Released January 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.17.0...v5.18.0)
 
 - **New**: [#1075](https://github.com/groue/GRDB.swift/pull/1075) by [@mallman](https://github.com/mallman): Progress-reporting database backups
 - **New**: [#1129](https://github.com/groue/GRDB.swift/pull/1129) by [@groue](https://github.com/groue): Detached columns
