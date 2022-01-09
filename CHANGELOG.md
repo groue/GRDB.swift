@@ -90,6 +90,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **New**: [#1129](https://github.com/groue/GRDB.swift/pull/1129) by [@groue](https://github.com/groue): Detached columns
 - **Fixed**: [#1120](https://github.com/groue/GRDB.swift/pull/1120) by [@jnross](https://github.com/jnross): Fix typos
 - **Fixed**: [#1121](https://github.com/groue/GRDB.swift/pull/1121) by [@byohay](https://github.com/byohay): Quote PROJECT_DIR and SRCROOT environment variables
+- **Fixed**: [#1128](https://github.com/groue/GRDB.swift/pull/1128) by [@groue](https://github.com/groue): Deal with authorization callbacks from cursors of FetchableRecord
 - **Documentation Update**: A new [Embedding SQL in Query Interface Requests](README.md#embedding-sql-in-query-interface-requests) chapter describes the ways to leverage your SQL skills and extend GRDB apis.
 
 
