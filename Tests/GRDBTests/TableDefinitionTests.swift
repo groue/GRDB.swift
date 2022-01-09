@@ -160,7 +160,7 @@ class TableDefinitionTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             sqlQueries.removeAll()
-            try db.create(table: "test", ifNotExists: true) { t in
+            try db.create(table: "test", options: [.ifNotExists]) { t in
                 t.column("a", .integer).indexed()
                 t.column("b", .integer).indexed()
             }
@@ -677,7 +677,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .text)
             }
             
-            try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: Column("a") == 1)
+            try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], options: [.unique, .ifNotExists], condition: Column("a") == 1)
             assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE \"a\" = 1")
             
             // Sanity check
