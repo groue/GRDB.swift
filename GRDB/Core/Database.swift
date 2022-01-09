@@ -1292,7 +1292,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     public func backup(
         to destDb: Database,
         pagesPerStep: Int32 = -1,
-        progress: ((DatabaseBackupProgress) throws -> ())? = nil)
+        progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
         try backupInternal(

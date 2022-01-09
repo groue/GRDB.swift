@@ -348,7 +348,7 @@ extension DatabaseReader {
     public func backup(
         to writer: DatabaseWriter,
         pagesPerStep: Int32 = -1,
-        progress: ((DatabaseBackupProgress) throws -> ())? = nil)
+        progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
         try writer.writeWithoutTransaction { destDb in
