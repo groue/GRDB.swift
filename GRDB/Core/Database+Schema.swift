@@ -717,6 +717,9 @@ public struct ColumnInfo: FetchableRecord {
     public let name: String
     
     /// The column data type
+    ///
+    /// The casing of this string depends on the SQLite version: make sure you
+    /// process this string in a case-insensitive way.
     public let type: String
     
     /// True if and only if the column is constrained to be not null.

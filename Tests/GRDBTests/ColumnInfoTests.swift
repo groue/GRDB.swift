@@ -63,13 +63,13 @@ class ColumnInfoTests: GRDBTestCase {
             
             XCTAssertEqual(columns[3].name, "d")
             XCTAssertEqual(columns[3].isNotNull, false)
-            XCTAssertEqual(columns[3].type, "int")
+            XCTAssertEqual(columns[3].type.uppercased(), "INT") // "int" or "INT" depending of SQLite version
             XCTAssertEqual(columns[3].primaryKeyIndex, 0)
             XCTAssertEqual(columns[3].defaultValueSQL, "NULL")
             
             XCTAssertEqual(columns[4].name, "e")
             XCTAssertEqual(columns[4].isNotNull, true)
-            XCTAssertEqual(columns[4].type, "Text")
+            XCTAssertEqual(columns[4].type.uppercased(), "TEXT") // "Text" or "TEXT" depending of SQLite version
             XCTAssertEqual(columns[4].primaryKeyIndex, 0)
             XCTAssertEqual(columns[4].defaultValueSQL, "'foo'")
             
