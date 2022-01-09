@@ -891,7 +891,7 @@ struct Author: TableRecord {
     static let databaseTableName = "writer"
 }
 struct Book: TableRecord {
-    // Replace the defaut "writer" association key with "author"
+    // Replace the default "writer" association key with "author"
     static let author = belongsTo(Author.self).forKey("author")
 }
 
@@ -1034,7 +1034,7 @@ struct Book: TableRecord {
     static let databaseTableName = "publication"
 }
 struct Author: TableRecord {
-    // Replace the defaut "publications" association key with "books"
+    // Replace the default "publications" association key with "books"
     static let books = hasMany(Book.self).forKey("books")
 }
 

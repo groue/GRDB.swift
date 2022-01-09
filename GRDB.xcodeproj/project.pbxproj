@@ -7,6 +7,13 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4E13D2F32769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
+		4E13D2F42769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
+		4E13D2F52769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
+		4E13D2F62769B87F0037588C /* DatabaseBackupProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */; };
+		4ED4BB592731DD25008B127D /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4BB582731DD25008B127D /* BackupTestCase.swift */; };
+		4ED4BB5A2731DD25008B127D /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4BB582731DD25008B127D /* BackupTestCase.swift */; };
+		4ED4BB5B2731DD25008B127D /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4ED4BB582731DD25008B127D /* BackupTestCase.swift */; };
 		56012B552573EED000B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
 		56012B562573EED100B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
 		56012B572573EED100B4925B /* CommonTableExpressionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56012B542573EED000B4925B /* CommonTableExpressionTests.swift */; };
@@ -1266,6 +1273,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseBackupProgress.swift; sourceTree = "<group>"; };
+		4ED4BB582731DD25008B127D /* BackupTestCase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
 		56012B542573EED000B4925B /* CommonTableExpressionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpressionTests.swift; sourceTree = "<group>"; };
 		56012B742574048B00B4925B /* CommonTableExpression.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonTableExpression.swift; sourceTree = "<group>"; };
 		560233C32724234F00529DF3 /* SharedValueObservation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedValueObservation.swift; sourceTree = "<group>"; };
@@ -2218,6 +2227,7 @@
 		56A238111B9C74A90082EB20 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				4ED4BB582731DD25008B127D /* BackupTestCase.swift */,
 				5665F85C203EE6030084C6C0 /* ColumnInfoTests.swift */,
 				56DAA2C41DE99D8D006E10C8 /* Cursor */,
 				56E4F7ED2392E2D000A611F6 /* DatabaseAbortedTransactionTests.swift */,
@@ -2324,6 +2334,7 @@
 				56A238711B9C75030082EB20 /* Database.swift */,
 				566B91221FA4CF810012D5B0 /* Database+Schema.swift */,
 				566B91081FA4C3960012D5B0 /* Database+Statements.swift */,
+				4E13D2F22769B87F0037588C /* DatabaseBackupProgress.swift */,
 				566B91121FA4C3F50012D5B0 /* DatabaseCollation.swift */,
 				56A238731B9C75030082EB20 /* DatabaseError.swift */,
 				564F9C2C1F075DD200877A00 /* DatabaseFunction.swift */,
@@ -2350,8 +2361,8 @@
 				56A238781B9C75030082EB20 /* Statement.swift */,
 				566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */,
 				560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */,
-				566B91321FA4D3810012D5B0 /* TransactionObserver.swift */,
 				5605F1471C672E4000235C62 /* Support */,
+				566B91321FA4D3810012D5B0 /* TransactionObserver.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -2861,7 +2872,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 		56EB54FA22C9115E00850069 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2879,7 +2890,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 		AAA4DCFA230F1E0600C74B15 /* Swiftlint */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2897,7 +2908,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "${PROJECT_DIR}/Scripts/swiftlint.sh\n";
+			shellScript = "\"${PROJECT_DIR}/Scripts/swiftlint.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -2913,6 +2924,7 @@
 				565490CE1D5AE252005622CB /* NSNull.swift in Sources */,
 				5656A8202295B12F001FF3FF /* SQLAssociation.swift in Sources */,
 				565490E41D5AE252005622CB /* TableRecord.swift in Sources */,
+				4E13D2F52769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				564CE5AE21B8FAB400652B19 /* DatabaseRegionObservation.swift in Sources */,
 				565490CF1D5AE252005622CB /* NSNumber.swift in Sources */,
 				56CEB51F1EAA328900BFAF62 /* FTS5+QueryInterface.swift in Sources */,
@@ -3116,6 +3128,7 @@
 				560D924C1C672C4B00F4F92B /* TableRecord.swift in Sources */,
 				56A2FA3B24424F4700E97D23 /* Export.swift in Sources */,
 				569BBA4F229170F900478429 /* Inflections+English.swift in Sources */,
+				4E13D2F42769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				5656A81F2295B12F001FF3FF /* SQLAssociation.swift in Sources */,
 				5617294F223533F40006E219 /* EncodableRecord.swift in Sources */,
 				563B8FAD24A1CE44007A48C9 /* DatabasePublishers.swift in Sources */,
@@ -3347,6 +3360,7 @@
 				563B8FA2249E8ACB007A48C9 /* ValueObservationPrintTests.swift in Sources */,
 				56A238581B9C74A90082EB20 /* RecordPrimaryKeyRowIDTests.swift in Sources */,
 				56A5EF131EF7F20B00F03071 /* ForeignKeyInfoTests.swift in Sources */,
+				4ED4BB5A2731DD25008B127D /* BackupTestCase.swift in Sources */,
 				5653EAE920944B4F00F46237 /* AssociationChainSQLTests.swift in Sources */,
 				5698ACD21DA8C2620056AF8C /* RecordPrimaryKeyHiddenRowIDTests.swift in Sources */,
 				561CFA7923735016000C8BAA /* TableRecordUpdateTests.swift in Sources */,
@@ -3581,6 +3595,7 @@
 				5665FA332129EEA0004D8612 /* DatabaseDateEncodingStrategyTests.swift in Sources */,
 				563B8FA1249E8ACB007A48C9 /* ValueObservationPrintTests.swift in Sources */,
 				56CC9246201E058100CB597E /* DropFirstCursorTests.swift in Sources */,
+				4ED4BB592731DD25008B127D /* BackupTestCase.swift in Sources */,
 				5698AC401DA2BED90056AF8C /* FTS3PatternTests.swift in Sources */,
 				562393571DEE013C00A6B01F /* FilterCursorTests.swift in Sources */,
 				5653EAE820944B4F00F46237 /* AssociationChainSQLTests.swift in Sources */,
@@ -3718,6 +3733,7 @@
 				AAA4DCA7230F1E0600C74B15 /* TableRecord.swift in Sources */,
 				56A2FA3D24424F4800E97D23 /* Export.swift in Sources */,
 				AAA4DCA8230F1E0600C74B15 /* Inflections+English.swift in Sources */,
+				4E13D2F62769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				AAA4DCA9230F1E0600C74B15 /* SQLAssociation.swift in Sources */,
 				AAA4DCAA230F1E0600C74B15 /* EncodableRecord.swift in Sources */,
 				563B8FAF24A1CE44007A48C9 /* DatabasePublishers.swift in Sources */,
@@ -3949,6 +3965,7 @@
 				563B8FA3249E8ACB007A48C9 /* ValueObservationPrintTests.swift in Sources */,
 				AAA4DD8A230F262000C74B15 /* RecordPrimaryKeyRowIDTests.swift in Sources */,
 				AAA4DD8B230F262000C74B15 /* ForeignKeyInfoTests.swift in Sources */,
+				4ED4BB5B2731DD25008B127D /* BackupTestCase.swift in Sources */,
 				AAA4DD8C230F262000C74B15 /* AssociationChainSQLTests.swift in Sources */,
 				AAA4DD8D230F262000C74B15 /* RecordPrimaryKeyHiddenRowIDTests.swift in Sources */,
 				561CFA7A23735016000C8BAA /* TableRecordUpdateTests.swift in Sources */,
@@ -4086,6 +4103,7 @@
 				5698AD181DAAD17A0056AF8C /* FTS5Tokenizer.swift in Sources */,
 				56A2FA3624424D2A00E97D23 /* Export.swift in Sources */,
 				56B964B11DA51D010002DA19 /* FTS5TokenizerDescriptor.swift in Sources */,
+				4E13D2F32769B87F0037588C /* DatabaseBackupProgress.swift in Sources */,
 				560A37A71C8FF6E500949E71 /* SerializedDatabase.swift in Sources */,
 				563B8FAC24A1CE43007A48C9 /* DatabasePublishers.swift in Sources */,
 				5605F1691C672E4000235C62 /* NSString.swift in Sources */,

@@ -2057,7 +2057,7 @@ class AssociationBelongsToSQLTests: GRDBTestCase {
             // Existence check is performed on the primary key.
             let dbQueue = try makeDatabaseQueue()
             try dbQueue.write { db in
-                try db.create(table: "author", withoutRowID: true) { t in
+                try db.create(table: "author", options: [.withoutRowID]) { t in
                     t.column("a", .text).notNull()
                     t.column("b", .text).notNull()
                     t.primaryKey(["a", "b"])

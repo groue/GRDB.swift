@@ -27,7 +27,7 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
             try XCTAssertEqual((alias[Column("a")] * "foo".databaseValue).column(db, for: alias, acceptsBijection: false), nil)
             try XCTAssertEqual((alias[Column("a")] * "foo".databaseValue).column(db, for: alias, acceptsBijection: true), nil)
             try XCTAssertEqual((alias[Column("a")] + "foo".databaseValue).column(db, for: alias, acceptsBijection: false), nil)
-            try XCTAssertEqual((alias[Column("a")] + "foo".databaseValue).column(db, for: alias, acceptsBijection: true), "a")
+            try XCTAssertEqual((alias[Column("a")] + "foo".databaseValue).column(db, for: alias, acceptsBijection: true), nil)
             try XCTAssertEqual((alias[Column("a")] + alias[Column("b")]).column(db, for: alias, acceptsBijection: false), nil)
             try XCTAssertEqual((alias[Column("a")] + alias[Column("b")]).column(db, for: alias, acceptsBijection: true), nil)
             try XCTAssertEqual([alias[Column("a")], "foo".databaseValue].joined(operator: .concat).column(db, for: alias, acceptsBijection: false), nil)
@@ -39,7 +39,7 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
             
             // SQLExpressionBinary
             try XCTAssertEqual((alias[Column("a")] - "foo".databaseValue).column(db, for: alias, acceptsBijection: false), nil)
-            try XCTAssertEqual((alias[Column("a")] - "foo".databaseValue).column(db, for: alias, acceptsBijection: true), "a")
+            try XCTAssertEqual((alias[Column("a")] - "foo".databaseValue).column(db, for: alias, acceptsBijection: true), nil)
             try XCTAssertEqual((alias[Column("a")] - alias[Column("b")]).column(db, for: alias, acceptsBijection: false), nil)
             try XCTAssertEqual((alias[Column("a")] - alias[Column("b")]).column(db, for: alias, acceptsBijection: true), nil)
             try XCTAssertEqual((alias[Column("a")] < "foo".databaseValue).column(db, for: alias, acceptsBijection: false), nil)
@@ -51,7 +51,7 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
             try XCTAssertEqual(alias[Column("a")].collating(.binary).column(db, for: alias, acceptsBijection: false), "a")
             try XCTAssertEqual(alias[Column("a")].collating(.binary).column(db, for: alias, acceptsBijection: true), "a")
             try XCTAssertEqual((alias[Column("a")] + "foo".databaseValue).collating(.binary).column(db, for: alias, acceptsBijection: false), nil)
-            try XCTAssertEqual((alias[Column("a")] + "foo".databaseValue).collating(.binary).column(db, for: alias, acceptsBijection: true), "a")
+            try XCTAssertEqual((alias[Column("a")] + "foo".databaseValue).collating(.binary).column(db, for: alias, acceptsBijection: true), nil)
 
             // SQLExpressionContains
             try XCTAssertEqual([1, 2, 3].contains(alias[Column("a")]).column(db, for: alias, acceptsBijection: false), nil)
@@ -169,8 +169,8 @@ class SQLExpressionIsConstantTests: GRDBTestCase {
             try XCTAssertEqual((1 == alias[Column("a")]).identifyingColums(db, for: alias), ["a"])
             try XCTAssertEqual((-alias[Column("a")] == 1).identifyingColums(db, for: alias), ["a"])
             try XCTAssertEqual(((alias[Column("a")] * 2) == 1).identifyingColums(db, for: alias), [])
-            try XCTAssertEqual(((alias[Column("a")] + 2) == 1).identifyingColums(db, for: alias), ["a"])
-            try XCTAssertEqual(((alias[Column("a")] - 2) == 1).identifyingColums(db, for: alias), ["a"])
+            try XCTAssertEqual(((alias[Column("a")] + 2) == 1).identifyingColums(db, for: alias), [])
+            try XCTAssertEqual(((alias[Column("a")] - 2) == 1).identifyingColums(db, for: alias), [])
             try XCTAssertEqual((alias[SQLExpression.fastPrimaryKey] == 1).identifyingColums(db, for: alias), ["id"])
             try XCTAssertEqual((alias[Column("a")] == alias[Column("b")]).identifyingColums(db, for: alias), [])
             try XCTAssertEqual((TableAlias()[Column("a")] == nil).identifyingColums(db, for: alias), [])

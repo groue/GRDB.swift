@@ -443,6 +443,8 @@
 		5641A1BD24A540D6004967E1 /* PublisherExpectation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5641A19F24A540D6004967E1 /* PublisherExpectation.swift */; };
 		564A2026226B89E1001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
 		564A2151226B8E18001F64F1 /* Betty.jpeg in Resources */ = {isa = PBXBuildFile; fileRef = 564A1F6F226B89D6001F64F1 /* Betty.jpeg */; };
+		565A27CC27871FFF00659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27CB27871FFF00659A62 /* BackupTestCase.swift */; };
+		565A27CD27871FFF00659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27CB27871FFF00659A62 /* BackupTestCase.swift */; };
 		5691D97527257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		5691D97627257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
@@ -674,6 +676,7 @@
 		564A1F22226B876D001F64F1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		564A1F6F226B89D6001F64F1 /* Betty.jpeg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = Betty.jpeg; sourceTree = "<group>"; };
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		565A27CB27871FFF00659A62 /* BackupTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
 		5691D97427257CE40021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
 		6A4788C0F815F6C5E4EBDE12 /* Pods-GRDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTestsEncrypted.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -799,6 +802,7 @@
 				56419CAD24A54054004967E1 /* AssociationPrefetchingSQLTests.swift */,
 				56419D5824A54061004967E1 /* AssociationRowScopeSearchTests.swift */,
 				56419D6324A54062004967E1 /* AssociationTableAliasTestsSQLTests.swift */,
+				565A27CB27871FFF00659A62 /* BackupTestCase.swift */,
 				56419CD424A54057004967E1 /* CGFloatTests.swift */,
 				56419CD924A54058004967E1 /* ColumnExpressionTests.swift */,
 				56419D5424A54061004967E1 /* ColumnInfoTests.swift */,
@@ -1213,6 +1217,7 @@
 				56419E1F24A54062004967E1 /* ValueObservationRecorderTests.swift in Sources */,
 				56419DA124A54062004967E1 /* EncryptionTests.swift in Sources */,
 				56419DF124A54062004967E1 /* FoundationNSNullTests.swift in Sources */,
+				565A27CC27871FFF00659A62 /* BackupTestCase.swift in Sources */,
 				56419EEB24A54063004967E1 /* RecordPersistenceConflictPolicy.swift in Sources */,
 				56419E8124A54063004967E1 /* DatabaseReaderTests.swift in Sources */,
 				56419EDD24A54063004967E1 /* TableDefinitionTests.swift in Sources */,
@@ -1437,6 +1442,7 @@
 				56419E2024A54062004967E1 /* ValueObservationRecorderTests.swift in Sources */,
 				56419DA224A54062004967E1 /* EncryptionTests.swift in Sources */,
 				56419DF224A54062004967E1 /* FoundationNSNullTests.swift in Sources */,
+				565A27CD27871FFF00659A62 /* BackupTestCase.swift in Sources */,
 				56419EEC24A54063004967E1 /* RecordPersistenceConflictPolicy.swift in Sources */,
 				56419E8224A54063004967E1 /* DatabaseReaderTests.swift in Sources */,
 				56419EDE24A54063004967E1 /* TableDefinitionTests.swift in Sources */,

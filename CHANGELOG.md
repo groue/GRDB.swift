@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.18.x` Releases - [5.17.0](#5180)
 - `5.17.x` Releases - [5.17.0](#5170)
 - `5.16.x` Releases - [5.16.0](#5160)
 - `5.15.x` Releases - [5.15.0](#5150)
@@ -84,6 +85,20 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 5.18.0
+
+Released January 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.17.0...v5.18.0)
+
+- **New**: [#1075](https://github.com/groue/GRDB.swift/pull/1075) by [@mallman](https://github.com/mallman): Progress-reporting database backups
+- **New**: [#1129](https://github.com/groue/GRDB.swift/pull/1129) by [@groue](https://github.com/groue): Detached columns
+- **New**: [#1132](https://github.com/groue/GRDB.swift/pull/1132) by [@groue](https://github.com/groue): Bump custom SQLite builds v3.72.2
+- **New**: [#1133](https://github.com/groue/GRDB.swift/pull/1133) by [@groue](https://github.com/groue): Support for STRICT tables
+- **Fixed**: [#1120](https://github.com/groue/GRDB.swift/pull/1120) by [@jnross](https://github.com/jnross): Fix typos
+- **Fixed**: [#1121](https://github.com/groue/GRDB.swift/pull/1121) by [@byohay](https://github.com/byohay): Quote PROJECT_DIR and SRCROOT environment variables
+- **Fixed**: [#1128](https://github.com/groue/GRDB.swift/pull/1128) by [@groue](https://github.com/groue): Deal with authorization callbacks from cursors of FetchableRecord
+- **Documentation Update**: A new [Embedding SQL in Query Interface Requests](README.md#embedding-sql-in-query-interface-requests) chapter describes the ways to leverage your SQL skills and extend GRDB apis.
+
+
 ## 5.17.0
 
 Released December 14, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.16.0...v5.17.0)
@@ -98,6 +113,8 @@ Released December 14, 2021 &bull; [diff](https://github.com/groue/GRDB.swift/com
 - **Documentation Update**: :star: The [Concurrency Guide](Documentation/Concurrency.md) was updated for the new support for asynchronous Swift.
 - **Documentation Update**: :star: [GRDBAsyncDemo](Documentation/DemoApps/GRDBAsyncDemo/README.md) is a new SwiftUI demo app that uses the new async apis.
 - **Documentation Update**: A new FAQ gives hints for avoiding a [Mutation of captured var in concurrently-executing code](README.md##mutation-of-captured-var-in-concurrently-executing-code) compiler error.
+- **Documentation Update**: [#1107](https://github.com/groue/GRDB.swift/pull/1107) by [@tcwalther](https://github.com/tcwalther): Fix docstring for Database.create(index: ...)
+- **Documentation Update**: [#1110](https://github.com/groue/GRDB.swift/pull/1110) by [@maxhumber](https://github.com/maxhumber): Minor changes to a tip in the README
 
 ## 5.16.0
 

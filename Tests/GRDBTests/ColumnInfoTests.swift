@@ -63,13 +63,13 @@ class ColumnInfoTests: GRDBTestCase {
             
             XCTAssertEqual(columns[3].name, "d")
             XCTAssertEqual(columns[3].isNotNull, false)
-            XCTAssertEqual(columns[3].type, "int")
+            XCTAssertEqual(columns[3].type.uppercased(), "INT") // "int" or "INT" depending of SQLite version
             XCTAssertEqual(columns[3].primaryKeyIndex, 0)
             XCTAssertEqual(columns[3].defaultValueSQL, "NULL")
             
             XCTAssertEqual(columns[4].name, "e")
             XCTAssertEqual(columns[4].isNotNull, true)
-            XCTAssertEqual(columns[4].type, "Text")
+            XCTAssertEqual(columns[4].type.uppercased(), "TEXT") // "Text" or "TEXT" depending of SQLite version
             XCTAssertEqual(columns[4].primaryKeyIndex, 0)
             XCTAssertEqual(columns[4].defaultValueSQL, "'foo'")
             
@@ -174,5 +174,26 @@ class ColumnInfoTests: GRDBTestCase {
             XCTAssertNil(columns[6].defaultValueSQL)
         }
         #endif
+    }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/1124
+    // See also https://sqlite.org/forum/forumpost/721da02ba2
+    func testIssue1124() throws {
+        class Observer: TransactionObserver {
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool { true }
+            func databaseDidChange(with event: DatabaseEvent) { }
+            func databaseDidCommit(_ db: Database) { }
+            func databaseDidRollback(_ db: Database) { }
+        }
+        let dbQueue = try makeDatabaseQueue()
+        dbQueue.add(transactionObserver: Observer(), extent: .databaseLifetime)
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE VIRTUAL TABLE t1 USING rtree(id,minX,maxX,minY,maxY);
+                CREATE TABLE t2 (a);
+                ALTER TABLE t2 RENAME TO t3;
+                """)
+            _ = try db.columns(in: "t1")
+        }
     }
 }

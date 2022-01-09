@@ -108,7 +108,8 @@ extension SQLOrdering {
         case .literal:
             fatalError("""
                 Ordering literals can't be reversed. \
-                To resolve this error, order by expression literals instead.
+                To resolve this error, order by expression literals instead. \
+                For example: order(SQL("(score + bonus)").sqlExpression)
                 """)
         }
     }

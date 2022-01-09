@@ -189,9 +189,9 @@ public struct SQLExpression {
         /// If true, (a • b) is a bijective function of a, and a bijective
         /// function of b.
         ///
-        /// `+` and `||` (concat) are bijective.
+        /// `||` (concat) is bijective.
         ///
-        /// `AND`, `OR` and `*` are not.
+        /// `AND`, `OR`, `+` and `*` are not.
         let isBijective: Bool
         
         /// Creates a binary operator
@@ -212,7 +212,7 @@ public struct SQLExpression {
             sql: "+",
             neutralValue: 0.databaseValue,
             strictlyAssociative: false,
-            bijective: true)
+            bijective: false)
         
         /// The `*` binary operator
         ///
@@ -814,19 +814,6 @@ extension SQLExpression {
         case let .qualifiedColumn(name, a):
             if alias == a {
                 return name
-            } else {
-                return nil
-            }
-            
-        case let .binary(op, lhs, rhs):
-            guard acceptsBijection && op == .subtract else {
-                return nil
-            }
-            
-            if lhs.isConstantInRequest {
-                return try rhs.column(db, for: alias, acceptsBijection: acceptsBijection)
-            } else if rhs.isConstantInRequest {
-                return try lhs.column(db, for: alias, acceptsBijection: acceptsBijection)
             } else {
                 return nil
             }
@@ -1834,9 +1821,8 @@ extension SQLSpecificExpressible {
 
 // MARK: - SQL Selection Support
 
-/// :nodoc:
 extension SQLSpecificExpressible {
-    /// Give the expression the given SQL name.
+    /// Returns an aliased column.
     ///
     /// For example:
     ///
@@ -1846,11 +1832,24 @@ extension SQLSpecificExpressible {
     ///     if let row = try Row.fetchOne(db, request) {
     ///         let area: Int = row["area"]
     ///     }
+    ///
+    /// If you need to refer to the aliased column in another part of a request,
+    /// use `Column(...).detached`. For example:
+    ///
+    ///     // SELECT (width * height) AS area FROM shape ORDER BY area
+    ///     let area = (Column("width") * Column("height")).forKey("area")
+    ///     let request = Shape
+    ///         .select(area)
+    ///         .order(Column("area").detached)
+    ///     let rows = try Row.fetchCursor(db, request)
+    ///     while let row = try rows.next() {
+    ///         let area: Int = row["area"]
+    ///     }
     public func forKey(_ key: String) -> SQLSelection {
         .aliasedExpression(sqlExpression, key)
     }
     
-    /// Give the expression the same SQL name as the coding key.
+    /// Returns an aliased column with the same name as the coding key.
     ///
     /// For example:
     ///
@@ -1868,6 +1867,8 @@ extension SQLSpecificExpressible {
     ///
     ///     // SELECT width, height, (width * height) AS area FROM shape
     ///     let shapes: [Shape] = try Shape.fetchAll(db)
+    ///
+    /// See `forKey(_ key: String)` for more information.
     public func forKey(_ key: CodingKey) -> SQLSelection {
         forKey(key.stringValue)
     }
