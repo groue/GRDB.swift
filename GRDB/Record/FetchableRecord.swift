@@ -571,6 +571,34 @@ public final class RecordCursor<Record: FetchableRecord>: Cursor {
             try _statement.database.statementDidFail(_statement, withResultCode: code)
         }
     }
+    
+    // Specific override in order to deal with https://github.com/groue/GRDB.swift/issues/1124
+    /// :nodoc:
+    public func forEach(_ body: (Record) throws -> Void) throws {
+        switch _state {
+        case .busy:
+            // We can't deal with possible authorizer
+            fatalError("Not implemented")
+        case .idle:
+            if let authorizer = try _statement.database.statementWillExecute(_statement) {
+                _state = .busy
+                try _statement.database.withAuthorizer(authorizer) {
+                    while let element = try next() {
+                        try body(element)
+                    }
+                }
+            } else {
+                _state = .busy
+                while let element = try next() {
+                    try body(element)
+                }
+            }
+        default:
+            while let element = try next() {
+                try body(element)
+            }
+        }
+    }
 }
 
 // MARK: - DatabaseDateDecodingStrategy
