@@ -1537,6 +1537,9 @@ extension Database {
         /// The `DOUBLE` SQL column type
         public static let double = ColumnType(rawValue: "DOUBLE")
         
+        /// The `REAL` SQL column type
+        public static let real = ColumnType(rawValue: "REAL")
+
         /// The `NUMERIC` SQL column type
         public static let numeric = ColumnType(rawValue: "NUMERIC")
         
@@ -1551,6 +1554,9 @@ extension Database {
         
         /// The `DATETIME` SQL column type
         public static let datetime = ColumnType(rawValue: "DATETIME")
+        
+        /// The `ANY` SQL column type
+        public static let any = ColumnType(rawValue: "ANY")
     }
     
     /// An SQLite conflict resolution.

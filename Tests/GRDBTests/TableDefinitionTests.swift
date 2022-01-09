@@ -33,6 +33,46 @@ class TableDefinitionTests: GRDBTestCase {
                 ) WITHOUT ROWID
                 """)
         }
+        
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test2", options: [.temporary, .ifNotExists, .withoutRowID]) { t in
+                t.column("id", .integer).primaryKey()
+            }
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TEMPORARY TABLE IF NOT EXISTS "test2" (\
+                "id" INTEGER PRIMARY KEY\
+                ) WITHOUT ROWID
+                """)
+        }
+        
+#if GRDBCUSTOMSQLITE
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test3", options: [.strict, .withoutRowID]) { t in
+                t.column("id", .integer).primaryKey()
+                t.column("a", .integer)
+                t.column("b", .real)
+                t.column("c", .text)
+                t.column("d", .blob)
+                t.column("e", .any)
+            }
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test3" (\
+                "id" INTEGER PRIMARY KEY, \
+                "a" INTEGER, \
+                "b" REAL, \
+                "c" TEXT, \
+                "d" BLOB, \
+                "e" ANY\
+                ) STRICT, WITHOUT ROWID
+                """)
+            
+            do {
+                try db.execute(sql: "INSERT INTO test3 (id, a) VALUES (1, 'foo')")
+                XCTFail("Expected DatabaseError.SQLITE_CONSTRAINT_DATATYPE")
+            } catch DatabaseError.SQLITE_CONSTRAINT_DATATYPE {
+            }
+        }
+#endif
     }
     
     func testColumnLiteral() throws {
@@ -160,7 +200,7 @@ class TableDefinitionTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             sqlQueries.removeAll()
-            try db.create(table: "test", ifNotExists: true) { t in
+            try db.create(table: "test", options: [.ifNotExists]) { t in
                 t.column("a", .integer).indexed()
                 t.column("b", .integer).indexed()
             }
@@ -663,8 +703,11 @@ class TableDefinitionTests: GRDBTestCase {
             try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true)
             assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\")")
             
+            try db.create(index: "test_on_a_b_2", on: "test", columns: ["a", "b"], options: [.unique, .ifNotExists])
+            assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b_2\" ON \"test\"(\"a\", \"b\")")
+            
             // Sanity check
-            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a", "test_on_a_b"])
+            XCTAssertEqual(try Set(db.indexes(on: "test").map(\.name)), ["test_on_a", "test_on_a_b", "test_on_a_b_2"])
         }
     }
     
@@ -677,7 +720,7 @@ class TableDefinitionTests: GRDBTestCase {
                 t.column("b", .text)
             }
             
-            try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], unique: true, ifNotExists: true, condition: Column("a") == 1)
+            try db.create(index: "test_on_a_b", on: "test", columns: ["a", "b"], options: [.unique, .ifNotExists], condition: Column("a") == 1)
             assertEqualSQL(lastSQLQuery!, "CREATE UNIQUE INDEX IF NOT EXISTS \"test_on_a_b\" ON \"test\"(\"a\", \"b\") WHERE \"a\" = 1")
             
             // Sanity check

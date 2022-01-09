@@ -4187,7 +4187,7 @@ SQLite itself has many reference documents about table creation: [CREATE TABLE](
 try db.create(table: "example") { t in ... }
     
 // CREATE TEMPORARY TABLE example IF NOT EXISTS (
-try db.create(table: "example", temporary: true, ifNotExists: true) { t in ... }
+try db.create(table: "example", options: [.temporary, .ifNotExists]) { t in ... }
 ```
 
 > :bulb: **Tip**: database table names should be singular, and camelCased. Make them look like Swift identifiers: `place`, `country`, `postalAddress`, `httpRequest`.
@@ -4196,7 +4196,7 @@ try db.create(table: "example", temporary: true, ifNotExists: true) { t in ... }
 >
 > :point_up: **Note**: [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables can not be tracked with [Database Observation] tools.
 
-**Add regular columns** with their name and eventual type (text, integer, double, numeric, boolean, blob, date and datetime) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
+**Add regular columns** with their name and eventual type (`text`, `integer`, `double`, `real`, `numeric`, `boolean`, `blob`, `date`, `datetime` and `any`) - see [SQLite data types](https://www.sqlite.org/datatype3.html):
 
 ```swift
 // CREATE TABLE example (
@@ -4335,8 +4335,11 @@ try db.drop(table: "obsolete")
 Create indexes with the `create(index:)` method:
 
 ```swift
-// CREATE UNIQUE INDEX byEmail ON users(email)
-try db.create(index: "byEmail", on: "users", columns: ["email"], unique: true)
+// CREATE INDEX byName ON users(lastName, firstName)
+try db.create(index: "byName", on: "users", columns: ["lastName, "firstName"])
+
+// CREATE UNIQUE INDEX byEmail IF NOT EXISTS ON users(email)
+try db.create(index: "byEmail", on: "users", columns: ["email"], options: [.unique, .ifNotExists])
 ```
 
 Relevant SQLite documentation:

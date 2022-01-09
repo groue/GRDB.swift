@@ -116,17 +116,22 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     public static let SQLITE_IOERR_BEGIN_ATOMIC      = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (29<<8)))
     public static let SQLITE_IOERR_COMMIT_ATOMIC     = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (30<<8)))
     public static let SQLITE_IOERR_ROLLBACK_ATOMIC   = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (31<<8)))
+    public static let SQLITE_IOERR_DATA              = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (32<<8)))
+    public static let SQLITE_IOERR_CORRUPTFS         = ResultCode(rawValue: (SQLITE_IOERR.rawValue | (33<<8)))
     public static let SQLITE_LOCKED_SHAREDCACHE      = ResultCode(rawValue: (SQLITE_LOCKED.rawValue |  (1<<8)))
     public static let SQLITE_LOCKED_VTAB             = ResultCode(rawValue: (SQLITE_LOCKED.rawValue |  (2<<8)))
     public static let SQLITE_BUSY_RECOVERY           = ResultCode(rawValue: (SQLITE_BUSY.rawValue |  (1<<8)))
     public static let SQLITE_BUSY_SNAPSHOT           = ResultCode(rawValue: (SQLITE_BUSY.rawValue |  (2<<8)))
+    public static let SQLITE_BUSY_TIMEOUT            = ResultCode(rawValue: (SQLITE_BUSY.rawValue |  (3<<8)))
     public static let SQLITE_CANTOPEN_NOTEMPDIR      = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (1<<8)))
     public static let SQLITE_CANTOPEN_ISDIR          = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (2<<8)))
     public static let SQLITE_CANTOPEN_FULLPATH       = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (3<<8)))
     public static let SQLITE_CANTOPEN_CONVPATH       = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (4<<8)))
     public static let SQLITE_CANTOPEN_DIRTYWAL       = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (5<<8))) /* Not Used */
+    public static let SQLITE_CANTOPEN_SYMLINK        = ResultCode(rawValue: (SQLITE_CANTOPEN.rawValue | (6<<8)))
     public static let SQLITE_CORRUPT_VTAB            = ResultCode(rawValue: (SQLITE_CORRUPT.rawValue | (1<<8)))
     public static let SQLITE_CORRUPT_SEQUENCE        = ResultCode(rawValue: (SQLITE_CORRUPT.rawValue | (2<<8)))
+    public static let SQLITE_CORRUPT_INDEX           = ResultCode(rawValue: (SQLITE_CORRUPT.rawValue | (3<<8)))
     public static let SQLITE_READONLY_RECOVERY       = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (1<<8)))
     public static let SQLITE_READONLY_CANTLOCK       = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (2<<8)))
     public static let SQLITE_READONLY_ROLLBACK       = ResultCode(rawValue: (SQLITE_READONLY.rawValue | (3<<8)))
@@ -144,11 +149,14 @@ public struct ResultCode: RawRepresentable, Equatable, CustomStringConvertible {
     public static let SQLITE_CONSTRAINT_UNIQUE       = ResultCode(rawValue: (SQLITE_CONSTRAINT.rawValue | (8<<8)))
     public static let SQLITE_CONSTRAINT_VTAB         = ResultCode(rawValue: (SQLITE_CONSTRAINT.rawValue | (9<<8)))
     public static let SQLITE_CONSTRAINT_ROWID        = ResultCode(rawValue: (SQLITE_CONSTRAINT.rawValue | (10<<8)))
+    public static let SQLITE_CONSTRAINT_PINNED       = ResultCode(rawValue: (SQLITE_CONSTRAINT.rawValue | (11<<8)))
+    public static let SQLITE_CONSTRAINT_DATATYPE     = ResultCode(rawValue: (SQLITE_CONSTRAINT.rawValue | (12<<8)))
     public static let SQLITE_NOTICE_RECOVER_WAL      = ResultCode(rawValue: (SQLITE_NOTICE.rawValue | (1<<8)))
     public static let SQLITE_NOTICE_RECOVER_ROLLBACK = ResultCode(rawValue: (SQLITE_NOTICE.rawValue | (2<<8)))
     public static let SQLITE_WARNING_AUTOINDEX       = ResultCode(rawValue: (SQLITE_WARNING.rawValue | (1<<8)))
     public static let SQLITE_AUTH_USER               = ResultCode(rawValue: (SQLITE_AUTH.rawValue | (1<<8)))
     public static let SQLITE_OK_LOAD_PERMANENTLY     = ResultCode(rawValue: (SQLITE_OK.rawValue | (1<<8)))
+    public static let SQLITE_OK_SYMLINK              = ResultCode(rawValue: (SQLITE_OK.rawValue | (2<<8)))
     // swiftlint:enable operator_usage_whitespace line_length
 }
 
@@ -333,17 +341,22 @@ extension DatabaseError {
     public static let SQLITE_IOERR_BEGIN_ATOMIC = ResultCode.SQLITE_IOERR_BEGIN_ATOMIC
     public static let SQLITE_IOERR_COMMIT_ATOMIC = ResultCode.SQLITE_IOERR_COMMIT_ATOMIC
     public static let SQLITE_IOERR_ROLLBACK_ATOMIC = ResultCode.SQLITE_IOERR_ROLLBACK_ATOMIC
+    public static let SQLITE_IOERR_DATA = ResultCode.SQLITE_IOERR_DATA
+    public static let SQLITE_IOERR_CORRUPTFS = ResultCode.SQLITE_IOERR_CORRUPTFS
     public static let SQLITE_LOCKED_SHAREDCACHE = ResultCode.SQLITE_LOCKED_SHAREDCACHE
     public static let SQLITE_LOCKED_VTAB = ResultCode.SQLITE_LOCKED_VTAB
     public static let SQLITE_BUSY_RECOVERY = ResultCode.SQLITE_BUSY_RECOVERY
     public static let SQLITE_BUSY_SNAPSHOT = ResultCode.SQLITE_BUSY_SNAPSHOT
+    public static let SQLITE_BUSY_TIMEOUT = ResultCode.SQLITE_BUSY_TIMEOUT
     public static let SQLITE_CANTOPEN_NOTEMPDIR = ResultCode.SQLITE_CANTOPEN_NOTEMPDIR
     public static let SQLITE_CANTOPEN_ISDIR = ResultCode.SQLITE_CANTOPEN_ISDIR
     public static let SQLITE_CANTOPEN_FULLPATH = ResultCode.SQLITE_CANTOPEN_FULLPATH
     public static let SQLITE_CANTOPEN_CONVPATH = ResultCode.SQLITE_CANTOPEN_CONVPATH
     public static let SQLITE_CANTOPEN_DIRTYWAL = ResultCode.SQLITE_CANTOPEN_DIRTYWAL
+    public static let SQLITE_CANTOPEN_SYMLINK = ResultCode.SQLITE_CANTOPEN_SYMLINK
     public static let SQLITE_CORRUPT_VTAB = ResultCode.SQLITE_CORRUPT_VTAB
     public static let SQLITE_CORRUPT_SEQUENCE = ResultCode.SQLITE_CORRUPT_SEQUENCE
+    public static let SQLITE_CORRUPT_INDEX = ResultCode.SQLITE_CORRUPT_INDEX
     public static let SQLITE_READONLY_RECOVERY = ResultCode.SQLITE_READONLY_RECOVERY
     public static let SQLITE_READONLY_CANTLOCK = ResultCode.SQLITE_READONLY_CANTLOCK
     public static let SQLITE_READONLY_ROLLBACK = ResultCode.SQLITE_READONLY_ROLLBACK
@@ -361,11 +374,14 @@ extension DatabaseError {
     public static let SQLITE_CONSTRAINT_UNIQUE = ResultCode.SQLITE_CONSTRAINT_UNIQUE
     public static let SQLITE_CONSTRAINT_VTAB = ResultCode.SQLITE_CONSTRAINT_VTAB
     public static let SQLITE_CONSTRAINT_ROWID = ResultCode.SQLITE_CONSTRAINT_ROWID
+    public static let SQLITE_CONSTRAINT_PINNED = ResultCode.SQLITE_CONSTRAINT_PINNED
+    public static let SQLITE_CONSTRAINT_DATATYPE = ResultCode.SQLITE_CONSTRAINT_DATATYPE
     public static let SQLITE_NOTICE_RECOVER_WAL = ResultCode.SQLITE_NOTICE_RECOVER_WAL
     public static let SQLITE_NOTICE_RECOVER_ROLLBACK = ResultCode.SQLITE_NOTICE_RECOVER_ROLLBACK
     public static let SQLITE_WARNING_AUTOINDEX = ResultCode.SQLITE_WARNING_AUTOINDEX
     public static let SQLITE_AUTH_USER = ResultCode.SQLITE_AUTH_USER
     public static let SQLITE_OK_LOAD_PERMANENTLY = ResultCode.SQLITE_OK_LOAD_PERMANENTLY
+    public static let SQLITE_OK_SYMLINK = ResultCode.SQLITE_OK_SYMLINK
 }
 
 extension DatabaseError {
