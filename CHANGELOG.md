@@ -91,7 +91,7 @@ Released January 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compa
 
 - **New**: [#1075](https://github.com/groue/GRDB.swift/pull/1075) by [@mallman](https://github.com/mallman): Progress-reporting database backups
 - **New**: [#1129](https://github.com/groue/GRDB.swift/pull/1129) by [@groue](https://github.com/groue): Detached columns
-- **New**: [#1132](https://github.com/groue/GRDB.swift/pull/1132) by [@groue](https://github.com/groue): Bump custom SQLite builds v3.72.2
+- **New**: [#1132](https://github.com/groue/GRDB.swift/pull/1132) by [@groue](https://github.com/groue): Bump custom SQLite builds v3.37.2
 - **New**: [#1133](https://github.com/groue/GRDB.swift/pull/1133) by [@groue](https://github.com/groue): Support for STRICT tables
 - **Fixed**: [#1120](https://github.com/groue/GRDB.swift/pull/1120) by [@jnross](https://github.com/jnross): Fix typos
 - **Fixed**: [#1121](https://github.com/groue/GRDB.swift/pull/1121) by [@byohay](https://github.com/byohay): Quote PROJECT_DIR and SRCROOT environment variables
