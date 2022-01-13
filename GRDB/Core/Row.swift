@@ -1199,16 +1199,12 @@ extension Row {
 ///     try dbQueue.read { db in
 ///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
-public final class RowCursor: Cursor {
-    private enum _State {
-        case idle, busy, done, failed
-    }
-    
-    /// The statement iterated by this cursor
+public final class RowCursor: DatabaseCursor {
     public let statement: Statement
+    /// :nodoc:
+    public var _state = _DatabaseCursorState.idle
     private let _sqliteStatement: SQLiteStatement
     private let _row: Row // Reused for performance
-    private var _state = _State.idle
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement

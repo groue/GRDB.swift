@@ -324,6 +324,71 @@ extension Statement {
     }
 }
 
+// MARK: - Cursors
+
+// TODO: we should move this state to `Statement`. Otherwise, two cursors
+// iterating the same statement may create an invalid state.
+/// The state of a statement cursor.
+///
+/// :nodoc:
+@frozen
+public enum _DatabaseCursorState {
+    /// `sqlite3_step` was not called yet.
+    case idle
+    
+    /// `sqlite3_step` has not failed or returned `SQLITE_DONE` yet.
+    case busy
+    
+    /// `sqlite3_step` has returned `SQLITE_DONE`.
+    case done
+    
+    /// `sqlite3_step` has returned `SQLITE_DONE` an error.
+    case failed
+}
+
+/// Implementation details of `DatabaseCursor`.
+///
+/// :nodoc:
+public protocol _DatabaseCursor: AnyObject {
+    var _state: _DatabaseCursorState { get set }
+}
+
+/// A protocol for cursors that iterate a database statement.
+public protocol DatabaseCursor: _DatabaseCursor, Cursor {
+    /// The statement iterated by the cursor
+    var statement: Statement { get }
+}
+
+extension DatabaseCursor {
+    // Specific implementation of `forEach` in order to deal with
+    // <https://github.com/groue/GRDB.swift/issues/1124>
+    public func forEach(_ body: (Element) throws -> Void) throws {
+        switch _state {
+        case .busy:
+            // We can't deal with possible authorizer
+            fatalError("Not implemented")
+        case .idle:
+            if let authorizer = try statement.database.statementWillExecute(statement) {
+                _state = .busy
+                try statement.database.withAuthorizer(authorizer) {
+                    while let element = try next() {
+                        try body(element)
+                    }
+                }
+            } else {
+                _state = .busy
+                while let element = try next() {
+                    try body(element)
+                }
+            }
+        default:
+            while let element = try next() {
+                try body(element)
+            }
+        }
+    }
+}
+
 /// A cursor that iterates a database statement without producing any value.
 /// Each call to the next() cursor method calls the sqlite3_step() C function.
 ///
@@ -334,18 +399,14 @@ extension Statement {
 ///         let cursor = statement.makeCursor()
 ///         try cursor.next()
 ///     }
-final class StatementCursor: Cursor {
-    private enum _State {
-        case idle, busy, done, failed
-    }
-    
-    /* private, internal for testability */ let _statement: Statement
+final class StatementCursor: DatabaseCursor {
+    let statement: Statement
+    var _state = _DatabaseCursorState.idle
     private let _sqliteStatement: SQLiteStatement
-    private var _state = _State.idle
     
     // Use Statement.makeCursor() instead
     init(statement: Statement, arguments: StatementArguments? = nil) throws {
-        _statement = statement
+        self.statement = statement
         _sqliteStatement = statement.sqliteStatement
         
         // Assume cursor is created for immediate iteration: reset and set arguments
@@ -354,12 +415,12 @@ final class StatementCursor: Cursor {
     
     deinit {
         if _state == .busy {
-            try? _statement.database.statementDidExecute(_statement)
+            try? statement.database.statementDidExecute(statement)
         }
         
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? _statement.reset()
+        try? statement.reset()
     }
     
     /// :nodoc:
@@ -370,12 +431,12 @@ final class StatementCursor: Cursor {
             // statement is reset by another cursor.
             return nil
         case .idle:
-            guard try _statement.database.statementWillExecute(_statement) == nil else {
+            guard try statement.database.statementWillExecute(statement) == nil else {
                 throw DatabaseError(
                     resultCode: SQLITE_MISUSE,
                     message: "Can't run statement that requires a customized authorizer from a cursor",
-                    sql: _statement.sql,
-                    arguments: _statement.arguments)
+                    sql: statement.sql,
+                    arguments: statement.arguments)
             }
             _state = .busy
         default:
@@ -385,13 +446,13 @@ final class StatementCursor: Cursor {
         switch sqlite3_step(_sqliteStatement) {
         case SQLITE_DONE:
             _state = .done
-            try _statement.database.statementDidExecute(_statement)
+            try statement.database.statementDidExecute(statement)
             return nil
         case SQLITE_ROW:
             return .some(())
         case let code:
             _state = .failed
-            try _statement.database.statementDidFail(_statement, withResultCode: code)
+            try statement.database.statementDidFail(statement, withResultCode: code)
         }
     }
 }
