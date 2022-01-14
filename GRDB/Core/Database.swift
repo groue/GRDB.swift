@@ -583,6 +583,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Authorizer
     
+    @usableFromInline
     func withAuthorizer<T>(_ authorizer: StatementAuthorizer?, _ block: () throws -> T) rethrows -> T {
         SchedulingWatchdog.preconditionValidQueue(self)
         let old = self._authorizer
