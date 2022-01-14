@@ -14,6 +14,28 @@ class FilterCursorTests: GRDBTestCase {
         XCTAssertTrue(try cursor.next() == nil) // past the end
     }
     
+    func testFilterCursorForEach() throws {
+        // Test that filter().forEach() calls base.forEach().
+        // This is important in order to prevent
+        // <https://github.com/groue/GRDB.swift/issues/1124>
+        class TestCursor: Cursor {
+            func next() -> Int? {
+                fatalError("Must not be called during forEach")
+            }
+            
+            func forEach(_ body: (Int) throws -> Void) throws {
+                try body(1)
+                try body(2)
+                try body(3)
+                try body(4)
+            }
+        }
+        
+        let base = TestCursor()
+        let cursor = base.filter { $0 % 2 == 0 }
+        try XCTAssertEqual(Array(cursor), [2, 4])
+    }
+    
     func testFilterCursorFromThrowingCursor() {
         var i = 0
         let base: AnyCursor<Int> = AnyCursor {

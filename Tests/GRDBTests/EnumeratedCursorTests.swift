@@ -18,6 +18,31 @@ class EnumeratedCursorTests: GRDBTestCase {
         XCTAssertTrue(try cursor.next() == nil) // past the end
     }
     
+    func testEnumeratedCursorForEach() throws {
+        // Test that enumerated().forEach() calls base.forEach().
+        // This is important in order to prevent
+        // <https://github.com/groue/GRDB.swift/issues/1124>
+        class TestCursor: Cursor {
+            func next() -> String? {
+                fatalError("Must not be called during forEach")
+            }
+            
+            func forEach(_ body: (String) throws -> Void) throws {
+                try body("foo")
+                try body("bar")
+            }
+        }
+        
+        let base = TestCursor()
+        let cursor = base.enumerated()
+        let elements = try Array(cursor)
+        XCTAssertEqual(elements.count, 2)
+        XCTAssertEqual(elements[0].0, 0)
+        XCTAssertEqual(elements[0].1, "foo")
+        XCTAssertEqual(elements[1].0, 1)
+        XCTAssertEqual(elements[1].1, "bar")
+    }
+    
     func testEnumeratedCursorFromThrowingCursor() throws {
         var i = 0
         let strings = ["foo", "bar"]

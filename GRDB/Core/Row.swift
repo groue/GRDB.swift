@@ -1199,67 +1199,30 @@ extension Row {
 ///     try dbQueue.read { db in
 ///         let rows: RowCursor = try Row.fetchCursor(db, sql: "SELECT * FROM player")
 ///     }
-public final class RowCursor: Cursor {
-    private enum _State {
-        case idle, busy, done, failed
-    }
-    
-    /// The statement iterated by this cursor
+public final class RowCursor: DatabaseCursor {
+    public typealias Element = Row
     public let statement: Statement
-    private let _sqliteStatement: SQLiteStatement
-    private let _row: Row // Reused for performance
-    private var _state = _State.idle
+    /// :nodoc:
+    public var _isDone = false
+    @usableFromInline let _row: Row // Reused for performance
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
         self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        self._sqliteStatement = statement.sqliteStatement
         
         // Assume cursor is created for immediate iteration: reset and set arguments
         statement.reset(withArguments: arguments)
     }
     
     deinit {
-        if _state == .busy {
-            try? statement.database.statementDidExecute(statement)
-        }
-        
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
         try? statement.reset()
     }
     
-    public func next() throws -> Row? {
-        switch _state {
-        case .done:
-            // make sure this instance never yields a value again, even if the
-            // statement is reset by another cursor.
-            return nil
-        case .idle:
-            guard try statement.database.statementWillExecute(statement) == nil else {
-                throw DatabaseError(
-                    resultCode: SQLITE_MISUSE,
-                    message: "Can't run statement that requires a customized authorizer from a cursor",
-                    sql: statement.sql,
-                    arguments: statement.arguments)
-            }
-            _state = .busy
-        default:
-            break
-        }
-        
-        switch sqlite3_step(_sqliteStatement) {
-        case SQLITE_DONE:
-            _state = .done
-            try statement.database.statementDidExecute(statement)
-            return nil
-        case SQLITE_ROW:
-            return _row
-        case let code:
-            _state = .failed
-            try statement.database.statementDidFail(statement, withResultCode: code)
-        }
-    }
+    /// :nodoc:
+    @inlinable
+    public func _element(sqliteStatement: SQLiteStatement) -> Row { _row }
 }
 
 extension Row {

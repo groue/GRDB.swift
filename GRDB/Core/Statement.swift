@@ -288,6 +288,78 @@ public final class Statement {
             try! validateArguments(self.arguments)
         }
     }
+    
+    /// Calls the given closure after one successful call to `sqlite3_step()`.
+    ///
+    /// This method is unable to deal with statements that need a specific
+    /// authorizer. See `forEachStep(_:)`.
+    @usableFromInline
+    func step<Element>(_ body: (SQLiteStatement) throws -> Element) throws -> Element? {
+        // This check takes 0 time when profiled. It is, practically speaking, free.
+        if sqlite3_stmt_busy(sqliteStatement) == 0 {
+            guard try database.statementWillExecute(self) == nil else {
+                fatalError("Can't execute step by step a statement that requires a customized authorizer.")
+            }
+        }
+        
+        switch sqlite3_step(sqliteStatement) {
+        case SQLITE_DONE:
+            try database.statementDidExecute(self)
+            return nil
+        case SQLITE_ROW:
+            return try body(sqliteStatement)
+        case let code:
+            try database.statementDidFail(self, withResultCode: code)
+        }
+    }
+    
+    /// Calls the given closure after each successful call to `sqlite3_step()`.
+    ///
+    /// Unlike multiple calls to `step(_:)`, this method is able to deal with
+    /// statements that need a specific authorizer.
+    ///
+    /// That's how we deal with TransactionObservers that observe deletion:
+    /// the authorizer prevents the truncate optimization
+    /// <https://www.sqlite.org/lang_delete.html#the_truncate_optimization>.
+    ///
+    /// That's also how we deal with <https://github.com/groue/GRDB.swift/issues/1124>,
+    /// in four steps:
+    ///
+    /// 1. `T.fetchAll(...)` calls `Array(T.fetchCursor(...))`
+    /// 2. `Array(T.fetchCursor(...))` calls `Cursor.forEach(...)`
+    /// 3. `DatabaseCursor.forEach(...)` calls `Statement.forEachStep(...)`
+    /// 4. `Statement.forEachStep(...)` deals with the eventual authorizer.
+    @usableFromInline
+    func forEachStep(_ body: (SQLiteStatement) throws -> Void) throws {
+        guard sqlite3_stmt_busy(sqliteStatement) == 0 else {
+            // We can't deal with possible authorizer
+            fatalError("Statement is busy")
+        }
+        if let authorizer = try database.statementWillExecute(self) {
+            try database.withAuthorizer(authorizer) {
+                try uncheckedForEach(body)
+            }
+        } else {
+            try uncheckedForEach(body)
+        }
+    }
+    
+    /// Implementation detail of `forEach(_:)`.
+    /// Does not check for sqlite3_stmt_busy and eventual authorizer.
+    @usableFromInline
+    func uncheckedForEach(_ body: (SQLiteStatement) throws -> Void) throws {
+        while true {
+            switch sqlite3_step(sqliteStatement) {
+            case SQLITE_DONE:
+                try database.statementDidExecute(self)
+                return
+            case SQLITE_ROW:
+                try body(sqliteStatement)
+            case let code:
+                try database.statementDidFail(self, withResultCode: code)
+            }
+        }
+    }
 }
 
 @available(*, deprecated, renamed: "Statement")
@@ -324,6 +396,51 @@ extension Statement {
     }
 }
 
+// MARK: - Cursors
+
+/// Implementation details of `DatabaseCursor`.
+///
+/// :nodoc:
+public protocol _DatabaseCursor: Cursor {
+    /// Reserved to `_DatabaseCursor` implementation.
+    /// Must be initialized to false.
+    var _isDone: Bool { get set }
+    
+    /// Called after one successful call to `sqlite3_step()`. Returns the
+    /// element for the current statement step.
+    func _element(sqliteStatement: SQLiteStatement) throws -> Element
+}
+
+/// A protocol for cursors that iterate a database statement.
+public protocol DatabaseCursor: _DatabaseCursor {
+    /// The statement iterated by the cursor
+    var statement: Statement { get }
+}
+
+extension DatabaseCursor {
+    @inlinable
+    public func next() throws -> Element? {
+        if _isDone {
+            return nil
+        }
+        if let element = try statement.step(_element) {
+            return element
+        }
+        _isDone = true
+        return nil
+    }
+    
+    // Specific implementation of `forEach` in order to deal with
+    // <https://github.com/groue/GRDB.swift/issues/1124>.
+    // See `Statement.forEachStep(_:)` for more information.
+    @inlinable
+    public func forEach(_ body: (Element) throws -> Void) throws {
+        if _isDone { return }
+        try statement.forEachStep { try body(_element(sqliteStatement: $0)) }
+        _isDone = true
+    }
+}
+
 /// A cursor that iterates a database statement without producing any value.
 /// Each call to the next() cursor method calls the sqlite3_step() C function.
 ///
@@ -334,66 +451,25 @@ extension Statement {
 ///         let cursor = statement.makeCursor()
 ///         try cursor.next()
 ///     }
-final class StatementCursor: Cursor {
-    private enum _State {
-        case idle, busy, done, failed
-    }
-    
-    /* private, internal for testability */ let _statement: Statement
-    private let _sqliteStatement: SQLiteStatement
-    private var _state = _State.idle
+final class StatementCursor: DatabaseCursor {
+    typealias Element = Void
+    let statement: Statement
+    var _isDone = false
     
     // Use Statement.makeCursor() instead
     init(statement: Statement, arguments: StatementArguments? = nil) throws {
-        _statement = statement
-        _sqliteStatement = statement.sqliteStatement
-        
-        // Assume cursor is created for immediate iteration: reset and set arguments
+        self.statement = statement
         statement.reset(withArguments: arguments)
     }
     
     deinit {
-        if _state == .busy {
-            try? _statement.database.statementDidExecute(_statement)
-        }
-        
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? _statement.reset()
+        try? statement.reset()
     }
     
-    /// :nodoc:
-    func next() throws -> Void? {
-        switch _state {
-        case .done:
-            // make sure this instance never yields a value again, even if the
-            // statement is reset by another cursor.
-            return nil
-        case .idle:
-            guard try _statement.database.statementWillExecute(_statement) == nil else {
-                throw DatabaseError(
-                    resultCode: SQLITE_MISUSE,
-                    message: "Can't run statement that requires a customized authorizer from a cursor",
-                    sql: _statement.sql,
-                    arguments: _statement.arguments)
-            }
-            _state = .busy
-        default:
-            break
-        }
-        
-        switch sqlite3_step(_sqliteStatement) {
-        case SQLITE_DONE:
-            _state = .done
-            try _statement.database.statementDidExecute(_statement)
-            return nil
-        case SQLITE_ROW:
-            return .some(())
-        case let code:
-            _state = .failed
-            try _statement.database.statementDidFail(_statement, withResultCode: code)
-        }
-    }
+    @usableFromInline
+    func _element(sqliteStatement: SQLiteStatement) throws { }
 }
 
 // MARK: - Update Statements
@@ -426,10 +502,8 @@ extension Statement {
         SchedulingWatchdog.preconditionValidQueue(database)
         reset(withArguments: arguments)
         
-        // Statement does not know how to execute itself, because it does not
-        // know how to handle its errors, or if truncate optimisation should be
-        // prevented or not. Database knows.
-        try database.executeStatement(self)
+        // Iterate all rows, since they may execute side effects.
+        try forEachStep { _ in }
     }
 }
 
