@@ -293,7 +293,6 @@ public final class Statement {
     ///
     /// This method is unable to deal with statements that need a specific
     /// authorizer. See `forEachStep(_:)`.
-    @inline(__always)
     @usableFromInline
     func step<Element>(_ body: (SQLiteStatement) throws -> Element) throws -> Element? {
         // This check takes 0 time when profiled. It is, practically speaking, free.
@@ -330,7 +329,6 @@ public final class Statement {
     /// 2. `Array(T.fetchCursor(...))` calls `Cursor.forEach(...)`
     /// 3. `DatabaseCursor.forEach(...)` calls `Statement.forEachStep(...)`
     /// 4. `Statement.forEachStep(...)` deals with the eventual authorizer.
-    @inline(__always)
     @usableFromInline
     func forEachStep(_ body: (SQLiteStatement) throws -> Void) throws {
         guard sqlite3_stmt_busy(sqliteStatement) == 0 else {
@@ -348,7 +346,6 @@ public final class Statement {
     
     /// Implementation detail of `forEach(_:)`.
     /// Does not check for sqlite3_stmt_busy and eventual authorizer.
-    @inline(__always)
     @usableFromInline
     func uncheckedForEach(_ body: (SQLiteStatement) throws -> Void) throws {
         while true {
@@ -421,7 +418,6 @@ public protocol DatabaseCursor: _DatabaseCursor {
 }
 
 extension DatabaseCursor {
-    @inline(__always)
     @inlinable
     public func next() throws -> Element? {
         if _isDone {
@@ -437,7 +433,6 @@ extension DatabaseCursor {
     // Specific implementation of `forEach` in order to deal with
     // <https://github.com/groue/GRDB.swift/issues/1124>.
     // See `Statement.forEachStep(_:)` for more information.
-    @inline(__always)
     @inlinable
     public func forEach(_ body: (Element) throws -> Void) throws {
         try statement.forEachStep { try body(_element(sqliteStatement: $0)) }
@@ -471,7 +466,6 @@ final class StatementCursor: DatabaseCursor {
         try? statement.reset()
     }
     
-    @inline(__always)
     @usableFromInline
     func _element(sqliteStatement: SQLiteStatement) throws { }
 }
