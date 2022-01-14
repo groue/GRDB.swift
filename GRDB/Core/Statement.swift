@@ -299,7 +299,7 @@ public final class Statement {
         // This check takes 0 time when profiled. It is, practically speaking, free.
         if sqlite3_stmt_busy(sqliteStatement) == 0 {
             guard try database.statementWillExecute(self) == nil else {
-                fatalError("Can't step a statement that requires a customized authorizer")
+                fatalError("Can't execute step by step a statement that requires a customized authorizer.")
             }
         }
         
