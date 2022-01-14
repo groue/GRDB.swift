@@ -292,7 +292,7 @@ public final class Statement {
     /// Calls the given closure after one successful call to `sqlite3_step()`.
     ///
     /// This method is unable to deal with statements that need a specific
-    /// authorizer. See `forEach(_:)`.
+    /// authorizer. See `forEachStep(_:)`.
     @inline(__always)
     @usableFromInline
     func step<Element>(_ body: (SQLiteStatement) throws -> Element) throws -> Element? {
@@ -317,16 +317,22 @@ public final class Statement {
     /// Calls the given closure after each successful call to `sqlite3_step()`.
     ///
     /// Unlike multiple calls to `step(_:)`, this method is able to deal with
-    /// statements that need a specific authorizer, and that's how it deals with
-    /// <https://github.com/groue/GRDB.swift/issues/1124>, in four steps:
+    /// statements that need a specific authorizer.
+    ///
+    /// That's how we deal with TransactionObservers that observe deletion:
+    /// the authorizer prevents the truncate optimization
+    /// <https://www.sqlite.org/lang_delete.html#the_truncate_optimization>.
+    ///
+    /// That's also how we deal with <https://github.com/groue/GRDB.swift/issues/1124>,
+    /// in four steps:
     ///
     /// 1. `T.fetchAll(...)` calls `Array(T.fetchCursor(...))`
     /// 2. `Array(T.fetchCursor(...))` calls `Cursor.forEach(...)`
-    /// 3. `DatabaseCursor.forEach(...)` calls `Statement.forEach(...)`
-    /// 4. `Statement.forEach(...)` deals with eventual authorizer
+    /// 3. `DatabaseCursor.forEach(...)` calls `Statement.forEachStep(...)`
+    /// 4. `Statement.forEachStep(...)` deals with the eventual authorizer.
     @inline(__always)
     @usableFromInline
-    func forEach(_ body: (SQLiteStatement) throws -> Void) throws {
+    func forEachStep(_ body: (SQLiteStatement) throws -> Void) throws {
         guard sqlite3_stmt_busy(sqliteStatement) == 0 else {
             // We can't deal with possible authorizer
             fatalError("Statement is busy")
@@ -430,11 +436,11 @@ extension DatabaseCursor {
     
     // Specific implementation of `forEach` in order to deal with
     // <https://github.com/groue/GRDB.swift/issues/1124>.
-    // See `Statement.forEach(_:)` for more information.
+    // See `Statement.forEachStep(_:)` for more information.
     @inline(__always)
     @inlinable
     public func forEach(_ body: (Element) throws -> Void) throws {
-        try statement.forEach { try body(_element(sqliteStatement: $0)) }
+        try statement.forEachStep { try body(_element(sqliteStatement: $0)) }
     }
 }
 
@@ -501,7 +507,7 @@ extension Statement {
         reset(withArguments: arguments)
         
         // Iterate all rows, since they may execute side effects.
-        try forEach { _ in }
+        try forEachStep { _ in }
     }
 }
 
