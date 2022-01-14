@@ -292,7 +292,7 @@ public final class Statement {
     /// Calls the given closure after one successful call to `sqlite3_step()`.
     ///
     /// This method is unable to deal with statements that need a specific
-    /// authorizer.
+    /// authorizer. See `forEach(_:)`.
     @inline(__always)
     @usableFromInline
     func step<Element>(_ body: (SQLiteStatement) throws -> Element) throws -> Element? {
@@ -317,7 +317,13 @@ public final class Statement {
     /// Calls the given closure after each successful call to `sqlite3_step()`.
     ///
     /// Unlike multiple calls to `step(_:)`, this method is able to deal with
-    /// statements that need a specific authorizer.
+    /// statements that need a specific authorizer, and that's how it deals with
+    /// <https://github.com/groue/GRDB.swift/issues/1124>, in four steps:
+    ///
+    /// 1. `T.fetchAll(...)` calls `Array(T.fetchCursor(...))`
+    /// 2. `Array(T.fetchCursor(...))` calls `Cursor.forEach(...)`
+    /// 3. `DatabaseCursor.forEach(...)` calls `Statement.forEach(...)`
+    /// 4. `Statement.forEach(...)` deals with eventual authorizer
     @inline(__always)
     @usableFromInline
     func forEach(_ body: (SQLiteStatement) throws -> Void) throws {
@@ -423,7 +429,8 @@ extension DatabaseCursor {
     }
     
     // Specific implementation of `forEach` in order to deal with
-    // <https://github.com/groue/GRDB.swift/issues/1124>
+    // <https://github.com/groue/GRDB.swift/issues/1124>.
+    // See `Statement.forEach(_:)` for more information.
     @inline(__always)
     @inlinable
     public func forEach(_ body: (Element) throws -> Void) throws {

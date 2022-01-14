@@ -196,6 +196,8 @@ extension FetchableRecord {
         adapter: RowAdapter? = nil)
     throws -> [Self]
     {
+        // Use Array initializer in order to deal with <https://github.com/groue/GRDB.swift/issues/1124>.
+        // See `Statement.forEach(_:)` for more information.
         try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
     }
     
