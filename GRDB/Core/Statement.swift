@@ -289,6 +289,29 @@ public final class Statement {
         }
     }
     
+    /// Executes the prepared statement.
+    ///
+    /// - parameter arguments: Optional statement arguments.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
+    public func execute(arguments: StatementArguments? = nil) throws {
+        SchedulingWatchdog.preconditionValidQueue(database)
+        reset(withArguments: arguments)
+        try database.withAuthorizer(database.statementWillExecute(self)) {
+            // Iterate all rows, since they may execute side effects.
+            while true {
+                switch sqlite3_step(sqliteStatement) {
+                case SQLITE_DONE:
+                    try database.statementDidExecute(self)
+                    return
+                case SQLITE_ROW:
+                    break
+                case let code:
+                    try database.statementDidFail(self, withResultCode: code)
+                }
+            }
+        }
+    }
+    
     /// Calls the given closure after one successful call to `sqlite3_step()`.
     ///
     /// This method is unable to deal with statements that need a specific
@@ -331,32 +354,22 @@ public final class Statement {
     /// 4. `Statement.forEachStep(...)` deals with the eventual authorizer.
     @usableFromInline
     func forEachStep(_ body: (SQLiteStatement) throws -> Void) throws {
+        SchedulingWatchdog.preconditionValidQueue(database)
         guard sqlite3_stmt_busy(sqliteStatement) == 0 else {
             // We can't deal with possible authorizer
             fatalError("Statement is busy")
         }
-        if let authorizer = try database.statementWillExecute(self) {
-            try database.withAuthorizer(authorizer) {
-                try uncheckedForEach(body)
-            }
-        } else {
-            try uncheckedForEach(body)
-        }
-    }
-    
-    /// Implementation detail of `forEach(_:)`.
-    /// Does not check for sqlite3_stmt_busy and eventual authorizer.
-    @usableFromInline
-    func uncheckedForEach(_ body: (SQLiteStatement) throws -> Void) throws {
-        while true {
-            switch sqlite3_step(sqliteStatement) {
-            case SQLITE_DONE:
-                try database.statementDidExecute(self)
-                return
-            case SQLITE_ROW:
-                try body(sqliteStatement)
-            case let code:
-                try database.statementDidFail(self, withResultCode: code)
+        try database.withAuthorizer(database.statementWillExecute(self)) {
+            while true {
+                switch sqlite3_step(sqliteStatement) {
+                case SQLITE_DONE:
+                    try database.statementDidExecute(self)
+                    return
+                case SQLITE_ROW:
+                    try body(sqliteStatement)
+                case let code:
+                    try database.statementDidFail(self, withResultCode: code)
+                }
             }
         }
     }
@@ -492,18 +505,6 @@ extension Statement {
         default:
             return false
         }
-    }
-    
-    /// Executes the prepared statement.
-    ///
-    /// - parameter arguments: Optional statement arguments.
-    /// - throws: A DatabaseError whenever an SQLite error occurs.
-    public func execute(arguments: StatementArguments? = nil) throws {
-        SchedulingWatchdog.preconditionValidQueue(database)
-        reset(withArguments: arguments)
-        
-        // Iterate all rows, since they may execute side effects.
-        try forEachStep { _ in }
     }
 }
 
