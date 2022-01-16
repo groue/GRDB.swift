@@ -6952,6 +6952,8 @@ pod 'GRDB.swift/SQLCipher'
 pod 'SQLCipher', '~> 3.4'
 ```
 
+Make sure you remove any existing `pod 'GRDB.swift'` from your Podfile. `GRDB.swift/SQLCipher` must be the only active GRDB pod in your whole project, or you will face linker or runtime errors, due to the conflicts between SQLCipher and the system SQLite.
+
 - [Creating or Opening an Encrypted Database](#creating-or-opening-an-encrypted-database)
 - [Changing the Passphrase of an Encrypted Database](#changing-the-passphrase-of-an-encrypted-database)
 - [Exporting a Database to an Encrypted Database](#exporting-a-database-to-an-encrypted-database)
