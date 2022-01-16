@@ -224,21 +224,22 @@ public struct DatabaseMigrator {
     ///
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
-    /// - parameter completion: A closure that is called in a protected dispatch
-    ///   queue that can write in the database, with the eventual
-    ///   migration error.
+    /// - parameter completion: A function that can access the database. Its
+    ///   argument is a `Result` that provides a connection to the migrated
+    ///   database, or the failure that would prevent the migration to complete.
     public func asyncMigrate(
         _ writer: DatabaseWriter,
-        completion: @escaping (Database, Error?) -> Void)
+        completion: @escaping (Result<Database, Error>) -> Void)
     {
-        writer.asyncBarrierWriteWithoutTransaction { db in
+        writer.asyncBarrierWriteWithoutTransaction { dbResult in
             do {
+                let db = try dbResult.get()
                 if let lastMigration = self._migrations.last {
                     try self.migrate(db, upTo: lastMigration.identifier)
                 }
-                completion(db, nil)
+                completion(.success(db))
             } catch {
-                completion(db, error)
+                completion(.failure(error))
             }
         }
     }
@@ -477,12 +478,8 @@ extension DatabaseMigrator {
     {
         DatabasePublishers.Migrate(
             upstream: OnDemandFuture { promise in
-                self.asyncMigrate(writer) { _, error in
-                    if let error = error {
-                        promise(.failure(error))
-                    } else {
-                        promise(.success(()))
-                    }
+                self.asyncMigrate(writer) { dbResult in
+                    promise(dbResult.map { _ in })
                 }
             }
             .eraseToAnyPublisher()

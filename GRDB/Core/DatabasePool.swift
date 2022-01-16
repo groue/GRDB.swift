@@ -679,17 +679,22 @@ extension DatabasePool: DatabaseReader {
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
-        // TODO: throw instead of crashing when the database is closed
-        try readerPool!.barrier {
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
+        guard let readerPool = readerPool else {
+            throw DatabaseError.connectionIsClosed()
+        }
+        return try readerPool.barrier {
             try writer.sync(updates)
         }
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
-        // TODO: throw instead of crashing when the database is closed
-        readerPool!.asyncBarrier {
-            self.writer.sync(updates)
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+        guard let readerPool = readerPool else {
+            updates(.failure(DatabaseError.connectionIsClosed()))
+            return
+        }
+        readerPool.asyncBarrier {
+            self.writer.sync { updates(.success($0)) }
         }
     }
     

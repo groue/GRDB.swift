@@ -1320,7 +1320,7 @@ class DatabasePoolConcurrencyTests: GRDBTestCase {
             // Wait for read to start
             s1.wait()
             
-            dbPool.barrierWriteWithoutTransaction { _ in }
+            try! dbPool.barrierWriteWithoutTransaction { _ in }
             expectation.fulfill()
             s4.signal()
         }

@@ -50,6 +50,14 @@ extension Database {
     public func makeUpdateStatement(literal sqlLiteral: SQL) throws -> Statement { preconditionFailure() }
 }
 
+extension DatabaseMigrator {
+    @available(*, unavailable, message: "The completion function now accepts one Result<Database, Error> argument")
+    public func asyncMigrate(
+        _ writer: DatabaseWriter,
+        completion: @escaping (Database, Error?) -> Void)
+    { preconditionFailure() }
+}
+
 extension DatabaseUUIDEncodingStrategy {
     @available(*, unavailable, renamed: "uppercaseString")
     public static var string: Self { preconditionFailure() }

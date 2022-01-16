@@ -89,7 +89,7 @@ public protocol DatabaseWriter: DatabaseReader {
     /// - parameter updates: The updates to the database.
     /// - throws: The error thrown by the updates.
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T
+    func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T
     
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// outside of any transaction, and returns the result.
@@ -98,8 +98,10 @@ public protocol DatabaseWriter: DatabaseReader {
     /// until all pending writes and reads are completed. They postpone all
     /// other writes and reads until they are completed.
     ///
-    /// - parameter updates: The updates to the database.
-    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void)
+    /// - parameter updates: A function that accesses the database. Its argument
+    ///   is a `Result` that provides the database connection, or the failure
+    ///   that would prevent establishing the barrier access to the database.
+    func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void)
     
     /// Asynchronously executes database updates in a protected dispatch queue,
     /// wrapped inside a transaction.
@@ -485,12 +487,8 @@ extension DatabaseWriter {
     async throws -> T
     {
         try await withUnsafeThrowingContinuation { continuation in
-            asyncBarrierWriteWithoutTransaction { db in
-                do {
-                    try continuation.resume(returning: updates(db))
-                } catch {
-                    continuation.resume(throwing: error)
-                }
+            asyncBarrierWriteWithoutTransaction { dbResult in
+                continuation.resume(with: dbResult.flatMap { db in Result { try updates(db) } })
             }
         }
     }
@@ -800,11 +798,11 @@ public final class AnyDatabaseWriter: DatabaseWriter {
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         try base.barrierWriteWithoutTransaction(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
         base.asyncBarrierWriteWithoutTransaction(updates)
     }
     

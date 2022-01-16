@@ -334,12 +334,12 @@ extension DatabaseQueue {
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
-    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) rethrows -> T {
+    public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
         try writer.sync(updates)
     }
     
-    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Database) -> Void) {
-        writer.async(updates)
+    public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
+        writer.async { updates(.success($0)) }
     }
     
     /// Synchronously executes database updates in a protected dispatch queue,
