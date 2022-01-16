@@ -19,9 +19,10 @@ class DatabaseMigratorTests : GRDBTestCase {
         func test(writer: DatabaseWriter) throws {
             let expectation = self.expectation(description: "")
             let migrator = DatabaseMigrator()
-            migrator.asyncMigrate(writer, completion: { db, error in
+            migrator.asyncMigrate(writer, completion: { dbResult in
                 // No migration error
-                XCTAssertNil(error)
+                let db = try! dbResult.get()
+                
                 // Write access
                 try! db.execute(sql: "CREATE TABLE t(a)")
                 expectation.fulfill()
@@ -125,16 +126,16 @@ class DatabaseMigratorTests : GRDBTestCase {
             }
             
             let expectation = self.expectation(description: "")
-            migrator.asyncMigrate(writer, completion: { (db, error) in
+            migrator.asyncMigrate(writer, completion: { dbResult in
                 // No migration error
-                XCTAssertNil(error)
+                let db = try! dbResult.get()
                 
                 XCTAssertTrue(try! db.tableExists("persons"))
                 XCTAssertTrue(try! db.tableExists("pets"))
                 
-                migrator2.asyncMigrate(writer, completion: { db, error in
+                migrator2.asyncMigrate(writer, completion: { dbResult in
                     // No migration error
-                    XCTAssertNil(error)
+                    let db = try! dbResult.get()
                     
                     XCTAssertTrue(try! db.tableExists("persons"))
                     XCTAssertFalse(try! db.tableExists("pets"))
@@ -413,19 +414,26 @@ class DatabaseMigratorTests : GRDBTestCase {
         do {
             let expectation = self.expectation(description: "")
             let dbQueue = try makeDatabaseQueue()
-            migrator.asyncMigrate(dbQueue, completion: { db, error in
+            migrator.asyncMigrate(dbQueue, completion: { dbResult in
                 // The first migration should be committed.
                 // The second migration should be rollbacked.
                 
-                let error = error as! DatabaseError
+                guard case let .failure(error as DatabaseError) = dbResult else {
+                    XCTFail("Expected DatabaseError")
+                    expectation.fulfill()
+                    return
+                }
+                
                 XCTAssertEqual(error.extendedResultCode, .SQLITE_CONSTRAINT_FOREIGNKEY)
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message, #"FOREIGN KEY constraint violation - from pets(masterId) to persons(id), in [masterId:123 name:"Bobby"]"#)
                 
-                let names = try! String.fetchAll(db, sql: "SELECT name FROM persons")
-                XCTAssertEqual(names, ["Arthur"])
-                
-                expectation.fulfill()
+                dbQueue.asyncRead { dbResult in
+                    let names = try! String.fetchAll(dbResult.get(), sql: "SELECT name FROM persons")
+                    XCTAssertEqual(names, ["Arthur"])
+                    
+                    expectation.fulfill()
+                }
             })
             waitForExpectations(timeout: 5, handler: nil)
         }

@@ -274,9 +274,12 @@ The `asyncMigrate(_:completion:)` method:
 
 ```swift
 // Completes in a protected dispatch queue that can write in the database
-migrator.asyncMigrate(dbQueue, completion: { db, error in
-    if let error = error {
+migrator.asyncMigrate(dbQueue, completion: { result in
+    switch result {
+    case .failure:
         // Some error occurred during migrations
+    case let .success(db):
+        // Migrations succeeded
     }
 })
 ```
