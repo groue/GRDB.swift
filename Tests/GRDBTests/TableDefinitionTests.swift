@@ -672,6 +672,26 @@ class TableDefinitionTests: GRDBTestCase {
         #endif
     }
     
+    func testAlterTableDropColumn() throws {
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
+        }
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("a", .text)
+                t.column("b", .text)
+            }
+            
+            sqlQueries.removeAll()
+            try db.alter(table: "test") { t in
+                t.drop(column: "b")
+            }
+            assertEqualSQL(lastSQLQuery!, "ALTER TABLE \"test\" DROP COLUMN \"b\"")
+        }
+
+    }
+    
     func testDropTable() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
