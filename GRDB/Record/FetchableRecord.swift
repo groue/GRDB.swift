@@ -523,7 +523,7 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
         self.statement = statement
         row = try Row(statement: statement).adapted(with: adapter, layout: statement)
-        statement.reset(withArguments: arguments)
+        try statement.reset(withArguments: arguments)
     }
     
     deinit {

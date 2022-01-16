@@ -129,15 +129,6 @@ public final class Statement {
         sqlite3_finalize(sqliteStatement)
     }
     
-    final func reset() throws {
-        SchedulingWatchdog.preconditionValidQueue(database)
-        let code = sqlite3_reset(sqliteStatement)
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql)
-        }
-    }
-    
-    
     // MARK: Arguments
     
     private var argumentsNeedValidation = true
@@ -278,14 +269,24 @@ public final class Statement {
         }
     }
     
-    func reset(withArguments arguments: StatementArguments?) {
+    // MARK: Execution
+    
+    func reset() throws {
+        SchedulingWatchdog.preconditionValidQueue(database)
+        let code = sqlite3_reset(sqliteStatement)
+        guard code == SQLITE_OK else {
+            throw DatabaseError(resultCode: code, message: database.lastErrorMessage, sql: sql)
+        }
+    }
+    
+    func reset(withArguments arguments: StatementArguments?) throws {
         // Force arguments validity: it is a programmer error to provide
         // arguments that do not match the statement.
         if let arguments = arguments {
-            try! setArguments(arguments)
+            try setArguments(arguments)
         } else if argumentsNeedValidation {
-            try! reset()
-            try! validateArguments(self.arguments)
+            try reset()
+            try validateArguments(self.arguments)
         }
     }
     
@@ -294,8 +295,7 @@ public final class Statement {
     /// - parameter arguments: Optional statement arguments.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
-        SchedulingWatchdog.preconditionValidQueue(database)
-        reset(withArguments: arguments)
+        try reset(withArguments: arguments)
         try database.withAuthorizer(database.statementWillExecute(self)) {
             // Iterate all rows, since they may execute side effects.
             while true {
@@ -472,7 +472,9 @@ final class StatementCursor: DatabaseCursor {
     // Use Statement.makeCursor() instead
     init(statement: Statement, arguments: StatementArguments? = nil) throws {
         self.statement = statement
-        statement.reset(withArguments: arguments)
+        
+        // Assume cursor is created for immediate iteration: reset and set arguments
+        try statement.reset(withArguments: arguments)
     }
     
     deinit {
