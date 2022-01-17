@@ -673,9 +673,14 @@ class TableDefinitionTests: GRDBTestCase {
     }
     
     func testAlterTableDropColumn() throws {
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
+        }
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
         guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
             throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
         }
+        #endif
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.create(table: "test") { t in
@@ -689,7 +694,6 @@ class TableDefinitionTests: GRDBTestCase {
             }
             assertEqualSQL(lastSQLQuery!, "ALTER TABLE \"test\" DROP COLUMN \"b\"")
         }
-
     }
     
     func testDropTable() throws {
