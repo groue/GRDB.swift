@@ -613,6 +613,21 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testAlterTableAddColumnInvalidatesSchemaCache() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("a", .text)
+            }
+            try XCTAssertEqual(db.columns(in: "test").map(\.name), ["a"])
+
+            try db.alter(table: "test") { t in
+                t.add(column: "b", .text)
+            }
+            try XCTAssertEqual(db.columns(in: "test").map(\.name), ["a", "b"])
+        }
+    }
+
     func testAlterTableRenameColumn() throws {
         guard sqlite3_libversion_number() >= 3025000 else {
             throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
@@ -638,6 +653,29 @@ class TableDefinitionTests: GRDBTestCase {
             assertEqualSQL(sqlQueries[sqlQueries.count - 3], "ALTER TABLE \"test\" RENAME COLUMN \"a\" TO \"b\"")
             assertEqualSQL(sqlQueries[sqlQueries.count - 2], "ALTER TABLE \"test\" ADD COLUMN \"c\"")
             assertEqualSQL(sqlQueries[sqlQueries.count - 1], "ALTER TABLE \"test\" RENAME COLUMN \"c\" TO \"d\"")
+        }
+    }
+
+    func testAlterTableRenameColumnInvalidatesSchemaCache() throws {
+        guard sqlite3_libversion_number() >= 3025000 else {
+            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
+        }
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 13.0, tvOS 13.0, watchOS 6.0, *) else {
+            throw XCTSkip("ALTER TABLE RENAME COLUMN is not available")
+        }
+        #endif
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("a", .text)
+            }
+            try XCTAssertEqual(db.columns(in: "test").map(\.name), ["a"])
+            
+            try db.alter(table: "test") { t in
+                t.rename(column: "a", to: "b")
+            }
+            try XCTAssertEqual(db.columns(in: "test").map(\.name), ["b"])
         }
     }
     
@@ -693,6 +731,30 @@ class TableDefinitionTests: GRDBTestCase {
                 t.drop(column: "b")
             }
             assertEqualSQL(lastSQLQuery!, "ALTER TABLE \"test\" DROP COLUMN \"b\"")
+        }
+    }
+    
+    func testAlterTableDropColumnInvalidatesSchemaCache() throws {
+        guard sqlite3_libversion_number() >= 3035000 else {
+            throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
+        }
+        #if !GRDBCUSTOMSQLITE && !GRDBCIPHER
+        guard #available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) else {
+            throw XCTSkip("ALTER TABLE DROP COLUMN is not available")
+        }
+        #endif
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            try db.create(table: "test") { t in
+                t.column("a", .text)
+                t.column("b", .text)
+            }
+            try XCTAssertEqual(db.columns(in: "test").map(\.name), ["a", "b"])
+            
+            try db.alter(table: "test") { t in
+                t.drop(column: "b")
+            }
+            try XCTAssertEqual(db.columns(in: "test").map(\.name), ["a"])
         }
     }
     
