@@ -784,7 +784,7 @@ extension SQLExpression {
         return try sql(context)
     }
     
-    /// If this expression is a table colum, returns the name of this column.
+    /// If this expression is a table column, returns the name of this column.
     ///
     /// When in doubt, returns nil.
     ///

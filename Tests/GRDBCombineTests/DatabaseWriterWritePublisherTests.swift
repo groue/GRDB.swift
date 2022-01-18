@@ -396,7 +396,7 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
     // MARK: - Regression tests
     
     // Regression test against deadlocks created by concurrent completion
-    // and cancellations trigerred by .switchToLatest().prefix(1)
+    // and cancellations triggered by .switchToLatest().prefix(1)
     func testDeadlockPrevention() throws {
         guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")

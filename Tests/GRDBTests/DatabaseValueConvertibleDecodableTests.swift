@@ -14,7 +14,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? { ... }
         }
         
@@ -62,7 +62,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? { ... }
         }
         
@@ -105,7 +105,7 @@ class DatabaseValueConvertibleDecodableTests: GRDBTestCase {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // static func fromDatabaseValue(_ databaseValue: DatabaseValue) -> Value? { ... }
         }
         

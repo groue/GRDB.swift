@@ -1800,7 +1800,7 @@ The transaction kind can be changed in the database configuration, or for each t
 // 1) Default configuration:
 let dbQueue = try DatabaseQueue(path: "...")
 
-// BEGIN DEFERED TRANSACTION ...
+// BEGIN DEFERRED TRANSACTION ...
 dbQueue.write { db in ... }
 
 // BEGIN EXCLUSIVE TRANSACTION ...
@@ -3436,7 +3436,7 @@ For an efficient algorithm which synchronizes the content of a database table wi
 
 GRDB records come with many default behaviors, that are designed to fit most situations. Many of those defaults can be customized for your specific needs:
 
-- [Customizing the Persistence Methods]: define what happens when you call a persistance method such as `player.insert(db)`
+- [Customizing the Persistence Methods]: define what happens when you call a persistence method such as `player.insert(db)`
 - [Conflict Resolution]: Run `INSERT OR REPLACE` queries, and generally define what happens when a persistence method violates a unique index.
 - [The Implicit RowID Primary Key]: all about the special `rowid` column.
 - [Columns Selected by a Request]: define which columns are selected by requests such as `Player.fetchAll(db)`.

@@ -47,7 +47,7 @@ private class Person : Record {
     }
     
     override func insert(_ db: Database) throws {
-        // This is implicitely tested with the NOT NULL constraint on creationDate
+        // This is implicitly tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = Date()
         }
@@ -116,7 +116,7 @@ private class PersonWithModifiedCaseColumns: Record {
     }
     
     override func insert(_ db: Database) throws {
-        // This is implicitely tested with the NOT NULL constraint on creationDate
+        // This is implicitly tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = Date()
         }

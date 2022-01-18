@@ -447,7 +447,7 @@ Released September 27, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/co
 
 Released September 20, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.11...v5.0.0)
 
-- **Fixed**: [#838](https://github.com/groue/GRDB.swift/issues/838): Have indexed colums inherit the `ifNotExists` flag from table creation.
+- **Fixed**: [#838](https://github.com/groue/GRDB.swift/issues/838): Have indexed columns inherit the `ifNotExists` flag from table creation.
 
 
 ## 5.0.0-beta.11
@@ -5909,7 +5909,7 @@ Record ([documentation](https://github.com/groue/GRDB.swift#record-class)):
 - `Record.reload()` has been removed. You have to provide your own implementation, should you need reloading.
 - `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)` (unlabelled row argument).
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
-- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested in their row ids.
+- `Record.didInsertWithRowID(_:forColumn:)` should be overridden by Record subclasses that are interested in their row ids.
 - `Record.databaseEdited` has been renamed `hasPersistentChangedValues`.
 - `Record.databaseChanges` has been renamed `persistentChangedValues` and now returns `[String: DatabaseValue?]`, the dictionary of old values for changed columns.
 

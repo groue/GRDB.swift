@@ -130,7 +130,7 @@ class TableRecordTests: GRDBTestCase {
         #if SQLITE_HAS_CODEC
         // Avoid error due to key not being provided:
         // file is not a database - while executing `ATTACH DATABASE...`
-        throw XCTSkip("This test does not suppport encrypted databases")
+        throw XCTSkip("This test does not support encrypted databases")
         #endif
         
         struct Team: Codable, PersistableRecord, FetchableRecord, Equatable {
@@ -188,7 +188,7 @@ class TableRecordTests: GRDBTestCase {
         #if SQLITE_HAS_CODEC
         // Avoid error due to key not being provided:
         // file is not a database - while executing `ATTACH DATABASE...`
-        throw XCTSkip("This test does not suppport encrypted databases")
+        throw XCTSkip("This test does not support encrypted databases")
         #endif
         
         struct Team: Codable, PersistableRecord, FetchableRecord, Equatable {

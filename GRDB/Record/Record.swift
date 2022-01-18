@@ -62,7 +62,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     
     /// The default request selection.
     ///
-    /// Unless this method is overriden, requests select all columns:
+    /// Unless this method is overridden, requests select all columns:
     ///
     ///     // SELECT * FROM player
     ///     try Player.fetchAll(db)
