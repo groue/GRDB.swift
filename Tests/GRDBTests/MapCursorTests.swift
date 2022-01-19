@@ -13,6 +13,26 @@ class MapCursorTests: GRDBTestCase {
         XCTAssertTrue(try cursor.next() == nil)
     }
     
+    func testMapCursorForEach() throws {
+        // Test that map().forEach() calls base.forEach().
+        // This is important in order to prevent
+        // <https://github.com/groue/GRDB.swift/issues/1124>
+        class TestCursor: Cursor {
+            func next() -> Int? {
+                fatalError("Must not be called during forEach")
+            }
+            
+            func forEach(_ body: (Int) throws -> Void) throws {
+                try body(1)
+                try body(2)
+            }
+        }
+        
+        let base = TestCursor()
+        let cursor = base.map { $0 * $0 }
+        try XCTAssertEqual(Array(cursor), [1, 4])
+    }
+    
     func testMapThrowingCursor() {
         var i = 0
         let base: AnyCursor<Int> = AnyCursor {

@@ -85,13 +85,22 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 5.19.0
+
+Released January 19, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.18.0...v5.19.0)
+
+- **New**: [#1144](https://github.com/groue/GRDB.swift/pull/1144) by [@TimAEllis](https://github.com/TimAEllis): Add drop column support
+- **Fixed**: [#1139](https://github.com/groue/GRDB.swift/pull/1139) by [@groue](https://github.com/groue): Deal with authorization callbacks from more cursors
+- **Fixed**: [#1149](https://github.com/groue/GRDB.swift/pull/1149) by [@BB9z](https://github.com/BB9z): Fix typos
+
+
 ## 5.18.0
 
 Released January 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.17.0...v5.18.0)
 
 - **New**: [#1075](https://github.com/groue/GRDB.swift/pull/1075) by [@mallman](https://github.com/mallman): Progress-reporting database backups
 - **New**: [#1129](https://github.com/groue/GRDB.swift/pull/1129) by [@groue](https://github.com/groue): Detached columns
-- **New**: [#1132](https://github.com/groue/GRDB.swift/pull/1132) by [@groue](https://github.com/groue): Bump custom SQLite builds v3.72.2
+- **New**: [#1132](https://github.com/groue/GRDB.swift/pull/1132) by [@groue](https://github.com/groue): Bump custom SQLite builds v3.37.2
 - **New**: [#1133](https://github.com/groue/GRDB.swift/pull/1133) by [@groue](https://github.com/groue): Support for STRICT tables
 - **Fixed**: [#1120](https://github.com/groue/GRDB.swift/pull/1120) by [@jnross](https://github.com/jnross): Fix typos
 - **Fixed**: [#1121](https://github.com/groue/GRDB.swift/pull/1121) by [@byohay](https://github.com/byohay): Quote PROJECT_DIR and SRCROOT environment variables
@@ -447,7 +456,7 @@ Released September 27, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/co
 
 Released September 20, 2020 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.0.0-beta.11...v5.0.0)
 
-- **Fixed**: [#838](https://github.com/groue/GRDB.swift/issues/838): Have indexed colums inherit the `ifNotExists` flag from table creation.
+- **Fixed**: [#838](https://github.com/groue/GRDB.swift/issues/838): Have indexed columns inherit the `ifNotExists` flag from table creation.
 
 
 ## 5.0.0-beta.11
@@ -5909,7 +5918,7 @@ Record ([documentation](https://github.com/groue/GRDB.swift#record-class)):
 - `Record.reload()` has been removed. You have to provide your own implementation, should you need reloading.
 - `Record.init(row: Row)` has been renamed `Record.init(_ row: Row)` (unlabelled row argument).
 - `Record.updateFromRow()` has been removed. Override `init(_ row: Row)` instead.
-- `Record.didInsertWithRowID(_:forColumn:)` should be overriden by Record subclasses that are interested in their row ids.
+- `Record.didInsertWithRowID(_:forColumn:)` should be overridden by Record subclasses that are interested in their row ids.
 - `Record.databaseEdited` has been renamed `hasPersistentChangedValues`.
 - `Record.databaseChanges` has been renamed `persistentChangedValues` and now returns `[String: DatabaseValue?]`, the dictionary of old values for changed columns.
 

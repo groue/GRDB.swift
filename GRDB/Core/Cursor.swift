@@ -21,6 +21,8 @@ extension RangeReplaceableCollection {
     /// - parameter cursor: The cursor whose elements feed the collection.
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
+        // Use `forEach` in order to deal with <https://github.com/groue/GRDB.swift/issues/1124>.
+        // See `Statement.forEachStep(_:)` for more information.
         try cursor.forEach { append($0) }
     }
     
@@ -768,6 +770,13 @@ public final class EnumeratedCursor<Base: Cursor>: Cursor {
         defer { index += 1 }
         return (index, element)
     }
+    
+    public func forEach(_ body: ((Int, Base.Element)) throws -> Void) throws {
+        try base.forEach { element in
+            defer { index += 1 }
+            try body((index, element))
+        }
+    }
 }
 
 /// A cursor whose elements consist of the elements of some base cursor that
@@ -790,6 +799,14 @@ public final class FilterCursor<Base: Cursor>: Cursor {
             }
         }
         return nil
+    }
+    
+    public func forEach(_ body: (Base.Element) throws -> Void) throws {
+        try base.forEach { element in
+            if try isIncluded(element) {
+                try body(element)
+            }
+        }
     }
 }
 
@@ -838,6 +855,12 @@ public final class MapCursor<Base: Cursor, Element>: Cursor {
     public func next() throws -> Element? {
         guard let element = try base.next() else { return nil }
         return try transform(element)
+    }
+    
+    public func forEach(_ body: (Element) throws -> Void) throws {
+        try base.forEach { element in
+            try body(transform(element))
+        }
     }
 }
 

@@ -626,7 +626,7 @@ extension Database {
     }
     
     /// If there exists a unique key on columns, return the columns
-    /// ordered as the matching index (or primay key). Case of returned columns
+    /// ordered as the matching index (or primary key). Case of returned columns
     /// is not guaranteed.
     func columnsForUniqueKey<T: Sequence>(
         _ columns: T,

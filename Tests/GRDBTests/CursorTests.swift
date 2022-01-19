@@ -246,4 +246,24 @@ class CursorTests: GRDBTestCase {
             XCTAssertEqual(dictionary, [1: "a", 2: "b", 3: "a"])
         }
     }
+    
+    func testArrayInitializer() throws {
+        // Test that Array initializer calls `forEach`.
+        // This is important in order to prevent
+        // <https://github.com/groue/GRDB.swift/issues/1124>
+        class TestCursor: Cursor {
+            func next() -> Int? {
+                fatalError("Must not be called during Array creation")
+            }
+            
+            func forEach(_ body: (Int) throws -> Void) throws {
+                try body(0)
+                try body(1)
+            }
+        }
+        
+        let cursor = TestCursor()
+        let elements = try Array(cursor)
+        XCTAssertEqual(elements, [0, 1])
+    }
 }

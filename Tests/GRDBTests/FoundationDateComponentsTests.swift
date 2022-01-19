@@ -713,7 +713,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
     }
 
     func testJSONEncodingOfDatabaseDateComponents() throws {
-        // Encoding root string is not suppported by all system version: use an object
+        // Encoding root string is not supported by all system version: use an object
         struct Record: Encodable {
             var date: DatabaseDateComponents
         }
@@ -726,7 +726,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
     }
 
     func testJSONDecodingOfDatabaseDateComponents() throws {
-        // Decoding root string is not suppported by all system version: use an object
+        // Decoding root string is not supported by all system version: use an object
         struct Record: Decodable {
             var date: DatabaseDateComponents
         }

@@ -177,15 +177,15 @@ extension RowDecodingError: CustomStringConvertible {
                     chunks.append("column: \(String(reflecting: columnName))")
                     chunks.append("column index: \(columnIndex)")
                 } else {
-                    // column name is already mentionned in context.debugDescription
+                    // column name is already mentioned in context.debugDescription
                 }
                 
             case .prefetchKey:
-                // key is already mentionned in context.debugDescription
+                // key is already mentioned in context.debugDescription
                 break
                 
             case .scope:
-                // scope is already mentionned in context.debugDescription
+                // scope is already mentioned in context.debugDescription
                 break
             }
         }

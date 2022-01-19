@@ -1,7 +1,7 @@
 import XCTest
 import GRDB
 
-// Person has a RowID primary key, and a overriden insert() method.
+// Person has a RowID primary key, and an overridden insert() method.
 private class Person : Record, Hashable {
     var id: Int64?
     var name: String!
@@ -59,7 +59,7 @@ private class Person : Record, Hashable {
     }
     
     override func insert(_ db: Database) throws {
-        // This is implicitely tested with the NOT NULL constraint on creationDate
+        // This is implicitly tested with the NOT NULL constraint on creationDate
         if creationDate == nil {
             creationDate = Date()
         }

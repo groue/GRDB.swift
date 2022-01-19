@@ -97,7 +97,7 @@ class RecordInitializersTests : GRDBTestCase {
     
     func testFetchedRecordAreInitializedFromRow() throws {
         
-        // Here we test that Record.init(row: Row) can be overriden independently from Record.init().
+        // Here we test that Record.init(row: Row) can be overridden independently from Record.init().
         // People must be able to perform some initialization work when fetching records from the database.
         
         XCTAssertFalse(RecordWithPedigree().initializedFromRow)

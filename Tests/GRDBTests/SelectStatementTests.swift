@@ -29,7 +29,7 @@ class SelectStatementTests : GRDBTestCase {
             let cursor = try statement.makeCursor()
             
             // Check that StatementCursor gives access to the raw SQLite API
-            XCTAssertEqual(String(cString: sqlite3_column_name(cursor._statement.sqliteStatement, 0)), "firstName")
+            XCTAssertEqual(String(cString: sqlite3_column_name(cursor.statement.sqliteStatement, 0)), "firstName")
             
             XCTAssertFalse(try cursor.next() == nil)
             XCTAssertFalse(try cursor.next() == nil)
@@ -44,7 +44,7 @@ class SelectStatementTests : GRDBTestCase {
             let customError = NSError(domain: "Custom", code: 0xDEAD)
             db.add(function: DatabaseFunction("throw", argumentCount: 0, pure: true) { _ in throw customError })
             func test(_ cursor: StatementCursor) throws {
-                let sql = cursor._statement.sql
+                let sql = cursor.statement.sql
                 do {
                     _ = try cursor.next()
                     XCTFail()

@@ -6,7 +6,8 @@ public struct Configuration {
     
     // MARK: - Misc options
     
-    /// If true, foreign key constraints are checked.
+    /// If true (the default), support for foreign keys is enabled.
+    /// See <https://www.sqlite.org/foreignkeys.html> for more information.
     ///
     /// Default: true
     public var foreignKeysEnabled = true
