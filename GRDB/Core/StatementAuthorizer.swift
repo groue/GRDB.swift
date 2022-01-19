@@ -41,10 +41,11 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
         _ cString4: UnsafePointer<Int8>?)
     -> Int32
     {
+        // Uncomment when debugging
         // print("""
         //     StatementCompilationAuthorizer: \
         //     \(AuthorizerActionCode(rawValue: actionCode)) \
-        //     \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) })
+        //     \([cString1, cString2, cString3, cString4].compactMap { $0.map(String.init) }.joined(separator: ", "))
         //     """)
         
         switch actionCode {
@@ -128,6 +129,21 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
             return SQLITE_OK
             
         case SQLITE_FUNCTION:
+            guard let cString2 = cString2 else { return SQLITE_OK }
+            
+            // SQLite does not report ALTER TABLE DROP COLUMN with the
+            // SQLITE_ALTER_TABLE action code. So we need to find another way
+            // to set the `invalidatesDatabaseSchemaCache` flag for such
+            // statement, and it is SQLITE_FUNCTION sqlite_drop_column.
+            //
+            // See <https://github.com/groue/GRDB.swift/pull/1144#issuecomment-1015155717>
+            // See <https://sqlite.org/forum/forumpost/bd47580ec2>
+            //
+            // TODO: remove when SQLite properly reports SQLITE_ALTER_TABLE
+            if strcmp(cString2, "sqlite_drop_column") == 0 {
+                invalidatesDatabaseSchemaCache = true
+            }
+            
             // Starting SQLite 3.19.0, `SELECT COUNT(*) FROM table` triggers
             // an authorization callback for SQLITE_READ with an empty
             // column: http://www.sqlite.org/changes.html#version_3_19_0
@@ -137,7 +153,6 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
             // counted table: any use of the COUNT function makes the
             // region undetermined (the full database).
             guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
-            guard let cString2 = cString2 else { return SQLITE_OK }
             if sqlite3_stricmp(cString2, "COUNT") == 0 {
                 selectedRegion = .fullDatabase
             }
