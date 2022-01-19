@@ -600,7 +600,7 @@ public enum DatabaseDateDecodingStrategy {
 // MARK: - DatabaseColumnDecodingStrategy
 
 /// `DatabaseColumnDecodingStrategy` specifies how `FetchableRecord` types that
-/// also adopt the standard `Decodable` protocol look for the database colums
+/// also adopt the standard `Decodable` protocol look for the database columns
 /// that match their coding keys.
 ///
 /// For example:

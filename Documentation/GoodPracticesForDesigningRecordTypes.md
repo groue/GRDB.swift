@@ -543,7 +543,7 @@ Those properties provide an alternative way to feed our application:
 
 ## How to Design Database Managers
 
-Many developpers want to hide GRDB database queues and pools inside "database managers":
+Many developers want to hide GRDB database queues and pools inside "database managers":
 
 ```swift
 // LibraryManager grants access to the library database.

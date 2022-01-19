@@ -9,7 +9,7 @@
 import GRDB
 
 
-// Create the databsae
+// Create the database
 
 let dbQueue = DatabaseQueue()   // Memory database
 var migrator = DatabaseMigrator()

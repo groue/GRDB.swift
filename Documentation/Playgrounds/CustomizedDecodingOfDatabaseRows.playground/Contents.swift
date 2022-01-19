@@ -13,7 +13,7 @@ import GRDB
 //: This playground demonstrates how one can implement **customized decoding of
 //: database rows**.
 //:
-//: Customized row decoding allows you to go beyong the built-in support for
+//: Customized row decoding allows you to go beyond the built-in support for
 //: requests of raw rows, values, or types that adopt the
 //: FetchableRecord protocol.
 //:
@@ -116,7 +116,7 @@ extension Base {
 //: example, we could fetch all Base values from the database:
 //:
 //:     try dbQueue.read { db in
-//:         // An array [Base] that constains Foo and Bar instances
+//:         // An array [Base] that contains Foo and Bar instances
 //:         let bases = try Base.fetchAll(db)
 //:     }
 //:

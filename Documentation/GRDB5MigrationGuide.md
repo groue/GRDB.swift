@@ -422,7 +422,7 @@ let publisher = observation
     }
     ```
 
-6. The `TableRecord.selectionSQL()` method is no longer avaible. When you need to embed the columns selected by a record type in an SQL request, you now have to use [SQL Interpolation]:
+6. The `TableRecord.selectionSQL()` method is no longer available. When you need to embed the columns selected by a record type in an SQL request, you now have to use [SQL Interpolation]:
 
     ```swift
     // BEFORE: GRDB 4

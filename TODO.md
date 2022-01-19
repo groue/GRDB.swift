@@ -27,7 +27,7 @@
 - [ ] GRDB 6: UPSERT
 - [ ] GRDB 6: support for RETURNING
 - [ ] GRDB 6: allow mutating `update` (for timestamps)
-- [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commmit and the end of the editing session.
+- [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commit and the end of the editing session.
     * Create an edition SQLite connection with an open transaction (a new kind of DatabaseWriter with a save() method)
     * All other writes will fail with SQLITE_BUSY. Unless they are schedules in a target dispatch queue which is paused during the edition.
 - [ ] Can we use generated columns to makes it convenient to index on inserted JSON objects? https://github.com/apple/swift-package-manager/pull/3090#issuecomment-740091760
@@ -74,7 +74,7 @@
     - [ ] Introduce some record protocol with an associated primary key type. Restrict filter(key:) methods to this type. Allow distinguishing FooId from BarId types.
     - [ ] Replace Column with TypedColumn. How to avoid code duplication (repeated types)? Keypaths?
 - [ ] Remove prefix from association keys when association name is namespaced: https://github.com/groue/GRDB.swift/issues/584#issuecomment-517658122
-- [ ] Alternative support for custom SQLite builds, wih CocoaPods: https://github.com/CocoaPods/CocoaPods/issues/9103
+- [ ] Alternative support for custom SQLite builds, with CocoaPods: https://github.com/CocoaPods/CocoaPods/issues/9103
 
 
 ## Unsure how

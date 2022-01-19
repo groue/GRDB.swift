@@ -317,7 +317,7 @@ In other words, whenever you need to perform some database access or observation
 
 To this end, remember that *all database publishers can perform several requests*.
 
-In the example below, we are totally sure that the published `HallOfFame` values will never contain inconsistent values, because it is produced by one and ony one publisher:
+In the example below, we are totally sure that the published `HallOfFame` values will never contain inconsistent values, because it is produced by one and only one publisher:
 
 ```swift
 struct HallOfFame {

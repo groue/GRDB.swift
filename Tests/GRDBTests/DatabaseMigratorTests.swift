@@ -822,7 +822,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1"])
         
-        // ... unless databaase gets erased
+        // ... unless database gets erased
         migrator2.eraseDatabaseOnSchemaChange = true
         try migrator2.migrate(dbQueue)
         try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2"])
@@ -871,7 +871,7 @@ class DatabaseMigratorTests : GRDBTestCase {
         }
         try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1"])
         
-        // ... unless databaase gets erased
+        // ... unless database gets erased
         migrator2.eraseDatabaseOnSchemaChange = true
         try migrator2.migrate(dbQueue)
         try XCTAssertEqual(dbQueue.read(migrator2.appliedMigrations), ["1", "2"])

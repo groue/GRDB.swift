@@ -37,7 +37,7 @@ try db.create(table: "appConfiguration") { t in
         // Make sure the id column is always 1
         .check { $0 == 1 }
     
-    // The configuration colums
+    // The configuration columns
     t.column("flag", .boolean).notNull()
     // ... other columns
 }
@@ -78,7 +78,7 @@ migrator.registerMigration("appConfiguration") { db in
         // Single row guarantee
         t.column("id", .integer).primaryKey(onConflict: .replace).check { $0 == 1 }
         
-        // The configuration colums
+        // The configuration columns
         t.column("flag", .boolean).notNull()
         // ... other columns
     }

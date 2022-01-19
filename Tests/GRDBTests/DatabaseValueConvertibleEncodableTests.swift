@@ -16,7 +16,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // var databaseValue: DatabaseValue { ... }
         }
         
@@ -50,7 +50,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // var databaseValue: DatabaseValue { ... }
         }
         
@@ -79,7 +79,7 @@ class DatabaseValueConvertibleEncodableTests: GRDBTestCase {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // var databaseValue: DatabaseValue { ... }
         }
         
@@ -241,7 +241,7 @@ extension DatabaseValueConvertibleEncodableTests {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // var databaseValue: DatabaseValue { ... }
         }
         
@@ -270,7 +270,7 @@ extension DatabaseValueConvertibleEncodableTests {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // var databaseValue: DatabaseValue { ... }
         }
         
@@ -294,7 +294,7 @@ extension DatabaseValueConvertibleEncodableTests {
                 preconditionFailure("not tested")
             }
             
-            // Infered, tested
+            // Inferred, tested
             // var databaseValue: DatabaseValue { ... }
         }
         

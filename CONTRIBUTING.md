@@ -73,7 +73,7 @@ How you can Contribute
     
     GRDB is "documentation-driven", which means that nothing ships until it is supported by documentation that makes sense. Documentation makes sense when someone who is not you is able to figure out what is the purpose of your contribution, how to use it, and what are its eventual caveats and corner cases. When the documentation is hard to write, or reveals too many caveats, it is the sign that the api needs to be fixed.
     
-8. **Open a pull request with your changes (targetting the `development` branch)!**
+8. **Open a pull request with your changes (targeting the `development` branch)!**
 
 9. **If you are granted a push access to the repository**, check [ReleaseProcess.md](Documentation/ReleaseProcess.md) in order to publish a new GRDB version.
 

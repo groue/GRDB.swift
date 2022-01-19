@@ -468,7 +468,7 @@ extension MutablePersistableRecord {
     /// Don't invoke this method directly: it is an internal method for types
     /// that adopt MutablePersistableRecord.
     ///
-    /// performDelete() provides the default implementation for deelte(). Types
+    /// performDelete() provides the default implementation for delete(). Types
     /// that adopt MutablePersistableRecord can invoke performDelete() in
     /// their implementation of delete(). They should not provide their own
     /// implementation of performDelete().
