@@ -685,6 +685,7 @@ public final class TableAlteration {
         case add(ColumnDefinition)
         case addColumnLiteral(SQL)
         case rename(old: String, new: String)
+        case drop(String)
     }
     
     private var alterations: [TableAlterationKind] = []
@@ -750,6 +751,19 @@ public final class TableAlteration {
     public func rename(column name: String, to newName: String) {
         _rename(column: name, to: newName)
     }
+    
+    /// Drops a column from the table.
+    ///
+    ///     try db.alter(table: "player") { t in
+    ///         t.drop(column: "age")
+    ///     }
+    ///
+    /// See <https://www.sqlite.org/lang_altertable.html>
+    ///
+    /// - Parameter name: the column name to drop.
+    public func drop(column name: String) {
+        _drop(column: name)
+    }
     #else
     /// Renames a column in a table.
     ///
@@ -765,10 +779,28 @@ public final class TableAlteration {
     public func rename(column name: String, to newName: String) {
         _rename(column: name, to: newName)
     }
+    
+    /// Drops a column from the table.
+    ///
+    ///     try db.alter(table: "player") { t in
+    ///         t.drop(column: "age")
+    ///     }
+    ///
+    /// See <https://www.sqlite.org/lang_altertable.html>
+    ///
+    /// - Parameter name: the column name to drop.
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *)
+    public func drop(column name: String) {
+        _drop(column: name)
+    }
     #endif
     
     private func _rename(column name: String, to newName: String) {
         alterations.append(.rename(old: name, new: newName))
+    }
+    
+    private func _drop(column name: String) {
+        alterations.append(.drop(name))
     }
     
     fileprivate func sql(_ db: Database) throws -> String {
@@ -807,6 +839,15 @@ public final class TableAlteration {
                 chunks.append(oldName.quotedDatabaseIdentifier)
                 chunks.append("TO")
                 chunks.append(newName.quotedDatabaseIdentifier)
+                let statement = chunks.joined(separator: " ")
+                statements.append(statement)
+                
+            case let .drop(column):
+                var chunks: [String] = []
+                chunks.append("ALTER TABLE")
+                chunks.append(name.quotedDatabaseIdentifier)
+                chunks.append("DROP COLUMN")
+                chunks.append(column.quotedDatabaseIdentifier)
                 let statement = chunks.joined(separator: " ")
                 statements.append(statement)
             }

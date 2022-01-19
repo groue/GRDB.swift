@@ -4313,9 +4313,11 @@ try db.rename(table: "referer", to: "referrer")
 
 // ALTER TABLE player ADD COLUMN hasBonus BOOLEAN
 // ALTER TABLE player RENAME COLUMN url TO homeURL
+// ALTER TABLE player DROP COLUMN score
 try db.alter(table: "player") { t in
     t.add(column: "hasBonus", .boolean)
     t.rename(column: "url", to: "homeURL") // SQLite 3.25+
+    t.drop(column: "score") // SQLite 3.35+
 }
 ```
 
