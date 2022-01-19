@@ -85,6 +85,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1144](https://github.com/groue/GRDB.swift/pull/1144) by [@TimAEllis](https://github.com/TimAEllis): Add drop column support
+- **Fixed**: [#1139](https://github.com/groue/GRDB.swift/pull/1139) by [@groue](https://github.com/groue): Deal with authorization callbacks from more cursors
+- **Fixed**: [#1149](https://github.com/groue/GRDB.swift/pull/1149) by [@BB9z](https://github.com/BB9z): Fix typos
+
+
 ## 5.18.0
 
 Released January 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.17.0...v5.18.0)
