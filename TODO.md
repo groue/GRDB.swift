@@ -1,5 +1,6 @@
 ## Cleanup
 
+- [ ] Schemas and attached databases: can we enhance our pragma handling from https://sqlite.org/forum/forumpost/27f85a4634
 - [ ] SQLCipher: sqlite3_rekey is discouraged (https://github.com/ccgus/fmdb/issues/547#issuecomment-259219320)
 - [ ] Write regression tests for #156 and #157
 - [ ] deprecate ScopeAdapter(base, scopes), because base.addingScopes has a better implementation
