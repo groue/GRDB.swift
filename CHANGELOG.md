@@ -86,6 +86,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fixed**: Fixed a bug of `including(all:)` for composite foreign keys and limited requests.
+
+
 ## 5.19.0
 
 Released January 19, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.18.0...v5.19.0)
