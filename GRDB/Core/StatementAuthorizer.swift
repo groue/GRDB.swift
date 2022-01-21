@@ -22,9 +22,9 @@ final class StatementCompilationAuthorizer: StatementAuthorizer {
     /// What this statements writes
     var databaseEventKinds: [DatabaseEventKind] = []
     
-    /// True if a statement alter the schema in a way that required schema cache
-    /// invalidation. For example, adding a column to a table invalidates the
-    /// schema cache, but not creating a table.
+    /// True if a statement alters the schema in a way that requires
+    /// invalidation of the schema cache. For example, adding a column to a
+    /// table invalidates the schema cache.
     var invalidatesDatabaseSchemaCache = false
     
     /// Not nil if a statement is a BEGIN/COMMIT/ROLLBACK/RELEASE transaction or
