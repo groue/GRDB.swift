@@ -4440,18 +4440,6 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.annotated(with: (scoreColumn + bonusColumn).forKey("total"))
     ```
 
-    Such annotations can help using [Associations]:
-
-    ```swift
-    // SELECT player.*, team.name
-    // FROM player
-    // JOIN team ON team.id = player.teamId
-    let teamAlias = TableAlias()
-    let request = Player
-        .annotated(with: teamAlias[nameColumn])
-        .joining(required: Player.team.aliased(teamAlias))
-    ```
-
 - `annotated(with: aggregate)` extends the selection with [association aggregates](Documentation/AssociationsBasics.md#association-aggregates).
     
     ```swift
@@ -4460,6 +4448,15 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     // LEFT JOIN player ON player.teamId = team.id
     // GROUP BY team.id
     Team.annotated(with: Team.players.count)
+    ```
+
+- `annotated(withRequired: association)` and `annotated(withOptional: association)` extends the selection with [Associations].
+    
+    ```swift
+    // SELECT player.*, team.color
+    // FROM player
+    // JOIN team ON team.id = player.teamId
+    Player.annotated(withRequired: Player.team.select(colorColumn))
     ```
 
 - `distinct()` performs uniquing.
