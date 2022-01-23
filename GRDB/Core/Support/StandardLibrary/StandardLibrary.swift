@@ -708,7 +708,7 @@ extension DatabaseCollation {
     ///         """)
     public static let localizedCaseInsensitiveCompare =
         DatabaseCollation("swiftLocalizedCaseInsensitiveCompare") { (lhs, rhs) in
-            return lhs.localizedCaseInsensitiveCompare(rhs)
+            lhs.localizedCaseInsensitiveCompare(rhs)
         }
     
     /// A collation, or SQL string comparison function, that compares strings

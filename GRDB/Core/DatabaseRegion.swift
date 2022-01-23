@@ -269,7 +269,7 @@ extension DatabaseRegion {
         }
         return tableRegions
             .sorted(by: { (l, r) in l.key.rawValue < r.key.rawValue })
-            .map({ (table, tableRegion) in
+            .map { (table, tableRegion) in
                 var desc = table.rawValue
                 if let columns = tableRegion.columns {
                     desc += "(" + columns.map(\.rawValue).sorted().joined(separator: ",") + ")"
@@ -280,7 +280,7 @@ extension DatabaseRegion {
                     desc += "[" + rowIds.sorted().map { "\($0)" }.joined(separator: ",") + "]"
                 }
                 return desc
-            })
+            }
             .joined(separator: ",")
     }
 }

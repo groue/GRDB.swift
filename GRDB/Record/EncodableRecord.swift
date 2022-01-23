@@ -554,9 +554,9 @@ public enum DatabaseColumnEncodingStrategy {
             searchRange = lowerCaseRange.upperBound..<searchRange.upperBound
         }
         words.append(wordStart..<searchRange.upperBound)
-        let result = words.map({ (range) in
-            return stringKey[range].lowercased()
-        }).joined(separator: "_")
+        let result = words
+            .map { (range) in stringKey[range].lowercased() }
+            .joined(separator: "_")
         return result
     }
 }

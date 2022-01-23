@@ -56,6 +56,7 @@ opt_in_rules:
   - reduce_into
   - redundant_type_annotation
   - sorted_first_last
+  - sorted_imports
   - toggle_bool
   - unused_declaration
   - unused_import

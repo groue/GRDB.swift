@@ -1,5 +1,5 @@
-import Foundation
 import Dispatch
+import Foundation
 
 /// Configuration for a DatabaseQueue or DatabasePool.
 public struct Configuration {

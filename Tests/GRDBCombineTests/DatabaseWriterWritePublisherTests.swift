@@ -411,12 +411,12 @@ class DatabaseWriterWritePublisherTests : XCTestCase {
             // print(iteration)
             let scoreSubject = PassthroughSubject<Int, Error>()
             let publisher = scoreSubject
-                .map({ score in
+                .map { score in
                     writer.writePublisher { db -> Int in
                         try Player(id: 1, name: "Arthur", score: score).insert(db)
                         return try Player.fetchCount(db)
                     }
-                })
+                }
                 .switchToLatest()
                 .prefix(1)
             let recorder = publisher.record()

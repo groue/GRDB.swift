@@ -120,7 +120,7 @@ public struct _SQLAssociation {
         //     via: Pivot.belongsTo(Destination.self))
         // Origin(id: 1).request(for: association)
         let reversedSteps = zip(steps, steps.dropFirst())
-            .map({ (step, nextStep) -> SQLAssociationStep in
+            .map { (step, nextStep) -> SQLAssociationStep in
                 // Intermediate steps are not selected, and including(all:)
                 // children are useless:
                 let relation = step.relation
@@ -137,7 +137,7 @@ public struct _SQLAssociation {
                     condition: nextStep.condition.reversed(to: step.relation.source.tableName),
                     relation: relation,
                     cardinality: .toOne)
-            })
+            }
             .reversed()
         let reversedAssociation = _SQLAssociation(steps: Array(reversedSteps))
         return destination.relation.appendingChild(for: reversedAssociation, kind: .oneRequired)

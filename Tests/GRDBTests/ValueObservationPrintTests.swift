@@ -394,7 +394,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         // transaction observer, some write did happen.
         var needsChange = true
         let observation = ValueObservation
-            .trackingConstantRegion({ db -> Int? in
+            .trackingConstantRegion { db -> Int? in
                 if needsChange {
                     needsChange = false
                     try dbPool.write { db in
@@ -405,7 +405,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                     }
                 }
                 return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM player")
-            })
+            }
             .print(to: logger)
         
         let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbPool)
@@ -441,7 +441,7 @@ class ValueObservationPrintTests: GRDBTestCase {
         // transaction observer, some write did happen.
         var needsChange = true
         let observation = ValueObservation
-            .trackingConstantRegion({ db -> Int? in
+            .trackingConstantRegion { db -> Int? in
                 if needsChange {
                     needsChange = false
                     try dbPool.write { db in
@@ -452,7 +452,7 @@ class ValueObservationPrintTests: GRDBTestCase {
                     }
                 }
                 return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM player")
-            })
+            }
             .print(to: logger)
         
         let expectedRegion = try region(sql: "SELECT MAX(id) FROM player", in: dbPool)
@@ -491,10 +491,10 @@ class ValueObservationPrintTests: GRDBTestCase {
         
         let logger = TestStream()
         let observation = ValueObservation
-            .tracking({ db -> Int? in
+            .tracking { db -> Int? in
                 let table = try String.fetchOne(db, sql: "SELECT t FROM choice")!
                 return try Int.fetchOne(db, sql: "SELECT MAX(id) FROM \(table)")
-            })
+            }
             .print(to: logger)
         
         let expectedRegionA = try region(sql: "SELECT MAX(id) FROM a", in: dbQueue)
