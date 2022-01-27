@@ -404,8 +404,39 @@ extension DatabaseError {
 
 // CustomStringConvertible
 extension DatabaseError {
-    /// :nodoc:
+    /// The error description.
+    ///
+    /// For example:
+    ///
+    ///     SQLite error 19: FOREIGN KEY constraint failed - while executing
+    ///     `INSERT INTO pets (masterId, name) VALUES (?, ?)`
+    ///
+    /// The format of the error description may change between GRDB releases,
+    /// without notice: don't have your application rely on any specific format.
     public var description: String {
+        var description = "SQLite error \(resultCode.rawValue)"
+        if let message = message {
+            description += ": \(message)"
+        }
+        if let sql = sql {
+            description += " - while executing `\(sql)`"
+        }
+        // TODO: consider including arguments depending on database configuration,
+        // for easy verbose debugging when the database does not contain sensitive information.
+        return description
+    }
+    
+    /// The error description, where bound parameters, if present, are visible.
+    ///
+    /// For example:
+    ///
+    ///     SQLite error 19: FOREIGN KEY constraint failed - while executing
+    ///     `INSERT INTO pets (masterId, name) VALUES (?, ?)`
+    ///     with arguments [1, "Bobby"]
+    ///
+    /// The format of the error description may change between GRDB releases,
+    /// without notice: don't have your application rely on any specific format.
+    public var expandedDescription: String {
         var description = "SQLite error \(resultCode.rawValue)"
         if let message = message {
             description += ": \(message)"

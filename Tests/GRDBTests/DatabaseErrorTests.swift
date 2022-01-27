@@ -27,8 +27,8 @@ class DatabaseErrorTests: GRDBTestCase {
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
             XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
-            
+            XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)`")
+            XCTAssertEqual(error.expandedDescription.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
             XCTAssertEqual(sqlQueries.count, 2)
             XCTAssertEqual(sqlQueries[0], "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
             XCTAssertEqual(sqlQueries[1], "ROLLBACK TRANSACTION")
@@ -60,7 +60,8 @@ class DatabaseErrorTests: GRDBTestCase {
             XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
             XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
             XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-            XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
+            XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)`")
+            XCTAssertEqual(error.expandedDescription.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
         }
     }
 
@@ -81,7 +82,8 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)`")
+                XCTAssertEqual(error.expandedDescription.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
             }
         }
         
@@ -96,7 +98,8 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)`")
+                XCTAssertEqual(error.expandedDescription.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
             }
         }
         
@@ -112,7 +115,8 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(error.resultCode, .SQLITE_CONSTRAINT)
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (?, ?)")
-                XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
+                XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)`")
+                XCTAssertEqual(error.expandedDescription.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (?, ?)` with arguments [1, \"bobby\"]")
             }
         }
     }
@@ -133,6 +137,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(error.message!.lowercased(), "foreign key constraint failed") // lowercased: accept multiple SQLite version
                 XCTAssertEqual(error.sql!, "INSERT INTO pets (masterId, name) VALUES (1, 'Bobby')")
                 XCTAssertEqual(error.description.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (1, 'bobby')`")
+                XCTAssertEqual(error.expandedDescription.lowercased(), "sqlite error 19: foreign key constraint failed - while executing `insert into pets (masterid, name) values (1, 'bobby')`")
             }
         }
     }
