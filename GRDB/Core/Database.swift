@@ -1714,7 +1714,37 @@ extension Database {
         /// An event reported by `TracingOptions.profile`.
         case profile(statement: Statement, duration: TimeInterval)
         
+        /// The trace event description.
+        ///
+        /// For example:
+        ///
+        ///     SELECT * FROM player WHERE id = ?
+        ///     0.1s SELECT * FROM player WHERE id = ?
+        ///
+        /// The format of the event description may change between GRDB releases,
+        /// without notice: don't have your application rely on any specific format.
         public var description: String {
+            // TODO: consider including arguments depending on database configuration,
+            // for easy verbose debugging when the database does not contain sensitive information.
+            switch self {
+            case let .statement(statement):
+                return statement.sql
+            case let .profile(statement: statement, duration: duration):
+                let durationString = String(format: "%.3f", duration)
+                return "\(durationString)s \(statement.sql)"
+            }
+        }
+        
+        /// The trace event description, where bound parameters are expanded.
+        ///
+        /// For example:
+        ///
+        ///     SELECT * FROM player WHERE id = 1
+        ///     0.1s SELECT * FROM player WHERE id = 1
+        ///
+        /// The format of the event description may change between GRDB releases,
+        /// without notice: don't have your application rely on any specific format.
+        public var expandedDescription: String {
             switch self {
             case let .statement(statement):
                 return statement.expandedSQL

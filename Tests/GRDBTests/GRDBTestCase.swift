@@ -105,7 +105,7 @@ class GRDBTestCase: XCTestCase {
         
         dbConfiguration.prepareDatabase { db in
             db.trace { event in
-                self.sqlQueries.append(event.description)
+                self.sqlQueries.append(event.expandedDescription)
             }
             
             #if GRDBCIPHER_USE_ENCRYPTION
