@@ -589,7 +589,8 @@ extension Database {
             resultCode: resultCode,
             message: lastErrorMessage,
             sql: statement.sql,
-            arguments: statement.arguments)
+            arguments: statement.arguments,
+            publicStatementArguments: configuration.publicStatementArguments)
     }
 }
 

@@ -102,6 +102,65 @@ public struct Configuration {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var observesSuspensionNotifications = false
     
+    /// If false (the default), statement arguments are not visible in the
+    /// description of database errors and trace events, preventing sensitive
+    /// information from leaking in unexpected places.
+    ///
+    /// For example:
+    ///
+    ///     // Error: sensitive information is not printed when an error occurs:
+    ///     do {
+    ///         let email = "..." // sensitive information
+    ///         let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     } catch {
+    ///         print(error)
+    ///     }
+    ///
+    ///     // Trace: sensitive information is not printed when a statement is traced:
+    ///     db.trace { event in
+    ///         print(event)
+    ///     }
+    ///     let email = "..." // sensitive information
+    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///
+    /// For debugging purpose, you can set this flag to true, and get more
+    /// precise database reports. It is not recommended to do so in
+    /// release builds:
+    ///
+    ///     var config = Configuration()
+    ///     #if DEBUG
+    ///     config.publicStatementArguments = true
+    ///     #endif
+    ///
+    ///     // The descriptions of trace events and errors now contain the
+    ///     // sensitive information:
+    ///     db.trace { event in
+    ///         print(event)
+    ///     }
+    ///     do {
+    ///         let email = "..."
+    ///         let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     } catch {
+    ///         print(error)
+    ///     }
+    ///
+    /// Regardless of this flag, you can explicitly ask to see the
+    /// statement arguments with the `expandedDescription` property of database
+    /// errors and trace events:
+    ///
+    ///     // The expanded descriptions of trace events and errors always
+    ///     // contain the sensitive information:
+    ///     db.trace { event in
+    ///         print(event.expandedDescription)
+    ///     }
+    ///     do {
+    ///         let email = "..."
+    ///         let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     } catch let error as DatabaseError {
+    ///         print(error.expandedDescription)
+    ///     }
+    public var publicStatementArguments = false
+    
     // MARK: - Managing SQLite Connections
     
     private var setups: [(Database) throws -> Void] = []

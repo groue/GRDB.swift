@@ -241,17 +241,46 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     /// The query arguments that yielded the error (if relevant).
     public let arguments: StatementArguments?
     
-    /// Creates a Database Error
+    /// See Configuration.publicStatementArguments
+    var publicStatementArguments: Bool
+    
+    /// Creates a DatabaseError.
+    ///
+    /// - parameters:
+    ///     - resultCode: A ResultCode (defaults to .SQLITE_ERROR).
+    ///     - message: An eventual error message. If nil, the error message is
+    ///       derived from the result code.
+    ///     - sql: An eventual SQL string.
+    ///     - arguments: Eventual Statement arguments.
+    ///     - publicStatementArguments: If false (the default), statement
+    ///       arguments are not visible in the error's `description` property.
     public init(
         resultCode: ResultCode = .SQLITE_ERROR,
         message: String? = nil,
         sql: String? = nil,
-        arguments: StatementArguments? = nil)
+        arguments: StatementArguments?,
+        publicStatementArguments: Bool = false)
     {
         self.extendedResultCode = resultCode
         self.message = message ?? resultCode.errorString
         self.sql = sql
         self.arguments = arguments
+        self.publicStatementArguments = publicStatementArguments
+    }
+    
+    /// Creates a DatabaseError.
+    ///
+    /// - parameters:
+    ///     - resultCode: A ResultCode (defaults to .SQLITE_ERROR).
+    ///     - message: An eventual error message. If nil, the error message is
+    ///       derived from the result code.
+    ///     - sql: An eventual SQL string.
+    public init(
+        resultCode: ResultCode = .SQLITE_ERROR,
+        message: String? = nil,
+        sql: String? = nil)
+    {
+        self.init(resultCode: resultCode, message: message, sql: sql, arguments: nil, publicStatementArguments: false)
     }
     
     /// Creates a Database Error with a raw CInt result code.
@@ -259,10 +288,33 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     /// This initializer is not public because library user is not supposed to
     /// be exposed to raw result codes.
     @usableFromInline
-    init(resultCode: CInt, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
-        self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
+    init(resultCode: CInt, message: String? = nil, sql: String? = nil) {
+        self.init(
+            resultCode: ResultCode(rawValue: resultCode),
+            message: message,
+            sql: sql)
     }
     
+    /// Creates a Database Error with a raw CInt result code.
+    ///
+    /// This initializer is not public because library user is not supposed to
+    /// be exposed to raw result codes.
+    @usableFromInline
+    init(
+        resultCode: CInt,
+        message: String? = nil,
+        sql: String? = nil,
+        arguments: StatementArguments?,
+        publicStatementArguments: Bool)
+    {
+        self.init(
+            resultCode: ResultCode(rawValue: resultCode),
+            message: message,
+            sql: sql,
+            arguments: arguments,
+            publicStatementArguments: publicStatementArguments)
+    }
+
     static func noSuchTable(_ tableName: String) -> Self {
         DatabaseError(message: "no such table: \(tableName)")
     }
@@ -421,8 +473,9 @@ extension DatabaseError {
         if let sql = sql {
             description += " - while executing `\(sql)`"
         }
-        // TODO: consider including arguments depending on database configuration,
-        // for easy verbose debugging when the database does not contain sensitive information.
+        if publicStatementArguments, let arguments = arguments, !arguments.isEmpty {
+            description += " with arguments \(arguments)"
+        }
         return description
     }
     

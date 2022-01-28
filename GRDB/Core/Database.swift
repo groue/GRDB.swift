@@ -713,7 +713,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                     impl: .trace_v2(
                         sqliteStatement: OpaquePointer(sqliteStatement),
                         unexpandedSQL: UnsafePointer(unexpandedSQL.assumingMemoryBound(to: CChar.self)),
-                        sqlite3_expanded_sql: sqlite3_expanded_sql))
+                        sqlite3_expanded_sql: sqlite3_expanded_sql),
+                    publicStatementArguments: configuration.publicStatementArguments)
                 trace(TraceEvent.statement(statement))
             }
         case SQLITE_TRACE_PROFILE:
@@ -722,7 +723,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                     impl: .trace_v2(
                         sqliteStatement: OpaquePointer(sqliteStatement),
                         unexpandedSQL: nil,
-                        sqlite3_expanded_sql: sqlite3_expanded_sql))
+                        sqlite3_expanded_sql: sqlite3_expanded_sql),
+                    publicStatementArguments: configuration.publicStatementArguments)
                 let duration = TimeInterval(durationP.pointee) / 1.0e9
                 
                 #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
@@ -897,7 +899,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 resultCode: .SQLITE_ABORT,
                 message: "Database is suspended",
                 sql: statement.sql,
-                arguments: statement.arguments)
+                arguments: statement.arguments,
+                publicStatementArguments: configuration.publicStatementArguments)
         }
     }
     
@@ -930,7 +933,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 resultCode: .SQLITE_ABORT,
                 message: "Transaction was aborted",
                 sql: sql(),
-                arguments: arguments())
+                arguments: arguments(),
+                publicStatementArguments: configuration.publicStatementArguments)
         }
     }
     
@@ -1650,7 +1654,10 @@ extension Database {
                         unexpandedSQL: UnsafePointer<CChar>?,
                         sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
             }
-            let impl: Impl
+            var impl: Impl
+            
+            /// See Configuration.publicStatementArguments
+            var publicStatementArguments: Bool
             
             #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
             /// The executed SQL, where bound parameters are not expanded.
@@ -1724,14 +1731,20 @@ extension Database {
         /// The format of the event description may change between GRDB releases,
         /// without notice: don't have your application rely on any specific format.
         public var description: String {
-            // TODO: consider including arguments depending on database configuration,
-            // for easy verbose debugging when the database does not contain sensitive information.
             switch self {
             case let .statement(statement):
-                return statement.sql
+                if statement.publicStatementArguments {
+                    return statement.expandedSQL
+                } else {
+                    return statement.sql
+                }
             case let .profile(statement: statement, duration: duration):
                 let durationString = String(format: "%.3f", duration)
-                return "\(durationString)s \(statement.sql)"
+                if statement.publicStatementArguments {
+                    return "\(durationString)s \(statement.expandedSQL)"
+                } else {
+                    return "\(durationString)s \(statement.sql)"
+                }
             }
         }
         
