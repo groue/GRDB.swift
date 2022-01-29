@@ -267,7 +267,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
         self.arguments = arguments
         self.publicStatementArguments = publicStatementArguments
     }
-
+    
     /// Creates a Database Error with a raw CInt result code.
     ///
     /// This initializer is not public because library user is not supposed to
@@ -299,7 +299,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
             arguments: arguments,
             publicStatementArguments: publicStatementArguments)
     }
-
+    
     static func noSuchTable(_ tableName: String) -> Self {
         DatabaseError(message: "no such table: \(tableName)")
     }

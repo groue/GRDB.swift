@@ -7393,7 +7393,7 @@ do {
 }
 ```
 
-By default, the `error.description` property does output the statement arguments. See [Database Configuration](#database-configuration) for a more verbose output.
+If you want to see statement arguments in the error description, [make statement arguments public](#database-configuration).
 
 **SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
