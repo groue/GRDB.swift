@@ -90,6 +90,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **Fixed**: Fixed a bug of `including(all:)` for composite foreign keys and limited requests.
 - **New**: [#1160](https://github.com/groue/GRDB.swift/pull/1160) by [@groue](https://github.com/groue): Hide statement arguments by default.
+- **New**: [#1161](https://github.com/groue/GRDB.swift/pull/1160) by [@groue](https://github.com/groue): Target DispatchQueue for non-read-only database connections.
 - **Documentation Update**: The [Database Configuration](README.md#database-configuration) chapter explains how to opt in for public statement arguments in DEBUG builds.
 
 
