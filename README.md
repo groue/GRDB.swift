@@ -580,7 +580,7 @@ let dbQueue = try DatabaseQueue( // or DatabasePool
     configuration: config)
 ```
 
-In debug builds, you can increase the verbosity of [error descriptions](#databaseerror) and [trace events](#how-do-i-print-a-request-as-sql) if you opt in for public statement arguments. :warning: It is your responsibility to prevent sensitive information from leaking in unexpected locations, so you should not set this flag in release builds (think about GDPR and other privacy-related rules):
+In debug builds, you can increase the verbosity of [error descriptions](#databaseerror) and [trace events](#how-do-i-print-a-request-as-sql) if you opt in for public statement arguments:
 
 ```swift
 #if DEBUG
@@ -603,6 +603,10 @@ do {
     print(error)
 }
 ```
+
+> :warning: **Warning**: It is your responsibility to prevent sensitive information from leaking in unexpected locations, so you should not set the `publicStatementArguments` flag in release builds (think about GDPR and other privacy-related rules).
+>
+> :warning: **Warning**: The SQLite version that ships with old operating systems (prior to OSX 10.12, tvOS 10.0, and watchOS 3.0) output statement arguments in the [trace events](#how-do-i-print-a-request-as-sql), regardless of the `publicStatementArguments` flag.
 
 See [Configuration](http://groue.github.io/GRDB.swift/docs/5.19/Structs/Configuration.html) for more details and configuration options.
 
