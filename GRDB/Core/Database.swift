@@ -1664,7 +1664,7 @@ extension Database {
             ///
             /// For example:
             ///
-            ///     UPDATE player SET score = ? WHERE id = ?
+            ///     SELECT * FROM player WHERE email = ?
             public var sql: String { _sql }
             #elseif os(Linux)
             #else
@@ -1672,7 +1672,7 @@ extension Database {
             ///
             /// For example:
             ///
-            ///     UPDATE player SET score = ? WHERE id = ?
+            ///     SELECT * FROM player WHERE email = ?
             @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
             public var sql: String { _sql }
             #endif
@@ -1680,8 +1680,8 @@ extension Database {
             var _sql: String {
                 switch impl {
                 case .trace_v1:
-                    // Likely a GRDB bug
-                    fatalError("Not get statement SQL")
+                    // Likely a GRDB bug: this api is not supposed to be available
+                    fatalError("Unavailable statement SQL")
                     
                 case let .trace_v2(sqliteStatement, unexpandedSQL, _):
                     if let unexpandedSQL = unexpandedSQL {
@@ -1698,7 +1698,11 @@ extension Database {
             ///
             /// For example:
             ///
-            ///     UPDATE player SET score = 1000 WHERE id = 1
+            ///     SELECT * FROM player WHERE email = 'arthur@example.com'
+            ///
+            /// - warning: It is your responsibility to prevent sensitive
+            ///   information from leaking in unexpected locations, so use this
+            ///   property with care.
             public var expandedSQL: String {
                 switch impl {
                 case let .trace_v1(expandedSQL):
@@ -1725,8 +1729,8 @@ extension Database {
         ///
         /// For example:
         ///
-        ///     SELECT * FROM player WHERE id = ?
-        ///     0.1s SELECT * FROM player WHERE id = ?
+        ///     SELECT * FROM player WHERE email = ?
+        ///     0.1s SELECT * FROM player WHERE email = ?
         ///
         /// The format of the event description may change between GRDB releases,
         /// without notice: don't have your application rely on any specific format.
@@ -1752,11 +1756,15 @@ extension Database {
         ///
         /// For example:
         ///
-        ///     SELECT * FROM player WHERE id = 1
-        ///     0.1s SELECT * FROM player WHERE id = 1
+        ///     SELECT * FROM player WHERE email = 'arthur@example.com'
+        ///     0.1s SELECT * FROM player WHERE email = 'arthur@example.com'
         ///
         /// The format of the event description may change between GRDB releases,
         /// without notice: don't have your application rely on any specific format.
+        ///
+        /// - warning: It is your responsibility to prevent sensitive
+        ///   information from leaking in unexpected locations, so use this
+        ///   property with care.
         public var expandedDescription: String {
             switch self {
             case let .statement(statement):

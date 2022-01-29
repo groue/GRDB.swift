@@ -460,8 +460,8 @@ extension DatabaseError {
     ///
     /// For example:
     ///
-    ///     SQLite error 19: FOREIGN KEY constraint failed - while executing
-    ///     `INSERT INTO pets (masterId, name) VALUES (?, ?)`
+    ///     SQLite error 19: NOT NULL constraint failed: player.score
+    ///     - while executing `UPDATE player SET score = ? WHERE email = ?
     ///
     /// The format of the error description may change between GRDB releases,
     /// without notice: don't have your application rely on any specific format.
@@ -483,12 +483,16 @@ extension DatabaseError {
     ///
     /// For example:
     ///
-    ///     SQLite error 19: FOREIGN KEY constraint failed - while executing
-    ///     `INSERT INTO pets (masterId, name) VALUES (?, ?)`
-    ///     with arguments [1, "Bobby"]
+    ///     SQLite error 19: NOT NULL constraint failed: player.score
+    ///     - while executing `UPDATE player SET score = ? WHERE email = ?
+    ///     with arguments [nil, "arthur@example.com"]
     ///
     /// The format of the error description may change between GRDB releases,
     /// without notice: don't have your application rely on any specific format.
+    ///
+    /// - warning: It is your responsibility to prevent sensitive
+    ///   information from leaking in unexpected locations, so use this
+    ///   property with care.
     public var expandedDescription: String {
         var description = "SQLite error \(resultCode.rawValue)"
         if let message = message {

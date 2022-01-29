@@ -7842,13 +7842,12 @@ You can compile the request into a prepared statement:
 try dbQueue.read { db in
     let request = Player.filter(Column("email") == "arthur@example.com")
     let statement = try request.makePreparedRequest(db).statement
-    print(statement) // SQL: SELECT * FROM player WHERE email = ?, Arguments: ["O'Brien"]
+    print(statement) // SELECT * FROM player WHERE email = ?
+    print(statement.arguments) // ["arthur@example.com"]
 }
 ```
 
-> :warning: **Warning**: The description of prepared statements contains statement arguments. It is your responsibility to prevent sensitive information from leaking in unexpected locations: most apps should prefer tracing, described below.
-
-A tracing function prints out the executed SQL requests. For example, provide a tracing function when you connect to the database:
+Another option is to setup a tracing function that prints out the executed SQL requests. For example, provide a tracing function when you connect to the database:
 
 ```swift
 // Prints all SQL statements
@@ -7859,26 +7858,12 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
+    // Prints "SELECT * FROM player WHERE email = ?"
     let players = try Player.filter(Column("email") == "arthur@example.com").fetchAll(db)
-    // Prints "SELECT * FROM player WHERE email = ?"
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration), or adapt the tracing function as below (but mind that it is your responsibility to prevent sensitive information from leaking in unexpected locations):
-
-```swift
-db.trace { event in
-    #if DEBUG
-    // Protect sensitive information by enabling verbose output in DEBUG builds only
-    // Prints "SELECT * FROM player WHERE email = 'arthur@example.com'"
-    print(event.expandedDescription)
-    #else
-    // In release builds, never print statement arguments.
-    // Prints "SELECT * FROM player WHERE email = ?"
-    print(event)
-    #endif
-}
-```
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration).
 
 > :point_up: **Note**: the generated SQL may change between GRDB releases, without notice: don't have your application rely on any specific SQL output.
 
@@ -7915,29 +7900,7 @@ try dbQueue.read { db in
 }
 ```
 
-If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration), or adapt the tracing function as below (but mind that it is your responsibility to prevent sensitive information from leaking in unexpected locations):
-
-```swift
-db.trace(options: .profile) { event in
-    #if DEBUG
-    // Protect sensitive information by enabling verbose output in DEBUG builds only
-    // Prints "0.003s SELECT * FROM player WHERE email = 'arthur@example.com'"
-    print(event.expandedDescription)
-    if case let .profile(statement, duration) = event, duration > 0.5 {
-        // Prints "Slow query: SELECT * FROM player WHERE email = 'arthur@example.com'"
-        print("Slow query: \(statement.expandedSQL)")
-    }
-    #else
-    // In release builds, never print statement arguments.
-    // Prints "0.003s SELECT * FROM player WHERE email = ?"
-    print(event)
-    if case let .profile(statement, duration) = event, duration > 0.5 {
-        // Prints "Slow query: SELECT * FROM player WHERE email = ?"
-        print("Slow query: \(statement.sql)")
-    }
-    #endif
-}
-```
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration).
 
 ### What Are Experimental Features?
 

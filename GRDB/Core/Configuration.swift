@@ -124,11 +124,14 @@ public struct Configuration {
     ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
     ///
     /// For debugging purpose, you can set this flag to true, and get more
-    /// precise database reports. It is not recommended to do so in
-    /// release builds:
+    /// precise database reports. It is your responsibility to prevent sensitive
+    /// information from leaking in unexpected locations, so you should not set
+    /// this flag in release builds (think about GDPR and other
+    /// privacy-related rules):
     ///
     ///     var config = Configuration()
     ///     #if DEBUG
+    ///     // Protect sensitive information by enabling verbose debugging in DEBUG builds only
     ///     config.publicStatementArguments = true
     ///     #endif
     ///
@@ -142,22 +145,6 @@ public struct Configuration {
     ///         let player = try Player.filter(Column("email") == email).fetchOne(db)
     ///     } catch {
     ///         print(error)
-    ///     }
-    ///
-    /// Regardless of this flag, you can explicitly ask to see the
-    /// statement arguments with the `expandedDescription` property of database
-    /// errors and trace events:
-    ///
-    ///     // The expanded descriptions of trace events and errors always
-    ///     // contain the sensitive information:
-    ///     db.trace { event in
-    ///         print(event.expandedDescription)
-    ///     }
-    ///     do {
-    ///         let email = "..."
-    ///         let player = try Player.filter(Column("email") == email).fetchOne(db)
-    ///     } catch let error as DatabaseError {
-    ///         print(error.expandedDescription)
     ///     }
     public var publicStatementArguments = false
     
