@@ -258,7 +258,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
         resultCode: ResultCode = .SQLITE_ERROR,
         message: String? = nil,
         sql: String? = nil,
-        arguments: StatementArguments?,
+        arguments: StatementArguments? = nil,
         publicStatementArguments: Bool = false)
     {
         self.extendedResultCode = resultCode
@@ -267,22 +267,7 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
         self.arguments = arguments
         self.publicStatementArguments = publicStatementArguments
     }
-    
-    /// Creates a DatabaseError.
-    ///
-    /// - parameters:
-    ///     - resultCode: A ResultCode (defaults to .SQLITE_ERROR).
-    ///     - message: An eventual error message. If nil, the error message is
-    ///       derived from the result code.
-    ///     - sql: An eventual SQL string.
-    public init(
-        resultCode: ResultCode = .SQLITE_ERROR,
-        message: String? = nil,
-        sql: String? = nil)
-    {
-        self.init(resultCode: resultCode, message: message, sql: sql, arguments: nil, publicStatementArguments: false)
-    }
-    
+
     /// Creates a Database Error with a raw CInt result code.
     ///
     /// This initializer is not public because library user is not supposed to
