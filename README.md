@@ -496,23 +496,9 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 
 **A database queue needs your application to follow rules in order to deliver its safety guarantees.** Please refer to the [Concurrency] guide.
 
-> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS.
+See [Database Configuration] for DatabaseQueue options.
 
-
-### DatabaseQueue Configuration
-
-```swift
-var config = Configuration()
-config.readonly = true
-config.foreignKeysEnabled = true // Default is already true
-config.label = "MyDatabase"      // Useful when your app opens multiple databases
-
-let dbQueue = try DatabaseQueue(
-    path: "/path/to/database.sqlite",
-    configuration: config)
-```
-
-See [Configuration](http://groue.github.io/GRDB.swift/docs/5.19/Structs/Configuration.html) for more details.
+> :bulb: **Tip**: see the [Demo Applications] for sample code.
 
 
 ## Database Pools
@@ -561,7 +547,7 @@ let newPlaceCount = try dbPool.write { db -> Int in
 
 - When you don't need to modify the database, prefer the `read` method, because several threads can perform reads in parallel.
     
-    Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#databasepool-configuration).
+    Reads are generally non-blocking, unless the maximum number of concurrent reads has been reached. In this case, a read has to wait for another read to complete. That maximum number can be [configured](#database-configuration).
 
 - Reads are guaranteed an immutable view of the last committed state of the database, regardless of concurrent writes. This kind of isolation is called [snapshot isolation](https://sqlite.org/isolation.html).
 
@@ -575,27 +561,50 @@ let newPlaceCount = try dbPool.write { db -> Int in
 
 **A database pool needs your application to follow rules in order to deliver its safety guarantees.** See the [Concurrency] guide for more details about database pools, how they differ from database queues, and advanced use cases.
 
-> :bulb: **Tip**: see the [Demo Applications] for sample code that sets up a database queue on iOS, and just replace DatabaseQueue with DatabasePool.
+See [Database Configuration] for DatabasePool options.
+
+> :bulb: **Tip**: see the [Demo Applications] for sample code.
 
 
-### DatabasePool Configuration
+## Database Configuration
 
 ```swift
 var config = Configuration()
 config.readonly = true
 config.foreignKeysEnabled = true // Default is already true
 config.label = "MyDatabase"      // Useful when your app opens multiple databases
-config.maximumReaderCount = 10   // The default is 5
+config.maximumReaderCount = 10   // (DatabasePool only) The default is 5
 
-let dbPool = try DatabasePool(
+let dbQueue = try DatabaseQueue( // or DatabasePool
     path: "/path/to/database.sqlite",
     configuration: config)
 ```
 
-See [Configuration](http://groue.github.io/GRDB.swift/docs/5.19/Structs/Configuration.html) for more details.
+In debug builds, you can increase the verbosity of [error descriptions](#databaseerror) and [trace events](#how-do-i-print-a-request-as-sql) if you opt in for public statement arguments. :warning: It is your responsibility to prevent sensitive information from leaking in unexpected locations, so you should not set this flag in release builds (think about GDPR and other privacy-related rules):
 
+```swift
+#if DEBUG
+// Protect sensitive information by enabling verbose debugging in DEBUG builds only
+config.publicStatementArguments = true
+#endif
 
-Database pools are more memory-hungry than database queues. See [Memory Management](#memory-management) for more information.
+let dbQueue = try DatabaseQueue(path: ..., configuration: config)
+
+do {
+    try dbQueue.write { db in
+        user.name = ...
+        user.location = ...
+        user.address = ...
+        user.phoneNumber = ...
+        try user.save(db)
+    }
+} catch {
+    // Prints sensitive information in debug builds only
+    print(error)
+}
+```
+
+See [Configuration](http://groue.github.io/GRDB.swift/docs/5.19/Structs/Configuration.html) for more details and configuration options.
 
 
 SQLite API
@@ -7377,12 +7386,14 @@ do {
     // [1, "Bobby"]
     error.arguments
     
-    // Full error description:
-    // "SQLite error 19 with statement `INSERT INTO pet (masterId, name)
-    //  VALUES (?, ?)` arguments [1, "Bobby"]: FOREIGN KEY constraint failed""
+    // Full error description
+    // > SQLite error 19: FOREIGN KEY constraint failed -
+    // > while executing `INSERT INTO pet (masterId, name) VALUES (?, ?)`
     error.description
 }
 ```
+
+By default, the `error.description` property does output the statement arguments. See [Database Configuration](#database-configuration) for a more verbose output.
 
 **SQLite uses [results codes](https://www.sqlite.org/rescode.html) to distinguish between various errors**.
 
@@ -7829,13 +7840,15 @@ You can compile the request into a prepared statement:
 
 ```swift
 try dbQueue.read { db in
-    let request = Player.filter(Column("name") == "O'Brien")
+    let request = Player.filter(Column("email") == "arthur@example.com")
     let statement = try request.makePreparedRequest(db).statement
-    print(statement) // SQL: SELECT * FROM player WHERE name = ?, Arguments: ["O'Brien"]
+    print(statement) // SQL: SELECT * FROM player WHERE email = ?, Arguments: ["O'Brien"]
 }
 ```
 
-Another option is to setup a tracing function that prints out the executed SQL requests. For example, provide a tracing function when you connect to the database:
+> :warning: **Warning**: The description of prepared statements contains statement arguments. It is your responsibility to prevent sensitive information from leaking in unexpected locations: most apps should prefer tracing, described below.
+
+A tracing function prints out the executed SQL requests. For example, provide a tracing function when you connect to the database:
 
 ```swift
 // Prints all SQL statements
@@ -7846,19 +7859,24 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
-    let players = try Player.filter(Column("name") == "O'Brien").fetchAll(db)
-    // Prints SELECT * FROM player WHERE name = 'O''Brien'
+    let players = try Player.filter(Column("email") == "arthur@example.com").fetchAll(db)
+    // Prints "SELECT * FROM player WHERE email = ?"
 }
 ```
 
-If you want to hide values such as `'O''Brien'` from the logged statements, adapt the tracing function as below:
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration), or adapt the tracing function as below (but mind that it is your responsibility to prevent sensitive information from leaking in unexpected locations):
 
 ```swift
 db.trace { event in
-    if case let .statement(statement) = event {
-        // Prints SELECT * FROM player WHERE name = ?
-        print(statement.sql)
-    }
+    #if DEBUG
+    // Protect sensitive information by enabling verbose output in DEBUG builds only
+    // Prints "SELECT * FROM player WHERE email = 'arthur@example.com'"
+    print(event.expandedDescription)
+    #else
+    // In release builds, never print statement arguments.
+    // Prints "SELECT * FROM player WHERE email = ?"
+    print(event)
+    #endif
 }
 ```
 
@@ -7892,8 +7910,32 @@ config.prepareDatabase { db in
 let dbQueue = try DatabaseQueue(path: dbPath, configuration: config)
 
 try dbQueue.read { db in
-    let players = try Player.filter(Column("name") == "O'Brien").fetchAll(db)
-    // Prints "0.003s SELECT * FROM player WHERE name = 'O''Brien'"
+    let players = try Player.filter(Column("email") == "arthur@example.com").fetchAll(db)
+    // Prints "0.003s SELECT * FROM player WHERE email = ?"
+}
+```
+
+If you want to see statement arguments such as `'arthur@example.com'` in the logged statements, [make statement arguments public](#database-configuration), or adapt the tracing function as below (but mind that it is your responsibility to prevent sensitive information from leaking in unexpected locations):
+
+```swift
+db.trace(options: .profile) { event in
+    #if DEBUG
+    // Protect sensitive information by enabling verbose output in DEBUG builds only
+    // Prints "0.003s SELECT * FROM player WHERE email = 'arthur@example.com'"
+    print(event.expandedDescription)
+    if case let .profile(statement, duration) = event, duration > 0.5 {
+        // Prints "Slow query: SELECT * FROM player WHERE email = 'arthur@example.com'"
+        print("Slow query: \(statement.expandedSQL)")
+    }
+    #else
+    // In release builds, never print statement arguments.
+    // Prints "0.003s SELECT * FROM player WHERE email = ?"
+    print(event)
+    if case let .profile(statement, duration) = event, duration > 0.5 {
+        // Prints "Slow query: SELECT * FROM player WHERE email = ?"
+        print("Slow query: \(statement.sql)")
+    }
+    #endif
 }
 ```
 
@@ -8398,3 +8440,4 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [SQL literal]: Documentation/SQLInterpolation.md#sql-literal
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
 [Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
+[Database Configuration]: #database-configuration
