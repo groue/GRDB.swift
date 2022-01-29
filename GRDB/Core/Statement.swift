@@ -382,9 +382,7 @@ public typealias SelectStatement = Statement
 public typealias UpdateStatement = Statement
 
 extension Statement: CustomStringConvertible {
-    public var description: String {
-        "SQL: \(sql), Arguments: \(arguments)"
-    }
+    public var description: String { sql }
 }
 
 // MARK: - Select Statements

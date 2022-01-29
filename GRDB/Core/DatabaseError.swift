@@ -241,17 +241,31 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     /// The query arguments that yielded the error (if relevant).
     public let arguments: StatementArguments?
     
-    /// Creates a Database Error
+    /// See Configuration.publicStatementArguments
+    var publicStatementArguments: Bool
+    
+    /// Creates a DatabaseError.
+    ///
+    /// - parameters:
+    ///     - resultCode: A ResultCode (defaults to .SQLITE_ERROR).
+    ///     - message: An eventual error message. If nil, the error message is
+    ///       derived from the result code.
+    ///     - sql: An eventual SQL string.
+    ///     - arguments: Eventual Statement arguments.
+    ///     - publicStatementArguments: If false (the default), statement
+    ///       arguments are not visible in the error's `description` property.
     public init(
         resultCode: ResultCode = .SQLITE_ERROR,
         message: String? = nil,
         sql: String? = nil,
-        arguments: StatementArguments? = nil)
+        arguments: StatementArguments? = nil,
+        publicStatementArguments: Bool = false)
     {
         self.extendedResultCode = resultCode
         self.message = message ?? resultCode.errorString
         self.sql = sql
         self.arguments = arguments
+        self.publicStatementArguments = publicStatementArguments
     }
     
     /// Creates a Database Error with a raw CInt result code.
@@ -259,8 +273,31 @@ public struct DatabaseError: Error, CustomStringConvertible, CustomNSError {
     /// This initializer is not public because library user is not supposed to
     /// be exposed to raw result codes.
     @usableFromInline
-    init(resultCode: CInt, message: String? = nil, sql: String? = nil, arguments: StatementArguments? = nil) {
-        self.init(resultCode: ResultCode(rawValue: resultCode), message: message, sql: sql, arguments: arguments)
+    init(resultCode: CInt, message: String? = nil, sql: String? = nil) {
+        self.init(
+            resultCode: ResultCode(rawValue: resultCode),
+            message: message,
+            sql: sql)
+    }
+    
+    /// Creates a Database Error with a raw CInt result code.
+    ///
+    /// This initializer is not public because library user is not supposed to
+    /// be exposed to raw result codes.
+    @usableFromInline
+    init(
+        resultCode: CInt,
+        message: String? = nil,
+        sql: String? = nil,
+        arguments: StatementArguments?,
+        publicStatementArguments: Bool)
+    {
+        self.init(
+            resultCode: ResultCode(rawValue: resultCode),
+            message: message,
+            sql: sql,
+            arguments: arguments,
+            publicStatementArguments: publicStatementArguments)
     }
     
     static func noSuchTable(_ tableName: String) -> Self {
@@ -404,8 +441,44 @@ extension DatabaseError {
 
 // CustomStringConvertible
 extension DatabaseError {
-    /// :nodoc:
+    /// The error description.
+    ///
+    /// For example:
+    ///
+    ///     SQLite error 19: NOT NULL constraint failed: player.score
+    ///     - while executing `UPDATE player SET score = ? WHERE email = ?
+    ///
+    /// The format of the error description may change between GRDB releases,
+    /// without notice: don't have your application rely on any specific format.
     public var description: String {
+        var description = "SQLite error \(resultCode.rawValue)"
+        if let message = message {
+            description += ": \(message)"
+        }
+        if let sql = sql {
+            description += " - while executing `\(sql)`"
+        }
+        if publicStatementArguments, let arguments = arguments, !arguments.isEmpty {
+            description += " with arguments \(arguments)"
+        }
+        return description
+    }
+    
+    /// The error description, where bound parameters, if present, are visible.
+    ///
+    /// For example:
+    ///
+    ///     SQLite error 19: NOT NULL constraint failed: player.score
+    ///     - while executing `UPDATE player SET score = ? WHERE email = ?
+    ///     with arguments [nil, "arthur@example.com"]
+    ///
+    /// The format of the error description may change between GRDB releases,
+    /// without notice: don't have your application rely on any specific format.
+    ///
+    /// - warning: It is your responsibility to prevent sensitive
+    ///   information from leaking in unexpected locations, so use this
+    ///   property with care.
+    public var expandedDescription: String {
         var description = "SQLite error \(resultCode.rawValue)"
         if let message = message {
             description += ": \(message)"

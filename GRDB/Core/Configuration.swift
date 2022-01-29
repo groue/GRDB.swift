@@ -102,6 +102,52 @@ public struct Configuration {
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
     public var observesSuspensionNotifications = false
     
+    /// If false (the default), statement arguments are not visible in the
+    /// description of database errors and trace events, preventing sensitive
+    /// information from leaking in unexpected places.
+    ///
+    /// For example:
+    ///
+    ///     // Error: sensitive information is not printed when an error occurs:
+    ///     do {
+    ///         let email = "..." // sensitive information
+    ///         let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     } catch {
+    ///         print(error)
+    ///     }
+    ///
+    ///     // Trace: sensitive information is not printed when a statement is traced:
+    ///     db.trace { event in
+    ///         print(event)
+    ///     }
+    ///     let email = "..." // sensitive information
+    ///     let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///
+    /// For debugging purpose, you can set this flag to true, and get more
+    /// precise database reports. It is your responsibility to prevent sensitive
+    /// information from leaking in unexpected locations, so you should not set
+    /// this flag in release builds (think about GDPR and other
+    /// privacy-related rules):
+    ///
+    ///     var config = Configuration()
+    ///     #if DEBUG
+    ///     // Protect sensitive information by enabling verbose debugging in DEBUG builds only
+    ///     config.publicStatementArguments = true
+    ///     #endif
+    ///
+    ///     // The descriptions of trace events and errors now contain the
+    ///     // sensitive information:
+    ///     db.trace { event in
+    ///         print(event)
+    ///     }
+    ///     do {
+    ///         let email = "..."
+    ///         let player = try Player.filter(Column("email") == email).fetchOne(db)
+    ///     } catch {
+    ///         print(error)
+    ///     }
+    public var publicStatementArguments = false
+    
     // MARK: - Managing SQLite Connections
     
     private var setups: [(Database) throws -> Void] = []
