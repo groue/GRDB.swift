@@ -382,7 +382,9 @@ public typealias SelectStatement = Statement
 public typealias UpdateStatement = Statement
 
 extension Statement: CustomStringConvertible {
-    public var description: String { sql }
+    public var description: String {
+        SchedulingWatchdog.allows(database) ? sql : "Statement"
+    }
 }
 
 // MARK: - Select Statements
