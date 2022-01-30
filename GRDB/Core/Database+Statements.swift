@@ -638,4 +638,8 @@ struct StatementCache {
     mutating func remove(_ statement: Statement) {
         statements.removeFirst { $0.value === statement }
     }
+    
+    mutating func clear(where isDeleted: (Statement) -> Bool) {
+        statements = statements.filter { (_, statement) in !isDeleted(statement) }
+    }
 }

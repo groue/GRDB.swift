@@ -14,12 +14,24 @@ extension Database {
         extent: TransactionObservationExtent = .observerLifetime)
     {
         SchedulingWatchdog.preconditionValidQueue(self)
+        
+        // Drop cached statements that delete, this the addition of an
+        // observer may change the need for truncate optimization prevention.
+        publicStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
+        internalStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
+        
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
     
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
+        
+        // Drop cached statements that delete, this the removal of an
+        // observer may change the need for truncate optimization prevention.
+        publicStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
+        internalStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
+        
         observationBroker.remove(transactionObserver: transactionObserver)
     }
     
@@ -884,6 +896,15 @@ public enum DatabaseEventKind {
             return DatabaseRegion.fullTable(tableName)
         case let .update(tableName, updatedColumnNames):
             return DatabaseRegion(table: tableName, columns: updatedColumnNames)
+        }
+    }
+    
+    /// Returns true iff this is a delete event.
+    var isDelete: Bool {
+        if case .delete = self {
+            return true
+        } else {
+            return false
         }
     }
 }
