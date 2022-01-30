@@ -15,7 +15,7 @@ extension Database {
     {
         SchedulingWatchdog.preconditionValidQueue(self)
         
-        // Drop cached statements that delete, this the addition of an
+        // Drop cached statements that delete, because the addition of an
         // observer may change the need for truncate optimization prevention.
         publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
         internalStatementCache.removeAll{ $0.databaseEventKinds.contains(where: \.isDelete) }
@@ -27,7 +27,7 @@ extension Database {
     public func remove(transactionObserver: TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
         
-        // Drop cached statements that delete, this the removal of an
+        // Drop cached statements that delete, because the removal of an
         // observer may change the need for truncate optimization prevention.
         publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
         internalStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
