@@ -857,7 +857,7 @@ extension DatabasePool: DatabaseReader {
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "ValueObservation")
             configuration
-                .makeDispatchQueue(label: label)
+                .makeReaderDispatchQueue(label: label)
                 .async { [weak self] in
                     guard let self = self else { return }
                     if observer.isCompleted { return }
