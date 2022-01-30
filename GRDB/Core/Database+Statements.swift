@@ -542,11 +542,9 @@ public class SQLStatementCursor: Cursor {
 }
 
 extension Database {
-    /// Returns the authorizer that should be used during statement execution
-    /// (this allows preventing the truncate optimization when there exists a
-    /// transaction observer for row deletion).
+    /// Makes sure statement can be executed, and prepares database observation.
     @usableFromInline
-    func statementWillExecute(_ statement: Statement) throws -> StatementAuthorizer? {
+    func statementWillExecute(_ statement: Statement) throws {
         // Two things must prevent the statement from executing: aborted
         // transactions, and database suspension.
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
