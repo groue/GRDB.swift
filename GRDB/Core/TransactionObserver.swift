@@ -17,8 +17,8 @@ extension Database {
         
         // Drop cached statements that delete, this the addition of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
-        internalStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
+        publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
+        internalStatementCache.removeAll{ $0.databaseEventKinds.contains(where: \.isDelete) }
         
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
@@ -29,8 +29,8 @@ extension Database {
         
         // Drop cached statements that delete, this the removal of an
         // observer may change the need for truncate optimization prevention.
-        publicStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
-        internalStatementCache.clear(where: { $0.databaseEventKinds.contains(where: \.isDelete) })
+        publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
+        internalStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
         
         observationBroker.remove(transactionObserver: transactionObserver)
     }
