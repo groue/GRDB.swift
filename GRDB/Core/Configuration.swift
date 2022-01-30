@@ -248,18 +248,28 @@ public struct Configuration {
     /// Default: .default
     public var qos: DispatchQoS = .default
     
-    /// The target queue for all database accesses.
+    /// A target queue for database accesses.
     ///
-    /// When you use a database pool, make sure the queue is concurrent. If
-    /// it is serial, no concurrent database access can happen, and you may
-    /// experience deadlocks.
+    /// Database connections which are not read-only will prefer
+    /// `writeTargetQueue` instead, if it is not nil.
+    ///
+    /// When you use a database pool, make sure this queue is concurrent. This
+    /// is because in a serial dispatch queue, no concurrent database access can
+    /// happen, and you may experience deadlocks.
     ///
     /// If the queue is nil, all database accesses happen in unspecified
-    /// dispatch queues whose quality of service and label are determined by the
-    /// `qos` and `label` Configuration properties.
+    /// dispatch queues whose quality of service is determined by the
+    /// `qos` property.
     ///
     /// Default: nil
     public var targetQueue: DispatchQueue? = nil
+    
+    /// The target queue for database connections which are not read-only.
+    ///
+    /// If this queue is nil, writer connections are controlled by `targetQueue`.
+    ///
+    /// Default: nil
+    public var writeTargetQueue: DispatchQueue? = nil
     
     // MARK: - Factory Configuration
     
@@ -287,7 +297,15 @@ public struct Configuration {
         (self.label ?? defaultLabel) + (purpose.map { "." + $0 } ?? "")
     }
     
-    func makeDispatchQueue(label: String) -> DispatchQueue {
+    func makeWriterDispatchQueue(label: String) -> DispatchQueue {
+        if let targetQueue = writeTargetQueue ?? targetQueue {
+            return DispatchQueue(label: label, target: targetQueue)
+        } else {
+            return DispatchQueue(label: label, qos: qos)
+        }
+    }
+    
+    func makeReaderDispatchQueue(label: String) -> DispatchQueue {
         if let targetQueue = targetQueue {
             return DispatchQueue(label: label, target: targetQueue)
         } else {

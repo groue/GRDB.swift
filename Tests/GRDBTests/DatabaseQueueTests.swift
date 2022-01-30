@@ -152,6 +152,59 @@ class DatabaseQueueTests: GRDBTestCase {
         waitForExpectations(timeout: 1, handler: nil)
     }
     
+    func testWriteTargetQueue() throws {
+        guard #available(OSX 10.12, tvOS 10.0, *) else {
+            throw XCTSkip("dispatchPrecondition(condition:) is not available")
+        }
+        
+        func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
+            dbConfiguration.targetQueue = targetQueue // unused
+            dbConfiguration.writeTargetQueue = writeTargetQueue
+            let dbQueue = try makeDatabaseQueue()
+            try dbQueue.write { _ in
+                dispatchPrecondition(condition: .onQueue(writeTargetQueue))
+            }
+            try dbQueue.read { _ in
+                dispatchPrecondition(condition: .onQueue(writeTargetQueue))
+            }
+        }
+        
+        // background queue
+        try test(targetQueue: .global(qos: .background), writeTargetQueue: DispatchQueue(label: "writer"))
+        
+        // main queue
+        let expectation = self.expectation(description: "main")
+        DispatchQueue.global(qos: .default).async {
+            try! test(targetQueue: .main, writeTargetQueue: .main)
+            expectation.fulfill()
+        }
+        waitForExpectations(timeout: 1, handler: nil)
+    }
+    
+    func testWriteTargetQueueReadOnly() throws {
+        guard #available(OSX 10.12, tvOS 10.0, *) else {
+            throw XCTSkip("dispatchPrecondition(condition:) is not available")
+        }
+        
+        // Create a database before we perform read-only accesses
+        _ = try makeDatabaseQueue(filename: "test")
+        
+        func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
+            dbConfiguration.readonly = true
+            dbConfiguration.targetQueue = targetQueue
+            dbConfiguration.writeTargetQueue = writeTargetQueue // unused
+            let dbQueue = try makeDatabaseQueue(filename: "test")
+            try dbQueue.write { _ in
+                dispatchPrecondition(condition: .onQueue(targetQueue))
+            }
+            try dbQueue.read { _ in
+                dispatchPrecondition(condition: .onQueue(targetQueue))
+            }
+        }
+        
+        try test(targetQueue: .global(qos: .background), writeTargetQueue: DispatchQueue(label: "writer"))
+    }
+
     func testQoS() throws {
         guard #available(OSX 10.12, tvOS 10.0, *) else {
             throw XCTSkip("dispatchPrecondition(condition:) is not available")

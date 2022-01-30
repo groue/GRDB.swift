@@ -47,7 +47,11 @@ final class SerializedDatabase {
             path: path,
             description: identifier,
             configuration: config)
-        self.queue = configuration.makeDispatchQueue(label: identifier)
+        if config.readonly {
+            self.queue = configuration.makeReaderDispatchQueue(label: identifier)
+        } else {
+            self.queue = configuration.makeWriterDispatchQueue(label: identifier)
+        }
         SchedulingWatchdog.allowDatabase(db, onQueue: queue)
         try queue.sync {
             do {

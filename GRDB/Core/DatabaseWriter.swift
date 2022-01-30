@@ -382,7 +382,7 @@ extension DatabaseWriter {
             observation: observation,
             writer: self,
             scheduler: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
+            reduceQueue: configuration.makeWriterDispatchQueue(label: reduceQueueLabel),
             onChange: onChange)
         
         if scheduler.immediateInitialValue() {
