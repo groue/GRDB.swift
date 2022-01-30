@@ -150,10 +150,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     lazy var internalStatementCache = StatementCache(database: self)
     lazy var publicStatementCache = StatementCache(database: self)
     
-    /// Statement authorizer. Use withAuthorizer(_:_:).
-    fileprivate var _authorizer: StatementAuthorizer?
-    
-    // Transaction observers management
+    // Database observation
+    lazy var authorizer = StatementAuthorizer(self)
     lazy var observationBroker = DatabaseObservationBroker(self)
     
     /// The list of compile options used when building SQLite
@@ -318,17 +316,16 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         //
         // - DatabaseCursorTests.testIssue583()
         // - http://sqlite.1065341.n5.nabble.com/Issue-report-sqlite3-set-authorizer-triggers-error-4-516-SQLITE-ABORT-ROLLBACK-during-statement-itern-td107972.html
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+        let authorizerP = Unmanaged.passUnretained(authorizer).toOpaque()
         sqlite3_set_authorizer(
             sqliteConnection,
-            { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
-                let db = Unmanaged<Database>.fromOpaque(dbPointer.unsafelyUnwrapped).takeUnretainedValue()
-                guard let authorizer = db._authorizer else {
-                    return SQLITE_OK
-                }
-                return authorizer.authorize(actionCode, cString1, cString2, cString3, cString4)
+            { (authorizerP, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
+                Unmanaged<StatementAuthorizer>
+                    .fromOpaque(authorizerP.unsafelyUnwrapped)
+                    .takeUnretainedValue()
+                    .authorize(actionCode, cString1, cString2, cString3, cString4)
             },
-            dbPointer)
+            authorizerP)
     }
     
     
@@ -580,17 +577,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         return cmp < 0
     }
     #endif
-    
-    // MARK: - Authorizer
-    
-    @usableFromInline
-    func withAuthorizer<T>(_ authorizer: StatementAuthorizer?, _ block: () throws -> T) rethrows -> T {
-        SchedulingWatchdog.preconditionValidQueue(self)
-        let old = self._authorizer
-        self._authorizer = authorizer
-        defer { self._authorizer = old }
-        return try block()
-    }
     
     // MARK: - Recording of the selected region
     

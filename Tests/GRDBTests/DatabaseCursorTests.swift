@@ -29,6 +29,52 @@ class DatabaseCursorTests: GRDBTestCase {
     }
 
     // TODO: this test should be duplicated for all cursor types
+    func testNextFollowedByForEach() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                let cursor = try Int.fetchCursor(db, sql: "SELECT 1")
+                XCTAssertEqual(try cursor.next()!,  1)
+                try cursor.forEach { _ in
+                    XCTFail("Cursor iteration should have ended")
+                }
+                XCTAssert(try cursor.next() == nil) // end
+            }
+            do {
+                let cursor = try Int.fetchCursor(db, sql: "SELECT 1 UNION SELECT 2")
+                XCTAssertEqual(try cursor.next()!,  1)
+                try cursor.forEach { i in
+                    XCTAssertEqual(i,  2)
+                }
+                XCTAssert(try cursor.next() == nil) // end
+            }
+            do {
+                let cursor = try Int.fetchCursor(db, sql: "SELECT 1 UNION SELECT 2 UNION SELECT 3")
+                XCTAssertEqual(try cursor.next()!,  1)
+                try XCTAssertEqual(Array(cursor), [2, 3])
+                XCTAssert(try cursor.next() == nil) // end
+            }
+            do {
+                struct Break: Error { }
+                let cursor = try Int.fetchCursor(db, sql: "SELECT 1 UNION SELECT 2 UNION SELECT 3")
+                try? cursor.forEach { i in
+                    XCTAssertEqual(i,  1)
+                    throw Break()
+                }
+                try? cursor.forEach { i in
+                    XCTAssertEqual(i,  2)
+                    throw Break()
+                }
+                try? cursor.forEach { i in
+                    XCTAssertEqual(i,  3)
+                    throw Break()
+                }
+                XCTAssert(try cursor.next() == nil) // end
+            }
+        }
+    }
+    
+    // TODO: this test should be duplicated for all cursor types
     func testStepError() throws {
         let dbQueue = try makeDatabaseQueue()
         let customError = NSError(domain: "Custom", code: 0xDEAD)

@@ -14,12 +14,24 @@ extension Database {
         extent: TransactionObservationExtent = .observerLifetime)
     {
         SchedulingWatchdog.preconditionValidQueue(self)
+        
+        // Drop cached statements that delete, because the addition of an
+        // observer may change the need for truncate optimization prevention.
+        publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
+        internalStatementCache.removeAll{ $0.databaseEventKinds.contains(where: \.isDelete) }
+        
         observationBroker.add(transactionObserver: transactionObserver, extent: extent)
     }
     
     /// Remove a transaction observer.
     public func remove(transactionObserver: TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
+        
+        // Drop cached statements that delete, because the removal of an
+        // observer may change the need for truncate optimization prevention.
+        publicStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
+        internalStatementCache.removeAll { $0.databaseEventKinds.contains(where: \.isDelete) }
+        
         observationBroker.remove(transactionObserver: transactionObserver)
     }
     
@@ -198,16 +210,17 @@ class DatabaseObservationBroker {
     
     // MARK: - Statement execution
     
-    /// Setups observation of changes that are about to be performed by the
-    /// statement, and returns the authorizer that should be used during
-    /// statement execution (this allows preventing the truncate optimization
-    /// when there exists a transaction observer for row deletion).
-    func statementWillExecute(_ statement: Statement) -> StatementAuthorizer? {
+    /// Returns true if there exists some transaction observers interested in
+    /// deletions in the given table.
+    func observesDeletions(on table: String) -> Bool {
+        transactionObservations.contains { observation in
+            observation.observes(eventsOfKind: .delete(tableName: table))
+        }
+    }
+    
+    /// Prepares observation of changes that are about to be performed by the statement.
+    func statementWillExecute(_ statement: Statement) {
         // If any observer observes row deletions, we'll have to disable
-        // [truncate optimization](https://www.sqlite.org/lang_delete.html#truncateopt)
-        // so that observers are notified.
-        var observesRowDeletion = false
-        
         if transactionObservations.isEmpty == false {
             // As statement executes, it may trigger database changes that will
             // be notified to transaction observers. As a consequence, observers
@@ -245,10 +258,6 @@ class DatabaseObservationBroker {
                         return nil
                     }
                     
-                    if case .delete = eventKind {
-                        observesRowDeletion = true
-                    }
-                    
                     // observation will be notified of all individual events
                     return (observation, DatabaseEventPredicate.true)
                 }
@@ -268,13 +277,6 @@ class DatabaseObservationBroker {
                         return nil
                     }
                     
-                    for eventKind in observedKinds {
-                        if case .delete = eventKind {
-                            observesRowDeletion = true
-                            break
-                        }
-                    }
-                    
                     // observation will only be notified of individual events that
                     // match one of the observed kinds.
                     return (
@@ -287,12 +289,6 @@ class DatabaseObservationBroker {
         }
         
         transactionState = .none
-        
-        if observesRowDeletion {
-            return TruncateOptimizationBlocker()
-        } else {
-            return nil
-        }
     }
     
     /// May throw a cancelled commit error, if a transaction observer cancels
@@ -900,6 +896,15 @@ public enum DatabaseEventKind {
             return DatabaseRegion.fullTable(tableName)
         case let .update(tableName, updatedColumnNames):
             return DatabaseRegion(table: tableName, columns: updatedColumnNames)
+        }
+    }
+    
+    /// Returns true iff this is a delete event.
+    var isDelete: Bool {
+        if case .delete = self {
+            return true
+        } else {
+            return false
         }
     }
 }
