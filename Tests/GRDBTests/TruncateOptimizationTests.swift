@@ -85,6 +85,53 @@ class TruncateOptimizationTests: GRDBTestCase {
         }
     }
     
+    func testExecuteDeleteCaseSensitivity() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        class DeletionObserver : TransactionObserver {
+            var deletionCount = 0
+            
+            func observes(eventsOfKind eventKind: DatabaseEventKind) -> Bool {
+                if case .delete(tableName: "pLaYeR") = eventKind {
+                    return true
+                } else {
+                    return false
+                }
+            }
+            
+            func databaseDidChange(with event: DatabaseEvent) {
+                if case .delete = event.kind {
+                    deletionCount += 1
+                }
+            }
+            
+            func databaseDidCommit(_ db: Database) { }
+            func databaseDidRollback(_ db: Database) { }
+        }
+
+        let observer = DeletionObserver()
+        dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+        
+        try dbQueue.writeWithoutTransaction { db in
+            observer.deletionCount = 0
+            try db.execute(sql: "CREATE TABLE pLaYeR(a)")
+            try db.execute(sql: "INSERT INTO pLaYeR VALUES (NULL)")
+            try db.execute(sql: "INSERT INTO pLaYeR VALUES (NULL)")
+            try db.execute(sql: "DELETE FROM pLaYeR")
+            XCTAssertEqual(observer.deletionCount, 2)
+            
+            observer.deletionCount = 0
+            try db.execute(sql: "INSERT INTO pLaYeR VALUES (NULL)")
+            try db.execute(sql: "DELETE FROM PLAYER")
+            XCTAssertEqual(observer.deletionCount, 1)
+            
+            observer.deletionCount = 0
+            try db.execute(sql: "INSERT INTO pLaYeR VALUES (NULL)")
+            try db.execute(sql: "DELETE FROM player")
+            XCTAssertEqual(observer.deletionCount, 1)
+        }
+    }
+    
     func testExecuteDeleteWithPreparedStatement() throws {
         let dbQueue = try makeDatabaseQueue()
         
