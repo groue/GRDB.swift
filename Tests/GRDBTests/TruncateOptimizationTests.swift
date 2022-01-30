@@ -111,6 +111,37 @@ class TruncateOptimizationTests: GRDBTestCase {
         }
     }
     
+    func testExecuteDeleteWithCachedPreparedStatement() throws {
+        let dbQueue = try makeDatabaseQueue()
+        
+        var deletionEvents: [[String: Int]] = []
+        
+        try dbQueue.writeWithoutTransaction { db in
+            try db.execute(sql: "CREATE TABLE t(a)")
+            try db.cachedStatement(sql: "DELETE FROM t").execute()
+            
+            // Start observing after statement has been cached: it does not
+            // prevent the truncate optimization.
+            let observer = DeletionObserver { deletionEvents.append($0) }
+            db.add(transactionObserver: observer, extent: .databaseLifetime)
+
+            try db.execute(sql: "INSERT INTO t VALUES (NULL)")
+            try db.execute(sql: "INSERT INTO t VALUES (NULL)")
+            deletionEvents = []
+            // This must be a recompiled statement, so that the truncate
+            // optimization is prevented.
+            try db.cachedStatement(sql: "DELETE FROM t").execute()
+            XCTAssertEqual(deletionEvents.count, 1)
+            XCTAssertEqual(deletionEvents[0], ["t": 2])
+            
+            try db.execute(sql: "INSERT INTO t VALUES (NULL)")
+            deletionEvents = []
+            try db.cachedStatement(sql: "DELETE FROM t").execute()
+            XCTAssertEqual(deletionEvents.count, 1)
+            XCTAssertEqual(deletionEvents[0], ["t": 1])
+        }
+    }
+    
     func testDropTable() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.writeWithoutTransaction { db in
