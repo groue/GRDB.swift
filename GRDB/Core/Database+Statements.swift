@@ -550,11 +550,13 @@ extension Database {
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
         try checkForSuspensionViolation(from: statement)
         
+        // Database observation: record what the statement is looking at.
         if _isRecordingSelectedRegion {
             _selectedRegion.formUnion(statement.databaseRegion)
         }
         
-        return observationBroker.statementWillExecute(statement)
+        // Database observation: prepare transaction observers.
+        observationBroker.statementWillExecute(statement)
     }
     
     /// May throw a cancelled commit error, if a transaction observer cancels
