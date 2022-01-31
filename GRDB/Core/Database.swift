@@ -161,8 +161,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// If true, select statement execution is recorded.
     /// Use recordingSelectedRegion(_:), see `statementWillExecute(_:)`
-    var _isRecordingSelectedRegion = false
-    var _selectedRegion = DatabaseRegion()
+    var isRecordingSelectedRegion = false
+    var selectedRegion = DatabaseRegion()
     
     /// Support for checkForAbortedTransaction()
     var isInsideTransactionBlock = false
@@ -585,17 +585,17 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             return try block()
         }
         
-        let oldFlag = self._isRecordingSelectedRegion
-        let oldRegion = self._selectedRegion
-        _isRecordingSelectedRegion = true
-        _selectedRegion = DatabaseRegion()
+        let oldFlag = self.isRecordingSelectedRegion
+        let oldRegion = self.selectedRegion
+        isRecordingSelectedRegion = true
+        selectedRegion = DatabaseRegion()
         defer {
-            region.formUnion(_selectedRegion)
-            _isRecordingSelectedRegion = oldFlag
-            if _isRecordingSelectedRegion {
-                _selectedRegion = oldRegion.union(_selectedRegion)
+            region.formUnion(selectedRegion)
+            isRecordingSelectedRegion = oldFlag
+            if isRecordingSelectedRegion {
+                selectedRegion = oldRegion.union(selectedRegion)
             } else {
-                _selectedRegion = oldRegion
+                selectedRegion = oldRegion
             }
         }
         return try block()
