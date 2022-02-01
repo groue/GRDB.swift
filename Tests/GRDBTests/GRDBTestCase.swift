@@ -258,3 +258,8 @@ public struct AnyValueReducer<Fetched, Value>: ValueReducer {
         __value(fetched)
     }
 }
+
+#if swift(>=5.5) && canImport(_Concurrency)
+// Assume this is correct :-/
+extension XCTestExpectation: @unchecked Sendable { }
+#endif

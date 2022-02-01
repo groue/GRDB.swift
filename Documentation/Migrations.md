@@ -268,13 +268,7 @@ while let violation = try violations.next() {
 
 ## Asynchronous Migrations
 
-`DatabaseMigrator` provides three ways to migrate a database in an asynchronous way.
-
-The async `migrate()` method:
-
-```swift
-try await migrator.migrate(dbQueue)
-```
+`DatabaseMigrator` provides the following ways to migrate a database in an asynchronous way.
 
 The `asyncMigrate(_:completion:)` method:
 

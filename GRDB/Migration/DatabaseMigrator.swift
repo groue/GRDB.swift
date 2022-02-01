@@ -3,6 +3,7 @@ import Combine
 #endif
 import Foundation
 
+// TODO: provide concurrent apis for migrations that run @Sendable closures.
 /// A DatabaseMigrator registers and applies database migrations.
 ///
 /// Migrations are named blocks of SQL statements that are guaranteed to be
@@ -196,7 +197,6 @@ public struct DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func migrate(_ writer: DatabaseWriter) throws {
         guard let lastMigration = _migrations.last else {
             return
@@ -204,25 +204,6 @@ public struct DatabaseMigrator {
         try migrate(writer, upTo: lastMigration.identifier)
     }
     
-    #if compiler(>=5.5.2) && canImport(_Concurrency)
-    /// Iterate migrations in the same order as they were registered. If a
-    /// migration has not yet been applied, its block is executed in
-    /// a transaction.
-    ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
-    ///   where migrations should apply.
-    /// - throws: An eventual error thrown by the registered migration blocks.
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migrate(_ writer: DatabaseWriter) async throws {
-        guard let lastMigration = _migrations.last else {
-            return
-        }
-        try await migrate(writer, upTo: lastMigration.identifier)
-    }
-    #endif
-    
     /// Iterate migrations in the same order as they were registered, up to the
     /// provided target. If a migration has not yet been applied, its block is
     /// executed in a transaction.
@@ -231,31 +212,11 @@ public struct DatabaseMigrator {
     ///   where migrations should apply.
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
             try migrate(db, upTo: targetIdentifier)
         }
     }
-    
-    #if compiler(>=5.5.2) && canImport(_Concurrency)
-    /// Iterate migrations in the same order as they were registered, up to the
-    /// provided target. If a migration has not yet been applied, its block is
-    /// executed in a transaction.
-    ///
-    /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
-    ///
-    /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
-    ///   where migrations should apply.
-    /// - parameter targetIdentifier: The identifier of a registered migration.
-    /// - throws: An eventual error thrown by the registered migration blocks.
-    @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) async throws {
-        try await writer.barrierWriteWithoutTransaction { [self] db in
-            try migrate(db, upTo: targetIdentifier)
-        }
-    }
-    #endif
     
     /// Iterate migrations in the same order as they were registered. If a
     /// migration has not yet been applied, its block is executed in

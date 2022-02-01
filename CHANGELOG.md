@@ -87,6 +87,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Breaking Change**: [#1164](https://github.com/groue/GRDB.swift/pull/1164) by [@groue](https://github.com/groue): Drop async apis from DatabaseMigrator
+
+
 ## 5.20.0
 
 Released February 1, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.19.0...v5.20.0)
