@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.20.x` Releases - [5.20.0](#5200)
 - `5.19.x` Releases - [5.19.0](#5190)
 - `5.18.x` Releases - [5.18.0](#5180)
 - `5.17.x` Releases - [5.17.0](#5170)
@@ -86,7 +87,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 5.20.0
+
+Released February 1, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.19.0...v5.20.0)
 
 - **Fixed**: Fixed a bug of `including(all:)` for composite foreign keys and limited requests.
 - **Fixed**: [#1162](https://github.com/groue/GRDB.swift/pull/1162) by [@groue](https://github.com/groue): Fix truncate optimization handling.
