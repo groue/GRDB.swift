@@ -11,8 +11,6 @@
 		560C98241C0E23BB00BF8471 /* PerformanceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56CA22211BB41565009A04C5 /* PerformanceTests.swift */; };
 		561C25912439C92D001227F2 /* SQLite in Frameworks */ = {isa = PBXBuildFile; productRef = 561C25902439C92D001227F2 /* SQLite */; };
 		561C25942439C942001227F2 /* FMDB in Frameworks */ = {isa = PBXBuildFile; productRef = 561C25932439C942001227F2 /* FMDB */; };
-		561C25972439CBC0001227F2 /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = 561C25962439CBC0001227F2 /* Realm */; };
-		561C25992439CBC0001227F2 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 561C25982439CBC0001227F2 /* RealmSwift */; };
 		56439B341F4CA1DC0066043F /* InsertRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56BB86121BA9886D001F9168 /* InsertRecordClassTests.swift */; };
 		56439B361F4CA1DC0066043F /* FetchRecordClassTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B2B1C41311900861EB8 /* FetchRecordClassTests.swift */; };
 		56439B381F4CA1DC0066043F /* FetchNamedValuesTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56DE7B271C41302500861EB8 /* FetchNamedValuesTests.swift */; };
@@ -31,6 +29,8 @@
 		5690AFD92120589A001530EA /* InsertRecordEncodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFD72120589A001530EA /* InsertRecordEncodableTests.swift */; };
 		5690AFDB212058CB001530EA /* FetchRecordDecodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFDA212058CB001530EA /* FetchRecordDecodableTests.swift */; };
 		5690AFDC212058CB001530EA /* FetchRecordDecodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5690AFDA212058CB001530EA /* FetchRecordDecodableTests.swift */; };
+		56A3FEA827A85F4800B0292E /* Realm in Frameworks */ = {isa = PBXBuildFile; productRef = 56A3FEA727A85F4800B0292E /* Realm */; };
+		56A3FEAA27A85F4800B0292E /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 56A3FEA927A85F4800B0292E /* RealmSwift */; };
 		56B6D0E52618BF78003CC455 /* FetchRecordOptimizedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D0E42618BF78003CC455 /* FetchRecordOptimizedTests.swift */; };
 		56B6D0E62618BF78003CC455 /* FetchRecordOptimizedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D0E42618BF78003CC455 /* FetchRecordOptimizedTests.swift */; };
 		56B6D0EA2618C00C003CC455 /* InsertRecordOptimizedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56B6D0E92618C00C003CC455 /* InsertRecordOptimizedTests.swift */; };
@@ -169,12 +169,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				561C25992439CBC0001227F2 /* RealmSwift in Frameworks */,
+				56A3FEAA27A85F4800B0292E /* RealmSwift in Frameworks */,
 				561C25912439C92D001227F2 /* SQLite in Frameworks */,
 				561C25942439C942001227F2 /* FMDB in Frameworks */,
 				5679870523A37A790076902D /* GRDB.framework in Frameworks */,
 				56439B431F4CA1DC0066043F /* CoreData.framework in Frameworks */,
-				561C25972439CBC0001227F2 /* Realm in Frameworks */,
+				56A3FEA827A85F4800B0292E /* Realm in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,8 +300,8 @@
 			packageProductDependencies = (
 				561C25902439C92D001227F2 /* SQLite */,
 				561C25932439C942001227F2 /* FMDB */,
-				561C25962439CBC0001227F2 /* Realm */,
-				561C25982439CBC0001227F2 /* RealmSwift */,
+				56A3FEA727A85F4800B0292E /* Realm */,
+				56A3FEA927A85F4800B0292E /* RealmSwift */,
 			);
 			productName = GRDBOSXTests;
 			productReference = 56439B501F4CA1DC0066043F /* GRDBOSXPerformanceComparisonTests.xctest */;
@@ -329,7 +329,7 @@
 			packageReferences = (
 				561C258F2439C92D001227F2 /* XCRemoteSwiftPackageReference "SQLite.swift" */,
 				561C25922439C942001227F2 /* XCRemoteSwiftPackageReference "fmdb" */,
-				561C25952439CBC0001227F2 /* XCRemoteSwiftPackageReference "realm-cocoa" */,
+				56A3FEA627A85F4800B0292E /* XCRemoteSwiftPackageReference "realm-swift" */,
 			);
 			productRefGroup = DC3773F419C8CBB3004FCF85 /* Products */;
 			projectDirPath = "";
@@ -733,12 +733,12 @@
 				minimumVersion = 2.7.0;
 			};
 		};
-		561C25952439CBC0001227F2 /* XCRemoteSwiftPackageReference "realm-cocoa" */ = {
+		56A3FEA627A85F4800B0292E /* XCRemoteSwiftPackageReference "realm-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/realm/realm-cocoa.git";
+			repositoryURL = "https://github.com/realm/realm-swift.git";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 10.5.0;
+				minimumVersion = 10.22.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -754,14 +754,14 @@
 			package = 561C25922439C942001227F2 /* XCRemoteSwiftPackageReference "fmdb" */;
 			productName = FMDB;
 		};
-		561C25962439CBC0001227F2 /* Realm */ = {
+		56A3FEA727A85F4800B0292E /* Realm */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 561C25952439CBC0001227F2 /* XCRemoteSwiftPackageReference "realm-cocoa" */;
+			package = 56A3FEA627A85F4800B0292E /* XCRemoteSwiftPackageReference "realm-swift" */;
 			productName = Realm;
 		};
-		561C25982439CBC0001227F2 /* RealmSwift */ = {
+		56A3FEA927A85F4800B0292E /* RealmSwift */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 561C25952439CBC0001227F2 /* XCRemoteSwiftPackageReference "realm-cocoa" */;
+			package = 56A3FEA627A85F4800B0292E /* XCRemoteSwiftPackageReference "realm-swift" */;
 			productName = RealmSwift;
 		};
 /* End XCSwiftPackageProductDependency section */

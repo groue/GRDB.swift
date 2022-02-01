@@ -187,7 +187,7 @@ extension ValueObservation: Refinable {
     -> ValueObservation<ValueReducers.Trace<Reducer>>
     {
         self
-            .mapReducer({ reducer in
+            .mapReducer { reducer in
                 ValueReducers.Trace(
                     base: reducer,
                     // Adding the willFetch handler to the reducer is handy: we
@@ -196,7 +196,7 @@ extension ValueObservation: Refinable {
                     // Adding the didReceiveValue handler to the reducer is necessary:
                     // the type of the value may change with the `map` operator.
                     didReceiveValue: didReceiveValue ?? { _ in })
-            })
+            }
             .with {
                 $0.events.willStart = concat($0.events.willStart, willStart)
                 $0.events.willTrackRegion = concat($0.events.willTrackRegion, willTrackRegion)

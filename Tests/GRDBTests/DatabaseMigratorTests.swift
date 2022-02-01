@@ -772,8 +772,22 @@ class DatabaseMigratorTests : GRDBTestCase {
     }
     
     // Regression test for https://github.com/groue/GRDB.swift/issues/741
-    func testEraseDatabaseOnSchemaChangeDoesNotDeadLock() throws {
+    func testEraseDatabaseOnSchemaChangeDoesNotDeadLockOnTargetQueue() throws {
         dbConfiguration.targetQueue = DispatchQueue(label: "target")
+        let dbQueue = try makeDatabaseQueue()
+        
+        var migrator = DatabaseMigrator()
+        migrator.eraseDatabaseOnSchemaChange = true
+        migrator.registerMigration("1", migrate: { _ in })
+        try migrator.migrate(dbQueue)
+        
+        migrator.registerMigration("2", migrate: { _ in })
+        try migrator.migrate(dbQueue)
+    }
+    
+    // Regression test for https://github.com/groue/GRDB.swift/issues/741
+    func testEraseDatabaseOnSchemaChangeDoesNotDeadLockOnWriteTargetQueue() throws {
+        dbConfiguration.writeTargetQueue = DispatchQueue(label: "writerTarget")
         let dbQueue = try makeDatabaseQueue()
         
         var migrator = DatabaseMigrator()

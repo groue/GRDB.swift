@@ -150,10 +150,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     lazy var internalStatementCache = StatementCache(database: self)
     lazy var publicStatementCache = StatementCache(database: self)
     
-    /// Statement authorizer. Use withAuthorizer(_:_:).
-    fileprivate var _authorizer: StatementAuthorizer?
-    
-    // Transaction observers management
+    // Database observation
+    lazy var authorizer = StatementAuthorizer(self)
     lazy var observationBroker = DatabaseObservationBroker(self)
     
     /// The list of compile options used when building SQLite
@@ -163,8 +161,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// If true, select statement execution is recorded.
     /// Use recordingSelectedRegion(_:), see `statementWillExecute(_:)`
-    var _isRecordingSelectedRegion = false
-    var _selectedRegion = DatabaseRegion()
+    var isRecordingSelectedRegion = false
+    var selectedRegion = DatabaseRegion()
     
     /// Support for checkForAbortedTransaction()
     var isInsideTransactionBlock = false
@@ -318,17 +316,16 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         //
         // - DatabaseCursorTests.testIssue583()
         // - http://sqlite.1065341.n5.nabble.com/Issue-report-sqlite3-set-authorizer-triggers-error-4-516-SQLITE-ABORT-ROLLBACK-during-statement-itern-td107972.html
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+        let authorizerP = Unmanaged.passUnretained(authorizer).toOpaque()
         sqlite3_set_authorizer(
             sqliteConnection,
-            { (dbPointer, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
-                let db = Unmanaged<Database>.fromOpaque(dbPointer.unsafelyUnwrapped).takeUnretainedValue()
-                guard let authorizer = db._authorizer else {
-                    return SQLITE_OK
-                }
-                return authorizer.authorize(actionCode, cString1, cString2, cString3, cString4)
+            { (authorizerP, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
+                Unmanaged<StatementAuthorizer>
+                    .fromOpaque(authorizerP.unsafelyUnwrapped)
+                    .takeUnretainedValue()
+                    .authorize(actionCode, cString1, cString2, cString3, cString4)
             },
-            dbPointer)
+            authorizerP)
     }
     
     
@@ -581,17 +578,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     }
     #endif
     
-    // MARK: - Authorizer
-    
-    @usableFromInline
-    func withAuthorizer<T>(_ authorizer: StatementAuthorizer?, _ block: () throws -> T) rethrows -> T {
-        SchedulingWatchdog.preconditionValidQueue(self)
-        let old = self._authorizer
-        self._authorizer = authorizer
-        defer { self._authorizer = old }
-        return try block()
-    }
-    
     // MARK: - Recording of the selected region
     
     func recordingSelection<T>(_ region: inout DatabaseRegion, _ block: () throws -> T) rethrows -> T {
@@ -599,17 +585,17 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             return try block()
         }
         
-        let oldFlag = self._isRecordingSelectedRegion
-        let oldRegion = self._selectedRegion
-        _isRecordingSelectedRegion = true
-        _selectedRegion = DatabaseRegion()
+        let oldFlag = self.isRecordingSelectedRegion
+        let oldRegion = self.selectedRegion
+        isRecordingSelectedRegion = true
+        selectedRegion = DatabaseRegion()
         defer {
-            region.formUnion(_selectedRegion)
-            _isRecordingSelectedRegion = oldFlag
-            if _isRecordingSelectedRegion {
-                _selectedRegion = oldRegion.union(_selectedRegion)
+            region.formUnion(selectedRegion)
+            isRecordingSelectedRegion = oldFlag
+            if isRecordingSelectedRegion {
+                selectedRegion = oldRegion.union(selectedRegion)
             } else {
-                _selectedRegion = oldRegion
+                selectedRegion = oldRegion
             }
         }
         return try block()
@@ -713,7 +699,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                     impl: .trace_v2(
                         sqliteStatement: OpaquePointer(sqliteStatement),
                         unexpandedSQL: UnsafePointer(unexpandedSQL.assumingMemoryBound(to: CChar.self)),
-                        sqlite3_expanded_sql: sqlite3_expanded_sql))
+                        sqlite3_expanded_sql: sqlite3_expanded_sql,
+                        publicStatementArguments: configuration.publicStatementArguments))
                 trace(TraceEvent.statement(statement))
             }
         case SQLITE_TRACE_PROFILE:
@@ -722,7 +709,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                     impl: .trace_v2(
                         sqliteStatement: OpaquePointer(sqliteStatement),
                         unexpandedSQL: nil,
-                        sqlite3_expanded_sql: sqlite3_expanded_sql))
+                        sqlite3_expanded_sql: sqlite3_expanded_sql,
+                        publicStatementArguments: configuration.publicStatementArguments))
                 let duration = TimeInterval(durationP.pointee) / 1.0e9
                 
                 #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
@@ -897,7 +885,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 resultCode: .SQLITE_ABORT,
                 message: "Database is suspended",
                 sql: statement.sql,
-                arguments: statement.arguments)
+                arguments: statement.arguments,
+                publicStatementArguments: configuration.publicStatementArguments)
         }
     }
     
@@ -930,7 +919,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 resultCode: .SQLITE_ABORT,
                 message: "Transaction was aborted",
                 sql: sql(),
-                arguments: arguments())
+                arguments: arguments(),
+                publicStatementArguments: configuration.publicStatementArguments)
         }
     }
     
@@ -1642,22 +1632,23 @@ extension Database {
     public enum TraceEvent: CustomStringConvertible {
         
         /// Information about a statement reported by `Database.trace(options:_:)`
-        public struct Statement {
+        public struct Statement: CustomStringConvertible {
             enum Impl {
                 case trace_v1(String)
                 case trace_v2(
                         sqliteStatement: SQLiteStatement,
                         unexpandedSQL: UnsafePointer<CChar>?,
-                        sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
+                        sqlite3_expanded_sql: @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?,
+                        publicStatementArguments: Bool) // See Configuration.publicStatementArguments
             }
-            let impl: Impl
+            var impl: Impl
             
             #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
             /// The executed SQL, where bound parameters are not expanded.
             ///
             /// For example:
             ///
-            ///     UPDATE player SET score = ? WHERE id = ?
+            ///     SELECT * FROM player WHERE email = ?
             public var sql: String { _sql }
             #elseif os(Linux)
             #else
@@ -1665,7 +1656,7 @@ extension Database {
             ///
             /// For example:
             ///
-            ///     UPDATE player SET score = ? WHERE id = ?
+            ///     SELECT * FROM player WHERE email = ?
             @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
             public var sql: String { _sql }
             #endif
@@ -1673,10 +1664,10 @@ extension Database {
             var _sql: String {
                 switch impl {
                 case .trace_v1:
-                    // Likely a GRDB bug
-                    fatalError("Not get statement SQL")
+                    // Likely a GRDB bug: this api is not supposed to be available
+                    fatalError("Unavailable statement SQL")
                     
-                case let .trace_v2(sqliteStatement, unexpandedSQL, _):
+                case let .trace_v2(sqliteStatement, unexpandedSQL, _, _):
                     if let unexpandedSQL = unexpandedSQL {
                         return String(cString: unexpandedSQL)
                             .trimmingCharacters(in: .sqlStatementSeparators)
@@ -1691,19 +1682,37 @@ extension Database {
             ///
             /// For example:
             ///
-            ///     UPDATE player SET score = 1000 WHERE id = 1
+            ///     SELECT * FROM player WHERE email = 'arthur@example.com'
+            ///
+            /// - warning: It is your responsibility to prevent sensitive
+            ///   information from leaking in unexpected locations, so use this
+            ///   property with care.
             public var expandedSQL: String {
                 switch impl {
                 case let .trace_v1(expandedSQL):
                     return expandedSQL
                     
-                case let .trace_v2(sqliteStatement, _, sqlite3_expanded_sql):
+                case let .trace_v2(sqliteStatement, _, sqlite3_expanded_sql, _):
                     guard let cString = sqlite3_expanded_sql(sqliteStatement) else {
                         return ""
                     }
                     defer { sqlite3_free(cString) }
                     return String(cString: cString)
                         .trimmingCharacters(in: .sqlStatementSeparators)
+                }
+            }
+            
+            public var description: String {
+                switch impl {
+                case let .trace_v1(expandedSQL):
+                    return expandedSQL
+                    
+                case let .trace_v2(_, _, _, publicStatementArguments):
+                    if publicStatementArguments {
+                        return expandedSQL
+                    } else {
+                        return _sql
+                    }
                 }
             }
         }
@@ -1714,7 +1723,39 @@ extension Database {
         /// An event reported by `TracingOptions.profile`.
         case profile(statement: Statement, duration: TimeInterval)
         
+        /// The trace event description.
+        ///
+        /// For example:
+        ///
+        ///     SELECT * FROM player WHERE email = ?
+        ///     0.1s SELECT * FROM player WHERE email = ?
+        ///
+        /// The format of the event description may change between GRDB releases,
+        /// without notice: don't have your application rely on any specific format.
         public var description: String {
+            switch self {
+            case let .statement(statement):
+                return statement.description
+            case let .profile(statement: statement, duration: duration):
+                let durationString = String(format: "%.3f", duration)
+                return "\(durationString)s \(statement)"
+            }
+        }
+        
+        /// The trace event description, where bound parameters are expanded.
+        ///
+        /// For example:
+        ///
+        ///     SELECT * FROM player WHERE email = 'arthur@example.com'
+        ///     0.1s SELECT * FROM player WHERE email = 'arthur@example.com'
+        ///
+        /// The format of the event description may change between GRDB releases,
+        /// without notice: don't have your application rely on any specific format.
+        ///
+        /// - warning: It is your responsibility to prevent sensitive
+        ///   information from leaking in unexpected locations, so use this
+        ///   property with care.
+        public var expandedDescription: String {
             switch self {
             case let .statement(statement):
                 return statement.expandedSQL

@@ -686,7 +686,7 @@ private func prefetch(
                 // In the CTE, ordering and including(all:) children are
                 // useless, and we only need to select pivot columns:
                 let originRelation = originRelation
-                    .unordered()
+                    .unorderedUnlessLimited() // only preserve ordering in the CTE if limited
                     .removingChildrenForPrefetchedAssociations()
                     .selectOnly(leftColumns.map { SQLExpression.column($0).sqlSelection })
                 let originCTE = CommonTableExpression(

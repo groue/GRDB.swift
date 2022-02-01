@@ -432,6 +432,7 @@ public struct DatabaseMigrator {
                         // just as the migrated database
                         var tmpConfig = db.configuration
                         tmpConfig.targetQueue = nil // Avoid deadlocks
+                        tmpConfig.writeTargetQueue = nil // Avoid deadlocks
                         tmpConfig.label = "GRDB.DatabaseMigrator.temporary"
                         
                         // Create the temporary database on disk, just in

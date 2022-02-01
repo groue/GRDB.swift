@@ -469,7 +469,7 @@ In the illustration below, the striped band shows the delay needed for the readi
 let snapshot = try dbPool.makeSnapshot()
 ```
 
-You can create as many snapshots as you need, regardless of the [maximum number of readers](../README.md#databasepool-configuration) in the pool. A snapshot database connection is closed when the snapshot is deinitialized.
+You can create as many snapshots as you need, regardless of the [maximum number of readers](../README.md#database-configuration) in the pool. A snapshot database connection is closed when the snapshot is deinitialized.
 
 **A snapshot can be used from any thread.** It has the same [synchronous and asynchronous reading methods](#synchronous-and-asynchronous-database-accesses) as database queues and pools:
 

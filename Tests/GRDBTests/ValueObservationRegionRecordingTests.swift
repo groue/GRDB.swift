@@ -137,10 +137,10 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var regions: [DatabaseRegion] = []
         let observation = ValueObservation
-            .tracking({ db -> Int in
+            .tracking { db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-            })
+            }
             .handleEvents(willTrackRegion: { regions.append($0) })
         
         let observer = observation.start(
@@ -188,10 +188,10 @@ class ValueObservationRegionRecordingTests: GRDBTestCase {
         
         var regions: [DatabaseRegion] = []
         let observation = ValueObservation
-            .tracking({ db -> Int in
+            .tracking { db -> Int in
                 let table = try String.fetchOne(db, sql: "SELECT name FROM source")!
                 return try Int.fetchOne(db, sql: "SELECT IFNULL(SUM(value), 0) FROM \(table)")!
-            })
+            }
             .handleEvents(willTrackRegion: { regions.append($0) })
         
         let observer = observation.start(

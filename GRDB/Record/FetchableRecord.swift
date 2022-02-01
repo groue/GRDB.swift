@@ -691,5 +691,4 @@ public enum DatabaseColumnDecodingStrategy {
         }
         return result
     }
-
 }

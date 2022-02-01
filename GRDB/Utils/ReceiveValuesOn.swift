@@ -218,7 +218,7 @@ extension Publisher {
     /// The difference with the stock `receive(on:options:)` Combine method is
     /// that only values and completion are re-scheduled. Subscriptions are not.
     func receiveValues<S: Scheduler>(on scheduler: S, options: S.SchedulerOptions? = nil) -> ReceiveValuesOn<Self, S> {
-        return ReceiveValuesOn(upstream: self, context: scheduler, options: options)
+        ReceiveValuesOn(upstream: self, context: scheduler, options: options)
     }
 }
 #endif

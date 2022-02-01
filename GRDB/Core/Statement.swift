@@ -87,24 +87,26 @@ public final class Statement {
     {
         SchedulingWatchdog.preconditionValidQueue(database)
         
-        let authorizer = StatementCompilationAuthorizer()
+        // Reset authorizer before preparing the statement
+        let authorizer = database.authorizer
+        authorizer.reset()
+        
         var sqliteStatement: SQLiteStatement? = nil
-        let code: Int32 = database.withAuthorizer(authorizer) {
-            // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
-            #if GRDBCUSTOMSQLITE || GRDBCIPHER
-            return sqlite3_prepare_v3(
+        let code: Int32
+        // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
+#if GRDBCUSTOMSQLITE || GRDBCIPHER
+        code = sqlite3_prepare_v3(
+            database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
+            &sqliteStatement, statementEnd)
+#else
+        if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
+            code = sqlite3_prepare_v3(
                 database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
                 &sqliteStatement, statementEnd)
-            #else
-            if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
-                return sqlite3_prepare_v3(
-                    database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
-                    &sqliteStatement, statementEnd)
-            } else {
-                return sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
-            }
-            #endif
+        } else {
+            code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
         }
+#endif
         
         guard code == SQLITE_OK else {
             throw DatabaseError(
@@ -296,43 +298,19 @@ public final class Statement {
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(arguments: StatementArguments? = nil) throws {
         try reset(withArguments: arguments)
-        try database.withAuthorizer(database.statementWillExecute(self)) {
-            // Iterate all rows, since they may execute side effects.
-            while true {
-                switch sqlite3_step(sqliteStatement) {
-                case SQLITE_DONE:
-                    try database.statementDidExecute(self)
-                    return
-                case SQLITE_ROW:
-                    break
-                case let code:
-                    try database.statementDidFail(self, withResultCode: code)
-                }
-            }
-        }
-    }
-    
-    /// Calls the given closure after one successful call to `sqlite3_step()`.
-    ///
-    /// This method is unable to deal with statements that need a specific
-    /// authorizer. See `forEachStep(_:)`.
-    @usableFromInline
-    func step<Element>(_ body: (SQLiteStatement) throws -> Element) throws -> Element? {
-        // This check takes 0 time when profiled. It is, practically speaking, free.
-        if sqlite3_stmt_busy(sqliteStatement) == 0 {
-            guard try database.statementWillExecute(self) == nil else {
-                fatalError("Can't execute step by step a statement that requires a customized authorizer.")
-            }
-        }
+        try database.statementWillExecute(self)
         
-        switch sqlite3_step(sqliteStatement) {
-        case SQLITE_DONE:
-            try database.statementDidExecute(self)
-            return nil
-        case SQLITE_ROW:
-            return try body(sqliteStatement)
-        case let code:
-            try database.statementDidFail(self, withResultCode: code)
+        // Iterate all rows, since they may execute side effects.
+        while true {
+            switch sqlite3_step(sqliteStatement) {
+            case SQLITE_DONE:
+                try database.statementDidExecute(self)
+                return
+            case SQLITE_ROW:
+                break
+            case let code:
+                try database.statementDidFail(self, withResultCode: code)
+            }
         }
     }
     
@@ -355,22 +333,40 @@ public final class Statement {
     @usableFromInline
     func forEachStep(_ body: (SQLiteStatement) throws -> Void) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
-        guard sqlite3_stmt_busy(sqliteStatement) == 0 else {
-            // We can't deal with possible authorizer
-            fatalError("Statement is busy")
-        }
-        try database.withAuthorizer(database.statementWillExecute(self)) {
-            while true {
-                switch sqlite3_step(sqliteStatement) {
-                case SQLITE_DONE:
-                    try database.statementDidExecute(self)
-                    return
-                case SQLITE_ROW:
-                    try body(sqliteStatement)
-                case let code:
-                    try database.statementDidFail(self, withResultCode: code)
-                }
+        try database.statementWillExecute(self)
+        
+        while true {
+            switch sqlite3_step(sqliteStatement) {
+            case SQLITE_DONE:
+                try database.statementDidExecute(self)
+                return
+            case SQLITE_ROW:
+                try body(sqliteStatement)
+            case let code:
+                try database.statementDidFail(self, withResultCode: code)
             }
+        }
+    }
+    
+    /// Calls the given closure after one successful call to `sqlite3_step()`.
+    ///
+    /// This method is unable to deal with statements that need a specific
+    /// authorizer. See `forEachStep(_:)`.
+    @usableFromInline
+    func step<Element>(_ body: (SQLiteStatement) throws -> Element) throws -> Element? {
+        // This check takes 0 time when profiled. It is, practically speaking, free.
+        if sqlite3_stmt_busy(sqliteStatement) == 0 {
+            try database.statementWillExecute(self)
+        }
+        
+        switch sqlite3_step(sqliteStatement) {
+        case SQLITE_DONE:
+            try database.statementDidExecute(self)
+            return nil
+        case SQLITE_ROW:
+            return try body(sqliteStatement)
+        case let code:
+            try database.statementDidFail(self, withResultCode: code)
         }
     }
 }
@@ -383,7 +379,7 @@ public typealias UpdateStatement = Statement
 
 extension Statement: CustomStringConvertible {
     public var description: String {
-        "SQL: \(sql), Arguments: \(arguments)"
+        SchedulingWatchdog.allows(database) ? sql : "Statement"
     }
 }
 

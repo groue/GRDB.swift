@@ -274,6 +274,15 @@ extension SQLRelation: Refinable {
         }
     }
     
+    // Remove ordering iff relation has no LIMIT clause
+    func unorderedUnlessLimited() -> Self {
+        if limit != nil {
+            return self
+        } else {
+            return unordered()
+        }
+    }
+    
     func group(_ expressions: @escaping (Database) throws -> [SQLExpression]) -> Self {
         with {
             $0.groupPromise = DatabasePromise(expressions)

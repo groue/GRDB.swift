@@ -382,7 +382,7 @@ extension DatabaseWriter {
             observation: observation,
             writer: self,
             scheduler: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
+            reduceQueue: configuration.makeWriterDispatchQueue(label: reduceQueueLabel),
             onChange: onChange)
         
         if scheduler.immediateInitialValue() {
@@ -576,11 +576,11 @@ extension DatabaseWriter {
     -> DatabasePublishers.Write<Output>
     where S: Scheduler
     {
-        OnDemandFuture({ fulfill in
+        OnDemandFuture { fulfill in
             self.asyncWrite(updates, completion: { _, result in
                 fulfill(result)
             })
-        })
+        }
         // We don't want users to process emitted values on a
         // database dispatch queue.
         .receiveValues(on: scheduler)
@@ -629,7 +629,7 @@ extension DatabaseWriter {
     -> DatabasePublishers.Write<Output>
     where S: Scheduler
     {
-        OnDemandFuture({ fulfill in
+        OnDemandFuture { fulfill in
             self.asyncWriteWithoutTransaction { db in
                 var updatesValue: T?
                 do {
@@ -645,7 +645,7 @@ extension DatabaseWriter {
                     fulfill(dbResult.flatMap { db in Result { try value(db, updatesValue!) } })
                 }
             }
-        })
+        }
         // We don't want users to process emitted values on a
         // database dispatch queue.
         .receiveValues(on: scheduler)

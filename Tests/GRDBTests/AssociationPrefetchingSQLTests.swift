@@ -278,6 +278,29 @@ class AssociationPrefetchingSQLTests: GRDBTestCase {
                     WHERE ("name" = 'foo') AND (("pA", "pB") IN "grdb_base")
                     """])
             }
+
+            // Limited ordered request (preserve both ordering and limit in the CTE)
+            do {
+                let request = Parent
+                    .including(all: Parent.hasMany(Child.self))
+                    .orderByPrimaryKey()
+                    .limit(1)
+
+                sqlQueries.removeAll()
+                _ = try Row.fetchAll(db, request)
+
+                let selectQueries = sqlQueries.filter(isSelectQuery)
+                XCTAssertEqual(selectQueries, [
+                    """
+                    SELECT * FROM "parent" ORDER BY "parentA", "parentB" LIMIT 1
+                    """,
+                    """
+                    WITH "grdb_base" AS (SELECT "parentA", "parentB" FROM "parent" ORDER BY "parentA", "parentB" LIMIT 1) \
+                    SELECT *, "pA" AS "grdb_pA", "pB" AS "grdb_pB" \
+                    FROM "child" \
+                    WHERE ("pA", "pB") IN "grdb_base"
+                    """])
+            }
         }
     }
     

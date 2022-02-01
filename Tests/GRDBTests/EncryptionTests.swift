@@ -534,9 +534,9 @@ class EncryptionTests: GRDBTestCase {
             }
             
             let dbQueue = try makeDatabaseQueue(filename: "test.sqlite", configuration: config)
-            try dbQueue.inDatabase({ db in
+            try dbQueue.inDatabase { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA cipher_page_size")!, 8192)
-            })
+            }
         }
         
         do {
@@ -547,16 +547,15 @@ class EncryptionTests: GRDBTestCase {
             }
             
             let dbPool = try makeDatabasePool(filename: "testpool.sqlite", configuration: config)
-            try dbPool.write({ db in
+            try dbPool.write { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA cipher_page_size")!, 4096)
                 try db.execute(sql: "CREATE TABLE data(value INTEGER)")
                 try db.execute(sql: "INSERT INTO data(value) VALUES(1)")
-            })
-            try dbPool.read({ db in
+            }
+            try dbPool.read { db in
                 XCTAssertEqual(try Int.fetchOne(db, sql: "PRAGMA cipher_page_size")!, 4096)
                 XCTAssertEqual(try Int.fetchOne(db, sql: "SELECT value FROM data"), 1)
-            })
-            
+            }
         }
     }
     
@@ -684,7 +683,7 @@ class EncryptionTests: GRDBTestCase {
         guard let cipherMajorVersion = try DatabaseQueue()
             .read({ try String.fetchOne($0, sql: "PRAGMA cipher_version") })
             .flatMap({ $0.split(separator: ".").first })
-            .flatMap({ Int($0 )})
+            .flatMap({ Int($0) })
             else { XCTFail("Unknown SQLCipher version"); return }
         
         if cipherMajorVersion >= 4 {

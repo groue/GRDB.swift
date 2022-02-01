@@ -1,5 +1,5 @@
-import Foundation
 import Dispatch
+import Foundation
 #if os(iOS)
 import UIKit
 #endif
@@ -336,7 +336,7 @@ extension DatabasePool: DatabaseReader {
             defaultLabel: "GRDB.DatabasePool",
             purpose: "asyncRead")
         configuration
-            .makeDispatchQueue(label: label)
+            .makeReaderDispatchQueue(label: label)
             .async {
                 do {
                     guard let readerPool = self.readerPool else {
@@ -374,7 +374,7 @@ extension DatabasePool: DatabaseReader {
             defaultLabel: "GRDB.DatabasePool",
             purpose: "asyncRead")
         configuration
-            .makeDispatchQueue(label: label)
+            .makeReaderDispatchQueue(label: label)
             .async { [weak self] in
                 guard let self = self else {
                     value(nil)
@@ -435,7 +435,7 @@ extension DatabasePool: DatabaseReader {
             defaultLabel: "GRDB.DatabasePool",
             purpose: "asyncUnsafeRead")
         configuration
-            .makeDispatchQueue(label: label)
+            .makeReaderDispatchQueue(label: label)
             .async {
                 do {
                     guard let readerPool = self.readerPool else {
@@ -802,7 +802,7 @@ extension DatabasePool: DatabaseReader {
             observation: observation,
             writer: self,
             scheduler: scheduler,
-            reduceQueue: configuration.makeDispatchQueue(label: reduceQueueLabel),
+            reduceQueue: configuration.makeReaderDispatchQueue(label: reduceQueueLabel),
             onChange: onChange)
         
         // Starting a concurrent observation means that we'll fetch the initial
@@ -857,7 +857,7 @@ extension DatabasePool: DatabaseReader {
                 defaultLabel: "GRDB.DatabasePool",
                 purpose: "ValueObservation")
             configuration
-                .makeDispatchQueue(label: label)
+                .makeReaderDispatchQueue(label: label)
                 .async { [weak self] in
                     guard let self = self else { return }
                     if observer.isCompleted { return }
