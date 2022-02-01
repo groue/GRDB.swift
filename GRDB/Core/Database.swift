@@ -13,7 +13,7 @@ let SQLITE_TRANSIENT = unsafeBitCast(OpaquePointer(bitPattern: -1), to: sqlite3_
 /// You don't create a database directly. Instead, you use a DatabaseQueue, or
 /// a DatabasePool:
 ///
-///     let dbQueue = DatabaseQueue(...)
+///     let dbQueue = try DatabaseQueue(...)
 ///
 ///     // The Database is the `db` in the closure:
 ///     try dbQueue.write { db in
@@ -157,8 +157,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     lazy var observationBroker = DatabaseObservationBroker(self)
     
     /// The list of compile options used when building SQLite
-    static let sqliteCompileOptions: Set<String> = DatabaseQueue().inDatabase {
-        try! Set(String.fetchCursor($0, sql: "PRAGMA COMPILE_OPTIONS"))
+    static func sqliteCompileOptions() throws -> Set<String> {
+        try DatabaseQueue().inDatabase {
+            try Set(String.fetchCursor($0, sql: "PRAGMA COMPILE_OPTIONS"))
+        }
     }
     
     /// If true, select statement execution is recorded.
@@ -1412,7 +1414,7 @@ extension Database {
     ///
     ///     // Wait 1 second before failing with SQLITE_BUSY
     ///     let configuration = Configuration(busyMode: .timeout(1))
-    ///     let dbQueue = DatabaseQueue(path: "...", configuration: configuration)
+    ///     let dbQueue = try DatabaseQueue(path: "...", configuration: configuration)
     ///
     /// Relevant SQLite documentation:
     ///

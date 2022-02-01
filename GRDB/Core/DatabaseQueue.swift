@@ -51,14 +51,13 @@ public final class DatabaseQueue: DatabaseWriter {
     
     /// Opens an in-memory SQLite database.
     ///
-    ///     let dbQueue = DatabaseQueue()
+    ///     let dbQueue = try DatabaseQueue()
     ///
     /// Database memory is released when the database queue gets deallocated.
     ///
     /// - parameter configuration: A configuration.
-    public init(configuration: Configuration = Configuration()) {
-        // Assume SQLite always succeeds creating an in-memory database
-        writer = try! SerializedDatabase(
+    public init(configuration: Configuration = Configuration()) throws {
+        writer = try SerializedDatabase(
             path: ":memory:",
             configuration: configuration,
             defaultLabel: "GRDB.DatabaseQueue")

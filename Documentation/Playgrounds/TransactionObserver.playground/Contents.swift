@@ -11,7 +11,7 @@ import GRDB
 
 // Create the database
 
-let dbQueue = DatabaseQueue()   // Memory database
+let dbQueue = try DatabaseQueue()   // Memory database
 var migrator = DatabaseMigrator()
 migrator.registerMigration("createPerson") { db in
     try db.create(table: "person") { t in

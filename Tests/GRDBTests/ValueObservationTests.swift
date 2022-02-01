@@ -757,7 +757,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         try await AsyncTest(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
@@ -792,7 +792,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         try await AsyncTest(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
@@ -831,7 +831,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         try await AsyncTest(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
@@ -867,7 +867,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         try await AsyncTest(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
@@ -915,7 +915,7 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         try await AsyncTest(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }

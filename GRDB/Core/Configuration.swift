@@ -196,7 +196,7 @@ public struct Configuration {
     ///
     /// For example:
     ///
-    ///     let dbQueue = DatabaseQueue()
+    ///     let dbQueue = try DatabaseQueue()
     ///
     ///     // fatal error: A transaction has been left opened at the end of a database access
     ///     try dbQueue.inDatabase { db in
@@ -208,7 +208,7 @@ public struct Configuration {
     ///
     ///     var config = Configuration()
     ///     config.allowsUnsafeTransactions = true
-    ///     let dbQueue = DatabaseQueue(configuration: config)
+    ///     let dbQueue = try DatabaseQueue(configuration: config)
     ///
     ///     try dbQueue.inDatabase { db in
     ///         try db.beginTransaction()

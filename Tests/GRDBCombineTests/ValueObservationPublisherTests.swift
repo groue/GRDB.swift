@@ -118,7 +118,7 @@ class ValueObservationPublisherTests : XCTestCase {
         }
         
         try Test(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
@@ -225,7 +225,7 @@ class ValueObservationPublisherTests : XCTestCase {
         }
         
         try Test(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
@@ -439,7 +439,7 @@ class ValueObservationPublisherTests : XCTestCase {
         var configuration = Configuration()
         configuration.targetQueue = DispatchQueue(label: "crash.test", qos: .userInitiated)
         
-        let database = DatabaseQueue(configuration: configuration)
+        let database = try DatabaseQueue(configuration: configuration)
         
         var migrator = DatabaseMigrator()
         migrator.registerMigration("v1") { (db) in

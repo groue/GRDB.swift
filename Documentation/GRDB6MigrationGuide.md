@@ -5,6 +5,7 @@ Migrating From GRDB 5 to GRDB 6
 
 - [Preparing the Migration to GRDB 6](#preparing-the-migration-to-grdb-6)
 - [New requirements](#new-requirements)
+- [Other Changes](#other-changes)
 
 
 ## Preparing the Migration to GRDB 6
@@ -23,3 +24,12 @@ GRDB requirements have been bumped:
 - **macOS 10.13+** (was macOS 10.10+)
 - **tvOS 11.0+** (was tvOS 11.0+)
 - **watchOS 4.0+** (was watchOS 2.0+)
+
+## Other Changes
+
+- The initializer of in-memory databases can now throw errors:
+
+    ```diff
+    -let dbQueue = DatabaseQueue()
+    +let dbQueue = try DatabaseQueue()
+    ```

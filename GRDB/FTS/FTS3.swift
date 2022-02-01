@@ -43,32 +43,31 @@ public struct FTS3: VirtualTableModule {
     ///
     /// For example:
     ///
-    ///     FTS3.tokenize("SQLite database")  // ["sqlite", "database"]
-    ///     FTS3.tokenize("Gustave Doré")     // ["gustave", "doré"])
+    ///     try FTS3.tokenize("SQLite database")  // ["sqlite", "database"]
+    ///     try FTS3.tokenize("Gustave Doré")     // ["gustave", "doré"])
     ///
     /// Results can be altered with an explicit tokenizer - default is `.simple`.
     /// See <https://www.sqlite.org/fts3.html#tokenizer>.
     ///
-    ///     FTS3.tokenize("SQLite database", withTokenizer: .porter)   // ["sqlite", "databas"]
-    ///     FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
+    ///     try FTS3.tokenize("SQLite database", withTokenizer: .porter)   // ["sqlite", "databas"]
+    ///     try FTS3.tokenize("Gustave Doré", withTokenizer: .unicode61()) // ["gustave", "dore"])
     ///
     /// Tokenization is performed by the `fts3tokenize` virtual table described
     /// at <https://www.sqlite.org/fts3.html#querying_tokenizers>.
     public static func tokenize(
         _ string: String,
         withTokenizer tokenizer: FTS3TokenizerDescriptor = .simple)
-    -> [String]
+    throws -> [String]
     {
-        DatabaseQueue().inDatabase { db in
+        try DatabaseQueue().inDatabase { db in
             var tokenizerChunks: [String] = []
             tokenizerChunks.append(tokenizer.name)
             for option in tokenizer.arguments {
                 tokenizerChunks.append("\"\(option)\"")
             }
             let tokenizerSQL = tokenizerChunks.joined(separator: ", ")
-            // Assume fts3tokenize virtual table in an in-memory database always succeeds
-            try! db.execute(sql: "CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
-            return try! String.fetchAll(db, sql: """
+            try db.execute(sql: "CREATE VIRTUAL TABLE tokens USING fts3tokenize(\(tokenizerSQL))")
+            return try String.fetchAll(db, sql: """
                 SELECT token FROM tokens WHERE input = ? ORDER BY position
                 """, arguments: [string])
         }

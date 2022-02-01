@@ -144,7 +144,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         }
         
         try Test(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }
@@ -285,7 +285,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
         }
         
         try Test(test)
-            .run { DatabaseQueue() }
+            .run { try DatabaseQueue() }
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0).makeSnapshot() }

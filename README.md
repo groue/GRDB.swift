@@ -458,7 +458,7 @@ The differences are:
 import GRDB
 
 let dbQueue = try DatabaseQueue(path: "/path/to/database.sqlite")
-let inMemoryDBQueue = DatabaseQueue()
+let inMemoryDBQueue = try DatabaseQueue()
 ```
 
 SQLite creates the database file if it does not already exist. The connection is closed when the database queue gets deinitialized.
