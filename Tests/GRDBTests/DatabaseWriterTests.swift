@@ -148,9 +148,9 @@ class DatabaseWriterTests : GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func testAnyDatabaseWriter() {
+    func testAnyDatabaseWriter() throws {
         // This test passes if this code compiles.
-        let writer: DatabaseWriter = DatabaseQueue()
+        let writer: DatabaseWriter = try DatabaseQueue()
         let _: DatabaseWriter = AnyDatabaseWriter(writer)
     }
     

@@ -72,7 +72,7 @@ class Bar: Base {
 //: We need a database, a table, and a few values so that we can do a real demo:
 
 // An in-memory database is good enough
-let dbQueue = DatabaseQueue()
+let dbQueue = try DatabaseQueue()
 
 try dbQueue.write { db in
     // Database table

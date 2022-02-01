@@ -12,7 +12,7 @@ class DatabaseConfigurationTests: GRDBTestCase {
             connectionCount += 1
         }
         
-        _ = DatabaseQueue(configuration: configuration)
+        _ = try DatabaseQueue(configuration: configuration)
         XCTAssertEqual(connectionCount, 1)
         
         _ = try makeDatabaseQueue(configuration: configuration)

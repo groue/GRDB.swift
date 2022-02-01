@@ -65,9 +65,10 @@ public struct FTS5TokenizerDescriptor {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            let separatorComponents = DatabaseQueue().inDatabase { db in
-                // Assume quoting a string never fails
-                try! [
+            //
+            // Assume quoting a string in an in-memory database never fails
+            let separatorComponents = try! DatabaseQueue().inDatabase { db in
+                try [
                     "separators",
                     separators
                         .map { String($0) }
@@ -81,9 +82,10 @@ public struct FTS5TokenizerDescriptor {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            let tokenCharactersComponents = DatabaseQueue().inDatabase { db in
-                // Assume quoting a string never fails
-                try! [
+            //
+            // Assume quoting a string in an in-memory database never fails
+            let tokenCharactersComponents = try! DatabaseQueue().inDatabase { db in
+                try [
                     "tokenchars",
                     tokenCharacters
                         .sorted()
@@ -156,9 +158,10 @@ public struct FTS5TokenizerDescriptor {
             // TODO: test "=" and "\"", "(" and ")" as separators, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            let separatorComponents = DatabaseQueue().inDatabase { db in
-                // Assume quoting a string never fails
-                try! [
+            //
+            // Assume quoting a string in an in-memory database never fails
+            let separatorComponents = try! DatabaseQueue().inDatabase { db in
+                try [
                     "separators",
                     separators
                         .sorted()
@@ -174,9 +177,10 @@ public struct FTS5TokenizerDescriptor {
             // TODO: test "=" and "\"", "(" and ")" as tokenCharacters, with
             // both FTS3Pattern(matchingAnyTokenIn:tokenizer:)
             // and Database.create(virtualTable:using:)
-            let tokenCharactersComponents = DatabaseQueue().inDatabase { db in
-                // Assume quoting a string never fails
-                try! [
+            //
+            // Assume quoting a string in an in-memory database never fails
+            let tokenCharactersComponents = try! DatabaseQueue().inDatabase { db in
+                try [
                     "tokenchars",
                     tokenCharacters
                         .sorted()
