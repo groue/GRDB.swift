@@ -379,7 +379,7 @@ test_install_manual:
 	  clean build \
 	  $(XCPRETTY)
 
-test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_macos_release test_install_SPM_ios_release
+test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_Dynamic_Project test_install_SPM_macos_release test_install_SPM_ios_release
 
 test_install_SPM_Package:
 	cd Tests/SPM/PlainPackage && \
@@ -390,6 +390,15 @@ test_install_SPM_Project:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
 	  -scheme Plain \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
+	  
+test_install_SPM_Dynamic_Project:
+	$(XCODEBUILD) \
+	  -project Tests/SPM/ios-dynamic/ios-dynamic.xcodeproj \
+	  -scheme ios-dynamic \
+	  -destination $(MAX_IOS_DESTINATION) \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
@@ -520,10 +529,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.20.0 \
-	  --module-version 5.20.0 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.21.0 \
+	  --module-version 5.21.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/5.20/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/5.21/ \
 	  --output Documentation/Reference \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else

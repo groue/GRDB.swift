@@ -704,12 +704,11 @@ class ValueObservationTests: GRDBTestCase {
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             let cancellationExpectation = expectation(description: "cancelled")
-            let observation = ValueObservation
-                .trackingConstantRegion(Table("t").fetchCount)
-                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
-            
             let task = Task { () -> [Int] in
                 var counts: [Int] = []
+                let observation = ValueObservation
+                    .trackingConstantRegion(Table("t").fetchCount)
+                    .handleEvents(didCancel: { cancellationExpectation.fulfill() })
                 
                 for try await count in try observation.values(in: writer).prefix(while: { $0 < 3 }) {
                     counts.append(count)
@@ -740,12 +739,11 @@ class ValueObservationTests: GRDBTestCase {
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             let cancellationExpectation = expectation(description: "cancelled")
-            let observation = ValueObservation
-                .trackingConstantRegion(Table("t").fetchCount)
-                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
-            
             let task = Task { @MainActor () -> [Int] in
                 var counts: [Int] = []
+                let observation = ValueObservation
+                    .trackingConstantRegion(Table("t").fetchCount)
+                    .handleEvents(didCancel: { cancellationExpectation.fulfill() })
                 
                 for try await count in try observation.values(in: writer, scheduling: .immediate).prefix(while: { $0 < 3 }) {
                     counts.append(count)
@@ -776,12 +774,11 @@ class ValueObservationTests: GRDBTestCase {
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             let cancellationExpectation = expectation(description: "cancelled")
-            let observation = ValueObservation
-                .trackingConstantRegion(Table("t").fetchCount)
-                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
-            
             let task = Task { () -> [Int] in
                 var counts: [Int] = []
+                let observation = ValueObservation
+                    .trackingConstantRegion(Table("t").fetchCount)
+                    .handleEvents(didCancel: { cancellationExpectation.fulfill() })
                 
                 for try await count in observation.values(in: writer) {
                     counts.append(count)
@@ -816,12 +813,12 @@ class ValueObservationTests: GRDBTestCase {
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
             let cancellationExpectation = expectation(description: "cancelled")
-            let observation = ValueObservation
-                .trackingConstantRegion(Table("t").fetchCount)
-                .handleEvents(didCancel: { cancellationExpectation.fulfill() })
             
             let task = Task { @MainActor () -> [Int] in
                 var counts: [Int] = []
+                let observation = ValueObservation
+                    .trackingConstantRegion(Table("t").fetchCount)
+                    .handleEvents(didCancel: { cancellationExpectation.fulfill() })
                 
                 for try await count in observation.values(in: writer, scheduling: .immediate) {
                     counts.append(count)
@@ -851,22 +848,22 @@ class ValueObservationTests: GRDBTestCase {
             // We need something to change
             try await writer.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
             
-            let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
-            
             let cancellationExpectation = expectation(description: "cancelled")
-            let cancelledObservation = observation.handleEvents(didCancel: {
-                cancellationExpectation.fulfill()
-            })
             
             // Launch a task that we'll cancel
             let cancelledTask = Task<String, Error> {
                 // Loops until cancelled
+                let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
+                let cancelledObservation = observation.handleEvents(didCancel: {
+                    cancellationExpectation.fulfill()
+                })
                 for try await _ in cancelledObservation.values(in: writer) { }
                 return "cancelled loop"
             }
             
             // Lanch the task that cancels
             Task {
+                let observation = ValueObservation.trackingConstantRegion(Table("t").fetchCount)
                 for try await count in observation.values(in: writer) {
                     if count == 3 {
                         cancelledTask.cancel()
