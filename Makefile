@@ -398,6 +398,7 @@ test_install_SPM_Dynamic_Project:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/ios-dynamic/ios-dynamic.xcodeproj \
 	  -scheme ios-dynamic \
+	  -destination $(MAX_IOS_DESTINATION) \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)
