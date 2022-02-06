@@ -89,7 +89,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ## Next Release
 
-- **Breaking Change**: [#1164](https://github.com/groue/GRDB.swift/pull/1164) by [@groue](https://github.com/groue): Drop async apis from DatabaseMigrator
+- **New**: [#1165](https://github.com/groue/GRDB.swift/pull/1165) by [@guidedways](https://github.com/guidedways): Support dynamic linking via Swift Package Manager
+- **Breaking Change**: [#1164](https://github.com/groue/GRDB.swift/pull/1164) by [@groue](https://github.com/groue): Drop experimental async apis from DatabaseMigrator
 
 
 ## 5.20.0
