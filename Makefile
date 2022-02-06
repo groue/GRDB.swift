@@ -379,7 +379,7 @@ test_install_manual:
 	  clean build \
 	  $(XCPRETTY)
 
-test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_macos_release test_install_SPM_ios_release
+test_install_SPM: test_install_SPM_Package test_install_SPM_Project test_install_SPM_Dynamic_Project test_install_SPM_macos_release test_install_SPM_ios_release
 
 test_install_SPM_Package:
 	cd Tests/SPM/PlainPackage && \
@@ -390,6 +390,15 @@ test_install_SPM_Project:
 	$(XCODEBUILD) \
 	  -project Tests/SPM/PlainProject/Plain.xcodeproj \
 	  -scheme Plain \
+	  -configuration Release \
+	  clean build \
+	  $(XCPRETTY)
+	  
+test_install_SPM_Dynamic_Project:
+	$(XCODEBUILD) \
+	  -project Tests/SPM/ios-dynamic/ios-dynamic.xcodeproj \
+	  -scheme ios-dynamic \
+	  -destination $(MAX_IOS_DESTINATION) \
 	  -configuration Release \
 	  clean build \
 	  $(XCPRETTY)

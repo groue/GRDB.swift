@@ -397,6 +397,8 @@ GRDB can be installed as a framework, or a static library.
 
 The [Swift Package Manager](https://swift.org/package-manager/) automates the distribution of Swift code. To use GRDB with SPM, add a dependency to `https://github.com/groue/GRDB.swift.git`
 
+GRDB offers two libraries, `GRDB` and `GRDB-dynamic`. Pick only one. When in doubt, prefer `GRDB`. The `GRDB-dynamic` library can reveal useful if you are going to link it with multiple targets within your app and only wish to link to a shared, dynamic framework once. See [#How to link as dynamic](https://forums.swift.org/t/how-to-link-a-swift-package-as-dynamic/32062)
+
 > :point_up: **Note**: Linux is not currently supported.
 >
 > :warning: **Warning**: Due to an Xcode bug, you will get "No such module 'CSQLite'" errors when you want to embed the GRDB package in other targets than the main application (watch extensions, for example). UI and Unit testing targets are OK, though. See [#642](https://github.com/groue/GRDB.swift/issues/642#issuecomment-575994093) for more information.

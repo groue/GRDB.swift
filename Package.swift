@@ -13,6 +13,7 @@ let package = Package(
     ],
     products: [
         .library(name: "GRDB", targets: ["GRDB"]),
+        .library(name: "GRDB-dynamic", type: .dynamic, targets: ["GRDB"]),
     ],
     dependencies: [
     ],
