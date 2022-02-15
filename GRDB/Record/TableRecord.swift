@@ -197,7 +197,11 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public static func exists(_ db: Database, id: ID) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
+        if id.databaseValue.isNull {
+            // Don't hit the database
+            return false
+        }
+        return try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -274,12 +278,12 @@ extension TableRecord {
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
+    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
     throws -> Bool
     where PrimaryKeyType: DatabaseValueConvertible
     {
-        guard let key = key else {
-            // Avoid hitting the database
+        if key.databaseValue.isNull {
+            // Don't hit the database
             return false
         }
         return try deleteAll(db, keys: [key]) > 0

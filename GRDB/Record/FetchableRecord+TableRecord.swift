@@ -133,12 +133,12 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A primary key value.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
+    public static func fetchOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
     throws -> Self?
     where PrimaryKeyType: DatabaseValueConvertible
     {
-        guard let key = key else {
-            // Avoid hitting the database
+        if key.databaseValue.isNull {
+            // Don't hit the database
             return nil
         }
         return try filter(key: key).fetchOne(db)

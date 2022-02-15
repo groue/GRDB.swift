@@ -233,8 +233,8 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///     let request = try Player...filter(key: 1)
     ///
     /// - parameter key: A primary key
-    public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> Self {
-        guard let key = key else {
+    public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType) -> Self {
+        if key.databaseValue.isNull {
             return none()
         }
         return filter(keys: [key])
@@ -257,13 +257,13 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
         // `deleteAll(_:ids:)` etc.
         if let recordType = RowDecoder.self as? EncodableRecord.Type {
-            if Sequence.Element.self == Date.self {
+            if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
                 let strategy = recordType.databaseDateEncodingStrategy
-                let keys = keys.compactMap { strategy.encode($0 as! Date)?.databaseValue }
+                let keys = keys.compactMap { ($0 as! Date?).flatMap(strategy.encode)?.databaseValue }
                 return filter(rawKeys: keys)
-            } else if Sequence.Element.self == UUID.self {
+            } else if Sequence.Element.self == UUID.self || Sequence.Element.self == Optional<UUID>.self {
                 let strategy = recordType.databaseUUIDEncodingStrategy
-                let keys = keys.map { strategy.encode($0 as! UUID).databaseValue }
+                let keys = keys.map { ($0 as! UUID?).map(strategy.encode)?.databaseValue }
                 return filter(rawKeys: keys)
             }
         }

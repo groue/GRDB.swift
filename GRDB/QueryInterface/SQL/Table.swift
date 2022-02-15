@@ -1190,7 +1190,11 @@ where RowDecoder: Identifiable,
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public func exists(_ db: Database, id: RowDecoder.ID) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
+        if id.databaseValue.isNull {
+            // Don't hit the database
+            return false
+        }
+        return try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -1266,12 +1270,12 @@ extension Table {
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
+    public func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
     throws -> Bool
     where PrimaryKeyType: DatabaseValueConvertible
     {
-        guard let key = key else {
-            // Avoid hitting the database
+        if key.databaseValue.isNull {
+            // Don't hit the database
             return false
         }
         return try deleteAll(db, keys: [key]) > 0
@@ -1335,7 +1339,11 @@ where RowDecoder: Identifiable,
     /// - returns: Whether a database row was deleted.
     @discardableResult
     public func deleteOne(_ db: Database, id: RowDecoder.ID) throws -> Bool {
-        try deleteAll(db, ids: [id]) > 0
+        if id.databaseValue.isNull {
+            // Don't hit the database
+            return false
+        }
+        return try deleteAll(db, ids: [id]) > 0
     }
 }
 
