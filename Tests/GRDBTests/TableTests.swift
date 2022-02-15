@@ -249,7 +249,7 @@ class TableTests: GRDBTestCase {
             
             do {
                 try db.execute(sql: "DELETE FROM player")
-                try XCTAssertEqual(t.fetchOne(db), nil)
+                try XCTAssertEqual(t.fetchOne(db), .none) // no row
             }
             
             do {
@@ -261,7 +261,7 @@ class TableTests: GRDBTestCase {
             do {
                 try db.execute(sql: "DELETE FROM player")
                 try db.execute(sql: "INSERT INTO player VALUES (NULL)")
-                try XCTAssertEqual(t.fetchOne(db), nil)
+                try XCTAssertEqual(t.fetchOne(db), .some(nil)) // one row with NULL value
             }
         }
     }

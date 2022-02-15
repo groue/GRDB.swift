@@ -223,37 +223,6 @@ extension Row {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     ///
-    /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
-    /// value is converted to the requested type `Value`. Should this conversion
-    /// fail, a fatal error is raised.
-    @inlinable
-    public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value? {
-        try! decodeIfPresent(Value.self, atIndex: index)
-    }
-    
-    /// Returns the value at given index, converted to the requested type.
-    ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
-    ///
-    /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
-    /// value is converted to the requested type `Value`. Should this conversion
-    /// fail, a fatal error is raised.
-    ///
-    /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
-    @inline(__always)
-    @inlinable
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value? {
-        try! decodeIfPresent(Value.self, atIndex: index)
-    }
-    
-    /// Returns the value at given index, converted to the requested type.
-    ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
-    ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
     /// SQLite value can not be converted to `Value`.
     @inlinable
@@ -304,36 +273,6 @@ extension Row {
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
-    /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. Otherwise the SQLite value is converted to the requested type
-    /// `Value`. Should this conversion fail, a fatal error is raised.
-    @inlinable
-    public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value? {
-        try! decodeIfPresent(Value.self, forKey: columnName)
-    }
-    
-    /// Returns the value at given column, converted to the requested type.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. Otherwise the SQLite value is converted to the requested type
-    /// `Value`. Should this conversion fail, a fatal error is raised.
-    ///
-    /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
-    public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value? {
-        try! decodeIfPresent(Value.self, forKey: columnName)
-    }
-    
-    /// Returns the value at given column, converted to the requested type.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
     /// If the row does not contain the column, a fatal error is raised.
     ///
     /// This method crashes if the fetched SQLite value is NULL, or if the
@@ -370,41 +309,6 @@ extension Row {
     /// The result is nil if the row does not contain the column.
     public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
         self[column.name]
-    }
-    
-    /// Returns the value at given column, converted to the requested type.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. Otherwise the SQLite value is converted to the requested type
-    /// `Value`. Should this conversion fail, a fatal error is raised.
-    @inlinable
-    public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value? {
-        try! decodeIfPresent(Value.self, forKey: column.name)
-    }
-    
-    /// Returns the value at given column, converted to the requested type.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. Otherwise the SQLite value is converted to the requested type
-    /// `Value`. Should this conversion fail, a fatal error is raised.
-    ///
-    /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
-    @inlinable
-    public subscript<Value, Column>(_ column: Column)
-    -> Value?
-    where
-        Value: DatabaseValueConvertible & StatementColumnConvertible,
-        Column: ColumnExpression
-    {
-        try! decodeIfPresent(Value.self, forKey: column.name)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -772,7 +676,11 @@ extension Row {
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
-            throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
+            if let value = Value.fromMissingColumn() {
+                return value
+            } else {
+                throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
+            }
         }
         return try Value.decode(fromRow: self, atUncheckedIndex: index)
     }
@@ -781,29 +689,6 @@ extension Row {
 // MARK: - Throwing DatabaseValueConvertible & StatementColumnConvertible Decoding Methods
 
 extension Row {
-    /// Returns the value at given index, converted to the requested type.
-    ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
-    ///
-    /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
-    /// value is converted to the requested type `Value`. If the conversion
-    /// fail, a `RowDecodingError` is thrown.
-    ///
-    /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
-    @inline(__always)
-    @inlinable
-    func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type = Value.self,
-        atIndex index: Int)
-    throws -> Value?
-    {
-        _checkIndex(index)
-        return try Value.fastDecodeIfPresent(fromRow: self, atUncheckedIndex: index)
-    }
-    
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -831,31 +716,6 @@ extension Row {
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
-    /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. Otherwise the SQLite value is converted to the requested type
-    /// `Value`. If the conversion fails, a `RowDecodingError` is thrown.
-    ///
-    /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
-    /// (see <https://www.sqlite.org/datatype3.html>).
-    @inline(__always)
-    @inlinable
-    func decodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type = Value.self,
-        forKey columnName: String)
-    throws -> Value?
-    {
-        guard let index = index(forColumn: columnName) else {
-            return nil
-        }
-        return try Value.fastDecodeIfPresent(fromRow: self, atUncheckedIndex: index)
-    }
-    
-    /// Returns the value at given column, converted to the requested type.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
     /// If the row does not contain the column, or if the SQLite value is NULL,
     /// or if the SQLite value can not be converted to `Value`, a
     /// `RowDecodingError` is thrown.
@@ -870,7 +730,11 @@ extension Row {
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
-            throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
+            if let value = Value.fromMissingColumn() {
+                return value
+            } else {
+                throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
+            }
         }
         return try Value.fastDecode(fromRow: self, atUncheckedIndex: index)
     }
@@ -883,16 +747,6 @@ extension Row {
     throws -> Value
     {
         try impl.fastDecode(type, atUncheckedIndex: index)
-    }
-    
-    // Support for fast decoding in scoped rows
-    @usableFromInline
-    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int)
-    throws -> Value?
-    {
-        try impl.fastDecodeIfPresent(type, atUncheckedIndex: index)
     }
 }
 
@@ -2068,11 +1922,6 @@ protocol RowImpl {
         atUncheckedIndex index: Int)
     throws -> Value
     
-    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int)
-    throws -> Value?
-    
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data
     
     func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data?
@@ -2119,17 +1968,6 @@ extension RowImpl {
     {
         // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
         return try Value.decode(
-            fromDatabaseValue: databaseValue(atUncheckedIndex: index),
-            context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
-    }
-    
-    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int)
-    throws -> Value?
-    {
-        // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
-        return try Value.decodeIfPresent(
             fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
@@ -2265,17 +2103,6 @@ private struct StatementRowImpl: RowImpl {
     throws -> Value
     {
         try Value.fastDecode(
-            fromStatement: sqliteStatement,
-            atUncheckedIndex: Int32(index),
-            context: RowDecodingContext(statement: statement, index: index))
-    }
-    
-    func fastDecodeIfPresent<Value: DatabaseValueConvertible & StatementColumnConvertible>(
-        _ type: Value.Type,
-        atUncheckedIndex index: Int)
-    throws -> Value?
-    {
-        try Value.fastDecodeIfPresent(
             fromStatement: sqliteStatement,
             atUncheckedIndex: Int32(index),
             context: RowDecodingContext(statement: statement, index: index))

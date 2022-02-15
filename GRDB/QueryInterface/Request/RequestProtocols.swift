@@ -395,38 +395,6 @@ where Self: FilteredRequest,
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRequest
-where Self: FilteredRequest,
-      Self: TypedRequest,
-      RowDecoder: Identifiable,
-      RowDecoder.ID: _OptionalProtocol,
-      RowDecoder.ID.Wrapped: DatabaseValueConvertible
-{
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE ... id = 1
-    ///     let request = try Player...filter(id: 1)
-    ///
-    /// - parameter id: A primary key
-    public func filter(id: RowDecoder.ID.Wrapped) -> Self {
-        filter(key: id)
-    }
-    
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
-    ///     let request = try Player...filter(ids: [1, 2, 3])
-    ///
-    /// - parameter ids: A collection of primary keys
-    public func filter<Collection: Swift.Collection>(ids: Collection)
-    -> Self
-    where Collection.Element == RowDecoder.ID.Wrapped
-    {
-        filter(keys: ids)
-    }
-}
-
 extension TableRequest where Self: OrderedRequest {
     /// Creates a request ordered by primary key.
     public func orderByPrimaryKey() -> Self {

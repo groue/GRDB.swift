@@ -72,6 +72,9 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
     @inline(__always)
     @inlinable
     public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
+            return nil
+        }
         guard let cString = sqlite3_column_text(sqliteStatement, index) else {
             return nil
         }
