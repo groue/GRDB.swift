@@ -259,7 +259,7 @@ extension DatabaseValueConvertible {
         adapter: RowAdapter? = nil)
     throws -> Self?
     {
-        // fetchOne returns nil if there is no row, or if there is a row with a null value
+        // fetchOne handles both a missing row, and one row with a NULL value.
         let cursor = try DatabaseValueCursor<Self?>(
             statement: statement,
             arguments: arguments,
