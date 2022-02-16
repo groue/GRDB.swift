@@ -165,7 +165,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE id = 1
     ///     let request = Player.filter(key: 1)
-    public static func filter<PrimaryKeyType>(key: PrimaryKeyType?)
+    public static func filter<PrimaryKeyType>(key: PrimaryKeyType)
     -> QueryInterfaceRequest<Self>
     where PrimaryKeyType: DatabaseValueConvertible
     {

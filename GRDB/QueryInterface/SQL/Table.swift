@@ -221,7 +221,7 @@ extension Table {
     ///     // SELECT * FROM player WHERE id = 1
     ///     let table = Table<Player>("player")
     ///     let request = table.filter(key: 1)
-    public func filter<PrimaryKeyType>(key: PrimaryKeyType?)
+    public func filter<PrimaryKeyType>(key: PrimaryKeyType)
     -> QueryInterfaceRequest<RowDecoder>
     where PrimaryKeyType: DatabaseValueConvertible
     {
