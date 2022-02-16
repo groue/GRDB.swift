@@ -120,23 +120,6 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         }
     }
 
-//    @inline(__always)
-//    @inlinable
-//    static func fastDecodeIfPresent(
-//        fromStatement sqliteStatement: SQLiteStatement,
-//        atUncheckedIndex index: Int32,
-//        context: @autoclosure () -> RowDecodingContext)
-//    throws -> Self?
-//    {
-//        if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
-//            return nil
-//        }
-//        guard let value = fromSQLiteStatement(sqliteStatement, at: index) else {
-//            try _valueMismatch(fromStatement: sqliteStatement, atUncheckedIndex: index, context: context())
-//        }
-//        return value
-//    }
-    
     // Support for Decodable
     @inline(__always)
     @inlinable

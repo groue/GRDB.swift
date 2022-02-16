@@ -82,48 +82,10 @@ extension DatabaseValueConvertible {
             context: RowDecodingContext(row: row, key: .columnIndex(index)))
     }
     
-    static func decodeIfPresent(
-        fromDatabaseValue dbValue: DatabaseValue,
-        context: @autoclosure () -> RowDecodingContext)
-    throws -> Self?
-    {
-        // Use fromDatabaseValue before checking for null: this allows DatabaseValue to convert NULL to .null.
-        if let value = fromDatabaseValue(dbValue) {
-            return value
-        } else if dbValue.isNull {
-            return nil
-        } else {
-            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
-        }
-    }
-    
-    static func decodeIfPresent(
-        fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
-        context: @autoclosure () -> RowDecodingContext)
-    throws -> Self?
-    {
-        let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
-        if let value = fromDatabaseValue(dbValue) {
-            return value
-        } else if dbValue.isNull {
-            return nil
-        } else {
-            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
-        }
-    }
-    
+    // Support for Decodable
     @usableFromInline
     static func decodeIfPresent(fromRow row: Row, atUncheckedIndex index: Int) throws -> Self? {
-        if let sqliteStatement = row.sqliteStatement {
-            return try decodeIfPresent(
-                fromStatement: sqliteStatement,
-                atUncheckedIndex: Int32(index),
-                context: RowDecodingContext(row: row, key: .columnIndex(index)))
-        }
-        return try decodeIfPresent(
-            fromDatabaseValue: row.impl.databaseValue(atUncheckedIndex: index),
-            context: RowDecodingContext(row: row, key: .columnIndex(index)))
+        try Optional<Self>.decode(fromRow: row, atUncheckedIndex: index)
     }
 }
 

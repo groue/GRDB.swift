@@ -611,24 +611,6 @@ extension Row {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     ///
-    /// If the SQLite value is NULL, the result is nil. Otherwise the SQLite
-    /// value is converted to the requested type `Value`. If the conversion
-    /// fail, a `RowDecodingError` is thrown.
-    @inlinable
-    func decodeIfPresent<Value: DatabaseValueConvertible>(
-        _ type: Value.Type = Value.self,
-        atIndex index: Int)
-    throws -> Value?
-    {
-        _checkIndex(index)
-        return try Value.decodeIfPresent(fromRow: self, atUncheckedIndex: index)
-    }
-    
-    /// Returns the value at given index, converted to the requested type.
-    ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
-    ///
     /// If the SQLite value is NULL, or if the conversion fails, a
     /// `RowDecodingError` is thrown.
     @inlinable
@@ -639,26 +621,6 @@ extension Row {
     {
         _checkIndex(index)
         return try Value.decode(fromRow: self, atUncheckedIndex: index)
-    }
-    
-    /// Returns the value at given column, converted to the requested type.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. Otherwise the SQLite value is converted to the requested type
-    /// `Value`. If the conversion fails, a `RowDecodingError` is thrown.
-    @inlinable
-    func decodeIfPresent<Value: DatabaseValueConvertible>(
-        _ type: Value.Type = Value.self,
-        forKey columnName: String)
-    throws -> Value?
-    {
-        guard let index = index(forColumn: columnName) else {
-            return nil
-        }
-        return try Value.decodeIfPresent(fromRow: self, atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -1981,7 +1943,7 @@ extension RowImpl {
     
     func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
         // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
-        return try Data.decodeIfPresent(
+        return try Optional<Data>.decode(
             fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
