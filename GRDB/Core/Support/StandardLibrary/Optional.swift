@@ -92,6 +92,9 @@ extension Optional: _StatementColumnConvertible where Wrapped: StatementColumnCo
 
 extension Optional: StatementColumnConvertible where Wrapped: StatementColumnConvertible {
     public init?(sqliteStatement: SQLiteStatement, index: Int32) {
-        self = Wrapped(sqliteStatement: sqliteStatement, index: index)
+        guard let value = Wrapped(sqliteStatement: sqliteStatement, index: index) else {
+            return nil
+        }
+        self = .some(value)
     }
 }
