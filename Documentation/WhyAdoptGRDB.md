@@ -273,9 +273,9 @@ In performance-critical sections, you may want to deal with raw database rows, a
 // As close to SQLite metal as possible
 let rows = try Row.fetchCursor(db, sql: "SELECT id, name, score FROM player")
 while let row = try rows.next() {
-    let id: Int64 = row[0]
-    let name: String = row[1]
-    let score: Int = row[2]
+    let id: Int64 = try row[0]
+    let name: String = try row[1]
+    let score: Int = try row[2]
 }
 ```
 

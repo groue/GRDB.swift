@@ -234,15 +234,15 @@ extension Row {
     /// For example:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 42")!
-    ///     let score: Int = row[0] // 42
+    ///     let score: Int = try row[0] // 42
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
-    ///     let name: String = row[0] // "Alice"
+    ///     let name: String = try row[0] // "Alice"
     ///
     /// When the database value may be nil, ask for an optional:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
-    ///     let name: String? = row[0] // nil
+    ///     let name: String? = try row[0] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
         get throws { try decode(Value.self, atIndex: index) }
@@ -260,15 +260,15 @@ extension Row {
     /// For example:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 42")!
-    ///     let score: Int = row[0] // 42
+    ///     let score: Int = try row[0] // 42
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
-    ///     let name: String = row[0] // "Alice"
+    ///     let name: String = try row[0] // "Alice"
     ///
     /// When the database value may be nil, ask for an optional:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
-    ///     let name: String? = row[0] // nil
+    ///     let name: String? = try row[0] // nil
     @inline(__always)
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
@@ -314,20 +314,20 @@ extension Row {
     /// For example:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row["score"] // 42
+    ///     let score: Int = try row["score"] // 42
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row["name"] // "Alice"
+    ///     let name: String = try row["name"] // "Alice"
     ///
     /// When the database value may be nil, ask for an optional:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row["name"] // nil
+    ///     let name: String? = try row["name"] // nil
     ///
     /// When the column does not exist, nil is returned:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row["missing"] // nil
+    ///     let name: String? = try row["missing"] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
         get throws { try decode(Value.self, forKey: columnName) }
@@ -345,20 +345,20 @@ extension Row {
     /// For example:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row["score"] // 42
+    ///     let score: Int = try row["score"] // 42
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row["name"] // "Alice"
+    ///     let name: String = try row["name"] // "Alice"
     ///
     /// When the database value may be nil, ask for an optional:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row["name"] // nil
+    ///     let name: String? = try row["name"] // nil
     ///
     /// When the column does not exist, nil is returned:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row["missing"] // nil
+    ///     let name: String? = try row["missing"] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         get throws { try decode(Value.self, forKey: columnName) }
@@ -393,20 +393,20 @@ extension Row {
     /// For example:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row[Column("score")] // 42
+    ///     let score: Int = try row[Column("score")] // 42
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row[Column("name")] // "Alice"
+    ///     let name: String = try row[Column("name")] // "Alice"
     ///
     /// When the database value may be nil, ask for an optional:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row[Column("name")] // nil
+    ///     let name: String? = try row[Column("name")] // nil
     ///
     /// When the column does not exist, nil is returned:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row[Column("missing")] // nil
+    ///     let name: String? = try row[Column("missing")] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
         get throws { try decode(Value.self, forKey: column.name) }
@@ -424,20 +424,20 @@ extension Row {
     /// For example:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
-    ///     let score: Int = row[Column("score")] // 42
+    ///     let score: Int = try row[Column("score")] // 42
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
-    ///     let name: String = row[Column("name")] // "Alice"
+    ///     let name: String = try row[Column("name")] // "Alice"
     ///
     /// When the database value may be nil, ask for an optional:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
-    ///     let name: String? = row[Column("name")] // nil
+    ///     let name: String? = try row[Column("name")] // nil
     ///
     /// When the column does not exist, nil is returned:
     ///
     ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
-    ///     let name: String? = row[Column("missing")] // nil
+    ///     let name: String? = try row[Column("missing")] // nil
     @inlinable
     public subscript<Value, Column>(_ column: Column)
     -> Value

@@ -81,7 +81,7 @@ Columns can be used, for example, to query database rows:
 
 ```swift
 let row = try Row.fetchOne(db, sql: "SELECT 'Arthur' AS name")!
-let name: String = row[Column("name")] // "Arthur"
+let name: String = try row[Column("name")] // "Arthur"
 ```
 
 Columns are special expressions that allow some optimizations and niceties:

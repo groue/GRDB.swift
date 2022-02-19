@@ -2179,14 +2179,14 @@ let bookInfos: [BookInfo] = try BookInfo.fetchAll(db, request)
 You are already familiar with row subscripts to decode [database values](../README.md#column-values):
 
 ```swift
-let name: String = row["name"]
+let name: String = try row["name"]
 ```
 
 When you extract a record instead of a value from a row, GRDB looks up the tree of **association keys**. If the key is not found, or only associated with columns that all contain NULL values, an optional record is decoded as nil:
 
 ```swift
-let author: Author = row["author"]
-let country: Country? = row["country"]
+let author: Author = try row["author"]
+let country: Country? = try row["country"]
 ```
 
 You can also perform custom navigation in the tree by using *row scopes*. See [Row Adapters] for more information.
