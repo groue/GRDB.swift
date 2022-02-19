@@ -223,10 +223,21 @@ extension Row {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     ///
-    /// This method crashes if the fetched SQLite value is NULL, or if the
-    /// SQLite value can not be converted to `Value`.
+    /// For example:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 42")!
+    ///     let score: Int = row[0] // 42
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
+    ///     let name: String = row[0] // "Alice"
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
+    ///     let name: String? = row[0] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ index: Int) -> Value {
+        // TODO GRDB6: don't crash on decoding errors
         try! decode(Value.self, atIndex: index)
     }
     
@@ -235,15 +246,26 @@ extension Row {
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
     ///
-    /// This method crashes if the fetched SQLite value is NULL, or if the
-    /// SQLite value can not be converted to `Value`.
-    ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
+    /// `StatementColumnConvertible`. It can trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    ///
+    /// For example:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 42")!
+    ///     let score: Int = row[0] // 42
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice'")!
+    ///     let name: String = row[0] // "Alice"
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
+    ///     let name: String? = row[0] // nil
     @inline(__always)
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ index: Int) -> Value {
+        // TODO GRDB6: don't crash on decoding errors
         try! decode(Value.self, atIndex: index)
     }
     
@@ -273,10 +295,23 @@ extension Row {
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
-    /// If the row does not contain the column, a fatal error is raised.
+    /// For example:
     ///
-    /// This method crashes if the fetched SQLite value is NULL, or if the
-    /// SQLite value can not be converted to `Value`.
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    ///     let score: Int = row["score"] // 42
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    ///     let name: String = row["name"] // "Alice"
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    ///     let name: String? = row["name"] // nil
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
+    ///     let name: String? = row["missing"] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
         try! decode(Value.self, forKey: columnName)
@@ -287,20 +322,33 @@ extension Row {
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
-    /// If the row does not contain the column, a fatal error is raised.
-    ///
-    /// This method crashes if the fetched SQLite value is NULL, or if the
-    /// SQLite value can not be converted to `Value`.
-    ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
+    /// `StatementColumnConvertible`. It can trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    ///
+    /// For example:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    ///     let score: Int = row["score"] // 42
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    ///     let name: String = row["name"] // "Alice"
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    ///     let name: String? = row["name"] // nil
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
+    ///     let name: String? = row["missing"] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
         try! decode(Value.self, forKey: columnName)
     }
     
-    /// Returns Int64, Double, String, NSData or nil, depending on the value
+    /// Returns Int64, Double, String, Data or nil, depending on the value
     /// stored at the given column.
     ///
     /// Column name lookup is case-insensitive, and when several columns have
@@ -316,10 +364,23 @@ extension Row {
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
-    /// If the row does not contain the column, a fatal error is raised.
+    /// For example:
     ///
-    /// This method crashes if the fetched SQLite value is NULL, or if the
-    /// SQLite value can not be converted to `Value`.
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    ///     let score: Int = row[Column("score")] // 42
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    ///     let name: String = row[Column("name")] // "Alice"
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    ///     let name: String? = row[Column("name")] // nil
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
+    ///     let name: String? = row[Column("missing")] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
         try! decode(Value.self, forKey: column.name)
@@ -330,14 +391,27 @@ extension Row {
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
-    /// If the row does not contain the column, a fatal error is raised.
-    ///
-    /// This method crashes if the fetched SQLite value is NULL, or if the
-    /// SQLite value can not be converted to `Value`.
-    ///
     /// This method exists as an optimization opportunity for types that adopt
-    /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
+    /// `StatementColumnConvertible`. It can trigger SQLite built-in conversions
     /// (see <https://www.sqlite.org/datatype3.html>).
+    ///
+    /// For example:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 42 AS score")!
+    ///     let score: Int = row[Column("score")] // 42
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT 'Alice' AS name")!
+    ///     let name: String = row[Column("name")] // "Alice"
+    ///
+    /// When the database value may be nil, ask for an optional:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT NULL AS name")!
+    ///     let name: String? = row[Column("name")] // nil
+    ///
+    /// When the column does not exist, nil is returned:
+    ///
+    ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
+    ///     let name: String? = row[Column("missing")] // nil
     @inlinable
     public subscript<Value, Column>(_ column: Column)
     -> Value
@@ -362,7 +436,7 @@ extension Row {
         try! decodeDataNoCopyIfPresent(atIndex: index)
     }
     
-    /// Returns the optional Data at given column.
+    /// Returns the optional `Data` at given column.
     ///
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
@@ -377,13 +451,13 @@ extension Row {
         try! decodeDataNoCopyIfPresent(forKey: columnName)
     }
     
-    /// Returns the optional `NSData` at given column.
+    /// Returns the optional `Data` at given column.
     ///
     /// Column name lookup is case-insensitive, and when several columns have
     /// the same name, the leftmost column is considered.
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
-    /// nil. If the SQLite value can not be converted to NSData, a fatal error
+    /// nil. If the SQLite value can not be converted to Data, a fatal error
     /// is raised.
     ///
     /// The returned data does not owns its bytes: it must not be used longer
