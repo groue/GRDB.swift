@@ -277,6 +277,7 @@ class RowFromStatementTests : RowTestCase {
                 rowFetched = true
                 XCTAssertFalse(row.hasColumn("missing"))
                 XCTAssertTrue(row.databaseValue(forColumn: "missing") == nil)
+                XCTAssertTrue(row["missing"] == nil)
             }
             XCTAssertTrue(rowFetched)
         }

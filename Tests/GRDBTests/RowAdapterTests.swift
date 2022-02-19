@@ -234,6 +234,8 @@ class AdapterRowTests : RowTestCase {
             XCTAssertFalse(row.hasColumn("missingInBaseRow"))
             XCTAssertTrue(row.databaseValue(forColumn: "missing") == nil)
             XCTAssertTrue(row.databaseValue(forColumn: "missingInBaseRow") == nil)
+            XCTAssertTrue(row["missing"] == nil)
+            XCTAssertTrue(row["missingInBaseRow"] == nil)
         }
     }
 
