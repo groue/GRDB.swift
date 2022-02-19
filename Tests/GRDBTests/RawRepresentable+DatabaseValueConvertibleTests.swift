@@ -25,24 +25,34 @@ private enum Grape : String {
     case riesling
 }
 
+private enum FastGrape : String {
+    case chardonnay
+    case merlot
+    case riesling
+}
+
 private struct Wrapper<RawValue>: RawRepresentable {
     var rawValue: RawValue
 }
 
-extension Color32 : SQLExpressible { }
-extension Color64 : SQLExpressible { }
-extension Color : SQLExpressible { }
-extension Grape : SQLExpressible { }
-extension Wrapper: SQLOrderingTerm where RawValue: SQLOrderingTerm { }
-extension Wrapper: SQLSelectable where RawValue: SQLSelectable { }
-extension Wrapper: SQLExpressible where RawValue: SQLExpressible { }
-extension Wrapper: StatementBinding where RawValue: StatementBinding { }
+private struct FastWrapper<RawValue>: RawRepresentable {
+    var rawValue: RawValue
+}
 
 extension Color32 : DatabaseValueConvertible { }
 extension Color64 : DatabaseValueConvertible { }
 extension Color : DatabaseValueConvertible { }
 extension Grape : DatabaseValueConvertible { }
+extension FastGrape : DatabaseValueConvertible, StatementColumnConvertible { }
+
+extension Wrapper: SQLExpressible where RawValue: SQLExpressible { }
+extension Wrapper: StatementBinding where RawValue: StatementBinding { }
 extension Wrapper: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
+
+extension FastWrapper: SQLExpressible where RawValue: SQLExpressible { }
+extension FastWrapper: StatementBinding where RawValue: StatementBinding { }
+extension FastWrapper: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
+extension FastWrapper: StatementColumnConvertible where RawValue: StatementColumnConvertible { }
 
 class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
     
@@ -176,6 +186,102 @@ class RawRepresentableDatabaseValueConvertibleTests: GRDBTestCase {
                 XCTAssertEqual(grapes[1]!, Grape.chardonnay)
                 XCTAssertEqual(grapes[2]!, Grape.merlot)
                 XCTAssertEqual(grapes[3]!, Grape.riesling)
+            }
+            
+            return .rollback
+        }
+    }
+
+    func testFastGrape() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            
+            do {
+                for grape in [FastGrape.chardonnay, FastGrape.merlot, FastGrape.riesling] {
+                    try db.execute(sql: "INSERT INTO wines (grape) VALUES (?)", arguments: [grape])
+                }
+                try db.execute(sql: "INSERT INTO wines (grape) VALUES (NULL)")
+            }
+            
+            do {
+                let rows = try Row.fetchAll(db, sql: "SELECT grape FROM wines ORDER BY grape")
+                let grapes = rows.map { $0[0] as FastGrape? }
+                XCTAssertTrue(grapes[0] == nil)
+                XCTAssertEqual(grapes[1]!, FastGrape.chardonnay)
+                XCTAssertEqual(grapes[2]!, FastGrape.merlot)
+                XCTAssertEqual(grapes[3]!, FastGrape.riesling)
+            }
+            
+            do {
+                let grapes = try Optional<FastGrape>.fetchAll(db, sql: "SELECT grape FROM wines ORDER BY grape")
+                XCTAssertTrue(grapes[0] == nil)
+                XCTAssertEqual(grapes[1]!, FastGrape.chardonnay)
+                XCTAssertEqual(grapes[2]!, FastGrape.merlot)
+                XCTAssertEqual(grapes[3]!, FastGrape.riesling)
+            }
+            
+            return .rollback
+        }
+    }
+
+    func testWrapper() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            
+            do {
+                for color in [Wrapper(rawValue: 0), Wrapper(rawValue: 1), Wrapper(rawValue: 2)] {
+                    try db.execute(sql: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                }
+                try db.execute(sql: "INSERT INTO wines (color) VALUES (NULL)")
+            }
+            
+            do {
+                let rows = try Row.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
+                let values = rows.map { $0[0] as Wrapper<Int>? }
+                XCTAssertTrue(values[0] == nil)
+                XCTAssertEqual(values[1]!.rawValue, 0)
+                XCTAssertEqual(values[2]!.rawValue, 1)
+                XCTAssertEqual(values[3]!.rawValue, 2)
+            }
+            
+            do {
+                let values = try Optional<Wrapper<Int>>.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
+                XCTAssertTrue(values[0] == nil)
+                XCTAssertEqual(values[1]!.rawValue, 0)
+                XCTAssertEqual(values[2]!.rawValue, 1)
+                XCTAssertEqual(values[3]!.rawValue, 2)
+            }
+            
+            return .rollback
+        }
+    }
+
+    func testFastWrapper() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inTransaction { db in
+            
+            do {
+                for color in [FastWrapper(rawValue: 0), FastWrapper(rawValue: 1), FastWrapper(rawValue: 2)] {
+                    try db.execute(sql: "INSERT INTO wines (color) VALUES (?)", arguments: [color])
+                }
+                try db.execute(sql: "INSERT INTO wines (color) VALUES (NULL)")
+            }
+            
+            do {
+                let rows = try Row.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
+                let values = rows.map { $0[0] as FastWrapper<Int>? }
+                XCTAssertTrue(values[0] == nil)
+                XCTAssertEqual(values[1]!.rawValue, 0)
+                XCTAssertEqual(values[2]!.rawValue, 1)
+                XCTAssertEqual(values[3]!.rawValue, 2)
+            }
+            
+            do {
+                let values = try Optional<FastWrapper<Int>>.fetchAll(db, sql: "SELECT color FROM wines ORDER BY color")
+                XCTAssertTrue(values[0] == nil)
+                XCTAssertEqual(values[1]!.rawValue, 0)
+                XCTAssertEqual(values[2]!.rawValue, 1)
+                XCTAssertEqual(values[3]!.rawValue, 2)
             }
             
             return .rollback

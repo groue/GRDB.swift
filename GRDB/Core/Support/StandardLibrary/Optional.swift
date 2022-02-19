@@ -73,7 +73,7 @@ extension Optional: DatabaseValueConvertible where Wrapped: DatabaseValueConvert
     }
 }
 
-extension Optional: _StatementColumnConvertible where Wrapped: StatementColumnConvertible {
+extension Optional: StatementColumnConvertible where Wrapped: StatementColumnConvertible {
     /// :nodoc:
     @inline(__always)
     @inlinable
@@ -89,9 +89,7 @@ extension Optional: _StatementColumnConvertible where Wrapped: StatementColumnCo
             return .none
         }
     }
-}
-
-extension Optional: StatementColumnConvertible where Wrapped: StatementColumnConvertible {
+    
     public init?(sqliteStatement: SQLiteStatement, index: Int32) {
         guard let value = Wrapped(sqliteStatement: sqliteStatement, index: index) else {
             return nil

@@ -1,21 +1,3 @@
-/// Implementation details of `StatementColumnConvertible`.
-///
-/// :nodoc:
-public protocol _StatementColumnConvertible {
-    /// Creates a value from a raw SQLite statement pointer, if possible.
-    ///
-    /// This method can be called with a NULL database value.
-    ///
-    /// - parameters:
-    ///     - sqliteStatement: A pointer to an SQLite statement.
-    ///     - index: The column index.
-    /// - returns: A decoded value, or, if decoding is impossible, nil.
-    static func _fromStatement(
-        _ sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32)
-    -> Self?
-}
-
 /// The `StatementColumnConvertible` protocol grants access to the low-level C
 /// interface that extracts values from query results:
 /// <https://www.sqlite.org/c3ref/column_blob.html>. It can bring performance
@@ -36,7 +18,21 @@ public protocol _StatementColumnConvertible {
 ///             score = row["score"]              // there
 ///         }
 ///     }
-public protocol StatementColumnConvertible: _StatementColumnConvertible {
+public protocol StatementColumnConvertible {
+    /// Creates a value from a raw SQLite statement pointer, if possible.
+    ///
+    /// This method can be called with a NULL database value.
+    ///
+    /// - parameters:
+    ///     - sqliteStatement: A pointer to an SQLite statement.
+    ///     - index: The column index.
+    /// - returns: A decoded value, or, if decoding is impossible, nil.
+    /// :nodoc:
+    static func _fromStatement(
+        _ sqliteStatement: SQLiteStatement,
+        atUncheckedIndex index: Int32)
+    -> Self?
+    
     /// Creates a value from a raw SQLite statement pointer, if possible.
     ///
     /// For example, here is the how Int64 adopts StatementColumnConvertible:
@@ -58,8 +54,9 @@ public protocol StatementColumnConvertible: _StatementColumnConvertible {
     init?(sqliteStatement: SQLiteStatement, index: Int32)
 }
 
-extension _StatementColumnConvertible where Self: StatementColumnConvertible {
-    // Default implementation fails on decoding NULL.
+extension StatementColumnConvertible {
+    /// Default implementation fails on decoding NULL.
+    /// `Optional` overrides this default behavior.
     /// :nodoc:
     @inline(__always)
     @inlinable
