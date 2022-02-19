@@ -526,12 +526,15 @@ extension DatabaseDateDecodingStrategy {
         }
     }
     
+    /// - precondition: value is not NULL
     fileprivate func decode(
         fromStatement sqliteStatement: SQLiteStatement,
         atUncheckedIndex index: Int32,
         context: @autoclosure () -> RowDecodingContext)
     throws -> Date
     {
+        assert(sqlite3_column_type(sqliteStatement, index) != SQLITE_NULL, "unexpected NULL value")
+        
         switch self {
         case .deferredToDate:
             guard let date = Date(sqliteStatement: sqliteStatement, index: index) else {

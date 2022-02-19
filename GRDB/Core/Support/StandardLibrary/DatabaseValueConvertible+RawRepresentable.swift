@@ -10,6 +10,8 @@ extension SQLOrderingTerm where Self: RawRepresentable, Self.RawValue: SQLOrderi
     }
 }
 
+extension SQLSpecificExpressible where Self: RawRepresentable, Self.RawValue: SQLSpecificExpressible { }
+
 extension SQLExpressible where Self: RawRepresentable, Self.RawValue: SQLExpressible {
     /// Returns the raw value as an SQL expression.
     public var sqlExpression: SQLExpression {

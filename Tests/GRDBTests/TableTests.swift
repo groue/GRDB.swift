@@ -134,6 +134,9 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.filter(id: 1), """
                     SELECT * FROM "player" WHERE "id" = 1
                     """)
+                try assertEqualSQL(db, t.filter(id: nil), """
+                    SELECT * FROM "player" WHERE 0
+                    """)
                 try assertEqualSQL(db, t.filter(ids: [1, 2, 3]), """
                     SELECT * FROM "player" WHERE "id" IN (1, 2, 3)
                     """)
@@ -249,7 +252,7 @@ class TableTests: GRDBTestCase {
             
             do {
                 try db.execute(sql: "DELETE FROM player")
-                try XCTAssertEqual(t.fetchOne(db), nil)
+                try XCTAssertEqual(t.fetchOne(db), .none) // no row
             }
             
             do {
@@ -261,7 +264,7 @@ class TableTests: GRDBTestCase {
             do {
                 try db.execute(sql: "DELETE FROM player")
                 try db.execute(sql: "INSERT INTO player VALUES (NULL)")
-                try XCTAssertEqual(t.fetchOne(db), nil)
+                try XCTAssertEqual(t.fetchOne(db), .some(nil)) // one row with NULL value
             }
         }
     }
@@ -319,7 +322,7 @@ class TableTests: GRDBTestCase {
             do {
                 try db.execute(sql: "DELETE FROM player")
                 try db.execute(sql: "INSERT INTO player VALUES (NULL)")
-                try XCTAssertEqual(t.fetchOne(db), nil)
+                try XCTAssertEqual(t.fetchOne(db), .some(.none))
             }
         }
     }
@@ -822,6 +825,10 @@ class TableTests: GRDBTestCase {
                     DELETE FROM "country" WHERE "code" = 'FR'
                     """)
                 
+                sqlQueries.removeAll()
+                try Table<Country>("country").deleteOne(db, id: nil)
+                XCTAssertNil(lastSQLQuery) // Database not hit
+                
                 try Table<Country>("country").deleteAll(db, ids: ["FR", "DE"])
                 XCTAssertEqual(lastSQLQuery, """
                     DELETE FROM "country" WHERE "code" IN ('FR', 'DE')
@@ -926,6 +933,10 @@ class TableTests: GRDBTestCase {
                 XCTAssertEqual(lastSQLQuery, """
                     SELECT EXISTS (SELECT * FROM "country" WHERE "code" = 'FR')
                     """)
+                
+                sqlQueries.removeAll()
+                try XCTAssertFalse(Table<Country>("country").exists(db, id: nil))
+                XCTAssertNil(lastSQLQuery) // Database not hit
             }
         }
     }

@@ -185,27 +185,6 @@ where RowDecoder: Identifiable,
     }
 }
 
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension QueryInterfaceRequest
-where RowDecoder: Identifiable,
-      RowDecoder.ID: _OptionalProtocol,
-      RowDecoder.ID.Wrapped: DatabaseValueConvertible
-{
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player WHERE ...
-    ///     let request = try Player.filter(...).selectID()
-    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID.Wrapped> {
-        select { db in
-            let primaryKey = try db.primaryKey(self.databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
-            return [Column(primaryKey.columns[0])]
-        }.asRequest(of: RowDecoder.ID.Wrapped.self)
-    }
-}
-
 extension QueryInterfaceRequest: FilteredRequest {
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
