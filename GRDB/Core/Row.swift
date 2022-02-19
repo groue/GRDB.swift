@@ -226,6 +226,11 @@ extension Row {
         return impl.databaseValue(atUncheckedIndex: index)
     }
     
+    /// Returns the `DatabaseValue` at the given index.
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
+        impl.databaseValue(atUncheckedIndex: index)
+    }
+    
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
