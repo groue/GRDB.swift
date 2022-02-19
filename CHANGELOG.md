@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+#### 6.x Releases
+
+- `6.0.x` Releases - [6.0.0](#600)
+
 #### 5.x Releases
 
 - `5.21.x` Releases - [5.21.0](#5210)
@@ -87,6 +91,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 6.0.0
+
+- **Breaking Change**: Deprecated methods were removed.
+- **Breaking Change**: Swift 5.5+, Xcode 13+ required
+- **Breaking Change**: The `databaseCopy()` method of the Record class has been removed.
+- **Breaking Change**: `DatabaseWriter.barrierWriteWithoutTransaction` is now a throwing method.
+- **Breaking Change**: `DatabaseQueue()` initializer for in-memory databases is now throwing.
+- **Breaking Change**: [#1172](https://github.com/groue/GRDB.swift/pull/1172) by [@groue](https://github.com/groue): Optional is a database value like others
 
 ## 5.21.0
 
