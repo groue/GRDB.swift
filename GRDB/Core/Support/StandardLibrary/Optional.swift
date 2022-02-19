@@ -54,7 +54,8 @@ extension Optional: DatabaseValueConvertible where Wrapped: DatabaseValueConvert
         }
     }
     
-    public static func fromMissingColumn() -> Self? {
+    /// :nodoc:
+    public static func _fromMissingColumn() -> Self? {
         .some(.none) // success
     }
     

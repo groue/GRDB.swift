@@ -712,7 +712,7 @@ extension Row {
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
-            if let value = Value.fromMissingColumn() {
+            if let value = Value._fromMissingColumn() {
                 return value
             } else {
                 throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
@@ -766,7 +766,7 @@ extension Row {
     throws -> Value
     {
         guard let index = index(forColumn: columnName) else {
-            if let value = Value.fromMissingColumn() {
+            if let value = Value._fromMissingColumn() {
                 return value
             } else {
                 throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))

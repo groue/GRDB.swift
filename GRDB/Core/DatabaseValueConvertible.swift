@@ -18,10 +18,12 @@ public protocol DatabaseValueConvertible: SQLExpressible, StatementBinding {
     /// Returns a value that can be stored in the database.
     var databaseValue: DatabaseValue { get }
     
-    /// Creates a value from a missing column, if possible.
+    /// Creates a value from a missing column, if possible. This method makes
+    /// it possible to decode missing columns as nil optionals.
     ///
     /// - returns: A decoded value, or, if decoding is impossible, nil.
-    static func fromMissingColumn() -> Self?
+    /// :nodoc:
+    static func _fromMissingColumn() -> Self?
     
     /// Creates a value from `dbValue`, if possible.
     ///
@@ -39,8 +41,11 @@ extension DatabaseValueConvertible {
         databaseValue.bind(to: sqliteStatement, at: index)
     }
     
-    public static func fromMissingColumn() -> Self? {
-        nil // failure
+    /// Default implementation fails to decode a value from a missing column.
+    /// `Optional` overrides this default behavior.
+    /// :nodoc:
+    public static func _fromMissingColumn() -> Self? {
+        nil // failure.
     }
 }
 
