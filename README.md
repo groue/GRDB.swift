@@ -1074,15 +1074,16 @@ Generally speaking, you can extract the type you need, provided it can be conver
     There is one exception, though: the [DatabaseValue](#databasevalue) type:
     
     ```swift
-    row[0] as DatabaseValue // DatabaseValue.null
+    try row[0] as DatabaseValue   // DatabaseValue.null
+    row.databaseValue(atIndex: 0) // DatabaseValue.null
     ```
     
 - **Missing columns return nil.**
     
     ```swift
     let row = try Row.fetchOne(db, sql: "SELECT 'foo' AS foo")!
-    row["missing"] as String? // nil
-    row["missing"] as String  // fatal error: no such column: missing
+    try row["missing"] as String? // nil
+    try row["missing"] as String  // fatal error: no such column: missing
     ```
     
     You can explicitly check for a column presence with the `hasColumn` method.
@@ -1091,14 +1092,14 @@ Generally speaking, you can extract the type you need, provided it can be conver
     
     ```swift
     let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'")!
-    row[0] as String // "Mom’s birthday"
-    row[0] as Date?  // fatal error: could not convert "Mom’s birthday" to Date.
-    row[0] as Date   // fatal error: could not convert "Mom’s birthday" to Date.
+    try row[0] as String // "Mom’s birthday"
+    try row[0] as Date?  // fatal error: could not convert "Mom’s birthday" to Date.
+    try row[0] as Date   // fatal error: could not convert "Mom’s birthday" to Date.
     
     let row = try Row.fetchOne(db, sql: "SELECT 256")!
-    row[0] as Int    // 256
-    row[0] as UInt8? // fatal error: could not convert 256 to UInt8.
-    row[0] as UInt8  // fatal error: could not convert 256 to UInt8.
+    try row[0] as Int    // 256
+    try row[0] as UInt8? // fatal error: could not convert 256 to UInt8.
+    try row[0] as UInt8  // fatal error: could not convert 256 to UInt8.
     ```
     
     This extra verbosity is the consequence of having to deal with an untrusted database: you may consider fixing the content of your database instead. See [Fatal Errors](#fatal-errors) for more information.
@@ -1110,7 +1111,7 @@ Generally speaking, you can extract the type you need, provided it can be conver
     ```swift
     let rows = try Row.fetchCursor(db, sql: "SELECT '20 small cigars'")
     while let row = try rows.next() {
-        row[0] as Int   // 20
+        try row[0] as Int // 20
     }
     ```
     
@@ -1121,11 +1122,9 @@ Generally speaking, you can extract the type you need, provided it can be conver
 
 **DatabaseValue is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
 
-You get DatabaseValue just like other value types:
-
 ```swift
-let dbValue: DatabaseValue = row[0]
-let dbValue: DatabaseValue? = row["name"] // nil if and only if column does not exist
+let dbValue = row.databaseValue(atIndex: 0)        // DatabaseValue
+let dbValue = row.databaseValue(forColumn: "name") // DatabaseValue?, nil if column does not exist
 
 // Check for NULL:
 dbValue.isNull // Bool
@@ -1146,12 +1145,12 @@ case .blob(let data):       print("Data: \(data)")
 You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
-let dbValue: DatabaseValue = row["bookCount"]
+let dbValue: DatabaseValue = row.databaseValue(forColumn: "bookCount")
 let bookCount   = Int.fromDatabaseValue(dbValue)   // Int?
 let bookCount64 = Int64.fromDatabaseValue(dbValue) // Int64?
 let hasBooks    = Bool.fromDatabaseValue(dbValue)  // Bool?, false when 0
 
-let dbValue: DatabaseValue = row["date"]
+let dbValue: DatabaseValue = row.databaseValue(forColumn: "date")
 let string = String.fromDatabaseValue(dbValue)     // "2015-09-11 18:14:15.123"
 let date   = Date.fromDatabaseValue(dbValue)       // Date?
 ```
@@ -1159,8 +1158,8 @@ let date   = Date.fromDatabaseValue(dbValue)       // Date?
 `fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
-let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'")!
-let dbValue: DatabaseValue = row[0]
+let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday' AS date")!
+let dbValue: DatabaseValue = row.databaseValue(forColumn: "date")
 let string = String.fromDatabaseValue(dbValue) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbValue)    // nil
 let date   = Date.fromDatabaseValue(dbValue)   // nil
@@ -1321,8 +1320,8 @@ Values can be [extracted from rows](#column-values):
 ```swift
 let rows = try Row.fetchCursor(db, sql: "SELECT * FROM link")
 while let row = try rows.next() {
-    let url: URL = row["url"]
-    let verified: Bool = row["verified"]
+    let url: URL = try row["url"]
+    let verified: Bool = try row["verified"]
 }
 ```
 
@@ -1361,7 +1360,7 @@ let link = try Link.filter(Column("url") == url).fetchOne(db)
 ```swift
 let rows = try Row.fetchCursor(db, sql: "SELECT data, ...")
 while let row = try rows.next() {
-    let data: Data = row["data"]
+    let data: Data = try row["data"]
 }
 ```
 
@@ -1371,7 +1370,7 @@ At each step of the request iteration, the `row[]` subscript creates *two copies
 
 ```swift
 while let row = try rows.next() {
-    let data = row.dataNoCopy(named: "data") // Data?
+    let data = try row.dataNoCopy(named: "data") // Data?
 }
 ```
 
@@ -1418,7 +1417,7 @@ try db.execute(
     arguments: [Date(), ...])
 
 let row = try Row.fetchOne(db, ...)!
-let creationDate: Date = row["creationDate"]
+let creationDate: Date = try row["creationDate"]
 ```
 
 Dates are stored using the format "YYYY-MM-DD HH:MM:SS.SSS" in the UTC time zone. It is precise to the millisecond.
@@ -1456,7 +1455,7 @@ try db.execute(
     arguments: [timeInterval, ...])
 
 if let row = try Row.fetchOne(db, ...) {
-    let timeInterval: TimeInterval = row["creationDate"]
+    let timeInterval: TimeInterval = try row["creationDate"]
     let creationDate = Date(timeIntervalSinceReferenceDate: timeInterval)
 }
 ```
@@ -1488,7 +1487,7 @@ try db.execute(
 
 // Read "1973-09-18"
 let row = try Row.fetchOne(db, sql: "SELECT birthDate ...")!
-let dbComponents: DatabaseDateComponents = row["birthDate"]
+let dbComponents: DatabaseDateComponents = try row["birthDate"]
 dbComponents.format         // .YMD (the actual format found in the database)
 dbComponents.dateComponents // DateComponents
 ```
