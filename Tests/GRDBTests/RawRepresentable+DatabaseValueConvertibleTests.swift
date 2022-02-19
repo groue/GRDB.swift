@@ -49,6 +49,9 @@ extension Wrapper: SQLExpressible where RawValue: SQLExpressible { }
 extension Wrapper: StatementBinding where RawValue: StatementBinding { }
 extension Wrapper: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
 
+extension FastWrapper: SQLSelectable where RawValue: SQLSelectable { }
+extension FastWrapper: SQLOrderingTerm where RawValue: SQLOrderingTerm { }
+extension FastWrapper: SQLSpecificExpressible where RawValue: SQLSpecificExpressible { }
 extension FastWrapper: SQLExpressible where RawValue: SQLExpressible { }
 extension FastWrapper: StatementBinding where RawValue: StatementBinding { }
 extension FastWrapper: DatabaseValueConvertible where RawValue: DatabaseValueConvertible { }
