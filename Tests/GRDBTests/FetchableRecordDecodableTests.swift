@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import GRDB
+import GRDB
 
 class FetchableRecordDecodableTests: GRDBTestCase { }
 
@@ -776,7 +776,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "requiredId": 1,
                 "optionalName": "test1",
                 "requiredDates": "[128000]",
@@ -792,7 +792,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "REQUIREDID": 1,
                 "OPTIONALNAME": "test1",
                 "REQUIREDDATES": "[128000]",
@@ -808,7 +808,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "requiredId": 1,
                 "optionalName": nil,
                 "requiredDates": "[128000]",
@@ -824,7 +824,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "requiredId": 1,
                 "requiredDates": "[128000]",
                 "optionalDates": "[null, 128000]",
@@ -838,7 +838,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            _ = try RowDecoder().decode(Record.self, from: [
+            _ = try Record(row: [
                 "required_id": 1,
                 "optionalName": "test1",
                 "requiredDates": "[128000]",
@@ -846,7 +846,7 @@ extension FetchableRecordDecodableTests {
                 "optionalDates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+        } catch let RowDecodingError.columnNotFound(column, context) {
             XCTAssertEqual(column, "requiredId")
             XCTAssertEqual(context.debugDescription, "column not found: \"requiredId\"")
         }
@@ -872,7 +872,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "required_id": 1,
                 "optional_name": "test1",
                 "required_dates": "[128000]",
@@ -888,7 +888,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "REQUIRED_ID": 1,
                 "OPTIONAL_NAME": "test1",
                 "REQUIRED_DATES": "[128000]",
@@ -904,7 +904,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "required_id": 1,
                 "optional_name": nil,
                 "required_dates": "[128000]",
@@ -920,7 +920,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "required_id": 1,
                 "required_dates": "[128000]",
                 "optional_dates": "[null, 128000]",
@@ -935,7 +935,7 @@ extension FetchableRecordDecodableTests {
         
         do {
             // Matches JSONDecoder.KeyDecodingStrategy.convertFromSnakeCase behavior
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "requiredId": 1,
                 "optionalName": "test1",
                 "requiredDates": "[128000]",
@@ -951,7 +951,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            _ = try RowDecoder().decode(Record.self, from: [
+            _ = try Record(row: [
                 "required_idx": 1,
                 "optional_name": "test1",
                 "required_dates": "[128000]",
@@ -959,16 +959,16 @@ extension FetchableRecordDecodableTests {
                 "optional_dates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+        } catch let RowDecodingError.columnNotFound(column, context) {
             XCTAssertEqual(column, "requiredId")
             XCTAssertEqual(context.debugDescription, """
-                key not found: CodingKeys(stringValue: "requiredId", intValue: nil) ("requiredId"), \
+                column not found: CodingKeys(stringValue: "requiredId", intValue: nil) ("requiredId"), \
                 converted to required_id
                 """)
         }
         
         do {
-            _ = try RowDecoder().decode(IncorrectRecord.self, from: [
+            _ = try IncorrectRecord(row: [
                 "required_id": 1,
                 "optional_name": "test1",
                 "required_dates": "[128000]",
@@ -976,10 +976,10 @@ extension FetchableRecordDecodableTests {
                 "optional_dates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+        } catch let RowDecodingError.columnNotFound(column, context) {
             XCTAssertEqual(column, "requiredID")
             XCTAssertEqual(context.debugDescription, """
-                key not found: CodingKeys(stringValue: "requiredID", intValue: nil) ("requiredID"), \
+                column not found: CodingKeys(stringValue: "requiredID", intValue: nil) ("requiredID"), \
                 with divergent representation requiredId, \
                 converted to required_id
                 """)
@@ -1006,7 +1006,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "_requiredId": 1,
                 "_optionalName": "test1",
                 "_requiredDates": "[128000]",
@@ -1022,7 +1022,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "_requiredId": 1,
                 "_optionalName": nil,
                 "_requiredDates": "[128000]",
@@ -1038,7 +1038,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            let record = try RowDecoder().decode(Record.self, from: [
+            let record = try Record(row: [
                 "_requiredId": 1,
                 "_requiredDates": "[128000]",
                 "_optionalDates": "[null, 128000]",
@@ -1052,7 +1052,7 @@ extension FetchableRecordDecodableTests {
         }
         
         do {
-            _ = try RowDecoder().decode(Record.self, from: [
+            _ = try Record(row: [
                 "requiredId": 1,
                 "_optionalName": "test1",
                 "_requiredDates": "[128000]",
@@ -1060,10 +1060,10 @@ extension FetchableRecordDecodableTests {
                 "_optionalDates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let RowDecodingError.keyNotFound(.columnName(column), context) {
+        } catch let RowDecodingError.columnNotFound(column, context) {
             XCTAssertEqual(column, "requiredId")
             XCTAssertEqual(context.debugDescription, """
-                key not found: CodingKeys(stringValue: "requiredId", intValue: nil) ("requiredId")
+                column not found: CodingKeys(stringValue: "requiredId", intValue: nil) ("requiredId")
                 """)
         }
     }
@@ -1375,7 +1375,7 @@ extension FetchableRecordDecodableTests {
         //   all optionals decode missing keys are nil. This is because GRDB
         //   records accept rows with missing columns, and b and c may want to
         //   decode columns.
-        _ = try RowDecoder().decode(Composed.self, from: [:])
+        _ = try Composed(row: [:])
     }
     
     // This is a regression test for https://github.com/groue/GRDB.swift/issues/664
@@ -1387,7 +1387,7 @@ extension FetchableRecordDecodableTests {
             var b: B
         }
         do {
-            _ = try RowDecoder().decode(Composed.self, from: [:])
+            _ = try Composed(row: [:])
             XCTFail("Expected error")
         } catch DecodingError.keyNotFound {
             // a or b can not be decoded because only one key is allowed to be missing
@@ -1407,7 +1407,7 @@ extension FetchableRecordDecodableTests {
                 // - a is present
                 // - root is b and c is missing, or the opposite (two possible user intents)
                 let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["a": EmptyRowAdapter()]))!
-                _ = try RowDecoder().decode(Composed.self, from: row)
+                _ = try Composed(row: row)
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["b", "c"].contains(key.stringValue))
@@ -1417,7 +1417,7 @@ extension FetchableRecordDecodableTests {
                 // - b is present
                 // - root is a and c is missing, or the opposite (two possible user intents)
                 let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["b": EmptyRowAdapter()]))!
-                _ = try RowDecoder().decode(Composed.self, from: row)
+                _ = try Composed(row: row)
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["a", "c"].contains(key.stringValue))
@@ -1427,7 +1427,7 @@ extension FetchableRecordDecodableTests {
                 // - c is present
                 // - root is a and b is missing, or the opposite (two possible user intents)
                 let row = try Row.fetchOne(db, sql: "SELECT NULL", adapter: ScopeAdapter(["c": EmptyRowAdapter()]))!
-                _ = try RowDecoder().decode(Composed.self, from: row)
+                _ = try Composed(row: row)
                 XCTFail("Expected error")
             } catch let DecodingError.keyNotFound(key, context) {
                 XCTAssert(["a", "b"].contains(key.stringValue))

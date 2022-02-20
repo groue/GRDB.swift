@@ -335,7 +335,7 @@ extension Row {
     ///     let name: String? = try row["missing"] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible>(_ columnName: String) -> Value {
-        get throws { try decode(Value.self, forKey: columnName) }
+        get throws { try decode(Value.self, forColumn: columnName) }
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -366,7 +366,7 @@ extension Row {
     ///     let name: String? = try row["missing"] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible & StatementColumnConvertible>(_ columnName: String) -> Value {
-        get throws { try decode(Value.self, forKey: columnName) }
+        get throws { try decode(Value.self, forColumn: columnName) }
     }
     
     /// Returns Int64, Double, String, Data or nil, depending on the value
@@ -414,7 +414,7 @@ extension Row {
     ///     let name: String? = try row[Column("missing")] // nil
     @inlinable
     public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
-        get throws { try decode(Value.self, forKey: column.name) }
+        get throws { try decode(Value.self, forColumn: column.name) }
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -450,7 +450,7 @@ extension Row {
         Value: DatabaseValueConvertible & StatementColumnConvertible,
         Column: ColumnExpression
     {
-        get throws { try decode(Value.self, forKey: column.name) }
+        get throws { try decode(Value.self, forColumn: column.name) }
     }
     
     /// Returns the optional Data at given index.
@@ -479,7 +479,7 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     public func dataNoCopy(named columnName: String) throws -> Data? {
-        try decodeDataNoCopyIfPresent(forKey: columnName)
+        try decodeDataNoCopyIfPresent(forColumn: columnName)
     }
     
     /// Returns the optional `Data` at given column.
@@ -494,7 +494,7 @@ extension Row {
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
     public func dataNoCopy<Column: ColumnExpression>(_ column: Column) throws -> Data? {
-        try decodeDataNoCopyIfPresent(forKey: column.name)
+        try decodeDataNoCopyIfPresent(forColumn: column.name)
     }
 }
 
@@ -547,7 +547,7 @@ extension Row {
     /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record {
-        get throws { try decode(Record.self, forKey: scope) }
+        get throws { try decode(Record.self, forScope: scope) }
     }
     
     /// Returns the eventual record associated with the given scope.
@@ -582,7 +582,7 @@ extension Row {
     /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#joined-queries-support>
     /// for more information.
     public subscript<Record: FetchableRecord>(_ scope: String) -> Record? {
-        get throws { try decodeIfPresent(Record.self, forKey: scope) }
+        get throws { try decodeIfPresent(Record.self, forScope: scope) }
     }
     
     /// Returns the records encoded in the given prefetched rows.
@@ -604,7 +604,7 @@ extension Row {
         Collection: RangeReplaceableCollection,
         Collection.Element: FetchableRecord
     {
-        get throws { try decode(Collection.self, forKey: key) }
+        get throws { try decode(Collection.self, forPrefetchKey: key) }
     }
     
     /// Returns the set of records encoded in the given prefetched rows.
@@ -621,7 +621,7 @@ extension Row {
     ///     print(books.first!.title)
     ///     // Prints "Moby-Dick"
     public subscript<Record: FetchableRecord & Hashable>(_ key: String) -> Set<Record> {
-        get throws { try decode(Set<Record>.self, forKey: key) }
+        get throws { try decode(Set<Record>.self, forPrefetchKey: key) }
     }
 }
 
@@ -739,14 +739,16 @@ extension Row {
     @inlinable
     func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
-        forKey columnName: String)
+        forColumn column: String)
     throws -> Value
     {
-        guard let index = index(forColumn: columnName) else {
+        guard let index = index(forColumn: column) else {
             if let value = Value._fromMissingColumn() {
                 return value
             } else {
-                throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
+                throw RowDecodingError.columnNotFound(column, context: RowDecodingContext(
+                    row: self,
+                    key: .columnName(column)))
             }
         }
         return try Value.decode(fromRow: self, atUncheckedIndex: index)
@@ -793,14 +795,16 @@ extension Row {
     @inlinable
     func decode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
         _ type: Value.Type = Value.self,
-        forKey columnName: String)
+        forColumn column: String)
     throws -> Value
     {
-        guard let index = index(forColumn: columnName) else {
+        guard let index = index(forColumn: column) else {
             if let value = Value._fromMissingColumn() {
                 return value
             } else {
-                throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
+                throw RowDecodingError.columnNotFound(column, context: RowDecodingContext(
+                    row: self,
+                    key: .columnName(column)))
             }
         }
         return try Value.fastDecode(fromRow: self, atUncheckedIndex: index)
@@ -861,29 +865,11 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    func decodeDataNoCopyIfPresent(forKey columnName: String) throws -> Data? {
-        guard let index = index(forColumn: columnName) else {
+    func decodeDataNoCopyIfPresent(forColumn column: String) throws -> Data? {
+        guard let index = index(forColumn: column) else {
             return nil
         }
         return try impl.fastDecodeDataNoCopyIfPresent(atUncheckedIndex: index)
-    }
-    
-    /// Returns the Data at given column.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// If the column is missing, or if the SQLite value is NULL, or if the
-    /// SQLite value can not be converted to Data, a
-    /// `RowDecodingError` is thrown.
-    ///
-    /// The returned data does not owns its bytes: it must not be used longer
-    /// than the row's lifetime.
-    func decodeDataNoCopy(forKey columnName: String) throws -> Data {
-        guard let index = index(forColumn: columnName) else {
-            throw RowDecodingError.columnNotFound(columnName, context: RowDecodingContext(row: self))
-        }
-        return try impl.fastDecodeDataNoCopy(atUncheckedIndex: index)
     }
     
     // Support for fast decoding in scoped rows
@@ -933,7 +919,7 @@ extension Row {
     /// for more information.
     func decodeIfPresent<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
-        forKey scope: String)
+        forScope scope: String)
     throws -> Record?
     {
         guard let scopedRow = scopesTree[scope], scopedRow.containsNonNullValue else {
@@ -975,28 +961,24 @@ extension Row {
     /// for more information.
     func decode<Record: FetchableRecord>(
         _ type: Record.Type = Record.self,
-        forKey scope: String)
+        forScope scope: String)
     throws -> Record
     {
         guard let scopedRow = scopesTree[scope] else {
             let availableScopes = scopesTree.names
             if availableScopes.isEmpty {
-                throw RowDecodingError.keyNotFound(
-                    .scope(scope),
-                    RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: self),
-                        debugDescription: """
-                            scope not found: \(String(reflecting: scope))
-                            """))
+                throw RowDecodingError.scopeNotFound(scope, RowDecodingError.Context(
+                    decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
+                    debugDescription: """
+                        scope not found: \(String(reflecting: scope))
+                        """))
             } else {
-                throw RowDecodingError.keyNotFound(
-                    .scope(scope),
-                    RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: self),
-                        debugDescription: """
-                            scope not found: \(String(reflecting: scope)) - \
-                            available scopes: \(availableScopes.sorted())
-                            """))
+                throw RowDecodingError.scopeNotFound(scope, RowDecodingError.Context(
+                    decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
+                    debugDescription: """
+                        scope not found: \(String(reflecting: scope)) - \
+                        available scopes: \(availableScopes.sorted())
+                        """))
             }
         }
         guard scopedRow.containsNonNullValue else {
@@ -1030,7 +1012,7 @@ extension Row {
     ///     // Prints "Moby-Dick"
     func decode<Collection>(
         _ type: Collection.Type = Collection.self,
-        forKey key: String)
+        forPrefetchKey key: String)
     throws -> Collection
     where
         Collection: RangeReplaceableCollection,
@@ -1039,20 +1021,16 @@ extension Row {
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
-                throw RowDecodingError.keyNotFound(
-                    .prefetchKey(key),
-                    RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: self),
-                        debugDescription: """
-                        key for prefetched rows not found: \(String(reflecting: key))
+                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+                    decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
+                    debugDescription: """
+                        association key not found: \(String(reflecting: key))
                         """))
             } else {
-                throw RowDecodingError.keyNotFound(
-                    .prefetchKey(key),
-                    RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: self),
-                        debugDescription: """
-                        key for prefetched rows not found: \(String(reflecting: key)) \
+                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+                    decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
+                    debugDescription: """
+                        association key not found: \(String(reflecting: key))\
                         - available keys: \(availableKeys.sorted())
                         """))
             }
@@ -1081,26 +1059,22 @@ extension Row {
     ///     // Prints "Moby-Dick"
     func decode<Record: FetchableRecord & Hashable>(
         _ type: Set<Record>.Type = Set<Record>.self,
-        forKey key: String)
+        forPrefetchKey key: String)
     throws -> Set<Record>
     {
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
-                throw RowDecodingError.keyNotFound(
-                    .prefetchKey(key),
-                    RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: self),
-                        debugDescription: """
-                        key for prefetched rows not found: \(String(reflecting: key))
+                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+                    decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
+                    debugDescription: """
+                        association key not found: \(String(reflecting: key))
                         """))
             } else {
-                throw RowDecodingError.keyNotFound(
-                    .prefetchKey(key),
-                    RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: self),
-                        debugDescription: """
-                        key for prefetched rows not found: \(String(reflecting: key)) \
+                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+                    decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
+                    debugDescription: """
+                        association key not found: \(String(reflecting: key)) \
                         - available keys: \(availableKeys.sorted())
                         """))
             }

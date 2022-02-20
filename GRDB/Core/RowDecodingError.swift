@@ -7,37 +7,31 @@ enum RowKey: Hashable, Sendable {
     /// A column index
     case columnIndex(Int)
     
-    /// A scope
+    /// A row scope
     case scope(String)
     
-    /// A key of prefetched rows
+    /// A prefetch key
     case prefetchKey(String)
 }
 
-#warning("TODO: make public, and update README documentation")
 /// A decoding error
-@usableFromInline
-enum RowDecodingError: Error {
-    @usableFromInline
-    struct Context: CustomDebugStringConvertible, Sendable {
+public enum RowDecodingError: Error {
+    public struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
-        @usableFromInline
-        let debugDescription: String
-        
-        let rowImpl: ArrayRowImpl // Sendable
+        public let debugDescription: String
         
         /// The row that could not be decoded
-        var row: Row { Row(impl: rowImpl) }
-        
-        /// Nil for RowDecodingError.keyNotFound, in order to avoid redundancy
-        let key: RowKey?
+        public var row: Row { Row(impl: rowImpl) }
         
         /// The SQL query
-        let sql: String?
+        public let sql: String?
         
         /// The SQL query arguments
-        let statementArguments: StatementArguments?
+        public let statementArguments: StatementArguments?
         
+        let rowImpl: ArrayRowImpl // Sendable
+        let key: RowKey
+
         init(decodingContext: RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
             self.rowImpl = ArrayRowImpl(columns: decodingContext.row)
@@ -47,12 +41,24 @@ enum RowDecodingError: Error {
         }
     }
     
-    case keyNotFound(RowKey, Context)
+    /// Decoding failed because a column is not found.
+    case columnNotFound(String, Context)
+    
+    /// Decoding failed because a row scope is not found.
+    case scopeNotFound(String, Context)
+    
+    /// Decoding failed because a prefetch key is not found.
+    case prefetchKeyNotFound(String, Context)
+    
+    /// Decoding failed because the database value does not match the
+    /// decoded type.
     case valueMismatch(Any.Type, Context)
     
     var context: Context {
         switch self {
-        case .keyNotFound(_, let context),
+        case .columnNotFound(_, let context),
+             .scopeNotFound(_, let context),
+             .prefetchKeyNotFound(_, let context),
              .valueMismatch(_, let context):
             return context
         }
@@ -107,11 +113,9 @@ enum RowDecodingError: Error {
     /// error message.
     @usableFromInline
     static func columnNotFound(_ columnName: String, context: RowDecodingContext) -> Self {
-        keyNotFound(
-            .columnName(columnName),
-            RowDecodingError.Context(decodingContext: context, debugDescription: """
-                column not found: \(String(reflecting: columnName))
-                """))
+        columnNotFound(columnName, RowDecodingError.Context(
+            decodingContext: context,
+            debugDescription: "column not found: \(String(reflecting: columnName))"))
     }
 }
 
@@ -120,7 +124,8 @@ struct RowDecodingContext {
     /// The row that is decoded
     let row: Row
     
-    let key: RowKey?
+    /// The key that could not be decoded
+    let key: RowKey
     
     /// The SQL query
     let sql: String?
@@ -129,7 +134,7 @@ struct RowDecodingContext {
     let statementArguments: StatementArguments?
     
     @usableFromInline
-    init(row: Row, key: RowKey? = nil) {
+    init(row: Row, key: RowKey) {
         if let statement = row.statement {
             self.key = key
             self.row = row.copy()
@@ -159,36 +164,48 @@ struct RowDecodingContext {
 }
 
 extension RowDecodingError: CustomStringConvertible {
-    @usableFromInline
-    var description: String {
+    public var description: String {
+        _description(publicStatementArguments: false)
+    }
+    
+    /// The error description, where statement arguments, if present,
+    /// are visible.
+    ///
+    /// - warning: It is your responsibility to prevent sensitive
+    ///   information from leaking in unexpected locations, so use this
+    ///   property with care.
+    public var expandedDescription: String {
+        _description(publicStatementArguments: true)
+    }
+    
+    /// The error description, with or without statement arguments.
+    private func _description(publicStatementArguments: Bool) -> String {
         let context = self.context
         let row = context.row
         var chunks: [String] = []
         
-        if let key = context.key {
-            switch key {
-            case let .columnIndex(columnIndex):
-                let rowIndex = row.index(row.startIndex, offsetBy: columnIndex)
-                let columnName = row.columnNames[rowIndex]
+        switch context.key {
+        case let .columnIndex(columnIndex):
+            let rowIndex = row.index(row.startIndex, offsetBy: columnIndex)
+            let columnName = row.columnNames[rowIndex]
+            chunks.append("column: \(String(reflecting: columnName))")
+            chunks.append("column index: \(columnIndex)")
+            
+        case let .columnName(columnName):
+            if let columnIndex = row.index(forColumn: columnName) {
                 chunks.append("column: \(String(reflecting: columnName))")
                 chunks.append("column index: \(columnIndex)")
-                
-            case let .columnName(columnName):
-                if let columnIndex = row.index(forColumn: columnName) {
-                    chunks.append("column: \(String(reflecting: columnName))")
-                    chunks.append("column index: \(columnIndex)")
-                } else {
-                    // column name is already mentioned in context.debugDescription
-                }
-                
-            case .prefetchKey:
-                // key is already mentioned in context.debugDescription
-                break
-                
-            case .scope:
-                // scope is already mentioned in context.debugDescription
-                break
+            } else {
+                // column name is already mentioned in context.debugDescription
             }
+            
+        case .prefetchKey:
+            // key is already mentioned in context.debugDescription
+            break
+            
+        case .scope:
+            // scope is already mentioned in context.debugDescription
+            break
         }
         
         chunks.append("row: \(row.description)")
@@ -197,7 +214,7 @@ extension RowDecodingError: CustomStringConvertible {
             chunks.append("sql: `\(sql)`")
         }
         
-        if let statementArguments = context.statementArguments {
+        if publicStatementArguments, let statementArguments = context.statementArguments {
             chunks.append("arguments: \(statementArguments)")
         }
         

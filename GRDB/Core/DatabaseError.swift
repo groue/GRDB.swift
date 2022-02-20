@@ -451,20 +451,11 @@ extension DatabaseError {
     /// The format of the error description may change between GRDB releases,
     /// without notice: don't have your application rely on any specific format.
     public var description: String {
-        var description = "SQLite error \(resultCode.rawValue)"
-        if let message = message {
-            description += ": \(message)"
-        }
-        if let sql = sql {
-            description += " - while executing `\(sql)`"
-        }
-        if publicStatementArguments, let arguments = arguments, !arguments.isEmpty {
-            description += " with arguments \(arguments)"
-        }
-        return description
+        _description(publicStatementArguments: publicStatementArguments)
     }
     
-    /// The error description, where bound parameters, if present, are visible.
+    /// The error description, where statement arguments, if present,
+    /// are visible.
     ///
     /// For example:
     ///
@@ -479,6 +470,11 @@ extension DatabaseError {
     ///   information from leaking in unexpected locations, so use this
     ///   property with care.
     public var expandedDescription: String {
+        _description(publicStatementArguments: true)
+    }
+    
+    /// The error description, with or without statement arguments.
+    private func _description(publicStatementArguments: Bool) -> String {
         var description = "SQLite error \(resultCode.rawValue)"
         if let message = message {
             description += ": \(message)"
@@ -486,7 +482,7 @@ extension DatabaseError {
         if let sql = sql {
             description += " - while executing `\(sql)`"
         }
-        if let arguments = arguments, !arguments.isEmpty {
+        if publicStatementArguments, let arguments = arguments, !arguments.isEmpty {
             description += " with arguments \(arguments)"
         }
         return description

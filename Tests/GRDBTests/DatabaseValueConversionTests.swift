@@ -1,6 +1,5 @@
 import XCTest
-#warning("TODO: remove @testable when RowDecodingError is made public")
-@testable import GRDB
+import GRDB
 
 // TODO: test conversions from invalid UTF-8 blob to string
 

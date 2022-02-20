@@ -1,7 +1,6 @@
 import Foundation
 import XCTest
-#warning("TODO: remove @testable when RowDecodingError is made public")
-@testable import GRDB
+import GRDB
 
 private protocol StrategyProvider {
     static var strategy: DatabaseDateDecodingStrategy { get }
@@ -205,6 +204,13 @@ extension DatabaseDateDecodingStrategyTests {
                         column: "date", \
                         column index: 0, \
                         row: [date:"Yesterday"], \
+                        sql: `SELECT ? AS date`
+                        """)
+                    XCTAssertEqual(error.expandedDescription, """
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"], \
                         sql: `SELECT ? AS date`, \
                         arguments: ["Yesterday"]
                         """)
@@ -395,6 +401,13 @@ extension DatabaseDateDecodingStrategyTests {
                             column: "date", \
                             column index: 0, \
                             row: [date:"Yesterday"], \
+                            sql: `SELECT ? AS date`
+                            """)
+                        XCTAssertEqual(error.expandedDescription, """
+                            could not decode Date from database value "Yesterday" - \
+                            column: "date", \
+                            column index: 0, \
+                            row: [date:"Yesterday"], \
                             sql: `SELECT ? AS date`, \
                             arguments: ["Yesterday"]
                             """)
@@ -442,6 +455,13 @@ extension DatabaseDateDecodingStrategyTests {
                         column: "date", \
                         column index: 0, \
                         row: [date:"Yesterday"], \
+                        sql: `SELECT ? AS date`
+                        """)
+                    XCTAssertEqual(error.expandedDescription, """
+                        could not decode Date from database value "Yesterday" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"Yesterday"], \
                         sql: `SELECT ? AS date`, \
                         arguments: ["Yesterday"]
                         """)
@@ -475,6 +495,13 @@ extension DatabaseDateDecodingStrategyTests {
                 switch error {
                 case .valueMismatch:
                     XCTAssertEqual(error.description, """
+                        could not decode Date from database value "invalid" - \
+                        column: "date", \
+                        column index: 0, \
+                        row: [date:"invalid"], \
+                        sql: `SELECT ? AS date`
+                        """)
+                    XCTAssertEqual(error.expandedDescription, """
                         could not decode Date from database value "invalid" - \
                         column: "date", \
                         column index: 0, \
