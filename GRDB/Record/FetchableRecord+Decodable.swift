@@ -97,7 +97,6 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func contains(_ key: Key) -> Bool {
             let row = decoder.row
-            #warning("TODO: why don't we call decodeColumn(forKey:) here?")
             if let _columnForKey = _columnForKey {
                 if let column = _columnForKey[key.stringValue] {
                     assert(row.hasColumn(column))
