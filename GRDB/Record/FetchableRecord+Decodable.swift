@@ -159,36 +159,42 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             
             guard let column = _columnForKey[key.stringValue] else {
                 let errorDescription: String
+                let converted: String
                 switch decoder.columnDecodingStrategy {
                 case .convertFromSnakeCase:
                     // In this case we can attempt to recover the original value
                     // by reversing the transform
                     let original = key.stringValue
-                    let converted = DatabaseColumnEncodingStrategy._convertToSnakeCase(original)
+                    converted = DatabaseColumnEncodingStrategy._convertToSnakeCase(original)
                     let roundtrip = DatabaseColumnDecodingStrategy._convertFromSnakeCase(converted)
                     if converted == original {
-                        errorDescription = "\(key) (\"\(original)\")"
+                        errorDescription = "\(key)"
                     } else if roundtrip == original {
-                        errorDescription = """
-                            \(key) (\"\(original)\"), \
-                            converted to \(converted)
-                            """
+                        errorDescription = "\(key), converted to \(converted)"
                     } else {
                         errorDescription = """
-                            \(key) (\"\(original)\"), \
+                            \(key), \
                             with divergent representation \(roundtrip), \
                             converted to \(converted)
                             """
                     }
-                default:
-                    // Otherwise, just report the converted string
-                    errorDescription = "\(key) (\"\(key.stringValue)\")"
+                case .useDefaultKeys:
+                    converted = key.stringValue
+                    errorDescription = "\(key)"
+                case let .custom(convert):
+                    let original = key.stringValue
+                    converted = convert(original).stringValue
+                    if converted == original {
+                        errorDescription = "\(key)"
+                    } else {
+                        errorDescription = "\(key), converted to \(converted)"
+                    }
                 }
                 
                 throw RowDecodingError.columnNotFound(
-                    key.stringValue,
+                    converted,
                     RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: decoder.row, key: .columnName(key.stringValue)),
+                        decodingContext: RowDecodingContext(row: decoder.row, key: .columnName(converted)),
                         debugDescription: "column not found: \(errorDescription)"))
             }
             
