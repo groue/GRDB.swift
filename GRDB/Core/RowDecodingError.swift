@@ -41,6 +41,9 @@ public enum RowDecodingError: Error {
         }
     }
     
+    /// Decoding failed because a coding key is not found.
+    case keyNotFound(CodingKey, Context)
+    
     /// Decoding failed because a column is not found.
     case columnNotFound(String, Context)
     
@@ -56,7 +59,8 @@ public enum RowDecodingError: Error {
     
     var context: Context {
         switch self {
-        case .columnNotFound(_, let context),
+        case .keyNotFound(_, let context),
+             .columnNotFound(_, let context),
              .scopeNotFound(_, let context),
              .prefetchKeyNotFound(_, let context),
              .valueMismatch(_, let context):

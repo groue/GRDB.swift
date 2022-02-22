@@ -168,14 +168,12 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                     converted = DatabaseColumnEncodingStrategy._convertToSnakeCase(original)
                     let roundtrip = DatabaseColumnDecodingStrategy._convertFromSnakeCase(converted)
                     if converted == original {
-                        errorDescription = "\(key)"
+                        errorDescription = "key not found: \(key)"
                     } else if roundtrip == original {
-                        errorDescription = "\(key), converted to \(converted)"
+                        errorDescription = "key not found: \(key), converted to \(String(reflecting: converted)) column"
                     } else {
                         errorDescription = """
-                            \(key), \
-                            with divergent representation \(roundtrip), \
-                            converted to \(converted)
+                            divergent key: \(key), expected \(String(reflecting: roundtrip)) instead
                             """
                     }
                 case .useDefaultKeys:
@@ -185,17 +183,17 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                     let original = key.stringValue
                     converted = convert(original).stringValue
                     if converted == original {
-                        errorDescription = "\(key)"
+                        errorDescription = "key not found: \(key)"
                     } else {
-                        errorDescription = "\(key), converted to \(converted)"
+                        errorDescription = "key not found: \(key), converted to \(String(reflecting: converted)) column"
                     }
                 }
                 
-                throw RowDecodingError.columnNotFound(
-                    converted,
+                throw RowDecodingError.keyNotFound(
+                    key,
                     RowDecodingError.Context(
                         decodingContext: RowDecodingContext(row: decoder.row, key: .columnName(converted)),
-                        debugDescription: "column not found: \(errorDescription)"))
+                        debugDescription: errorDescription))
             }
             
             return column

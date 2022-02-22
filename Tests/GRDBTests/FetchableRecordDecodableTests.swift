@@ -970,15 +970,15 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.columnNotFound(column, context):
-                XCTAssertEqual(column, "required_id")
+            case let RowDecodingError.keyNotFound(key, context):
+                XCTAssertEqual(key.stringValue, "requiredId")
                 XCTAssertEqual(context.debugDescription, """
-                    column not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
-                    converted to required_id
+                    key not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
+                    converted to "required_id" column
                     """)
                 XCTAssertEqual(error.description, """
-                    column not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
-                    converted to required_id - \
+                    key not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
+                    converted to "required_id" column - \
                     row: [required_idx:1 optional_name:"test1" required_dates:"[128000]" optional_dates:"[null, 128000]" optional_dates2:"[128000]"]
                     """)
             default:
@@ -997,21 +997,45 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.columnNotFound(column, context):
-                #warning("TODO: this error message is confusing as hell")
-                XCTAssertEqual(column, "required_id")
+            case let RowDecodingError.keyNotFound(key, context):
+                XCTAssertEqual(key.stringValue, "requiredID")
                 XCTAssertEqual(context.debugDescription, """
-                    column not found: CodingKeys(stringValue: "requiredID", intValue: nil), \
-                    with divergent representation requiredId, \
-                    converted to required_id
+                    divergent key: CodingKeys(stringValue: "requiredID", intValue: nil), \
+                    expected "requiredId" instead
                     """)
                 XCTAssertEqual(error.description, """
-                    column not found: CodingKeys(stringValue: "requiredID", intValue: nil), \
-                    with divergent representation requiredId, \
-                    converted to required_id - \
+                    divergent key: CodingKeys(stringValue: "requiredID", intValue: nil), \
+                    expected "requiredId" instead - \
                     column: "required_id", \
                     column index: 0, \
-                    row: [required_id:1 optional_name:"test1" required_dates:"[128000]" optional_dates:"[null, 128000]" optional_dates2:"[128000]"]"
+                    row: [required_id:1 optional_name:"test1" required_dates:"[128000]" optional_dates:"[null, 128000]" optional_dates2:"[128000]"]
+                    """)
+            default:
+                XCTFail("Unexpected Error")
+            }
+        }
+        
+        do {
+            _ = try IncorrectRecord(row: [
+                "required_idx": 1,
+                "optional_name": "test1",
+                "required_dates": "[128000]",
+                "optional_dates": "[null, 128000]",
+                "optional_dates2": "[128000]",
+            ])
+            XCTFail("Expected error")
+        } catch let error as RowDecodingError {
+            switch error {
+            case let RowDecodingError.keyNotFound(key, context):
+                XCTAssertEqual(key.stringValue, "requiredID")
+                XCTAssertEqual(context.debugDescription, """
+                    divergent key: CodingKeys(stringValue: "requiredID", intValue: nil), \
+                    expected "requiredId" instead
+                    """)
+                XCTAssertEqual(error.description, """
+                    divergent key: CodingKeys(stringValue: "requiredID", intValue: nil), \
+                    expected "requiredId" instead - \
+                    row: [required_idx:1 optional_name:"test1" required_dates:"[128000]" optional_dates:"[null, 128000]" optional_dates2:"[128000]"]
                     """)
             default:
                 XCTFail("Unexpected Error")
@@ -1095,15 +1119,15 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.columnNotFound(column, context):
-                XCTAssertEqual(column, "equiredId")
+            case let RowDecodingError.keyNotFound(key, context):
+                XCTAssertEqual(key.stringValue, "requiredId")
                 XCTAssertEqual(context.debugDescription, """
-                    column not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
-                    converted to equiredId
+                    key not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
+                    converted to "equiredId" column
                     """)
                 XCTAssertEqual(error.description, """
-                    column not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
-                    converted to equiredId - \
+                    key not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
+                    converted to "equiredId" column - \
                     row: [requiredId:1 _optionalName:"test1" _requiredDates:"[128000]" _optionalDates:"[null, 128000]" _optionalDates2:"[128000]"]
                     """)
             default:
