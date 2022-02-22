@@ -41,16 +41,25 @@ public enum RowDecodingError: Error {
         }
     }
     
-    /// Decoding failed because a coding key is not found.
+    /// Decoding failed because a coding key was not found.
+    ///
+    /// This error is thrown when a `DatabaseColumnDecodingStrategy` could not
+    /// match a database column with the provided coding key.
     case keyNotFound(CodingKey, Context)
     
     /// Decoding failed because a column is not found.
     case columnNotFound(String, Context)
     
-    /// Decoding failed because a row scope is not found.
+    /// Decoding failed because a row scope was not found.
+    ///
+    /// This error is thrown, when decoding an associated record, if the
+    /// association key does not match the coding key.
     case scopeNotFound(String, Context)
     
-    /// Decoding failed because a prefetch key is not found.
+    /// Decoding failed because a prefetch key was not found.
+    ///
+    /// This error is thrown, when decoding a collection of associated records,
+    /// if the association key does not match the coding key.
     case prefetchKeyNotFound(String, Context)
     
     /// Decoding failed because the database value does not match the
