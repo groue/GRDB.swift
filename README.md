@@ -1053,7 +1053,7 @@ try row[...] as Int?
 > if let int = try row[...] as Int? { ... } // GOOD
 > ```
 
-Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value:
+Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value. Otherwise, an error is thrown.
 
 - **Successful conversions include:**
     
@@ -1068,10 +1068,10 @@ Generally speaking, you can extract the type you need, provided it can be conver
     ```swift
     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
     try row[0] as Int? // nil
-    try row[0] as Int  // fatal error: could not convert NULL to Int.
+    try row[0] as Int  // RowDecodingError: could not decode Int from database value NULL
     ```
     
-    There is one exception, though: the [DatabaseValue](#databasevalue) type:
+    There is one exception: the [DatabaseValue](#databasevalue) type decodes NULL as `DatabaseValue.null`:
     
     ```swift
     try row[0] as DatabaseValue   // DatabaseValue.null
@@ -1083,26 +1083,24 @@ Generally speaking, you can extract the type you need, provided it can be conver
     ```swift
     let row = try Row.fetchOne(db, sql: "SELECT 'foo' AS foo")!
     try row["missing"] as String? // nil
-    try row["missing"] as String  // fatal error: no such column: missing
+    try row["missing"] as String  // RowDecodingError: column not found: "missing"
     ```
     
     You can explicitly check for a column presence with the `hasColumn` method.
 
-- **Invalid conversions throw a fatal error.**
+- **Invalid conversions throw a [RowDecodingError].**
     
     ```swift
     let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'")!
     try row[0] as String // "Mom’s birthday"
-    try row[0] as Date?  // fatal error: could not convert "Mom’s birthday" to Date.
-    try row[0] as Date   // fatal error: could not convert "Mom’s birthday" to Date.
+    try row[0] as Date?  // RowDecodingError: could not decode Date from database value "Mom’s birthday"
+    try row[0] as Date   // RowDecodingError: could not decode Date from database value "Mom’s birthday"
     
     let row = try Row.fetchOne(db, sql: "SELECT 256")!
     try row[0] as Int    // 256
-    try row[0] as UInt8? // fatal error: could not convert 256 to UInt8.
-    try row[0] as UInt8  // fatal error: could not convert 256 to UInt8.
+    try row[0] as UInt8? // RowDecodingError: could not decode UInt8 from database value 256
+    try row[0] as UInt8  // RowDecodingError: could not decode UInt8 from database value 256
     ```
-    
-    This extra verbosity is the consequence of having to deal with an untrusted database: you may consider fixing the content of your database instead. See [Fatal Errors](#fatal-errors) for more information.
     
 - **SQLite has a weak type system, and provides [convenience conversions](https://www.sqlite.org/c3ref/column_blob.html) that can turn String to Int, Double to Blob, etc.**
     
@@ -2908,7 +2906,7 @@ try Place.deleteOne(db, key:...)
 
 - All those methods can throw a [DatabaseError](#error-handling).
 
-- `update` and `updateChanges` throw [PersistenceError](#persistenceerror) if the database does not contain any row for the primary key of the record.
+- `update` and `updateChanges` throw [PersistenceError] if the database does not contain any row for the primary key of the record.
 
 - `save` makes sure your values are stored in the database. It performs an UPDATE if the record has a non-null primary key, and then, if no row was modified, an INSERT. It directly performs an INSERT if the record has no primary key, or a null primary key.
 
@@ -7380,19 +7378,20 @@ try dbQueue.write { db in
 
 ## Error Handling
 
-GRDB can throw [DatabaseError](#databaseerror), [PersistenceError](#persistenceerror), or crash your program with a [fatal error](#fatal-errors).
+GRDB can throw [DatabaseError], [RowDecodingError], [PersistenceError], or crash your program with a [fatal error](#fatal-errors).
 
 Considering that a local database is not some JSON loaded from a remote server, GRDB focuses on **trusted databases**. Dealing with [untrusted databases](#how-to-deal-with-untrusted-inputs) requires extra care.
 
-- [DatabaseError](#databaseerror)
-- [PersistenceError](#persistenceerror)
+- [DatabaseError]
+- [RowDecodingError]
+- [PersistenceError]
 - [Fatal Errors](#fatal-errors)
 - [Error Log](#error-log)
 
 
 ### DatabaseError
 
-**DatabaseError** are thrown on SQLite errors:
+**DatabaseError is thrown on SQLite errors**, which means I/O errors, invalid SQL syntax, database integrity violations, misuses, etc.
 
 ```swift
 do {
@@ -7460,6 +7459,96 @@ do {
 Each DatabaseError has two codes: an `extendedResultCode` (see [extended result code](https://www.sqlite.org/rescode.html#extended_result_code_list)), and a less precise `resultCode` (see [primary result code](https://www.sqlite.org/rescode.html#primary_result_code_list)). Extended result codes are refinements of primary result codes, as `SQLITE_CONSTRAINT_FOREIGNKEY` is to `SQLITE_CONSTRAINT`, for example.
 
 > :warning: **Warning**: SQLite has progressively introduced extended result codes across its versions. The [SQLite release notes](http://www.sqlite.org/changes.html) are unfortunately not quite clear about that: write your handling of extended result codes with care.
+
+
+### RowDecodingError
+
+**RowDecodingError** is thrown when a database row or value could not be decoded as the requested [value](#values) or [record](#records).
+
+> :point_up: **Note**: In general, RowDecodingError reveals **a mismatch between the database content and the application code.** It is thus not really an error that your application should expect to handle. Instead, fix the database content, or fix the application code, so that this error can not happen under normal operations.
+>
+> Your goal should be to only witness a RowDecodingError when the database that has been tampered, corrupted, or modified in some irregular way. Remember that an SQLite database that is under the control of your application is not some rogue JSON downloaded from an unreliable server.
+
+You will see such an error when you:
+
+- Decode NULL as a non-optional value:
+    
+    ```swift
+    if let row = try Row.fetchOne(db, sql: "SELECT NULL") {
+        // RowDecodingError: could not decode Int from database value NULL
+        let score: Int = try row[0]
+    }
+    ```
+    
+    To fix this error, fix the content of the database (for example, add a NOT NULL constraint on the fetched column), or decode an optional:
+    
+    ```swift
+    if let row = try Row.fetchOne(db, sql: "SELECT NULL") {
+        let score: Int? = try row[0] // OK: nil
+    }
+    ```
+
+- Decode a missing column as a non-optional value:
+    
+    ```swift
+    if let row = try Row.fetchOne(db, sql: "SELECT 100 AS bonus") {
+        // RowDecodingError: column not found: "score"
+        let score: Int = try row["score"]
+    }
+    ```
+    
+    To fix this error, decode the correct column, or decode an optional:
+    
+    ```swift
+    if let row = try Row.fetchOne(db, sql: "SELECT 100 AS bonus") {
+        let bonus: Int = try row["bonus"]  // OK: 100
+        let score: Int? = try row["score"] // OK: nil
+    }
+    ```
+
+- Perform an invalid value conversion:
+    
+    ```swift
+    if let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'") {
+        // RowDecodingError: could not decode Date from database value "Mom’s birthday"
+        let date: Date = try row[0]
+    }
+    ```
+    
+    To fix this error, fix the content of the database, or decode another type:
+    
+    ```swift
+    if let row = try Row.fetchOne(db, sql: "SELECT '1983-09-11'") {
+        let date: Date = try row[0] // OK: a Date
+    }
+    if let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'") {
+        let string: String = try row[0] // OK: "Mom’s birthday"
+    }
+    ```
+    
+- Decode an associated record, or collection of records, from a missing [association](Documentation/AssociationsBasics.md):
+
+    ```swift
+    struct BookInfo: FetchableRecord, Decodable {
+        var book: Book
+        var author: Author
+    }
+    // Oops, should have been Book.author
+    let request = Book.including(required: Book.translator)
+    // RowDecodingError: scope not found: "author"
+    let bookInfos = try BookInfo.fetchAll(db, request)
+    
+    struct AuthorInfo: FetchableRecord, Decodable {
+        var author: Author
+        var books: [Book]
+    }
+    // Oops, should have been Author.books
+    let request = Author.including(all: Author.awards) 
+    // RowDecodingError: prefetch key not found: "books"
+    let authorInfos = try AuthorInfo.fetchAll(db, request)
+    ```
+    
+    This error is also thrown when the name of the decoded record property does not match the association key: you'll need to rename the property, or the association. See [Joining And Prefetching Associated Records](Documentation/AssociationsBasics.md#joining-and-prefetching-associated-records) for more information.
 
 
 ### PersistenceError
@@ -8121,7 +8210,7 @@ When this is the case, there are two possible explanations:
 
 1. Maybe a column name is *really* misspelled or missing from the database schema.
     
-    To find it, check the SQL statement that comes with the [DatabaseError](#databaseerror).
+    To find it, check the SQL statement that comes with the [DatabaseError].
 
 2. Maybe the application is using the character `"` instead of the single quote `'` as the delimiter for string literals in raw SQL queries. Recent versions of SQLite have learned to tell about this deviation from the SQL standard, and this is why you are seeing this error. 
     
@@ -8349,3 +8438,6 @@ This chapter was renamed to [Embedding SQL in Query Interface Requests].
 [Identifiable]: https://developer.apple.com/documentation/swift/identifiable
 [Query Interface Organization]: Documentation/QueryInterfaceOrganization.md
 [Database Configuration]: #database-configuration
+[DatabaseError]: #databaseerror
+[RowDecodingError]: #rowdecodingerror
+[PersistenceError]: #persistenceerror
