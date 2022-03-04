@@ -12,6 +12,7 @@
 
 - [ ] Enhance the introduction to SQLRequest, based on the feedback in https://github.com/groue/GRDB.swift/issues/617
 - [ ] Association: document how to use aggregates with inner join (testAnnotatedWithHasManyDefaultMaxJoiningRequired)
+- [ ] Should we document that `PRAGMA locking_mode = EXCLUSIVE` improves performances? https://sqlite.org/forum/forumpost/866bf3407a
 
 
 ## Features
