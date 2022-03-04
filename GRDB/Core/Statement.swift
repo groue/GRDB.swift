@@ -151,8 +151,25 @@ public final class Statement {
         }
     }()
     
-    #warning("TODO GRDB6: remove setter")
     /// The statement arguments.
+    ///
+    /// It is a programmer error to provide arguments that do not fill all
+    /// arguments needed by the statement: doing so will raise a fatal error.
+    ///
+    /// For example:
+    ///
+    ///     let statement = try db.makeUpdateArgument(sql: """
+    ///         INSERT INTO player (id, name) VALUES (?, ?)
+    ///         """)
+    ///
+    ///     // OK
+    ///     try statement.arguments = [1, "Arthur"]
+    ///
+    ///     // Fatal Error
+    ///     try statement.arguments = [1]
+    ///
+    /// If you are not sure of your arguments input, prefer the throwing
+    /// `setArguments(_:)` method.
     public var arguments: StatementArguments {
         get { _arguments }
         set {
