@@ -1123,8 +1123,11 @@ Generally speaking, you can extract the type you need, provided it can be conver
 **DatabaseValue is an intermediate type between SQLite and your values, which gives information about the raw value stored in the database.**
 
 ```swift
-let dbValue = row.databaseValue(atIndex: 0)        // DatabaseValue
-let dbValue = row.databaseValue(forColumn: "name") // DatabaseValue?, nil if column does not exist
+// DatabaseValue
+let dbValue = row.databaseValue(atIndex: 0)
+
+// DatabaseValue?, nil if column does not exist
+let dbValue = row.databaseValue(forColumn: "name")
 
 // Check for NULL:
 dbValue.isNull // Bool
@@ -1145,21 +1148,23 @@ case .blob(let data):       print("Data: \(data)")
 You can extract regular [values](#values) (Bool, Int, String, Date, Swift enums, etc.) from DatabaseValue with the [DatabaseValueConvertible.fromDatabaseValue()](#custom-value-types) method:
 
 ```swift
-let dbValue: DatabaseValue = row.databaseValue(forColumn: "bookCount")
-let bookCount   = Int.fromDatabaseValue(dbValue)   // Int?
-let bookCount64 = Int64.fromDatabaseValue(dbValue) // Int64?
-let hasBooks    = Bool.fromDatabaseValue(dbValue)  // Bool?, false when 0
+if let dbValue = row.databaseValue(forColumn: "bookCount") {
+    let bookCount   = Int.fromDatabaseValue(dbValue)   // Int?
+    let bookCount64 = Int64.fromDatabaseValue(dbValue) // Int64?
+    let hasBooks    = Bool.fromDatabaseValue(dbValue)  // Bool?, false when 0
+}
 
-let dbValue: DatabaseValue = row.databaseValue(forColumn: "date")
-let string = String.fromDatabaseValue(dbValue)     // "2015-09-11 18:14:15.123"
-let date   = Date.fromDatabaseValue(dbValue)       // Date?
+if let dbValue = row.databaseValue(forColumn: "date") {
+    let string = String.fromDatabaseValue(dbValue)     // "2015-09-11 18:14:15.123"
+    let date   = Date.fromDatabaseValue(dbValue)       // Date?
+}
 ```
 
 `fromDatabaseValue` returns nil for invalid conversions:
 
 ```swift
 let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday' AS date")!
-let dbValue: DatabaseValue = row.databaseValue(forColumn: "date")
+let dbValue: DatabaseValue = row.databaseValue(forColumn: "date")!
 let string = String.fromDatabaseValue(dbValue) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbValue)    // nil
 let date   = Date.fromDatabaseValue(dbValue)   // nil
