@@ -117,13 +117,14 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         }
         
         func decodeNil(forKey key: Key) throws -> Bool {
-            // Nil is only possible for columns and scopes (optional
-            // associations), not for prefetched rows.
             let row = decoder.row
             if let column = try? decodeColumn(forKey: key), row[column] != nil {
                 return false
             }
             if row.scopesTree[key.stringValue] != nil {
+                return false
+            }
+            if row.prefetchedRows[key.stringValue] != nil {
                 return false
             }
             return true
