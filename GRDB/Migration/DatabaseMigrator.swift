@@ -272,7 +272,7 @@ public struct DatabaseMigrator {
     /// - throws: An eventual database error.
     public func appliedIdentifiers(_ db: Database) throws -> Set<String> {
         do {
-            return try Set(String.fetchCursor(db, sql: "SELECT identifier FROM grdb_migrations"))
+            return try String.fetchSet(db, sql: "SELECT identifier FROM grdb_migrations")
         } catch {
             // Rethrow if we can't prove grdb_migrations does not exist yet
             if (try? !db.tableExists("grdb_migrations")) ?? false {
