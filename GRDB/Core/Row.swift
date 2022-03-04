@@ -689,7 +689,9 @@ extension Row {
     public var unscoped: Row {
         var row = impl.unscopedRow(self)
         
-        // Remove prefetchedRows
+        // Remove prefetchedRows as well (yes the property is badly named).
+        // The goal is to ease testing, so we remove everything which is
+        // not columns.
         if row.prefetchedRows.isEmpty == false {
             // Make sure we build another Row instance
             row = Row(impl: row.copy().impl)
@@ -967,14 +969,12 @@ extension Row {
         guard let scopedRow = scopesTree[scope] else {
             let availableScopes = scopesTree.names
             if availableScopes.isEmpty {
-#warning("TODO: test")
                 throw RowDecodingError.keyNotFound(.scope(scope), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
                     debugDescription: """
                         scope not found: \(String(reflecting: scope))
                         """))
             } else {
-#warning("TODO: test")
                 throw RowDecodingError.keyNotFound(.scope(scope), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
                     debugDescription: """

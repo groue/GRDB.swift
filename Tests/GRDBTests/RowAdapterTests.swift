@@ -298,6 +298,256 @@ class AdapterRowTests : RowTestCase {
             XCTAssertTrue(row.scopesTree["missing"] == nil)
         }
     }
+    
+    func testRecordScopeDecoding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let adapter = ScopeAdapter([
+                "foo": SuffixRowAdapter(fromIndex:1),
+                "ignored": SuffixRowAdapter(fromIndex:0),
+            ])
+            let request = SQLRequest(sql: "SELECT 'Ignored' AS a, 'Arthur' AS a, 100 AS b", adapter: adapter)
+            struct Foo: FetchableRecord {
+                var a: String
+                var b: Int
+                
+                init(row: Row) throws {
+                    a = try row["a"]
+                    b = try row["b"]
+                }
+            }
+            
+            // Success
+            do {
+                // From copied row
+                do {
+                    let row = try request.fetchOne(db)!
+                    let foo: Foo = try row["foo"]
+                    XCTAssertEqual(foo.a, "Arthur")
+                    XCTAssertEqual(foo.b, 100)
+                }
+                
+                // From cursor row
+                do {
+                    let rows = try request.fetchCursor(db)
+                    while let row = try rows.next() {
+                        let foo: Foo = try row["foo"]
+                        XCTAssertEqual(foo.a, "Arthur")
+                        XCTAssertEqual(foo.b, 100)
+                    }
+                }
+            }
+            
+            // Missing scope
+            do {
+                // From copied row
+                do {
+                    let row = try request.fetchOne(db)!
+                    let _: Foo = try row["missing"]
+                    XCTFail("Expected Error")
+                } catch let error as RowDecodingError {
+                    switch error {
+                    case let .keyNotFound(.scope(scope), context):
+                        XCTAssertEqual(scope, "missing")
+                        XCTAssertEqual(context.row.unscoped, ["a": "Ignored", "a": "Arthur", "b": 100])
+                        XCTAssertEqual(context.sql, nil)
+                        XCTAssertEqual(context.statementArguments, nil)
+                        XCTAssertEqual(error.description, """
+                            scope not found: "missing" - \
+                            available scopes: ["foo", "ignored"] - \
+                            row: [a:"Ignored" a:"Arthur" b:100]
+                            """)
+                    default:
+                        XCTFail("Unexpected Error")
+                    }
+                }
+                
+                // From cursor row
+                do {
+                    let rows = try request.fetchCursor(db)
+                    while let row = try rows.next() {
+                        let _: Foo = try row["missing"]
+                    }
+                    XCTFail("Expected Error")
+                } catch let error as RowDecodingError {
+                    switch error {
+                    case let .keyNotFound(.scope(scope), context):
+                        XCTAssertEqual(scope, "missing")
+                        XCTAssertEqual(context.row.unscoped, ["a": "Ignored", "a": "Arthur", "b": 100])
+                        XCTAssertEqual(context.sql, nil) // TODO: find the sql, one day
+                        XCTAssertEqual(context.statementArguments, nil)
+                        XCTAssertEqual(error.description, """
+                            scope not found: "missing" - \
+                            available scopes: ["foo", "ignored"] - \
+                            row: [a:"Ignored" a:"Arthur" b:100]
+                            """)
+                    default:
+                        XCTFail("Unexpected Error")
+                    }
+                }
+            }
+        }
+    }
+    
+    func testRecordScopeDecodingFromNULL() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let adapter = ScopeAdapter([
+                "foo": SuffixRowAdapter(fromIndex:1),
+                "ignored": SuffixRowAdapter(fromIndex:0),
+            ])
+            let request = SQLRequest(sql: "SELECT 'Ignored' AS a, NULL AS a, NULL AS b", adapter: adapter)
+            struct Foo: FetchableRecord {
+                var a: String
+                var b: Int
+                
+                init(row: Row) throws {
+                    a = try row["a"]
+                    b = try row["b"]
+                }
+            }
+            
+            // From copied row
+            do {
+                let row = try request.fetchOne(db)!
+                let _: Foo = try row["foo"]
+                XCTFail("Expected Error")
+            } catch let error as RowDecodingError {
+                switch error {
+                case let .valueMismatch(type, context):
+                    XCTAssert(type == Foo.self)
+                    XCTAssertEqual(context.row.unscoped, ["a": "Ignored", "a": nil, "b": nil])
+                    XCTAssertEqual(context.sql, nil)
+                    XCTAssertEqual(context.statementArguments, nil)
+                    XCTAssertEqual(error.description, """
+                        scope "foo" only contains null values - \
+                        row: [a:"Ignored" a:NULL b:NULL]
+                        """)
+                default:
+                    XCTFail("Unexpected error")
+                }
+            }
+            
+            // From cursor row
+            do {
+                let rows = try request.fetchCursor(db)
+                while let row = try rows.next() {
+                    let _: Foo = try row["foo"]
+                }
+                XCTFail("Expected Error")
+            } catch let error as RowDecodingError {
+                switch error {
+                case let .valueMismatch(type, context):
+                    XCTAssert(type == Foo.self)
+                    XCTAssertEqual(context.row.unscoped, ["a": "Ignored", "a": nil, "b": nil])
+                    XCTAssertEqual(context.sql, nil) // TODO: find the sql, one day
+                    XCTAssertEqual(context.statementArguments, nil)
+                    XCTAssertEqual(error.description, """
+                        scope "foo" only contains null values - \
+                        row: [a:"Ignored" a:NULL b:NULL]
+                        """)
+                default:
+                    XCTFail("Unexpected error")
+                }
+            }
+        }
+    }
+
+    func testOptionalRecordScopeDecoding() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let adapter = ScopeAdapter([
+                "foo": SuffixRowAdapter(fromIndex:1),
+                "ignored": SuffixRowAdapter(fromIndex:0),
+            ])
+            let request = SQLRequest(sql: "SELECT 'Ignored' AS a, 'Arthur' AS a, 100 AS b", adapter: adapter)
+            struct Foo: FetchableRecord {
+                var a: String
+                var b: Int
+                
+                init(row: Row) throws {
+                    a = try row["a"]
+                    b = try row["b"]
+                }
+            }
+            
+            // Success
+            do {
+                // From copied row
+                do {
+                    let row = try request.fetchOne(db)!
+                    let foo: Foo? = try row["foo"]
+                    XCTAssertEqual(foo?.a, "Arthur")
+                    XCTAssertEqual(foo?.b, 100)
+                }
+                
+                // From cursor row
+                do {
+                    let rows = try request.fetchCursor(db)
+                    while let row = try rows.next() {
+                        let foo: Foo? = try row["foo"]
+                        XCTAssertEqual(foo?.a, "Arthur")
+                        XCTAssertEqual(foo?.b, 100)
+                    }
+                }
+            }
+            
+            // Missing scope
+            do {
+                // From copied row
+                do {
+                    let row = try request.fetchOne(db)!
+                    let foo: Foo? = try row["missing"]
+                    XCTAssertNil(foo)
+                }
+                
+                // From cursor row
+                do {
+                    let rows = try request.fetchCursor(db)
+                    while let row = try rows.next() {
+                        let foo: Foo? = try row["missing"]
+                        XCTAssertNil(foo)
+                    }
+                }
+            }
+        }
+    }
+    
+    func testOptionalRecordScopeDecodingFromNULL() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            let adapter = ScopeAdapter([
+                "foo": SuffixRowAdapter(fromIndex:1),
+                "ignored": SuffixRowAdapter(fromIndex:0),
+            ])
+            let request = SQLRequest(sql: "SELECT 'Ignored' AS a, NULL AS a, NULL AS b", adapter: adapter)
+            struct Foo: FetchableRecord {
+                var a: String
+                var b: Int
+                
+                init(row: Row) throws {
+                    a = try row["a"]
+                    b = try row["b"]
+                }
+            }
+            
+            // From copied row
+            do {
+                let row = try request.fetchOne(db)!
+                let foo: Foo? = try row["foo"]
+                XCTAssertNil(foo)
+            }
+            
+            // From cursor row
+            do {
+                let rows = try request.fetchCursor(db)
+                while let row = try rows.next() {
+                    let foo: Foo? = try row["foo"]
+                    XCTAssertNil(foo)
+                }
+            }
+        }
+    }
 
     func testScopesWithMainMapping() throws {
         let dbQueue = try makeDatabaseQueue()
