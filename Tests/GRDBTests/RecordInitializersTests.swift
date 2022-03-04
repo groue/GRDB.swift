@@ -19,9 +19,9 @@ class EmptyRecordWithoutInitializer : Record {
 class RecordWithMutablePropertyAndRowInitializer : Record {
     var name: String?
     
-    required init(row: Row) {
-        super.init(row: row)        // super.init(row: row) is required
-        self.name = "toto"          // property can be set before or after super.init
+    required init(row: Row) throws {
+        try super.init(row: row)     // super.init(row: row) is required
+        self.name = "toto"           // property can be set before or after super.init
     }
 }
 
@@ -30,12 +30,12 @@ class RecordWithMutablePropertyAndEmptyInitializer : Record {
     var name: String?
     
     override init() {
-        super.init()                // super.init() is required
-        self.name = "toto"          // property can be set before or after super.init
+        super.init()                 // super.init() is required
+        self.name = "toto"           // property can be set before or after super.init
     }
     
-    required init(row: Row) {       // init(row) is required
-        super.init(row: row)        // super.init(row: row) is required
+    required init(row: Row) throws { // init(row) is required
+        try super.init(row: row)     // super.init(row: row) is required
     }
 }
 
@@ -45,11 +45,11 @@ class RecordWithMutablePropertyAndCustomInitializer : Record {
     
     init(name: String? = nil) {
         self.name = name
-        super.init()                // super.init() is required
+        super.init()                 // super.init() is required
     }
 
-    required init(row: Row) {       // init(row) is required
-        super.init(row: row)        // super.init(row: row) is required
+    required init(row: Row) throws { // init(row) is required
+        try super.init(row: row)     // super.init(row: row) is required
     }
 }
 
@@ -57,9 +57,9 @@ class RecordWithMutablePropertyAndCustomInitializer : Record {
 class RecordWithImmutableProperty : Record {
     let initializedFromRow: Bool
     
-    required init(row: Row) {       // An initializer is required, and the minimum is init(row)
-        initializedFromRow = true   // property must be set before super.init(row: row)
-        super.init(row: row)        // super.init(row: row) is required
+    required init(row: Row) throws { // An initializer is required, and the minimum is init(row)
+        initializedFromRow = true    // property must be set before super.init(row: row)
+        try super.init(row: row)     // super.init(row: row) is required
     }
 }
 
@@ -68,13 +68,13 @@ class RecordWithPedigree : Record {
     let initializedFromRow: Bool
     
     override init() {
-        initializedFromRow = false  // property must be set before super.init(row: row)
-        super.init()                // super.init() is required
+        initializedFromRow = false   // property must be set before super.init(row: row)
+        super.init()                 // super.init() is required
     }
     
-    required init(row: Row) {       // An initializer is required, and the minimum is init(row)
-        initializedFromRow = true   // property must be set before super.init(row: row)
-        super.init(row: row)        // super.init(row: row) is required
+    required init(row: Row) throws { // An initializer is required, and the minimum is init(row)
+        initializedFromRow = true    // property must be set before super.init(row: row)
+        try super.init(row: row)     // super.init(row: row) is required
     }
 }
 
@@ -83,13 +83,13 @@ class RecordWithImmutablePropertyAndCustomInitializer : Record {
     let initializedFromRow: Bool
     
     init(name: String? = nil) {
-        initializedFromRow = false  // property must be set before super.init(row: row)
-        super.init()                // super.init() is required
+        initializedFromRow = false   // property must be set before super.init(row: row)
+        super.init()                 // super.init() is required
     }
     
-    required init(row: Row) {       // An initializer is required, and the minimum is init(row)
-        initializedFromRow = true   // property must be set before super.init(row: row)
-        super.init(row: row)        // super.init(row: row) is required
+    required init(row: Row) throws { // An initializer is required, and the minimum is init(row)
+        initializedFromRow = true    // property must be set before super.init(row: row)
+        try super.init(row: row)     // super.init(row: row) is required
     }
 }
 

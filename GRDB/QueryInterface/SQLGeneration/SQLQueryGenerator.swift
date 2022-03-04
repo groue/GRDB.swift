@@ -471,7 +471,7 @@ struct SQLQueryGenerator: Refinable {
     ///         let book = Book(row: row)
     ///
     ///         row.scopes["author"] // [id:12, name:"Herman Melville"]
-    ///         let author: Author = row["author"]
+    ///         let author: Author = try row["author"]
     ///     }
     private func rowAdapter(_ context: SQLGenerationContext) throws -> RowAdapter? {
         try relation.rowAdapter(context, fromIndex: 0, rootRelation: true)?.adapter
@@ -649,7 +649,7 @@ private struct SQLQualifiedRelation {
         // Scopes give access to those joined relations:
         //
         //          row.scopes["author"] // [id:12, name:"Herman Melville"]
-        //          let author: Author = row["author"]
+        //          let author: Author = try row["author"]
         //      }
         let rangeAdapter = RangeRowAdapter(startIndex ..< (startIndex + sourceSelectionWidth))
         let adapter = rangeAdapter.addingScopes(scopes)

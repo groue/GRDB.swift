@@ -9,11 +9,11 @@ private struct Book {
 }
 
 extension Book : FetchableRecord {
-    init(row: Row) {
-        id = row[.rowID]
-        title = row["title"]
-        author = row["author"]
-        body = row["body"]
+    init(row: Row) throws {
+        id = try row[.rowID]
+        title = try row["title"]
+        author = try row["author"]
+        body = try row["body"]
     }
 }
 

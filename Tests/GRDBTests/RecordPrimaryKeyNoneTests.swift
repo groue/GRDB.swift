@@ -28,10 +28,10 @@ private class Item : Record, Hashable {
         "items"
     }
     
-    required init(row: Row) {
-        name = row["name"]
-        email = row["email"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        name = try row["name"]
+        email = try row["email"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

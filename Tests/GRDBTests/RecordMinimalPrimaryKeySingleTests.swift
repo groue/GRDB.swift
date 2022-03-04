@@ -21,9 +21,9 @@ class MinimalSingle: Record, Hashable {
         "minimalSingles"
     }
     
-    required init(row: Row) {
-        UUID = row["UUID"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        UUID = try row["UUID"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

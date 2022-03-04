@@ -30,11 +30,11 @@ private class Citizenship : Record, Hashable {
         "citizenships"
     }
     
-    required init(row: Row) {
-        personName = row["personName"]
-        countryName = row["countryName"]
-        native = row["native"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        personName = try row["personName"]
+        countryName = try row["countryName"]
+        native = try row["native"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

@@ -342,10 +342,10 @@ public struct RangeRowAdapter: RowAdapter {
 ///
 ///     // Scoped rows:
 ///     if let fooRow = row.scopes["foo"] {
-///         fooRow["value"]    // "foo"
+///         try fooRow["value"]    // "foo"
 ///     }
 ///     if let barRow = row.scopes["bar"] {
-///         barRow["value"]    // "bar"
+///         try barRow["value"]    // "bar"
 ///     }
 public struct ScopeAdapter: RowAdapter {
     

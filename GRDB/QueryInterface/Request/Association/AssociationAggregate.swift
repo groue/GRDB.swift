@@ -264,7 +264,7 @@ extension AssociationAggregate: Refinable {
     ///     let aggregate = Author.books.count.forKey("numberOfBooks")
     ///     let request = Author.annotated(with: aggregate)
     ///     if let row = try Row.fetchOne(db, request) {
-    ///         let numberOfBooks: Int = row["numberOfBooks"]
+    ///         let numberOfBooks: Int = try row["numberOfBooks"]
     ///     }
     public func forKey(_ key: String) -> Self {
         with {

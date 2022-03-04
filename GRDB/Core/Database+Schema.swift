@@ -85,7 +85,7 @@ extension Database {
         var schemaIdentifiers = try Row
             .fetchAll(self, sql: "PRAGMA database_list")
             .map { row -> SchemaIdentifier in
-                switch row[1] as String {
+                switch try row[1] as String {
                 case "main": return .main
                 case "temp": return .temp
                 case let other: return .attached(other)
@@ -321,8 +321,8 @@ extension Database {
             // [seq:0 name:"index" unique:0 origin:"c" partial:0]
             .fetchAll(self, sql: "PRAGMA \(table.schemaID.sql).index_list(\(table.name.quotedDatabaseIdentifier))")
             .compactMap { row -> IndexInfo? in
-                let indexName: String = row[1]
-                let unique: Bool = row[2]
+                let indexName: String = try row[1]
+                let unique: Bool = try row[2]
                 
                 let indexInfoRows = try Row
                     // [seqno:0 cid:2 name:"column"]
@@ -330,10 +330,10 @@ extension Database {
                         PRAGMA \(table.schemaID.sql).index_info(\(indexName.quotedDatabaseIdentifier))
                         """)
                     // Sort by rank
-                    .sorted(by: { ($0[0] as Int) < ($1[0] as Int) })
+                    .sorted(by: { try ($0[0] as Int) < ($1[0] as Int) })
                 var columns: [String] = []
                 for indexInfoRow in indexInfoRows {
-                    guard let column = indexInfoRow[2] as String? else {
+                    guard let column = try indexInfoRow[2] as String? else {
                         // https://sqlite.org/pragma.html#pragma_index_info
                         // > The name of the column being indexed is NULL if the
                         // > column is the rowid or an expression.
@@ -399,11 +399,11 @@ extension Database {
             """)
         {
             // row = [id:0 seq:0 table:"parents" from:"parentId" to:"id" on_update:"..." on_delete:"..." match:"..."]
-            let id: Int = row[0]
-            let seq: Int = row[1]
-            let table: String = row[2]
-            let origin: String = row[3]
-            let destination: String? = row[4]
+            let id: Int = try row[0]
+            let seq: Int = try row[1]
+            let table: String = try row[2]
+            let origin: String = try row[3]
+            let destination: String? = try row[4]
             
             if previousId == id {
                 rawForeignKeys[rawForeignKeys.count - 1]
@@ -746,14 +746,14 @@ public struct ColumnInfo: FetchableRecord {
     public let primaryKeyIndex: Int
     
     /// :nodoc:
-    public init(row: Row) {
-        cid = row["cid"]
-        name = row["name"]
-        type = row["type"]
-        isNotNull = row["notnull"]
-        defaultValueSQL = row["dflt_value"]
-        primaryKeyIndex = row["pk"]
-        hidden = row["hidden"]
+    public init(row: Row) throws {
+        cid = try row["cid"]
+        name = try row["name"]
+        type = try row["type"]
+        isNotNull = try row["notnull"]
+        defaultValueSQL = try row["dflt_value"]
+        primaryKeyIndex = try row["pk"]
+        hidden = try row["hidden"]
     }
 }
 
@@ -796,11 +796,11 @@ public struct ForeignKeyViolation: FetchableRecord, CustomStringConvertible {
     /// information.
     public var foreignKeyId: Int
     
-    public init(row: Row) {
-        originTable = row[0]
-        originRowID = row[1]
-        destinationTable = row[2]
-        foreignKeyId = row[3]
+    public init(row: Row) throws {
+        originTable = try row[0]
+        originRowID = try row[1]
+        destinationTable = try row[2]
+        foreignKeyId = try row[3]
     }
     
     public var description: String {

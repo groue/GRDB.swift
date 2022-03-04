@@ -37,19 +37,19 @@ class AdapterRowTests : RowTestCase {
             let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             // Raw extraction
-            assertRowRawValueEqual(row, index: 0, value: 0 as Int64)
-            assertRowRawValueEqual(row, index: 1, value: 1 as Int64)
-            assertRowRawValueEqual(row, index: 2, value: 2 as Int64)
+            assertRowRawValueEqual(row, index: 0, value: 0.databaseValue)
+            assertRowRawValueEqual(row, index: 1, value: 1.databaseValue)
+            assertRowRawValueEqual(row, index: 2, value: 2.databaseValue)
             
             // DatabaseValueConvertible & StatementColumnConvertible
-            assertRowConvertedValueEqual(row, index: 0, value: 0 as Int)
-            assertRowConvertedValueEqual(row, index: 1, value: 1 as Int)
-            assertRowConvertedValueEqual(row, index: 2, value: 2 as Int)
+            try assertRowConvertedValueEqual(row, index: 0, value: 0 as Int)
+            try assertRowConvertedValueEqual(row, index: 1, value: 1 as Int)
+            try assertRowConvertedValueEqual(row, index: 2, value: 2 as Int)
             
             // DatabaseValueConvertible
-            assertRowConvertedValueEqual(row, index: 0, value: CustomValue.a)
-            assertRowConvertedValueEqual(row, index: 1, value: CustomValue.b)
-            assertRowConvertedValueEqual(row, index: 2, value: CustomValue.c)
+            try assertRowConvertedValueEqual(row, index: 0, value: CustomValue.a)
+            try assertRowConvertedValueEqual(row, index: 1, value: CustomValue.b)
+            try assertRowConvertedValueEqual(row, index: 2, value: CustomValue.c)
             
             // Expect fatal error:
             //
@@ -65,19 +65,19 @@ class AdapterRowTests : RowTestCase {
             let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             // Raw extraction
-            assertRowRawValueEqual(row, name: "a", value: 0 as Int64)
-            assertRowRawValueEqual(row, name: "b", value: 1 as Int64)
-            assertRowRawValueEqual(row, name: "c", value: 2 as Int64)
+            assertRowRawValueEqual(row, name: "a", value: 0.databaseValue)
+            assertRowRawValueEqual(row, name: "b", value: 1.databaseValue)
+            assertRowRawValueEqual(row, name: "c", value: 2.databaseValue)
             
             // DatabaseValueConvertible & StatementColumnConvertible
-            assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
-            assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
-            assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
+            try assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
+            try assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
+            try assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
             
             // DatabaseValueConvertible
-            assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
-            assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
-            assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
+            try assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
+            try assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
+            try assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
         }
     }
     
@@ -88,19 +88,19 @@ class AdapterRowTests : RowTestCase {
             let row = try Row.fetchOne(db, sql: "SELECT 0 AS basea, 'XXX' AS extra, 1 AS baseb, 2 as basec", adapter: adapter)!
             
             // Raw extraction
-            assertRowRawValueEqual(row, column: Column("a"), value: 0 as Int64)
-            assertRowRawValueEqual(row, column: Column("b"), value: 1 as Int64)
-            assertRowRawValueEqual(row, column: Column("c"), value: 2 as Int64)
+            assertRowRawValueEqual(row, column: Column("a"), value: 0.databaseValue)
+            assertRowRawValueEqual(row, column: Column("b"), value: 1.databaseValue)
+            assertRowRawValueEqual(row, column: Column("c"), value: 2.databaseValue)
             
             // DatabaseValueConvertible & StatementColumnConvertible
-            assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
-            assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
-            assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
+            try assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
+            try assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
+            try assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
             
             // DatabaseValueConvertible
-            assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
-            assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
-            assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
+            try assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
+            try assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
+            try assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
         }
     }
     
@@ -112,17 +112,17 @@ class AdapterRowTests : RowTestCase {
             let adapter = ColumnMapping(["a": "basea", "b": "baseb", "c": "basec"])
             let row = try Row.fetchOne(db, sql: "SELECT ? AS basea, ? AS baseb, ? AS basec", arguments: [data, emptyData, nil], adapter: adapter)!
             
-            XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
-            XCTAssertEqual(row.dataNoCopy(named: "a"), data)
-            XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+            try XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
+            try XCTAssertEqual(row.dataNoCopy(named: "a"), data)
+            try XCTAssertEqual(row.dataNoCopy(Column("a")), data)
             
-            XCTAssertEqual(row.dataNoCopy(atIndex: 1), emptyData)
-            XCTAssertEqual(row.dataNoCopy(named: "b"), emptyData)
-            XCTAssertEqual(row.dataNoCopy(Column("b")), emptyData)
+            try XCTAssertEqual(row.dataNoCopy(atIndex: 1), emptyData)
+            try XCTAssertEqual(row.dataNoCopy(named: "b"), emptyData)
+            try XCTAssertEqual(row.dataNoCopy(Column("b")), emptyData)
             
-            XCTAssertNil(row.dataNoCopy(atIndex: 2))
-            XCTAssertNil(row.dataNoCopy(named: "c"))
-            XCTAssertNil(row.dataNoCopy(Column("c")))
+            try XCTAssertNil(row.dataNoCopy(atIndex: 2))
+            try XCTAssertNil(row.dataNoCopy(named: "c"))
+            try XCTAssertNil(row.dataNoCopy(Column("c")))
         }
     }
 
@@ -132,11 +132,11 @@ class AdapterRowTests : RowTestCase {
             let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
             let row = try Row.fetchOne(db, sql: "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
             
-            guard case .null = (row[0] as DatabaseValue).storage else { XCTFail(); return }
-            guard case .int64(let int64) = (row[1] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-            guard case .double(let double) = (row[2] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-            guard case .string(let string) = (row[3] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-            guard case .blob(let data) = (row[4] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+            guard case .null = row.databaseValue(atIndex: 0).storage else { XCTFail(); return }
+            guard case .int64(let int64) = row.databaseValue(atIndex: 1).storage, int64 == 1 else { XCTFail(); return }
+            guard case .double(let double) = row.databaseValue(atIndex: 2).storage, double == 1.1 else { XCTFail(); return }
+            guard case .string(let string) = row.databaseValue(atIndex: 3).storage, string == "foo" else { XCTFail(); return }
+            guard case .blob(let data) = row.databaseValue(atIndex: 4).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
         }
     }
 
@@ -146,11 +146,11 @@ class AdapterRowTests : RowTestCase {
             let adapter = ColumnMapping(["null": "basenull", "int64": "baseint64", "double": "basedouble", "string": "basestring", "blob": "baseblob"])
             let row = try Row.fetchOne(db, sql: "SELECT NULL AS basenull, 'XXX' AS extra, 1 AS baseint64, 1.1 AS basedouble, 'foo' AS basestring, x'53514C697465' AS baseblob", adapter: adapter)!
             
-            guard case .null = (row["null"] as DatabaseValue).storage else { XCTFail(); return }
-            guard case .int64(let int64) = (row["int64"] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-            guard case .double(let double) = (row["double"] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-            guard case .string(let string) = (row["string"] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-            guard case .blob(let data) = (row["blob"] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+            guard case .null = row.databaseValue(forColumn: "null")!.storage else { XCTFail(); return }
+            guard case .int64(let int64) = row.databaseValue(forColumn: "int64")!.storage, int64 == 1 else { XCTFail(); return }
+            guard case .double(let double) = row.databaseValue(forColumn: "double")!.storage, double == 1.1 else { XCTFail(); return }
+            guard case .string(let string) = row.databaseValue(forColumn: "string")!.storage, string == "foo" else { XCTFail(); return }
+            guard case .blob(let data) = row.databaseValue(forColumn: "blob")!.storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
         }
     }
 
@@ -190,12 +190,12 @@ class AdapterRowTests : RowTestCase {
             let adapter = ColumnMapping(["nAmE": "basenAmE"])
             let row = try Row.fetchOne(db, sql: "SELECT 'foo' AS basenAmE, 'XXX' AS extra", adapter: adapter)!
             
-            XCTAssertEqual(row["name"] as DatabaseValue, "foo".databaseValue)
-            XCTAssertEqual(row["NAME"] as DatabaseValue, "foo".databaseValue)
-            XCTAssertEqual(row["NaMe"] as DatabaseValue, "foo".databaseValue)
-            XCTAssertEqual(row["name"] as String, "foo")
-            XCTAssertEqual(row["NAME"] as String, "foo")
-            XCTAssertEqual(row["NaMe"] as String, "foo")
+            try XCTAssertEqual(row["name"] as DatabaseValue, "foo".databaseValue)
+            try XCTAssertEqual(row["NAME"] as DatabaseValue, "foo".databaseValue)
+            try XCTAssertEqual(row["NaMe"] as DatabaseValue, "foo".databaseValue)
+            try XCTAssertEqual(row["name"] as String, "foo")
+            try XCTAssertEqual(row["NAME"] as String, "foo")
+            try XCTAssertEqual(row["NaMe"] as String, "foo")
         }
     }
 
@@ -205,12 +205,12 @@ class AdapterRowTests : RowTestCase {
             let adapter = ColumnMapping(["name": "basename", "NAME": "baseNAME"])
             let row = try Row.fetchOne(db, sql: "SELECT 1 AS basename, 'XXX' AS extra, 2 AS baseNAME", adapter: adapter)!
             
-            XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
-            XCTAssertEqual(row["NAME"] as DatabaseValue, 1.databaseValue)
-            XCTAssertEqual(row["NaMe"] as DatabaseValue, 1.databaseValue)
-            XCTAssertEqual(row["name"] as Int, 1)
-            XCTAssertEqual(row["NAME"] as Int, 1)
-            XCTAssertEqual(row["NaMe"] as Int, 1)
+            try XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
+            try XCTAssertEqual(row["NAME"] as DatabaseValue, 1.databaseValue)
+            try XCTAssertEqual(row["NaMe"] as DatabaseValue, 1.databaseValue)
+            try XCTAssertEqual(row["name"] as Int, 1)
+            try XCTAssertEqual(row["NAME"] as Int, 1)
+            try XCTAssertEqual(row["NaMe"] as Int, 1)
         }
     }
 
@@ -220,7 +220,7 @@ class AdapterRowTests : RowTestCase {
             let adapter = ColumnMapping(["name": "baseNaMe"])
             let row = try Row.fetchOne(db, sql: "SELECT 1 AS basename, 2 AS baseNaMe, 3 AS BASENAME", adapter: adapter)!
             
-            XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
+            try XCTAssertEqual(row["name"] as DatabaseValue, 1.databaseValue)
         }
     }
     
@@ -232,10 +232,8 @@ class AdapterRowTests : RowTestCase {
             
             XCTAssertFalse(row.hasColumn("missing"))
             XCTAssertFalse(row.hasColumn("missingInBaseRow"))
-            XCTAssertTrue(row["missing"] as DatabaseValue? == nil)
-            XCTAssertTrue(row["missingInBaseRow"] as DatabaseValue? == nil)
-            XCTAssertTrue(row["missing"] == nil)
-            XCTAssertTrue(row["missingInBaseRow"] == nil)
+            XCTAssertTrue(row.databaseValue(forColumn: "missing") == nil)
+            XCTAssertTrue(row.databaseValue(forColumn: "missingInBaseRow") == nil)
         }
     }
 
@@ -264,10 +262,10 @@ class AdapterRowTests : RowTestCase {
             let row = try Row.fetchOne(db, sql: "SELECT 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(row.count, 4)
-            XCTAssertEqual(row["id1"] as Int, 1)
-            XCTAssertEqual(row["val1"] as String, "foo1")
-            XCTAssertEqual(row["id2"] as Int, 2)
-            XCTAssertEqual(row["val2"] as String, "foo2")
+            try XCTAssertEqual(row["id1"] as Int, 1)
+            try XCTAssertEqual(row["val1"] as String, "foo1")
+            try XCTAssertEqual(row["id2"] as Int, 2)
+            try XCTAssertEqual(row["val2"] as String, "foo2")
             
             XCTAssertEqual(Set(row.scopes.names), ["sub1", "sub2"])
             XCTAssertEqual(row.scopes.count, 2)
@@ -309,8 +307,8 @@ class AdapterRowTests : RowTestCase {
             let row = try Row.fetchOne(db, sql: "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(row.count, 2)
-            XCTAssertEqual(row["id"] as Int, 0)
-            XCTAssertEqual(row["val"] as String, "foo0")
+            try XCTAssertEqual(row["id"] as Int, 0)
+            try XCTAssertEqual(row["val"] as String, "foo0")
             
             XCTAssertEqual(Set(row.scopes.names), ["sub1", "sub2"])
             XCTAssertEqual(row.scopes.count, 2)
@@ -398,8 +396,8 @@ class AdapterRowTests : RowTestCase {
             let row = try Row.fetchOne(db, sql: "SELECT 0 AS id0, 'foo0' AS val0, 1 AS id1, 'foo1' AS val1, 2 as id2, 'foo2' AS val2", adapter: adapter)!
             
             XCTAssertEqual(row.count, 2)
-            XCTAssertEqual(row["id"] as Int, 0)
-            XCTAssertEqual(row["val"] as String, "foo0")
+            try XCTAssertEqual(row["id"] as Int, 0)
+            try XCTAssertEqual(row["val"] as String, "foo0")
             
             XCTAssertEqual(Set(row.scopes.names), ["sub1"])
             XCTAssertEqual(row.scopes.count, 1)
@@ -630,9 +628,9 @@ class AdapterRowTests : RowTestCase {
             
             if let copiedRow = copiedRow {
                 XCTAssertEqual(copiedRow.count, 3)
-                XCTAssertEqual(copiedRow["a"] as Int, 0)
-                XCTAssertEqual(copiedRow["b"] as Int, 1)
-                XCTAssertEqual(copiedRow["c"] as Int, 2)
+                try XCTAssertEqual(copiedRow["a"] as Int, 0)
+                try XCTAssertEqual(copiedRow["b"] as Int, 1)
+                try XCTAssertEqual(copiedRow["c"] as Int, 2)
                 
                 XCTAssertEqual(Set(copiedRow.scopes.names), ["sub"])
                 XCTAssertEqual(copiedRow.scopes.count, 1)

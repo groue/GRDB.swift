@@ -8,8 +8,8 @@ private struct Player: Equatable {
 
 extension Player: TableRecord, FetchableRecord {
     static let databaseTableName = "t"
-    init(row: Row) {
-        self.init(id: row["id"], name: row["name"])
+    init(row: Row) throws {
+        try self.init(id: row["id"], name: row["name"])
     }
 }
 
@@ -45,7 +45,7 @@ class ValueObservationRecordTests: GRDBTestCase {
             ValueObservation
                 .trackingConstantRegion { try Row.fetchAll($0, request) }
                 .removeDuplicates()
-                .map { $0.map(Player.init(row:)) },
+                .map { try $0.map(Player.init(row:)) },
             records: [
                 [],
                 [Player(id: 1, name: "foo")],
@@ -100,7 +100,7 @@ class ValueObservationRecordTests: GRDBTestCase {
             ValueObservation
                 .trackingConstantRegion { try Row.fetchOne($0, request) }
                 .removeDuplicates()
-                .map { $0.map(Player.init(row:)) },
+                .map { try $0.map(Player.init(row:)) },
             records: [
                 nil,
                 Player(id: 1, name: "foo"),

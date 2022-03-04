@@ -26,7 +26,7 @@ public protocol _ValueReducer {
     ///     reducer._value(...) // MUST NOT be nil
     ///     reducer._value(...) // MAY be nil
     ///     reducer._value(...) // MAY be nil
-    mutating func _value(_ fetched: Fetched) -> Value?
+    mutating func _value(_ fetched: Fetched) throws -> Value?
 }
 
 /// The `ValueReducer` protocol supports `ValueObservation`.

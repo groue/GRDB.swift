@@ -26,7 +26,7 @@ class RowFromDictionaryTests : RowTestCase {
         XCTAssertEqual(bools, [false, true, true])
     }
     
-    func testRowValueAtIndex() {
+    func testRowValueAtIndex() throws {
         let dictionary: [String: DatabaseValueConvertible?] = ["a": 0, "b": 1, "c": 2]
         let row = Row(dictionary)
         
@@ -35,19 +35,19 @@ class RowFromDictionaryTests : RowTestCase {
         let cIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "c")!)
         
         // Raw extraction
-        assertRowRawValueEqual(row, index: aIndex, value: 0 as Int64)
-        assertRowRawValueEqual(row, index: bIndex, value: 1 as Int64)
-        assertRowRawValueEqual(row, index: cIndex, value: 2 as Int64)
+        assertRowRawValueEqual(row, index: aIndex, value: 0.databaseValue)
+        assertRowRawValueEqual(row, index: bIndex, value: 1.databaseValue)
+        assertRowRawValueEqual(row, index: cIndex, value: 2.databaseValue)
         
         // DatabaseValueConvertible & StatementColumnConvertible
-        assertRowConvertedValueEqual(row, index: aIndex, value: 0 as Int)
-        assertRowConvertedValueEqual(row, index: bIndex, value: 1 as Int)
-        assertRowConvertedValueEqual(row, index: cIndex, value: 2 as Int)
+        try assertRowConvertedValueEqual(row, index: aIndex, value: 0 as Int)
+        try assertRowConvertedValueEqual(row, index: bIndex, value: 1 as Int)
+        try assertRowConvertedValueEqual(row, index: cIndex, value: 2 as Int)
         
         // DatabaseValueConvertible
-        assertRowConvertedValueEqual(row, index: aIndex, value: CustomValue.a)
-        assertRowConvertedValueEqual(row, index: bIndex, value: CustomValue.b)
-        assertRowConvertedValueEqual(row, index: cIndex, value: CustomValue.c)
+        try assertRowConvertedValueEqual(row, index: aIndex, value: CustomValue.a)
+        try assertRowConvertedValueEqual(row, index: bIndex, value: CustomValue.b)
+        try assertRowConvertedValueEqual(row, index: cIndex, value: CustomValue.c)
         
         // Expect fatal error:
         //
@@ -55,67 +55,67 @@ class RowFromDictionaryTests : RowTestCase {
         // row[3]
     }
     
-    func testRowValueNamed() {
+    func testRowValueNamed() throws {
         let row = Row(["a": 0, "b": 1, "c": 2])
         
         // Raw extraction
-        assertRowRawValueEqual(row, name: "a", value: 0 as Int64)
-        assertRowRawValueEqual(row, name: "b", value: 1 as Int64)
-        assertRowRawValueEqual(row, name: "c", value: 2 as Int64)
+        assertRowRawValueEqual(row, name: "a", value: 0.databaseValue)
+        assertRowRawValueEqual(row, name: "b", value: 1.databaseValue)
+        assertRowRawValueEqual(row, name: "c", value: 2.databaseValue)
         
         // DatabaseValueConvertible & StatementColumnConvertible
-        assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
-        assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
-        assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
+        try assertRowConvertedValueEqual(row, name: "a", value: 0 as Int)
+        try assertRowConvertedValueEqual(row, name: "b", value: 1 as Int)
+        try assertRowConvertedValueEqual(row, name: "c", value: 2 as Int)
         
         // DatabaseValueConvertible
-        assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
-        assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
-        assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
+        try assertRowConvertedValueEqual(row, name: "a", value: CustomValue.a)
+        try assertRowConvertedValueEqual(row, name: "b", value: CustomValue.b)
+        try assertRowConvertedValueEqual(row, name: "c", value: CustomValue.c)
     }
     
-    func testRowValueFromColumn() {
+    func testRowValueFromColumn() throws {
         let row = Row(["a": 0, "b": 1, "c": 2])
         
         // Raw extraction
-        assertRowRawValueEqual(row, column: Column("a"), value: 0 as Int64)
-        assertRowRawValueEqual(row, column: Column("b"), value: 1 as Int64)
-        assertRowRawValueEqual(row, column: Column("c"), value: 2 as Int64)
+        assertRowRawValueEqual(row, column: Column("a"), value: 0.databaseValue)
+        assertRowRawValueEqual(row, column: Column("b"), value: 1.databaseValue)
+        assertRowRawValueEqual(row, column: Column("c"), value: 2.databaseValue)
         
         // DatabaseValueConvertible & StatementColumnConvertible
-        assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
-        assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
-        assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
+        try assertRowConvertedValueEqual(row, column: Column("a"), value: 0 as Int)
+        try assertRowConvertedValueEqual(row, column: Column("b"), value: 1 as Int)
+        try assertRowConvertedValueEqual(row, column: Column("c"), value: 2 as Int)
         
         // DatabaseValueConvertible
-        assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
-        assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
-        assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
+        try assertRowConvertedValueEqual(row, column: Column("a"), value: CustomValue.a)
+        try assertRowConvertedValueEqual(row, column: Column("b"), value: CustomValue.b)
+        try assertRowConvertedValueEqual(row, column: Column("c"), value: CustomValue.c)
     }
     
-    func testDataNoCopy() {
+    func testDataNoCopy() throws {
         do {
             let data = "foo".data(using: .utf8)!
             let row = Row(["a": data])
             
-            XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
-            XCTAssertEqual(row.dataNoCopy(named: "a"), data)
-            XCTAssertEqual(row.dataNoCopy(Column("a")), data)
+            try XCTAssertEqual(row.dataNoCopy(atIndex: 0), data)
+            try XCTAssertEqual(row.dataNoCopy(named: "a"), data)
+            try XCTAssertEqual(row.dataNoCopy(Column("a")), data)
         }
         do {
             let emptyData = Data()
             let row = Row(["a": emptyData])
             
-            XCTAssertEqual(row.dataNoCopy(atIndex: 0), emptyData)
-            XCTAssertEqual(row.dataNoCopy(named: "a"), emptyData)
-            XCTAssertEqual(row.dataNoCopy(Column("a")), emptyData)
+            try XCTAssertEqual(row.dataNoCopy(atIndex: 0), emptyData)
+            try XCTAssertEqual(row.dataNoCopy(named: "a"), emptyData)
+            try XCTAssertEqual(row.dataNoCopy(Column("a")), emptyData)
         }
         do {
             let row = Row(["a": nil])
             
-            XCTAssertNil(row.dataNoCopy(atIndex: 0))
-            XCTAssertNil(row.dataNoCopy(named: "a"))
-            XCTAssertNil(row.dataNoCopy(Column("a")))
+            try XCTAssertNil(row.dataNoCopy(atIndex: 0))
+            try XCTAssertNil(row.dataNoCopy(named: "a"))
+            try XCTAssertNil(row.dataNoCopy(Column("a")))
         }
     }
     
@@ -129,22 +129,22 @@ class RowFromDictionaryTests : RowTestCase {
         let stringIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "string")!)
         let blobIndex = dictionary.distance(from: dictionary.startIndex, to: dictionary.index(forKey: "blob")!)
         
-        guard case .null = (row[nullIndex] as DatabaseValue).storage else { XCTFail(); return }
-        guard case .int64(let int64) = (row[int64Index] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-        guard case .double(let double) = (row[doubleIndex] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-        guard case .string(let string) = (row[stringIndex] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-        guard case .blob(let data) = (row[blobIndex] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+        guard case .null = row.databaseValue(atIndex: nullIndex).storage else { XCTFail(); return }
+        guard case .int64(let int64) = row.databaseValue(atIndex: int64Index).storage, int64 == 1 else { XCTFail(); return }
+        guard case .double(let double) = row.databaseValue(atIndex: doubleIndex).storage, double == 1.1 else { XCTFail(); return }
+        guard case .string(let string) = row.databaseValue(atIndex: stringIndex).storage, string == "foo" else { XCTFail(); return }
+        guard case .blob(let data) = row.databaseValue(atIndex: blobIndex).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
     }
 
     func testRowDatabaseValueNamed() throws {
         let dictionary: [String: DatabaseValueConvertible?] = ["null": nil, "int64": 1, "double": 1.1, "string": "foo", "blob": "SQLite".data(using: .utf8)]
         let row = Row(dictionary)
         
-        guard case .null = (row["null"] as DatabaseValue).storage else { XCTFail(); return }
-        guard case .int64(let int64) = (row["int64"] as DatabaseValue).storage, int64 == 1 else { XCTFail(); return }
-        guard case .double(let double) = (row["double"] as DatabaseValue).storage, double == 1.1 else { XCTFail(); return }
-        guard case .string(let string) = (row["string"] as DatabaseValue).storage, string == "foo" else { XCTFail(); return }
-        guard case .blob(let data) = (row["blob"] as DatabaseValue).storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
+        guard case .null = row.databaseValue(forColumn: "null")!.storage else { XCTFail(); return }
+        guard case .int64(let int64) = row.databaseValue(forColumn: "int64")!.storage, int64 == 1 else { XCTFail(); return }
+        guard case .double(let double) = row.databaseValue(forColumn: "double")!.storage, double == 1.1 else { XCTFail(); return }
+        guard case .string(let string) = row.databaseValue(forColumn: "string")!.storage, string == "foo" else { XCTFail(); return }
+        guard case .blob(let data) = row.databaseValue(forColumn: "blob")!.storage, data == "SQLite".data(using: .utf8) else { XCTFail(); return }
     }
 
     func testRowCount() {
@@ -162,21 +162,20 @@ class RowFromDictionaryTests : RowTestCase {
         XCTAssertEqual(row.databaseValues.sorted { Int.fromDatabaseValue($0)! < Int.fromDatabaseValue($1)! }, [0.databaseValue, 1.databaseValue, 2.databaseValue])
     }
     
-    func testRowIsCaseInsensitive() {
+    func testRowIsCaseInsensitive() throws {
         let row = Row(["name": "foo"])
-        XCTAssertEqual(row["name"] as DatabaseValue, "foo".databaseValue)
-        XCTAssertEqual(row["NAME"] as DatabaseValue, "foo".databaseValue)
-        XCTAssertEqual(row["NaMe"] as DatabaseValue, "foo".databaseValue)
-        XCTAssertEqual(row["name"] as String, "foo")
-        XCTAssertEqual(row["NAME"] as String, "foo")
-        XCTAssertEqual(row["NaMe"] as String, "foo")
+        XCTAssertEqual(row.databaseValue(forColumn: "name"), "foo".databaseValue)
+        XCTAssertEqual(row.databaseValue(forColumn: "NAME"), "foo".databaseValue)
+        XCTAssertEqual(row.databaseValue(forColumn: "NaMe"), "foo".databaseValue)
+        try XCTAssertEqual(row["name"] as String, "foo")
+        try XCTAssertEqual(row["NAME"] as String, "foo")
+        try XCTAssertEqual(row["NaMe"] as String, "foo")
     }
     
     func testMissingColumn() {
         let row = Row(["name": "foo"])
         XCTAssertFalse(row.hasColumn("missing"))
-        XCTAssertTrue(row["missing"] as DatabaseValue? == nil)
-        XCTAssertTrue(row["missing"] == nil)
+        XCTAssertTrue(row.databaseValue(forColumn: "missing") == nil)
     }
     
     func testRowHasColumnIsCaseInsensitive() {
@@ -197,14 +196,14 @@ class RowFromDictionaryTests : RowTestCase {
         XCTAssertTrue(row.scopesTree["missing"] == nil)
     }
     
-    func testCopy() {
+    func testCopy() throws {
         let row = Row(["a": 0, "b": 1, "c": 2])
         
         let copiedRow = row.copy()
         XCTAssertEqual(copiedRow.count, 3)
-        XCTAssertEqual(copiedRow["a"] as Int, 0)
-        XCTAssertEqual(copiedRow["b"] as Int, 1)
-        XCTAssertEqual(copiedRow["c"] as Int, 2)
+        try XCTAssertEqual(copiedRow["a"] as Int, 0)
+        try XCTAssertEqual(copiedRow["b"] as Int, 1)
+        try XCTAssertEqual(copiedRow["c"] as Int, 2)
     }
     
     func testEqualityWithCopy() {

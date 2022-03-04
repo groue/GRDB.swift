@@ -132,9 +132,8 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
     }
     
     /// :nodoc:
-    public func _element(sqliteStatement: SQLiteStatement) -> Value {
-        // TODO GRDB6: don't crash on decoding errors
-        try! Value.decode(
+    public func _element(sqliteStatement: SQLiteStatement) throws -> Value {
+        try Value.decode(
             fromStatement: sqliteStatement,
             atUncheckedIndex: columnIndex,
             context: RowDecodingContext(statement: statement, index: Int(columnIndex)))

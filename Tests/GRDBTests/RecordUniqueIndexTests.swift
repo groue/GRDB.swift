@@ -3,7 +3,7 @@ import XCTest
 
 private struct Person : FetchableRecord, TableRecord {
     static let databaseTableName = "persons"
-    init(row: Row) {
+    init(row: Row) throws {
     }
 }
 

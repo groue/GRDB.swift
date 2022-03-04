@@ -2165,11 +2165,11 @@ struct BookInfo: FetchableRecord {
     var country: Country?
     var coverImage: CoverImage?
     
-    init(row: Row) {
-        book = Book(row: row)
-        author = row["author"]
-        country = row["country"]
-        coverImage = row["coverImage"]
+    init(row: Row) throws {
+        book = try Book(row: row)
+        author = try row["author"]
+        country = try row["country"]
+        coverImage = try row["coverImage"]
     }
 }
 
@@ -2200,9 +2200,9 @@ struct AuthorInfo: FetchableRecord {
     var author: Author
     var books: [Book]
     
-    init(row: Row) {
-        author = Author(row: row)
-        books = row["books"]
+    init(row: Row) throws {
+        author = try Author(row: row)
+        books = try row["books"]
     }
 }
 

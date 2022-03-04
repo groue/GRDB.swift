@@ -512,8 +512,8 @@ class DatabaseAggregateTests: GRDBTestCase {
             let fn = DatabaseFunction("f", argumentCount: 1, aggregate: Aggregate.self)
             db.add(function: fn)
             let row = try Row.fetchOne(db, sql: "SELECT f(a), f(b) FROM (SELECT 1 AS a, 2 AS b UNION ALL SELECT 2, 4 UNION ALL SELECT 3, 6)")!
-            XCTAssertEqual(row[0], 6)
-            XCTAssertEqual(row[1], 12)
+            try XCTAssertEqual(row[0], 6)
+            try XCTAssertEqual(row[1], 12)
         }
     }
     

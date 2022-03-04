@@ -87,10 +87,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0][0] as String, "Arthur")
-            XCTAssertEqual(rows[0][1] as Int64, 0)
-            XCTAssertEqual(rows[1][0] as String, "Barbara")
-            XCTAssertEqual(rows[1][1] as Int64, 1)
+            try XCTAssertEqual(rows[0][0] as String, "Arthur")
+            try XCTAssertEqual(rows[0][1] as Int64, 0)
+            try XCTAssertEqual(rows[1][0] as String, "Barbara")
+            try XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
 
@@ -104,10 +104,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0][0] as String, "Arthur")
-            XCTAssertEqual(rows[0][1] as Int64, 0)
-            XCTAssertEqual(rows[1][0] as String, "Barbara")
-            XCTAssertEqual(rows[1][1] as Int64, 1)
+            try XCTAssertEqual(rows[0][0] as String, "Arthur")
+            try XCTAssertEqual(rows[0][1] as Int64, 0)
+            try XCTAssertEqual(rows[1][0] as String, "Barbara")
+            try XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
 
@@ -121,10 +121,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT name, id - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0][0] as String, "Arthur")
-            XCTAssertEqual(rows[0][1] as Int64, 0)
-            XCTAssertEqual(rows[1][0] as String, "Barbara")
-            XCTAssertEqual(rows[1][1] as Int64, 1)
+            try XCTAssertEqual(rows[0][0] as String, "Arthur")
+            try XCTAssertEqual(rows[0][1] as Int64, 0)
+            try XCTAssertEqual(rows[1][0] as String, "Barbara")
+            try XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
     
@@ -137,10 +137,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             func test(_ request: QueryInterfaceRequest<Reader>) throws {
                 let rows = try Row.fetchAll(db, request)
                 XCTAssertEqual(rows.count, 2)
-                XCTAssertEqual(rows[0][0] as String, "O'Brien")
-                XCTAssertEqual(rows[0][1] as Int64, 0)
-                XCTAssertEqual(rows[1][0] as String, "O'Brien")
-                XCTAssertEqual(rows[1][1] as Int64, 1)
+                try XCTAssertEqual(rows[0][0] as String, "O'Brien")
+                try XCTAssertEqual(rows[0][1] as Int64, 0)
+                try XCTAssertEqual(rows[1][0] as String, "O'Brien")
+                try XCTAssertEqual(rows[1][1] as Int64, 1)
             }
             try test(Reader.select(literal: SQL(sql: ":name, id - :value", arguments: ["name": "O'Brien", "value": 1])))
             // Interpolation
@@ -158,10 +158,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             let rows = try Row.fetchAll(db, request)
             XCTAssertEqual(lastSQLQuery, "SELECT \"name\", \"id\" - 1 FROM \"readers\"")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0][0] as String, "Arthur")
-            XCTAssertEqual(rows[0][1] as Int64, 0)
-            XCTAssertEqual(rows[1][0] as String, "Barbara")
-            XCTAssertEqual(rows[1][1] as Int64, 1)
+            try XCTAssertEqual(rows[0][0] as String, "Arthur")
+            try XCTAssertEqual(rows[0][1] as Int64, 0)
+            try XCTAssertEqual(rows[1][0] as String, "Barbara")
+            try XCTAssertEqual(rows[1][1] as Int64, 1)
         }
     }
 

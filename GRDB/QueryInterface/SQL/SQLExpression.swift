@@ -1825,7 +1825,7 @@ extension SQLSpecificExpressible {
     ///     let area = (Column("width") * Column("height")).forKey("area")
     ///     let request = Shape.select(area)
     ///     if let row = try Row.fetchOne(db, request) {
-    ///         let area: Int = row["area"]
+    ///         let area: Int = try row["area"]
     ///     }
     ///
     /// If you need to refer to the aliased column in another part of a request,

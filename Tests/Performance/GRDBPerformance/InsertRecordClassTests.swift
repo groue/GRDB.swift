@@ -41,7 +41,7 @@ class InsertRecordClassTests: XCTestCase {
                 super.init()
             }
             
-            required init(row: Row) {
+            required init(row: Row) throws {
                 fatalError("init(row:) has not been implemented")
             }
             

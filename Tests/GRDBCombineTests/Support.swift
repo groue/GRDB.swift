@@ -102,7 +102,6 @@ final class AsyncTest<Context> {
 }
 #endif
 
-#if compiler(>=5.3)
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public func assertNoFailure<Failure>(
     _ completion: Subscribers.Completion<Failure>,
@@ -127,31 +126,4 @@ public func assertFailure<Failure, ExpectedFailure>(
         XCTFail("Expected \(ExpectedFailure.self), got \(completion)", file: file, line: line)
     }
 }
-#else
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-public func assertNoFailure<Failure>(
-    _ completion: Subscribers.Completion<Failure>,
-    file: StaticString = #file,
-    line: UInt = #line)
-{
-    if case let .failure(error) = completion {
-        XCTFail("Unexpected completion failure: \(error)", file: file, line: line)
-    }
-}
-
-@available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-public func assertFailure<Failure, ExpectedFailure>(
-    _ completion: Subscribers.Completion<Failure>,
-    file: StaticString = #file,
-    line: UInt = #line,
-    test: (ExpectedFailure) -> Void)
-{
-    if case let .failure(error) = completion, let expectedError = error as? ExpectedFailure {
-        test(expectedError)
-    } else {
-        XCTFail("Expected \(ExpectedFailure.self), got \(completion)", file: file, line: line)
-    }
-}
 #endif
-#endif
-

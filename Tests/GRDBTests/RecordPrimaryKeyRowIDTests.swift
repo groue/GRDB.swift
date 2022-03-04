@@ -32,12 +32,12 @@ private class Person : Record, Hashable {
         "persons"
     }
     
-    required init(row: Row) {
-        id = row["id"]
-        age = row["age"]
-        name = row["name"]
-        creationDate = row["creationDate"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        id = try row["id"]
+        age = try row["age"]
+        name = try row["name"]
+        creationDate = try row["creationDate"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

@@ -20,9 +20,9 @@ private struct PlayerWithRequiredTeam: FetchableRecord {
     var player: Player
     var team: Team
     
-    init(row: Row) {
-        player = Player(row: row)
-        team = row[Player.teamScope]
+    init(row: Row) throws {
+        player = try Player(row: row)
+        team = try row[Player.teamScope]
     }
 }
 
@@ -30,9 +30,9 @@ private struct PlayerWithOptionalTeam: FetchableRecord {
     var player: Player
     var team: Team?
     
-    init(row: Row) {
-        player = Player(row: row)
-        team = row[Player.teamScope]
+    init(row: Row) throws {
+        player = try Player(row: row)
+        team = try row[Player.teamScope]
     }
 }
 
@@ -40,9 +40,9 @@ private struct PlayerWithTeamName: FetchableRecord {
     var player: Player
     var teamName: String?
     
-    init(row: Row) {
-        player = Player(row: row)
-        teamName = row["teamName"]
+    init(row: Row) throws {
+        player = try Player(row: row)
+        teamName = try row["teamName"]
     }
 }
 

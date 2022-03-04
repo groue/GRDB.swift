@@ -26,10 +26,10 @@ class Pet : Record, Hashable {
         "pets"
     }
     
-    required init(row: Row) {
-        UUID = row["UUID"]
-        name = row["name"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        UUID = try row["UUID"]
+        name = try row["name"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

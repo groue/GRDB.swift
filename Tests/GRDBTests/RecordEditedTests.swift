@@ -31,12 +31,12 @@ private class Person : Record {
         "persons"
     }
     
-    required init(row: Row) {
-        id = row["id"]
-        age = row["age"]
-        name = row["name"]
-        creationDate = row["creationDate"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        id = try row["id"]
+        age = try row["age"]
+        name = try row["name"]
+        creationDate = try row["creationDate"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -70,9 +70,9 @@ private class IntegerPropertyOnRealAffinityColumn : Record {
     
     // Record
     
-    required init(row: Row) {
-        value = row["value"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        value = try row["value"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -100,12 +100,12 @@ private class PersonWithModifiedCaseColumns: Record {
         "persons"
     }
     
-    required init(row: Row) {
-        id = row["ID"]
-        age = row["AGE"]
-        name = row["NAME"]
-        creationDate = row["CREATIONDATE"]
-        super.init(row: row)
+    required init(row: Row) throws {
+        id = try row["ID"]
+        age = try row["AGE"]
+        name = try row["NAME"]
+        creationDate = try row["CREATIONDATE"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -144,11 +144,11 @@ class RecordEditedTests: GRDBTestCase {
         XCTAssertTrue(person.hasDatabaseChanges)
     }
     
-    func testRecordIsEditedAfterInitFromRow() {
+    func testRecordIsEditedAfterInitFromRow() throws {
         // Create a Record from a row. The row may not come from the database.
         // So it is edited.
         let row = Row(["name": "Arthur", "age": 41])
-        let person = Person(row: row)
+        let person = try Person(row: row)
         XCTAssertTrue(person.hasDatabaseChanges)
     }
     
@@ -398,8 +398,8 @@ class RecordEditedTests: GRDBTestCase {
         }
     }
     
-    func testChangesAfterInitFromRow() {
-        let person = Person(row: Row(["name": "Arthur", "age": 41]))
+    func testChangesAfterInitFromRow() throws {
+        let person = try Person(row: Row(["name": "Arthur", "age": 41]))
         let changes = person.databaseChanges
         XCTAssertEqual(changes.count, 4)
         for (column, old) in changes {

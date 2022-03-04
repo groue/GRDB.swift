@@ -18,10 +18,10 @@ class RowFoundationTests: GRDBTestCase {
         let row = Row(dictionary)!
         
         XCTAssertEqual(row.count, 5)
-        XCTAssertEqual(row["a"] as String, "foo")
-        XCTAssertEqual(row["b"] as Int, 1)
-        XCTAssertTrue((row["c"] as DatabaseValue).isNull)
-        XCTAssertEqual(row["d"] as String, "2015-09-30 19:47:19.000")
-        XCTAssertEqual(row["e"] as Data, "foo".data(using: .utf8))
+        try XCTAssertEqual(row["a"] as String, "foo")
+        try XCTAssertEqual(row["b"] as Int, 1)
+        try XCTAssertTrue((row["c"] as DatabaseValue).isNull)
+        try XCTAssertEqual(row["d"] as String, "2015-09-30 19:47:19.000")
+        try XCTAssertEqual(row["e"] as Data, "foo".data(using: .utf8))
     }
 }

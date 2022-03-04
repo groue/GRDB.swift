@@ -1,5 +1,6 @@
 import XCTest
-import GRDB
+#warning("TODO: remove @testable when RowDecodingError is made public")
+@testable import GRDB
 
 // TODO: test conversions from invalid UTF-8 blob to string
 
@@ -29,16 +30,17 @@ private let nonUTF8Data = Data([0x80])
 private let invalidString = "\u{FFFD}" // decoded from nonUTF8Data
 private let jpegData = try! Data(contentsOf: testBundle.url(forResource: "Betty", withExtension: "jpeg")!)
 
+#warning("TODO: test decoding errors")
 class DatabaseValueConversionTests : GRDBTestCase {
     
-    private func _assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
+    private func assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
         _ db: Database,
         _ sql: String,
         _ type: T.Type,
         expectedSQLiteConversion: T?,
         expectedDatabaseValueConversion: T?,
-        file: StaticString,
-        line: UInt) throws
+        file: StaticString = #filePath,
+        line: UInt = #line) throws
     {
         func stringRepresentation(_ value: T?) -> String {
             guard let value = value else { return "nil" }
@@ -56,7 +58,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         
         do {
             // test row[0] as T?
-            let sqliteConversion = try Row.fetchCursor(db, sql: sql).map { $0[0] as T? }.next()!
+            let sqliteConversion = try Row.fetchCursor(db, sql: sql).map { try $0[0] as T? }.next()!
             XCTAssert(
                 sqliteConversion == expectedSQLiteConversion,
                 "unexpected SQLite conversion: \(stringRepresentation(sqliteConversion)) instead of \(stringRepresentation(expectedSQLiteConversion))",
@@ -65,7 +67,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         
         do {
             // test row[0] as T
-            let sqliteConversion = try Row.fetchCursor(db, sql: sql).map { $0.hasNull(atIndex: 0) ? nil : ($0[0] as T) }.next()!
+            let sqliteConversion = try Row.fetchCursor(db, sql: sql).map { try $0.hasNull(atIndex: 0) ? nil : ($0[0] as T) }.next()!
             XCTAssert(
                 sqliteConversion == expectedSQLiteConversion,
                 "unexpected SQLite conversion: \(stringRepresentation(sqliteConversion)) instead of \(stringRepresentation(expectedSQLiteConversion))",
@@ -83,38 +85,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
         }
     }
     
-    private func _assertFailedDecoding<T: DatabaseValueConvertible>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        file: StaticString,
-        line: UInt) throws
-    {
-        // We can only test failed decoding from database value, since
-        // StatementColumnConvertible only supports optimistic decoding which
-        // never fails.
-        let dbValue = try DatabaseValue.fetchOne(db, sql: sql)!
-        XCTAssertNil(T.fromDatabaseValue(dbValue), file: file, line: line)
-    }
-    
-    // #file vs. #filePath dance
-    #if compiler(>=5.3)
-    private func assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        expectedSQLiteConversion: T?,
-        expectedDatabaseValueConversion: T?,
-        file: StaticString = #filePath,
-        line: UInt = #line) throws
-    {
-        try _assertDecoding(
-            db, sql, type,
-            expectedSQLiteConversion: expectedSQLiteConversion,
-            expectedDatabaseValueConversion: expectedDatabaseValueConversion,
-            file: file, line: line)
-    }
-    
     private func assertFailedDecoding<T: DatabaseValueConvertible>(
         _ db: Database,
         _ sql: String,
@@ -122,35 +92,30 @@ class DatabaseValueConversionTests : GRDBTestCase {
         file: StaticString = #filePath,
         line: UInt = #line) throws
     {
-        try _assertFailedDecoding(db, sql, type, file: file, line: line)
+        do {
+            // test T.fetchOne
+            _ = try T.fetchOne(db, sql: sql)
+            XCTFail("Expected error")
+        } catch is RowDecodingError { }
+        
+        do {
+            // test row[0] as T?
+            _ = try Row.fetchCursor(db, sql: sql).map { try $0[0] as T? }.next()!
+            XCTFail("Expected error")
+        } catch is RowDecodingError { }
+        
+        do {
+            // test row[0] as T
+            _ = try Row.fetchCursor(db, sql: sql).map { try $0.hasNull(atIndex: 0) ? nil : ($0[0] as T) }.next()!
+            XCTFail("Expected error")
+        } catch is RowDecodingError { }
+        
+        do {
+            // test T.fromDatabaseValue
+            let dbValue = try DatabaseValue.fetchOne(db, sql: sql)!
+            XCTAssertNil(T.fromDatabaseValue(dbValue), file: file, line: line)
+        }
     }
-    #else
-    private func assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        expectedSQLiteConversion: T?,
-        expectedDatabaseValueConversion: T?,
-        file: StaticString = #file,
-        line: UInt = #line) throws
-    {
-        try _assertDecoding(
-            db, sql, type,
-            expectedSQLiteConversion: expectedSQLiteConversion,
-            expectedDatabaseValueConversion: expectedDatabaseValueConversion,
-            file: file, line: line)
-    }
-    
-    private func assertFailedDecoding<T: DatabaseValueConvertible>(
-        _ db: Database,
-        _ sql: String,
-        _ type: T.Type,
-        file: StaticString = #file,
-        line: UInt = #line) throws
-    {
-        try _assertFailedDecoding(db, sql, type, file: file, line: line)
-    }
-    #endif
     
     // Datatypes In SQLite Version 3: https://www.sqlite.org/datatype3.html
     

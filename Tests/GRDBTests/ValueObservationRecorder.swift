@@ -283,8 +283,6 @@ extension XCTestCase {
         return try valueObservationExpectation.get()
     }
     
-    // #file vs. #filePath dance
-    #if compiler(>=5.3)
     /// This test checks the fundamental promise of ValueObservation by
     /// comparing recorded values with expected values.
     ///
@@ -325,48 +323,6 @@ extension XCTestCase {
             allowMissingLastValue: false,
             message(), file: file, line: line)
     }
-    #else
-    /// This test checks the fundamental promise of ValueObservation by
-    /// comparing recorded values with expected values.
-    ///
-    /// Recorded values match the expected values if and only if:
-    ///
-    /// - The last recorded value is the last expected value
-    /// - Recorded values are in the same order as expected values
-    ///
-    /// However, both missing and repeated values are allowed - with the only
-    /// exception of the last expected value which can not be missed.
-    ///
-    /// For example, if the expected values are [0, 1], then the following
-    /// recorded values match:
-    ///
-    /// - `[0, 1]` (identical values)
-    /// - `[1]` (missing value but the last one)
-    /// - `[0, 0, 1, 1]` (repeated value)
-    ///
-    /// However the following recorded values don't match, and fail the test:
-    ///
-    /// - `[1, 0]` (wrong order)
-    /// - `[0]` (missing last value)
-    /// - `[]` (missing last value)
-    /// - `[0, 1, 2]` (unexpected value)
-    /// - `[1, 0, 1]` (unexpected value)
-    public func assertValueObservationRecordingMatch<Value>(
-        recorded recordedValues: [Value],
-        expected expectedValues: [Value],
-        _ message: @autoclosure () -> String = "",
-        file: StaticString = #file,
-        line: UInt = #line)
-        where Value: Equatable
-    {
-        _assertValueObservationRecordingMatch(
-            recorded: recordedValues,
-            expected: expectedValues,
-            // Last value can't be missed
-            allowMissingLastValue: false,
-            message(), file: file, line: line)
-    }
-    #endif
     
     private func _assertValueObservationRecordingMatch<R, E>(
         recorded recordedValues: R,
@@ -704,8 +660,6 @@ extension GRDBTestCase {
         }
     }
     
-    // #file vs. #filePath dance
-    #if compiler(>=5.3)
     func assertValueObservation<Reducer: _ValueReducer>(
         _ observation: ValueObservation<Reducer>,
         records expectedValues: [Reducer.Value],
@@ -734,36 +688,6 @@ extension GRDBTestCase {
     {
         try _assertValueObservation(observation, fails: testFailure, setup: setup, file: file, line: line)
     }
-    #else
-    func assertValueObservation<Reducer: ValueReducer>(
-        _ observation: ValueObservation<Reducer>,
-        records expectedValues: [Reducer.Value],
-        setup: (Database) throws -> Void,
-        recordedUpdates: @escaping (Database) throws -> Void,
-        file: StaticString = #file,
-        line: UInt = #line)
-        throws
-        where Reducer.Value: Equatable
-    {
-        try _assertValueObservation(
-            observation,
-            records: expectedValues,
-            setup: setup,
-            recordedUpdates: recordedUpdates,
-            file: file, line: line)
-    }
-    
-    func assertValueObservation<Reducer: ValueReducer, Failure: Error>(
-        _ observation: ValueObservation<Reducer>,
-        fails testFailure: (Failure, DatabaseWriter) throws -> Void,
-        setup: (Database) throws -> Void,
-        file: StaticString = #file,
-        line: UInt = #line)
-        throws
-    {
-        try _assertValueObservation(observation, fails: testFailure, setup: setup, file: file, line: line)
-    }
-    #endif
 }
 
 // MARK: - ValueObservationExpectations

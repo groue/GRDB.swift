@@ -14,6 +14,7 @@ enum RowKey: Hashable, Sendable {
     case prefetchKey(String)
 }
 
+#warning("TODO: make public, and update README documentation")
 /// A decoding error
 @usableFromInline
 enum RowDecodingError: Error {

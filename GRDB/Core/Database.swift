@@ -1216,8 +1216,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                 try inTransaction {
                     let sql = "SELECT type, name FROM sqlite_master WHERE name NOT LIKE 'sqlite_%'"
                     while let row = try Row.fetchOne(self, sql: sql) {
-                        let type: String = row["type"]
-                        let name: String = row["name"]
+                        let type: String = try row["type"]
+                        let name: String = try row["name"]
                         try execute(sql: "DROP \(type) \(name.quotedDatabaseIdentifier)")
                     }
                     return .commit

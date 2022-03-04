@@ -38,30 +38,30 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             var rows = try Row.fetchCursor(db, sql: "SELECT NULL")
             while let row = try rows.next() {
-                let one: Fetched? = row[0]
+                let one: Fetched? = try row[0]
                 XCTAssertTrue(one == nil)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1")
             while let row = try rows.next() {
-                let one: Fetched? = row[0]
+                let one: Fetched? = try row[0]
                 XCTAssertEqual(one!.int, 1)
                 XCTAssertEqual(one!.fast, true)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1 AS int")
             while let row = try rows.next() {
-                let one: Fetched? = row["int"]
+                let one: Fetched? = try row["int"]
                 XCTAssertEqual(one!.int, 1)
                 XCTAssertEqual(one!.fast, true)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1")
             while let row = try rows.next() {
-                let one: Fetched = row[0]
+                let one: Fetched = try row[0]
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1 AS int")
             while let row = try rows.next() {
-                let one: Fetched = row["int"]
+                let one: Fetched = try row["int"]
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }
@@ -74,30 +74,30 @@ class StatementColumnConvertibleFetchTests: GRDBTestCase {
             let adapter = ScopeAdapter(["nested": SuffixRowAdapter(fromIndex: 0)])
             var rows = try Row.fetchCursor(db, sql: "SELECT NULL", adapter: adapter)
             while let row = try rows.next() {
-                let one: Fetched? = row.scopes["nested"]![0]
+                let one: Fetched? = try row.scopes["nested"]![0]
                 XCTAssertTrue(one == nil)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1", adapter: adapter)
             while let row = try rows.next() {
-                let one: Fetched? = row.scopes["nested"]![0]
+                let one: Fetched? = try row.scopes["nested"]![0]
                 XCTAssertEqual(one!.int, 1)
                 XCTAssertEqual(one!.fast, true)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1 AS int", adapter: adapter)
             while let row = try rows.next() {
-                let one: Fetched? = row.scopes["nested"]!["int"]
+                let one: Fetched? = try row.scopes["nested"]!["int"]
                 XCTAssertEqual(one!.int, 1)
                 XCTAssertEqual(one!.fast, true)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1", adapter: adapter)
             while let row = try rows.next() {
-                let one: Fetched = row.scopes["nested"]![0]
+                let one: Fetched = try row.scopes["nested"]![0]
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }
             rows = try Row.fetchCursor(db, sql: "SELECT 1 AS int", adapter: adapter)
             while let row = try rows.next() {
-                let one: Fetched = row.scopes["nested"]!["int"]
+                let one: Fetched = try row.scopes["nested"]!["int"]
                 XCTAssertEqual(one.int, 1)
                 XCTAssertEqual(one.fast, true)
             }

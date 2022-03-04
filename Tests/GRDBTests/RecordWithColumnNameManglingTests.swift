@@ -23,12 +23,12 @@ class BadlyMangledStuff : Record {
         "stuffs"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         // Here user may peek fancy column names that match his SQL queries.
         // However this is not the way to do it (see testBadlyMangledStuff()).
-        id = row["mangled_id"]
-        name = row["mangled_name"]
-        super.init(row: row)
+        id = try row["mangled_id"]
+        name = try row["mangled_name"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

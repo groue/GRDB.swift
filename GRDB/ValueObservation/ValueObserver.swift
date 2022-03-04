@@ -234,7 +234,7 @@ extension ValueObserver {
             if self.isCompleted { return }
             do {
                 let fetchedValue = try future.wait()
-                if let value = self.synchronized({ self.reducer._value(fetchedValue) }) {
+                if let value = try self.synchronized({ try self.reducer._value(fetchedValue) }) {
                     self.notifyChange(value)
                 }
             } catch {

@@ -11,7 +11,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     }
     
     /// Creates a Record from a row.
-    public required init(row: Row) {
+    public required init(row: Row) throws {
         if row.isFetched {
             // Take care of the hasDatabaseChanges flag.
             //
@@ -184,7 +184,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
             // Loop until we find a change, or exhaust columns:
             while let (column, newValue) = newValueIterator.next() {
                 let newDbValue = newValue?.databaseValue ?? .null
-                guard let oldRow = oldRow, let oldDbValue: DatabaseValue = oldRow[column] else {
+                guard let oldRow = oldRow, let oldDbValue = oldRow.databaseValue(forColumn: column) else {
                     return (column, nil)
                 }
                 if newDbValue != oldDbValue {

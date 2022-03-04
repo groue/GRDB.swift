@@ -7,17 +7,17 @@ private struct Fetched: Hashable{
 }
 
 extension Fetched : FetchableRecord {
-    init(row: Row) {
-        firstName = row["firstName"]
-        lastName = row["lastName"]
+    init(row: Row) throws {
+        firstName = try row["firstName"]
+        lastName = try row["lastName"]
     }
 }
 
 class FetchableRecordTests: GRDBTestCase {
 
-    func testRowInitializer() {
+    func testRowInitializer() throws {
         let row = Row(["firstName": "Arthur", "lastName": "Martin"])
-        let s = Fetched(row: row)
+        let s = try Fetched(row: row)
         XCTAssertEqual(s.firstName, "Arthur")
         XCTAssertEqual(s.lastName, "Martin")
     }

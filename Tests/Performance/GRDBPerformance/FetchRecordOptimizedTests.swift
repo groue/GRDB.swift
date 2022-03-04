@@ -16,17 +16,17 @@ private struct Item: Codable, FetchableRecord, PersistableRecord {
     var i8: Int
     var i9: Int
     
-    init(row: Row) {
-        i0 = row[0]
-        i1 = row[1]
-        i2 = row[2]
-        i3 = row[3]
-        i4 = row[4]
-        i5 = row[5]
-        i6 = row[6]
-        i7 = row[7]
-        i8 = row[8]
-        i9 = row[9]
+    init(row: Row) throws {
+        i0 = try row[0]
+        i1 = try row[1]
+        i2 = try row[2]
+        i3 = try row[3]
+        i4 = try row[4]
+        i5 = try row[5]
+        i6 = try row[6]
+        i7 = try row[7]
+        i8 = try row[8]
+        i9 = try row[9]
     }
     
     static let databaseSelection: [SQLSelectable] = [

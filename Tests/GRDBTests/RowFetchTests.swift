@@ -11,11 +11,11 @@ class RowFetchTests: GRDBTestCase {
                 XCTAssertEqual(String(cString: sqlite3_column_name(cursor.statement.sqliteStatement, 0)), "firstName")
                 
                 var row = try cursor.next()!
-                XCTAssertEqual(row["firstName"] as String, "Arthur")
-                XCTAssertEqual(row["lastName"] as String, "Martin")
+                try XCTAssertEqual(row["firstName"] as String, "Arthur")
+                try XCTAssertEqual(row["lastName"] as String, "Martin")
                 row = try cursor.next()!
-                XCTAssertEqual(row["firstName"] as String, "Barbara")
-                XCTAssertEqual(row["lastName"] as String, "Gourde")
+                try XCTAssertEqual(row["firstName"] as String, "Barbara")
+                try XCTAssertEqual(row["lastName"] as String, "Gourde")
                 XCTAssertTrue(try cursor.next() == nil) // end
                 XCTAssertTrue(try cursor.next() == nil) // past the end
             }
@@ -45,7 +45,7 @@ class RowFetchTests: GRDBTestCase {
             let request: SQLRequest<Row> = "SELECT \("O'Brien")"
             let cursor = try request.fetchCursor(db)
             let row = try cursor.next()!
-            XCTAssertEqual(row[0], "O'Brien")
+            try XCTAssertEqual(row[0], "O'Brien")
         }
     }
     
@@ -126,8 +126,8 @@ class RowFetchTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ array: [Row]) {
-                XCTAssertEqual(array.map { $0["firstName"] as String }, ["Arthur", "Barbara"])
-                XCTAssertEqual(array.map { $0["lastName"] as String }, ["Martin", "Gourde"])
+                try XCTAssertEqual(array.map { try $0["firstName"] as String }, ["Arthur", "Barbara"])
+                try XCTAssertEqual(array.map { try $0["lastName"] as String }, ["Martin", "Gourde"])
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
@@ -154,7 +154,7 @@ class RowFetchTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let request: SQLRequest<Row> = "SELECT \("O'Brien")"
             let rows = try request.fetchAll(db)
-            XCTAssertEqual(rows[0][0], "O'Brien")
+            try XCTAssertEqual(rows[0][0], "O'Brien")
         }
     }
     
@@ -228,8 +228,8 @@ class RowFetchTests: GRDBTestCase {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             func test(_ set: Set<Row>) {
-                XCTAssertEqual(Set(set.map { $0["firstName"] as String }), ["Arthur", "Barbara"])
-                XCTAssertEqual(Set(set.map { $0["lastName"] as String }), ["Martin", "Gourde"])
+                try XCTAssertEqual(Set(set.map { try $0["firstName"] as String }), ["Arthur", "Barbara"])
+                try XCTAssertEqual(Set(set.map { try $0["lastName"] as String }), ["Martin", "Gourde"])
             }
             do {
                 let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName UNION ALL SELECT 'Barbara', 'Gourde'"
@@ -256,7 +256,7 @@ class RowFetchTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let request: SQLRequest<Row> = "SELECT \("O'Brien")"
             let rows = try request.fetchSet(db)
-            XCTAssertEqual(rows.first![0], "O'Brien")
+            try XCTAssertEqual(rows.first![0], "O'Brien")
         }
     }
     
@@ -353,8 +353,8 @@ class RowFetchTests: GRDBTestCase {
             }
             do {
                 func test(_ row: Row?) {
-                    XCTAssertEqual(row!["firstName"] as String, "Arthur")
-                    XCTAssertEqual(row!["lastName"] as String, "Martin")
+                    try XCTAssertEqual(row!["firstName"] as String, "Arthur")
+                    try XCTAssertEqual(row!["lastName"] as String, "Martin")
                 }
                 do {
                     let sql = "SELECT 'Arthur' AS firstName, 'Martin' AS lastName"
@@ -382,7 +382,7 @@ class RowFetchTests: GRDBTestCase {
         try dbQueue.inDatabase { db in
             let request: SQLRequest<Row> = "SELECT \("O'Brien")"
             let row = try request.fetchOne(db)
-            XCTAssertEqual(row![0], "O'Brien")
+            try XCTAssertEqual(row![0], "O'Brien")
         }
     }
     

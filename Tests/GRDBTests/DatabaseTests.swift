@@ -55,8 +55,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute()
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -69,8 +69,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute(arguments: ["Arthur", 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -83,8 +83,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute(arguments: ["name": "Arthur", "age": 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -98,8 +98,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute()
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -113,8 +113,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute()
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -127,8 +127,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute(arguments: ["Arthur", 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -141,8 +141,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute(arguments: ["name": "Arthur", "age": 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -156,8 +156,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute()
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -171,8 +171,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute()
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -185,8 +185,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute(arguments: ["Arthur", 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -199,8 +199,8 @@ class DatabaseTests : GRDBTestCase {
             try statement.execute(arguments: ["name": "Arthur", "age": 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
     
@@ -213,8 +213,8 @@ class DatabaseTests : GRDBTestCase {
             try db.execute(sql: "INSERT INTO persons (name, age) VALUES ('Arthur', 41)")
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -253,8 +253,8 @@ class DatabaseTests : GRDBTestCase {
             try db.execute(sql: "INSERT INTO persons (name, age) VALUES (?, ?)", arguments: ["Arthur", 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -267,8 +267,8 @@ class DatabaseTests : GRDBTestCase {
             try db.execute(sql: "INSERT INTO persons (name, age) VALUES (:name, :age)", arguments: ["name": "Arthur", "age": 41])
             
             let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-            XCTAssertEqual(row[0] as String, "Arthur")
-            XCTAssertEqual(row[1] as Int, 41)
+            try XCTAssertEqual(row[0] as String, "Arthur")
+            try XCTAssertEqual(row[1] as Int, 41)
         }
     }
 
@@ -427,8 +427,8 @@ class DatabaseTests : GRDBTestCase {
             let rows = try Row.fetchCursor(db, sql: "SELECT * FROM persons ORDER BY name")
             while let row = try rows.next() {
                 // The tested function:
-                let name: String? = row[0]
-                let age: Int? = row[1]
+                let name: String? = try row[0]
+                let age: Int? = try row[1]
                 names.append(name)
                 ages.append(age)
             }
@@ -452,8 +452,8 @@ class DatabaseTests : GRDBTestCase {
             let rows = try Row.fetchCursor(db, sql: "SELECT * FROM persons ORDER BY name")
             while let row = try rows.next() {
                 // The tested function:
-                let name: String? = row["name"]
-                let age: Int? = row["age"]
+                let name: String? = try row["name"]
+                let age: Int? = try row["age"]
                 names.append(name)
                 ages.append(age)
             }

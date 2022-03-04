@@ -8,10 +8,10 @@ private struct Reader: Hashable {
 }
 
 extension Reader : FetchableRecord {
-    init(row: Row) {
-        id = row["id"]
-        name = row["name"]
-        age = row["age"]
+    init(row: Row) throws {
+        id = try row["id"]
+        name = try row["name"]
+        age = try row["age"]
     }
 }
 
@@ -36,10 +36,10 @@ private struct AltReader {
 }
 
 extension AltReader : FetchableRecord {
-    init(row: Row) {
-        id = row["id"]
-        name = row["name"]
-        age = row["age"]
+    init(row: Row) throws {
+        id = try row["id"]
+        name = try row["name"]
+        age = try row["age"]
     }
 }
 

@@ -1,10 +1,8 @@
 import Foundation
 
 extension FetchableRecord where Self: Decodable {
-    public init(row: Row) {
-        // Intended force-try. FetchableRecord is designed for records that
-        // reliably decode from rows.
-        self = try! RowDecoder().decode(from: row)
+    public init(row: Row) throws {
+        self = try RowDecoder().decode(from: row)
     }
 }
 
@@ -99,6 +97,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func contains(_ key: Key) -> Bool {
             let row = decoder.row
+            #warning("TODO: why don't we call decodeColumn(forKey:) here?")
             if let _columnForKey = _columnForKey {
                 if let column = _columnForKey[key.stringValue] {
                     assert(row.hasColumn(column))
@@ -118,7 +117,10 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         func decodeNil(forKey key: Key) throws -> Bool {
             let row = decoder.row
-            if let column = try? decodeColumn(forKey: key), row[column] != nil {
+            if let column = try? decodeColumn(forKey: key),
+               let index = row.index(forColumn: column),
+               !row.hasNull(atIndex: index)
+            {
                 return false
             }
             if row.scopesTree[key.stringValue] != nil {
@@ -342,7 +344,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         {
             if let type = T.self as? FetchableRecord.Type {
                 // Prefer FetchableRecord decoding over Decodable.
-                return type.init(row: row) as! T
+                return try type.init(row: row) as! T
             } else {
                 let decoder = _RowDecoder(row: row, codingPath: codingPath, columnDecodingStrategy: .useDefaultKeys)
                 return try T(from: decoder)

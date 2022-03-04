@@ -921,7 +921,7 @@ extension JoinMapping {
             // Unique database values and filter out NULL because SQLite doesn't
             // match foreign keys on NULL
             let leftIndex = mapping.leftIndex
-            var dbValues = Set(leftRows.map { $0.databaseValue(at: leftIndex) })
+            var dbValues = Set(leftRows.map { $0.databaseValue(atIndex: leftIndex) })
             dbValues.remove(.null)
             
             // Sort database values for nicer output.
@@ -934,7 +934,7 @@ extension JoinMapping {
                     // (table.a = 1) AND (table.b = 2)
                     var conditions: [SQLExpression] = []
                     for mapping in mappings {
-                        let dbValue = leftRow.databaseValue(at: mapping.leftIndex)
+                        let dbValue = leftRow.databaseValue(atIndex: mapping.leftIndex)
                         if dbValue.isNull {
                             // SQLite doesn't match foreign keys on NULL:
                             // give up this left row.
@@ -967,26 +967,24 @@ extension JoinMapping {
 protocol ColumnAddressable {
     associatedtype ColumnIndex
     func index(forColumn column: String) -> ColumnIndex?
-    func databaseValue(at index: ColumnIndex) -> DatabaseValue
+    func databaseValue(atIndex index: ColumnIndex) -> DatabaseValue
 }
 
 /// A "row" that contains a dummy value for all columns
 struct DummyRow: ColumnAddressable {
     struct DummyIndex { }
     func index(forColumn column: String) -> DummyIndex? { DummyIndex() }
-    func databaseValue(at index: DummyIndex) -> DatabaseValue { DatabaseValue(storage: .int64(1)) }
+    func databaseValue(atIndex index: DummyIndex) -> DatabaseValue { DatabaseValue(storage: .int64(1)) }
 }
 
 /// Row has columns
-extension Row: ColumnAddressable {
-    func databaseValue(at index: Int) -> DatabaseValue { self[index] }
-}
+extension Row: ColumnAddressable { }
 
 /// PersistenceContainer has columns
 extension PersistenceContainer: ColumnAddressable {
     func index(forColumn column: String) -> String? { column }
-    func databaseValue(at column: String) -> DatabaseValue {
-        self[caseInsensitive: column]?.databaseValue ?? .null
+    func databaseValue(atIndex index: String) -> DatabaseValue {
+        self[caseInsensitive: index]?.databaseValue ?? .null
     }
 }
 

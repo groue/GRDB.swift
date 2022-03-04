@@ -84,12 +84,12 @@ private struct FlatModel: FetchableRecord {
     var t3: T3?
     var t5count: Int
     
-    init(row: Row) {
-        self.t1 = row[Scopes.t1]
-        self.t2Left = row[Scopes.t2Left]
-        self.t2Right = row[Scopes.t2Right]
-        self.t3 = row[Scopes.t3]
-        self.t5count = row.scopes[Scopes.suffix]!["t5count"]
+    init(row: Row) throws {
+        self.t1 = try row[Scopes.t1]
+        self.t2Left = try row[Scopes.t2Left]
+        self.t2Right = try row[Scopes.t2Right]
+        self.t3 = try row[Scopes.t3]
+        self.t5count = try row.scopes[Scopes.suffix]!["t5count"]
     }
     
     static func all() -> AdaptedFetchRequest<SQLRequest<FlatModel>> {

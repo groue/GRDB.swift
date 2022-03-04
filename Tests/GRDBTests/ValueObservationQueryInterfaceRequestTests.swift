@@ -207,7 +207,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             ValueObservation
                 .trackingConstantRegion { db in try Row.fetchOne(db, request) }
                 .removeDuplicates()
-                .map { row in row.map(ParentInfo.init(row:)) },
+                .map { row in try row.map(ParentInfo.init(row:)) },
             records: [
                 nil,
                 ParentInfo(
@@ -312,7 +312,7 @@ class ValueObservationQueryInterfaceRequestTests: GRDBTestCase {
             ValueObservation
                 .trackingConstantRegion { db in try Row.fetchAll(db, request) }
                 .removeDuplicates()
-                .map { rows in rows.map(ParentInfo.init(row:)) },
+                .map { rows in try rows.map(ParentInfo.init(row:)) },
             records: [
                 [],
                 [

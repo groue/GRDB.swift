@@ -428,9 +428,9 @@ extension MutablePersistableRecordEncodableTests {
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 3)
-            XCTAssertEqual(rows[0]["array"], "[]")
-            XCTAssertEqual(rows[1]["array"], "[\"foo\"]")
-            XCTAssertEqual(rows[2]["array"], "[\"foo\",\"bar\"]")
+            try XCTAssertEqual(rows[0]["array"], "[]")
+            try XCTAssertEqual(rows[1]["array"], "[\"foo\"]")
+            try XCTAssertEqual(rows[2]["array"], "[\"foo\",\"bar\"]")
         }
     }
     
@@ -453,10 +453,10 @@ extension MutablePersistableRecordEncodableTests {
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 4)
-            XCTAssertTrue(rows[0]["array"] == nil)
-            XCTAssertEqual(rows[1]["array"], "[]")
-            XCTAssertEqual(rows[2]["array"], "[\"foo\"]")
-            XCTAssertEqual(rows[3]["array"], "[\"foo\",\"bar\"]")
+            XCTAssertTrue(rows[0].databaseValue(forColumn: "array")!.isNull)
+            try XCTAssertEqual(rows[1]["array"], "[]")
+            try XCTAssertEqual(rows[2]["array"], "[\"foo\"]")
+            try XCTAssertEqual(rows[3]["array"], "[\"foo\",\"bar\"]")
         }
     }
 
@@ -477,8 +477,8 @@ extension MutablePersistableRecordEncodableTests {
 
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 2)
-            XCTAssertEqual(rows[0]["dictionary"], "{}")
-            XCTAssertEqual(rows[1]["dictionary"], "{\"foo\":1}")
+            try XCTAssertEqual(rows[0]["dictionary"], "{}")
+            try XCTAssertEqual(rows[1]["dictionary"], "{\"foo\":1}")
         }
     }
     
@@ -500,9 +500,9 @@ extension MutablePersistableRecordEncodableTests {
             
             let rows = try Row.fetchAll(db, sql: "SELECT * FROM record ORDER BY id")
             XCTAssertEqual(rows.count, 3)
-            XCTAssertTrue(rows[0]["dictionary"] == nil)
-            XCTAssertEqual(rows[1]["dictionary"], "{}")
-            XCTAssertEqual(rows[2]["dictionary"], "{\"foo\":1}")
+            XCTAssertTrue(rows[0].databaseValue(forColumn: "dictionary")!.isNull)
+            try XCTAssertEqual(rows[1]["dictionary"], "{}")
+            try XCTAssertEqual(rows[2]["dictionary"], "{\"foo\":1}")
         }
     }
 
@@ -528,10 +528,10 @@ extension MutablePersistableRecordEncodableTests {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, Record.all())!
-            XCTAssertEqual(row["data"], data)
-            XCTAssertEqual(row["optionalData"], data)
-            XCTAssertEqual(row["datas"], "[\"Zm9v\"]")
-            XCTAssertEqual(row["optionalDatas"], "[null,\"Zm9v\"]")
+            try XCTAssertEqual(row["data"], data)
+            try XCTAssertEqual(row["optionalData"], data)
+            try XCTAssertEqual(row["datas"], "[\"Zm9v\"]")
+            try XCTAssertEqual(row["optionalDatas"], "[null,\"Zm9v\"]")
         }
     }
 
@@ -557,10 +557,10 @@ extension MutablePersistableRecordEncodableTests {
             try record.insert(db)
             
             let row = try Row.fetchOne(db, Record.all())!
-            XCTAssertEqual(row["date"], "1970-01-01 00:02:08.000")
-            XCTAssertEqual(row["optionalDate"], "1970-01-01 00:02:08.000")
-            XCTAssertEqual(row["dates"], "[128000]")
-            XCTAssertEqual(row["optionalDates"], "[null,128000]")
+            try XCTAssertEqual(row["date"], "1970-01-01 00:02:08.000")
+            try XCTAssertEqual(row["optionalDate"], "1970-01-01 00:02:08.000")
+            try XCTAssertEqual(row["dates"], "[128000]")
+            try XCTAssertEqual(row["optionalDates"], "[null,128000]")
         }
     }
 }

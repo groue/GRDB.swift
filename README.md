@@ -178,9 +178,9 @@ try dbQueue.read { db in
     // Fetch database rows
     let rows = try Row.fetchCursor(db, sql: "SELECT * FROM place")
     while let row = try rows.next() {
-        let title: String = row["title"]
-        let isFavorite: Bool = row["favorite"]
-        let coordinate = CLLocationCoordinate2D(
+        let title: String = try row["title"]
+        let isFavorite: Bool = try row["favorite"]
+        let coordinate = try CLLocationCoordinate2D(
             latitude: row["latitude"],
             longitude: row["longitude"])
     }
@@ -746,8 +746,8 @@ let playerId = player.id
 ```swift
 try dbQueue.read { db in
     if let row = try Row.fetchOne(db, sql: "SELECT * FROM wine WHERE id = ?", arguments: [1]) {
-        let name: String = row["name"]
-        let color: Color = row["color"]
+        let name: String = try row["name"]
+        let color: Color = try row["color"]
         print(name, color)
     }
 }
@@ -938,7 +938,7 @@ try dbQueue.read { db in
     let locations = try Row.
         .fetchCursor(db, sql: "SELECT latitude, longitude FROM place")
         .map { row in
-            CLLocationCoordinate2D(latitude: row[0], longitude: row[1])
+            try CLLocationCoordinate2D(latitude: row[0], longitude: row[1])
         }
     ```
 
@@ -981,8 +981,8 @@ try dbQueue.read { db in
     
     let rows = try Row.fetchCursor(db, sql: "SELECT * FROM wine")
     while let row = try rows.next() {
-        let name: String = row["name"]
-        let color: Color = row["color"]
+        let name: String = try row["name"]
+        let color: Color = try row["color"]
         print(name, color)
     }
 }
@@ -1016,41 +1016,41 @@ Unlike row arrays that contain copies of the database rows, row cursors are clos
 **Read column values** by index or column name:
 
 ```swift
-let name: String = row[0]      // 0 is the leftmost column
-let name: String = row["name"] // Leftmost matching column - lookup is case-insensitive
-let name: String = row[Column("name")] // Using query interface's Column
+let name: String = try row[0]      // 0 is the leftmost column
+let name: String = try row["name"] // Leftmost matching column - lookup is case-insensitive
+let name: String = try row[Column("name")] // Using query interface's Column
 ```
 
 Make sure to ask for an optional when the value may be NULL:
 
 ```swift
-let name: String? = row["name"]
+let name: String? = try row["name"]
 ```
 
 The `row[]` subscript returns the type you ask for. See [Values](#values) for more information on supported value types:
 
 ```swift
-let bookCount: Int     = row["bookCount"]
-let bookCount64: Int64 = row["bookCount"]
-let hasBooks: Bool     = row["bookCount"] // false when 0
+let bookCount: Int     = try row["bookCount"]
+let bookCount64: Int64 = try row["bookCount"]
+let hasBooks: Bool     = try row["bookCount"] // false when 0
 
-let string: String     = row["date"]      // "2015-09-11 18:14:15.123"
-let date: Date         = row["date"]      // Date
-self.date = row["date"] // Depends on the type of the property.
+let string: String     = try row["date"]      // "2015-09-11 18:14:15.123"
+let date: Date         = try row["date"]      // Date
+self.date = try row["date"] // Depends on the type of the property.
 ```
 
 You can also use the `as` type casting operator:
 
 ```swift
-row[...] as Int
-row[...] as Int?
+try row[...] as Int
+try row[...] as Int?
 ```
 
 > :warning: **Warning**: avoid the `as!` and `as?` operators:
 > 
 > ```swift
-> if let int = row[...] as? Int { ... } // BAD - doesn't work
-> if let int = row[...] as Int? { ... } // GOOD
+> if let int = try row[...] as? Int { ... } // BAD - doesn't work
+> if let int = try row[...] as Int? { ... } // GOOD
 > ```
 
 Generally speaking, you can extract the type you need, provided it can be converted from the underlying SQLite value:
@@ -1067,8 +1067,8 @@ Generally speaking, you can extract the type you need, provided it can be conver
     
     ```swift
     let row = try Row.fetchOne(db, sql: "SELECT NULL")!
-    row[0] as Int? // nil
-    row[0] as Int  // fatal error: could not convert NULL to Int.
+    try row[0] as Int? // nil
+    try row[0] as Int  // fatal error: could not convert NULL to Int.
     ```
     
     There is one exception, though: the [DatabaseValue](#databasevalue) type:
@@ -1099,20 +1099,6 @@ Generally speaking, you can extract the type you need, provided it can be conver
     row[0] as Int    // 256
     row[0] as UInt8? // fatal error: could not convert 256 to UInt8.
     row[0] as UInt8  // fatal error: could not convert 256 to UInt8.
-    ```
-    
-    Those conversion fatal errors can be avoided with the [DatabaseValue](#databasevalue) type:
-    
-    ```swift
-    let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday'")!
-    let dbValue: DatabaseValue = row[0]
-    if dbValue.isNull {
-        // Handle NULL
-    } else if let date = Date.fromDatabaseValue(dbValue) {
-        // Handle valid date
-    } else {
-        // Handle invalid date
-    }
     ```
     
     This extra verbosity is the consequence of having to deal with an untrusted database: you may consider fixing the content of your database instead. See [Fatal Errors](#fatal-errors) for more information.
@@ -1353,9 +1339,9 @@ struct Link: FetchableRecord {
     var url: URL
     var isVerified: Bool
     
-    init(row: Row) {
-        url = row["url"]
-        isVerified = row["verified"]
+    init(row: Row) throws {
+        url = try row["url"]
+        isVerified = try row["verified"]
     }
 }
 ```
@@ -1602,27 +1588,8 @@ try db.execute(
 // Read
 let rows = try Row.fetchCursor(db, sql: "SELECT * FROM wine")
 while let row = try rows.next() {
-    let grape: Grape = row["grape"]
-    let color: Color = row["color"]
-}
-```
-
-**When a database value does not match any enum case**, you get a fatal error. This fatal error can be avoided with the [DatabaseValue](#databasevalue) type:
-
-```swift
-let row = try Row.fetchOne(db, sql: "SELECT 'syrah'")!
-
-row[0] as String  // "syrah"
-row[0] as Grape?  // fatal error: could not convert "syrah" to Grape.
-row[0] as Grape   // fatal error: could not convert "syrah" to Grape.
-
-let dbValue: DatabaseValue = row[0]
-if dbValue.isNull {
-    // Handle NULL
-} else if let grape = Grape.fromDatabaseValue(dbValue) {
-    // Handle valid grape
-} else {
-    // Handle unknown grape
+    let grape: Grape = try row["grape"]
+    let color: Color = try row["color"]
 }
 ```
 
@@ -2235,7 +2202,7 @@ let row = try Row.fetchOne(db, sql: "SELECT 'Hello' AS produced", adapter: adapt
 print(row)
 
 // "Hello"
-print(row["consumed"])
+try print(row["consumed"] as String)
 
 // ▿ [consumed:"Hello"]
 //   unadapted: [produced:"Hello"]
@@ -2665,7 +2632,7 @@ Details follow:
 ```swift
 protocol FetchableRecord {
     /// Row initializer
-    init(row: Row)
+    init(row: Row) throws
 }
 ```
 
@@ -2679,10 +2646,10 @@ struct Place {
 }
 
 extension Place : FetchableRecord {
-    init(row: Row) {
-        id = row["id"]
-        title = row["title"]
-        coordinate = CLLocationCoordinate2D(
+    init(row: Row) throws {
+        id = try row["id"]
+        title = try row["title"]
+        coordinate = try CLLocationCoordinate2D(
             latitude: row["latitude"],
             longitude: row["longitude"])
     }
@@ -2697,10 +2664,10 @@ extension Place : FetchableRecord {
         case id, title, latitude, longitude
     }
     
-    init(row: Row) {
-        id = row[Columns.id]
-        title = row[Columns.title]
-        coordinate = CLLocationCoordinate2D(
+    init(row: Row) throws {
+        id = try row[Columns.id]
+        title = try row[Columns.title]
+        coordinate = try CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
     }
@@ -3339,14 +3306,14 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) {
-        id = row[Columns.id]
-        title = row[Columns.title]
-        isFavorite = row[Columns.favorite]
-        coordinate = CLLocationCoordinate2D(
+    required init(row: Row) throws {
+        id = try row[Columns.id]
+        title = try row[Columns.title]
+        isFavorite = try row[Columns.favorite]
+        coordinate = try CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     /// The values persisted in the database
@@ -3664,8 +3631,8 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     struct Event : FetchableRecord {
         var id: Int64?
         
-        init(row: Row) {
-            id = row[Column.rowID] // or `row[.rowID]` with Swift 5.5+
+        init(row: Row) throws {
+            id = try row[.rowID]
         }
     }
     ```
@@ -3684,7 +3651,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
         var id: Int64?
         
         func encode(to container: inout PersistenceContainer) {
-            container[Column.rowID] = id // or `container[.rowID]` with Swift 5.5+
+            container[.rowID] = id
             container["message"] = message
             container["date"] = date
         }
@@ -3721,8 +3688,6 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
 - Your application needs polymorphic row decoding: it decodes some type or another, depending on the values contained in a database row.
 
 - Your application needs to decode rows with a context: each decoded value should be initialized with some extra value that does not come from the database.
-
-- Your application needs a record type that supports untrusted databases, and may fail at decoding database rows (throw an error when a row contains invalid values).
 
 Since those use cases are not well handled by FetchableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
 
@@ -3825,11 +3790,11 @@ extension Place: TableRecord {
 // Fetching methods
 extension Place: FetchableRecord {
     /// Creates a record from a database row
-    init(row: Row) {
-        id = row[Columns.id]
-        title = row[Columns.title]
-        isFavorite = row[Columns.isFavorite]
-        coordinate = CLLocationCoordinate2D(
+    init(row: Row) throws {
+        id = try row[Columns.id]
+        title = try row[Columns.title]
+        isFavorite = try row[Columns.isFavorite]
+        coordinate = try CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
     }
@@ -3906,13 +3871,13 @@ extension Place: TableRecord {
 // Fetching methods
 extension Place: FetchableRecord {
     /// Creates a record from a database row
-    init(row: Row) {
+    init(row: Row) throws {
         // For high performance, use numeric indexes that match the
         // order of Place.databaseSelection
-        id = row[0]
-        title = row[1]
-        isFavorite = row[2]
-        coordinate = CLLocationCoordinate2D(
+        id = try row[0]
+        title = try row[1]
+        isFavorite = try row[2]
+        coordinate = try CLLocationCoordinate2D(
             latitude: row[3],
             longitude: row[4])
     }
@@ -3958,14 +3923,14 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) {
-        id = row[Columns.id]
-        title = row[Columns.title]
-        isFavorite = row[Columns.isFavorite]
-        coordinate = CLLocationCoordinate2D(
+    required init(row: Row) throws {
+        try id = try row[Columns.id]
+        try title = try row[Columns.title]
+        try isFavorite = try row[Columns.isFavorite]
+        try coordinate = try CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     /// The values persisted in the database
@@ -5787,10 +5752,10 @@ extension PlayerInfo: FetchableRecord {
         static let team = "team"
     }
     
-    init(row: Row) {
-        player = row[Scopes.player]
-        team = row[Scopes.team]
-        maxScore = row["maxScore"]
+    init(row: Row) throws {
+        player = try row[Scopes.player]
+        team = try row[Scopes.team]
+        maxScore = try row["maxScore"]
     }
 }
 ```
@@ -6286,7 +6251,7 @@ let request = Player.filter(id: 42)
 let observation = ValueObservation
     .tracking { db in try Row.fetchOne(db, request) }
     .removeDuplicates() // Row adopts Equatable
-    .map { row in row.map(Player.init(row:) }
+    .map { row in try row.map(Player.init(row:) }
 ```
 
 This technique is also available for requests that involve [Associations]:
@@ -6302,7 +6267,7 @@ let request = Team.including(all: Team.players)
 let observation = ValueObservation
     .tracking { db in try Row.fetchAll(db, request) }
     .removeDuplicates() // Row adopts Equatable
-    .map { rows in rows.map(TeamInfo.init(row:) }
+    .map { rows in try rows.map(TeamInfo.init(row:) }
 ```
 
 
@@ -7418,7 +7383,6 @@ Considering that a local database is not some JSON loaded from a remote server, 
 - [DatabaseError](#databaseerror)
 - [PersistenceError](#persistenceerror)
 - [Fatal Errors](#fatal-errors)
-- [How to Deal with Untrusted Inputs](#how-to-deal-with-untrusted-inputs)
 - [Error Log](#error-log)
 
 
@@ -7513,42 +7477,6 @@ do {
 
 They uncover programmer errors, false assumptions, and prevent misuses. Here are a few examples:
 
-- **The code asks for a non-optional value, when the database contains NULL:**
-    
-    ```swift
-    // fatal error: could not convert NULL to String.
-    let name: String = row["name"]
-    ```
-    
-    Solution: fix the contents of the database, use [NOT NULL constraints](#create-tables), or load an optional:
-    
-    ```swift
-    let name: String? = row["name"]
-    ```
-
-- **Conversion from database value to Swift type fails:**
-    
-    ```swift
-    // fatal error: could not convert "Mom’s birthday" to Date.
-    let date: Date = row["date"]
-    
-    // fatal error: could not convert "" to URL.
-    let url: URL = row["url"]
-    ```
-    
-    Solution: fix the contents of the database, or use [DatabaseValue](#databasevalue) to handle all possible cases:
-    
-    ```swift
-    let dbValue: DatabaseValue = row["date"]
-    if dbValue.isNull {
-        // Handle NULL
-    } else if let date = Date.fromDatabaseValue(dbValue) {
-        // Handle valid date
-    } else {
-        // Handle invalid date
-    }
-    ```
-
 - **The database can't guarantee that the code does what it says:**
 
     ```swift
@@ -7574,54 +7502,6 @@ They uncover programmer errors, false assumptions, and prevent misuses. Here are
     ```
     
     Solution: avoid reentrancy, and instead pass a database connection along.
-
-
-### How to Deal with Untrusted Inputs
-
-Let's consider the code below:
-
-```swift
-let sql = "SELECT ..."
-
-// Some untrusted arguments for the query
-let arguments: [String: Any] = ...
-let rows = try Row.fetchCursor(db, sql: sql, arguments: StatementArguments(arguments))
-
-while let row = try rows.next() {
-    // Some untrusted database value:
-    let date: Date? = row[0]
-}
-```
-
-It has two opportunities to throw fatal errors:
-
-- **Untrusted arguments**: The dictionary may contain values that do not conform to the [DatabaseValueConvertible protocol](#values), or may miss keys required by the statement.
-- **Untrusted database content**: The row may contain a non-null value that can't be turned into a date.
-
-In such a situation, you can still avoid fatal errors by exposing and handling each failure point, one level down in the GRDB API:
-
-```swift
-// Untrusted arguments
-if let arguments = StatementArguments(arguments) {
-    let statement = try db.makeStatement(sql: sql)
-    try statement.setArguments(arguments)
-    
-    var cursor = try Row.fetchCursor(statement)
-    while let row = try iterator.next() {
-        // Untrusted database content
-        let dbValue: DatabaseValue = row[0]
-        if dbValue.isNull {
-            // Handle NULL
-        if let date = Date.fromDatabaseValue(dbValue) {
-            // Handle valid date
-        } else {
-            // Handle invalid date
-        }
-    }
-}
-```
-
-See [prepared statements](#prepared-statements) and [DatabaseValue](#databasevalue) for more information.
 
 
 ### Error Log

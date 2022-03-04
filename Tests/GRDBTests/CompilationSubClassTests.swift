@@ -7,7 +7,7 @@ import GRDB
 
 private class UserRecord : Record {
     override init() { super.init() }
-    required init(row: Row) { super.init(row: row) }
+    required init(row: Row) throws { try super.init(row: row) }
     override class var databaseTableName: String { super.databaseTableName }
     override class  var persistenceConflictPolicy: PersistenceConflictPolicy { super.persistenceConflictPolicy }
     override class var databaseSelection: [SQLSelectable] { super.databaseSelection }

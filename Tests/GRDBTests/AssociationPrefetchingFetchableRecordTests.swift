@@ -5,9 +5,9 @@ private struct A: TableRecord, FetchableRecord, Equatable {
     var cola1: Int64
     var cola2: String
     
-    init(row: Row) {
-        cola1 = row["cola1"]
-        cola2 = row["cola2"]
+    init(row: Row) throws {
+        cola1 = try row["cola1"]
+        cola2 = try row["cola2"]
     }
 }
 private struct B: TableRecord, FetchableRecord, Hashable {
@@ -15,19 +15,19 @@ private struct B: TableRecord, FetchableRecord, Hashable {
     var colb2: Int64?
     var colb3: String
     
-    init(row: Row) {
-        colb1 = row["colb1"]
-        colb2 = row["colb2"]
-        colb3 = row["colb3"]
+    init(row: Row) throws {
+        colb1 = try row["colb1"]
+        colb2 = try row["colb2"]
+        colb3 = try row["colb3"]
     }
 }
 private struct C: TableRecord, FetchableRecord, Equatable {
     var colc1: Int64
     var colc2: Int64
     
-    init(row: Row) {
-        colc1 = row["colc1"]
-        colc2 = row["colc2"]
+    init(row: Row) throws {
+        colc1 = try row["colc1"]
+        colc2 = try row["colc2"]
     }
 }
 private struct D: TableRecord, FetchableRecord, Equatable {
@@ -35,10 +35,10 @@ private struct D: TableRecord, FetchableRecord, Equatable {
     var cold2: Int64?
     var cold3: String
     
-    init(row: Row) {
-        cold1 = row["cold1"]
-        cold2 = row["cold2"]
-        cold3 = row["cold3"]
+    init(row: Row) throws {
+        cold1 = try row["cold1"]
+        cold2 = try row["cold2"]
+        cold3 = try row["cold3"]
     }
 }
 
@@ -123,15 +123,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.bs = bs
                         }
                         
-                        init(row: Row) {
-                            self.init(a: A(row: row), bs: row["bs"])
+                        init(row: Row) throws {
+                            try self.init(a: A(row: row), bs: row["bs"])
                         }
                     }
                     
                     // Record.fetchAll
                     do {
                         let records = try Record.fetchAll(db, request)
-                        XCTAssertEqual(records, [
+                        try XCTAssertEqual(records, [
                             Record(
                                 a: A(row: ["cola1": 1, "cola2": "a1"]),
                                 bs: [
@@ -152,7 +152,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                     // Record.fetchOne
                     do {
                         let record = try Record.fetchOne(db, request)!
-                        XCTAssertEqual(record, Record(
+                        try XCTAssertEqual(record, Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             bs: [
                                 B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
@@ -172,15 +172,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.bs = bs
                         }
                         
-                        init(row: Row) {
-                            self.init(a: A(row: row), bs: row["bs"])
+                        init(row: Row) throws {
+                            try self.init(a: A(row: row), bs: row["bs"])
                         }
                     }
                     
                     // Record.fetchAll
                     do {
                         let records = try Record.fetchAll(db, request)
-                        XCTAssertEqual(records, [
+                        try XCTAssertEqual(records, [
                             Record(
                                 a: A(row: ["cola1": 1, "cola2": "a1"]),
                                 bs: [
@@ -201,7 +201,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                     // Record.fetchOne
                     do {
                         let record = try Record.fetchOne(db, request)!
-                        XCTAssertEqual(record, Record(
+                        try XCTAssertEqual(record, Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             bs: [
                                 B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
@@ -238,15 +238,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.bs2 = bs2
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), bs1: row["bs1"], bs2: row["bs2"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), bs1: row["bs1"], bs2: row["bs2"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             bs1: [
@@ -267,7 +267,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         bs1: [
                             B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
@@ -304,8 +304,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.ds = ds
                         }
                         
-                        init(row: Row) {
-                            self.init(c: C(row: row), ds: row["ds"])
+                        init(row: Row) throws {
+                            try self.init(c: C(row: row), ds: row["ds"])
                         }
                     }
                     var a: A
@@ -316,15 +316,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.cs = cs
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), cs: row["cs"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), cs: row["cs"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs: [
@@ -358,7 +358,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         cs: [
                             Record.CInfo(
@@ -392,8 +392,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.ds = ds
                         }
                         
-                        init(row: Row) {
-                            self.init(c: C(row: row), ds: row["ds"])
+                        init(row: Row) throws {
+                            try self.init(c: C(row: row), ds: row["ds"])
                         }
                     }
                     var a: A
@@ -404,15 +404,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.cs = cs
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), cs: row["cs"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), cs: row["cs"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs: []),
@@ -428,7 +428,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         cs: []))
                 }
@@ -482,8 +482,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.ds2 = ds2
                         }
                         
-                        init(row: Row) {
-                            self.init(c: C(row: row), ds1: row["ds1"], ds2: row["ds2"])
+                        init(row: Row) throws {
+                            try self.init(c: C(row: row), ds1: row["ds1"], ds2: row["ds2"])
                         }
                     }
                     var a: A
@@ -496,15 +496,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.cs2 = cs2
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), cs1: row["cs1"], cs2: row["cs2"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), cs1: row["cs1"], cs2: row["cs2"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs1: [],
@@ -550,7 +550,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         cs1: [],
                         cs2: [
@@ -590,8 +590,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.d = d
                         }
                         
-                        init(row: Row) {
-                            self.init(c: C(row: row), d: row["d"])
+                        init(row: Row) throws {
+                            try self.init(c: C(row: row), d: row["d"])
                         }
                     }
                     var a: A
@@ -602,15 +602,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.cs = cs
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), cs: row["cs"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), cs: row["cs"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs: [
@@ -640,7 +640,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         cs: [
                             Record.CInfo(
@@ -672,8 +672,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.d = d
                         }
                         
-                        init(row: Row) {
-                            self.init(c: C(row: row), d: row["d"])
+                        init(row: Row) throws {
+                            try self.init(c: C(row: row), d: row["d"])
                         }
                     }
                     var a: A
@@ -684,15 +684,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.cs = cs
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), cs: row["cs"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), cs: row["cs"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs: []),
@@ -708,7 +708,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         cs: []))
                 }
@@ -762,8 +762,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.d2 = d2
                         }
                         
-                        init(row: Row) {
-                            self.init(c: C(row: row), d1: row["d1"], d2: row["d2"])
+                        init(row: Row) throws {
+                            try self.init(c: C(row: row), d1: row["d1"], d2: row["d2"])
                         }
                     }
                     var a: A
@@ -776,15 +776,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.cs2 = cs2
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), cs1: row["cs1"], cs2: row["cs2"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), cs1: row["cs1"], cs2: row["cs2"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs1: [],
@@ -818,7 +818,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         cs1: [],
                         cs2: [
@@ -852,15 +852,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.ds = ds
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), ds: row["ds"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), ds: row["ds"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             ds: [
@@ -882,7 +882,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         ds: [
                             D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
@@ -923,15 +923,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.ds3 = ds3
                     }
                     
-                    init(row: Row) {
-                        self.init(a: A(row: row), ds1: row["ds1"], ds2: row["ds2"], ds3: row["ds3"])
+                    init(row: Row) throws {
+                        try self.init(a: A(row: row), ds1: row["ds1"], ds2: row["ds2"], ds3: row["ds3"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             ds1: [],
@@ -958,7 +958,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
                         ds1: [],
                         ds2: [
@@ -996,8 +996,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                                 self.cs = cs
                             }
                             
-                            init(row: Row) {
-                                self.init(a: A(row: row), cs: row["cs"])
+                            init(row: Row) throws {
+                                try self.init(a: A(row: row), cs: row["cs"])
                             }
                         }
                         var b: B
@@ -1008,15 +1008,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.a = a
                         }
                         
-                        init(row: Row) {
-                            self.init(b: B(row: row), a: row["a"])
+                        init(row: Row) throws {
+                            try self.init(b: B(row: row), a: row["a"])
                         }
                     }
                     
                     // Record.fetchAll
                     do {
                         let records = try Record.fetchAll(db, request)
-                        XCTAssertEqual(records, [
+                        try XCTAssertEqual(records, [
                             Record(
                                 b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                                 a: Record.AInfo(
@@ -1048,7 +1048,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                     // Record.fetchOne
                     do {
                         let record = try Record.fetchOne(db, request)!
-                        XCTAssertEqual(record, Record(
+                        try XCTAssertEqual(record, Record(
                             b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                             a: Record.AInfo(
                                 a: A(row: ["cola1": 1, "cola2": "a1"]),
@@ -1071,15 +1071,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.cs = cs
                         }
                         
-                        init(row: Row) {
-                            self.init(b: B(row: row), a: row["a"], cs: row["cs"])
+                        init(row: Row) throws {
+                            try self.init(b: B(row: row), a: row["a"], cs: row["cs"])
                         }
                     }
                     
                     // Record.fetchAll
                     do {
                         let records = try Record.fetchAll(db, request)
-                        XCTAssertEqual(records, [
+                        try XCTAssertEqual(records, [
                             Record(
                                 b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                                 a: A(row: ["cola1": 1, "cola2": "a1"]),
@@ -1109,7 +1109,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                     // Record.fetchOne
                     do {
                         let record = try Record.fetchOne(db, request)!
-                        XCTAssertEqual(record, Record(
+                        try XCTAssertEqual(record, Record(
                             b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
                             cs: [
@@ -1164,8 +1164,8 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.cs2 = cs2
                         }
                         
-                        init(row: Row) {
-                            self.init(a: A(row: row), cs1: row["cs1"], cs2: row["cs2"])
+                        init(row: Row) throws {
+                            try self.init(a: A(row: row), cs1: row["cs1"], cs2: row["cs2"])
                         }
                     }
                     var b: B
@@ -1178,15 +1178,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                         self.a2 = a2
                     }
                     
-                    init(row: Row) {
-                        self.init(b: B(row: row), a1: row["a1"], a2: row["a2"])
+                    init(row: Row) throws {
+                        try self.init(b: B(row: row), a1: row["a1"], a2: row["a2"])
                     }
                 }
                 
                 // Record.fetchAll
                 do {
                     let records = try Record.fetchAll(db, request)
-                    XCTAssertEqual(records, [
+                    try XCTAssertEqual(records, [
                         Record(
                             b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                             a1: Record.AInfo(
@@ -1226,7 +1226,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                 // Record.fetchOne
                 do {
                     let record = try Record.fetchOne(db, request)!
-                    XCTAssertEqual(record, Record(
+                    try XCTAssertEqual(record, Record(
                         b: B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),
                         a1: Record.AInfo(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
@@ -1264,15 +1264,15 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                             self.bs = bs
                         }
                         
-                        init(row: Row) {
-                            self.init(d: D(row: row), bs: row["bs"])
+                        init(row: Row) throws {
+                            try self.init(d: D(row: row), bs: row["bs"])
                         }
                     }
                     
                     // Record.fetchAll
                     do {
                         let records = try Record.fetchAll(db, request)
-                        XCTAssertEqual(records, [
+                        try XCTAssertEqual(records, [
                             Record(
                                 d: D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
                                 bs: [
@@ -1303,7 +1303,7 @@ class AssociationPrefetchingFetchableRecordTests: GRDBTestCase {
                     // Record.fetchOne
                     do {
                         let record = try Record.fetchOne(db, request)!
-                        XCTAssertEqual(record, Record(
+                        try XCTAssertEqual(record, Record(
                             d: D(row: ["cold1": 10, "cold2": 7, "cold3": "d1"]),
                             bs: [
                                 B(row: ["colb1": 4, "colb2": 1, "colb3": "b1"]),

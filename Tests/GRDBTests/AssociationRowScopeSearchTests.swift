@@ -97,11 +97,11 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var b: B
             var c: C
             var d: D
-            init(row: Row) {
-                a = A(row: row)
-                b = row["b"]
-                c = row["c"]
-                d = row["d"]
+            init(row: Row) throws {
+                a = try A(row: row)
+                b = try row["b"]
+                c = try row["c"]
+                d = try row["d"]
             }
         }
         
@@ -174,8 +174,8 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
         struct CustomA: FetchableRecord, Decodable {
             var id: Int64
             var custom: Bool?
-            init(row: Row) {
-                id = row["id"]
+            init(row: Row) throws {
+                id = try row["id"]
                 custom = true
             }
         }
@@ -183,9 +183,9 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var id: Int64
             var aid: Int64
             var custom: Bool?
-            init(row: Row) {
-                id = row["id"]
-                aid = row["aid"]
+            init(row: Row) throws {
+                id = try row["id"]
+                aid = try row["aid"]
                 custom = true
             }
         }
@@ -194,10 +194,10 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var aid: Int64?
             var bid: Int64?
             var custom: Bool?
-            init(row: Row) {
-                id = row["id"]
-                aid = row["aid"]
-                bid = row["bid"]
+            init(row: Row) throws {
+                id = try row["id"]
+                aid = try row["aid"]
+                bid = try row["bid"]
                 custom = true
             }
         }
@@ -205,9 +205,9 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var id: Int64
             var bid: Int64
             var custom: Bool?
-            init(row: Row) {
-                id = row["id"]
-                bid = row["bid"]
+            init(row: Row) throws {
+                id = try row["id"]
+                bid = try row["bid"]
                 custom = true
             }
         }

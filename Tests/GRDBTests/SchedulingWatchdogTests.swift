@@ -50,7 +50,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, sql: "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
+                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row.databaseValue(forColumn: "id")])
                 }
             }
         }
@@ -70,7 +70,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, sql: "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
+                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row.databaseValue(forColumn: "id")])
                 }
             }
         }
@@ -90,7 +90,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, sql: "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
+                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row.databaseValue(forColumn: "id")])
                 }
             }
         }
@@ -110,7 +110,7 @@ class SchedulingWatchdogTests: GRDBTestCase {
                 try db2.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
                 let rows = try Row.fetchCursor(db1, sql: "SELECT * FROM items")
                 while let row = try rows.next() {
-                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row["id"]])
+                    try db2.execute(sql: "INSERT INTO items (id) VALUES (?)", arguments: [row.databaseValue(forColumn: "id")])
                 }
             }
         }

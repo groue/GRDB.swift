@@ -25,7 +25,7 @@ public protocol FetchableRecord {
     /// For performance reasons, the row argument may be reused during the
     /// iteration of a fetch query. If you want to keep the row for later use,
     /// make sure to store a copy: `self.row = row.copy()`.
-    init(row: Row)
+    init(row: Row) throws
     
     // MARK: - Customizing the Format of Database Columns
     
@@ -386,7 +386,7 @@ extension FetchableRecord {
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
             try supplementaryFetch(db, rows)
-            return rows.map(Self.init(row:))
+            return try rows.map(Self.init(row:))
         } else {
             return try fetchAll(request.statement, adapter: request.adapter)
         }
@@ -409,7 +409,7 @@ extension FetchableRecord {
                 return nil
             }
             try supplementaryFetch(db, [row])
-            return .init(row: row)
+            return try .init(row: row)
         } else {
             return try fetchOne(request.statement, adapter: request.adapter)
         }
@@ -432,7 +432,7 @@ extension FetchableRecord where Self: Hashable {
         if let supplementaryFetch = request.supplementaryFetch {
             let rows = try Row.fetchAll(request.statement, adapter: request.adapter)
             try supplementaryFetch(db, rows)
-            return Set(rows.lazy.map(Self.init(row:)))
+            return try Set(rows.lazy.map(Self.init(row:)))
         } else {
             return try fetchSet(request.statement, adapter: request.adapter)
         }
@@ -533,8 +533,8 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     }
     
     /// :nodoc:
-    public func _element(sqliteStatement: SQLiteStatement) -> Record {
-        Record(row: row)
+    public func _element(sqliteStatement: SQLiteStatement) throws -> Record {
+        try Record(row: row)
     }
 }
 

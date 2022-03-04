@@ -25,9 +25,9 @@ private struct AWithRequiredC: FetchableRecord {
     var a: A
     var c: C
     
-    init(row: Row) {
-        a = A(row: row)
-        c = row["c"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        c = try row["c"]
     }
 }
 
@@ -35,9 +35,9 @@ private struct AWithOptionalC: FetchableRecord {
     var a: A
     var c: C?
     
-    init(row: Row) {
-        a = A(row: row)
-        c = row["c"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        c = try row["c"]
     }
 }
 
@@ -46,10 +46,10 @@ private struct AWithRequiredBAndOptionalC: FetchableRecord {
     var b: B
     var c: C?
     
-    init(row: Row) {
-        a = A(row: row)
-        b = row["b"]
-        c = row["c"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        b = try row["b"]
+        c = try row["c"]
     }
 }
 
@@ -57,9 +57,9 @@ private struct AWithCName: FetchableRecord {
     var a: A
     var cName: String?
     
-    init(row: Row) {
-        a = A(row: row)
-        cName = row["cName"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        cName = try row["cName"]
     }
 }
 
@@ -68,10 +68,10 @@ private struct AWithRequiredBNameAndOptionalCName: FetchableRecord {
     var bName: String
     var cName: String?
     
-    init(row: Row) {
-        a = A(row: row)
-        bName = row["bName"]
-        cName = row["cName"]
+    init(row: Row) throws {
+        a = try A(row: row)
+        bName = try row["bName"]
+        cName = try row["cName"]
     }
 }
 

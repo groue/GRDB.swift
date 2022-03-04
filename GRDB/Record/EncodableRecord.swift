@@ -2,6 +2,7 @@ import Foundation // For JSONEncoder
 
 /// Types that adopt `EncodableRecord` can be encoded into the database.
 public protocol EncodableRecord {
+    #warning("TODO: make encoding method throwing")
     /// Encodes the record into database values.
     ///
     /// Store in the *container* argument all values that should be stored in
@@ -211,6 +212,9 @@ extension EncodableRecord {
 ///         }
 ///     }
 public struct PersistenceContainer {
+    #warning("TODO GRDB6: throwing encoding")
+    #warning("TODO GRDB6: make encoding method generic on some protocol")
+    #warning("TODO GRDB6: autoclosure for encoded values")
     // fileprivate for Row(_:PersistenceContainer)
     // The ordering of the OrderedDictionary helps generating always the same
     // SQL queries, and hit the statement cache.

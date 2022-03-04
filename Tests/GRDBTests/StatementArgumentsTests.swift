@@ -91,8 +91,8 @@ class StatementArgumentsTests: GRDBTestCase {
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
         }
     }
     
@@ -111,8 +111,8 @@ class StatementArgumentsTests: GRDBTestCase {
             try selectStatement.setArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
             
             do {
                 try updateStatement.setArguments([1])
@@ -149,8 +149,8 @@ class StatementArgumentsTests: GRDBTestCase {
             selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
         }
     }
     
@@ -242,8 +242,8 @@ class StatementArgumentsTests: GRDBTestCase {
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
         }
     }
     
@@ -262,8 +262,8 @@ class StatementArgumentsTests: GRDBTestCase {
             try selectStatement.setArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
             
             do {
                 try updateStatement.setArguments(["name": name])
@@ -300,8 +300,8 @@ class StatementArgumentsTests: GRDBTestCase {
             selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
         }
     }
     
@@ -313,9 +313,9 @@ class StatementArgumentsTests: GRDBTestCase {
             do {
                 try statement.execute(arguments: ["name": "foo", "age": 1])
                 let row = try Row.fetchOne(db, sql: "SELECT * FROM persons")!
-                XCTAssertEqual(row["firstName"] as String, "foo")
-                XCTAssertEqual(row["lastName"] as String, "foo")
-                XCTAssertEqual(row["age"] as Int, 1)
+                try XCTAssertEqual(row["firstName"] as String, "foo")
+                try XCTAssertEqual(row["lastName"] as String, "foo")
+                try XCTAssertEqual(row["age"] as Int, 1)
             }
             
             do {
@@ -402,8 +402,8 @@ class StatementArgumentsTests: GRDBTestCase {
             selectStatement.arguments = arguments
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
         }
     }
     
@@ -422,8 +422,8 @@ class StatementArgumentsTests: GRDBTestCase {
             try selectStatement.setArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
             
             do {
                 try updateStatement.setArguments(["name": name])
@@ -460,8 +460,8 @@ class StatementArgumentsTests: GRDBTestCase {
             selectStatement.setUncheckedArguments(arguments)
             let row = try Row.fetchOne(selectStatement)!
             
-            XCTAssertEqual(row["firstName"] as String, name)
-            XCTAssertEqual(row["age"] as Int, age)
+            try XCTAssertEqual(row["firstName"] as String, name)
+            try XCTAssertEqual(row["age"] as Int, age)
         }
     }
     
