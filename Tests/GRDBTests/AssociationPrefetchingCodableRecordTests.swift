@@ -82,12 +82,127 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
     func testMissingIncludingAllHasMany() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.read { db in
-            let request = A.orderByPrimaryKey()
+            let request = A
+                .including(all: A
+                    .hasMany(B.self)
+                    .orderByPrimaryKey())
+                .orderByPrimaryKey()
+
+            // Missing array
+            do {
+                struct Record: FetchableRecord {
+                    var a: A
+                    var missings: [B] // Not optional
+                    
+                    init(row: Row) throws {
+                        a = try A(row: row)
+                        missings = try row["missings"]
+                    }
+                }
+                
+                // Record.fetchAll
+                do {
+                    let _ = try Record.fetchAll(db, request)
+                    XCTFail("Expected error")
+                } catch let error as RowDecodingError {
+                    switch error {
+                    case let .keyNotFound(.prefetchKey(key), context):
+                        XCTAssertEqual(key, "missings")
+                        XCTAssertEqual(context.row.unscoped, ["cola1": 1, "cola2": "a1"])
+                        XCTAssertEqual(context.sql, nil) // TODO: find the sql, one day
+                        XCTAssertEqual(context.statementArguments, nil)
+                        XCTAssertEqual(error.description, """
+                            prefetch key not found: "missings" - \
+                            available prefetch keys: ["bs"] - \
+                            row: [cola1:1 cola2:"a1"]
+                            """)
+                    default:
+                        XCTFail("Unexpected error")
+                    }
+                }
+                
+                // Record.fetchOne
+                do {
+                    let _ = try Record.fetchOne(db, request)!
+                    XCTFail("Expected error")
+                } catch let error as RowDecodingError {
+                    switch error {
+                    case let .keyNotFound(.prefetchKey(key), context):
+                        XCTAssertEqual(key, "missings")
+                        XCTAssertEqual(context.row.unscoped, ["cola1": 1, "cola2": "a1"])
+                        XCTAssertEqual(context.sql, nil) // TODO: find the sql, one day
+                        XCTAssertEqual(context.statementArguments, nil)
+                        XCTAssertEqual(error.description, """
+                            prefetch key not found: "missings" - \
+                            available prefetch keys: ["bs"] - \
+                            row: [cola1:1 cola2:"a1"]
+                            """)
+                    default:
+                        XCTFail("Unexpected error")
+                    }
+                }
+            }
             
+            // Missing set
+            do {
+                struct Record: FetchableRecord {
+                    var a: A
+                    var missings: Set<B> // Not optional
+                    
+                    init(row: Row) throws {
+                        a = try A(row: row)
+                        missings = try row["missings"]
+                    }
+                }
+                
+                // Record.fetchAll
+                do {
+                    let _ = try Record.fetchAll(db, request)
+                    XCTFail("Expected error")
+                } catch let error as RowDecodingError {
+                    switch error {
+                    case let .keyNotFound(.prefetchKey(key), context):
+                        XCTAssertEqual(key, "missings")
+                        XCTAssertEqual(context.row.unscoped, ["cola1": 1, "cola2": "a1"])
+                        XCTAssertEqual(context.sql, nil) // TODO: find the sql, one day
+                        XCTAssertEqual(context.statementArguments, nil)
+                        XCTAssertEqual(error.description, """
+                            prefetch key not found: "missings" - \
+                            available prefetch keys: ["bs"] - \
+                            row: [cola1:1 cola2:"a1"]
+                            """)
+                    default:
+                        XCTFail("Unexpected error")
+                    }
+                }
+                
+                // Record.fetchOne
+                do {
+                    let _ = try Record.fetchOne(db, request)!
+                    XCTFail("Expected error")
+                } catch let error as RowDecodingError {
+                    switch error {
+                    case let .keyNotFound(.prefetchKey(key), context):
+                        XCTAssertEqual(key, "missings")
+                        XCTAssertEqual(context.row.unscoped, ["cola1": 1, "cola2": "a1"])
+                        XCTAssertEqual(context.sql, nil) // TODO: find the sql, one day
+                        XCTAssertEqual(context.statementArguments, nil)
+                        XCTAssertEqual(error.description, """
+                            prefetch key not found: "missings" - \
+                            available prefetch keys: ["bs"] - \
+                            row: [cola1:1 cola2:"a1"]
+                            """)
+                    default:
+                        XCTFail("Unexpected error")
+                    }
+                }
+            }
+            
+            // Optional Array
             do {
                 struct Record: FetchableRecord, Decodable, Equatable {
                     var a: A
-                    var bs: [B]? // Support for missing association
+                    var missings: [B]? // Support for missing association
                 }
                 
                 // Record.fetchAll
@@ -96,13 +211,13 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                     try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
-                            bs: nil),
+                            missings: nil),
                         Record(
                             a: A(row: ["cola1": 2, "cola2": "a2"]),
-                            bs: nil),
+                            missings: nil),
                         Record(
                             a: A(row: ["cola1": 3, "cola2": "a3"]),
-                            bs: nil),
+                            missings: nil),
                     ])
                 }
                 
@@ -111,29 +226,61 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                     let record = try Record.fetchOne(db, request)!
                     try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
-                        bs: nil))
+                        missings: nil))
                 }
             }
             
+            // Optional Set
+            do {
+                struct Record: FetchableRecord, Decodable, Equatable {
+                    var a: A
+                    var missings: Set<B>? // Support for missing association
+                }
+                
+                // Record.fetchAll
+                do {
+                    let records = try Record.fetchAll(db, request)
+                    try XCTAssertEqual(records, [
+                        Record(
+                            a: A(row: ["cola1": 1, "cola2": "a1"]),
+                            missings: nil),
+                        Record(
+                            a: A(row: ["cola1": 2, "cola2": "a2"]),
+                            missings: nil),
+                        Record(
+                            a: A(row: ["cola1": 3, "cola2": "a3"]),
+                            missings: nil),
+                    ])
+                }
+                
+                // Record.fetchOne
+                do {
+                    let record = try Record.fetchOne(db, request)!
+                    try XCTAssertEqual(record, Record(
+                        a: A(row: ["cola1": 1, "cola2": "a1"]),
+                        missings: nil))
+                }
+            }
+
             // Test container.decodeNil
             do {
                 struct Record: FetchableRecord, Decodable, Equatable {
                     var a: A
-                    var bs: [B]? // Support for missing association
+                    var missings: [B]? // Support for missing association
                     
-                    init(a: A, bs: [B]?) {
+                    init(a: A, missings: [B]?) {
                         self.a = a
-                        self.bs = bs
+                        self.missings = missings
                     }
                     
-                    enum CodingKeys: CodingKey { case a, bs }
+                    enum CodingKeys: CodingKey { case a, missings }
                     init(from decoder: Decoder) throws {
                         let container = try decoder.container(keyedBy: CodingKeys.self)
                         a = try container.decode(A.self, forKey: .a)
-                        if try container.decodeNil(forKey: .bs) {
-                            bs = nil
+                        if try container.decodeNil(forKey: .missings) {
+                            missings = nil
                         } else {
-                            bs = []
+                            missings = []
                         }
                     }
                 }
@@ -144,13 +291,13 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                     try XCTAssertEqual(records, [
                         Record(
                             a: A(row: ["cola1": 1, "cola2": "a1"]),
-                            bs: nil),
+                            missings: nil),
                         Record(
                             a: A(row: ["cola1": 2, "cola2": "a2"]),
-                            bs: nil),
+                            missings: nil),
                         Record(
                             a: A(row: ["cola1": 3, "cola2": "a3"]),
-                            bs: nil),
+                            missings: nil),
                     ])
                 }
                 
@@ -159,7 +306,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                     let record = try Record.fetchOne(db, request)!
                     try XCTAssertEqual(record, Record(
                         a: A(row: ["cola1": 1, "cola2": "a1"]),
-                        bs: nil))
+                        missings: nil))
                 }
             }
         }
