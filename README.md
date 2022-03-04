@@ -7465,9 +7465,9 @@ Each DatabaseError has two codes: an `extendedResultCode` (see [extended result 
 
 **DatabaseDecodingError** is thrown when a database row or value could not be decoded as the requested [value](#values) or [record](#records).
 
-> :point_up: **Note**: In general, DatabaseDecodingError reveals **a mismatch between the database content and the application code.** It is thus not really an error that your application should expect to handle. Instead, fix the database content, or fix the application code, so that this error can not happen under normal operations.
+> :point_up: **Note**: DatabaseDecodingError reveals **a mismatch between the database content and the application code.** The correct way to handle this error is not to catch it at runtime. Instead, fix the database schema, the database content, and the application code, until they match together. This will make sure DatabaseDecodingError can not happen under normal operations.
 >
-> Your goal should be to only witness a DatabaseDecodingError when the database that has been tampered, corrupted, or modified in some irregular way. Remember that an SQLite database that is under the control of your application is not some rogue JSON downloaded from an unreliable server.
+> Your goal should be to only see DatabaseDecodingError when the database has been tampered, corrupted, or modified in some irregular way.
 
 You will see such an error when you:
 
