@@ -1164,7 +1164,7 @@ if let dbValue = row.databaseValue(forColumn: "date") {
 
 ```swift
 let row = try Row.fetchOne(db, sql: "SELECT 'Mom’s birthday' AS date")!
-let dbValue: DatabaseValue = row.databaseValue(forColumn: "date")!
+let dbValue = row.databaseValue(forColumn: "date")!
 let string = String.fromDatabaseValue(dbValue) // "Mom’s birthday"
 let int    = Int.fromDatabaseValue(dbValue)    // nil
 let date   = Date.fromDatabaseValue(dbValue)   // nil
