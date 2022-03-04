@@ -1046,9 +1046,9 @@ struct SchemaInfo: Equatable {
     
     /// - parameter masterTable: "sqlite_master" or "sqlite_temp_master"
     init(_ db: Database, masterTableName: String) throws { // swiftlint:disable:this inclusive_language
-        objects = try Set(SchemaObject.fetchCursor(db, sql: """
+        objects = try SchemaObject.fetchSet(db, sql: """
             SELECT type, name, tbl_name, sql FROM \(masterTableName)
-            """))
+            """)
     }
     
     /// All names for a given type
