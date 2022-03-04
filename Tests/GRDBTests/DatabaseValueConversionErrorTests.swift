@@ -80,13 +80,14 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "name")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "name")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, nil)
                     XCTAssertEqual(context.statementArguments, nil)
                     XCTAssertEqual(error.description, """
                         column not found: "name" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"]
                         """)
                 default:
@@ -99,18 +100,20 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "name")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "name")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, "SELECT ? AS unused")
                     XCTAssertEqual(context.statementArguments, ["ignored"])
                     XCTAssertEqual(error.description, """
                         column not found: "name" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`
                         """)
                     XCTAssertEqual(error.expandedDescription, """
                         column not found: "name" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`, \
                         arguments: ["ignored"]
@@ -204,13 +207,14 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "value")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "value")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, nil)
                     XCTAssertEqual(context.statementArguments, nil)
                     XCTAssertEqual(error.description, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"]
                         """)
                 default:
@@ -223,18 +227,20 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "value")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "value")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, "SELECT ? AS unused")
                     XCTAssertEqual(context.statementArguments, ["ignored"])
                     XCTAssertEqual(error.description, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`
                         """)
                     XCTAssertEqual(error.expandedDescription, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`, \
                         arguments: ["ignored"]
@@ -321,13 +327,14 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "name")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "name")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, nil)
                     XCTAssertEqual(context.statementArguments, nil)
                     XCTAssertEqual(error.description, """
                         column not found: "name" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"]
                         """)
                 default:
@@ -340,18 +347,20 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "name")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "name")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, "SELECT ? AS unused")
                     XCTAssertEqual(context.statementArguments, ["ignored"])
                     XCTAssertEqual(error.description, """
                         column not found: "name" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`
                         """)
                     XCTAssertEqual(error.expandedDescription, """
                         column not found: "name" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`, \
                         arguments: ["ignored"]
@@ -441,13 +450,14 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "value")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "value")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, nil)
                     XCTAssertEqual(context.statementArguments, nil)
                     XCTAssertEqual(error.description, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"]
                         """)
                 default:
@@ -460,18 +470,20 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "value")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "value")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, "SELECT ? AS unused")
                     XCTAssertEqual(context.statementArguments, ["ignored"])
                     XCTAssertEqual(error.description, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`
                         """)
                     XCTAssertEqual(error.expandedDescription, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`, \
                         arguments: ["ignored"]
@@ -553,13 +565,14 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "value")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "value")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, nil)
                     XCTAssertEqual(context.statementArguments, nil)
                     XCTAssertEqual(error.description, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"]
                         """)
                 default:
@@ -572,18 +585,20 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "value")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "value")
                     XCTAssertEqual(context.row, ["unused": "ignored"])
                     XCTAssertEqual(context.sql, "SELECT ? AS unused")
                     XCTAssertEqual(context.statementArguments, ["ignored"])
                     XCTAssertEqual(error.description, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`
                         """)
                     XCTAssertEqual(error.expandedDescription, """
                         column not found: "value" - \
+                        available columns: ["unused"] - \
                         row: [unused:"ignored"], \
                         sql: `SELECT ? AS unused`, \
                         arguments: ["ignored"]
@@ -687,18 +702,20 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 XCTFail("Expected error")
             } catch let error as RowDecodingError {
                 switch error {
-                case let .columnNotFound(key, context):
-                    XCTAssertEqual(key, "missing")
+                case let .keyNotFound(.column(column), context):
+                    XCTAssertEqual(column, "missing")
                     XCTAssertEqual(context.row, ["foo": 1000])
                     XCTAssertEqual(context.sql, "SELECT ? AS foo")
                     XCTAssertEqual(context.statementArguments, [1000])
                     XCTAssertEqual(error.description, """
                         column not found: "missing" - \
+                        available columns: ["foo"] - \
                         row: [foo:1000], \
                         sql: `SELECT ? AS foo`
                         """)
                     XCTAssertEqual(error.expandedDescription, """
                         column not found: "missing" - \
+                        available columns: ["foo"] - \
                         row: [foo:1000], \
                         sql: `SELECT ? AS foo`, \
                         arguments: [1000]

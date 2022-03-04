@@ -1,37 +1,22 @@
-/// A key that is used to decode a value in a row
-@usableFromInline
-enum RowKey: Hashable, Sendable {
-    /// A column name
-    case columnName(String)
-    
-    /// A column index
-    case columnIndex(Int)
-    
-    /// A row scope
-    case scope(String)
-    
-    /// A prefetch key
-    case prefetchKey(String)
-}
-
-/// A decoding error
+/// An error that occurs during the decoding of a database row.
 public enum RowDecodingError: Error {
+    /// The context in which the error occurred.
     public struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
         public let debugDescription: String
         
-        /// The row that could not be decoded
+        /// The row that could not be decoded.
         public var row: Row { Row(impl: rowImpl) }
         
-        /// The SQL query
+        /// The eventual SQL query
         public let sql: String?
         
-        /// The SQL query arguments
+        /// The eventual SQL query arguments
         public let statementArguments: StatementArguments?
         
         let rowImpl: ArrayRowImpl // Sendable
-        let key: RowKey
-
+        let key: RowDecodingKey
+        
         init(decodingContext: RowDecodingContext, debugDescription: String) {
             self.debugDescription = debugDescription
             self.rowImpl = ArrayRowImpl(columns: decodingContext.row)
@@ -41,26 +26,43 @@ public enum RowDecodingError: Error {
         }
     }
     
-    /// Decoding failed because a coding key was not found.
-    ///
-    /// This error is thrown when a `DatabaseColumnDecodingStrategy` could not
-    /// match a database column with the provided coding key.
-    case keyNotFound(CodingKey, Context)
+    /// The key that was not found in the database row.
+    public enum Key: CustomStringConvertible {
+        /// A column was not found
+        case column(String)
+        
+        /// A scope was not found
+        ///
+        /// When decoding an associated record, no association was found with
+        /// a matching association key.
+        case scope(String)
+        
+        /// A prefetch key was not found
+        ///
+        /// When decoding a collection of associated records, no association was
+        /// found with a matching association key.
+        case prefetchKey(String)
+        
+        /// A `DatabaseColumnDecodingStrategy` could not
+        /// match a database column with the provided coding key.
+        case codingKey(CodingKey)
+        
+        public var description: String {
+            switch self {
+            case .column(let column):
+                return "column \(String(reflecting: column))"
+            case .scope(let scope):
+                return "scope \(String(reflecting: scope))"
+            case .prefetchKey(let prefetchKey):
+                return "prefetch key \(String(reflecting: prefetchKey))"
+            case .codingKey(let codingKey):
+                return "coding key \(codingKey)"
+            }
+        }
+    }
     
-    /// Decoding failed because a column is not found.
-    case columnNotFound(String, Context)
-    
-    /// Decoding failed because a row scope was not found.
-    ///
-    /// This error is thrown, when decoding an associated record, if the
-    /// association key does not match the coding key.
-    case scopeNotFound(String, Context)
-    
-    /// Decoding failed because a prefetch key was not found.
-    ///
-    /// This error is thrown, when decoding a collection of associated records,
-    /// if the association key does not match the coding key.
-    case prefetchKeyNotFound(String, Context)
+    /// Decoding failed because a key was not found.
+    case keyNotFound(Key, Context)
     
     /// Decoding failed because the database value does not match the
     /// decoded type.
@@ -69,9 +71,6 @@ public enum RowDecodingError: Error {
     var context: Context {
         switch self {
         case .keyNotFound(_, let context),
-             .columnNotFound(_, let context),
-             .scopeNotFound(_, let context),
-             .prefetchKeyNotFound(_, let context),
              .valueMismatch(_, let context):
             return context
         }
@@ -126,10 +125,38 @@ public enum RowDecodingError: Error {
     /// error message.
     @usableFromInline
     static func columnNotFound(_ columnName: String, context: RowDecodingContext) -> Self {
-        columnNotFound(columnName, RowDecodingError.Context(
-            decodingContext: context,
-            debugDescription: "column not found: \(String(reflecting: columnName))"))
+        let columns = context.row.columnNames
+        if columns.isEmpty {
+            return keyNotFound(.column(columnName), RowDecodingError.Context(
+                decodingContext: context,
+                debugDescription: """
+                    column not found: \(String(reflecting: columnName))
+                    """))
+        } else {
+            return keyNotFound(.column(columnName), RowDecodingError.Context(
+                decodingContext: context,
+                debugDescription: """
+                    column not found: \(String(reflecting: columnName)) - \
+                    available columns: \(columns.sorted())
+                    """))
+        }
     }
+}
+
+/// A key that is used to decode a value in a row
+@usableFromInline
+enum RowDecodingKey: Hashable, Sendable {
+    /// A column name
+    case columnName(String)
+    
+    /// A column index
+    case columnIndex(Int)
+    
+    /// A row scope
+    case scope(String)
+    
+    /// A prefetch key
+    case prefetchKey(String)
 }
 
 @usableFromInline
@@ -138,7 +165,7 @@ struct RowDecodingContext {
     let row: Row
     
     /// The key that could not be decoded
-    let key: RowKey
+    let key: RowDecodingKey
     
     /// The SQL query
     let sql: String?
@@ -147,7 +174,7 @@ struct RowDecodingContext {
     let statementArguments: StatementArguments?
     
     @usableFromInline
-    init(row: Row, key: RowKey) {
+    init(row: Row, key: RowDecodingKey) {
         if let statement = row.statement {
             self.key = key
             self.row = row.copy()

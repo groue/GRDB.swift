@@ -967,13 +967,15 @@ extension Row {
         guard let scopedRow = scopesTree[scope] else {
             let availableScopes = scopesTree.names
             if availableScopes.isEmpty {
-                throw RowDecodingError.scopeNotFound(scope, RowDecodingError.Context(
+#warning("TODO: test")
+                throw RowDecodingError.keyNotFound(.scope(scope), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
                     debugDescription: """
                         scope not found: \(String(reflecting: scope))
                         """))
             } else {
-                throw RowDecodingError.scopeNotFound(scope, RowDecodingError.Context(
+#warning("TODO: test")
+                throw RowDecodingError.keyNotFound(.scope(scope), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
                     debugDescription: """
                         scope not found: \(String(reflecting: scope)) - \
@@ -1021,17 +1023,19 @@ extension Row {
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
-                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+#warning("TODO: test")
+                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
-                        association key not found: \(String(reflecting: key))
+                        prefetch key not found: \(String(reflecting: key))
                         """))
             } else {
-                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+#warning("TODO: test")
+                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
-                        association key not found: \(String(reflecting: key))\
-                        - available keys: \(availableKeys.sorted())
+                        prefetch key not found: \(String(reflecting: key)) - \
+                        available keys: \(availableKeys.sorted())
                         """))
             }
         }
@@ -1065,17 +1069,19 @@ extension Row {
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
-                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+#warning("TODO: test")
+                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
-                        association key not found: \(String(reflecting: key))
+                        prefetch key not found: \(String(reflecting: key))
                         """))
             } else {
-                throw RowDecodingError.prefetchKeyNotFound(key, RowDecodingError.Context(
+#warning("TODO: test")
+                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
-                        association key not found: \(String(reflecting: key)) \
-                        - available keys: \(availableKeys.sorted())
+                        prefetch key not found: \(String(reflecting: key)) - \
+                        available prefetch keys: \(availableKeys.sorted())
                         """))
             }
         }

@@ -848,11 +848,15 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.columnNotFound(column, context):
+            case let .keyNotFound(.column(column), context):
                 XCTAssertEqual(column, "requiredId")
-                XCTAssertEqual(context.debugDescription, "column not found: \"requiredId\"")
+                XCTAssertEqual(context.debugDescription, """
+                    column not found: "requiredId" - \
+                    available columns: ["optionalDates", "optionalDates2", "optionalName", "requiredDates", "required_id"]
+                    """)
                 XCTAssertEqual(error.description, """
                     column not found: "requiredId" - \
+                    available columns: ["optionalDates", "optionalDates2", "optionalName", "requiredDates", "required_id"] - \
                     row: [required_id:1 optionalName:"test1" requiredDates:"[128000]" optionalDates:"[null, 128000]" optionalDates2:"[128000]"]
                     """)
             default:
@@ -970,7 +974,7 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.keyNotFound(key, context):
+            case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredId")
                 XCTAssertEqual(context.debugDescription, """
                     key not found: CodingKeys(stringValue: "requiredId", intValue: nil), \
@@ -997,7 +1001,7 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.keyNotFound(key, context):
+            case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredID")
                 XCTAssertEqual(context.debugDescription, """
                     divergent key: CodingKeys(stringValue: "requiredID", intValue: nil), \
@@ -1026,7 +1030,7 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.keyNotFound(key, context):
+            case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredID")
                 XCTAssertEqual(context.debugDescription, """
                     divergent key: CodingKeys(stringValue: "requiredID", intValue: nil), \
@@ -1119,7 +1123,7 @@ extension FetchableRecordDecodableTests {
             XCTFail("Expected error")
         } catch let error as RowDecodingError {
             switch error {
-            case let RowDecodingError.keyNotFound(key, context):
+            case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredId")
                 XCTAssertEqual(context.debugDescription, """
                     key not found: CodingKeys(stringValue: "requiredId", intValue: nil), \

@@ -189,11 +189,9 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                     }
                 }
                 
-                throw RowDecodingError.keyNotFound(
-                    key,
-                    RowDecodingError.Context(
-                        decodingContext: RowDecodingContext(row: decoder.row, key: .columnName(converted)),
-                        debugDescription: errorDescription))
+                throw RowDecodingError.keyNotFound(.codingKey(key), RowDecodingError.Context(
+                    decodingContext: RowDecodingContext(row: decoder.row, key: .columnName(converted)),
+                    debugDescription: errorDescription))
             }
             
             return column
