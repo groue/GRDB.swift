@@ -1,5 +1,5 @@
-/// An error that occurs during the decoding of a database row.
-public enum RowDecodingError: Error {
+/// An error that occurs during the decoding of database values.
+public enum DatabaseDecodingError: Error {
     /// The context in which the error occurred.
     public struct Context: CustomDebugStringConvertible, Sendable {
         /// A description of what went wrong, for debugging purposes.
@@ -86,7 +86,7 @@ public enum RowDecodingError: Error {
     {
         valueMismatch(
             type,
-            RowDecodingError.Context(decodingContext: context, debugDescription: """
+            DatabaseDecodingError.Context(decodingContext: context, debugDescription: """
                 could not decode \(type) from database value \(databaseValue)
                 """))
     }
@@ -127,13 +127,13 @@ public enum RowDecodingError: Error {
     static func columnNotFound(_ columnName: String, context: RowDecodingContext) -> Self {
         let columns = context.row.columnNames
         if columns.isEmpty {
-            return keyNotFound(.column(columnName), RowDecodingError.Context(
+            return keyNotFound(.column(columnName), DatabaseDecodingError.Context(
                 decodingContext: context,
                 debugDescription: """
                     column not found: \(String(reflecting: columnName))
                     """))
         } else {
-            return keyNotFound(.column(columnName), RowDecodingError.Context(
+            return keyNotFound(.column(columnName), DatabaseDecodingError.Context(
                 decodingContext: context,
                 debugDescription: """
                     column not found: \(String(reflecting: columnName)) - \
@@ -203,7 +203,7 @@ struct RowDecodingContext {
     }
 }
 
-extension RowDecodingError: CustomStringConvertible {
+extension DatabaseDecodingError: CustomStringConvertible {
     public var description: String {
         _description(publicStatementArguments: false)
     }

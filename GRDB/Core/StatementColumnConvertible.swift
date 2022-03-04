@@ -78,7 +78,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         context: @autoclosure () -> RowDecodingContext)
     throws -> Never
     {
-        throw RowDecodingError.valueMismatch(
+        throw DatabaseDecodingError.valueMismatch(
             Self.self,
             sqliteStatement: sqliteStatement,
             index: index,

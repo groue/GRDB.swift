@@ -345,7 +345,7 @@ class AdapterRowTests : RowTestCase {
                     let row = try request.fetchOne(db)!
                     let _: Foo = try row["missing"]
                     XCTFail("Expected Error")
-                } catch let error as RowDecodingError {
+                } catch let error as DatabaseDecodingError {
                     switch error {
                     case let .keyNotFound(.scope(scope), context):
                         XCTAssertEqual(scope, "missing")
@@ -369,7 +369,7 @@ class AdapterRowTests : RowTestCase {
                         let _: Foo = try row["missing"]
                     }
                     XCTFail("Expected Error")
-                } catch let error as RowDecodingError {
+                } catch let error as DatabaseDecodingError {
                     switch error {
                     case let .keyNotFound(.scope(scope), context):
                         XCTAssertEqual(scope, "missing")
@@ -412,7 +412,7 @@ class AdapterRowTests : RowTestCase {
                 let row = try request.fetchOne(db)!
                 let _: Foo = try row["foo"]
                 XCTFail("Expected Error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(type, context):
                     XCTAssert(type == Foo.self)
@@ -435,7 +435,7 @@ class AdapterRowTests : RowTestCase {
                     let _: Foo = try row["foo"]
                 }
                 XCTFail("Expected Error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(type, context):
                     XCTAssert(type == Foo.self)

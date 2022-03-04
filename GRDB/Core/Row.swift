@@ -719,7 +719,7 @@ extension Row {
     /// righmost column.
     ///
     /// If the SQLite value is NULL, or if the conversion fails, a
-    /// `RowDecodingError` is thrown.
+    /// `DatabaseDecodingError` is thrown.
     @inlinable
     func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
@@ -737,7 +737,7 @@ extension Row {
     ///
     /// If the row does not contain the column, or if the SQLite value is NULL,
     /// or if the SQLite value can not be converted to `Value`, a
-    /// `RowDecodingError` is thrown.
+    /// `DatabaseDecodingError` is thrown.
     @inlinable
     func decode<Value: DatabaseValueConvertible>(
         _ type: Value.Type = Value.self,
@@ -748,7 +748,7 @@ extension Row {
             if let value = Value._fromMissingColumn() {
                 return value
             } else {
-                throw RowDecodingError.columnNotFound(column, context: RowDecodingContext(
+                throw DatabaseDecodingError.columnNotFound(column, context: RowDecodingContext(
                     row: self,
                     key: .columnName(column)))
             }
@@ -766,7 +766,7 @@ extension Row {
     /// righmost column.
     ///
     /// If the SQLite value is NULL, or if the conversion fails, a
-    /// `RowDecodingError` is thrown.
+    /// `DatabaseDecodingError` is thrown.
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
@@ -789,7 +789,7 @@ extension Row {
     ///
     /// If the row does not contain the column, or if the SQLite value is NULL,
     /// or if the SQLite value can not be converted to `Value`, a
-    /// `RowDecodingError` is thrown.
+    /// `DatabaseDecodingError` is thrown.
     ///
     /// This method exists as an optimization opportunity for types that adopt
     /// StatementColumnConvertible. It *may* trigger SQLite built-in conversions
@@ -804,7 +804,7 @@ extension Row {
             if let value = Value._fromMissingColumn() {
                 return value
             } else {
-                throw RowDecodingError.columnNotFound(column, context: RowDecodingContext(
+                throw DatabaseDecodingError.columnNotFound(column, context: RowDecodingContext(
                     row: self,
                     key: .columnName(column)))
             }
@@ -832,7 +832,7 @@ extension Row {
     /// righmost column.
     ///
     /// If the SQLite value is NULL, the result is nil. If the SQLite value can
-    /// not be converted to Data, a `RowDecodingError` is thrown.
+    /// not be converted to Data, a `DatabaseDecodingError` is thrown.
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
@@ -847,7 +847,7 @@ extension Row {
     /// righmost column.
     ///
     /// If the SQLite value is NULL, or if the SQLite value can not be converted
-    /// to Data, a `RowDecodingError` is thrown.
+    /// to Data, a `DatabaseDecodingError` is thrown.
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
@@ -863,7 +863,7 @@ extension Row {
     ///
     /// If the column is missing or if the SQLite value is NULL, the result is
     /// nil. If the SQLite value can not be converted to Data, a
-    /// `RowDecodingError` is thrown.
+    /// `DatabaseDecodingError` is thrown.
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
@@ -969,13 +969,13 @@ extension Row {
         guard let scopedRow = scopesTree[scope] else {
             let availableScopes = scopesTree.names
             if availableScopes.isEmpty {
-                throw RowDecodingError.keyNotFound(.scope(scope), RowDecodingError.Context(
+                throw DatabaseDecodingError.keyNotFound(.scope(scope), DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
                     debugDescription: """
                         scope not found: \(String(reflecting: scope))
                         """))
             } else {
-                throw RowDecodingError.keyNotFound(.scope(scope), RowDecodingError.Context(
+                throw DatabaseDecodingError.keyNotFound(.scope(scope), DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
                     debugDescription: """
                         scope not found: \(String(reflecting: scope)) - \
@@ -984,9 +984,9 @@ extension Row {
             }
         }
         guard scopedRow.containsNonNullValue else {
-            throw RowDecodingError.valueMismatch(
+            throw DatabaseDecodingError.valueMismatch(
                 Record.self,
-                RowDecodingError.Context(
+                DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .scope(scope)),
                     debugDescription: """
                         scope \(String(reflecting: scope)) only contains null values
@@ -1023,13 +1023,13 @@ extension Row {
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
-                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
+                throw DatabaseDecodingError.keyNotFound(.prefetchKey(key), DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
                         prefetch key not found: \(String(reflecting: key))
                         """))
             } else {
-                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
+                throw DatabaseDecodingError.keyNotFound(.prefetchKey(key), DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
                         prefetch key not found: \(String(reflecting: key)) - \
@@ -1067,13 +1067,13 @@ extension Row {
         guard let rows = prefetchedRows[key] else {
             let availableKeys = prefetchedRows.keys
             if availableKeys.isEmpty {
-                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
+                throw DatabaseDecodingError.keyNotFound(.prefetchKey(key), DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
                         prefetch key not found: \(String(reflecting: key))
                         """))
             } else {
-                throw RowDecodingError.keyNotFound(.prefetchKey(key), RowDecodingError.Context(
+                throw DatabaseDecodingError.keyNotFound(.prefetchKey(key), DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: self, key: .prefetchKey(key)),
                     debugDescription: """
                         prefetch key not found: \(String(reflecting: key)) - \
@@ -2153,7 +2153,7 @@ private struct StatementRowImpl: RowImpl {
     
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
-            throw RowDecodingError.valueMismatch(Data.self, statement: statement, index: index)
+            throw DatabaseDecodingError.valueMismatch(Data.self, statement: statement, index: index)
         }
         guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
             return Data()

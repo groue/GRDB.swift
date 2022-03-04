@@ -57,7 +57,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             // Don't use DecodingError.keyNotFound:
             // We need to specifically recognize missing columns in order to
             // provide correct feedback.
-            throw RowDecodingError.columnNotFound(key.stringValue, context: RowDecodingContext(
+            throw DatabaseDecodingError.columnNotFound(key.stringValue, context: RowDecodingContext(
                 row: row,
                 key: .columnName(key.stringValue)))
         }
@@ -189,7 +189,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                     }
                 }
                 
-                throw RowDecodingError.keyNotFound(.codingKey(key), RowDecodingError.Context(
+                throw DatabaseDecodingError.keyNotFound(.codingKey(key), DatabaseDecodingError.Context(
                     decodingContext: RowDecodingContext(row: decoder.row, key: .columnName(converted)),
                     debugDescription: errorDescription))
             }
@@ -548,7 +548,7 @@ extension DatabaseDateDecodingStrategy {
         switch self {
         case .deferredToDate:
             guard let date = Date(sqliteStatement: sqliteStatement, index: index) else {
-                throw RowDecodingError.valueMismatch(
+                throw DatabaseDecodingError.valueMismatch(
                     Date.self,
                     context: context(),
                     databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
@@ -567,7 +567,7 @@ extension DatabaseDateDecodingStrategy {
             if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
                 let string = String(sqliteStatement: sqliteStatement, index: index)
                 guard let date = iso8601Formatter.date(from: string) else {
-                    throw RowDecodingError.valueMismatch(
+                    throw DatabaseDecodingError.valueMismatch(
                         Date.self,
                         context: context(),
                         databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
@@ -579,7 +579,7 @@ extension DatabaseDateDecodingStrategy {
         case .formatted(let formatter):
             let string = String(sqliteStatement: sqliteStatement, index: index)
             guard let date = formatter.date(from: string) else {
-                throw RowDecodingError.valueMismatch(
+                throw DatabaseDecodingError.valueMismatch(
                     Date.self,
                     context: context(),
                     databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
@@ -588,7 +588,7 @@ extension DatabaseDateDecodingStrategy {
         case .custom(let format):
             let dbValue = DatabaseValue(sqliteStatement: sqliteStatement, index: index)
             guard let date = format(dbValue) else {
-                throw RowDecodingError.valueMismatch(
+                throw DatabaseDecodingError.valueMismatch(
                     Date.self,
                     context: context(),
                     databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
@@ -617,7 +617,7 @@ extension DatabaseDateDecodingStrategy {
         if let date = dateFromDatabaseValue(dbValue) {
             return date
         } else {
-            throw RowDecodingError.valueMismatch(Date.self, context: context(), databaseValue: dbValue)
+            throw DatabaseDecodingError.valueMismatch(Date.self, context: context(), databaseValue: dbValue)
         }
     }
     
@@ -631,7 +631,7 @@ extension DatabaseDateDecodingStrategy {
         } else if let date = dateFromDatabaseValue(dbValue) {
             return date
         } else {
-            throw RowDecodingError.valueMismatch(Date.self, context: context(), databaseValue: dbValue)
+            throw DatabaseDecodingError.valueMismatch(Date.self, context: context(), databaseValue: dbValue)
         }
     }
     

@@ -22,7 +22,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil])
@@ -42,7 +42,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil])
@@ -78,7 +78,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "name")
@@ -98,7 +98,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "name")
@@ -149,7 +149,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["1": 1, "value": "invalid"])
@@ -169,7 +169,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["1": 1, "value": "invalid"])
@@ -205,7 +205,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "value")
@@ -225,7 +225,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "value")
@@ -269,7 +269,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -289,7 +289,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -325,7 +325,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "name")
@@ -345,7 +345,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "name")
@@ -392,7 +392,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "value": "invalid"])
@@ -412,7 +412,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "value": "invalid"])
@@ -448,7 +448,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "value")
@@ -468,7 +468,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "value")
@@ -527,7 +527,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -563,7 +563,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try Record(row: row)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "value")
@@ -583,7 +583,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Record.fetchOne(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "value")
@@ -619,7 +619,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try String.fetchAll(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -649,7 +649,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try row["name"] as String
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -670,7 +670,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try row[0] as String
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -700,7 +700,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                     .map { try $0["missing"] as Int8 }
                     .next()
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .keyNotFound(.column(column), context):
                     XCTAssertEqual(column, "missing")
@@ -728,7 +728,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Int8.fetchAll(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["foo": 1000])
@@ -758,7 +758,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try row["foo"] as Int8
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["foo": 1000])
@@ -779,7 +779,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try row[0] as Int8
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["foo": 1000])
@@ -811,7 +811,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Value.fetchAll(statement)
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -840,7 +840,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
             do {
                 _ = try Value.fetchAll(statement, adapter: SuffixRowAdapter(fromIndex: 1))
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -870,7 +870,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try row["name"] as Value
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -891,7 +891,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement)!
                 _ = try row[0] as Value
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["name": nil, "team": "invalid"])
@@ -912,7 +912,7 @@ class DatabaseValueConversionErrorTests: GRDBTestCase {
                 let row = try Row.fetchOne(statement, adapter: SuffixRowAdapter(fromIndex: 1))!
                 _ = try row[0] as Value
                 XCTFail("Expected error")
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case let .valueMismatch(_, context):
                     XCTAssertEqual(context.row, ["team": "invalid"])

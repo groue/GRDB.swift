@@ -104,7 +104,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 do {
                     let _ = try Record.fetchAll(db, request)
                     XCTFail("Expected error")
-                } catch let error as RowDecodingError {
+                } catch let error as DatabaseDecodingError {
                     switch error {
                     case let .keyNotFound(.prefetchKey(key), context):
                         XCTAssertEqual(key, "missings")
@@ -125,7 +125,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 do {
                     let _ = try Record.fetchOne(db, request)!
                     XCTFail("Expected error")
-                } catch let error as RowDecodingError {
+                } catch let error as DatabaseDecodingError {
                     switch error {
                     case let .keyNotFound(.prefetchKey(key), context):
                         XCTAssertEqual(key, "missings")
@@ -159,7 +159,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 do {
                     let _ = try Record.fetchAll(db, request)
                     XCTFail("Expected error")
-                } catch let error as RowDecodingError {
+                } catch let error as DatabaseDecodingError {
                     switch error {
                     case let .keyNotFound(.prefetchKey(key), context):
                         XCTAssertEqual(key, "missings")
@@ -180,7 +180,7 @@ class AssociationPrefetchingCodableRecordTests: GRDBTestCase {
                 do {
                     let _ = try Record.fetchOne(db, request)!
                     XCTFail("Expected error")
-                } catch let error as RowDecodingError {
+                } catch let error as DatabaseDecodingError {
                     switch error {
                     case let .keyNotFound(.prefetchKey(key), context):
                         XCTAssertEqual(key, "missings")

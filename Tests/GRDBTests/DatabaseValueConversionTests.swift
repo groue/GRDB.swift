@@ -95,19 +95,19 @@ class DatabaseValueConversionTests : GRDBTestCase {
             // test T.fetchOne
             _ = try T.fetchOne(db, sql: sql)
             XCTFail("Expected error")
-        } catch is RowDecodingError { }
+        } catch is DatabaseDecodingError { }
         
         do {
             // test row[0] as T?
             _ = try Row.fetchCursor(db, sql: sql).map { try $0[0] as T? }.next()!
             XCTFail("Expected error")
-        } catch is RowDecodingError { }
+        } catch is DatabaseDecodingError { }
         
         do {
             // test row[0] as T
             _ = try Row.fetchCursor(db, sql: sql).map { try $0.hasNull(atIndex: 0) ? nil : ($0[0] as T) }.next()!
             XCTFail("Expected error")
-        } catch is RowDecodingError { }
+        } catch is DatabaseDecodingError { }
         
         do {
             // test T.fromDatabaseValue

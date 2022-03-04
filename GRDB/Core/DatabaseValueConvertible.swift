@@ -60,7 +60,7 @@ extension DatabaseValueConvertible {
         if let value = fromDatabaseValue(dbValue) {
             return value
         } else {
-            throw RowDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
+            throw DatabaseDecodingError.valueMismatch(Self.self, context: context(), databaseValue: dbValue)
         }
     }
     

@@ -48,7 +48,7 @@ extension Data {
     throws -> Data
     {
         guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
-            throw RowDecodingError.valueMismatch(
+            throw DatabaseDecodingError.valueMismatch(
                 Data.self,
                 sqliteStatement: sqliteStatement,
                 index: index,

@@ -846,7 +846,7 @@ extension FetchableRecordDecodableTests {
                 "optionalDates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let error as RowDecodingError {
+        } catch let error as DatabaseDecodingError {
             switch error {
             case let .keyNotFound(.column(column), context):
                 XCTAssertEqual(column, "requiredId")
@@ -972,7 +972,7 @@ extension FetchableRecordDecodableTests {
                 "optional_dates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let error as RowDecodingError {
+        } catch let error as DatabaseDecodingError {
             switch error {
             case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredId")
@@ -999,7 +999,7 @@ extension FetchableRecordDecodableTests {
                 "optional_dates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let error as RowDecodingError {
+        } catch let error as DatabaseDecodingError {
             switch error {
             case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredID")
@@ -1028,7 +1028,7 @@ extension FetchableRecordDecodableTests {
                 "optional_dates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let error as RowDecodingError {
+        } catch let error as DatabaseDecodingError {
             switch error {
             case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredID")
@@ -1121,7 +1121,7 @@ extension FetchableRecordDecodableTests {
                 "_optionalDates2": "[128000]",
             ])
             XCTFail("Expected error")
-        } catch let error as RowDecodingError {
+        } catch let error as DatabaseDecodingError {
             switch error {
             case let .keyNotFound(.codingKey(key), context):
                 XCTAssertEqual(key.stringValue, "requiredId")

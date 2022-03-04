@@ -196,7 +196,7 @@ extension DatabaseDateDecodingStrategyTests {
                 try test(db, strategy: StrategyDeferredToDate.self, databaseValue: "Yesterday") { date in
                     XCTFail("Unexpected Date")
                 }
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case .valueMismatch:
                     XCTAssertEqual(error.description, """
@@ -247,7 +247,7 @@ extension DatabaseDateDecodingStrategyTests {
                     // "Yesterday" is decoded as 0.
                     XCTAssertEqual(date, Date(timeIntervalSinceReferenceDate: 0))
                 }
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 // Decoding from DatabaseValue does not work:
                 // "Yesterday" is not decoded as 0.
                 switch error {
@@ -291,7 +291,7 @@ extension DatabaseDateDecodingStrategyTests {
                     // "Yesterday" is decoded as 0.
                     XCTAssertEqual(date, Date(timeIntervalSince1970: 0))
                 }
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 // Decoding from DatabaseValue does not work:
                 // "Yesterday" is not decoded as 0.
                 switch error {
@@ -345,7 +345,7 @@ extension DatabaseDateDecodingStrategyTests {
                     // "Yesterday" is decoded as 0.
                     XCTAssertEqual(date, Date(timeIntervalSince1970: 0))
                 }
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 // Decoding from DatabaseValue does not work:
                 // "Yesterday" is not decoded as 0.
                 switch error {
@@ -393,7 +393,7 @@ extension DatabaseDateDecodingStrategyTests {
                     try test(db, strategy: StrategyIso8601.self, databaseValue: "Yesterday") { date in
                         XCTFail("Unexpected Date")
                     }
-                } catch let error as RowDecodingError {
+                } catch let error as DatabaseDecodingError {
                     switch error {
                     case .valueMismatch:
                         XCTAssertEqual(error.description, """
@@ -447,7 +447,7 @@ extension DatabaseDateDecodingStrategyTests {
                 try test(db, strategy: StrategyFormatted.self, databaseValue: "Yesterday") { date in
                     XCTFail("Unexpected Date")
                 }
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case .valueMismatch:
                     XCTAssertEqual(error.description, """
@@ -491,7 +491,7 @@ extension DatabaseDateDecodingStrategyTests {
                 try test(db, strategy: StrategyCustom.self, databaseValue: "invalid") { date in
                     XCTFail("Unexpected Date")
                 }
-            } catch let error as RowDecodingError {
+            } catch let error as DatabaseDecodingError {
                 switch error {
                 case .valueMismatch:
                     XCTAssertEqual(error.description, """
