@@ -2,10 +2,11 @@ import Foundation
 
 extension FetchableRecord where Self: Decodable {
     public init(row: Row) throws {
-        let decoder = _RowDecoder<Self>(
-            row: row,
-            codingPath: [],
-            columnDecodingStrategy: Self.databaseColumnDecodingStrategy)
+        try self.init(row: row, codingPath: [])
+    }
+    
+    fileprivate init(row: Row, codingPath: [CodingKey]) throws {
+        let decoder = _RowDecoder<Self>(row: row, codingPath: codingPath)
         try self.init(from: decoder)
     }
 }
@@ -16,7 +17,6 @@ extension FetchableRecord where Self: Decodable {
 private struct _RowDecoder<R: FetchableRecord>: Decoder {
     var row: Row
     var codingPath: [CodingKey]
-    var columnDecodingStrategy: DatabaseColumnDecodingStrategy
     var userInfo: [CodingUserInfoKey: Any] { R.databaseDecodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> {
@@ -68,13 +68,13 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         
         init(decoder: _RowDecoder) {
             self.decoder = decoder
-            switch decoder.columnDecodingStrategy {
+            switch R.databaseColumnDecodingStrategy {
             case .useDefaultKeys:
                 _columnForKey = nil
             default:
                 var columnForKey: [String: String] = [:]
                 for column in decoder.row.columnNames {
-                    if let key: Key = decoder.columnDecodingStrategy.key(forColumn: column) {
+                    if let key: Key = R.databaseColumnDecodingStrategy.key(forColumn: column) {
                         columnForKey[key.stringValue] = column
                     }
                 }
@@ -153,7 +153,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             guard let column = _columnForKey[key.stringValue] else {
                 let errorDescription: String
                 let converted: String
-                switch decoder.columnDecodingStrategy {
+                switch R.databaseColumnDecodingStrategy {
                 case .convertFromSnakeCase:
                     // In this case we can attempt to recover the original value
                     // by reversing the transform
@@ -339,7 +339,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 // Prefer FetchableRecord decoding over Decodable.
                 return try type.init(row: row) as! T
             } else {
-                let decoder = _RowDecoder(row: row, codingPath: codingPath, columnDecodingStrategy: .useDefaultKeys)
+                let decoder = _RowDecoder<R>(row: row, codingPath: codingPath)
                 return try T(from: decoder)
             }
         }
@@ -408,18 +408,12 @@ extension PrefetchedRowsDecoder: UnkeyedDecodingContainer {
     mutating func decode<T>(_ type: T.Type) throws -> T where T: Decodable {
         defer { currentIndex += 1 }
         
-        let columnDecodingStrategy: DatabaseColumnDecodingStrategy
-        if let type = T.self as? FetchableRecord.Type {
-            columnDecodingStrategy = type.databaseColumnDecodingStrategy
+        if let type = T.self as? (FetchableRecord & Decodable).Type {
+            return try type.init(row: rows[currentIndex], codingPath: codingPath) as! T
         } else {
-            columnDecodingStrategy = .useDefaultKeys
+            let decoder = _RowDecoder<R>(row: rows[currentIndex], codingPath: codingPath)
+            return try T(from: decoder)
         }
-        
-        let decoder = _RowDecoder<R>(
-            row: rows[currentIndex],
-            codingPath: codingPath,
-            columnDecodingStrategy: columnDecodingStrategy)
-        return try T(from: decoder)
     }
     
     mutating func nestedContainer<NestedKey>(keyedBy type: NestedKey.Type)
