@@ -22,7 +22,7 @@ var configuration = Configuration()
 configuration.prepareDatabase { db in
     db.trace { print("SQL> \($0)") }
 }
-let dbQueue = DatabaseQueue(configuration: configuration)
+let dbQueue = try DatabaseQueue(configuration: configuration)
 
 
 //: Execute SQL queries
@@ -51,9 +51,9 @@ try dbQueue.inDatabase { db in
 try! dbQueue.inDatabase { db in
     let rows = try Row.fetchCursor(db, sql: "SELECT * FROM place")
     while let row = try rows.next() {
-        let title: String = row["title"]
-        let favorite: Bool = row["favorite"]
-        let coordinate = CLLocationCoordinate2D(
+        let title: String = try row["title"]
+        let favorite: Bool = try row["favorite"]
+        let coordinate = try CLLocationCoordinate2D(
             latitude: row["latitude"],
             longitude: row["longitude"])
         print("Fetched", title, favorite, coordinate)
@@ -75,13 +75,13 @@ struct Place {
 
 // Adopt FetchableRecord
 extension Place : FetchableRecord {
-    init(row: Row) {
-        id = row["id"]
-        title = row["title"]
-        favorite = row["favorite"]
+    init(row: Row) throws {
+        id = try row["id"]
+        title = try row["title"]
+        favorite = try row["favorite"]
         coordinate = CLLocationCoordinate2DMake(
-            row["latitude"],
-            row["longitude"])
+            try row["latitude"],
+            try row["longitude"])
     }
 }
 

@@ -14,7 +14,7 @@ var configuration = Configuration()
 configuration.prepareDatabase { db in
     db.trace { print("SQL> \($0)") }
 }
-let dbQueue = DatabaseQueue(configuration: configuration)
+let dbQueue = try DatabaseQueue(configuration: configuration)
 
 //: Use a migrator to define the database schema
 

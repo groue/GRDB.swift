@@ -100,12 +100,12 @@ try dbQueue.write { db in
 //: instances: let's call it `Base.decode(row:)`:
 
 extension Base {
-    static func decode(row: Row) -> Base {
-        switch row["type"] as String {
+    static func decode(row: Row) throws -> Base {
+        switch try row["type"] as String {
         case "Foo":
-            return Foo(name: row["fooName"])
+            return try Foo(name: row["fooName"])
         case "Bar":
-            return Bar(score: row["barScore"])
+            return try Bar(score: row["barScore"])
         case let type:
             fatalError("Unknown Base type: \(type)")
         }
@@ -142,9 +142,9 @@ extension Base {
 
 try dbQueue.read { db in
     print("> KISS: Fetch from SQL")
-    let rows = try Row.fetchAll(db, sql: "SELECT * FROM base")   // Fetch database rows
-    let bases = rows.map { row in                           // Decode database rows
-        Base.decode(row: row)
+    let rows = try Row.fetchAll(db, sql: "SELECT * FROM base") // Fetch database rows
+    let bases = try rows.map { row in                       // Decode database rows
+        try Base.decode(row: row)
     }
     for base in bases {                                     // Use fetched values
         print(base.description)
@@ -162,8 +162,8 @@ try dbQueue.read { db in
     print("> KISS: Fetch from query interface request")
     let request = Base.filter(Column("type") == "Foo")  // Define a request
     let rows = try Row.fetchAll(db, request)            // Fetch database rows
-    let bases = rows.map { row in                       // Decode database rows
-        Base.decode(row: row)
+    let bases = try rows.map { row in                   // Decode database rows
+        try Base.decode(row: row)
     }
     for base in bases {                                 // Use fetched values
         print(base.description)
@@ -189,7 +189,7 @@ try dbQueue.read { db in
 
 protocol MyDatabaseDecoder {
     associatedtype DecodedType
-    static func decode(row: Row) -> DecodedType
+    static func decode(row: Row) throws -> DecodedType
 }
 
 //: Types that adopt the MyDatabaseDecoder protocol are able, among other
@@ -226,7 +226,7 @@ extension MyDatabaseDecoder {
     static func fetchCursor(_ statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws -> MapCursor<RowCursor, DecodedType> {
         // Turn the cursor of raw rows into a cursor of decoded rows
         return try Row.fetchCursor(statement, arguments: arguments, adapter: adapter).map {
-            self.decode(row: $0)
+            try self.decode(row: $0)
         }
     }
     
