@@ -217,20 +217,6 @@ extension Row {
         databaseValue(atIndex: index).storage.value
     }
     
-    /// Returns the `DatabaseValue` at the given index.
-    ///
-    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
-    /// righmost column.
-    public func databaseValue(atIndex index: Int) -> DatabaseValue {
-        _checkIndex(index)
-        return impl.databaseValue(atUncheckedIndex: index)
-    }
-    
-    /// Returns the `DatabaseValue` at the given index.
-    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        impl.databaseValue(atUncheckedIndex: index)
-    }
-    
     /// Returns the value at given index, converted to the requested type.
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
@@ -296,19 +282,6 @@ extension Row {
         //
         // Without this method, the code above would not compile.
         databaseValue(forColumn: columnName)?.storage.value
-    }
-    
-    /// Returns the `DatabaseValue` at the given column.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// The result is nil if the row does not contain the column.
-    public func databaseValue(forColumn columnName: String) -> DatabaseValue? {
-        guard let index = index(forColumn: columnName) else {
-            return nil
-        }
-        return impl.databaseValue(atUncheckedIndex: index)
     }
     
     /// Returns the value at given column, converted to the requested type.
@@ -380,16 +353,6 @@ extension Row {
         databaseValue(forColumn: column.name)?.storage.value
     }
 
-    /// Returns the `DatabaseValue` at the given index.
-    ///
-    /// Column name lookup is case-insensitive, and when several columns have
-    /// the same name, the leftmost column is considered.
-    ///
-    /// The result is nil if the row does not contain the column.
-    public func databaseValue<Column: ColumnExpression>(forColumn column: Column) -> DatabaseValue? {
-        databaseValue(forColumn: column.name)
-    }
-    
     /// Returns the value at given column, converted to the requested type.
     ///
     /// Column name lookup is case-insensitive, and when several columns have
@@ -508,6 +471,43 @@ extension Row {
     /// of column-value pairs in `self`.
     public var databaseValues: LazyMapCollection<Row, DatabaseValue> {
         lazy.map { $0.1 }
+    }
+
+    /// Returns the `DatabaseValue` at the given index.
+    ///
+    /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
+    /// righmost column.
+    public func databaseValue(atIndex index: Int) -> DatabaseValue {
+        _checkIndex(index)
+        return impl.databaseValue(atUncheckedIndex: index)
+    }
+    
+    /// Returns the `DatabaseValue` at the given index.
+    func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
+        impl.databaseValue(atUncheckedIndex: index)
+    }
+    
+    /// Returns the `DatabaseValue` at the given column.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// The result is nil if the row does not contain the column.
+    public func databaseValue(forColumn columnName: String) -> DatabaseValue? {
+        guard let index = index(forColumn: columnName) else {
+            return nil
+        }
+        return impl.databaseValue(atUncheckedIndex: index)
+    }
+    
+    /// Returns the `DatabaseValue` at the given index.
+    ///
+    /// Column name lookup is case-insensitive, and when several columns have
+    /// the same name, the leftmost column is considered.
+    ///
+    /// The result is nil if the row does not contain the column.
+    public func databaseValue<Column: ColumnExpression>(forColumn column: Column) -> DatabaseValue? {
+        databaseValue(forColumn: column.name)
     }
 }
 
