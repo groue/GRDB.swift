@@ -94,16 +94,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let rows = try Row.fetchCursor(db, sql: "SELECT * FROM items")
         while let row = try rows.next() {
-            let _: Int = row[0]
-            let _: Int = row[1]
-            let _: Int = row[2]
-            let _: Int = row[3]
-            let _: Int = row[4]
-            let _: Int = row[5]
-            let _: Int = row[6]
-            let _: Int = row[7]
-            let _: Int = row[8]
-            let _: Int = row[9]
+            let _: Int = try row[0]
+            let _: Int = try row[1]
+            let _: Int = try row[2]
+            let _: Int = try row[3]
+            let _: Int = try row[4]
+            let _: Int = try row[5]
+            let _: Int = try row[6]
+            let _: Int = try row[7]
+            let _: Int = try row[8]
+            let _: Int = try row[9]
             count += 1
         }
         
@@ -123,16 +123,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         let rows = try Row.fetchCursor(db, sql: "SELECT * FROM items")
         while let row = try rows.next() {
-            let _: Int = row["i0"]
-            let _: Int = row["i1"]
-            let _: Int = row["i2"]
-            let _: Int = row["i3"]
-            let _: Int = row["i4"]
-            let _: Int = row["i5"]
-            let _: Int = row["i6"]
-            let _: Int = row["i7"]
-            let _: Int = row["i8"]
-            let _: Int = row["i9"]
+            let _: Int = try row["i0"]
+            let _: Int = try row["i1"]
+            let _: Int = try row["i2"]
+            let _: Int = try row["i3"]
+            let _: Int = try row["i4"]
+            let _: Int = try row["i5"]
+            let _: Int = try row["i6"]
+            let _: Int = try row["i7"]
+            let _: Int = try row["i8"]
+            let _: Int = try row["i9"]
             
             count += 1
         }
@@ -361,18 +361,18 @@ class ItemRecord : Record {
         "items"
     }
     
-    required init(row: GRDB.Row) {
-        i0 = row["i0"]
-        i1 = row["i1"]
-        i2 = row["i2"]
-        i3 = row["i3"]
-        i4 = row["i4"]
-        i5 = row["i5"]
-        i6 = row["i6"]
-        i7 = row["i7"]
-        i8 = row["i8"]
-        i9 = row["i9"]
-        super.init(row: row)
+    required init(row: GRDB.Row) throws {
+        i0 = try row["i0"]
+        i1 = try row["i1"]
+        i2 = try row["i2"]
+        i3 = try row["i3"]
+        i4 = try row["i4"]
+        i5 = try row["i5"]
+        i6 = try row["i6"]
+        i7 = try row["i7"]
+        i8 = try row["i8"]
+        i9 = try row["i9"]
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -416,17 +416,17 @@ struct ItemStruct: FetchableRecord, PersistableRecord {
     
     static let databaseTableName = "items"
     
-    init(row: GRDB.Row) {
-        i0 = row["i0"]
-        i1 = row["i1"]
-        i2 = row["i2"]
-        i3 = row["i3"]
-        i4 = row["i4"]
-        i5 = row["i5"]
-        i6 = row["i6"]
-        i7 = row["i7"]
-        i8 = row["i8"]
-        i9 = row["i9"]
+    init(row: GRDB.Row) throws {
+        i0 = try row["i0"]
+        i1 = try row["i1"]
+        i2 = try row["i2"]
+        i3 = try row["i3"]
+        i4 = try row["i4"]
+        i5 = try row["i5"]
+        i6 = try row["i6"]
+        i7 = try row["i7"]
+        i8 = try row["i8"]
+        i9 = try row["i9"]
     }
     
     func encode(to container: inout PersistenceContainer) {
