@@ -2,18 +2,11 @@ import Foundation
 
 extension FetchableRecord where Self: Decodable {
     public init(row: Row) throws {
-        self = try RowDecoder().decode(from: row)
-    }
-}
-
-// For testability. Not intended to become public as long as FetchableRecord has
-// a non-throwing row initializer, since this would open an undesired door.
-class RowDecoder {
-    init() { }
-    
-    func decode<T: FetchableRecord & Decodable>(_ type: T.Type = T.self, from row: Row) throws -> T {
-        let decoder = _RowDecoder<T>(row: row, codingPath: [], columnDecodingStrategy: T.databaseColumnDecodingStrategy)
-        return try T(from: decoder)
+        let decoder = _RowDecoder<Self>(
+            row: row,
+            codingPath: [],
+            columnDecodingStrategy: Self.databaseColumnDecodingStrategy)
+        try self.init(from: decoder)
     }
 }
 
