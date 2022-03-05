@@ -29,7 +29,6 @@ private let nonUTF8Data = Data([0x80])
 private let invalidString = "\u{FFFD}" // decoded from nonUTF8Data
 private let jpegData = try! Data(contentsOf: testBundle.url(forResource: "Betty", withExtension: "jpeg")!)
 
-#warning("TODO: test decoding errors")
 class DatabaseValueConversionTests : GRDBTestCase {
     
     private func assertDecoding<T: DatabaseValueConvertible & StatementColumnConvertible & Equatable>(
