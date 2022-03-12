@@ -176,6 +176,98 @@ class ColumnInfoTests: GRDBTestCase {
         #endif
     }
     
+    func testViews() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.write { db in
+            try db.execute(sql: """
+                CREATE TABLE t (
+                    a INT,
+                    b TEXT,
+                    c VARCHAR(10),
+                    d int DEFAULT NULL,
+                    e Text NOT NULL DEFAULT 'foo',
+                    "fooéı👨👨🏿🇫🇷🇨🇮" INT DEFAULT 0,
+                    g INT DEFAULT 1e6,
+                    h REAL DEFAULT 1.0,
+                    i DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    j DATE DEFAULT (DATETIME('now', 'localtime')),
+                    "" fooéı👨👨🏿🇫🇷🇨🇮,
+                    PRIMARY KEY(c, a)
+                );
+                CREATE VIEW v AS SELECT * FROM t;
+                """)
+            
+            let columns = try db.columns(in: "v")
+            XCTAssertEqual(columns.count, 11)
+            
+            XCTAssertEqual(columns[0].name, "a")
+            XCTAssertEqual(columns[0].isNotNull, false)
+            XCTAssertEqual(columns[0].type, "INT")
+            XCTAssertEqual(columns[0].primaryKeyIndex, 0)
+            XCTAssertNil(columns[0].defaultValueSQL)
+            
+            XCTAssertEqual(columns[1].name, "b")
+            XCTAssertEqual(columns[1].isNotNull, false)
+            XCTAssertEqual(columns[1].type, "TEXT")
+            XCTAssertEqual(columns[1].primaryKeyIndex, 0)
+            XCTAssertNil(columns[1].defaultValueSQL)
+            
+            XCTAssertEqual(columns[2].name, "c")
+            XCTAssertEqual(columns[2].isNotNull, false)
+            XCTAssertEqual(columns[2].type, "VARCHAR(10)")
+            XCTAssertEqual(columns[2].primaryKeyIndex, 0)
+            XCTAssertNil(columns[2].defaultValueSQL)
+            
+            XCTAssertEqual(columns[3].name, "d")
+            XCTAssertEqual(columns[3].isNotNull, false)
+            XCTAssertEqual(columns[3].type.uppercased(), "INT") // "int" or "INT" depending of SQLite version
+            XCTAssertEqual(columns[3].primaryKeyIndex, 0)
+            XCTAssertNil(columns[3].defaultValueSQL)
+            
+            XCTAssertEqual(columns[4].name, "e")
+            XCTAssertEqual(columns[3].isNotNull, false)
+            XCTAssertEqual(columns[4].type.uppercased(), "TEXT") // "Text" or "TEXT" depending of SQLite version
+            XCTAssertEqual(columns[4].primaryKeyIndex, 0)
+            XCTAssertNil(columns[4].defaultValueSQL)
+            
+            XCTAssertEqual(columns[5].name, "fooéı👨👨🏿🇫🇷🇨🇮")
+            XCTAssertEqual(columns[5].isNotNull, false)
+            XCTAssertEqual(columns[5].type, "INT")
+            XCTAssertEqual(columns[5].primaryKeyIndex, 0)
+            XCTAssertNil(columns[5].defaultValueSQL)
+            
+            XCTAssertEqual(columns[6].name, "g")
+            XCTAssertEqual(columns[6].isNotNull, false)
+            XCTAssertEqual(columns[6].type, "INT")
+            XCTAssertEqual(columns[6].primaryKeyIndex, 0)
+            XCTAssertNil(columns[6].defaultValueSQL)
+            
+            XCTAssertEqual(columns[7].name, "h")
+            XCTAssertEqual(columns[7].isNotNull, false)
+            XCTAssertEqual(columns[7].type, "REAL")
+            XCTAssertEqual(columns[7].primaryKeyIndex, 0)
+            XCTAssertNil(columns[7].defaultValueSQL)
+            
+            XCTAssertEqual(columns[8].name, "i")
+            XCTAssertEqual(columns[8].isNotNull, false)
+            XCTAssertEqual(columns[8].type, "DATETIME")
+            XCTAssertEqual(columns[8].primaryKeyIndex, 0)
+            XCTAssertNil(columns[8].defaultValueSQL)
+            
+            XCTAssertEqual(columns[9].name, "j")
+            XCTAssertEqual(columns[9].isNotNull, false)
+            XCTAssertEqual(columns[9].type, "DATE")
+            XCTAssertEqual(columns[9].primaryKeyIndex, 0)
+            XCTAssertNil(columns[9].defaultValueSQL)
+            
+            XCTAssertEqual(columns[10].name, "")
+            XCTAssertEqual(columns[10].isNotNull, false)
+            XCTAssertEqual(columns[10].type, "fooéı👨👨🏿🇫🇷🇨🇮")
+            XCTAssertEqual(columns[10].primaryKeyIndex, 0)
+            XCTAssertNil(columns[10].defaultValueSQL)
+        }
+    }
+
     // Regression test for https://github.com/groue/GRDB.swift/issues/1124
     // See also https://sqlite.org/forum/forumpost/721da02ba2
     func testIssue1124() throws {
