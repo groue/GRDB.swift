@@ -20,6 +20,7 @@ class IndexInfoTests: GRDBTestCase {
                 
                 XCTAssertEqual(indexes.count, 1)
                 XCTAssertEqual(indexes[0].name, "sqlite_autoindex_persons_1")
+                XCTAssertEqual(indexes[0].origin, .uniqueConstraint)
                 XCTAssertEqual(indexes[0].columns, ["email"])
                 XCTAssertTrue(indexes[0].isUnique)
             }
@@ -32,6 +33,7 @@ class IndexInfoTests: GRDBTestCase {
                 XCTAssertEqual(indexes.count, 2)
                 if let i = indexes.firstIndex(where: { $0.columns == ["year"] }) {
                     XCTAssertEqual(indexes[i].name, "citizenshipsOnYear")
+                    XCTAssertEqual(indexes[i].origin, .createIndex)
                     XCTAssertEqual(indexes[i].columns, ["year"])
                     XCTAssertFalse(indexes[i].isUnique)
                 } else {
@@ -39,6 +41,7 @@ class IndexInfoTests: GRDBTestCase {
                 }
                 if let i = indexes.firstIndex(where: { $0.columns == ["personId", "countryIsoCode"] }) {
                     XCTAssertEqual(indexes[i].name, "sqlite_autoindex_citizenships_1")
+                    XCTAssertEqual(indexes[i].origin, .primaryKeyConstraint)
                     XCTAssertEqual(indexes[i].columns, ["personId", "countryIsoCode"])
                     XCTAssertTrue(indexes[i].isUnique)
                 } else {
@@ -84,6 +87,7 @@ class IndexInfoTests: GRDBTestCase {
                 let indexes = try db.indexes(on: "player")
                 XCTAssertEqual(indexes.count, 1)
                 XCTAssertEqual(indexes[0].name, "columnIndex")
+                XCTAssertEqual(indexes[0].origin, .createIndex)
                 XCTAssertEqual(indexes[0].columns, ["name"])
                 XCTAssertFalse(indexes[0].isUnique)
             }

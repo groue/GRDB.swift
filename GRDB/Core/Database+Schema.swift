@@ -341,6 +341,7 @@ extension Database {
             .compactMap { row -> IndexInfo? in
                 let indexName: String = row[1]
                 let unique: Bool = row[2]
+                let origin: IndexInfo.Origin = row[3]
                 
                 let indexInfoRows = try Row
                     // [seqno:0 cid:2 name:"column"]
@@ -362,7 +363,7 @@ extension Database {
                     }
                     columns.append(column)
                 }
-                return IndexInfo(name: indexName, columns: columns, unique: unique)
+                return IndexInfo(name: indexName, columns: columns, isUnique: unique, origin: origin)
             }
         
         if indexes.isEmpty {
@@ -779,6 +780,26 @@ public struct ColumnInfo: FetchableRecord {
 ///
 /// See `Database.indexes(on:)`
 public struct IndexInfo {
+    /// The origin of an index.
+    ///
+    /// See ``Database/indexes(on:)``.
+    public struct Origin: RawRepresentable, Equatable, DatabaseValueConvertible {
+        public var rawValue: String
+        
+        public init(rawValue: String) {
+            self.rawValue = rawValue
+        }
+        
+        /// An index created from a CREATE INDEX statement.
+        public static let createIndex = Origin(rawValue: "c")
+        
+        /// An index created by a UNIQUE constraint.
+        public static let uniqueConstraint = Origin(rawValue: "u")
+        
+        /// An index created by a PRIMARY KEY constraint.
+        public static let primaryKeyConstraint = Origin(rawValue: "pk")
+    }
+    
     /// The name of the index
     public let name: String
     
@@ -788,11 +809,8 @@ public struct IndexInfo {
     /// True if the index is unique
     public let isUnique: Bool
     
-    init(name: String, columns: [String], unique: Bool) {
-        self.name = name
-        self.columns = columns
-        self.isUnique = unique
-    }
+    /// The origin of the index
+    public let origin: Origin
 }
 
 /// A foreign key violation produced by PRAGMA foreign_key_check
