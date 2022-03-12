@@ -26,8 +26,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     // MARK: - SQLite C API
     
     /// The raw SQLite connection, suitable for the SQLite C API.
-    /// It is constant, until close() sets it to nil.
-    public var sqliteConnection: SQLiteConnection?
+    ///
+    /// It is nil after the database has been successfully closed with
+    /// ``DatabaseReader/close()``.
+    public private(set) var sqliteConnection: SQLiteConnection?
     
     // MARK: - Configuration
     
