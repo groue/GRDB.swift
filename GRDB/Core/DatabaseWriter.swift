@@ -371,7 +371,7 @@ extension DatabaseWriter {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> ValueObserver<Reducer> // For testability
+    -> DatabaseCancellable
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         
@@ -387,6 +387,8 @@ extension DatabaseWriter {
         
         if scheduler.immediateInitialValue() {
             do {
+                // Perform a reentrant read from the writer connection, in case
+                // the observation would be started from a database access.
                 let initialValue: Reducer.Value = try unsafeReentrantWrite { db in
                     let initialValue = try observer.fetchInitialValue(db)
                     db.add(transactionObserver: observer, extent: .observerLifetime)
@@ -411,7 +413,7 @@ extension DatabaseWriter {
             }
         }
         
-        return observer
+        return AnyDatabaseCancellable(cancel: observer.cancel)
     }
 }
 

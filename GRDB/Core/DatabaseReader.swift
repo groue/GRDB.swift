@@ -566,6 +566,8 @@ extension DatabaseReader {
     {
         if scheduler.immediateInitialValue() {
             do {
+                // Perform a reentrant read, in case the observation would be
+                // started from a database access.
                 let value = try unsafeReentrantRead { db in
                     try db.isolated(readOnly: true) {
                         try observation.fetchValue(db)
@@ -575,7 +577,7 @@ extension DatabaseReader {
             } catch {
                 observation.events.didFail?(error)
             }
-            return AnyDatabaseCancellable(cancel: { })
+            return AnyDatabaseCancellable(cancel: { /* nothing to cancel */ })
         } else {
             var isCancelled = false
             _weakAsyncRead { dbResult in

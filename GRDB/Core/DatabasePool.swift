@@ -767,21 +767,17 @@ extension DatabasePool: DatabaseReader {
                 observation: observation,
                 scheduling: scheduler,
                 onChange: onChange)
-        }
-        
-        if observation.requiresWriteAccess {
-            let observer = _addWriteOnly(
+        } else if observation.requiresWriteAccess {
+            return _addWriteOnly(
                 observation: observation,
                 scheduling: scheduler,
                 onChange: onChange)
-            return AnyDatabaseCancellable(cancel: observer.cancel)
+        } else {
+            return _addConcurrent(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
         }
-        
-        let observer = _addConcurrent(
-            observation: observation,
-            scheduling: scheduler,
-            onChange: onChange)
-        return AnyDatabaseCancellable(cancel: observer.cancel)
     }
     
     /// A concurrent observation fetches the initial value without waiting for
@@ -790,7 +786,7 @@ extension DatabasePool: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> ValueObserver<Reducer> // For testability
+    -> DatabaseCancellable
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")
@@ -898,7 +894,7 @@ extension DatabasePool: DatabaseReader {
         }
         #endif
         
-        return observer
+        return AnyDatabaseCancellable(cancel: observer.cancel)
     }
     
     #if SQLITE_ENABLE_SNAPSHOT

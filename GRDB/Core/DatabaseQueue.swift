@@ -385,12 +385,11 @@ extension DatabaseQueue {
                 observation: observation,
                 scheduling: scheduler,
                 onChange: onChange)
+        } else {
+            return _addWriteOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
         }
-        
-        let observer = _addWriteOnly(
-            observation: observation,
-            scheduling: scheduler,
-            onChange: onChange)
-        return AnyDatabaseCancellable(cancel: observer.cancel)
     }
 }
