@@ -1001,6 +1001,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Runs the block with an isolation level equal or greater than
     /// snapshot isolation.
+    ///
+    /// - parameter readOnly: If true, writes are forbidden.
     func isolated<T>(readOnly: Bool = false, _ block: () throws -> T) throws -> T {
         var result: T?
         try inSavepoint {

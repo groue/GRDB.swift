@@ -178,11 +178,6 @@ public protocol DatabaseReader: AnyObject, GRDBSendable {
     ///   that would prevent establishing the read access to the database.
     func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void)
     
-    /// Same as asyncRead, but without retaining self
-    ///
-    /// :nodoc:
-    func _weakAsyncRead(_ value: @escaping (Result<Database, Error>?) -> Void)
-    
     /// Synchronously executes a function that accepts a database
     /// connection, and returns its result.
     ///
@@ -580,10 +575,8 @@ extension DatabaseReader {
             return AnyDatabaseCancellable(cancel: { /* nothing to cancel */ })
         } else {
             var isCancelled = false
-            _weakAsyncRead { dbResult in
-                guard !isCancelled,
-                      let dbResult = dbResult
-                else { return }
+            asyncRead { dbResult in
+                guard !isCancelled else { return }
                 
                 let result = dbResult.flatMap { db in
                     Result { try observation.fetchValue(db) }
@@ -638,11 +631,6 @@ public final class AnyDatabaseReader: DatabaseReader {
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
         base.asyncRead(value)
-    }
-    
-    /// :nodoc:
-    public func _weakAsyncRead(_ value: @escaping (Result<Database, Error>?) -> Void) {
-        base._weakAsyncRead(value)
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails

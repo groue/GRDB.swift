@@ -210,8 +210,8 @@ class ValueObservationTests: GRDBTestCase {
                 wait(for: [expectation], timeout: 4)
                 XCTAssertEqual(logger.strings, [
                     "start",
-                    "tracked region: t(*)",
                     "fetch",
+                    "tracked region: t(*)",
                     "value: 0",
                     "database did change",
                     "fetch",
@@ -254,8 +254,8 @@ class ValueObservationTests: GRDBTestCase {
                 wait(for: [expectation], timeout: 4)
                 XCTAssertEqual(logger.strings, [
                     "start",
-                    "tracked region: other(*)",
                     "fetch",
+                    "tracked region: other(*)",
                     "value: 0",
                     "database did change",
                     "fetch",
@@ -298,8 +298,8 @@ class ValueObservationTests: GRDBTestCase {
                 wait(for: [expectation], timeout: 4)
                 XCTAssertEqual(logger.strings, [
                     "start",
-                    "tracked region: other(*),t(*)",
                     "fetch",
+                    "tracked region: other(*),t(*)",
                     "value: 0",
                     "database did change",
                     "fetch",

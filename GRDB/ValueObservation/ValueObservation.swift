@@ -47,6 +47,7 @@ public struct ValueObservation<Reducer: ValueReducer> {
     }
 }
 
+/// Configures the tracked region
 enum ValueObservationTrackingMode {
     /// The tracked region is constant and explicit.
     ///
@@ -244,8 +245,8 @@ extension ValueObservation: Refinable {
     /// Returns the value.
     func fetchValue(_ db: Database) throws -> Reducer.Value {
         var reducer = makeReducer()
-        guard let value = try reducer.fetchAndReduce(db) else {
-            fatalError("Contract broken: reducer has no initial value")
+        guard let value = try reducer._value(reducer._fetch(db)) else {
+            fatalError("Broken contract: reducer has no initial value")
         }
         return value
     }

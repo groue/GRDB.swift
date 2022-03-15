@@ -27,7 +27,7 @@ class SharedValueObservationTests: GRDBTestCase {
                 onChange: { value = $0 })
             
             XCTAssertEqual(value, 0)
-            XCTAssertEqual(log.flush(), ["start", "fetch", "value: 0", "tracked region: player(*)"])
+            XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable.cancel()
             XCTAssertEqual(log.flush(), [])
@@ -84,7 +84,7 @@ class SharedValueObservationTests: GRDBTestCase {
             
             XCTAssertEqual(value1, 0)
             XCTAssertEqual(value2, 0)
-            XCTAssertEqual(log.flush(), ["start", "fetch", "value: 0", "tracked region: player(*)"])
+            XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable1.cancel()
             XCTAssertEqual(log.flush(), [])
@@ -155,7 +155,7 @@ class SharedValueObservationTests: GRDBTestCase {
                 onChange: { value = $0 })
             
             XCTAssertEqual(value, 0)
-            XCTAssertEqual(log.flush(), ["start", "fetch", "value: 0", "tracked region: player(*)"])
+            XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable.cancel()
             XCTAssertEqual(log.flush(), ["cancel"])
@@ -168,7 +168,7 @@ class SharedValueObservationTests: GRDBTestCase {
                 onChange: { value = $0 })
             
             XCTAssertEqual(value, 0)
-            XCTAssertEqual(log.flush(), ["start", "fetch", "value: 0", "tracked region: player(*)"])
+            XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable.cancel()
             XCTAssertEqual(log.flush(), ["cancel"])
@@ -212,7 +212,7 @@ class SharedValueObservationTests: GRDBTestCase {
             
             XCTAssertEqual(value1, 0)
             XCTAssertEqual(value2, 0)
-            XCTAssertEqual(log.flush(), ["start", "fetch", "value: 0", "tracked region: player(*)"])
+            XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
             
             cancellable1.cancel()
             XCTAssertEqual(log.flush(), ["cancel"])
@@ -256,7 +256,7 @@ class SharedValueObservationTests: GRDBTestCase {
         wait(for: [exp1], timeout: 1)
         XCTAssertEqual(values1, [0, 1])
         XCTAssertEqual(log.flush(), [
-            "start", "fetch", "value: 0", "tracked region: player(*)",
+            "start", "fetch", "tracked region: player(*)", "value: 0",
             "database did change", "fetch", "value: 1"])
 
         // --- Start observation 2
@@ -342,7 +342,7 @@ class SharedValueObservationTests: GRDBTestCase {
                 
                 switch value {
                 case 0:
-                    XCTAssertEqual(log.flush(), ["start", "fetch", "value: 0", "tracked region: player(*)"])
+                    XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 0"])
                 case 1:
                     XCTAssertEqual(log.flush(), ["database did change", "fetch", "value: 1"])
                 case 2:
@@ -432,7 +432,7 @@ class SharedValueObservationTests: GRDBTestCase {
         wait(for: [exp1], timeout: 1)
         XCTAssertEqual(values1, [0, 1])
         XCTAssertEqual(log.flush(), [
-            "start", "fetch", "value: 0", "tracked region: player(*)",
+            "start", "fetch", "tracked region: player(*)", "value: 0",
             "database did change", "fetch", "value: 1"])
 
         // --- Start observation 2
@@ -526,7 +526,7 @@ class SharedValueObservationTests: GRDBTestCase {
             if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
             if case .finished = try wait(for: recorder2.completion, timeout: 1) { XCTFail("Expected error") }
             XCTAssertEqual(log.flush(), [
-                "start", "fetch", "value: 0", "tracked region: player(*)",
+                "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "failure: TestError()"])
         }
         
@@ -582,7 +582,7 @@ class SharedValueObservationTests: GRDBTestCase {
             if case .finished = try wait(for: recorder1.completion, timeout: 1) { XCTFail("Expected error") }
             if case .finished = try wait(for: recorder2.completion, timeout: 1) { XCTFail("Expected error") }
             XCTAssertEqual(log.flush(), [
-                "start", "fetch", "value: 0", "tracked region: player(*)",
+                "start", "fetch", "tracked region: player(*)", "value: 0",
                 "database did change", "fetch", "failure: TestError()"])
         }
         
@@ -596,7 +596,7 @@ class SharedValueObservationTests: GRDBTestCase {
             fetchError = nil
             let recorder = publisher.record()
             try XCTAssertEqual(wait(for: recorder.next(), timeout: 1), 1)
-            XCTAssertEqual(log.flush(), ["start", "fetch", "value: 1", "tracked region: player(*)"])
+            XCTAssertEqual(log.flush(), ["start", "fetch", "tracked region: player(*)", "value: 1"])
         }
     }
 #endif
