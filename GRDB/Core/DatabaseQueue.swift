@@ -212,32 +212,6 @@ extension DatabaseQueue {
         }
     }
     
-    /// :nodoc:
-    public func _weakAsyncRead(_ value: @escaping (Result<Database, Error>?) -> Void) {
-        writer.weakAsync { db in
-            guard let db = db else {
-                value(nil)
-                return
-            }
-            
-            do {
-                // The transaction guarantees snapshot isolation against eventual
-                // external connection.
-                try db.beginTransaction(.deferred)
-                try db.beginReadOnly()
-            } catch {
-                value(.failure(error))
-                return
-            }
-            
-            value(.success(db))
-            
-            // Ignore error because we can not notify it.
-            try? db.endReadOnly()
-            try? db.commit()
-        }
-    }
-    
     public func unsafeRead<T>(_ value: (Database) throws -> T) rethrows -> T {
         try writer.sync(value)
     }
@@ -366,11 +340,6 @@ extension DatabaseQueue {
         writer.async(updates)
     }
     
-    /// :nodoc:
-    public func _weakAsyncWriteWithoutTransaction(_ updates: @escaping (Database?) -> Void) {
-        writer.weakAsync(updates)
-    }
-    
     // MARK: - Database Observation
     
     /// :nodoc:
@@ -381,16 +350,17 @@ extension DatabaseQueue {
     -> DatabaseCancellable
     {
         if configuration.readonly {
+            // The easy case: the database does not change
             return _addReadOnly(
                 observation: observation,
                 scheduling: scheduler,
                 onChange: onChange)
+        } else {
+            // Observe from the writer database connection.
+            return _addWriteOnly(
+                observation: observation,
+                scheduling: scheduler,
+                onChange: onChange)
         }
-        
-        let observer = _addWriteOnly(
-            observation: observation,
-            scheduling: scheduler,
-            onChange: onChange)
-        return AnyDatabaseCancellable(cancel: observer.cancel)
     }
 }

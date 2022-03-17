@@ -32,12 +32,6 @@ public protocol _ValueReducer {
 /// The `ValueReducer` protocol supports `ValueObservation`.
 public protocol ValueReducer: _ValueReducer { }
 
-extension ValueReducer {
-    mutating func fetchAndReduce(_ db: Database) throws -> Value? {
-        try _value(_fetch(db))
-    }
-}
-
 /// A namespace for types related to the `ValueReducer` protocol.
 public enum ValueReducers {
     // ValueReducers.Auto allows us to define ValueObservation factory methods.

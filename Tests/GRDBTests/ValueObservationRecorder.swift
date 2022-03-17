@@ -228,13 +228,13 @@ extension ValueObservation {
         let cancellable = start(
             in: reader,
             scheduling: scheduler,
-            onError: {
+            onError: { [weak recorder] in
                 onError?($0)
-                recorder.onError($0)
+                recorder?.onError($0)
         },
-            onChange: {
+            onChange: { [weak recorder] in
                 onChange?($0)
-                recorder.onChange($0)
+                recorder?.onChange($0)
         })
         recorder.receive(cancellable)
         return recorder

@@ -6135,10 +6135,10 @@ See the companion library [RxGRDB] for more information.
 - By default, ValueObservation notifies the initial value, as well as eventual changes and errors, on the main thread, asynchronously. This can be [configured](#valueobservation-scheduling).
 - ValueObservation may coalesce subsequent changes into a single notification.
 - ValueObservation may notify consecutive identical values. You can filter out the undesired duplicates with the [removeDuplicates](#valueobservationremoveduplicates) method.
+- Starting an observation retains the database connection, until it is stopped. As long as the observation is active, the database connection won't be deallocated.
 - The database observation stops when any of those conditions is met:
     - The cancellable returned by the `start` method is cancelled or deinitialized.
     - An error occurs.
-    - The database connection is closed.
 
 Take care that there are use cases that ValueObservation is unfit for. For example, your application may need to process absolutely all changes, and avoid any coalescing. It may also need to process changes before any further modifications are performed in the database file. In those cases, you need to track *individual transactions*, not values. See [DatabaseRegionObservation]. If you need to process uncommitted changes, see [TransactionObserver](#transactionobserver-protocol).
 
@@ -6408,19 +6408,15 @@ let sharedObservation = ValueObservation
 //                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ```
 
-> :point_up: **Note**: `ValueObservation` and `SharedValueObservation` are nearly identical, but there are a few differences you should be aware of:
->
-> - `SharedValueObservation` has no [operator](#valueobservation-operators) such as `map`. As a replacement, you may use Combine apis:
->     
->     ```swift
->     let sharedObservation = ValueObservation.tracking { ... }.shared(in: dbQueue)
->     let cancellable = try sharedObservation
->         .publisher() // Turn shared observation into a Combine Publisher
->         .map { ... } // The map operator from Combine
->         .sink(...)
->     ```
->
-> - Unlike `ValueObservation`, `SharedValueObservation` retains the database connection. As long as there exists a `SharedValueObservation` instance, or an active suscription to a shared observation, the database connection won't be deinitialized. 
+> :point_up: **Note**: `ValueObservation` and `SharedValueObservation` are nearly identical, but there is a difference you should be aware of. `SharedValueObservation` has no [operator](#valueobservation-operators) such as `map`. As a replacement, you may, for example, use Combine apis:
+> 
+> ```swift
+> let sharedObservation = ValueObservation.tracking { ... }.shared(in: dbQueue)
+> let cancellable = try sharedObservation
+>     .publisher() // Turn shared observation into a Combine Publisher
+>     .map { ... } // The map operator from Combine
+>     .sink(...)
+> ```
 
 
 ### Specifying the Region Tracked by ValueObservation

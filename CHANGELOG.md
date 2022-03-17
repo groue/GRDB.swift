@@ -88,6 +88,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Breaking Change**: [#1183](https://github.com/groue/GRDB.swift/pull/1183) by [@groue](https://github.com/groue): Starting a ValueObservation keeps a strong reference on the database connection.
+
 ## 5.21.0
 
 Released February 6, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.20.0...v5.21.0)

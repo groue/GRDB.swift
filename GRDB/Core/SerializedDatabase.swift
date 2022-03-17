@@ -197,19 +197,6 @@ final class SerializedDatabase {
         }
     }
     
-    /// Asynchronously executes a block in the serialized dispatch queue,
-    /// without retaining self.
-    func weakAsync(_ block: @escaping (Database?) -> Void) {
-        queue.async { [weak self] in
-            if let self = self {
-                block(self.db)
-                self.preconditionNoUnsafeTransactionLeft(self.db)
-            } else {
-                block(nil)
-            }
-        }
-    }
-    
     /// Returns true if any only if the current dispatch queue is valid.
     var onValidQueue: Bool {
         SchedulingWatchdog.current?.allows(db) ?? false
