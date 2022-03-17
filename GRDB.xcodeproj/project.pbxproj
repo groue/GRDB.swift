@@ -2589,9 +2589,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 565490B31D5A4798005622CB /* Build configuration list for PBXNativeTarget "GRDBWatchOS" */;
 			buildPhases = (
+				5654909D1D5A4798005622CB /* Headers */,
 				5654909B1D5A4798005622CB /* Sources */,
 				5654909C1D5A4798005622CB /* Frameworks */,
-				5654909D1D5A4798005622CB /* Headers */,
 				5654909E1D5A4798005622CB /* Resources */,
 			);
 			buildRules = (
@@ -2625,9 +2625,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 56E5D7DB1B4D3FEE00430942 /* Build configuration list for PBXNativeTarget "GRDBiOS" */;
 			buildPhases = (
+				56E5D7C71B4D3FED00430942 /* Headers */,
 				56E5D7C51B4D3FED00430942 /* Sources */,
 				56E5D7C61B4D3FED00430942 /* Frameworks */,
-				56E5D7C71B4D3FED00430942 /* Headers */,
 				56E5D7C81B4D3FED00430942 /* Resources */,
 				56EB54FA22C9115E00850069 /* Swiftlint */,
 			);
@@ -2680,9 +2680,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = AAA4DCFB230F1E0600C74B15 /* Build configuration list for PBXNativeTarget "GRDBtvOS" */;
 			buildPhases = (
+				AAA4DCF5230F1E0600C74B15 /* Headers */,
 				AAA4DC76230F1E0600C74B15 /* Sources */,
 				AAA4DCF4230F1E0600C74B15 /* Frameworks */,
-				AAA4DCF5230F1E0600C74B15 /* Headers */,
 				AAA4DCF9230F1E0600C74B15 /* Resources */,
 				AAA4DCFA230F1E0600C74B15 /* Swiftlint */,
 			);
@@ -2717,9 +2717,9 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = DC37740919C8CBB3004FCF85 /* Build configuration list for PBXNativeTarget "GRDBOSX" */;
 			buildPhases = (
+				DC3773F019C8CBB3004FCF85 /* Headers */,
 				DC3773EE19C8CBB3004FCF85 /* Sources */,
 				DC3773EF19C8CBB3004FCF85 /* Frameworks */,
-				DC3773F019C8CBB3004FCF85 /* Headers */,
 				DC3773F119C8CBB3004FCF85 /* Resources */,
 				56EB54F322C8ED5100850069 /* Swiftlint */,
 			);

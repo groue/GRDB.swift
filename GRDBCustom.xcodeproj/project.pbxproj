@@ -2049,9 +2049,9 @@
 			buildConfigurationList = F3BA80031CFB25E4003DC1BA /* Build configuration list for PBXNativeTarget "GRDBiOS" */;
 			buildPhases = (
 				EED476F01CFD0B290026A4EC /* Copy .example configuration files (if no USER customizations exist) */,
+				F3BA7FFB1CFB25E4003DC1BA /* Headers */,
 				F3BA7FF91CFB25E4003DC1BA /* Sources */,
 				F3BA7FFA1CFB25E4003DC1BA /* Frameworks */,
-				F3BA7FFB1CFB25E4003DC1BA /* Headers */,
 				F3BA7FFC1CFB25E4003DC1BA /* Resources */,
 				56EB54FD22C9119B00850069 /* Swiftlint */,
 			);
@@ -2088,9 +2088,9 @@
 			buildConfigurationList = F3BA805F1CFB2BB2003DC1BA /* Build configuration list for PBXNativeTarget "GRDBOSX" */;
 			buildPhases = (
 				EED476F51CFD1A610026A4EC /* Copy .example configuration files (if no USER customizations exist) */,
+				F3BA80571CFB2BB2003DC1BA /* Headers */,
 				F3BA80551CFB2BB2003DC1BA /* Sources */,
 				F3BA80561CFB2BB2003DC1BA /* Frameworks */,
-				F3BA80571CFB2BB2003DC1BA /* Headers */,
 				F3BA80581CFB2BB2003DC1BA /* Resources */,
 				56EB54FB22C9118600850069 /* Swiftlint */,
 			);
