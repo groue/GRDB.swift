@@ -402,11 +402,8 @@ extension ValueObservation {
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
     {
-        DatabasePublishers.Value { [weak reader] (onError, onChange) in
-            guard let reader = reader else {
-                return AnyDatabaseCancellable(cancel: { })
-            }
-            return self.start(
+        DatabasePublishers.Value { (onError, onChange) in
+            self.start(
                 in: reader,
                 scheduling: scheduler,
                 onError: onError,
@@ -472,8 +469,8 @@ extension DatabasePublishers {
             downstream: Downstream)
         {
             state = .waitingForDemand(WaitingForDemand(
-                                        downstream: downstream,
-                                        start: start))
+                downstream: downstream,
+                start: start))
         }
         
         func request(_ demand: Subscribers.Demand) {
@@ -484,8 +481,8 @@ extension DatabasePublishers {
                         return
                     }
                     state = .observing(Observing(
-                                        downstream: info.downstream,
-                                        remainingDemand: demand))
+                        downstream: info.downstream,
+                        remainingDemand: demand))
                     let cancellable = info.start(
                         { [weak self] error in self?.receiveCompletion(.failure(error)) },
                         { [weak self] value in self?.receive(value) })

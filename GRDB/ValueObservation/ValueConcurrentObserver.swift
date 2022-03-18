@@ -20,6 +20,8 @@ import Foundation
 /// **Notify** is calling user callbacks, in case of database change or error.
 final class ValueConcurrentObserver<Reducer: ValueReducer> {
     // MARK: - Configuration
+    //
+    // Configuration is not mutable.
     
     /// How to schedule observed values and errors.
     private let scheduler: ValueObservationScheduler
@@ -27,7 +29,47 @@ final class ValueConcurrentObserver<Reducer: ValueReducer> {
     /// Configures the tracked database region.
     private let trackingMode: ValueObservationTrackingMode
     
-    // MARK: - State
+    // MARK: - Mutable State
+    //
+    // The observer has four distinct mutable states that evolve independently,
+    // and are made thread-safe with various mechanisms:
+    //
+    // - A `DatabaseAccess`: ability to access the database. It is constant but
+    //   turns nil after the observation fails or is cancelled, in order to
+    //   release memory and resources when the observation completes. It is
+    //   guarded by `lock`, because observation can fail or be cancelled from
+    //   multiple threads.
+    //
+    // - A `NotificationCallbacks`: ability to notify observation events. It is
+    //   constant but turns nil when failure or cancellation is notified, in
+    //   order to release memory and resources when the observation completes.
+    //   It is guarded by `lock`, because observation can fail or be cancelled
+    //   from multiple threads.
+    //
+    // - An `ObservationState`: relationship with the `TransactionObserver`
+    //   protocol. It is only accessed from the serialized writer
+    //   dispatch queue.
+    //
+    // - A `Reducer`: the observation reducer, only accessed from the
+    //   serialized dispatch queue `reduceQueue`.
+    //
+    // The `reduceQueue` guarantees that fresh value notifications have the same
+    // order as transactions. It is different from the serialized writer
+    // dispatch queue because we do not want to lock the database as
+    // computations (`map`, `removeDuplicates()`, etc.) are performed.
+    //
+    // Despite being protected by the same lock, `DatabaseAccess` and
+    // `NotificationCallbacks` are not merged together. This is because the
+    // observer does not lose `DatabaseAccess` at the same time it
+    // looses `NotificationCallbacks`:
+    //
+    // - In case of cancellation, `NotificationCallbacks` is lost first, and
+    //   `DatabaseAccess` is lost asynchronously, after the observer could
+    //   resign as a transaction observer. See `cancel()`.
+    //
+    // - In case of error, `DatabaseAccess` may be lost synchronously, and
+    //   `NotificationCallbacks` is lost asynchronously, after the error could
+    //   be notified. See error catching clauses.
     
     /// Ability to access the database
     private struct DatabaseAccess {
@@ -698,7 +740,7 @@ extension ValueConcurrentObserver: DatabaseCancellable {
     
     private func stopDatabaseObservation(_ writerDB: Database) {
         writerDB.remove(transactionObserver: self)
-        observationState = ObservationState()
+        observationState = .notObserving
         lock.synchronized {
             databaseAccess = nil
         }
