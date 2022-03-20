@@ -506,5 +506,11 @@ extension DatabaseError {
     
     /// NSError bridging: the user-info dictionary.
     /// :nodoc:
-    public var errorUserInfo: [String: Any] { [NSLocalizedDescriptionKey: description] }
+    public var errorUserInfo: [String: Any] {
+        var userInfo = [NSLocalizedDescriptionKey: description]
+        if let message = message {
+            userInfo[NSLocalizedFailureReasonErrorKey] = message
+        }
+        return userInfo
+    }
 }
