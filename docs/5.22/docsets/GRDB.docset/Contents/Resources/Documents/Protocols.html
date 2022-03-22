@@ -1,0 +1,2865 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Protocols  Reference</title>
+    <link rel="stylesheet" type="text/css" href="css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="css/highlight.css" />
+    <meta charset='utf-8'>
+    <script src="js/jquery.min.js" defer></script>
+    <script src="js/jazzy.js" defer></script>
+    
+    <script src="js/lunr.min.js" defer></script>
+    <script src="js/typeahead.jquery.js" defer></script>
+    <script src="js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+    <a name="//apple_ref/swift/Section/Protocols" class="dashAnchor"></a>
+    <a title="Protocols  Reference"></a>
+    <header>
+      <div class="content-wrapper">
+        <p><a href="index.html">GRDB 5.22.0 Docs</a> (89% documented)</p>
+        <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="img/gh.png" alt="GitHub"/>View on GitHub</a></p>
+        <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F5.22%2Fdocsets%2FGRDB.xml"><img src="img/dash.png" alt="Dash"/>Install in Dash</a></p>
+        <div class="header-right">
+          <form role="search" action="search.json">
+            <input type="text" placeholder="Search documentation" data-typeahead>
+          </form>
+        </div>
+      </div>
+    </header>
+    <div class="content-wrapper">
+      <p id="breadcrumbs">
+        <a href="index.html">GRDB Reference</a>
+        <img id="carat" src="img/carat.png" alt=""/>
+        Protocols  Reference
+      </p>
+    </div>
+    <div class="content-wrapper">
+      <nav class="sidebar">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a href="Classes.html">Classes</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Classes/AnyCursor.html">AnyCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/AnyDatabaseCancellable.html">AnyDatabaseCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/AnyDatabaseReader.html">AnyDatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/AnyDatabaseWriter.html">AnyDatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ColumnDefinition.html">ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ColumnDefinition/GeneratedColumnQualification.html">– GeneratedColumnQualification</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/BusyMode.html">– BusyMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/CheckpointMode.html">– CheckpointMode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/CollationName.html">– CollationName</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/ColumnType.html">– ColumnType</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/ConflictResolution.html">– ConflictResolution</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/ForeignKeyAction.html">– ForeignKeyAction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/TracingOptions.html">– TracingOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/TraceEvent.html">– TraceEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/TransactionCompletion.html">– TransactionCompletion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/TransactionKind.html">– TransactionKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Database/TransactionObservationExtent.html">– TransactionObservationExtent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DatabaseCollation.html">DatabaseCollation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DatabaseFunction.html">DatabaseFunction</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DatabaseFuture.html">DatabaseFuture</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DatabasePool.html">DatabasePool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DatabaseQueue.html">DatabaseQueue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DatabaseSnapshot.html">DatabaseSnapshot</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/DatabaseValueCursor.html">DatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FTS3TableDefinition.html">FTS3TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FTS4ColumnDefinition.html">FTS4ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FTS4TableDefinition.html">FTS4TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FTS5ColumnDefinition.html">FTS5ColumnDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FTS5TableDefinition.html">FTS5TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FastDatabaseValueCursor.html">FastDatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/FastNullableDatabaseValueCursor.html">FastNullableDatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/NullableDatabaseValueCursor.html">NullableDatabaseValueCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Record.html">Record</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/RecordCursor.html">RecordCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Row.html">Row</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Row/ScopesView.html">– ScopesView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Row/ScopesTreeView.html">– ScopesTreeView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Row/PrefetchedRowsView.html">– PrefetchedRowsView</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/RowCursor.html">RowCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/SQLStatementCursor.html">SQLStatementCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/SharedValueObservation.html">SharedValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/Statement.html">Statement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/TableAlias.html">TableAlias</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/TableAlteration.html">TableAlteration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/TableDefinition.html">TableDefinition</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Classes/ValueObservationScheduler.html">ValueObservationScheduler</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Enums.html">Enumerations</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Enums/DatabaseColumnDecodingStrategy.html">DatabaseColumnDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabaseColumnEncodingStrategy.html">DatabaseColumnEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabaseDateDecodingStrategy.html">DatabaseDateDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabaseDateEncodingStrategy.html">DatabaseDateEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabaseEventKind.html">DatabaseEventKind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabasePublishers.html">DatabasePublishers</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabasePublishers/Read.html">– Read</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabasePublishers/DatabaseRegion.html">– DatabaseRegion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabasePublishers/Write.html">– Write</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabasePublishers/Migrate.html">– Migrate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabasePublishers/Value.html">– Value</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/DatabaseUUIDEncodingStrategy.html">DatabaseUUIDEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/PersistenceError.html">PersistenceError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/SQLDateModifier.html">SQLDateModifier</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/SharedValueObservationExtent.html">SharedValueObservationExtent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/ValueReducers.html">ValueReducers</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/ValueReducers.html#/s:4GRDB13ValueReducersO5FetchV">– Fetch</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/ValueReducers.html#/s:4GRDB13ValueReducersO3MapV">– Map</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/ValueReducers.html#/s:4GRDB13ValueReducersO16RemoveDuplicatesV">– RemoveDuplicates</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Enums/ValueReducers.html#/s:4GRDB13ValueReducersO5TraceV">– Trace</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Extensions.html">Extensions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Extensions/Bool.html">Bool</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/CGFloat.html">CGFloat</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/ClosedRange.html">ClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Collection.html">Collection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/ColumnExpression.html">ColumnExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/CountableClosedRange.html">CountableClosedRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/CountableRange.html">CountableRange</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Data.html">Data</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Database.html">Database</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Date.html">Date</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Decimal.html">Decimal</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Dictionary.html">Dictionary</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Double.html">Double</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Float.html">Float</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Int.html">Int</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Int16.html">Int16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Int32.html">Int32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Int64.html">Int64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Int8.html">Int8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/NSData.html">NSData</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/NSDate.html">NSDate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/NSNull.html">NSNull</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/NSNumber.html">NSNumber</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/NSString.html">NSString</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/NSURL.html">NSURL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/NSUUID.html">NSUUID</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Optional.html">Optional</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Range.html">Range</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/RangeReplaceableCollection.html">RangeReplaceableCollection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Sequence.html">Sequence</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/Set.html">Set</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/String.html">String</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/TableRequest.html">TableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/UInt.html">UInt</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/UInt16.html">UInt16</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/UInt32.html">UInt32</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/UInt64.html">UInt64</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/UInt8.html">UInt8</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions.html#/s:10Foundation3URLV">URL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Extensions/UUID.html">UUID</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Functions.html">Functions</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1nopyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1nopyAA20AssociationAggregateVyxGAElF">!(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVAA14SQLExpressible_pSg_AA22SQLSpecificExpressible_ptF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_pSgtF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_SbtF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA13SQLExpressionVSb_AA22SQLSpecificExpressible_ptF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGAE_AEtlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGAE_SbtlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2neoiyAA20AssociationAggregateVyxGSb_AEtlF">!=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3neeoiyAA13SQLExpressionVAA14SQLExpressible_pSg_AA22SQLSpecificExpressible_ptF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3neeoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_pSgtF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3neeoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3neeoiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3neeoiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3neeoiyAA20AssociationAggregateVyxGAE_AEtlF">!==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2aaoiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2aaoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2aaoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2aaoiyAA20AssociationAggregateVyxGAE_AEtlF">&amp;&amp;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1moiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1moiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1moiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1moiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1moiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1moiyAA20AssociationAggregateVyxGAE_AEtlF">*(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2meoiyAA16ColumnAssignmentVAA0C10Expression_p_AA14SQLExpressible_ptF">*=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1poiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1poiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1poiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1poiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1poiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1poiyAA20AssociationAggregateVyxGAE_AEtlF">+(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2peoiyAA16ColumnAssignmentVAA0C10Expression_p_AA14SQLExpressible_ptF">+=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1sopyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1sopyAA20AssociationAggregateVyxGAElF">-(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1soiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1soiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1soiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1soiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1soiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1soiyAA20AssociationAggregateVyxGAE_AEtlF">-(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2seoiyAA16ColumnAssignmentVAA0C10Expression_p_AA14SQLExpressible_ptF">-=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1doiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1doiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1doiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1doiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1doiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1doiyAA20AssociationAggregateVyxGAE_AEtlF">/(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2deoiyAA16ColumnAssignmentVAA0C10Expression_p_AA14SQLExpressible_ptF">/=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1loiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1loiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1loiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1loiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1loiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1loiyAA20AssociationAggregateVyxGAE_AEtlF">&lt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2leoiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2leoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2leoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2leoiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2leoiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2leoiyAA20AssociationAggregateVyxGAE_AEtlF">&lt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVAA14SQLExpressible_pSg_AA22SQLSpecificExpressible_ptF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_pSgtF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_SbtF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA13SQLExpressionVSb_AA22SQLSpecificExpressible_ptF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGAE_AEtlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGAE_SbtlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2eeoiyAA20AssociationAggregateVyxGSb_AEtlF">==(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3eeeoiyAA13SQLExpressionVAA14SQLExpressible_pSg_AA22SQLSpecificExpressible_ptF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3eeeoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_pSgtF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3eeeoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3eeeoiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3eeeoiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3eeeoiyAA20AssociationAggregateVyxGAE_AEtlF">===(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1goiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1goiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1goiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1goiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1goiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB1goiyAA20AssociationAggregateVyxGAE_AEtlF">&gt;(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2geoiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2geoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2geoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2geoiyAA20AssociationAggregateVyxGAA14SQLExpressible_p_AEtlF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2geoiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2geoiyAA20AssociationAggregateVyxGAE_AEtlF">&gt;=(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2qqoiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2qqoiyAA20AssociationAggregateVyxGAE_AA14SQLExpressible_ptlF">??(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3absyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3absyAA20AssociationAggregateVyxGAElF">abs(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB7averageyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">average(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB5countyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">count(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB5count8distinctAA13SQLExpressionVAA22SQLSpecificExpressible_p_tF">count(distinct:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB21databaseQuestionMarks5countSSSi_tF">databaseQuestionMarks(count:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB8dateTimeyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA15SQLDateModifierOdtF">dateTime(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB9julianDayyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA15SQLDateModifierOdtF">julianDay(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB6lengthyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB6lengthyAA20AssociationAggregateVyxGAElF">length(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3maxyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">max(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3minyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">min(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB20splittingRowAdapters12columnCountsSayAA0C7Adapter_pGSaySiG_tF">splittingRowAdapters(columnCounts:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB3sumyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">sum(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB5totalyAA13SQLExpressionVAA22SQLSpecificExpressible_pF">total(_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2oooiyAA13SQLExpressionVAA14SQLExpressible_p_AA22SQLSpecificExpressible_ptF">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2oooiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AA14SQLExpressible_ptF">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2oooiyAA13SQLExpressionVAA22SQLSpecificExpressible_p_AaE_ptF">||(_:_:)</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Functions.html#/s:4GRDB2oooiyAA20AssociationAggregateVyxGAE_AEtlF">||(_:_:)</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Protocols.html">Protocols</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Protocols/AggregatingRequest.html">AggregatingRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/Association.html">Association</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/AssociationToMany.html">AssociationToMany</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/AssociationToOne.html">AssociationToOne</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/ColumnExpression.html">ColumnExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/Cursor.html">Cursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DatabaseAggregate.html">DatabaseAggregate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DatabaseCancellable.html">DatabaseCancellable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DatabaseCursor.html">DatabaseCursor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DatabaseReader.html">DatabaseReader</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DatabaseRegionConvertible.html">DatabaseRegionConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DatabaseWriter.html">DatabaseWriter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/DerivableRequest.html">DerivableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/EncodableRecord.html">EncodableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/FTS5CustomTokenizer.html">FTS5CustomTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/FTS5Tokenizer.html">FTS5Tokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/FTS5WrapperTokenizer.html">FTS5WrapperTokenizer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/FetchRequest.html">FetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/FetchableRecord.html">FetchableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/FilteredRequest.html">FilteredRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/JoinableRequest.html">JoinableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/OrderedRequest.html">OrderedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/PersistableRecord.html">PersistableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/RowAdapter.html">RowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/SQLExpressible.html">SQLExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/SQLSelectable.html">SQLSelectable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/SQLSubqueryable.html">SQLSubqueryable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/SelectionRequest.html">SelectionRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/StatementBinding.html">StatementBinding</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/StatementColumnConvertible.html">StatementColumnConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/TableRecord.html">TableRecord</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/TableRequest.html">TableRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/TransactionObserver.html">TransactionObserver</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/TypedRequest.html">TypedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols.html#/s:4GRDB12ValueReducerP">ValueReducer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Protocols/VirtualTableModule.html">VirtualTableModule</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Structs.html">Structures</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Structs/AdaptedFetchRequest.html">AdaptedFetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AllColumns.html">AllColumns</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AnyDatabaseRegionConvertible.html">AnyDatabaseRegionConvertible</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AnyFetchRequest.html">AnyFetchRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AssociationAggregate.html">AssociationAggregate</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AsyncValueObservation.html">AsyncValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/AsyncValueObservation/Iterator.html">– Iterator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB20BelongsToAssociationV">BelongsToAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/Column.html">Column</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB16ColumnAssignmentV">ColumnAssignment</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ColumnInfo.html">ColumnInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ColumnMapping.html">ColumnMapping</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/CommonTableExpression.html">CommonTableExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/Configuration.html">Configuration</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseBackupProgress.html">DatabaseBackupProgress</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseDateComponents.html">DatabaseDateComponents</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseDateComponents/Format.html">– Format</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseError.html">DatabaseError</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseEvent.html">DatabaseEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseMigrator.html">DatabaseMigrator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseMigrator/ForeignKeyChecks.html">– ForeignKeyChecks</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabasePreUpdateEvent.html">DatabasePreUpdateEvent</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabasePreUpdateEvent/Kind.html">– Kind</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseRegion.html">DatabaseRegion</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseRegionObservation.html">DatabaseRegionObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseValue.html">DatabaseValue</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/DatabaseValue/Storage.html">– Storage</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/EmptyRowAdapter.html">EmptyRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS3.html">FTS3</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS3/Diacritics.html">– Diacritics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS3Pattern.html">FTS3Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS3TokenizerDescriptor.html">FTS3TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS4.html">FTS4</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS5.html">FTS5</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS5/Diacritics.html">– Diacritics</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS5Pattern.html">FTS5Pattern</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS5TokenFlags.html">FTS5TokenFlags</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS5Tokenization.html">FTS5Tokenization</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/FTS5TokenizerDescriptor.html">FTS5TokenizerDescriptor</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ForeignKey.html">ForeignKey</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ForeignKeyInfo.html">ForeignKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ForeignKeyViolation.html">ForeignKeyViolation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB18HasManyAssociationV">HasManyAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB25HasManyThroughAssociationV">HasManyThroughAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB17HasOneAssociationV">HasOneAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB24HasOneThroughAssociationV">HasOneThroughAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/IndexInfo.html">IndexInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/IndexOptions.html">IndexOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/Inflections.html">Inflections</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB15JoinAssociationV">JoinAssociation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/PersistenceConflictPolicy.html">PersistenceConflictPolicy</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/PersistenceContainer.html">PersistenceContainer</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/PreparedRequest.html">PreparedRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/PrimaryKeyInfo.html">PrimaryKeyInfo</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/QueryInterfaceRequest.html">QueryInterfaceRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/RangeRowAdapter.html">RangeRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/RenameColumnAdapter.html">RenameColumnAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ResultCode.html">ResultCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB8RowIndexV">RowIndex</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SQL.html">SQL</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SQLExpression.html">SQLExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SQLExpression/AssociativeBinaryOperator.html">– AssociativeBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SQLOrdering.html">SQLOrdering</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SQLRequest.html">SQLRequest</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SQLSelection.html">SQLSelection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SQLSubquery.html">SQLSubquery</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ScopeAdapter.html">ScopeAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/StatementArguments.html">StatementArguments</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/SuffixRowAdapter.html">SuffixRowAdapter</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/Table.html">Table</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/TableOptions.html">TableOptions</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs/ValueObservation.html">ValueObservation</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Structs.html#/s:4GRDB25VirtualTableConfigurationV">VirtualTableConfiguration</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a href="Typealiases.html">Type Aliases</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/FTS5TokenCallback">FTS5TokenCallback</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/FTS5WrapperTokenCallback">FTS5WrapperTokenCallback</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/GRDBSendable">GRDBSendable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB12GRDBSendablea">GRDBSendable</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB28SQLAssociativeBinaryOperatora">SQLAssociativeBinaryOperator</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB10SQLLiterala">SQLLiteral</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB16SQLiteConnectiona">SQLiteConnection</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB15SQLiteStatementa">SQLiteStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB9SQLiterala">SQLiteral</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB15SelectStatementa">SelectStatement</a>
+              </li>
+              <li class="nav-group-task">
+                <a href="Typealiases.html#/s:4GRDB15UpdateStatementa">UpdateStatement</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+        <section>
+          <section class="section">
+            <h1>Protocols</h1>
+            <p>The following protocols are available globally.</p>
+
+          </section>
+          <section class="section task-group-section">
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Cursor"></a>
+                <a name="//apple_ref/swift/Section/Cursor" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Cursor"></a>
+                  <h3 class="section-name"><span>Cursor</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB6CursorP"></a>
+                    <a name="//apple_ref/swift/Protocol/Cursor" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB6CursorP">Cursor</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A type that supplies the values of some external resource, one at a time.</p>
+<h2 id='overview' class='heading'>Overview</h2>
+
+<p>The most common way to iterate over the elements of a cursor is to use a
+<code>while</code> loop:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">cursor</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">while</span> <span class="k">let</span> <span class="nv">element</span> <span class="o">=</span> <span class="k">try</span> <span class="n">cursor</span><span class="o">.</span><span class="nf">next</span><span class="p">()</span> <span class="p">{</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</code></pre>
+<h2 id='relationship-with-standard-sequence-and-iteratorprotocol' class='heading'>Relationship with standard Sequence and IteratorProtocol</h2>
+
+<p>Cursors share traits with lazy sequences and iterators from the Swift
+standard library. Differences are:</p>
+
+<ul>
+<li>Cursor types are classes, and have a lifetime.</li>
+<li>Cursor iteration may throw errors.</li>
+<li>A cursor can not be repeated.</li>
+</ul>
+
+<p>The protocol comes with default implementations for many operations similar
+to those defined by Swift&rsquo;s Sequence protocol: <code>contains</code>, <code>dropFirst</code>,
+<code>dropLast</code>, <code>drop(while:)</code>, <code>enumerated</code>, <code>filter</code>, <code>first</code>, <code>flatMap</code>,
+<code>forEach</code>, <code>joined</code>, <code>joined(separator:)</code>, <code>max</code>, <code>max(by:)</code>, <code>min</code>,
+<code>min(by:)</code>, <code>map</code>, <code>prefix</code>, <code>prefix(while:)</code>, <code>reduce</code>, <code>reduce(into:)</code>,
+<code>suffix</code>.</p>
+
+                        <a href="Protocols/Cursor.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">Cursor</span> <span class="p">:</span> <span class="kt">AnyObject</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/Cursor.swift#L215-L225">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17DatabaseAggregateP"></a>
+                    <a name="//apple_ref/swift/Protocol/DatabaseAggregate" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17DatabaseAggregateP">DatabaseAggregate</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for custom SQLite aggregates.</p>
+
+<p>For example:</p>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">MySum</span> <span class="p">:</span> <span class="kt">DatabaseAggregate</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">sum</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">mutating</span> <span class="kd">func</span> <span class="nf">step</span><span class="p">(</span><span class="n">_</span> <span class="nv">dbValues</span><span class="p">:</span> <span class="p">[</span><span class="kt">DatabaseValue</span><span class="p">])</span> <span class="p">{</span>
+        <span class="k">if</span> <span class="k">let</span> <span class="nv">int</span> <span class="o">=</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fromDatabaseValue</span><span class="p">(</span><span class="n">dbValues</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="p">{</span>
+            <span class="n">sum</span> <span class="o">+=</span> <span class="n">int</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">finalize</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">DatabaseValueConvertible</span><span class="p">?</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">sum</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="k">let</span> <span class="nv">dbQueue</span> <span class="o">=</span> <span class="kt">DatabaseQueue</span><span class="p">()</span>
+<span class="k">let</span> <span class="nv">fn</span> <span class="o">=</span> <span class="kt">DatabaseFunction</span><span class="p">(</span><span class="s">"mysum"</span><span class="p">,</span> <span class="nv">argumentCount</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="nv">aggregate</span><span class="p">:</span> <span class="kt">MySum</span><span class="o">.</span><span class="k">self</span><span class="p">)</span>
+<span class="k">try</span> <span class="n">dbQueue</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+    <span class="n">db</span><span class="o">.</span><span class="nf">add</span><span class="p">(</span><span class="nv">function</span><span class="p">:</span> <span class="n">fn</span><span class="p">)</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"CREATE TABLE test(i)"</span><span class="p">)</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT INTO test(i) VALUES (1)"</span><span class="p">)</span>
+    <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">execute</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"INSERT INTO test(i) VALUES (2)"</span><span class="p">)</span>
+    <span class="k">try</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT mysum(i) FROM test"</span><span class="p">)</span><span class="o">!</span> <span class="c1">// 3</span>
+<span class="p">}</span>
+</code></pre>
+
+                        <a href="Protocols/DatabaseAggregate.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DatabaseAggregate</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/DatabaseFunction.swift#L386-L406">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB14DatabaseReaderP"></a>
+                    <a name="//apple_ref/swift/Protocol/DatabaseReader" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB14DatabaseReaderP">DatabaseReader</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>DatabaseReader</code> is the protocol for all types that can fetch values from
+an SQLite database.</p>
+
+<p>It is adopted by <code><a href="Classes/DatabaseQueue.html">DatabaseQueue</a></code>, <code><a href="Classes/DatabasePool.html">DatabasePool</a></code>, and <code><a href="Classes/DatabaseSnapshot.html">DatabaseSnapshot</a></code>.</p>
+
+<p>The protocol comes with isolation guarantees that describe the behavior of
+adopting types in a multithreaded application.</p>
+
+<p>Types that adopt the protocol can provide in practice stronger guarantees.
+For example, <code><a href="Classes/DatabaseQueue.html">DatabaseQueue</a></code> provides a stronger isolation level
+than <code><a href="Classes/DatabasePool.html">DatabasePool</a></code>.</p>
+
+<p><strong>Warning</strong>: Isolation guarantees stand as long as there is no external
+connection to the database. Should you have to cope with external
+connections, protect yourself with transactions, and be ready to setup a
+<a href="https://www.sqlite.org/c3ref/busy_handler.html">busy handler</a>.</p>
+
+                        <a href="Protocols/DatabaseReader.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DatabaseReader</span> <span class="p">:</span> <span class="kt">AnyObject</span><span class="p">,</span> <span class="kt">Sendable</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/DatabaseReader.swift#L22-L292">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/DatabaseRegionConvertible"></a>
+                <a name="//apple_ref/swift/Section/DatabaseRegionConvertible" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/DatabaseRegionConvertible"></a>
+                  <h3 class="section-name"><span>DatabaseRegionConvertible</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB25DatabaseRegionConvertibleP"></a>
+                    <a name="//apple_ref/swift/Protocol/DatabaseRegionConvertible" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB25DatabaseRegionConvertibleP">DatabaseRegionConvertible</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>DatabaseRegionConvertible</code> is the protocol for values that can be turned
+into a <code><a href="Structs/DatabaseRegion.html">DatabaseRegion</a></code>.</p>
+
+<p>Such values specify the region obserbed by <code><a href="Structs/DatabaseRegionObservation.html">DatabaseRegionObservation</a></code>.</p>
+
+                        <a href="Protocols/DatabaseRegionConvertible.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DatabaseRegionConvertible</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/DatabaseRegion.swift#L352-L357">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB24DatabaseValueConvertibleP"></a>
+                    <a name="//apple_ref/swift/Protocol/DatabaseValueConvertible" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB24DatabaseValueConvertibleP">DatabaseValueConvertible</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Types that adopt DatabaseValueConvertible can be initialized from
+database values.</p>
+
+<p>The protocol comes with built-in methods that allow to fetch cursors,
+arrays, or single values:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT name FROM ..."</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span> <span class="c1">// Cursor of String</span>
+<span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT name FROM ..."</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// [String]</span>
+<span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT name FROM ..."</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// String?</span>
+
+<span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeStatement</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT name FROM ..."</span><span class="p">)</span>
+<span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span> <span class="c1">// Cursor of String</span>
+<span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// [String]</span>
+<span class="k">try</span> <span class="kt">String</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// String?</span>
+</code></pre>
+
+<p>DatabaseValueConvertible is adopted by Bool, Int, String, etc.</p>
+
+                        <a href="Protocols/DatabaseValueConvertible.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DatabaseValueConvertible</span> <span class="p">:</span> <span class="kt"><a href="Protocols/SQLExpressible.html">SQLExpressible</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/StatementBinding.html">StatementBinding</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/DatabaseValueConvertible.swift#L17-L23">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/FetchRequest"></a>
+                <a name="//apple_ref/swift/Section/FetchRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/FetchRequest"></a>
+                  <h3 class="section-name"><span>FetchRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB12FetchRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/FetchRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB12FetchRequestP">FetchRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that fetch database rows, and tell how those
+rows should be interpreted.</p>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">Player</span><span class="p">:</span> <span class="kt">FetchableRecord</span> <span class="p">{</span> <span class="o">...</span> <span class="p">}</span>
+<span class="k">let</span> <span class="nv">request</span><span class="p">:</span> <span class="o">...</span> <span class="c1">// Some FetchRequest that fetches Player</span>
+<span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">db</span><span class="p">)</span> <span class="c1">// Cursor of Player</span>
+<span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>    <span class="c1">// [Player]</span>
+<span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchSet</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>    <span class="c1">// Set&lt;Player&gt;</span>
+<span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>    <span class="c1">// Player?</span>
+<span class="k">try</span> <span class="n">request</span><span class="o">.</span><span class="nf">fetchCount</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>  <span class="c1">// Int</span>
+</code></pre>
+
+                        <a href="Protocols/FetchRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">FetchRequest</span> <span class="p">:</span> <span class="kt"><a href="Protocols/DatabaseRegionConvertible.html">DatabaseRegionConvertible</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SQLSubqueryable.html">SQLSubqueryable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/FetchRequest.swift#L13-L36">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB14DatabaseWriterP"></a>
+                    <a name="//apple_ref/swift/Protocol/DatabaseWriter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB14DatabaseWriterP">DatabaseWriter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>DatabaseWriter</code> is the protocol for all types that can write into an
+SQLite database.</p>
+
+<p>It is adopted by <code><a href="Classes/DatabaseQueue.html">DatabaseQueue</a></code> and <code><a href="Classes/DatabasePool.html">DatabasePool</a></code>.</p>
+
+<p>The protocol comes with isolation guarantees that describe the behavior of
+adopting types in a multithreaded application.</p>
+
+<p>Types that adopt the protocol can in practice provide stronger guarantees.
+For example, <code><a href="Classes/DatabaseQueue.html">DatabaseQueue</a></code> provides a stronger isolation level
+than <code><a href="Classes/DatabasePool.html">DatabasePool</a></code>.</p>
+
+<p><strong>Warning</strong>: Isolation guarantees stand as long as there is no external
+connection to the database. Should you have to cope with external
+connections, protect yourself with transactions, and be ready to setup a
+<a href="https://www.sqlite.org/c3ref/busy_handler.html">busy handler</a>.</p>
+
+                        <a href="Protocols/DatabaseWriter.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DatabaseWriter</span> <span class="p">:</span> <span class="kt"><a href="Protocols/DatabaseReader.html">DatabaseReader</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/DatabaseWriter.swift#L22-L221">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB10RowAdapterP"></a>
+                    <a name="//apple_ref/swift/Protocol/RowAdapter" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB10RowAdapterP">RowAdapter</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>RowAdapter</code> is a protocol that helps two incompatible row interfaces
+working together.</p>
+
+<p>GRDB ships with four concrete types that adopt the RowAdapter protocol:</p>
+
+<ul>
+<li><code><a href="Structs/ColumnMapping.html">ColumnMapping</a></code>: renames row columns</li>
+<li><code><a href="Structs/EmptyRowAdapter.html">EmptyRowAdapter</a></code>: hides all columns</li>
+<li><code><a href="Structs/RangeRowAdapter.html">RangeRowAdapter</a></code>: exposes a range of columns</li>
+<li><code><a href="Structs/RenameColumnAdapter.html">RenameColumnAdapter</a></code>: transforms column names with a function</li>
+<li><code><a href="Structs/ScopeAdapter.html">ScopeAdapter</a></code>: defines row scopes</li>
+<li><code><a href="Structs/SuffixRowAdapter.html">SuffixRowAdapter</a></code>: hides the first columns of a row</li>
+</ul>
+
+<p>To use a row adapter, provide it to any method that fetches:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">adapter</span> <span class="o">=</span> <span class="kt">SuffixRowAdapter</span><span class="p">(</span><span class="nv">fromIndex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">sql</span> <span class="o">=</span> <span class="s">"SELECT 1 AS foo, 2 AS bar, 3 AS baz"</span>
+
+<span class="c1">// [baz:3]</span>
+<span class="k">try</span> <span class="kt">Row</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="n">sql</span><span class="p">,</span> <span class="nv">adapter</span><span class="p">:</span> <span class="n">adapter</span><span class="p">)</span>
+</code></pre>
+
+                        <a href="Protocols/RowAdapter.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">RowAdapter</span> <span class="p">:</span> <span class="n">_RowAdapter</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/RowAdapter.swift#L201">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/Cursors"></a>
+                <a name="//apple_ref/swift/Section/Cursors" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/Cursors"></a>
+                  <h3 class="section-name"><span>Cursors</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB14DatabaseCursorP"></a>
+                    <a name="//apple_ref/swift/Protocol/DatabaseCursor" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB14DatabaseCursorP">DatabaseCursor</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A protocol for cursors that iterate a database statement.</p>
+
+                        <a href="Protocols/DatabaseCursor.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DatabaseCursor</span> <span class="p">:</span> <span class="n">_DatabaseCursor</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/Statement.swift#L424-L427">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/StatementBinding"></a>
+                <a name="//apple_ref/swift/Section/StatementBinding" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/StatementBinding"></a>
+                  <h3 class="section-name"><span>StatementBinding</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB16StatementBindingP"></a>
+                    <a name="//apple_ref/swift/Protocol/StatementBinding" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB16StatementBindingP">StatementBinding</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Undocumented</p>
+
+                        <a href="Protocols/StatementBinding.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">StatementBinding</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/Statement.swift#L511-L518">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB26StatementColumnConvertibleP"></a>
+                    <a name="//apple_ref/swift/Protocol/StatementColumnConvertible" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB26StatementColumnConvertibleP">StatementColumnConvertible</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The <code>StatementColumnConvertible</code> protocol grants access to the low-level C
+interface that extracts values from query results:
+<a href="https://www.sqlite.org/c3ref/column_blob.html">https://www.sqlite.org/c3ref/column_blob.html</a>. It can bring performance
+improvements.</p>
+
+<p>To use it, have a value type adopt both <code>StatementColumnConvertible</code> and
+<code><a href="Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></code>. GRDB will then automatically apply the
+optimization whenever direct access to SQLite is possible:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">rows</span> <span class="o">=</span> <span class="kt">Row</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT ..."</span><span class="p">)</span>
+<span class="k">while</span> <span class="k">let</span> <span class="nv">row</span> <span class="o">=</span> <span class="k">try</span> <span class="n">rows</span><span class="o">.</span><span class="nf">next</span><span class="p">()</span> <span class="p">{</span>
+    <span class="k">let</span> <span class="nv">int</span><span class="p">:</span> <span class="kt">Int</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>                 <span class="c1">// there</span>
+<span class="p">}</span>
+<span class="k">let</span> <span class="nv">ints</span> <span class="o">=</span> <span class="kt">Int</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT ..."</span><span class="p">)</span> <span class="c1">// there</span>
+<span class="kd">struct</span> <span class="kt">Player</span> <span class="p">{</span>
+    <span class="nf">init</span><span class="p">(</span><span class="nv">row</span><span class="p">:</span> <span class="kt">Row</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">"name"</span><span class="p">]</span>                <span class="c1">// there</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">"score"</span><span class="p">]</span>              <span class="c1">// there</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+
+                        <a href="Protocols/StatementColumnConvertible.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">StatementColumnConvertible</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/StatementColumnConvertible.swift#L21-L43">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/SQLSelectable"></a>
+                <a name="//apple_ref/swift/Section/SQLSelectable" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/SQLSelectable"></a>
+                  <h3 class="section-name"><span>SQLSelectable</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB13SQLSelectableP"></a>
+                    <a name="//apple_ref/swift/Protocol/SQLSelectable" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB13SQLSelectableP">SQLSelectable</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>SQLSelectable is the protocol for types that can be selected, as
+described at <a href="https://www.sqlite.org/syntax/result-column.html">https://www.sqlite.org/syntax/result-column.html</a></p>
+
+                        <a href="Protocols/SQLSelectable.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">SQLSelectable</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/SQL/SQLSelection.swift#L288-L291">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/SQLOrderingTerm"></a>
+                <a name="//apple_ref/swift/Section/SQLOrderingTerm" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/SQLOrderingTerm"></a>
+                  <h3 class="section-name"><span>SQLOrderingTerm</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB15SQLOrderingTermP"></a>
+                    <a name="//apple_ref/swift/Protocol/SQLOrderingTerm" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB15SQLOrderingTermP">SQLOrderingTerm</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all types that can be used as an SQL ordering term, as
+described at <a href="https://www.sqlite.org/syntax/ordering-term.html">https://www.sqlite.org/syntax/ordering-term.html</a></p>
+
+                        <a href="Protocols/SQLOrderingTerm.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">SQLOrderingTerm</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/SQL/SQLOrdering.swift#L122-L125">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/SQLExpressible"></a>
+                <a name="//apple_ref/swift/Section/SQLExpressible" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/SQLExpressible"></a>
+                  <h3 class="section-name"><span>SQLExpressible</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB14SQLExpressibleP"></a>
+                    <a name="//apple_ref/swift/Protocol/SQLExpressible" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB14SQLExpressibleP">SQLExpressible</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>SQLExpressible</code> is the protocol for all types that can be used as an
+SQL expression.</p>
+
+<p>It is adopted by protocols like <code><a href="Protocols/DatabaseValueConvertible.html">DatabaseValueConvertible</a></code>, and types
+like <code>Column</code>.</p>
+
+<p>See <a href="https://github.com/groue/GRDB.swift/#the-query-interface">https://github.com/groue/GRDB.swift/#the-query-interface</a></p>
+
+                        <a href="Protocols/SQLExpressible.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">SQLExpressible</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/SQL/SQLExpression.swift#L1665-L1668">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB22SQLSpecificExpressibleP"></a>
+                    <a name="//apple_ref/swift/Protocol/SQLSpecificExpressible" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB22SQLSpecificExpressibleP">SQLSpecificExpressible</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p><code>SQLSpecificExpressible</code> is a protocol for all database-specific types that
+can be turned into an SQL expression. Types whose existence is not purely
+dedicated to the database should adopt the <code><a href="Protocols/SQLExpressible.html">SQLExpressible</a></code>
+protocol instead.</p>
+
+<p>For example, <code>Column</code> is a type that only exists to help you build requests,
+and it adopts <code>SQLSpecificExpressible</code>.</p>
+
+<p>On the other side, <code>Int</code> adopts <code><a href="Protocols/SQLExpressible.html">SQLExpressible</a></code>.</p>
+
+                        <a href="Protocols/SQLSpecificExpressible.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">SQLSpecificExpressible</span> <span class="p">:</span> <span class="kt"><a href="Protocols/SQLExpressible.html">SQLExpressible</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SQLOrderingTerm.html">SQLOrderingTerm</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/SQLSelectable.html">SQLSelectable</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/SQL/SQLExpression.swift#L1686-L1705">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/TransactionObserver"></a>
+                <a name="//apple_ref/swift/Section/TransactionObserver" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/TransactionObserver"></a>
+                  <h3 class="section-name"><span>TransactionObserver</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB19TransactionObserverP"></a>
+                    <a name="//apple_ref/swift/Protocol/TransactionObserver" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB19TransactionObserverP">TransactionObserver</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A transaction observer is notified of all changes and transactions committed
+or rollbacked on a database.</p>
+
+<p>Adopting types must be a class.</p>
+
+                        <a href="Protocols/TransactionObserver.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">TransactionObserver</span> <span class="p">:</span> <span class="kt">AnyObject</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Core/TransactionObserver.swift#L664-L742">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Protocol/FTS5CustomTokenizer" class="dashAnchor"></a>
+                    <a class="token" href="#/">FTS5CustomTokenizer</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for custom FTS5 tokenizers.</p>
+
+                        <a href="Protocols/FTS5CustomTokenizer.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Protocol/FTS5Tokenizer" class="dashAnchor"></a>
+                    <a class="token" href="#/">FTS5Tokenizer</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for FTS5 tokenizers</p>
+
+                        <a href="Protocols/FTS5Tokenizer.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/"></a>
+                    <a name="//apple_ref/swift/Protocol/FTS5WrapperTokenizer" class="dashAnchor"></a>
+                    <a class="token" href="#/">FTS5WrapperTokenizer</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for custom FTS5 tokenizers that wrap another tokenizer.</p>
+
+<p>Types that adopt FTS5WrapperTokenizer don&rsquo;t have to implement the
+low-level FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:).</p>
+
+<p>Instead, they process regular Swift strings.</p>
+
+<p>Here is the implementation for a trivial tokenizer that wraps the
+built-in ascii tokenizer without any custom processing:</p>
+<pre class="highlight swift"><code><span class="kd">class</span> <span class="kt">TrivialAsciiTokenizer</span> <span class="p">:</span> <span class="kt">FTS5WrapperTokenizer</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="k">let</span> <span class="nv">name</span> <span class="o">=</span> <span class="s">"trivial"</span>
+    <span class="k">let</span> <span class="nv">wrappedTokenizer</span><span class="p">:</span> <span class="kt">FTS5Tokenizer</span>
+
+    <span class="nf">init</span><span class="p">(</span><span class="nv">db</span><span class="p">:</span> <span class="kt">Database</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span> <span class="p">[</span><span class="kt">String</span><span class="p">])</span> <span class="k">throws</span> <span class="p">{</span>
+        <span class="n">wrappedTokenizer</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeTokenizer</span><span class="p">(</span><span class="o">.</span><span class="nf">ascii</span><span class="p">())</span>
+    <span class="p">}</span>
+
+    <span class="kd">func</span> <span class="nf">accept</span><span class="p">(</span>
+        <span class="nv">token</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span>
+        <span class="nv">flags</span><span class="p">:</span> <span class="kt">FTS5TokenFlags</span><span class="p">,</span>
+        <span class="k">for</span> <span class="nv">tokenization</span><span class="p">:</span> <span class="kt">FTS5Tokenization</span><span class="p">,</span>
+        <span class="nv">tokenCallback</span><span class="p">:</span> <span class="kt">FTS5WrapperTokenCallback</span><span class="p">)</span>
+        <span class="k">throws</span>
+    <span class="p">{</span>
+        <span class="k">try</span> <span class="nf">tokenCallback</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">flags</span><span class="p">)</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</code></pre>
+
+                        <a href="Protocols/FTS5WrapperTokenizer.html" class="slightly-smaller">See more</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/TableRequest"></a>
+                <a name="//apple_ref/swift/Section/TableRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/TableRequest"></a>
+                  <h3 class="section-name"><span>TableRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB12TableRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/TableRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB12TableRequestP">TableRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that feed from a database table</p>
+
+                        <a href="Protocols/TableRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">TableRequest</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L215-L237">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB11TableRecordP"></a>
+                    <a name="//apple_ref/swift/Protocol/TableRecord" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB11TableRecordP">TableRecord</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Types that adopt <code>TableRecord</code> declare a particular relationship with
+a database table.</p>
+
+<p>Types that adopt both <code>TableRecord</code> and <code><a href="Protocols/FetchableRecord.html">FetchableRecord</a></code> are granted with
+built-in methods that allow to fetch instances identified by key:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">key</span><span class="p">:</span> <span class="mi">123</span><span class="p">)</span>  <span class="c1">// Player?</span>
+<span class="k">try</span> <span class="kt">Citizenship</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">key</span><span class="p">:</span> <span class="p">[</span><span class="s">"citizenId"</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="s">"countryId"</span><span class="p">:</span> <span class="mi">45</span><span class="p">])</span> <span class="c1">// Citizenship?</span>
+</code></pre>
+
+                        <a href="Protocols/TableRecord.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">TableRecord</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Record/TableRecord.swift#L11-L50">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB16ColumnExpressionP"></a>
+                    <a name="//apple_ref/swift/Protocol/ColumnExpression" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB16ColumnExpressionP">ColumnExpression</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Adopt the ColumnExpression protocol when you define a column type.</p>
+
+<p>You can, for example, define a String-based column enum:</p>
+<pre class="highlight swift"><code><span class="kd">enum</span> <span class="kt">Columns</span><span class="p">:</span> <span class="kt">String</span><span class="p">,</span> <span class="kt">ColumnExpression</span> <span class="p">{</span>
+    <span class="k">case</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">score</span>
+<span class="p">}</span>
+<span class="k">let</span> <span class="nv">arthur</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="kt">Columns</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s">"Arthur"</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</code></pre>
+
+<p>You can also define a genuine column type:</p>
+<pre class="highlight swift"><code><span class="kd">struct</span> <span class="kt">MyColumn</span><span class="p">:</span> <span class="kt">ColumnExpression</span> <span class="p">{</span>
+    <span class="k">var</span> <span class="nv">name</span><span class="p">:</span> <span class="kt">String</span>
+    <span class="k">var</span> <span class="nv">sqlType</span><span class="p">:</span> <span class="kt">String</span>
+<span class="p">}</span>
+<span class="k">let</span> <span class="nv">nameColumn</span> <span class="o">=</span> <span class="kt">MyColumn</span><span class="p">(</span><span class="nv">name</span><span class="p">:</span> <span class="s">"name"</span><span class="p">,</span> <span class="nv">sqlType</span><span class="p">:</span> <span class="s">"VARCHAR"</span><span class="p">)</span>
+<span class="k">let</span> <span class="nv">arthur</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">filter</span><span class="p">(</span><span class="n">nameColumn</span> <span class="o">==</span> <span class="s">"Arthur"</span><span class="p">)</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+</code></pre>
+
+<p>See <a href="https://github.com/groue/GRDB.swift#the-query-interface">https://github.com/groue/GRDB.swift#the-query-interface</a></p>
+
+                        <a href="Protocols/ColumnExpression.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">ColumnExpression</span> <span class="p">:</span> <span class="kt"><a href="Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/SQL/Column.swift#L20-L25">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB11AssociationP"></a>
+                    <a name="//apple_ref/swift/Protocol/Association" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB11AssociationP">Association</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The base protocol for all associations that define a connection between two
+record types.</p>
+
+                        <a href="Protocols/Association.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">Association</span> <span class="p">:</span> <span class="kt"><a href="Protocols/DerivableRequest.html">DerivableRequest</a></span><span class="p">,</span> <span class="n">_Association</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/Association/Association.swift#L12-L44">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/AssociationToOne"></a>
+                <a name="//apple_ref/swift/Section/AssociationToOne" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/AssociationToOne"></a>
+                  <h3 class="section-name"><span>AssociationToOne</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB16AssociationToOneP"></a>
+                    <a name="//apple_ref/swift/Protocol/AssociationToOne" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB16AssociationToOneP">AssociationToOne</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The base protocol for all associations that define a one-to-one connection.</p>
+
+                        <a href="Protocols/AssociationToOne.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">AssociationToOne</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Association.html">Association</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/Association/Association.swift#L407">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/AssociationToMany"></a>
+                <a name="//apple_ref/swift/Section/AssociationToMany" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/AssociationToMany"></a>
+                  <h3 class="section-name"><span>AssociationToMany</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17AssociationToManyP"></a>
+                    <a name="//apple_ref/swift/Protocol/AssociationToMany" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17AssociationToManyP">AssociationToMany</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The base protocol for all associations that define a one-to-many connection.</p>
+
+                        <a href="Protocols/AssociationToMany.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">AssociationToMany</span> <span class="p">:</span> <span class="kt"><a href="Protocols/Association.html">Association</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/Association/Association.swift#L421">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/TypedRequest"></a>
+                <a name="//apple_ref/swift/Section/TypedRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/TypedRequest"></a>
+                  <h3 class="section-name"><span>TypedRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB12TypedRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/TypedRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB12TypedRequestP">TypedRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that know how database rows should
+be interpreted.</p>
+
+                        <a href="Protocols/TypedRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">TypedRequest</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L7-L14">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/SelectionRequest"></a>
+                <a name="//apple_ref/swift/Section/SelectionRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/SelectionRequest"></a>
+                  <h3 class="section-name"><span>SelectionRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB16SelectionRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/SelectionRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB16SelectionRequestP">SelectionRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that can refine their selection.</p>
+
+                        <a href="Protocols/SelectionRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">SelectionRequest</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L19-L42">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/FilteredRequest"></a>
+                <a name="//apple_ref/swift/Section/FilteredRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/FilteredRequest"></a>
+                  <h3 class="section-name"><span>FilteredRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB15FilteredRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/FilteredRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB15FilteredRequestP">FilteredRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that can be filtered.</p>
+
+                        <a href="Protocols/FilteredRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">FilteredRequest</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L142-L150">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/AggregatingRequest"></a>
+                <a name="//apple_ref/swift/Section/AggregatingRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/AggregatingRequest"></a>
+                  <h3 class="section-name"><span>AggregatingRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB18AggregatingRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/AggregatingRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB18AggregatingRequestP">AggregatingRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that can aggregate.</p>
+
+                        <a href="Protocols/AggregatingRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">AggregatingRequest</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L478-L485">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/OrderedRequest"></a>
+                <a name="//apple_ref/swift/Section/OrderedRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/OrderedRequest"></a>
+                  <h3 class="section-name"><span>OrderedRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB14OrderedRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/OrderedRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB14OrderedRequestP">OrderedRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that can be ordered.</p>
+
+                        <a href="Protocols/OrderedRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">OrderedRequest</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L532-L567">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/JoinableRequest"></a>
+                <a name="//apple_ref/swift/Section/JoinableRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/JoinableRequest"></a>
+                  <h3 class="section-name"><span>JoinableRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB15JoinableRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/JoinableRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB15JoinableRequestP">JoinableRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for all requests that can be associated.</p>
+
+                        <a href="Protocols/JoinableRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">JoinableRequest</span> <span class="p">:</span> <span class="kt"><a href="Protocols/TypedRequest.html">TypedRequest</a></span><span class="p">,</span> <span class="n">_JoinableRequest</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L669">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/DerivableRequest"></a>
+                <a name="//apple_ref/swift/Section/DerivableRequest" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/DerivableRequest"></a>
+                  <h3 class="section-name"><span>DerivableRequest</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB16DerivableRequestP"></a>
+                    <a name="//apple_ref/swift/Protocol/DerivableRequest" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB16DerivableRequestP">DerivableRequest</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The base protocol for all requests that can be refined.</p>
+
+                        <a href="Protocols/DerivableRequest.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DerivableRequest</span><span class="p">:</span> <span class="kt"><a href="Protocols/AggregatingRequest.html">AggregatingRequest</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/FilteredRequest.html">FilteredRequest</a></span><span class="p">,</span>
+                                  <span class="kt"><a href="Protocols/JoinableRequest.html">JoinableRequest</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/OrderedRequest.html">OrderedRequest</a></span><span class="p">,</span>
+                                  <span class="kt"><a href="Protocols/SelectionRequest.html">SelectionRequest</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/TableRequest.html">TableRequest</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Request/RequestProtocols.swift#L797-L857">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/SQLSubqueryable"></a>
+                <a name="//apple_ref/swift/Section/SQLSubqueryable" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/SQLSubqueryable"></a>
+                  <h3 class="section-name"><span>SQLSubqueryable</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB15SQLSubqueryableP"></a>
+                    <a name="//apple_ref/swift/Protocol/SQLSubqueryable" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB15SQLSubqueryableP">SQLSubqueryable</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for types that can be embedded as a subquery.</p>
+
+                        <a href="Protocols/SQLSubqueryable.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">SQLSubqueryable</span> <span class="p">:</span> <span class="kt"><a href="Protocols/SQLSpecificExpressible.html">SQLSpecificExpressible</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/SQL/SQLSubquery.swift#L89-L91">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB18VirtualTableModuleP"></a>
+                    <a name="//apple_ref/swift/Protocol/VirtualTableModule" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB18VirtualTableModuleP">VirtualTableModule</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The protocol for SQLite virtual table modules. It lets you define a DSL for
+the <code>Database.create(virtualTable:using:)</code> method:</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">module</span> <span class="o">=</span> <span class="o">...</span>
+<span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">create</span><span class="p">(</span><span class="nv">virtualTable</span><span class="p">:</span> <span class="s">"item"</span><span class="p">,</span> <span class="nv">using</span><span class="p">:</span> <span class="n">module</span><span class="p">)</span> <span class="p">{</span> <span class="n">t</span> <span class="k">in</span>
+    <span class="o">...</span>
+<span class="p">}</span>
+</code></pre>
+
+<p>GRDB ships with three concrete classes that implement this protocol: FTS3,
+FTS4 and FTS5.</p>
+
+                        <a href="Protocols/VirtualTableModule.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">VirtualTableModule</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/QueryInterface/Schema/VirtualTableModule.swift#L11-L50">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB15EncodableRecordP"></a>
+                    <a name="//apple_ref/swift/Protocol/EncodableRecord" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB15EncodableRecordP">EncodableRecord</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Types that adopt <code>EncodableRecord</code> can be encoded into the database.</p>
+
+                        <a href="Protocols/EncodableRecord.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">EncodableRecord</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Record/EncodableRecord.swift#L4-L135">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB15FetchableRecordP"></a>
+                    <a name="//apple_ref/swift/Protocol/FetchableRecord" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB15FetchableRecordP">FetchableRecord</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Types that adopt <code>FetchableRecord</code> can be initialized from a database Row.</p>
+<pre class="highlight swift"><code><span class="k">let</span> <span class="nv">row</span> <span class="o">=</span> <span class="k">try</span> <span class="kt">Row</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT ..."</span><span class="p">)</span><span class="o">!</span>
+<span class="k">let</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+</code></pre>
+
+<p>The protocol comes with built-in methods that allow to fetch cursors,
+arrays, or single records:</p>
+<pre class="highlight swift"><code><span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT ..."</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span> <span class="c1">// Cursor of Player</span>
+<span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT ..."</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// [Player]</span>
+<span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT ..."</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// Player?</span>
+
+<span class="k">let</span> <span class="nv">statement</span> <span class="o">=</span> <span class="k">try</span> <span class="n">db</span><span class="o">.</span><span class="nf">makeStatement</span><span class="p">(</span><span class="nv">sql</span><span class="p">:</span> <span class="s">"SELECT ..."</span><span class="p">)</span>
+<span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchCursor</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span> <span class="c1">// Cursor of Player</span>
+<span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchAll</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// [Player]</span>
+<span class="k">try</span> <span class="kt">Player</span><span class="o">.</span><span class="nf">fetchOne</span><span class="p">(</span><span class="n">statement</span><span class="p">,</span> <span class="nv">arguments</span><span class="p">:</span><span class="o">...</span><span class="p">)</span>    <span class="c1">// Player?</span>
+</code></pre>
+
+                        <a href="Protocols/FetchableRecord.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">FetchableRecord</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Record/FetchableRecord.swift#L19-L120">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB24MutablePersistableRecordP"></a>
+                    <a name="//apple_ref/swift/Protocol/MutablePersistableRecord" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB24MutablePersistableRecordP">MutablePersistableRecord</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Types that adopt <code>MutablePersistableRecord</code> can be inserted, updated,
+and deleted.</p>
+
+                        <a href="Protocols/MutablePersistableRecord.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">MutablePersistableRecord</span> <span class="p">:</span> <span class="kt"><a href="Protocols/EncodableRecord.html">EncodableRecord</a></span><span class="p">,</span> <span class="kt"><a href="Protocols/TableRecord.html">TableRecord</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Record/PersistableRecord.swift#L58-L178">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div class="task-group">
+              <div class="task-name-container">
+                <a name="/PersistableRecord"></a>
+                <a name="//apple_ref/swift/Section/PersistableRecord" class="dashAnchor"></a>
+                <div class="section-name-container">
+                  <a class="section-name-link" href="#/PersistableRecord"></a>
+                  <h3 class="section-name"><span>PersistableRecord</span>
+</h3>
+                </div>
+              </div>
+              <ul>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB17PersistableRecordP"></a>
+                    <a name="//apple_ref/swift/Protocol/PersistableRecord" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB17PersistableRecordP">PersistableRecord</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Types that adopt <code>PersistableRecord</code> can be inserted, updated, and deleted.</p>
+
+<p>Unlike <code><a href="Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a></code>, the <code>insert(_:)</code> and <code>save(_:)</code> methods
+are not mutating methods.</p>
+
+                        <a href="Protocols/PersistableRecord.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">PersistableRecord</span> <span class="p">:</span> <span class="kt"><a href="Protocols/MutablePersistableRecord.html">MutablePersistableRecord</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/Record/PersistableRecord.swift#L541-L597">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB19DatabaseCancellableP"></a>
+                    <a name="//apple_ref/swift/Protocol/DatabaseCancellable" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB19DatabaseCancellableP">DatabaseCancellable</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A protocol indicating that an activity or action supports cancellation.</p>
+
+                        <a href="Protocols/DatabaseCancellable.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">DatabaseCancellable</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/ValueObservation/DatabaseCancellable.swift#L2-L5">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:4GRDB12ValueReducerP"></a>
+                    <a name="//apple_ref/swift/Protocol/ValueReducer" class="dashAnchor"></a>
+                    <a class="token" href="#/s:4GRDB12ValueReducerP">ValueReducer</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>The <code>ValueReducer</code> protocol supports <code><a href="Structs/ValueObservation.html">ValueObservation</a></code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">protocol</span> <span class="kt">ValueReducer</span> <span class="p">:</span> <span class="n">_ValueReducer</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0/GRDB/ValueObservation/ValueReducer/ValueReducer.swift#L33">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </section>
+        </section>
+        <section id="footer">
+          <p>&copy; 2022 <a class="link" href="https://github.com/groue" target="_blank" rel="external noopener">Gwendal Roué</a>. All rights reserved. (Last updated: 2022-03-22)</p>
+          <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.2</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
+        </section>
+      </article>
+    </div>
+  </body>
+</html>
