@@ -47,6 +47,7 @@ public struct ValueObservation<Reducer: ValueReducer> {
     }
 }
 
+/// Configures the tracked region
 enum ValueObservationTrackingMode {
     /// The tracked region is constant and explicit.
     ///
@@ -244,8 +245,8 @@ extension ValueObservation: Refinable {
     /// Returns the value.
     func fetchValue(_ db: Database) throws -> Reducer.Value {
         var reducer = makeReducer()
-        guard let value = try reducer.fetchAndReduce(db) else {
-            fatalError("Contract broken: reducer has no initial value")
+        guard let value = try reducer._value(reducer._fetch(db)) else {
+            fatalError("Broken contract: reducer has no initial value")
         }
         return value
     }
@@ -401,11 +402,8 @@ extension ValueObservation {
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main))
     -> DatabasePublishers.Value<Reducer.Value>
     {
-        DatabasePublishers.Value { [weak reader] (onError, onChange) in
-            guard let reader = reader else {
-                return AnyDatabaseCancellable(cancel: { })
-            }
-            return self.start(
+        DatabasePublishers.Value { (onError, onChange) in
+            self.start(
                 in: reader,
                 scheduling: scheduler,
                 onError: onError,
@@ -471,8 +469,8 @@ extension DatabasePublishers {
             downstream: Downstream)
         {
             state = .waitingForDemand(WaitingForDemand(
-                                        downstream: downstream,
-                                        start: start))
+                downstream: downstream,
+                start: start))
         }
         
         func request(_ demand: Subscribers.Demand) {
@@ -483,8 +481,8 @@ extension DatabasePublishers {
                         return
                     }
                     state = .observing(Observing(
-                                        downstream: info.downstream,
-                                        remainingDemand: demand))
+                        downstream: info.downstream,
+                        remainingDemand: demand))
                     let cancellable = info.start(
                         { [weak self] error in self?.receiveCompletion(.failure(error)) },
                         { [weak self] value in self?.receive(value) })

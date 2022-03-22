@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.22.x` Releases - [5.22.0](#5220)
 - `5.21.x` Releases - [5.21.0](#5210)
 - `5.20.x` Releases - [5.20.0](#5200)
 - `5.19.x` Releases - [5.19.0](#5190)
@@ -87,6 +88,13 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.22.0
+
+Released March 22, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.21.0...v5.22.0)
+
+- **New**: [#1186](https://github.com/groue/GRDB.swift/pull/1186) by [@benrb](https://github.com/benrb): DatabaseError provide error message as localizedFailureReason
+- **Breaking Change**: [#1183](https://github.com/groue/GRDB.swift/pull/1183) by [@groue](https://github.com/groue): Starting a ValueObservation keeps a strong reference on the database connection.
 
 ## 5.21.0
 

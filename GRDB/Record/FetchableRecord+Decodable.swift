@@ -117,13 +117,14 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         }
         
         func decodeNil(forKey key: Key) throws -> Bool {
-            // Nil is only possible for columns and scopes (optional
-            // associations), not for prefetched rows.
             let row = decoder.row
             if let column = try? decodeColumn(forKey: key), row[column] != nil {
                 return false
             }
             if row.scopesTree[key.stringValue] != nil {
+                return false
+            }
+            if row.prefetchedRows[key.stringValue] != nil {
                 return false
             }
             return true
@@ -218,9 +219,15 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 }
             }
             
-            // Scope? (beware left joins: check if scoped row contains non-null values)
-            if let scopedRow = row.scopesTree[key.stringValue], scopedRow.containsNonNullValue {
-                return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
+            // Scope?
+            if let scopedRow = row.scopesTree[key.stringValue] {
+                // Beware left joins: check if scoped row contains non-null
+                // values before decoding
+                if scopedRow.containsNonNullValue {
+                    return try decode(type, fromRow: scopedRow, codingPath: codingPath + [key])
+                } else {
+                    return nil
+                }
             }
             
             // Prefetched Rows?
@@ -229,7 +236,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 return try T(from: decoder)
             }
             
-            // Key is not a column, and not a scope.
+            // Unknown key
             return nil
         }
         
@@ -264,7 +271,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
                 return try T(from: decoder)
             }
             
-            // Key is not a column, and not a scope.
+            // Unknown key
             //
             // Should be throw an error? Well... The use case is the following:
             //
@@ -291,7 +298,8 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
             //
             // Our current strategy is to assume that a missing key (such as
             // "book", which is not the name of a column, and not the name of a
-            // scope) has to be decoded right from the base row.
+            // scope) has to be decoded right from the base row. But this can
+            // happen only once.
             if let decodedRootKey = decodedRootKey {
                 let keys = [decodedRootKey.stringValue, key.stringValue].sorted()
                 throw DecodingError.keyNotFound(key, DecodingError.Context(
