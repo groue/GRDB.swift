@@ -150,10 +150,10 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
 extension ValueWriteOnlyObserver {
     // Starts the observation
     func start() -> DatabaseCancellable {
-        let (notificationCallbacks, writer) = lock.synchronized {
-            (self.notificationCallbacks, databaseAccess?.writer)
+        let (notificationCallbacks, databaseAccess) = lock.synchronized {
+            (self.notificationCallbacks, self.databaseAccess)
         }
-        guard let notificationCallbacks = notificationCallbacks, let writer = writer else {
+        guard let notificationCallbacks = notificationCallbacks, let writer = databaseAccess?.writer else {
             // Likely a GRDB bug
             fatalError("can't start a cancelled or failed observation")
         }
