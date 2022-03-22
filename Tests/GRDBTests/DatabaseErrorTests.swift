@@ -226,6 +226,7 @@ class DatabaseErrorTests: GRDBTestCase {
                 XCTAssertEqual(DatabaseError.errorDomain, "GRDB.DatabaseError")
                 XCTAssertEqual(error.domain, DatabaseError.errorDomain)
                 XCTAssertEqual(error.code, 787)
+                XCTAssertNotNil(error.localizedFailureReason)
             }
         }
     }
