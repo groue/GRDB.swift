@@ -89,6 +89,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 5.22.1
+
+Released March 22, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.22.0...v5.22.1)
+
+- **Fixed** a 5.22.0 regression: [#1194](https://github.com/groue/GRDB.swift/issues/1194) ValueObservation could deadlock when the database is configured with a serial target DispatchQueue.
+
 ## 5.22.0
 
 Released March 22, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.21.0...v5.22.0)
