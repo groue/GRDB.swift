@@ -16,7 +16,7 @@
     <a title="GRDB  Reference"></a>
     <header>
       <div class="content-wrapper">
-        <p><a href="index.html">GRDB 5.22.0 Docs</a> (89% documented)</p>
+        <p><a href="index.html">GRDB 5.22.1 Docs</a> (89% documented)</p>
         <p class="header-right"><a href="https://github.com/groue/GRDB.swift"><img src="img/gh.png" alt="GitHub"/>View on GitHub</a></p>
         <p class="header-right"><a href="dash-feed://http%3A%2F%2Fgroue.github.io%2FGRDB.swift%2Fdocs%2F5.22%2Fdocsets%2FGRDB.xml"><img src="img/dash.png" alt="Dash"/>Install in Dash</a></p>
         <div class="header-right">
@@ -1131,7 +1131,7 @@
 
 <hr>
 
-<p><strong>Latest release</strong>: March 22, 2022 • <a href="https://github.com/groue/GRDB.swift/tree/v5.22.0">version 5.22.0</a> • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB5MigrationGuide.md">Migrating From GRDB 4 to GRDB 5</a></p>
+<p><strong>Latest release</strong>: March 26, 2022 • <a href="https://github.com/groue/GRDB.swift/tree/v5.22.1">version 5.22.1</a> • <a href="CHANGELOG.md">CHANGELOG</a> • <a href="Documentation/GRDB5MigrationGuide.md">Migrating From GRDB 4 to GRDB 5</a></p>
 
 <p><strong>Requirements</strong>: iOS 11.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; SQLite 3.8.5+ &bull; Swift 5.3+ / Xcode 12+</p>
 
@@ -1143,7 +1143,7 @@
 </thead><tbody>
 <tr>
 <td><strong>Swift 5.3+</strong></td>
-<td><strong>v5.22.0</strong></td>
+<td><strong>v5.22.1</strong></td>
 </tr>
 <tr>
 <td>Swift 5.2</td>
@@ -6886,7 +6886,7 @@ try db.create(index: "</span><span class="n">byEmail</span><span class="s">", on
         <span class="c1">// eventually committed</span>
         <span class="n">db</span><span class="o">.</span><span class="n">afterNextTransactionCommit</span> <span class="p">{</span> <span class="n">_</span> <span class="k">in</span>
             <span class="c1">// locationManager prefers the main queue:</span>
-            <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="n">async</span> <span class="p">{</span>
+            <span class="kt">DispatchQueue</span><span class="o">.</span><span class="n">main</span><span class="o">.</span><span class="k">async</span> <span class="p">{</span>
                 <span class="n">locationManager</span><span class="o">.</span><span class="nf">startMonitoring</span><span class="p">(</span><span class="nv">for</span><span class="p">:</span> <span class="n">region</span><span class="p">)</span>
             <span class="p">}</span>
         <span class="p">}</span>
@@ -8837,7 +8837,7 @@ See the companion library [RxGRDB] for more information.
 
 <p>The <code>insert</code> and <code>save</code> <a href="#persistablerecord-protocol">persistence methods</a> can trigger a compiler error in async contexts:</p>
 <pre class="highlight swift"><code><span class="k">var</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">name</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">)</span>
-<span class="k">try</span> <span class="n">await</span> <span class="n">dbWriter</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
+<span class="k">try</span> <span class="k">await</span> <span class="n">dbWriter</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="n">db</span> <span class="k">in</span>
     <span class="c1">// Error: Mutation of captured var 'player' in concurrently-executing code</span>
     <span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">insert</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
@@ -8847,7 +8847,7 @@ See the companion library [RxGRDB] for more information.
 <p>When this happens, prefer the <code>inserted</code> and <code>saved</code> methods instead:</p>
 <pre class="highlight swift"><code><span class="c1">// OK</span>
 <span class="k">var</span> <span class="nv">player</span> <span class="o">=</span> <span class="kt">Player</span><span class="p">(</span><span class="nv">id</span><span class="p">:</span> <span class="kc">nil</span><span class="p">,</span> <span class="nv">name</span><span class="p">:</span> <span class="s">"Arthur"</span><span class="p">)</span>
-<span class="n">player</span> <span class="o">=</span> <span class="k">try</span> <span class="n">await</span> <span class="n">dbWriter</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="p">[</span><span class="n">player</span><span class="p">]</span> <span class="n">db</span> <span class="k">in</span>
+<span class="n">player</span> <span class="o">=</span> <span class="k">try</span> <span class="k">await</span> <span class="n">dbWriter</span><span class="o">.</span><span class="n">write</span> <span class="p">{</span> <span class="p">[</span><span class="n">player</span><span class="p">]</span> <span class="n">db</span> <span class="k">in</span>
     <span class="k">return</span> <span class="k">try</span> <span class="n">player</span><span class="o">.</span><span class="nf">inserted</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
 <span class="p">}</span>
 <span class="nf">print</span><span class="p">(</span><span class="n">player</span><span class="o">.</span><span class="n">id</span><span class="p">)</span> <span class="c1">// A non-nil id</span>
@@ -9016,7 +9016,7 @@ See the companion library [RxGRDB] for more information.
           </section>
         </section>
         <section id="footer">
-          <p>&copy; 2022 <a class="link" href="https://github.com/groue" target="_blank" rel="external noopener">Gwendal Roué</a>. All rights reserved. (Last updated: 2022-03-22)</p>
+          <p>&copy; 2022 <a class="link" href="https://github.com/groue" target="_blank" rel="external noopener">Gwendal Roué</a>. All rights reserved. (Last updated: 2022-03-26)</p>
           <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external noopener">jazzy ♪♫ v0.14.2</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external noopener">Realm</a> project.</p>
         </section>
       </article>
