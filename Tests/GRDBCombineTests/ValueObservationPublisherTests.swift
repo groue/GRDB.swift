@@ -426,6 +426,7 @@ class ValueObservationPublisherTests : XCTestCase {
     
     // MARK: - Regression Tests
     
+    /// Regression test for https://github.com/groue/GRDB.swift/issues/1194
     func testIssue1194() throws {
         guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
             throw XCTSkip("Combine is not available")
