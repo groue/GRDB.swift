@@ -423,5 +423,53 @@ class ValueObservationPublisherTests : XCTestCase {
             .runAtTemporaryDatabasePath { try setUp(DatabaseQueue(path: $0)) }
             .runAtTemporaryDatabasePath { try setUp(DatabasePool(path: $0)) }
     }
+    
+    // MARK: - Regression Tests
+    
+    /// Regression test for https://github.com/groue/GRDB.swift/issues/1194
+    func testIssue1194() throws {
+        guard #available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *) else {
+            throw XCTSkip("Combine is not available")
+        }
+        
+        struct Record: Codable, FetchableRecord, PersistableRecord {
+            var id: Int64
+        }
+        
+        var configuration = Configuration()
+        configuration.targetQueue = DispatchQueue(label: "crash.test", qos: .userInitiated)
+        
+        let database = DatabaseQueue(configuration: configuration)
+        
+        var migrator = DatabaseMigrator()
+        migrator.registerMigration("v1") { (db) in
+            try db.create(table: Record.databaseTableName) { (t) in
+                t.autoIncrementedPrimaryKey("id")
+            }
+        }
+        
+        try migrator.migrate(database)
+        
+        let observation = ValueObservation.tracking { (db) in
+            try Record.fetchCount(db)
+        }
+        
+        let exp = expectation(description: "")
+        let cancellable = observation.publisher(in: database, scheduling: .immediate)
+            .map { _ in
+                database.readPublisher { (db) in
+                    try Record.fetchCount(db)
+                }
+            }
+            .switchToLatest()
+            .sink(receiveCompletion: { _ in },
+                  receiveValue: { (value) in
+                exp.fulfill()
+            })
+        
+        withExtendedLifetime(cancellable) {
+            waitForExpectations(timeout: 1)
+        }
+    }
 }
 #endif

@@ -139,7 +139,7 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
             fetch: reducer._fetch)
         self.notificationCallbacks = NotificationCallbacks(events: events, onChange: onChange)
         self.reducer = reducer
-        self.reduceQueue = writer.configuration.makeReaderDispatchQueue(label: writer.configuration.identifier(
+        self.reduceQueue = writer.configuration.makeDispatchQueue(label: writer.configuration.identifier(
             defaultLabel: "GRDB",
             purpose: "ValueObservation"))
     }
