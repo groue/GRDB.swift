@@ -316,4 +316,17 @@ public struct Configuration {
             return DispatchQueue(label: label, qos: qos)
         }
     }
+    
+    /// Creates a DispatchQueue which has the quality of service of
+    /// read accesses.
+    ///
+    /// The returned queue has no target queue, and won't create deadlocks when
+    /// used synchronously from a database access.
+    func makeDispatchQueue(label: String) -> DispatchQueue {
+        if let targetQueue = targetQueue {
+            return DispatchQueue(label: label, qos: targetQueue.qos)
+        } else {
+            return DispatchQueue(label: label, qos: qos)
+        }
+    }
 }
