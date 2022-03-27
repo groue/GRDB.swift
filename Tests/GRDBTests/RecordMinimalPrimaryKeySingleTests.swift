@@ -47,7 +47,7 @@ extension MinimalSingle: Identifiable {
 
 class RecordMinimalPrimaryKeySingleTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createMinimalSingle", migrate: MinimalSingle.setup)
         try migrator.migrate(dbWriter)

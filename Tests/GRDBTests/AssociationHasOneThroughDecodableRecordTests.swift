@@ -41,7 +41,7 @@ private struct AWithRequiredBAndOptionalC: Decodable, FetchableRecord {
 /// Test support for FetchableRecord records
 class AssociationHasOneThroughDecodableRecordTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")

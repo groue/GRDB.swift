@@ -212,14 +212,14 @@ public struct PersistenceContainer {
     // fileprivate for Row(_:PersistenceContainer)
     // The ordering of the OrderedDictionary helps generating always the same
     // SQL queries, and hit the statement cache.
-    fileprivate var storage: OrderedDictionary<String, DatabaseValueConvertible?>
+    fileprivate var storage: OrderedDictionary<String, (any DatabaseValueConvertible)?>
     
     /// Accesses the value associated with the given column.
     ///
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    public subscript(_ column: String) -> DatabaseValueConvertible? {
+    public subscript(_ column: String) -> (any DatabaseValueConvertible)? {
         get { storage[column] ?? nil }
         set { storage.updateValue(newValue, forKey: column) }
     }
@@ -229,7 +229,7 @@ public struct PersistenceContainer {
     /// It is undefined behavior to set different values for the same column.
     /// Column names are case insensitive, so defining both "name" and "NAME"
     /// is considered undefined behavior.
-    public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
+    public subscript(_ column: some ColumnExpression) -> (any DatabaseValueConvertible)? {
         get { self[column.name] }
         set { self[column.name] = newValue }
     }
@@ -252,13 +252,13 @@ public struct PersistenceContainer {
     var columns: [String] { Array(storage.keys) }
     
     /// Values stored in the container, ordered like columns.
-    var values: [DatabaseValueConvertible?] { Array(storage.values) }
+    var values: [(any DatabaseValueConvertible)?] { Array(storage.values) }
     
     /// Accesses the value associated with the given column, in a
     /// case-insensitive fashion.
     ///
     /// :nodoc:
-    subscript(caseInsensitive column: String) -> DatabaseValueConvertible? {
+    subscript(caseInsensitive column: String) -> (any DatabaseValueConvertible)? {
         get {
             if let value = storage[column] {
                 return value
@@ -296,7 +296,7 @@ public struct PersistenceContainer {
     var isEmpty: Bool { storage.isEmpty }
     
     /// An iterator over the (column, value) pairs
-    func makeIterator() -> IndexingIterator<OrderedDictionary<String, DatabaseValueConvertible?>> {
+    func makeIterator() -> IndexingIterator<OrderedDictionary<String, (any DatabaseValueConvertible)?>> {
         storage.makeIterator()
     }
     
@@ -370,7 +370,7 @@ public enum DatabaseDateEncodingStrategy {
     case formatted(DateFormatter)
     
     /// Encodes the result of the user-provided function
-    case custom((Date) -> DatabaseValueConvertible?)
+    case custom((Date) -> (any DatabaseValueConvertible)?)
     
     private static let iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
@@ -378,24 +378,24 @@ public enum DatabaseDateEncodingStrategy {
         return formatter
     }()
     
-    func encode(_ date: Date) -> DatabaseValueConvertible? {
+    func encode(_ date: Date) -> DatabaseValue {
         switch self {
         case .deferredToDate:
             return date.databaseValue
         case .timeIntervalSinceReferenceDate:
-            return date.timeIntervalSinceReferenceDate
+            return date.timeIntervalSinceReferenceDate.databaseValue
         case .timeIntervalSince1970:
-            return date.timeIntervalSince1970
+            return date.timeIntervalSince1970.databaseValue
         case .millisecondsSince1970:
-            return Int64(floor(1000.0 * date.timeIntervalSince1970))
+            return Int64(floor(1000.0 * date.timeIntervalSince1970)).databaseValue
         case .secondsSince1970:
-            return Int64(floor(date.timeIntervalSince1970))
+            return Int64(floor(date.timeIntervalSince1970)).databaseValue
         case .iso8601:
-            return Self.iso8601Formatter.string(from: date)
+            return Self.iso8601Formatter.string(from: date).databaseValue
         case .formatted(let formatter):
-            return formatter.string(from: date)
+            return formatter.string(from: date).databaseValue
         case .custom(let format):
-            return format(date)
+            return format(date)?.databaseValue ?? .null
         }
     }
 }
@@ -425,14 +425,14 @@ public enum DatabaseUUIDEncodingStrategy {
     /// Encodes UUIDs as lowercased strings such as "e621e1f8-c36c-495a-93fc-0c247a3e6e5f"
     case lowercaseString
     
-    func encode(_ uuid: UUID) -> DatabaseValueConvertible {
+    func encode(_ uuid: UUID) -> DatabaseValue {
         switch self {
         case .deferredToUUID:
             return uuid.databaseValue
         case .uppercaseString:
-            return uuid.uuidString
+            return uuid.uuidString.databaseValue
         case .lowercaseString:
-            return uuid.uuidString.lowercased()
+            return uuid.uuidString.lowercased().databaseValue
         }
     }
 }
@@ -459,9 +459,9 @@ public enum DatabaseColumnEncodingStrategy {
     case convertToSnakeCase
     
     /// A key encoding strategy defined by the closure you supply.
-    case custom((CodingKey) -> String)
+    case custom((any CodingKey) -> String)
     
-    func column(forKey key: CodingKey) -> String {
+    func column(forKey key: some CodingKey) -> String {
         switch self {
         case .useDefaultKeys:
             return key.stringValue

@@ -94,9 +94,8 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Sequence>(_ db: Database, keys: Sequence)
+    public static func fetchCursor(_ db: Database, keys: some Sequence<some DatabaseValueConvertible>)
     throws -> RecordCursor<Self>
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         try filter(keys: keys).fetchCursor(db)
     }
@@ -112,9 +111,8 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<Sequence>(_ db: Database, keys: Sequence)
+    public static func fetchAll(_ db: Database, keys: some Sequence<some DatabaseValueConvertible>)
     throws -> [Self]
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -133,10 +131,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A primary key value.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
-    throws -> Self?
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    public static func fetchOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Self? {
         if key.databaseValue.isNull {
             // Don't hit the database
             return nil
@@ -164,9 +159,8 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     ///     - ids: A collection of primary keys.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor<Collection>(_ db: Database, ids: Collection)
+    public static func fetchCursor(_ db: Database, ids: some Collection<ID>)
     throws -> RecordCursor<Self>
-    where Collection: Swift.Collection, Collection.Element == ID
     {
         try filter(ids: ids).fetchCursor(db)
     }
@@ -182,10 +176,7 @@ extension FetchableRecord where Self: TableRecord & Identifiable, ID: DatabaseVa
     ///     - ids: A collection of primary keys.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll<Collection>(_ db: Database, ids: Collection)
-    throws -> [Self]
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
+    public static func fetchAll(_ db: Database, ids: some Collection<ID>) throws -> [Self] {
         if ids.isEmpty {
             // Avoid hitting the database
             return []
@@ -217,9 +208,8 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     ///     - keys: A sequence of primary keys.
     /// - returns: A set of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet<Sequence>(_ db: Database, keys: Sequence)
+    public static func fetchSet(_ db: Database, keys: some Sequence<some DatabaseValueConvertible>)
     throws -> Set<Self>
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -241,10 +231,7 @@ extension FetchableRecord where Self: TableRecord & Hashable & Identifiable, ID:
     ///     - ids: A collection of primary keys.
     /// - returns: A set of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet<Collection>(_ db: Database, ids: Collection)
-    throws -> Set<Self>
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
+    public static func fetchSet(_ db: Database, ids: some Collection<ID>) throws -> Set<Self> {
         if ids.isEmpty {
             // Avoid hitting the database
             return []
@@ -275,7 +262,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: An array of key dictionaries.
     /// - returns: A cursor over fetched records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchCursor(_ db: Database, keys: [[String: DatabaseValueConvertible?]])
+    public static func fetchCursor(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]])
     throws -> RecordCursor<Self>
     {
         try filter(keys: keys).fetchCursor(db)
@@ -296,7 +283,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - keys: An array of key dictionaries.
     /// - returns: An array of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> [Self] {
+    public static func fetchAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> [Self] {
         if keys.isEmpty {
             // Avoid hitting the database
             return []
@@ -314,7 +301,7 @@ extension FetchableRecord where Self: TableRecord {
     ///     - key: A dictionary of values.
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]?) throws -> Self? {
+    public static func fetchOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]?) throws -> Self? {
         guard let key else {
             // Avoid hitting the database
             return nil
@@ -337,7 +324,7 @@ extension FetchableRecord where Self: TableRecord & Hashable {
     ///     - keys: An array of key dictionaries.
     /// - returns: A set of records.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
-    public static func fetchSet(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Set<Self> {
+    public static func fetchSet(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Set<Self> {
         if keys.isEmpty {
             // Avoid hitting the database
             return []

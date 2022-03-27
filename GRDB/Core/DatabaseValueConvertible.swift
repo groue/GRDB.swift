@@ -110,7 +110,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
     public var _isDone = false
     private let columnIndex: Int32
     
-    init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
+    init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self.statement = statement
         if let adapter = adapter {
             // adapter may redefine the index of the leftmost column
@@ -178,7 +178,7 @@ extension DatabaseValueConvertible {
     public static func fetchCursor(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> DatabaseValueCursor<Self>
     {
         try DatabaseValueCursor(statement: statement, arguments: arguments, adapter: adapter)
@@ -198,7 +198,7 @@ extension DatabaseValueConvertible {
     public static func fetchAll(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Self]
     {
         try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
@@ -221,7 +221,7 @@ extension DatabaseValueConvertible {
     public static func fetchOne(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Self?
     {
         // fetchOne returns nil if there is no row, or if there is a row with a null value
@@ -245,7 +245,7 @@ extension DatabaseValueConvertible where Self: Hashable {
     public static func fetchSet(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Self>
     {
         try Set(fetchCursor(statement, arguments: arguments, adapter: adapter))
@@ -279,7 +279,7 @@ extension DatabaseValueConvertible {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> DatabaseValueCursor<Self>
     {
         try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -300,7 +300,7 @@ extension DatabaseValueConvertible {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Self]
     {
         try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -324,7 +324,7 @@ extension DatabaseValueConvertible {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Self?
     {
         try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -347,7 +347,7 @@ extension DatabaseValueConvertible where Self: Hashable {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Self>
     {
         try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -438,7 +438,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     
     /// A cursor over fetched values.
     ///
-    ///     let request: ... // Some FetchRequest that fetches String
+    ///     let request: some FetchRequest<String> = ...
     ///     let strings = try request.fetchCursor(db) // Cursor of String
     ///     while let string = try strings.next() {   // String
     ///         ...
@@ -458,7 +458,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     
     /// An array of fetched values.
     ///
-    ///     let request: ... // Some FetchRequest that fetches String
+    ///     let request: some FetchRequest<String> = ...
     ///     let strings = try request.fetchAll(db) // [String]
     ///
     /// - parameter db: A database connection.
@@ -473,7 +473,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
     /// The result is nil if the request returns no row, or if no value can be
     /// extracted from the first row.
     ///
-    ///     let request: ... // Some FetchRequest that fetches String
+    ///     let request: some FetchRequest<String> = ...
     ///     let string = try request.fetchOne(db) // String?
     ///
     /// - parameter db: A database connection.
@@ -487,7 +487,7 @@ extension FetchRequest where RowDecoder: DatabaseValueConvertible {
 extension FetchRequest where RowDecoder: DatabaseValueConvertible & Hashable {
     /// A set of fetched values.
     ///
-    ///     let request: ... // Some FetchRequest that fetches String
+    ///     let request: some FetchRequest<String> = ...
     ///     let strings = try request.fetchSet(db) // Set<String>
     ///
     /// - parameter db: A database connection.

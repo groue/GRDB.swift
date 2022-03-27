@@ -4,9 +4,9 @@ import Foundation
 /// ValueObservationScheduler determines how `ValueObservation` notifies its
 /// fresh values.
 public class ValueObservationScheduler {
-    private let impl: ValueObservationSchedulerImpl
+    private let impl: any ValueObservationSchedulerImpl
     
-    private init(impl: ValueObservationSchedulerImpl) {
+    private init(impl: any ValueObservationSchedulerImpl) {
         self.impl = impl
     }
     

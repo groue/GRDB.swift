@@ -348,7 +348,7 @@ extension DatabaseQueue {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         if configuration.readonly {
             // The easy case: the database does not change

@@ -76,7 +76,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     request
     ///         .select { db in [Column("id")] }
     ///         .select { db in [Column("email")] }
-    public func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
+    public func select(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.select { db in
                 try selection(db).map(\.sqlSelection)
@@ -92,7 +92,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select([max(Column("score"))], as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: [SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
+    public func select<RowDecoder>(_ selection: [any SQLSelectable], as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
         select(selection).asRequest(of: RowDecoder.self)
@@ -106,7 +106,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///         let request = Player.all().select(max(Column("score")), as: Int.self)
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
-    public func select<RowDecoder>(_ selection: SQLSelectable..., as type: RowDecoder.Type = RowDecoder.self)
+    public func select<RowDecoder>(_ selection: any SQLSelectable..., as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
         select(selection, as: type)
@@ -156,7 +156,7 @@ extension QueryInterfaceRequest: SelectionRequest {
     ///     request = request
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: { db in [Column("name")] })
-    public func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> QueryInterfaceRequest {
+    public func annotated(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.annotated { db in
                 try selection(db).map(\.sqlSelection)
@@ -192,7 +192,7 @@ extension QueryInterfaceRequest: FilteredRequest {
     ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
-    public func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
+    public func filter(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.filter { db in
                 try predicate(db).sqlExpression
@@ -215,7 +215,7 @@ extension QueryInterfaceRequest: OrderedRequest {
     ///         .order{ _ in [Column("email")] }
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
-    public func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> QueryInterfaceRequest {
+    public func order(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.order { db in
                 try orderings(db).map(\.sqlOrdering)
@@ -254,7 +254,7 @@ extension QueryInterfaceRequest: OrderedRequest {
 
 extension QueryInterfaceRequest: AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
-    public func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> QueryInterfaceRequest {
+    public func group(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.group { db in
                 try expressions(db).map(\.sqlExpression)
@@ -264,7 +264,7 @@ extension QueryInterfaceRequest: AggregatingRequest {
     
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    public func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> QueryInterfaceRequest {
+    public func having(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> QueryInterfaceRequest {
         with {
             $0.relation = $0.relation.having { db in
                 try predicate(db).sqlExpression
@@ -427,7 +427,7 @@ extension QueryInterfaceRequest {
         // runtime check for MutablePersistableRecord, and look for a
         // user-defined default. Such dynamic dispatch is unusual in GRDB, but
         // static dispatch is likely to create bad surprises in generic contexts.
-        if let recordType = RowDecoder.self as? MutablePersistableRecord.Type {
+        if let recordType = RowDecoder.self as? any MutablePersistableRecord.Type {
             return recordType.persistenceConflictPolicy.conflictResolutionForUpdate
         } else {
             return .abort
@@ -507,11 +507,11 @@ extension QueryInterfaceRequest {
 ///         try Player.updateAll(db, assignment)
 ///     }
 public struct ColumnAssignment {
-    var column: ColumnExpression
+    var columnName: String
     var value: SQLExpression
     
     func sql(_ context: SQLGenerationContext) throws -> String {
-        try column.sqlExpression.sql(context) + " = " + value.sql(context)
+        try Column(columnName).sqlExpression.sql(context) + " = " + value.sql(context)
     }
 }
 
@@ -527,8 +527,8 @@ extension ColumnExpression {
     ///         // UPDATE player SET score = 0
     ///         try Player.updateAll(db, Column("score").set(to: 0))
     ///     }
-    public func set(to value: SQLExpressible?) -> ColumnAssignment {
-        ColumnAssignment(column: self, value: value?.sqlExpression ?? .null)
+    public func set(to value: (any SQLExpressible)?) -> ColumnAssignment {
+        ColumnAssignment(columnName: name, value: value?.sqlExpression ?? .null)
     }
 }
 
@@ -541,7 +541,7 @@ extension ColumnExpression {
 ///         // UPDATE player SET score = score + 1
 ///         try Player.updateAll(db, Column("score") += 1)
 ///     }
-public func += (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func += (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column + value)
 }
 
@@ -554,7 +554,7 @@ public func += (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         // UPDATE player SET score = score - 1
 ///         try Player.updateAll(db, Column("score") -= 1)
 ///     }
-public func -= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func -= (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column - value)
 }
 
@@ -567,7 +567,7 @@ public func -= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         // UPDATE player SET score = score * 2
 ///         try Player.updateAll(db, Column("score") *= 2)
 ///     }
-public func *= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func *= (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column * value)
 }
 
@@ -580,7 +580,7 @@ public func *= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssign
 ///         // UPDATE player SET score = score / 2
 ///         try Player.updateAll(db, Column("score") /= 2)
 ///     }
-public func /= (column: ColumnExpression, value: SQLExpressible) -> ColumnAssignment {
+public func /= (column: some ColumnExpression, value: some SQLExpressible) -> ColumnAssignment {
     column.set(to: column / value)
 }
 

@@ -7,7 +7,7 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
 {
     // It is not a violation of the Demeter law when another type uses this
     // property, which is exposed for optimizations.
-    let impl: RowImpl
+    let impl: any RowImpl
     
     /// Unless we are producing a row array, we use a single row when iterating
     /// a statement:
@@ -44,7 +44,7 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     }
     
     /// Creates a row from a dictionary of values.
-    public convenience init(_ dictionary: [String: DatabaseValueConvertible?]) {
+    public convenience init(_ dictionary: [String: (any DatabaseValueConvertible)?]) {
         self.init(impl: ArrayRowImpl(columns: dictionary.map { ($0, $1?.databaseValue ?? .null) }))
     }
     
@@ -53,7 +53,7 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     /// The result is nil unless all dictionary keys are strings, and values
     /// adopt DatabaseValueConvertible.
     public convenience init?(_ dictionary: [AnyHashable: Any]) {
-        var initDictionary = [String: DatabaseValueConvertible?]()
+        var initDictionary = [String: (any DatabaseValueConvertible)?]()
         for (key, value) in dictionary {
             guard let columnName = key as? String else {
                 return nil
@@ -73,7 +73,7 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
     ///     let row: Row = ["foo": 1, "foo": "bar", "baz": nil]
     ///     print(row)
     ///     // Prints [foo:1 foo:"bar" baz:NULL]
-    public convenience init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
+    public convenience init(dictionaryLiteral elements: (String, (any DatabaseValueConvertible)?)...) {
         self.init(impl: ArrayRowImpl(columns: elements.map { ($0, $1?.databaseValue ?? .null) }))
     }
     
@@ -128,7 +128,7 @@ public final class Row: Equatable, Hashable, RandomAccessCollection,
                     columnNames: statement.columnNames))
     }
     
-    init(impl: RowImpl) {
+    init(impl: any RowImpl) {
         self.statement = nil
         self.sqliteStatement = nil
         self.impl = impl
@@ -213,7 +213,7 @@ extension Row {
     ///
     /// Indexes span from 0 for the leftmost column to (row.count - 1) for the
     /// righmost column.
-    public subscript(_ index: Int) -> DatabaseValueConvertible? {
+    public subscript(_ index: Int) -> (any DatabaseValueConvertible)? {
         _checkIndex(index)
         return impl.databaseValue(atUncheckedIndex: index).storage.value
     }
@@ -274,7 +274,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    public subscript(_ columnName: String) -> DatabaseValueConvertible? {
+    public subscript(_ columnName: String) -> (any DatabaseValueConvertible)? {
         // IMPLEMENTATION NOTE
         // This method has a single known use case: checking if the value is nil,
         // as in:
@@ -353,7 +353,7 @@ extension Row {
     /// the same name, the leftmost column is considered.
     ///
     /// The result is nil if the row does not contain the column.
-    public subscript<Column: ColumnExpression>(_ column: Column) -> DatabaseValueConvertible? {
+    public subscript(_ column: some ColumnExpression) -> (any DatabaseValueConvertible)? {
         self[column.name]
     }
     
@@ -380,7 +380,7 @@ extension Row {
     ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
     ///     let name: String? = row[Column("missing")] // nil
     @inlinable
-    public subscript<Value: DatabaseValueConvertible, Column: ColumnExpression>(_ column: Column) -> Value {
+    public subscript<Value: DatabaseValueConvertible>(_ column: some ColumnExpression) -> Value {
         try! decode(Value.self, forKey: column.name)
     }
     
@@ -411,11 +411,9 @@ extension Row {
     ///     let row = try Row.fetchOne(db, sql: "SELECT ...")!
     ///     let name: String? = row[Column("missing")] // nil
     @inlinable
-    public subscript<Value, Column>(_ column: Column)
+    public subscript<Value>(_ column: some ColumnExpression)
     -> Value
-    where
-        Value: DatabaseValueConvertible & StatementColumnConvertible,
-        Column: ColumnExpression
+    where Value: DatabaseValueConvertible & StatementColumnConvertible
     {
         try! decode(Value.self, forKey: column.name)
     }
@@ -460,7 +458,7 @@ extension Row {
     ///
     /// The returned data does not owns its bytes: it must not be used longer
     /// than the row's lifetime.
-    public func dataNoCopy<Column: ColumnExpression>(_ column: Column) -> Data? {
+    public func dataNoCopy(_ column: some ColumnExpression) -> Data? {
         try! decodeDataNoCopyIfPresent(forKey: column.name)
     }
 }
@@ -1094,7 +1092,7 @@ public final class RowCursor: DatabaseCursor {
     public var _isDone = false
     @usableFromInline let _row: Row // Reused for performance
     
-    init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
+    init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self.statement = statement
         self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         
@@ -1149,7 +1147,7 @@ extension Row {
     public static func fetchCursor(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> RowCursor
     {
         try RowCursor(statement: statement, arguments: arguments, adapter: adapter)
@@ -1169,7 +1167,7 @@ extension Row {
     public static func fetchAll(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Row]
     {
         // The cursor reuses a single mutable row. Return immutable copies.
@@ -1190,7 +1188,7 @@ extension Row {
     public static func fetchSet(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Row>
     {
         // The cursor reuses a single mutable row. Return immutable copies.
@@ -1211,7 +1209,7 @@ extension Row {
     public static func fetchOne(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Row?
     {
         let cursor = try fetchCursor(statement, arguments: arguments, adapter: adapter)
@@ -1258,7 +1256,7 @@ extension Row {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> RowCursor
     {
         try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -1283,7 +1281,7 @@ extension Row {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Row]
     {
         try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -1308,7 +1306,7 @@ extension Row {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Row>
     {
         try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -1333,7 +1331,7 @@ extension Row {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Row?
     {
         try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -1441,7 +1439,7 @@ extension FetchRequest where RowDecoder == Row {
     
     /// A cursor over fetched rows.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Row
+    ///     let request: some FetchRequest<Row> = ...
     ///     let rows = try request.fetchCursor(db) // RowCursor
     ///     while let row = try rows.next() {  // Row
     ///         let id: Int64 = row[0]
@@ -1470,7 +1468,7 @@ extension FetchRequest where RowDecoder == Row {
     
     /// An array of fetched rows.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Row
+    ///     let request: some FetchRequest<Row> = ...
     ///     let rows = try request.fetchAll(db)
     ///
     /// - parameter db: A database connection.
@@ -1482,7 +1480,7 @@ extension FetchRequest where RowDecoder == Row {
     
     /// A set of fetched rows.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Row
+    ///     let request: some FetchRequest<Row> = ...
     ///     let rows = try request.fetchSet(db)
     ///
     /// - parameter db: A database connection.
@@ -1494,7 +1492,7 @@ extension FetchRequest where RowDecoder == Row {
     
     /// The first fetched row.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Row
+    ///     let request: some FetchRequest<Row> = ...
     ///     let row = try request.fetchOne(db)
     ///
     /// - parameter db: A database connection.
@@ -1698,13 +1696,13 @@ extension Row {
     ///     row.scopes["bar"] // [bar:2]
     ///     row.scopes["baz"] // nil
     public struct ScopesView: Collection {
-        public typealias Index = Dictionary<String, _LayoutedRowAdapter>.Index
+        public typealias Index = Dictionary<String, any _LayoutedRowAdapter>.Index
         private let row: Row
-        private let scopes: [String: _LayoutedRowAdapter]
+        private let scopes: [String: any _LayoutedRowAdapter]
         private let prefetchedRows: Row.PrefetchedRowsView
         
         /// The scopes defined on this row.
-        public var names: Dictionary<String, _LayoutedRowAdapter>.Keys {
+        public var names: Dictionary<String, any _LayoutedRowAdapter>.Keys {
             scopes.keys
         }
         
@@ -1712,7 +1710,7 @@ extension Row {
             self.init(row: Row(), scopes: [:], prefetchedRows: Row.PrefetchedRowsView())
         }
         
-        init(row: Row, scopes: [String: _LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
+        init(row: Row, scopes: [String: any _LayoutedRowAdapter], prefetchedRows: Row.PrefetchedRowsView) {
             self.row = row
             self.scopes = scopes
             self.prefetchedRows = prefetchedRows
@@ -2026,9 +2024,7 @@ extension RowImpl {
 struct ArrayRowImpl: RowImpl {
     let columns: [(String, DatabaseValue)]
     
-    init<C>(columns: C)
-    where C: Collection, C.Element == (String, DatabaseValue)
-    {
+    init(columns: some Collection<(String, DatabaseValue)>) {
         self.columns = Array(columns)
     }
     

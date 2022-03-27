@@ -104,7 +104,7 @@ private class PersonWithOverrides : Person {
 
 class RecordSubClassTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createPerson", migrate: Person.setup)
         try migrator.migrate(dbWriter)

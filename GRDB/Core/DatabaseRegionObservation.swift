@@ -45,7 +45,7 @@ extension DatabaseRegionObservation {
     /// deallocated. See the `extent` property for more information.
     ///
     /// - parameter regions: A list of observed regions.
-    public init(tracking regions: DatabaseRegionConvertible...) {
+    public init(tracking regions: any DatabaseRegionConvertible...) {
         self.init(tracking: regions)
     }
     
@@ -68,7 +68,7 @@ extension DatabaseRegionObservation {
     /// deallocated. See the `extent` property for more information.
     ///
     /// - parameter regions: A list of observed regions.
-    public init(tracking regions: [DatabaseRegionConvertible]) {
+    public init(tracking regions: [any DatabaseRegionConvertible]) {
         self.init(
             extent: .observerLifetime,
             observedRegion: DatabaseRegion.union(regions))
@@ -79,18 +79,18 @@ extension DatabaseRegionObservation {
     /// Starts the observation in the provided database writer (such as
     /// a database queue or database pool), and returns a transaction observer.
     ///
-    /// - parameter reader: A DatabaseWriter.
+    /// - parameter writer: A DatabaseWriter.
     /// - parameter onChange: A closure that is provided a database connection
     ///   with write access each time the observed region has been modified.
     /// - returns: a TransactionObserver
     public func start(
-        in dbWriter: DatabaseWriter,
+        in writer: some DatabaseWriter,
         onChange: @escaping (Database) -> Void)
-    throws -> TransactionObserver
+    throws -> any TransactionObserver
     {
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
-        return try dbWriter.unsafeReentrantWrite { db -> TransactionObserver in
+        try writer.unsafeReentrantWrite { db in
             let region = try observedRegion(db).observableRegion(db)
             let observer = DatabaseRegionObserver(region: region, onChange: onChange)
             db.add(transactionObserver: observer, extent: extent)
@@ -111,7 +111,7 @@ extension DatabaseRegionObservation {
     /// Error completion, if any, is only emitted, synchronously,
     /// on subscription.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func publisher(in writer: DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
+    public func publisher(in writer: some DatabaseWriter) -> DatabasePublishers.DatabaseRegion {
         DatabasePublishers.DatabaseRegion(self, in: writer)
     }
 }
@@ -160,10 +160,10 @@ extension DatabasePublishers {
         public typealias Output = Database
         public typealias Failure = Error
         
-        let writer: DatabaseWriter
+        let writer: any DatabaseWriter
         let observation: DatabaseRegionObservation
         
-        init(_ observation: DatabaseRegionObservation, in writer: DatabaseWriter) {
+        init(_ observation: DatabaseRegionObservation, in writer: some DatabaseWriter) {
             self.writer = writer
             self.observation = observation
         }
@@ -183,13 +183,13 @@ extension DatabasePublishers {
     {
         private struct WaitingForDemand {
             let downstream: Downstream
-            let writer: DatabaseWriter
+            let writer: any DatabaseWriter
             let observation: DatabaseRegionObservation
         }
         
         private struct Observing {
             let downstream: Downstream
-            let writer: DatabaseWriter // Retain writer until subscription is finished
+            let writer: any DatabaseWriter // Retain writer until subscription is finished
             var remainingDemand: Subscribers.Demand
         }
         
@@ -211,7 +211,7 @@ extension DatabasePublishers {
         private var lock = NSRecursiveLock() // Allow re-entrancy
         
         init(
-            writer: DatabaseWriter,
+            writer: some DatabaseWriter,
             observation: DatabaseRegionObservation,
             downstream: Downstream)
         {

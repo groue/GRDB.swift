@@ -173,7 +173,7 @@ extension FetchableRecord {
     public static func fetchCursor(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> RecordCursor<Self>
     {
         try RecordCursor(statement: statement, arguments: arguments, adapter: adapter)
@@ -193,7 +193,7 @@ extension FetchableRecord {
     public static func fetchAll(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Self]
     {
         try Array(fetchCursor(statement, arguments: arguments, adapter: adapter))
@@ -213,7 +213,7 @@ extension FetchableRecord {
     public static func fetchOne(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Self?
     {
         try fetchCursor(statement, arguments: arguments, adapter: adapter).next()
@@ -235,7 +235,7 @@ extension FetchableRecord where Self: Hashable {
     public static func fetchSet(
         _ statement: Statement,
         arguments: StatementArguments? = nil,
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Self>
     {
         try Set(fetchCursor(statement, arguments: arguments, adapter: adapter))
@@ -269,7 +269,7 @@ extension FetchableRecord {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> RecordCursor<Self>
     {
         try fetchCursor(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -290,7 +290,7 @@ extension FetchableRecord {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> [Self]
     {
         try fetchAll(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -311,7 +311,7 @@ extension FetchableRecord {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Self?
     {
         try fetchOne(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -334,7 +334,7 @@ extension FetchableRecord where Self: Hashable {
         _ db: Database,
         sql: String,
         arguments: StatementArguments = StatementArguments(),
-        adapter: RowAdapter? = nil)
+        adapter: (any RowAdapter)? = nil)
     throws -> Set<Self>
     {
         try fetchSet(db, SQLRequest(sql: sql, arguments: arguments, adapter: adapter))
@@ -446,7 +446,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// A cursor over fetched records.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let players = try request.fetchCursor(db) // Cursor of Player
     ///     while let player = try players.next() {   // Player
     ///         ...
@@ -466,7 +467,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// An array of fetched records.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let players = try request.fetchAll(db) // [Player]
     ///
     /// - parameter db: A database connection.
@@ -478,7 +480,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
     
     /// The first fetched record.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let player = try request.fetchOne(db) // Player?
     ///
     /// - parameter db: A database connection.
@@ -492,7 +495,8 @@ extension FetchRequest where RowDecoder: FetchableRecord {
 extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
     /// A set of fetched records.
     ///
-    ///     let request: ... // Some FetchRequest that fetches Player
+    ///     struct Player: FetchableRecord, Hashable { ... }
+    ///     let request: some FetchRequest<Player> = ...
     ///     let players = try request.fetchSet(db) // Set<Player>
     ///
     /// - parameter db: A database connection.
@@ -518,7 +522,7 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     public var _isDone = false
     private let row: Row // Instanciated once, reused for performance
     
-    init(statement: Statement, arguments: StatementArguments? = nil, adapter: RowAdapter? = nil) throws {
+    init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self.statement = statement
         row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         try statement.reset(withArguments: arguments)

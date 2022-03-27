@@ -254,7 +254,7 @@ extension Database {
     ///             wrappedTokenizer = try db.makeTokenizer(.unicode61())
     ///         }
     ///     }
-    public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> FTS5Tokenizer {
+    public func makeTokenizer(_ descriptor: FTS5TokenizerDescriptor) throws -> any FTS5Tokenizer {
         let api = FTS5.api(self)
         
         let xTokenizerPointer: UnsafeMutablePointer<fts5_tokenizer> = .allocate(capacity: 1)

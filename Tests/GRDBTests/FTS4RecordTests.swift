@@ -34,7 +34,7 @@ extension Book : MutablePersistableRecord {
 }
 
 class FTS4RecordTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(virtualTable: "books", using: FTS4()) { t in
                 t.column("title")

@@ -363,11 +363,10 @@ extension Database {
     
     /// True if a sequence of columns uniquely identifies a row, that is to say
     /// if the columns are the primary key, or if there is a unique index on them.
-    public func table<T: Sequence>(
+    public func table(
         _ tableName: String,
-        hasUniqueKey columns: T)
+        hasUniqueKey columns: some Sequence<String>)
     throws -> Bool
-    where T.Iterator.Element == String
     {
         try columnsForUniqueKey(Array(columns), in: tableName) != nil
     }
@@ -611,11 +610,10 @@ extension Database {
     /// If there exists a unique key on columns, return the columns
     /// ordered as the matching index (or primary key). Case of returned columns
     /// is not guaranteed.
-    func columnsForUniqueKey<T: Sequence>(
-        _ columns: T,
+    func columnsForUniqueKey(
+        _ columns: some Sequence<String>,
         in tableName: String)
     throws -> [String]?
-    where T.Iterator.Element == String
     {
         let lowercasedColumns = Set(columns.map { $0.lowercased() })
         if lowercasedColumns.isEmpty {

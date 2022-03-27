@@ -10,7 +10,7 @@ private class UserRecord : Record {
     required init(row: Row) { super.init(row: row) }
     override class var databaseTableName: String { super.databaseTableName }
     override class  var persistenceConflictPolicy: PersistenceConflictPolicy { super.persistenceConflictPolicy }
-    override class var databaseSelection: [SQLSelectable] { super.databaseSelection }
+    override class var databaseSelection: [any SQLSelectable] { super.databaseSelection }
     override func encode(to container: inout PersistenceContainer) { super.encode(to: &container) }
     override func didInsert(with rowID: Int64, for column: String?) { super.didInsert(with: rowID, for: column) }
     override func copy() -> Self { preconditionFailure() }

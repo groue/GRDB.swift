@@ -369,8 +369,8 @@ public struct AnyDatabaseRegionConvertible: DatabaseRegionConvertible {
         _region = region
     }
     
-    public init(_ region: DatabaseRegionConvertible) {
-        _region = { try region.databaseRegion($0) }
+    public init(_ region: some DatabaseRegionConvertible) {
+        _region = region.databaseRegion
     }
     
     /// :nodoc:
@@ -388,7 +388,7 @@ extension DatabaseRegion {
         }
     }
     
-    static func union(_ regions: [DatabaseRegionConvertible]) -> (Database) throws -> DatabaseRegion {
+    static func union(_ regions: [any DatabaseRegionConvertible]) -> (Database) throws -> DatabaseRegion {
         return { db in
             try regions.reduce(into: DatabaseRegion()) { union, region in
                 try union.formUnion(region.databaseRegion(db))

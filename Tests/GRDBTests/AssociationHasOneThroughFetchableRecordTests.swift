@@ -78,7 +78,7 @@ private struct AWithRequiredBNameAndOptionalCName: FetchableRecord {
 /// Test support for FetchableRecord records
 class AssociationHasOneThroughFetchableRecordTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")

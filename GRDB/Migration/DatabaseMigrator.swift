@@ -197,7 +197,7 @@ public struct DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    public func migrate(_ writer: DatabaseWriter) throws {
+    public func migrate(_ writer: some DatabaseWriter) throws {
         guard let lastMigration = _migrations.last else {
             return
         }
@@ -212,7 +212,7 @@ public struct DatabaseMigrator {
     ///   where migrations should apply.
     /// - parameter targetIdentifier: The identifier of a registered migration.
     /// - throws: An eventual error thrown by the registered migration blocks.
-    public func migrate(_ writer: DatabaseWriter, upTo targetIdentifier: String) throws {
+    public func migrate(_ writer: some DatabaseWriter, upTo targetIdentifier: String) throws {
         try writer.barrierWriteWithoutTransaction { db in
             try migrate(db, upTo: targetIdentifier)
         }
@@ -228,7 +228,7 @@ public struct DatabaseMigrator {
     ///   argument is a `Result` that provides a connection to the migrated
     ///   database, or the failure that would prevent the migration to complete.
     public func asyncMigrate(
-        _ writer: DatabaseWriter,
+        _ writer: some DatabaseWriter,
         completion: @escaping (Result<Database, Error>) -> Void)
     {
         writer.asyncBarrierWriteWithoutTransaction { dbResult in
@@ -456,7 +456,7 @@ extension DatabaseMigrator {
     /// - parameter writer: A DatabaseWriter (DatabaseQueue or DatabasePool)
     ///   where migrations should apply.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migratePublisher(_ writer: DatabaseWriter) -> DatabasePublishers.Migrate {
+    public func migratePublisher(_ writer: some DatabaseWriter) -> DatabasePublishers.Migrate {
         migratePublisher(writer, receiveOn: DispatchQueue.main)
     }
     
@@ -472,9 +472,8 @@ extension DatabaseMigrator {
     ///   where migrations should apply.
     /// - parameter scheduler: A Combine Scheduler.
     @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
-    public func migratePublisher<S>(_ writer: DatabaseWriter, receiveOn scheduler: S)
+    public func migratePublisher(_ writer: some DatabaseWriter, receiveOn scheduler: some Scheduler)
     -> DatabasePublishers.Migrate
-    where S: Scheduler
     {
         DatabasePublishers.Migrate(
             upstream: OnDemandFuture { promise in

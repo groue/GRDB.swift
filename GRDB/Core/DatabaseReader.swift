@@ -281,14 +281,14 @@ public protocol DatabaseReader: AnyObject, Sendable {
     /// method instead.
     ///
     /// - parameter observation: the stared observation
-    /// - returns: a TransactionObserver
+    /// - returns: a cancellable
     ///
     /// :nodoc:
     func _add<Reducer: ValueReducer>(
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
 }
 
 extension DatabaseReader {
@@ -341,7 +341,7 @@ extension DatabaseReader {
     /// - throws: The error thrown by `progress` if the backup is abandoned, or
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
-        to writer: DatabaseWriter,
+        to writer: some DatabaseWriter,
         pagesPerStep: Int32 = -1,
         progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
@@ -555,7 +555,7 @@ extension DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         if scheduler.immediateInitialValue() {
             do {
@@ -599,10 +599,10 @@ extension DatabaseReader {
 /// Instances of AnyDatabaseReader forward their methods to an arbitrary
 /// underlying database reader.
 public final class AnyDatabaseReader: DatabaseReader {
-    private let base: DatabaseReader
+    private let base: any DatabaseReader
     
     /// Creates a database reader that wraps a base database reader.
-    public init(_ base: DatabaseReader) {
+    public init(_ base: some DatabaseReader) {
         self.base = base
     }
     
@@ -651,7 +651,7 @@ public final class AnyDatabaseReader: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         base._add(
             observation: observation,

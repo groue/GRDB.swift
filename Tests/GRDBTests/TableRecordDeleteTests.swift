@@ -24,7 +24,7 @@ private struct Citizenship : TableRecord {
 
 class TableRecordDeleteTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.execute(sql: "CREATE TABLE hackers (name TEXT)")
             try db.execute(sql: "CREATE TABLE persons (id INTEGER PRIMARY KEY, name TEXT, email TEXT UNIQUE)")

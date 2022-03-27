@@ -19,7 +19,7 @@ extension RangeReplaceableCollection {
     ///     let strings = try Array(cursor)
     ///
     /// - parameter cursor: The cursor whose elements feed the collection.
-    public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
+    public init(_ cursor: some Cursor<Element>) throws {
         self.init()
         // Prefer `forEach` over `next()` looping, as a slight performance
         // improvement due to the single `sqlite3_stmt_busy` check for
@@ -36,7 +36,7 @@ extension RangeReplaceableCollection {
     /// - parameter cursor: The cursor whose elements feed the collection.
     /// - parameter minimumCapacity: Prepares the returned collection to store
     ///   the specified number of elements.
-    public init<C: Cursor>(_ cursor: C, minimumCapacity: Int) throws where C.Element == Element {
+    public init(_ cursor: some Cursor<Element>, minimumCapacity: Int) throws {
         self.init()
         reserveCapacity(minimumCapacity)
         // Prefer `forEach` over `next()` looping, as a slight performance
@@ -112,9 +112,7 @@ extension Dictionary {
     /// - parameter keysAndValues: A cursor of key-value pairs to use for the
     ///   new dictionary. Every key in `keysAndValues` must be unique.
     /// - precondition: The cursor must not have duplicate keys.
-    public init<C: Cursor>(uniqueKeysWithValues keysAndValues: C)
-    throws where C.Element == (Key, Value)
-    {
+    public init(uniqueKeysWithValues keysAndValues: some Cursor<(Key, Value)>) throws {
         self.init()
         // Prefer `forEach` over `next()` looping, as a slight performance
         // improvement due to the single `sqlite3_stmt_busy` check for
@@ -144,9 +142,7 @@ extension Dictionary {
     /// - parameter keysAndValues: A cursor of key-value pairs to use for the
     ///   new dictionary. Every key in `keysAndValues` must be unique.
     /// - precondition: The cursor must not have duplicate keys.
-    public init<C: Cursor>(minimumCapacity: Int, uniqueKeysWithValues keysAndValues: C)
-    throws where C.Element == (Key, Value)
-    {
+    public init(minimumCapacity: Int, uniqueKeysWithValues keysAndValues: some Cursor<(Key, Value)>) throws {
         self.init(minimumCapacity: minimumCapacity)
         // Prefer `forEach` over `next()` looping, as a slight performance
         // improvement due to the single `sqlite3_stmt_busy` check for
@@ -167,7 +163,7 @@ extension Set {
     ///     let strings = try Set(cursor)
     ///
     /// - parameter cursor: A cursor of values to gather into a set.
-    public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
+    public init(_ cursor: some Cursor<Element>) throws {
         self.init()
         // Prefer `forEach` over `next()` looping, as a slight performance
         // improvement due to the single `sqlite3_stmt_busy` check for
@@ -185,7 +181,7 @@ extension Set {
     /// - parameter minimumCapacity: The minimum number of elements that the
     ///   newly created set should be able to store without reallocating its
     ///   storage buffer.
-    public init<C: Cursor>(_ cursor: C, minimumCapacity: Int) throws where C.Element == Element {
+    public init(_ cursor: some Cursor<Element>, minimumCapacity: Int) throws {
         self.init(minimumCapacity: minimumCapacity)
         // Prefer `forEach` over `next()` looping, as a slight performance
         // improvement due to the single `sqlite3_stmt_busy` check for
@@ -685,14 +681,14 @@ public final class AnyCursor<Element>: Cursor {
     
     /// Creates a cursor that wraps a base iterator but whose type depends only
     /// on the base iterator’s element type
-    public convenience init<I: IteratorProtocol>(iterator: I) where I.Element == Element {
+    public convenience init(iterator: some IteratorProtocol<Element>) {
         var iterator = iterator
         self.init { iterator.next() }
     }
     
     /// Creates a cursor that wraps a base sequence but whose type depends only
     /// on the base sequence’s element type
-    public convenience init<S: Sequence>(_ s: S) where S.Element == Element {
+    public convenience init(_ s: some Sequence<Element>) {
         self.init(iterator: s.makeIterator())
     }
     

@@ -10,7 +10,7 @@ private struct NotARecord { }
 // Here we test that filter(key:), orderByPrimaryKey(), and groupByPrimaryKey()
 // don't forget their table when the request type is changed.
 class QueryInterfacePromiseTests: GRDBTestCase {
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "node") { t in
                 t.autoIncrementedPrimaryKey("id")

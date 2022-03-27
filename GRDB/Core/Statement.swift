@@ -250,7 +250,7 @@ public final class Statement {
     }
     
     // 1-based index
-    func bind<T: StatementBinding>(_ value: T, at index: CInt) {
+    func bind(_ value: some StatementBinding, at index: CInt) {
         let code = value.bind(to: sqliteStatement, at: index)
         
         // It looks like sqlite3_bind_xxx() functions do not access the file system.
@@ -601,12 +601,12 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     
     /// Creates statement arguments from a sequence of optional values.
     ///
-    ///     let values: [DatabaseValueConvertible?] = ["foo", 1, nil]
+    ///     let values: [(any DatabaseValueConvertible)?] = ["foo", 1, nil]
     ///     db.execute(sql: "INSERT ... (?,?,?)", arguments: StatementArguments(values))
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Element == DatabaseValueConvertible? {
+    public init(_ sequence: some Sequence<(any DatabaseValueConvertible)?>) {
         values = sequence.map { $0?.databaseValue ?? .null }
         namedValues = .init()
     }
@@ -618,7 +618,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     ///
     /// - parameter sequence: A sequence of DatabaseValueConvertible values.
     /// - returns: A StatementArguments.
-    public init<Sequence: Swift.Sequence>(_ sequence: Sequence) where Sequence.Element: DatabaseValueConvertible {
+    public init(_ sequence: some Sequence<some DatabaseValueConvertible>) {
         values = sequence.map(\.databaseValue)
         namedValues = .init()
     }
@@ -649,12 +649,12 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// Creates statement arguments from a sequence of (key, value) dictionary,
     /// such as a dictionary.
     ///
-    ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
+    ///     let values: [String: (any DatabaseValueConvertible)?] = ["firstName": nil, "lastName": "Miller"]
     ///     db.execute(sql: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-    public init(_ dictionary: [String: DatabaseValueConvertible?]) {
+    public init(_ dictionary: [String: (any DatabaseValueConvertible)?]) {
         namedValues = dictionary.mapValues { $0?.databaseValue ?? .null }
         values = .init()
     }
@@ -662,14 +662,12 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// Creates statement arguments from a sequence of (key, value) pairs, such
     /// as a dictionary.
     ///
-    ///     let values: [String: DatabaseValueConvertible?] = ["firstName": nil, "lastName": "Miller"]
+    ///     let values: [String: (any DatabaseValueConvertible)?] = ["firstName": nil, "lastName": "Miller"]
     ///     db.execute(sql: "INSERT ... (:firstName, :lastName)", arguments: StatementArguments(values))
     ///
     /// - parameter sequence: A sequence of (key, value) pairs
     /// - returns: A StatementArguments.
-    public init<Sequence>(_ sequence: Sequence)
-    where Sequence: Swift.Sequence, Sequence.Element == (String, DatabaseValueConvertible?)
-    {
+    public init(_ sequence: some Sequence<(String, (any DatabaseValueConvertible)?)>) {
         namedValues = .init(minimumCapacity: sequence.underestimatedCount)
         for (key, value) in sequence {
             namedValues[key] = value?.databaseValue ?? .null
@@ -685,7 +683,7 @@ public struct StatementArguments: CustomStringConvertible, Equatable,
     /// - parameter dictionary: A dictionary.
     /// - returns: A StatementArguments.
     public init?(_ dictionary: [AnyHashable: Any]) {
-        var initDictionary = [String: DatabaseValueConvertible?]()
+        var initDictionary = [String: (any DatabaseValueConvertible)?]()
         for (key, value) in dictionary {
             guard let columnName = key as? String else {
                 return nil
@@ -904,7 +902,7 @@ extension StatementArguments {
     ///     try db.execute(
     ///         sql: "INSERT INTO player (name, score) VALUES (?, ?)"
     ///         arguments: arguments)
-    public init(arrayLiteral elements: DatabaseValueConvertible?...) {
+    public init(arrayLiteral elements: (any DatabaseValueConvertible)?...) {
         self.init(elements)
     }
 }
@@ -917,7 +915,7 @@ extension StatementArguments {
     ///     try db.execute(
     ///         sql: "INSERT INTO player (name, score) VALUES (:name, :score)"
     ///         arguments: arguments)
-    public init(dictionaryLiteral elements: (String, DatabaseValueConvertible?)...) {
+    public init(dictionaryLiteral elements: (String, (any DatabaseValueConvertible)?)...) {
         self.init(elements)
     }
 }

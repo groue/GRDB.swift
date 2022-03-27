@@ -125,7 +125,7 @@ class SQLRequestTests: GRDBTestCase {
                 """
             }
 
-            static func filter<S>(excludedIds: S) -> SQLRequest<Player> where S: Sequence, S.Element == Int64 {
+            static func filter(excludedIds: some Sequence<Int64>) -> SQLRequest<Player> {
                 """
                 SELECT *
                 FROM \(self)

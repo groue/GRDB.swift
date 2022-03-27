@@ -399,19 +399,19 @@ public class TableAlias: Hashable {
     
     /// Returns a qualified value that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ selectable: SQLSelectable) -> SQLSelection {
+    public subscript(_ selectable: some SQLSelectable) -> SQLSelection {
         selectable.sqlSelection.qualified(with: self)
     }
     
     /// Returns a qualified expression that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ expression: SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
+    public subscript(_ expression: some SQLSpecificExpressible & SQLSelectable & SQLOrderingTerm) -> SQLExpression {
         expression.sqlExpression.qualified(with: self)
     }
     
     /// Returns a qualified ordering that is able to resolve ambiguities in
     /// joined queries.
-    public subscript(_ ordering: SQLOrderingTerm) -> SQLOrdering {
+    public subscript(_ ordering: some SQLOrderingTerm) -> SQLOrdering {
         ordering.sqlOrdering.qualified(with: self)
     }
     

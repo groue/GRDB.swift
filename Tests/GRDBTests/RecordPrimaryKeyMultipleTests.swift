@@ -59,7 +59,7 @@ private class Citizenship : Record, Hashable {
 
 class RecordPrimaryKeyMultipleTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createCitizenship", migrate: Citizenship.setup)
         try migrator.migrate(dbWriter)

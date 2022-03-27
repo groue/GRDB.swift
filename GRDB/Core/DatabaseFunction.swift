@@ -43,7 +43,7 @@ public final class DatabaseFunction: Hashable {
         _ name: String,
         argumentCount: Int32? = nil,
         pure: Bool = false,
-        function: @escaping ([DatabaseValue]) throws -> DatabaseValueConvertible?)
+        function: @escaping ([DatabaseValue]) throws -> (any DatabaseValueConvertible)?)
     {
         self.identity = Identity(name: name, nArg: argumentCount ?? -1)
         self.pure = pure
@@ -68,7 +68,7 @@ public final class DatabaseFunction: Hashable {
     ///             }
     ///         }
     ///
-    ///         func finalize() -> DatabaseValueConvertible? {
+    ///         func finalize() -> (any DatabaseValueConvertible)? {
     ///             return sum
     ///         }
     ///     }
@@ -110,7 +110,7 @@ public final class DatabaseFunction: Hashable {
     /// Returns an SQL expression that applies the function.
     ///
     /// See <https://github.com/groue/GRDB.swift/#sql-functions>
-    public func callAsFunction(_ arguments: SQLExpressible...) -> SQLExpression {
+    public func callAsFunction(_ arguments: any SQLExpressible...) -> SQLExpression {
         switch kind {
         case .aggregate:
             return .function(name, arguments.map(\.sqlExpression))
@@ -166,8 +166,10 @@ public final class DatabaseFunction: Hashable {
     /// Feeds the `pApp` parameter of sqlite3_create_function_v2
     /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
     private class FunctionDefinition {
-        let compute: (Int32, UnsafeMutablePointer<OpaquePointer?>?) throws -> DatabaseValueConvertible?
-        init(compute: @escaping (Int32, UnsafeMutablePointer<OpaquePointer?>?) throws -> DatabaseValueConvertible?) {
+        let compute: (Int32, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?
+        init(compute: @escaping (Int32, UnsafeMutablePointer<OpaquePointer?>?)
+             throws -> (any DatabaseValueConvertible)?)
+        {
             self.compute = compute
         }
     }
@@ -176,17 +178,17 @@ public final class DatabaseFunction: Hashable {
     /// Feeds the `pApp` parameter of sqlite3_create_function_v2
     /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
     private class AggregateDefinition {
-        let makeAggregate: () -> DatabaseAggregate
-        init(makeAggregate: @escaping () -> DatabaseAggregate) {
+        let makeAggregate: () -> any DatabaseAggregate
+        init(makeAggregate: @escaping () -> any DatabaseAggregate) {
             self.makeAggregate = makeAggregate
         }
     }
     
     /// The current state of an aggregate, storable in SQLite
     private class AggregateContext {
-        var aggregate: DatabaseAggregate
+        var aggregate: any DatabaseAggregate
         var hasErrored = false
-        init(aggregate: DatabaseAggregate) {
+        init(aggregate: some DatabaseAggregate) {
             self.aggregate = aggregate
         }
     }
@@ -195,10 +197,10 @@ public final class DatabaseFunction: Hashable {
     /// See <http://sqlite.org/capi3ref.html#sqlite3_create_function>
     private enum Kind {
         /// A regular function: SELECT f(1)
-        case function((Int32, UnsafeMutablePointer<OpaquePointer?>?) throws -> DatabaseValueConvertible?)
+        case function((Int32, UnsafeMutablePointer<OpaquePointer?>?) throws -> (any DatabaseValueConvertible)?)
         
         /// An aggregate: SELECT f(foo) FROM bar GROUP BY baz
-        case aggregate(() -> DatabaseAggregate)
+        case aggregate(() -> any DatabaseAggregate)
         
         /// Feeds the `pApp` parameter of sqlite3_create_function_v2
         /// <http://sqlite.org/capi3ref.html#sqlite3_create_function>
@@ -314,7 +316,7 @@ public final class DatabaseFunction: Hashable {
         }
     }
     
-    private static func report(result: DatabaseValueConvertible?, in sqliteContext: OpaquePointer?) {
+    private static func report(result: (any DatabaseValueConvertible)?, in sqliteContext: OpaquePointer?) {
         switch result?.databaseValue.storage ?? .null {
         case .null:
             sqlite3_result_null(sqliteContext)
@@ -369,7 +371,7 @@ extension DatabaseFunction {
 ///             }
 ///         }
 ///
-///         func finalize() -> DatabaseValueConvertible? {
+///         func finalize() -> (any DatabaseValueConvertible)? {
 ///             return sum
 ///         }
 ///     }
@@ -402,5 +404,5 @@ public protocol DatabaseAggregate {
     mutating func step(_ dbValues: [DatabaseValue]) throws
     
     /// Returns the final result
-    func finalize() throws -> DatabaseValueConvertible?
+    func finalize() throws -> (any DatabaseValueConvertible)?
 }

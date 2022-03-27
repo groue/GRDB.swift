@@ -730,7 +730,7 @@ extension DatabasePool: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         if configuration.readonly {
             // The easy case: the database does not change
@@ -761,7 +761,7 @@ extension DatabasePool: DatabaseReader {
         observation: ValueObservation<Reducer>,
         scheduling scheduler: ValueObservationScheduler,
         onChange: @escaping (Reducer.Value) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         assert(!configuration.readonly, "Use _addReadOnly(observation:) instead")
         assert(!observation.requiresWriteAccess, "Use _addWriteOnly(observation:) instead")

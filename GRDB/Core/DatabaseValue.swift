@@ -31,7 +31,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
         case blob(Data)
         
         /// Returns Int64, Double, String, Data or nil.
-        public var value: DatabaseValueConvertible? {
+        public var value: (any DatabaseValueConvertible)? {
             switch self {
             case .null:
                 return nil
@@ -67,7 +67,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     ///
     /// The result is nil unless object adopts DatabaseValueConvertible.
     public init?(value: Any) {
-        guard let convertible = value as? DatabaseValueConvertible else {
+        guard let convertible = value as? any DatabaseValueConvertible else {
             return nil
         }
         self = convertible.databaseValue

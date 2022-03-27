@@ -41,12 +41,12 @@ public protocol TableRecord {
     ///
     ///     struct ExtendedPlayer : TableRecord {
     ///         static var databaseTableName = "player"
-    ///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+    ///         static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
     ///     }
     ///
     ///     // SELECT *, rowid FROM player
     ///     try ExtendedPlayer.fetchAll(db)
-    static var databaseSelection: [SQLSelectable] { get }
+    static var databaseSelection: [any SQLSelectable] { get }
 }
 
 extension TableRecord {
@@ -91,7 +91,7 @@ extension TableRecord {
     }
     
     /// Default value: `[AllColumns()]`.
-    public static var databaseSelection: [SQLSelectable] {
+    public static var databaseSelection: [any SQLSelectable] {
         [AllColumns()]
     }
 }
@@ -172,10 +172,7 @@ extension TableRecord {
     ///     - db: A database connection.
     ///     - key: A primary key value.
     /// - returns: Whether a row exists for this primary key.
-    public static func exists<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
-    throws -> Bool
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    public static func exists(_ db: Database, key: some DatabaseValueConvertible) throws -> Bool {
         try !filter(key: key).isEmpty(db)
     }
 }
@@ -217,7 +214,7 @@ extension TableRecord {
     ///     - db: A database connection.
     ///     - key: A dictionary of values.
     /// - returns: Whether a row exists for this key.
-    public static func exists(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    public static func exists(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try !filter(key: key).isEmpty(db)
     }
 }
@@ -246,9 +243,8 @@ extension TableRecord {
     ///     - keys: A sequence of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public static func deleteAll<Sequence>(_ db: Database, keys: Sequence)
+    public static func deleteAll(_ db: Database, keys: some Sequence<some DatabaseValueConvertible>)
     throws -> Int
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         let keys = Array(keys)
         if keys.isEmpty {
@@ -278,10 +274,7 @@ extension TableRecord {
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
-    throws -> Bool
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    public static func deleteOne(_ db: Database, key: some DatabaseValueConvertible) throws -> Bool {
         if key.databaseValue.isNull {
             // Don't hit the database
             return false
@@ -312,10 +305,7 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     - ids: A collection of primary keys.
     /// - returns: The number of deleted rows
     @discardableResult
-    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
+    public static func deleteAll(_ db: Database, ids: some Collection<ID>) throws -> Int {
         if ids.isEmpty {
             // Avoid hitting the database
             return 0
@@ -361,7 +351,7 @@ extension TableRecord {
     ///     - keys: An array of key dictionaries.
     /// - returns: The number of deleted rows
     @discardableResult
-    public static func deleteAll(_ db: Database, keys: [[String: DatabaseValueConvertible?]]) throws -> Int {
+    public static func deleteAll(_ db: Database, keys: [[String: (any DatabaseValueConvertible)?]]) throws -> Int {
         if keys.isEmpty {
             // Avoid hitting the database
             return 0
@@ -379,7 +369,7 @@ extension TableRecord {
     ///     - key: A dictionary of values.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public static func deleteOne(_ db: Database, key: [String: DatabaseValueConvertible?]) throws -> Bool {
+    public static func deleteOne(_ db: Database, key: [String: (any DatabaseValueConvertible)?]) throws -> Bool {
         try deleteAll(db, keys: [key]) > 0
     }
 }

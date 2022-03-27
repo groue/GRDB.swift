@@ -1694,9 +1694,9 @@ public protocol SQLSpecificExpressible: SQLExpressible, SQLSelectable, SQLOrderi
     // spill out. The three declarations below have no chance overloading a
     // Swift-defined operator, or a user-defined operator:
     //
-    // - ==(SQLExpressible, SQLSpecificExpressible)
-    // - ==(SQLSpecificExpressible, SQLExpressible)
-    // - ==(SQLSpecificExpressible, SQLSpecificExpressible)
+    // - ==(some SQLExpressible, some SQLSpecificExpressible)
+    // - ==(some SQLSpecificExpressible, some SQLExpressible)
+    // - ==(some SQLSpecificExpressible, some SQLSpecificExpressible)
 }
 
 extension SQLSpecificExpressible {
@@ -1739,7 +1739,7 @@ extension Sequence where Element: SQLSpecificExpressible {
     }
 }
 
-extension Sequence where Element == SQLSpecificExpressible {
+extension Sequence where Element == any SQLSpecificExpressible {
     /// Returns an expression by joining all elements with an associative SQL
     /// binary operator.
     ///
@@ -1853,7 +1853,7 @@ extension SQLSpecificExpressible {
     ///         let height: Int
     ///         let area: Int
     ///
-    ///         static let databaseSelection: [SQLSelectable] = [
+    ///         static let databaseSelection: [any SQLSelectable] = [
     ///             Column(CodingKeys.width),
     ///             Column(CodingKeys.height),
     ///             (Column(CodingKeys.width) * Column(CodingKeys.height)).forKey(CodingKeys.area),
@@ -1864,7 +1864,7 @@ extension SQLSpecificExpressible {
     ///     let shapes: [Shape] = try Shape.fetchAll(db)
     ///
     /// See `forKey(_ key: String)` for more information.
-    public func forKey(_ key: CodingKey) -> SQLSelection {
+    public func forKey(_ key: some CodingKey) -> SQLSelection {
         forKey(key.stringValue)
     }
 }

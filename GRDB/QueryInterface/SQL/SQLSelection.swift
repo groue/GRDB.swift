@@ -288,7 +288,7 @@ extension SQLSelection: SQLSelectable {
 ///
 ///     struct Player : TableRecord {
 ///         static var databaseTableName = "player"
-///         static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+///         static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
 ///     }
 ///
 ///     // SELECT *, rowid FROM player

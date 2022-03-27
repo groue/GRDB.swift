@@ -5,8 +5,8 @@ class DatabaseReaderTests : GRDBTestCase {
     
     func testAnyDatabaseReader() throws {
         // This test passes if this code compiles.
-        let reader: DatabaseReader = try DatabaseQueue()
-        let _: DatabaseReader = AnyDatabaseReader(reader)
+        let dbQueue = try DatabaseQueue()
+        let _: any DatabaseReader = AnyDatabaseReader(dbQueue)
     }
     
     // MARK: - Read

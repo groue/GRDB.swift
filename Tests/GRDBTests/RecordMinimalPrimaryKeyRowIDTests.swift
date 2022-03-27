@@ -49,7 +49,7 @@ extension MinimalRowID: Identifiable { }
 
 class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createMinimalRowID", migrate: MinimalRowID.setup)
         try migrator.migrate(dbWriter)

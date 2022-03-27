@@ -10,7 +10,7 @@ extension Database {
     ///   the observer lifetime (observation lasts until observer
     ///   is deallocated).
     public func add(
-        transactionObserver: TransactionObserver,
+        transactionObserver: some TransactionObserver,
         extent: TransactionObservationExtent = .observerLifetime)
     {
         SchedulingWatchdog.preconditionValidQueue(self)
@@ -24,7 +24,7 @@ extension Database {
     }
     
     /// Remove a transaction observer.
-    public func remove(transactionObserver: TransactionObserver) {
+    public func remove(transactionObserver: some TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
         
         // Drop cached statements that delete, because the removal of an
@@ -193,15 +193,15 @@ class DatabaseObservationBroker {
     
     // MARK: - Transaction observers
     
-    func add(transactionObserver: TransactionObserver, extent: Database.TransactionObservationExtent) {
+    func add(transactionObserver: some TransactionObserver, extent: Database.TransactionObservationExtent) {
         transactionObservations.append(TransactionObservation(observer: transactionObserver, extent: extent))
     }
     
-    func remove(transactionObserver: TransactionObserver) {
+    func remove(transactionObserver: some TransactionObserver) {
         transactionObservations.removeFirst { $0.isWrapping(transactionObserver) }
     }
     
-    func disableUntilNextTransaction(transactionObserver: TransactionObserver) {
+    func disableUntilNextTransaction(transactionObserver: some TransactionObserver) {
         if let observation = transactionObservations.first(where: { $0.isWrapping(transactionObserver) }) {
             observation.isDisabled = true
             statementObservations.removeFirst { $0.0 === observation }
@@ -804,15 +804,15 @@ final class TransactionObservation {
     // It is still interested in transactions commits & rollbacks.
     var isDisabled = false
     
-    private weak var weakObserver: TransactionObserver?
-    private var strongObserver: TransactionObserver?
-    private var observer: TransactionObserver? { strongObserver ?? weakObserver }
+    private weak var weakObserver: (any TransactionObserver)?
+    private var strongObserver: (any TransactionObserver)?
+    private var observer: (any TransactionObserver)? { strongObserver ?? weakObserver }
     
     fileprivate var isObserving: Bool {
         observer != nil
     }
     
-    init(observer: TransactionObserver, extent: Database.TransactionObservationExtent) {
+    init(observer: some TransactionObserver, extent: Database.TransactionObservationExtent) {
         self.extent = extent
         switch extent {
         case .observerLifetime:
@@ -825,7 +825,7 @@ final class TransactionObservation {
         }
     }
     
-    func isWrapping(_ observer: TransactionObserver) -> Bool {
+    func isWrapping(_ observer: some TransactionObserver) -> Bool {
         self.observer === observer
     }
     
@@ -950,7 +950,7 @@ public struct DatabaseEvent {
         case update = 23
     }
     
-    private let impl: DatabaseEventImpl
+    private let impl: any DatabaseEventImpl
     
     /// The event kind
     public let kind: Kind
@@ -976,7 +976,7 @@ public struct DatabaseEvent {
         impl.copy(self)
     }
     
-    fileprivate init(kind: Kind, rowID: Int64, impl: DatabaseEventImpl) {
+    fileprivate init(kind: Kind, rowID: Int64, impl: any DatabaseEventImpl) {
         self.kind = kind
         self.rowID = rowID
         self.impl = impl
@@ -1142,7 +1142,7 @@ public struct DatabasePreUpdateEvent {
         impl.copy(self)
     }
     
-    fileprivate init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: DatabasePreUpdateEventImpl) {
+    fileprivate init(kind: Kind, initialRowID: Int64?, finalRowID: Int64?, impl: any DatabasePreUpdateEventImpl) {
         self.kind = kind
         self.initialRowID = (kind == .update || kind == .delete ) ? initialRowID : nil
         self.finalRowID = (kind == .update || kind == .insert ) ? finalRowID : nil
@@ -1168,7 +1168,7 @@ public struct DatabasePreUpdateEvent {
                 tableNameCString: tableNameCString))
     }
     
-    private let impl: DatabasePreUpdateEventImpl
+    private let impl: any DatabasePreUpdateEventImpl
 }
 
 extension DatabasePreUpdateEvent: DatabaseEventProtocol {
@@ -1336,7 +1336,7 @@ enum DatabaseEventPredicate {
     // Only events that match observedKinds
     case matching(observedKinds: [DatabaseEventKind], advertisedKinds: [DatabaseEventKind])
     
-    func evaluate(_ event: DatabaseEventProtocol) -> Bool {
+    func evaluate(_ event: some DatabaseEventProtocol) -> Bool {
         switch self {
         case .true:
             return true
@@ -1372,7 +1372,7 @@ enum DatabaseEventPredicate {
 ///   rollbacked.
 class SavepointStack {
     /// The buffered events (see DatabaseObservationBroker.databaseDidChange(with:))
-    var eventsBuffer: [(event: DatabaseEventProtocol, statementObservations: [StatementObservation])] = []
+    var eventsBuffer: [(event: any DatabaseEventProtocol, statementObservations: [StatementObservation])] = []
     
     /// The savepoint stack, as an array of tuples (savepointName, index in the eventsBuffer array).
     /// Indexes let us drop rollbacked events from the event buffer.

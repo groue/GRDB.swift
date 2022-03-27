@@ -151,7 +151,7 @@ final class ValueWriteOnlyObserver<Writer: DatabaseWriter, Reducer: ValueReducer
 
 extension ValueWriteOnlyObserver {
     // Starts the observation
-    func start() -> DatabaseCancellable {
+    func start() -> AnyDatabaseCancellable {
         let (notificationCallbacks, writer) = lock.synchronized {
             (self.notificationCallbacks, self.databaseAccess?.writer)
         }

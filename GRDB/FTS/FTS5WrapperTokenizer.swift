@@ -50,7 +50,7 @@ public typealias FTS5WrapperTokenCallback = (_ token: String, _ flags: FTS5Token
 ///     }
 public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
     /// The wrapped tokenizer
-    var wrappedTokenizer: FTS5Tokenizer { get }
+    var wrappedTokenizer: any FTS5Tokenizer { get }
     
     /// Given a token produced by the wrapped tokenizer, notifies customized
     /// tokens to the `tokenCallback` function.
@@ -92,7 +92,7 @@ public protocol FTS5WrapperTokenizer: FTS5CustomTokenizer {
 }
 
 private struct FTS5WrapperContext {
-    let tokenizer: FTS5WrapperTokenizer
+    let tokenizer: any FTS5WrapperTokenizer
     let context: UnsafeMutableRawPointer?
     let tokenization: FTS5Tokenization
     let tokenCallback: FTS5TokenCallback

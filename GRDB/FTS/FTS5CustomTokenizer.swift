@@ -139,7 +139,7 @@ extension Database {
             let object = Unmanaged<AnyObject>
                 .fromOpaque(UnsafeMutableRawPointer(tokenizerPointer))
                 .takeUnretainedValue()
-            guard let tokenizer = object as? FTS5Tokenizer else {
+            guard let tokenizer = object as? any FTS5Tokenizer else {
                 return SQLITE_ERROR
             }
             return tokenizer.tokenize(

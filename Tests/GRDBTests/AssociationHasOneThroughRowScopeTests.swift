@@ -27,7 +27,7 @@ private struct C: Codable, FetchableRecord, PersistableRecord {
 /// Test row scopes
 class AssociationHasOneThroughRowscopeTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(table: "c") { t in
                 t.autoIncrementedPrimaryKey("id")

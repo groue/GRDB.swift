@@ -236,10 +236,7 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    public func update<Sequence>(_ db: Database, columns: Sequence)
-    throws
-    where Sequence: Swift.Sequence, Sequence.Element: ColumnExpression
-    {
+    public func update(_ db: Database, columns: some Sequence<some ColumnExpression>) throws {
         try update(db, columns: Set(columns.map(\.name)))
     }
     
@@ -250,10 +247,7 @@ extension MutablePersistableRecord {
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     ///   PersistenceError.recordNotFound is thrown if the primary key does not
     ///   match any row in the database.
-    public func update<Sequence>(_ db: Database, columns: Sequence)
-    throws
-    where Sequence: Swift.Sequence, Sequence.Element == String
-    {
+    public func update(_ db: Database, columns: some Sequence<String>) throws {
         try update(db, columns: Set(columns))
     }
     
@@ -668,7 +662,7 @@ extension PersistableRecord {
 
 extension PersistenceContainer {
     /// Convenience initializer from a database connection and a record
-    init<Record: EncodableRecord & TableRecord>(_ db: Database, _ record: Record) throws {
+    init(_ db: Database, _ record: some EncodableRecord & TableRecord) throws {
         let databaseTableName = type(of: record).databaseTableName
         let columnCount = try db.columns(in: databaseTableName).count
         self.init(minimumCapacity: columnCount)

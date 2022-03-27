@@ -2741,7 +2741,7 @@ See [fetching methods](#fetching-methods) for information about the `fetchCursor
 ```swift
 protocol TableRecord {
     static var databaseTableName: String { get }
-    static var databaseSelection: [SQLSelectable] { get }
+    static var databaseSelection: [any SQLSelectable] { get }
 }
 ```
 
@@ -3638,12 +3638,12 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     
     ```swift
     struct Event : TableRecord {
-        static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+        static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
     }
     
     // When you subclass Record, you need an override:
     class Book : Record {
-        override class var databaseSelection: [SQLSelectable] {
+        override class var databaseSelection: [any SQLSelectable] {
             [AllColums(), Column.rowID]
         }
     }
@@ -3893,7 +3893,7 @@ extension Place: TableRecord {
     }
     
     /// Arrange the selected columns and lock their order
-    static let databaseSelection: [SQLSelectable] = [
+    static let databaseSelection: [any SQLSelectable] = [
         Columns.id,
         Columns.title,
         Columns.favorite,
@@ -4756,12 +4756,12 @@ The default selection for a record type is controlled by the `databaseSelection`
 ```swift
 struct RestrictedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static let databaseSelection: [SQLSelectable] = [Column("id"), Column("name")]
+    static let databaseSelection: [any SQLSelectable] = [Column("id"), Column("name")]
 }
 
 struct ExtendedPlayer : TableRecord {
     static let databaseTableName = "player"
-    static let databaseSelection: [SQLSelectable] = [AllColumns(), Column.rowID]
+    static let databaseSelection: [any SQLSelectable] = [AllColumns(), Column.rowID]
 }
 
 // SELECT id, name FROM player
@@ -4771,7 +4771,7 @@ let request = RestrictedPlayer.all()
 let request = ExtendedPlayer.all()
 ```
 
-> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[SQLSelectable]`. If it is not, the Swift compiler may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
+> :point_up: **Note**: make sure the `databaseSelection` property is explicitly declared as `[any SQLSelectable]`. If it is not, the Swift compiler may silently miss the protocol requirement, resulting in sticky `SELECT *` requests. To verify your setup, see the [How do I print a request as SQL?](#how-do-i-print-a-request-as-sql) FAQ.
 
 
 ## Expressions
@@ -5169,7 +5169,7 @@ LIMIT ...    -- 9
     Such expression literals allow you to build a reusable support library of SQL functions or operators that are missing from the query interface. For example, you can define a Swift `date` function:
     
     ```swift
-    func date(_ value: SQLSpecificExpressible) -> SQLExpression {
+    func date(_ value: some SQLSpecificExpressible) -> SQLExpression {
         SQL("DATE(\(value))").sqlExpression
     }
     

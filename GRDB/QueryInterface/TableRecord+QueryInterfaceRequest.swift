@@ -23,7 +23,7 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select(Column("id"), Column("email"))
-    public static func select(_ selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: any SQLSelectable...) -> QueryInterfaceRequest<Self> {
         all().select(selection)
     }
     
@@ -31,7 +31,7 @@ extension TableRecord {
     ///
     ///     // SELECT id, email FROM player
     ///     let request = Player.select([Column("id"), Column("email")])
-    public static func select(_ selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
+    public static func select(_ selection: [any SQLSelectable]) -> QueryInterfaceRequest<Self> {
         all().select(selection)
     }
     
@@ -70,7 +70,7 @@ extension TableRecord {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public static func select<RowDecoder>(
-        _ selection: [SQLSelectable],
+        _ selection: [any SQLSelectable],
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -86,7 +86,7 @@ extension TableRecord {
     ///         let maxScore: Int? = try request.fetchOne(db)
     ///     }
     public static func select<RowDecoder>(
-        _ selection: SQLSelectable...,
+        _ selection: any SQLSelectable...,
         as type: RowDecoder.Type = RowDecoder.self)
     -> QueryInterfaceRequest<RowDecoder>
     {
@@ -136,7 +136,7 @@ extension TableRecord {
     ///     let request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
-    public static func annotated(with selection: [SQLSelectable]) -> QueryInterfaceRequest<Self> {
+    public static func annotated(with selection: [any SQLSelectable]) -> QueryInterfaceRequest<Self> {
         all().annotated(with: selection)
     }
     
@@ -146,7 +146,7 @@ extension TableRecord {
     ///     let request = Player
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
-    public static func annotated(with selection: SQLSelectable...) -> QueryInterfaceRequest<Self> {
+    public static func annotated(with selection: any SQLSelectable...) -> QueryInterfaceRequest<Self> {
         all().annotated(with: selection)
     }
     
@@ -157,7 +157,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     let request = Player.filter(Column("email") == "arthur@example.com")
-    public static func filter(_ predicate: SQLSpecificExpressible) -> QueryInterfaceRequest<Self> {
+    public static func filter(_ predicate: some SQLSpecificExpressible) -> QueryInterfaceRequest<Self> {
         all().filter(predicate)
     }
     
@@ -165,10 +165,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE id = 1
     ///     let request = Player.filter(key: 1)
-    public static func filter<PrimaryKeyType>(key: PrimaryKeyType)
-    -> QueryInterfaceRequest<Self>
-    where PrimaryKeyType: DatabaseValueConvertible
-    {
+    public static func filter(key: some DatabaseValueConvertible) -> QueryInterfaceRequest<Self> {
         all().filter(key: key)
     }
     
@@ -176,9 +173,8 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
     ///     let request = Player.filter(keys: [1, 2, 3])
-    public static func filter<Sequence>(keys: Sequence)
+    public static func filter(keys: some Sequence<some DatabaseValueConvertible>)
     -> QueryInterfaceRequest<Self>
-    where Sequence: Swift.Sequence, Sequence.Element: DatabaseValueConvertible
     {
         all().filter(keys: keys)
     }
@@ -190,7 +186,7 @@ extension TableRecord {
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
-    public static func filter(key: [String: DatabaseValueConvertible?]?) -> QueryInterfaceRequest<Self> {
+    public static func filter(key: [String: (any DatabaseValueConvertible)?]?) -> QueryInterfaceRequest<Self> {
         all().filter(key: key)
     }
     
@@ -201,7 +197,7 @@ extension TableRecord {
     ///
     /// When executed, this request raises a fatal error if there is no unique
     /// index on the key columns.
-    public static func filter(keys: [[String: DatabaseValueConvertible?]]) -> QueryInterfaceRequest<Self> {
+    public static func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> QueryInterfaceRequest<Self> {
         all().filter(keys: keys)
     }
     
@@ -236,7 +232,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order(Column("name"))
-    public static func order(_ orderings: SQLOrderingTerm...) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: any SQLOrderingTerm...) -> QueryInterfaceRequest<Self> {
         all().order(orderings)
     }
     
@@ -245,7 +241,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player ORDER BY name
     ///     let request = Player.order([Column("name")])
-    public static func order(_ orderings: [SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
+    public static func order(_ orderings: [any SQLOrderingTerm]) -> QueryInterfaceRequest<Self> {
         all().order(orderings)
     }
     
@@ -365,10 +361,7 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     let request = Player.filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public static func filter<Collection>(ids: Collection)
-    -> QueryInterfaceRequest<Self>
-    where Collection: Swift.Collection, Collection.Element == ID
-    {
+    public static func filter(ids: some Collection<ID>) -> QueryInterfaceRequest<Self> {
         all().filter(ids: ids)
     }
     

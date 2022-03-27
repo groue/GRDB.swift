@@ -46,7 +46,7 @@ extension MinimalNonOptionalPrimaryKeySingle: Identifiable { }
 
 class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         var migrator = DatabaseMigrator()
         migrator.registerMigration("createMinimalNonOptionalPrimaryKeySingle", migrate: MinimalNonOptionalPrimaryKeySingle.setup)
         try migrator.migrate(dbWriter)

@@ -3,7 +3,7 @@ import GRDB
 
 class FTS3PatternTests: GRDBTestCase {
     
-    override func setup(_ dbWriter: DatabaseWriter) throws {
+    override func setup(_ dbWriter: some DatabaseWriter) throws {
         try dbWriter.write { db in
             try db.create(virtualTable: "books", using: FTS3()) { t in
                 t.column("title")

@@ -71,7 +71,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     /// of columns:
     ///
     ///     class RestrictedPlayer : Record {
-    ///         override static var databaseSelection: [SQLSelectable] {
+    ///         override static var databaseSelection: [any SQLSelectable] {
     ///             return [Column("id"), Column("name")]
     ///         }
     ///     }
@@ -82,14 +82,14 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     /// You can also add extra columns such as the `rowid` column:
     ///
     ///     class ExtendedPlayer : Player {
-    ///         override static var databaseSelection: [SQLSelectable] {
+    ///         override static var databaseSelection: [any SQLSelectable] {
     ///             return [AllColumns(), Column.rowID]
     ///         }
     ///     }
     ///
     ///     // SELECT *, rowid FROM player
     ///     try ExtendedPlayer.fetchAll(db)
-    open class var databaseSelection: [SQLSelectable] {
+    open class var databaseSelection: [any SQLSelectable] {
         [AllColumns()]
     }
     

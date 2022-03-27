@@ -96,7 +96,7 @@ public struct SQL {
     ///     let emailLiteral = [columnLiteral, suffixLiteral].joined(separator: " || ")
     ///     let request = User.select(emailLiteral.sqlExpression)
     ///     let emails = try String.fetchAll(db, request)
-    public init(_ expression: SQLSpecificExpressible) {
+    public init(_ expression: some SQLSpecificExpressible) {
         self.init(elements: [.expression(expression.sqlExpression)])
     }
     
@@ -172,7 +172,7 @@ extension SQL: SQLSpecificExpressible {
     /// Use this property when you need an explicit `SQLExpression`.
     /// For example:
     ///
-    ///     func date(_ value: SQLExpressible) -> SQLExpression {
+    ///     func date(_ value: some SQLExpressible) -> SQLExpression {
     ///         SQL("DATE(\(value))").sqlExpression
     ///     }
     ///

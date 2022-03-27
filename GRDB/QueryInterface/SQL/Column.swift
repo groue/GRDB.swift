@@ -76,7 +76,7 @@ public struct Column: ColumnExpression, Equatable {
     }
     
     /// Creates a column given a CodingKey.
-    public init(_ codingKey: CodingKey) {
+    public init(_ codingKey: some CodingKey) {
         self.name = codingKey.stringValue
     }
     

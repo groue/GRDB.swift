@@ -473,7 +473,7 @@ struct SQLQueryGenerator: Refinable {
     ///         row.scopes["author"] // [id:12, name:"Herman Melville"]
     ///         let author: Author = row["author"]
     ///     }
-    private func rowAdapter(_ context: SQLGenerationContext) throws -> RowAdapter? {
+    private func rowAdapter(_ context: SQLGenerationContext) throws -> (any RowAdapter)? {
         try relation.rowAdapter(context, fromIndex: 0, rootRelation: true)?.adapter
     }
 }
@@ -605,7 +605,7 @@ private struct SQLQualifiedRelation {
         _ context: SQLGenerationContext,
         fromIndex startIndex: Int,
         rootRelation: Bool) throws
-    -> (adapter: RowAdapter, endIndex: Int)?
+    -> (adapter: any RowAdapter, endIndex: Int)?
     {
         // Root relation && no join => no need for any adapter
         if rootRelation && joins.isEmpty {
@@ -619,7 +619,7 @@ private struct SQLQualifiedRelation {
         // Recursively build adapters for each joined relation with a selection.
         // Name them according to the join keys.
         var endIndex = startIndex + sourceSelectionWidth
-        var scopes: [String: RowAdapter] = [:]
+        var scopes: [String: any RowAdapter] = [:]
         for (key, join) in joins {
             if let (joinAdapter, joinEndIndex) = try join
                 .relation

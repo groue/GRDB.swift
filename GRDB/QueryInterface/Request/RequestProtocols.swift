@@ -29,7 +29,7 @@ public protocol SelectionRequest {
     ///     request
     ///         .select { db in [Column("id")] }
     ///         .select { db in [Column("email")] }
-    func select(_ selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+    func select(_ selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
     
     /// Creates a request which appends *selection promise*.
     ///
@@ -38,7 +38,7 @@ public protocol SelectionRequest {
     ///     request = request
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: { db in [Column("name")] })
-    func annotated(with selection: @escaping (Database) throws -> [SQLSelectable]) -> Self
+    func annotated(with selection: @escaping (Database) throws -> [any SQLSelectable]) -> Self
 }
 
 extension SelectionRequest {
@@ -54,7 +54,7 @@ extension SelectionRequest {
     ///     request
     ///         .select([Column("id")])
     ///         .select([Column("email")])
-    public func select(_ selection: [SQLSelectable]) -> Self {
+    public func select(_ selection: [any SQLSelectable]) -> Self {
         select { _ in selection }
     }
     
@@ -70,7 +70,7 @@ extension SelectionRequest {
     ///     request
     ///         .select(Column("id"))
     ///         .select(Column("email"))
-    public func select(_ selection: SQLSelectable...) -> Self {
+    public func select(_ selection: any SQLSelectable...) -> Self {
         select(selection)
     }
     
@@ -120,7 +120,7 @@ extension SelectionRequest {
     ///     request = request
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: [Column("name")])
-    public func annotated(with selection: [SQLSelectable]) -> Self {
+    public func annotated(with selection: [any SQLSelectable]) -> Self {
         annotated(with: { _ in selection })
     }
     
@@ -131,7 +131,7 @@ extension SelectionRequest {
     ///     request = request
     ///         .select([Column("id"), Column("email")])
     ///         .annotated(with: Column("name"))
-    public func annotated(with selection: SQLSelectable...) -> Self {
+    public func annotated(with selection: any SQLSelectable...) -> Self {
         annotated(with: selection)
     }
 }
@@ -146,7 +146,7 @@ public protocol FilteredRequest {
     ///     // SELECT * FROM player WHERE 1
     ///     var request = Player.all()
     ///     request = request.filter { db in true }
-    func filter(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
+    func filter(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
 }
 
 extension FilteredRequest {
@@ -159,7 +159,7 @@ extension FilteredRequest {
     ///     // SELECT * FROM player WHERE email = 'arthur@example.com'
     ///     var request = Player.all()
     ///     request = request.filter(Column("email") == "arthur@example.com")
-    public func filter(_ predicate: SQLSpecificExpressible) -> Self {
+    public func filter(_ predicate: some SQLSpecificExpressible) -> Self {
         filter { _ in predicate }
     }
     
@@ -233,7 +233,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///     let request = try Player...filter(key: 1)
     ///
     /// - parameter key: A primary key
-    public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType) -> Self {
+    public func filter(key: some DatabaseValueConvertible) -> Self {
         if key.databaseValue.isNull {
             return none()
         }
@@ -256,7 +256,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // (customizing TableRequest where RowDecoder: EncodableRecord) would
         // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
         // `deleteAll(_:ids:)` etc.
-        if let recordType = RowDecoder.self as? EncodableRecord.Type {
+        if let recordType = RowDecoder.self as? any EncodableRecord.Type {
             if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
                 let strategy = recordType.databaseDateEncodingStrategy
                 let keys = keys.compactMap { ($0 as! Date?).flatMap(strategy.encode)?.databaseValue }
@@ -277,10 +277,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///     let request = try Player...filter(encodedKeys: [1, 2, 3])
     ///
     /// - parameter keys: A collection of primary keys
-    func filter<Sequence: Swift.Sequence>(rawKeys: Sequence)
-    -> Self
-    where Sequence.Element: DatabaseValueConvertible
-    {
+    func filter(rawKeys: some Sequence<some DatabaseValueConvertible>) -> Self {
         let keys = Array(rawKeys)
         if keys.isEmpty {
             return none()
@@ -305,7 +302,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// index on the key columns.
     ///
     /// - parameter key: A unique key
-    public func filter(key: [String: DatabaseValueConvertible?]?) -> Self {
+    public func filter(key: [String: (any DatabaseValueConvertible)?]?) -> Self {
         guard let key else {
             return none()
         }
@@ -321,7 +318,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// index on the key columns.
     ///
     /// - parameter keys: A collection of unique keys
-    public func filter(keys: [[String: DatabaseValueConvertible?]]) -> Self {
+    public func filter(keys: [[String: (any DatabaseValueConvertible)?]]) -> Self {
         if keys.isEmpty {
             return none()
         }
@@ -387,10 +384,7 @@ where Self: FilteredRequest,
     ///     let request = try Player...filter(ids: [1, 2, 3])
     ///
     /// - parameter ids: A collection of primary keys
-    public func filter<Collection: Swift.Collection>(ids: Collection)
-    -> Self
-    where Collection.Element == RowDecoder.ID
-    {
+    public func filter(ids: some Collection<RowDecoder.ID>) -> Self {
         filter(keys: ids)
     }
 }
@@ -430,21 +424,21 @@ extension TableRequest where Self: AggregatingRequest {
 /// The protocol for all requests that can aggregate.
 public protocol AggregatingRequest {
     /// Creates a request grouped according to *expressions promise*.
-    func group(_ expressions: @escaping (Database) throws -> [SQLExpressible]) -> Self
+    func group(_ expressions: @escaping (Database) throws -> [any SQLExpressible]) -> Self
     
     /// Creates a request with the provided *predicate promise* added to the
     /// eventual set of already applied predicates.
-    func having(_ predicate: @escaping (Database) throws -> SQLExpressible) -> Self
+    func having(_ predicate: @escaping (Database) throws -> any SQLExpressible) -> Self
 }
 
 extension AggregatingRequest {
     /// Creates a request grouped according to *expressions*.
-    public func group(_ expressions: [SQLExpressible]) -> Self {
+    public func group(_ expressions: [any SQLExpressible]) -> Self {
         group { _ in expressions }
     }
     
     /// Creates a request grouped according to *expressions*.
-    public func group(_ expressions: SQLExpressible...) -> Self {
+    public func group(_ expressions: any SQLExpressible...) -> Self {
         group(expressions)
     }
     
@@ -461,7 +455,7 @@ extension AggregatingRequest {
     
     /// Creates a request with the provided *predicate* added to the
     /// eventual set of already applied predicates.
-    public func having(_ predicate: SQLExpressible) -> Self {
+    public func having(_ predicate: some SQLExpressible) -> Self {
         having { _ in predicate }
     }
     
@@ -496,7 +490,7 @@ public protocol OrderedRequest {
     ///         .order{ _ in [Column("email")] }
     ///         .reversed()
     ///         .order{ _ in [Column("name")] }
-    func order(_ orderings: @escaping (Database) throws -> [SQLOrderingTerm]) -> Self
+    func order(_ orderings: @escaping (Database) throws -> [any SQLOrderingTerm]) -> Self
     
     /// Creates a request that reverses applied orderings.
     ///
@@ -533,7 +527,7 @@ extension OrderedRequest {
     ///         .order(Column("email"))
     ///         .reversed()
     ///         .order(Column("name"))
-    public func order(_ orderings: SQLOrderingTerm...) -> Self {
+    public func order(_ orderings: any SQLOrderingTerm...) -> Self {
         order { _ in orderings }
     }
     
@@ -550,7 +544,7 @@ extension OrderedRequest {
     ///         .order(Column("email"))
     ///         .reversed()
     ///         .order(Column("name"))
-    public func order(_ orderings: [SQLOrderingTerm]) -> Self {
+    public func order(_ orderings: [any SQLOrderingTerm]) -> Self {
         order { _ in orderings }
     }
     

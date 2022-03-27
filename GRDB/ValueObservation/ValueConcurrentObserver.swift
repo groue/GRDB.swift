@@ -191,7 +191,7 @@ final class ValueConcurrentObserver<Reducer: ValueReducer> {
 // `WALSnapshot` class.
 extension ValueConcurrentObserver {
     // Starts the observation
-    func start() -> DatabaseCancellable {
+    func start() -> AnyDatabaseCancellable {
         let (notificationCallbacks, databaseAccess) = lock.synchronized {
             (self.notificationCallbacks, self.databaseAccess)
         }

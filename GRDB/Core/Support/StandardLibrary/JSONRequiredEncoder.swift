@@ -2,7 +2,7 @@ struct JSONRequiredError: Error { }
 
 /// The encoder that always ends up with a JSONRequiredError
 struct JSONRequiredEncoder: Encoder {
-    var codingPath: [CodingKey]
+    var codingPath: [any CodingKey]
     var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
     
     func container<Key>(keyedBy type: Key.Type) -> KeyedEncodingContainer<Key> where Key: CodingKey {
@@ -15,7 +15,7 @@ struct JSONRequiredEncoder: Encoder {
     func singleValueContainer() -> SingleValueEncodingContainer { self }
     
     struct KeyedContainer<KeyType: CodingKey>: KeyedEncodingContainerProtocol {
-        var codingPath: [CodingKey]
+        var codingPath: [any CodingKey]
         var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
         
         // swiftlint:disable comma

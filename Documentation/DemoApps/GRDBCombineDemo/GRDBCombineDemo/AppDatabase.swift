@@ -8,7 +8,7 @@ import GRDB
 /// <https://github.com/groue/GRDB.swift/blob/master/Documentation/GoodPracticesForDesigningRecordTypes.md>
 struct AppDatabase {
     /// Creates an `AppDatabase`, and make sure the database schema is ready.
-    init(_ dbWriter: DatabaseWriter) throws {
+    init(_ dbWriter: any DatabaseWriter) throws {
         self.dbWriter = dbWriter
         try migrator.migrate(dbWriter)
     }
@@ -19,7 +19,7 @@ struct AppDatabase {
     /// can use a fast in-memory `DatabaseQueue`.
     ///
     /// See <https://github.com/groue/GRDB.swift/blob/master/README.md#database-connections>
-    private let dbWriter: DatabaseWriter
+    private let dbWriter: any DatabaseWriter
     
     /// The DatabaseMigrator that defines the database schema.
     ///

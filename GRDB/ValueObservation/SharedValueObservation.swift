@@ -79,7 +79,7 @@ extension ValueObservation {
     /// - parameter extent: The extent of the shared database observation.
     /// - returns: A `SharedValueObservation`
     public func shared(
-        in reader: DatabaseReader,
+        in reader: some DatabaseReader,
         scheduling scheduler: ValueObservationScheduler = .async(onQueue: .main),
         extent: SharedValueObservationExtent = .whileObserved)
     -> SharedValueObservation<Reducer.Value>
@@ -175,7 +175,7 @@ public final class SharedValueObservation<Element> {
     public func start(
         onError: @escaping (Error) -> Void,
         onChange: @escaping (Element) -> Void)
-    -> DatabaseCancellable
+    -> AnyDatabaseCancellable
     {
         synchronized {
             // Support for reentrancy: a shared immediate observation is
@@ -194,7 +194,7 @@ public final class SharedValueObservation<Element> {
             // Side effect
             if needsStart {
                 // Self retains the cancellable, so don't have the cancellable retain self.
-                cancellable = AnyDatabaseCancellable(startObservation(
+                cancellable = startObservation(
                     // onError
                     { [weak self] error in
                         self?.handleError(error)
@@ -202,7 +202,7 @@ public final class SharedValueObservation<Element> {
                     // onChange
                     { [weak self] element in
                         self?.handleChange(element)
-                    }))
+                    })
             } else if let result = lastResult {
                 // Notify last result as an initial value
                 scheduler.scheduleInitial {
