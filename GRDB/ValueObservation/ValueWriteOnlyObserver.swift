@@ -155,7 +155,8 @@ extension ValueWriteOnlyObserver {
             (self.notificationCallbacks, self.databaseAccess)
         }
         guard let notificationCallbacks = notificationCallbacksOpt, let writer = databaseAccessOpt?.writer else {
-            // Likely a GRDB bug
+            // Likely a GRDB bug: during a synchronous start, user is not
+            // able to cancel observation.
             fatalError("can't start a cancelled or failed observation")
         }
         
@@ -199,7 +200,8 @@ extension ValueWriteOnlyObserver {
         try writer.unsafeReentrantWrite { db in
             // Fetch & Start observing the database
             guard let fetchedValue = try fetchAndStartObservation(db) else {
-                // Likely a GRDB bug
+                // Likely a GRDB bug: during a synchronous start, user is not
+                // able to cancel observation.
                 fatalError("can't start a cancelled or failed observation")
             }
             
@@ -258,6 +260,9 @@ extension ValueWriteOnlyObserver {
     }
     
     /// Fetches the initial value, and start observing the database.
+    ///
+    /// Returns nil if the observation was cancelled before database observation
+    /// could start.
     ///
     /// By grouping the initial fetch and the beginning of observation in a
     /// single database access, we are sure that no concurrent write can happen
