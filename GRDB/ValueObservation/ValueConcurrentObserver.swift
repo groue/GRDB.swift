@@ -192,7 +192,8 @@ extension ValueConcurrentObserver {
             (self.notificationCallbacks, self.databaseAccess)
         }
         guard let notificationCallbacks = notificationCallbacksOpt, let databaseAccess = databaseAccessOpt else {
-            // Likely a GRDB bug
+            // Likely a GRDB bug: during a synchronous start, user is not
+            // able to cancel observation.
             fatalError("can't start a cancelled or failed observation")
         }
         
