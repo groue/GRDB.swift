@@ -51,7 +51,7 @@ final class Test<Context> {
     }
 }
 
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
 final class AsyncTest<Context> {
     // Raise the repeatCount in order to help spotting flaky tests.

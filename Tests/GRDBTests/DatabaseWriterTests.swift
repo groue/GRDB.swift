@@ -266,7 +266,7 @@ class DatabaseWriterTests : GRDBTestCase {
         try DatabaseQueue().backup(to: dbQueue)
     }
     
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_write() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -288,7 +288,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_writeWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -313,7 +313,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_barrierWriteWithoutTransaction() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -338,7 +338,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_erase() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -358,7 +358,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait_vacuum() async throws {
         func setup<T: DatabaseWriter>(_ dbWriter: T) throws -> T {
@@ -376,7 +376,7 @@ class DatabaseWriterTests : GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.16, iOS 14, tvOS 14, watchOS 7, *) // async + vacuum into
     func testAsyncAwait_vacuumInto() async throws {
         // Prevent SQLCipher failures

@@ -252,7 +252,7 @@ extension ValueObservation: Refinable {
     }
 }
 
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
 extension ValueObservation {
     // MARK: - Asynchronous Observation
     /// The database observation, as an asynchronous sequence of
