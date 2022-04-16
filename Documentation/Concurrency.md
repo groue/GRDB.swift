@@ -137,7 +137,7 @@ try dbQueue.write { db in
 <details>
     <summary><b>Swift concurrency</b> (async/await)</summary>
 
-[**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features) GRDB support for Swift concurrency requires Xcode 13.2+.
+[**:fire: EXPERIMENTAL**](../README.md#what-are-experimental-features) GRDB support for Swift concurrency requires Xcode 13.3.1+.
 
 ```swift
 let playerCount = try await dbQueue.read { db in

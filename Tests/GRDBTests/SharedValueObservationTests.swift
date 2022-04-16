@@ -621,7 +621,7 @@ class SharedValueObservationTests: GRDBTestCase {
     }
 #endif
     
-#if compiler(>=5.5.2) && canImport(_Concurrency)
+#if compiler(>=5.6) && canImport(_Concurrency)
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
     func testAsyncAwait() async throws {
         let dbQueue = try makeDatabaseQueue()
