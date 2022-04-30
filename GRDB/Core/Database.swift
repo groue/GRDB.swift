@@ -1018,13 +1018,20 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// - parameter readOnly: If true, writes are forbidden.
     func isolated<T>(readOnly: Bool = false, _ block: () throws -> T) throws -> T {
         var result: T?
-        try inSavepoint {
-            if readOnly {
-                result = try self.readOnly(block)
-            } else {
-                result = try block()
+        if readOnly {
+            // Enter read-only mode before starting a transaction, so that the
+            // transaction commit does not trigger database observation.
+            try self.readOnly {
+                try inSavepoint {
+                    result = try block()
+                    return .commit
+                }
             }
-            return .commit
+        } else {
+            try inSavepoint {
+                result = try block()
+                return .commit
+            }
         }
         return result!
     }
