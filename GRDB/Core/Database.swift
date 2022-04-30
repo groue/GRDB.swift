@@ -546,6 +546,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             finally: endReadOnly)
     }
     
+    /// Returns whether database connection is read-only.
+    var isReadOnly: Bool {
+        _readOnlyDepth > 0 || configuration.readonly
+    }
+    
     // MARK: - Snapshots
     
     #if SQLITE_ENABLE_SNAPSHOT
@@ -939,10 +944,16 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// This method is not reentrant: you can't nest transactions.
     ///
     /// - parameters:
-    ///     - kind: The transaction type (default nil). If nil, the transaction
-    ///       type is configuration.defaultTransactionKind, which itself
-    ///       defaults to .deferred. See <https://www.sqlite.org/lang_transaction.html>
-    ///       for more information.
+    ///     - kind: The transaction type (default nil).
+    ///
+    ///       If nil, and the database connection is read-only, the transaction
+    ///       kind is `.deferred`.
+    ///
+    ///       If nil, and the database connection is not read-only, the
+    ///       transaction kind is `configuration.defaultTransactionKind`.
+    ///
+    ///       See <https://www.sqlite.org/lang_transaction.html> for
+    ///       more information.
     ///     - block: A block that executes SQL statements and return either
     ///       .commit or .rollback.
     /// - throws: The error thrown by the block.
@@ -1055,7 +1066,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             //
             // For those two reasons, we open a transaction instead of a
             // top-level savepoint.
-            try inTransaction(configuration.defaultTransactionKind, block)
+            try inTransaction { try block() }
             return
         }
         
@@ -1123,13 +1134,20 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     /// Begins a database transaction.
     ///
-    /// - parameter kind: The transaction type (default nil). If nil, the
-    ///   transaction type is configuration.defaultTransactionKind, which itself
-    ///   defaults to .deferred. See <https://www.sqlite.org/lang_transaction.html>
-    ///   for more information.
-    /// - throws: The error thrown by the block.
+    /// - parameter kind: The transaction type (default nil).
+    ///
+    ///   If nil, and the database connection is read-only, the transaction kind
+    ///   is `.deferred`.
+    ///
+    ///   If nil, and the database connection is not read-only, the transaction
+    ///   kind is `configuration.defaultTransactionKind`.
+    ///
+    ///   See <https://www.sqlite.org/lang_transaction.html> for
+    ///   more information.
+    /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func beginTransaction(_ kind: TransactionKind? = nil) throws {
-        let kind = kind ?? configuration.defaultTransactionKind
+        // SQLite throws an error for non-deferred transactions when read-only.
+        let kind = kind ?? (isReadOnly ? .deferred : configuration.defaultTransactionKind)
         try execute(sql: "BEGIN \(kind.rawValue) TRANSACTION")
         assert(sqlite3_get_autocommit(sqliteConnection) == 0)
     }
