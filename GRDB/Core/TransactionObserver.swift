@@ -220,8 +220,7 @@ class DatabaseObservationBroker {
     
     /// Prepares observation of changes that are about to be performed by the statement.
     func statementWillExecute(_ statement: Statement) {
-        // If any observer observes row deletions, we'll have to disable
-        if transactionObservations.isEmpty == false {
+        if !database.isReadOnly && !transactionObservations.isEmpty {
             // As statement executes, it may trigger database changes that will
             // be notified to transaction observers. As a consequence, observers
             // may disable themselves with stopObservingDatabaseChangesUntilNextTransaction()
@@ -310,7 +309,7 @@ class DatabaseObservationBroker {
             // SQLITE_CONSTRAINT error)
             databaseDidRollback(notifyTransactionObservers: false)
         case .cancelledCommit(let error):
-            databaseDidRollback(notifyTransactionObservers: true)
+            databaseDidRollback(notifyTransactionObservers: !database.isReadOnly)
             throw error
         default:
             break
@@ -382,7 +381,7 @@ class DatabaseObservationBroker {
         case .commit:
             databaseDidCommit()
         case .rollback:
-            databaseDidRollback(notifyTransactionObservers: true)
+            databaseDidRollback(notifyTransactionObservers: !database.isReadOnly)
         default:
             break
         }
@@ -391,6 +390,8 @@ class DatabaseObservationBroker {
     #if SQLITE_ENABLE_PREUPDATE_HOOK
     // Called from sqlite3_preupdate_hook
     private func databaseWillChange(with event: DatabasePreUpdateEvent) {
+        assert(!database.isReadOnly, "Read-only transactions are not notified")
+        
         if savepointStack.isEmpty {
             // Notify now
             for (observation, predicate) in statementObservations where predicate.evaluate(event) {
@@ -405,6 +406,8 @@ class DatabaseObservationBroker {
     
     // Called from sqlite3_update_hook
     private func databaseDidChange(with event: DatabaseEvent) {
+        assert(!database.isReadOnly, "Read-only transactions are not notified")
+        
         // We're about to call the databaseDidChange(with:) method of
         // transaction observers. In this method, observers may disable
         // themselves with stopObservingDatabaseChangesUntilNextTransaction()
@@ -430,8 +433,10 @@ class DatabaseObservationBroker {
     // Called from sqlite3_commit_hook and databaseDidCommitEmptyDeferredTransaction()
     private func databaseWillCommit() throws {
         notifyBufferedEvents()
-        for observation in transactionObservations {
-            try observation.databaseWillCommit()
+        if !database.isReadOnly {
+            for observation in transactionObservations {
+                try observation.databaseWillCommit()
+            }
         }
     }
     
@@ -439,9 +444,12 @@ class DatabaseObservationBroker {
     private func databaseDidCommit() {
         savepointStack.clear()
         
-        for observation in transactionObservations {
-            observation.databaseDidCommit(database)
+        if !database.isReadOnly {
+            for observation in transactionObservations {
+                observation.databaseDidCommit(database)
+            }
         }
+        
         databaseDidEndTransaction()
     }
     
@@ -485,7 +493,7 @@ class DatabaseObservationBroker {
             try databaseWillCommit()
             databaseDidCommit()
         } catch {
-            databaseDidRollback(notifyTransactionObservers: true)
+            databaseDidRollback(notifyTransactionObservers: !database.isReadOnly)
             throw error
         }
     }
@@ -495,6 +503,7 @@ class DatabaseObservationBroker {
         savepointStack.clear()
         
         if notifyTransactionObservers {
+            assert(!database.isReadOnly, "Read-only transactions are not notified")
             for observation in transactionObservations {
                 observation.databaseDidRollback(database)
             }
@@ -566,6 +575,7 @@ class DatabaseObservationBroker {
         savepointStack.clear()
         
         for (event, statementObservations) in eventsBuffer {
+            assert(statementObservations.isEmpty || !database.isReadOnly, "Read-only transactions are not notified")
             for (observation, predicate) in statementObservations where predicate.evaluate(event) {
                 event.send(to: observation)
             }

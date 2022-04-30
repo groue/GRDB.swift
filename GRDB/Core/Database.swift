@@ -233,7 +233,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         setupDefaultFunctions()
         setupDefaultCollations()
         setupAuthorizer()
-        observationBroker.installCommitAndRollbackHooks()
+        if !configuration.readonly {
+            observationBroker.installCommitAndRollbackHooks()
+        }
         try activateExtendedCodes()
         
         #if SQLITE_HAS_CODEC
