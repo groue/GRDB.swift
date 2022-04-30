@@ -649,7 +649,7 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-    func tesCancellableInvalidation2() throws {
+    func testCancellableInvalidation2() throws {
         // Test that observation stops when cancellable is deallocated
         func test(_ dbWriter: DatabaseWriter) throws {
             try dbWriter.write { try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)") }
