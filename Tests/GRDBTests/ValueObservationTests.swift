@@ -694,6 +694,55 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
+    func testIssue1209() throws {
+        func test<Writer: DatabaseWriter>(_ dbWriter: Writer) throws {
+            try dbWriter.write {
+                try $0.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT)")
+            }
+            
+            // We'll start N observations
+            let N = 100
+            
+            // We'll wait for initial value notification before modifying the database
+            let initialValueExpectation = expectation(description: "")
+            initialValueExpectation.expectedFulfillmentCount = N
+            
+            // The test will pass if we get change notifications
+            let changeExpectation = expectation(description: "")
+            changeExpectation.expectedFulfillmentCount = N
+            
+            // Observe N times
+            let cancellables = (0..<N).map { _ in
+                ValueObservation
+                    .tracking(Table("t").fetchCount)
+                    .removeDuplicates()
+                    .start(
+                        in: dbWriter,
+                        onError: { XCTFail("Unexpected error: \($0)") },
+                        onChange: { value in
+                            if value == 0 {
+                                initialValueExpectation.fulfill()
+                            } else {
+                                changeExpectation.fulfill()
+                            }
+                        })
+            }
+            
+            wait(for: [initialValueExpectation], timeout: 1)
+            dbWriter.asyncWriteWithoutTransaction {
+                try! $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
+            }
+            wait(for: [changeExpectation], timeout: 1)
+            
+            // Cleanup
+            for cancellable in cancellables { cancellable.cancel() }
+            try dbWriter.close()
+        }
+        
+        try test(makeDatabaseQueue())
+        try test(makeDatabasePool())
+    }
+    
 #if compiler(>=5.6) && canImport(_Concurrency)
     // MARK: - Async Await
     
