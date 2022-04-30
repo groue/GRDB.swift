@@ -1,5 +1,5 @@
 import XCTest
-import GRDB
+@testable import GRDB
 
 private class Observer : TransactionObserver {
     var lastCommittedEvents: [DatabaseEvent] = []
@@ -1781,6 +1781,91 @@ class TransactionObserverTests: GRDBTestCase {
                 XCTAssertEqual(observer.willCommitCount, 1)
                 XCTAssertEqual(observer.didCommitCount, 1)
                 XCTAssertEqual(observer.didRollbackCount, 0)
+            }
+        }
+    }
+    
+    // MARK: - Read-Only Connection
+    
+    func testReadOnlyConnection() throws {
+        let dbQueue = try makeDatabaseQueue(filename: "database.sqlite")
+        try setupArtistDatabase(in: dbQueue)
+        
+        dbConfiguration.readonly = true
+        let readOnlyQueue = try makeDatabaseQueue(filename: "database.sqlite")
+        
+        let observer = Observer()
+        readOnlyQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+        
+        try readOnlyQueue.inDatabase { db in
+            do {
+                try db.execute(sql: """
+                    BEGIN;
+                    COMMIT;
+                    """)
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.willCommitCount, 0)
+                XCTAssertEqual(observer.didCommitCount, 0)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.willChangeCount, 0)
+                #endif
+            }
+            
+            do {
+                try db.execute(sql: """
+                    BEGIN;
+                    SELECT * FROM artists;
+                    COMMIT;
+                    """)
+                XCTAssertEqual(observer.didChangeCount, 0)
+                XCTAssertEqual(observer.willCommitCount, 0)
+                XCTAssertEqual(observer.didCommitCount, 0)
+                XCTAssertEqual(observer.didRollbackCount, 0)
+                #if SQLITE_ENABLE_PREUPDATE_HOOK
+                XCTAssertEqual(observer.willChangeCount, 0)
+                #endif
+            }
+        }
+    }
+    
+    func testReadOnlyBlock() throws {
+        let dbQueue = try makeDatabaseQueue()
+        try setupArtistDatabase(in: dbQueue)
+        
+        let observer = Observer()
+        dbQueue.add(transactionObserver: observer, extent: .databaseLifetime)
+        
+        try dbQueue.inDatabase { db in
+            try db.readOnly {
+                do {
+                    try db.execute(sql: """
+                        BEGIN;
+                        COMMIT;
+                        """)
+                    XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.willCommitCount, 0)
+                    XCTAssertEqual(observer.didCommitCount, 0)
+                    XCTAssertEqual(observer.didRollbackCount, 0)
+                    #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 0)
+                    #endif
+                }
+                
+                do {
+                    try db.execute(sql: """
+                        BEGIN;
+                        SELECT * FROM artists;
+                        COMMIT;
+                        """)
+                    XCTAssertEqual(observer.didChangeCount, 0)
+                    XCTAssertEqual(observer.willCommitCount, 0)
+                    XCTAssertEqual(observer.didCommitCount, 0)
+                    XCTAssertEqual(observer.didRollbackCount, 0)
+                    #if SQLITE_ENABLE_PREUPDATE_HOOK
+                    XCTAssertEqual(observer.willChangeCount, 0)
+                    #endif
+                }
             }
         }
     }
