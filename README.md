@@ -63,7 +63,7 @@ See [Why Adopt GRDB?](Documentation/WhyAdoptGRDB.md) if you are looking for your
 
 ## Features
 
-GRDB ships with:
+Programming tools for both database beginners and SQLite experts:
 
 - [Access to raw SQL and SQLite](#sqlite-api)
 - [Records](#records): Fetching and persistence methods for your custom structs and class hierarchies.
@@ -72,18 +72,21 @@ GRDB ships with:
 - [WAL Mode Support](#database-pools): Extra performance for multi-threaded applications.
 - [Migrations]: Transform your database as your application evolves.
 - [Database Observation]: Observe database changes and transactions.
-- [Swift Concurrency]: `try await` your database (Xcode 13.3.1+).
-- [Combine Support]: Access and observe the database with Combine publishers.
-- [RxSwift Support](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
 - [Full-Text Search]
 - [Encryption](#encryption)
 - [Support for Custom SQLite Builds](Documentation/CustomSQLiteBuilds.md)
 
+In-depth integration with our programming environment:
+
+- [Swift Concurrency]: `try await` your database (Xcode 13.3.1+).
+- [SwiftUI](http://github.com/groue/GRDBQuery): Access and observe the database from your SwiftUI views.
+- [Combine](Documentation/Combine.md): Access and observe the database with Combine publishers.
+- [RxSwift](http://github.com/RxSwiftCommunity/RxGRDB): Access and observe the database with RxSwift observables.
 
 ## Usage
 
 <details open>
-  <summary>Start using the database in four easy steps</summary>
+  <summary>Start using the database in four steps</summary>
 
 ```swift
 import GRDB
