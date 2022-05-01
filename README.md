@@ -6683,6 +6683,8 @@ By default, database holds weak references to its transaction observers: they ar
 **A transaction observer is notified of all database changes**: inserts, updates and deletes. This includes indirect changes triggered by ON DELETE and ON UPDATE actions associated to [foreign keys](https://www.sqlite.org/foreignkeys.html#fk_actions), and [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
 > :point_up: **Note**: Some changes are not notified: changes to internal system tables (such as `sqlite_master`), changes to [`WITHOUT ROWID`](https://www.sqlite.org/withoutrowid.html) tables, and the deletion of duplicate rows triggered by [`ON CONFLICT REPLACE`](https://www.sqlite.org/lang_conflict.html) clauses (this last exception might change in a future release of SQLite).
+>
+> :point_up:  **Note**: Transactions performed during read-only database accesses are not notified.
 
 Notified changes are not actually written to disk until the [transaction](#transactions-and-savepoints) commits, and the `databaseDidCommit` callback is called. On the other side, `databaseDidRollback` confirms their invalidation:
 
@@ -6794,7 +6796,7 @@ class PlayerScoreObserver: TransactionObserver {
 }
 ```
 
-When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is still notified of commits and rollbacks:
+When the `observes(eventsOfKind:)` method returns false for all event kinds, the observer is still notified of commits and rollbacks (except during read-only database accesses):
 
 ```swift
 class PureTransactionObserver: TransactionObserver {
