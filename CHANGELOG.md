@@ -7,6 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
+- `5.24.x` Releases - [5.24.0](#5240)
 - `5.23.x` Releases - [5.23.0](#5230)
 - `5.22.x` Releases - [5.22.0](#5220) | [5.22.1](#5221) | [5.22.2](#5222)
 - `5.21.x` Releases - [5.21.0](#5210)
@@ -89,6 +90,15 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - [0.110.0](#01100), ...
 
 ---
+
+## 5.24.0
+
+Released May 1, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.23.0...v5.24.0)
+
+- **Fixed**: [#1203](https://github.com/groue/GRDB.swift/pull/1203) by [@EvanHahn](https://github.com/EvanHahn): Fix changelog links
+- **Fixed**: [#1212](https://github.com/groue/GRDB.swift/pull/1212) by [@MartinP7r](https://github.com/MartinP7r): Fix apple docs links
+- **Fixed**: [#1213](https://github.com/groue/GRDB.swift/pull/1213) by [@groue](https://github.com/groue): Fix crash when the number of active ValueObservations is high
+- **Breaking Change**: Transactions performed during a read-only database access are no longer notified to transaction observers. This is, strictly speaking, a breaking change. However it should have no impact since read-only transactions have very little interest.
 
 ## 5.23.0
 

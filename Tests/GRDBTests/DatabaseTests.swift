@@ -566,6 +566,36 @@ class DatabaseTests : GRDBTestCase {
         }
     }
     
+    func testReadOnlyTransaction() throws {
+        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
+        guard sqlite3_libversion_number() >= 3008000 else {
+            return
+        }
+        
+        dbConfiguration.defaultTransactionKind = .immediate
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            do {
+                sqlQueries.removeAll()
+                try db.inSavepoint { .commit }
+                try db.inTransaction { .commit }
+                try db.inTransaction(.immediate) { .commit }
+                XCTAssertEqual(Set(sqlQueries), ["BEGIN IMMEDIATE TRANSACTION", "COMMIT TRANSACTION"])
+            }
+            
+            try db.readOnly {
+                sqlQueries.removeAll()
+                try db.inSavepoint { .commit }
+                try db.inTransaction { .commit }
+                XCTAssertEqual(Set(sqlQueries), ["BEGIN DEFERRED TRANSACTION", "COMMIT TRANSACTION"])
+                do {
+                    try db.inTransaction(.immediate) { .commit }
+                    XCTFail("Expected error")
+                } catch DatabaseError.SQLITE_READONLY { }
+            }
+        }
+    }
+    
     func testCheckpoint() throws {
         do {
             // Not a WAL database
