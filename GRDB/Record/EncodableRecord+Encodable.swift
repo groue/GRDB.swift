@@ -12,7 +12,7 @@ extension EncodableRecord where Self: Encodable {
 
 /// The encoder that encodes a record into GRDB's PersistenceContainer
 private class RecordEncoder<Record: EncodableRecord>: Encoder {
-    var codingPath: [CodingKey] { [] }
+    var codingPath: [CodingKey] = []
     var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
     private var _persistenceContainer: PersistenceContainer
     var persistenceContainer: PersistenceContainer { _persistenceContainer }
@@ -49,7 +49,9 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
     private struct KeyedContainer<Key: CodingKey>: KeyedEncodingContainerProtocol {
         var recordEncoder: RecordEncoder
         var userInfo: [CodingUserInfoKey: Any] { Record.databaseEncodingUserInfo }
-        var codingPath: [CodingKey] { [] }
+        var codingPath: [CodingKey] {
+            recordEncoder.codingPath
+        }
         
         // swiftlint:disable comma
         func encode(_ value: Bool,   forKey key: Key) throws { recordEncoder.persist(value, forKey: key) }
@@ -116,7 +118,9 @@ private class RecordEncoder<Record: EncodableRecord>: Encoder {
         }
         
         func superEncoder(forKey key: Key) -> Encoder {
-            recordEncoder
+            let encoder = RecordEncoder(persistenceContainer: recordEncoder._persistenceContainer)
+            encoder.codingPath.append(key)
+            return encoder
         }
     }
     
