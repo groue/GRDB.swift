@@ -325,7 +325,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     
     /// Creates a request filtered by unique key.
     ///
-    ///     // SELECT * FROM player WHERE ... email = 'arthur@example.com' OR ...
+    ///     // SELECT * FROM player WHERE ... email = 'arthur@example.com' AND ...
     ///     let request = try Player...filter(keys: [["email": "arthur@example.com"], ...])
     ///
     /// When executed, this request raises a fatal error if there is no unique
