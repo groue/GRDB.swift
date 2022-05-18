@@ -21,8 +21,9 @@ extension RangeReplaceableCollection {
     /// - parameter cursor: The cursor whose elements feed the collection.
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
-        // Use `forEach` in order to deal with <https://github.com/groue/GRDB.swift/issues/1124>.
-        // See `Statement.forEachStep(_:)` for more information.
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try cursor.forEach { append($0) }
     }
     
@@ -38,6 +39,9 @@ extension RangeReplaceableCollection {
     public init<C: Cursor>(_ cursor: C, minimumCapacity: Int) throws where C.Element == Element {
         self.init()
         reserveCapacity(minimumCapacity)
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try cursor.forEach { append($0) }
     }
 }
@@ -58,6 +62,9 @@ extension Dictionary {
     throws where Value == [C.Element]
     {
         self.init()
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try cursor.forEach { value in
             try self[keyForValue(value), default: []].append(value)
         }
@@ -84,6 +91,9 @@ extension Dictionary {
     throws where Value == [C.Element]
     {
         self.init(minimumCapacity: minimumCapacity)
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try cursor.forEach { value in
             try self[keyForValue(value), default: []].append(value)
         }
@@ -106,6 +116,9 @@ extension Dictionary {
     throws where C.Element == (Key, Value)
     {
         self.init()
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try keysAndValues.forEach { key, value in
             if updateValue(value, forKey: key) != nil {
                 fatalError("Duplicate values for key: '\(String(describing: key))'")
@@ -135,6 +148,9 @@ extension Dictionary {
     throws where C.Element == (Key, Value)
     {
         self.init(minimumCapacity: minimumCapacity)
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try keysAndValues.forEach { key, value in
             if updateValue(value, forKey: key) != nil {
                 fatalError("Duplicate values for key: '\(String(describing: key))'")
@@ -153,6 +169,9 @@ extension Set {
     /// - parameter cursor: A cursor of values to gather into a set.
     public init<C: Cursor>(_ cursor: C) throws where C.Element == Element {
         self.init()
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try cursor.forEach { insert($0) }
     }
     
@@ -168,6 +187,9 @@ extension Set {
     ///   storage buffer.
     public init<C: Cursor>(_ cursor: C, minimumCapacity: Int) throws where C.Element == Element {
         self.init(minimumCapacity: minimumCapacity)
+        // Prefer `forEach` over `next()` looping, as a slight performance
+        // improvement due to the single `sqlite3_stmt_busy` check for
+        // database cursors.
         try cursor.forEach { insert($0) }
     }
 }

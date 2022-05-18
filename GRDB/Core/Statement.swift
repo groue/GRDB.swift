@@ -316,24 +316,15 @@ public final class Statement {
     
     /// Calls the given closure after each successful call to `sqlite3_step()`.
     ///
-    /// Unlike multiple calls to `step(_:)`, this method is able to deal with
-    /// statements that need a specific authorizer.
-    ///
-    /// That's how we deal with TransactionObservers that observe deletion:
-    /// the authorizer prevents the truncate optimization
-    /// <https://www.sqlite.org/lang_delete.html#the_truncate_optimization>.
-    ///
-    /// That's also how we deal with <https://github.com/groue/GRDB.swift/issues/1124>,
-    /// in four steps:
-    ///
-    /// 1. `T.fetchAll(...)` calls `Array(T.fetchCursor(...))`
-    /// 2. `Array(T.fetchCursor(...))` calls `Cursor.forEach(...)`
-    /// 3. `DatabaseCursor.forEach(...)` calls `Statement.forEachStep(...)`
-    /// 4. `Statement.forEachStep(...)` deals with the eventual authorizer.
+    /// This method is slighly faster than calling `step(_:)` repeatedly, due
+    /// to the single `sqlite3_stmt_busy` check.
     @usableFromInline
     func forEachStep(_ body: (SQLiteStatement) throws -> Void) throws {
         SchedulingWatchdog.preconditionValidQueue(database)
-        try database.statementWillExecute(self)
+        
+        if sqlite3_stmt_busy(sqliteStatement) == 0 {
+            try database.statementWillExecute(self)
+        }
         
         while true {
             switch sqlite3_step(sqliteStatement) {
@@ -349,12 +340,8 @@ public final class Statement {
     }
     
     /// Calls the given closure after one successful call to `sqlite3_step()`.
-    ///
-    /// This method is unable to deal with statements that need a specific
-    /// authorizer. See `forEachStep(_:)`.
     @usableFromInline
-    func step<Element>(_ body: (SQLiteStatement) throws -> Element) throws -> Element? {
-        // This check takes 0 time when profiled. It is, practically speaking, free.
+    func step<T>(_ body: (SQLiteStatement) throws -> T) throws -> T? {
         if sqlite3_stmt_busy(sqliteStatement) == 0 {
             try database.statementWillExecute(self)
         }
@@ -439,9 +426,8 @@ extension DatabaseCursor {
         return nil
     }
     
-    // Specific implementation of `forEach` in order to deal with
-    // <https://github.com/groue/GRDB.swift/issues/1124>.
-    // See `Statement.forEachStep(_:)` for more information.
+    /// Specific implementation of `forEach`, for a slight performance
+    /// improvement due to the single `sqlite3_stmt_busy` check.
     @inlinable
     public func forEach(_ body: (Element) throws -> Void) throws {
         if _isDone { return }
