@@ -1285,7 +1285,7 @@ extension Row {
     throws -> [Row]
     {
         // The cursor reuses a single mutable row. Return immutable copies.
-        return try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
+        try Array(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
     }
     
     /// Returns a set of rows fetched from a prepared statement.
@@ -1306,7 +1306,7 @@ extension Row {
     throws -> Set<Row>
     {
         // The cursor reuses a single mutable row. Return immutable copies.
-        return try Set(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
+        try Set(fetchCursor(statement, arguments: arguments, adapter: adapter).map { $0.copy() })
     }
     
     /// Returns a single row fetched from a prepared statement.
@@ -2089,27 +2089,27 @@ protocol RowImpl {
 extension RowImpl {
     func copiedRow(_ row: Row) -> Row {
         // unless customized, assume unsafe and unadapted row
-        return Row(impl: ArrayRowImpl(columns: Array(row)))
+        Row(impl: ArrayRowImpl(columns: Array(row)))
     }
     
     func unscopedRow(_ row: Row) -> Row {
         // unless customized, assume unadapted row (see AdaptedRowImpl for customization)
-        return row
+        row
     }
     
     func unadaptedRow(_ row: Row) -> Row {
         // unless customized, assume unadapted row (see AdaptedRowImpl for customization)
-        return row
+        row
     }
     
     func scopes(prefetchedRows: Row.PrefetchedRowsView) -> Row.ScopesView {
         // unless customized, assume unuscoped row (see AdaptedRowImpl for customization)
-        return Row.ScopesView()
+        Row.ScopesView()
     }
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
         // unless customized, use slow check (see StatementRowImpl and AdaptedRowImpl for customization)
-        return databaseValue(atUncheckedIndex: index).isNull
+        databaseValue(atUncheckedIndex: index).isNull
     }
     
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -2118,7 +2118,7 @@ extension RowImpl {
     throws -> Value
     {
         // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
-        return try Value.decode(
+        try Value.decode(
             fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
@@ -2129,21 +2129,21 @@ extension RowImpl {
     throws -> Value?
     {
         // unless customized, use slow decoding (see StatementRowImpl and AdaptedRowImpl for customization)
-        return try Value.decodeIfPresent(
+        try Value.decodeIfPresent(
             fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
     
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
         // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
-        return try Data.decode(
+        try Data.decode(
             fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
     
     func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
         // unless customized, copy data (see StatementRowImpl and AdaptedRowImpl for customization)
-        return try Data.decodeIfPresent(
+        try Data.decodeIfPresent(
             fromDatabaseValue: databaseValue(atUncheckedIndex: index),
             context: RowDecodingContext(row: Row(impl: self), key: .columnIndex(index)))
     }
@@ -2254,7 +2254,7 @@ private struct StatementRowImpl: RowImpl {
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
         // Avoid extracting values, because this modifies the SQLite statement.
-        return sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
+        sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
