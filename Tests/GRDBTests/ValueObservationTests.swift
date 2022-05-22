@@ -728,11 +728,11 @@ class ValueObservationTests: GRDBTestCase {
                         })
             }
             
-            wait(for: [initialValueExpectation], timeout: 1)
+            wait(for: [initialValueExpectation], timeout: 5)
             dbWriter.asyncWriteWithoutTransaction {
                 try! $0.execute(sql: "INSERT INTO t DEFAULT VALUES")
             }
-            wait(for: [changeExpectation], timeout: 1)
+            wait(for: [changeExpectation], timeout: 5)
             
             // Cleanup
             for cancellable in cancellables { cancellable.cancel() }
