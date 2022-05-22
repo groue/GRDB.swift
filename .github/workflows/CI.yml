@@ -24,7 +24,7 @@ jobs:
   macOS:
     name: Test macOS, All Xcodes and Swifts
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 20
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -60,7 +60,7 @@ jobs:
   iOS:
     name: Test iOS
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 20
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
@@ -136,7 +136,7 @@ jobs:
   XCFramework:
     name: Test XCFramework
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 20
+    timeout-minutes: 40
     strategy:
       fail-fast: false
       matrix:
