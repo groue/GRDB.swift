@@ -24,9 +24,7 @@ jobs:
   macOS:
     name: Test macOS, All Xcodes and Swifts
     runs-on: ${{ matrix.runsOn }}
-    env:
-      DEVELOPER_DIR: "/Applications/${{ matrix.xcode }}/Contents/Developer"
-    timeout-minutes: 10
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -59,3 +57,96 @@ jobs:
       - uses: actions/checkout@v2
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBOSX_maxSwift
+  iOS:
+    name: Test iOS
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.4.app"
+            runsOn: macOS-10.15
+            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_GRDBiOS_maxTarget_maxSwift
+  SPM:
+    name: Test SPM
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_SPM test_install_SPM
+  SQLCipher4:
+    name: Test SQLCipher4
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.4.app"
+            runsOn: macOS-10.15
+            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_SQLCipher4
+  CustomSQLite:
+    name: Test CustomSQLite
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.4.app"
+            runsOn: macOS-10.15
+            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_GRDBCustomSQLiteOSX
+  XCFramework:
+    name: Test XCFramework
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_archive_GRDBOSX_xcframework
+    
