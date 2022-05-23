@@ -96,7 +96,7 @@ jobs:
   SQLCipher4:
     name: Test SQLCipher4
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
