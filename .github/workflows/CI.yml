@@ -93,6 +93,22 @@ jobs:
       - uses: actions/checkout@v2
       - name: ${{ matrix.name }}
         run: make test_SPM test_install_SPM
+  SQLCipher3:
+    name: SQLCipher3
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_SQLCipher3Encrypted
   SQLCipher4:
     name: SQLCipher4
     runs-on: ${{ matrix.runsOn }}
@@ -112,7 +128,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: ${{ matrix.name }}
-        run: make test_framework_SQLCipher4
+        run: make test_framework_SQLCipher4Encrypted
   CustomSQLite:
     name: CustomSQLite
     runs-on: ${{ matrix.runsOn }}
