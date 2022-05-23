@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   macOS:
-    name: Test macOS, All Xcodes and Swifts
+    name: macOS
     runs-on: ${{ matrix.runsOn }}
     timeout-minutes: 40
     strategy:
@@ -58,7 +58,7 @@ jobs:
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBOSX_maxSwift
   iOS:
-    name: Test iOS
+    name: iOS
     runs-on: ${{ matrix.runsOn }}
     timeout-minutes: 40
     strategy:
@@ -78,7 +78,7 @@ jobs:
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBiOS_maxTarget_maxSwift
   SPM:
-    name: Test SPM
+    name: SPM
     runs-on: ${{ matrix.runsOn }}
     timeout-minutes: 40
     strategy:
@@ -94,7 +94,7 @@ jobs:
       - name: ${{ matrix.name }}
         run: make test_SPM test_install_SPM
   SQLCipher4:
-    name: Test SQLCipher4
+    name: SQLCipher4
     runs-on: ${{ matrix.runsOn }}
     timeout-minutes: 60
     strategy:
@@ -114,7 +114,7 @@ jobs:
       - name: ${{ matrix.name }}
         run: make test_framework_SQLCipher4
   CustomSQLite:
-    name: Test CustomSQLite
+    name: CustomSQLite
     runs-on: ${{ matrix.runsOn }}
     timeout-minutes: 40
     strategy:
@@ -134,7 +134,7 @@ jobs:
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBCustomSQLiteOSX
   XCFramework:
-    name: Test XCFramework
+    name: XCFramework
     runs-on: ${{ matrix.runsOn }}
     timeout-minutes: 40
     strategy:
