@@ -26,7 +26,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 try! db.execute(sql: "CREATE TABLE t(a)")
                 expectation.fulfill()
             })
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
         }
         
         try Test(test)
@@ -141,7 +141,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     expectation.fulfill()
                 })
             })
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
         }
         
         try Test(test)
@@ -224,7 +224,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 })
             
             semaphore.signal()
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
         }
         
@@ -252,7 +252,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 })
             
             semaphore.signal()
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
         }
         
@@ -282,7 +282,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     expectation.fulfill()
                 })
             
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
         }
         
@@ -313,7 +313,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                     expectation.fulfill()
                 })
             
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
         }
         
@@ -427,7 +427,7 @@ class DatabaseMigratorTests : GRDBTestCase {
                 
                 expectation.fulfill()
             })
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
         }
     }
     
