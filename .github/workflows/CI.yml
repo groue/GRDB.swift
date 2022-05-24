@@ -1,19 +1,168 @@
-name: CI
+name: "GRDB CI"
 
 on:
   push:
-    branches: [ master, development ]
+    branches: 
+      - master
+      - development
+    paths:
+      - 'GRDB/**'
+      - 'Tests/**'
+      - '.github/workflows/**'
+      - 'Package.swift'
   pull_request:
-    branches: [ master, development ]
+    paths:
+      - 'GRDB/**'
+      - 'Tests/**'
+      - '.github/workflows/**'
+      - 'Package.swift'
 
+concurrency: 
+  group: ${{ github.ref_name }}
+  cancel-in-progress: true
 jobs:
-  build:
-
-    runs-on: macos-latest
-
+  macOS:
+    name: macOS
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_13.2.1.app"
+            runsOn: macOS-11
+            name: "macOS 11, Xcode 13.2.1, Swift 5.5.2"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_13.1.app"
+            runsOn: macOS-11
+            name: "macOS 11, Xcode 13.1, Swift 5.5.1"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_13.0.app"
+            runsOn: macOS-11
+            name: "macOS 11, Xcode 13.0, Swift 5.5.0"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.5.1.app"
+            runsOn: macOS-11
+            name: "macOS 11, Xcode 12.5.1, Swift 5.4"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.4.app"
+            runsOn: macOS-10.15
+            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            shell: "/bin/zsh {0}"
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: swift build -v
-    - name: Run tests
-      run: swift test -v
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_GRDBOSX_maxSwift
+  iOS:
+    name: iOS
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.4.app"
+            runsOn: macOS-10.15
+            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_GRDBiOS_maxTarget_maxSwift
+  SPM:
+    name: SPM
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_SPM test_install_SPM
+  SQLCipher3:
+    name: SQLCipher3
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_SQLCipher3Encrypted
+  SQLCipher4:
+    name: SQLCipher4
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.4.app"
+            runsOn: macOS-10.15
+            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_SQLCipher4Encrypted
+  CustomSQLite:
+    name: CustomSQLite
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+          - xcode: "Xcode_12.4.app"
+            runsOn: macOS-10.15
+            name: "macOS 10.15, Xcode 12.4, Swift 5.3"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_framework_GRDBCustomSQLiteOSX
+  XCFramework:
+    name: XCFramework
+    runs-on: ${{ matrix.runsOn }}
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode: "Xcode_13.3.1.app"
+            runsOn: macOS-12
+            name: "macOS 12, Xcode 13.3.1, Swift 5.6"
+            shell: "/bin/zsh {0}"
+    steps:
+      - uses: actions/checkout@v2
+      - name: ${{ matrix.name }}
+        run: make test_archive_GRDBOSX_xcframework
+    

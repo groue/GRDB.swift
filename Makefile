@@ -8,7 +8,7 @@
 # make distclean - Restore repository to a pristine state
 
 default: test
-smokeTest: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget test_framework_SQLCipher4 test_framework_GRDBCustomSQLiteiOS_maxTarget test_SPM
+smokeTest: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget test_framework_SQLCipher4Encrypted test_framework_GRDBCustomSQLiteiOS_maxTarget test_SPM
 
 # Requirements
 # ============
@@ -180,7 +180,7 @@ test_framework: test_framework_darwin
 test_framework_darwin: test_framework_GRDB test_framework_GRDBCustom test_framework_SQLCipher test_SPM
 test_framework_GRDB: test_framework_GRDBOSX test_framework_GRDBWatchOS test_framework_GRDBiOS test_framework_GRDBtvOS
 test_framework_GRDBCustom: test_framework_GRDBCustomSQLiteOSX test_framework_GRDBCustomSQLiteiOS
-test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher4
+test_framework_SQLCipher: test_framework_SQLCipher3 test_framework_SQLCipher3Encrypted test_framework_SQLCipher4 test_framework_SQLCipher4Encrypted
 test_archive: test_archive_GRDBOSX_xcframework
 test_install: test_install_manual test_install_SPM test_install_customSQLite test_install_GRDB_CocoaPods test_CocoaPodsLint
 test_CocoaPodsLint: test_CocoaPodsLint_GRDB
@@ -348,6 +348,21 @@ else
 	@exit 1
 endif
 
+test_framework_SQLCipher3Encrypted:
+ifdef POD
+	cd Tests/CocoaPods/SQLCipher3 && \
+	$(POD) install && \
+	$(XCODEBUILD) \
+	  -workspace GRDBTests.xcworkspace \
+	  -scheme GRDBEncryptedTests \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  build-for-testing test-without-building \
+	  $(XCPRETTY)
+else
+	@echo CocoaPods must be installed for test_framework_SQLCipher3Encrypted
+	@exit 1
+endif
+
 test_framework_SQLCipher4:
 ifdef POD
 	cd Tests/CocoaPods/SQLCipher4 && \
@@ -360,6 +375,21 @@ ifdef POD
 	  $(XCPRETTY)
 else
 	@echo CocoaPods must be installed for test_framework_SQLCipher4
+	@exit 1
+endif
+
+test_framework_SQLCipher4Encrypted:
+ifdef POD
+	cd Tests/CocoaPods/SQLCipher4 && \
+	$(POD) install && \
+	$(XCODEBUILD) \
+	  -workspace GRDBTests.xcworkspace \
+	  -scheme GRDBEncryptedTests \
+	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
+	  build-for-testing test-without-building \
+	  $(XCPRETTY)
+else
+	@echo CocoaPods must be installed for test_framework_SQLCipher4Encrypted
 	@exit 1
 endif
 

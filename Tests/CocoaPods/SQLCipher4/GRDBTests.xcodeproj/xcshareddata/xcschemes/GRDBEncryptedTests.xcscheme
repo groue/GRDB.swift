@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1100"
+   LastUpgradeVersion = "1340"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,9 +14,9 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "564A1F1C226B876D001F64F1"
-               BuildableName = "GRDBTests.xctest"
-               BlueprintName = "GRDBTests"
+               BlueprintIdentifier = "564A2095226B8E18001F64F1"
+               BuildableName = "GRDBTestsEncrypted.xctest"
+               BlueprintName = "GRDBTestsEncrypted"
                ReferencedContainer = "container:GRDBTests.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -27,23 +27,14 @@
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       shouldUseLaunchSchemeArgsEnv = "YES">
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "564A1F1C226B876D001F64F1"
-            BuildableName = "GRDBTests.xctest"
-            BlueprintName = "GRDBTests"
-            ReferencedContainer = "container:GRDBTests.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <Testables>
          <TestableReference
             skipped = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "564A1F1C226B876D001F64F1"
-               BuildableName = "GRDBTests.xctest"
-               BlueprintName = "GRDBTests"
+               BlueprintIdentifier = "564A2095226B8E18001F64F1"
+               BuildableName = "GRDBTestsEncrypted.xctest"
+               BlueprintName = "GRDBTestsEncrypted"
                ReferencedContainer = "container:GRDBTests.xcodeproj">
             </BuildableReference>
          </TestableReference>
