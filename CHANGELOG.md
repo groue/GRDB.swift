@@ -91,6 +91,10 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **Fixed**: [#1225](https://github.com/groue/GRDB.swift/pull/1225) by [@groue](https://github.com/groue): Prevent heavy DatabasePool concurrent reads from creating too many threads
+
 ## 5.24.0
 
 Released May 1, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.23.0...v5.24.0)

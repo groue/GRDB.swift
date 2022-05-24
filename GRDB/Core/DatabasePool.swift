@@ -330,22 +330,14 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        // First async jump in order to grab a reader connection.
-        // Honor configuration dispatching (qos/targetQueue).
-        let label = configuration.identifier(
-            defaultLabel: "GRDB.DatabasePool",
-            purpose: "asyncRead")
-        configuration
-            .makeReaderDispatchQueue(label: label)
-            .async {
+        do {
+            guard let readerPool = self.readerPool else {
+                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+            }
+            readerPool.async { result in
                 do {
-                    guard let readerPool = self.readerPool else {
-                        throw DatabaseError.connectionIsClosed()
-                    }
-                    let (reader, releaseReader) = try readerPool.get()
-                    
-                    // Second async jump because sync could deadlock if
-                    // configuration has a serial targetQueue.
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
                     reader.async { db in
                         defer {
                             try? db.commit() // Ignore commit error
@@ -364,6 +356,9 @@ extension DatabasePool: DatabaseReader {
                     value(.failure(error))
                 }
             }
+        } catch {
+            value(.failure(error))
+        }
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
@@ -381,22 +376,14 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        // First async jump in order to grab a reader connection.
-        // Honor configuration dispatching (qos/targetQueue).
-        let label = configuration.identifier(
-            defaultLabel: "GRDB.DatabasePool",
-            purpose: "asyncUnsafeRead")
-        configuration
-            .makeReaderDispatchQueue(label: label)
-            .async {
+        do {
+            guard let readerPool = self.readerPool else {
+                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+            }
+            readerPool.async { result in
                 do {
-                    guard let readerPool = self.readerPool else {
-                        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
-                    }
-                    let (reader, releaseReader) = try readerPool.get()
-                    
-                    // Second async jump because sync could deadlock if
-                    // configuration has a serial targetQueue.
+                    let (reader, releaseReader) = try result.get()
+                    // Second async jump because that's how `Pool.async` has to be used.
                     reader.async { db in
                         defer {
                             releaseReader()
@@ -413,6 +400,9 @@ extension DatabasePool: DatabaseReader {
                     value(.failure(error))
                 }
             }
+        } catch {
+            value(.failure(error))
+        }
     }
     
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {

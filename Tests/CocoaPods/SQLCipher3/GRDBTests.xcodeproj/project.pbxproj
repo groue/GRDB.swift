@@ -447,6 +447,8 @@
 		565A27CD27871FFF00659A62 /* BackupTestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 565A27CB27871FFF00659A62 /* BackupTestCase.swift */; };
 		5691D97527257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
 		5691D97627257CE40021D540 /* AvailableElements.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5691D97427257CE40021D540 /* AvailableElements.swift */; };
+		56F61DF0283D484700AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DEE283D484700AF9884 /* getThreadsCount.c */; };
+		56F61DF1283D484700AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DEE283D484700AF9884 /* getThreadsCount.c */; };
 		5B33E6E34F941B4C839A714F /* (null) in Frameworks */ = {isa = PBXBuildFile; };
 		98AB0B01EB11B33719AE412E /* Pods_GRDBTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FE2436BF42B9FCD6552E7076 /* Pods_GRDBTests.framework */; };
 		F2B3C4250D67969FF3948955 /* Pods_GRDBTestsEncrypted.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */; };
@@ -678,6 +680,9 @@
 		564A2156226B8E18001F64F1 /* GRDBTestsEncrypted.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GRDBTestsEncrypted.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		565A27CB27871FFF00659A62 /* BackupTestCase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BackupTestCase.swift; sourceTree = "<group>"; };
 		5691D97427257CE40021D540 /* AvailableElements.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AvailableElements.swift; sourceTree = "<group>"; };
+		56F61DEC283D484700AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		56F61DEE283D484700AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
+		56F61DEF283D484700AF9884 /* getThreadsCount.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = getThreadsCount.h; sourceTree = "<group>"; };
 		6A4788C0F815F6C5E4EBDE12 /* Pods-GRDBTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTests.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTests/Pods-GRDBTests.debug.xcconfig"; sourceTree = "<group>"; };
 		7D5C7999E7D9CE7145687F5D /* Pods_GRDBTestsEncrypted.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_GRDBTestsEncrypted.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		83BFB5733A86DAA3D0BEE684 /* Pods-GRDBTestsEncrypted.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-GRDBTestsEncrypted.debug.xcconfig"; path = "Target Support Files/Pods-GRDBTestsEncrypted/Pods-GRDBTestsEncrypted.debug.xcconfig"; sourceTree = "<group>"; };
@@ -768,6 +773,9 @@
 		564A1F1F226B876D001F64F1 /* GRDBTests */ = {
 			isa = PBXGroup;
 			children = (
+				56F61DEE283D484700AF9884 /* getThreadsCount.c */,
+				56F61DEF283D484700AF9884 /* getThreadsCount.h */,
+				56F61DEC283D484700AF9884 /* GRDBTests-Bridging-Header.h */,
 				564A1F6F226B89D6001F64F1 /* Betty.jpeg */,
 				56419CDA24A54058004967E1 /* InflectionsTests.json */,
 				56419CE724A54058004967E1 /* AnyCursorTests.swift */,
@@ -900,11 +908,9 @@
 				56419D0024A5405A004967E1 /* JoinSupportTests.swift */,
 				56419CDC24A54058004967E1 /* MapCursorTests.swift */,
 				56419D0224A5405A004967E1 /* MutablePersistableRecordChangesTests.swift */,
-				56419D3A24A5405F004967E1 /* TableRecordDeleteTests.swift */,
 				56419D2F24A5405E004967E1 /* MutablePersistableRecordEncodableTests.swift */,
 				56419D4424A5405F004967E1 /* MutablePersistableRecordPersistenceConflictPolicyTests.swift */,
 				56419D3B24A5405F004967E1 /* MutablePersistableRecordTests.swift */,
-				56419CD224A54057004967E1 /* TableRecordUpdateTests.swift */,
 				56419CFD24A5405A004967E1 /* NumericOverflowTests.swift */,
 				56419D4F24A54060004967E1 /* OrderedDictionaryTests.swift */,
 				56419D4524A5405F004967E1 /* PersistableRecordTests.swift */,
@@ -952,7 +958,9 @@
 				56419D6124A54062004967E1 /* StatementColumnConvertibleFetchTests.swift */,
 				56419D5724A54061004967E1 /* TableDefinitionTests.swift */,
 				56419D4A24A54060004967E1 /* TableRecord+QueryInterfaceRequestTests.swift */,
+				56419D3A24A5405F004967E1 /* TableRecordDeleteTests.swift */,
 				56419CA224A54054004967E1 /* TableRecordTests.swift */,
+				56419CD224A54057004967E1 /* TableRecordUpdateTests.swift */,
 				56419CB624A54055004967E1 /* TransactionObserverSavepointsTests.swift */,
 				56419D0924A5405B004967E1 /* TransactionObserverTests.swift */,
 				56419D2224A5405D004967E1 /* TruncateOptimizationTests.swift */,
@@ -1051,10 +1059,10 @@
 				TargetAttributes = {
 					564A1F1C226B876D001F64F1 = {
 						CreatedOnToolsVersion = 10.2.1;
-						LastSwiftMigration = 1150;
+						LastSwiftMigration = 1340;
 					};
 					564A2095226B8E18001F64F1 = {
-						LastSwiftMigration = 1150;
+						LastSwiftMigration = 1340;
 					};
 				};
 			};
@@ -1243,6 +1251,7 @@
 				56419EAB24A54063004967E1 /* DatabaseValueTests.swift in Sources */,
 				56419D7724A54062004967E1 /* DatabaseCursorTests.swift in Sources */,
 				56419E1524A54062004967E1 /* AssociationChainRowScopesTests.swift in Sources */,
+				56F61DF0283D484700AF9884 /* getThreadsCount.c in Sources */,
 				56419EC724A54063004967E1 /* RecordPrimaryKeyMultipleTests.swift in Sources */,
 				56419DF724A54062004967E1 /* DatabaseDateEncodingStrategyTests.swift in Sources */,
 				56419EB724A54063004967E1 /* MutablePersistableRecordPersistenceConflictPolicyTests.swift in Sources */,
@@ -1468,6 +1477,7 @@
 				56419EAC24A54063004967E1 /* DatabaseValueTests.swift in Sources */,
 				56419D7824A54062004967E1 /* DatabaseCursorTests.swift in Sources */,
 				56419E1624A54062004967E1 /* AssociationChainRowScopesTests.swift in Sources */,
+				56F61DF1283D484700AF9884 /* getThreadsCount.c in Sources */,
 				56419EC824A54063004967E1 /* RecordPrimaryKeyMultipleTests.swift in Sources */,
 				56419DF824A54062004967E1 /* DatabaseDateEncodingStrategyTests.swift in Sources */,
 				56419EB824A54063004967E1 /* MutablePersistableRecordPersistenceConflictPolicyTests.swift in Sources */,
@@ -1766,6 +1776,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "../../GRDBTests/GRDBTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -1829,6 +1840,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "../../GRDBTests/GRDBTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 			};
@@ -1900,6 +1912,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OBJC_BRIDGING_HEADER = "../../GRDBTests/GRDBTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
@@ -1964,6 +1977,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "../../GRDBTests/GRDBTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
 			};

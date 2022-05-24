@@ -51,6 +51,7 @@ final class Pool<T> {
     private let itemsSemaphore: DispatchSemaphore // limits the number of elements
     private let itemsGroup: DispatchGroup         // knows when no element is used
     private let barrierQueue: DispatchQueue
+    private let semaphoreWaitingQueue: DispatchQueue // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
     
     init(maximumCount: Int, makeElement: @escaping () throws -> T) {
         GRDBPrecondition(maximumCount > 0, "Pool size must be at least 1")
@@ -58,6 +59,7 @@ final class Pool<T> {
         self.itemsSemaphore = DispatchSemaphore(value: maximumCount)
         self.itemsGroup = DispatchGroup()
         self.barrierQueue = DispatchQueue(label: "GRDB.Pool.barrier", attributes: [.concurrent])
+        self.semaphoreWaitingQueue = DispatchQueue(label: "GRDB.Pool.wait")
     }
     
     /// Returns a tuple (element, release)
@@ -84,6 +86,25 @@ final class Pool<T> {
                 itemsGroup.leave()
                 throw error
             }
+        }
+    }
+    
+    /// Eventually produces a tuple (element, release), where element is
+    /// intended to be used asynchronously.
+    ///
+    /// Client must call release(), only once, after the element has been used.
+    ///
+    /// - important: The `execute` argument is executed in a serial dispatch
+    ///   queue, so make sure you use the element asynchronously.
+    func async(_ execute: @escaping (Result<(element: T, release: () -> Void), Error>) -> Void) {
+        // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
+        // > We wait on the semaphore in the serial queue, which means that
+        // > we’ll have at most one blocked thread when we reach maximum
+        // > executing blocks on the concurrent queue. Any other tasks the user
+        // > enqueues will sit inertly on the serial queue waiting to be
+        // > executed, and won’t cause new threads to be started.
+        semaphoreWaitingQueue.async {
+            execute(Result { try self.get() })
         }
     }
     
