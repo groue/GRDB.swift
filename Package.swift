@@ -35,6 +35,7 @@ let package = Package(
                 "Crash",
                 "Performance",
                 "SPM",
+                "GRDBTests/getThreadsCount.c",
             ])
     ],
     swiftLanguageVersions: [.v5]

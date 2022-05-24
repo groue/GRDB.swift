@@ -924,6 +924,9 @@
 		56F5ABDA1D814330001F60CB /* NSData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AAB81D107001006283EF /* NSData.swift */; };
 		56F5ABDC1D814330001F60CB /* URL.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5657AB0E1D10899D006283EF /* URL.swift */; };
 		56F5ABDD1D814330001F60CB /* UUID.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56A8C22F1D1914540096E9D4 /* UUID.swift */; };
+		56F61DD5283D344E00AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DD4283D344E00AF9884 /* getThreadsCount.c */; };
+		56F61DD6283D344E00AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DD4283D344E00AF9884 /* getThreadsCount.c */; };
+		56F61DD7283D344E00AF9884 /* getThreadsCount.c in Sources */ = {isa = PBXBuildFile; fileRef = 56F61DD4283D344E00AF9884 /* getThreadsCount.c */; };
 		56FBFED92210731A00945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED82210731A00945324 /* SQLRequest.swift */; };
 		56FBFEDA2210731A00945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED82210731A00945324 /* SQLRequest.swift */; };
 		56FBFEDB2210731A00945324 /* SQLRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56FBFED82210731A00945324 /* SQLRequest.swift */; };
@@ -1646,6 +1649,9 @@
 		56F34FB924B094B6007513FC /* SQLExpressionIsConstantTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLExpressionIsConstantTests.swift; sourceTree = "<group>"; };
 		56F34FC124B0A0B7007513FC /* SQLIdentifyingColumnsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLIdentifyingColumnsTests.swift; sourceTree = "<group>"; };
 		56F3E7481E66F83A00BF0F01 /* ResultCodeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ResultCodeTests.swift; sourceTree = "<group>"; };
+		56F61DD0283D344D00AF9884 /* GRDBTests-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "GRDBTests-Bridging-Header.h"; path = "GRDBTests/GRDBTests-Bridging-Header.h"; sourceTree = "<group>"; };
+		56F61DD3283D344E00AF9884 /* getThreadsCount.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = getThreadsCount.h; sourceTree = "<group>"; };
+		56F61DD4283D344E00AF9884 /* getThreadsCount.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = getThreadsCount.c; sourceTree = "<group>"; };
 		56FBFED82210731A00945324 /* SQLRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SQLRequest.swift; sourceTree = "<group>"; };
 		56FDECE11BB32DFD009AD709 /* RowFromStatementTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RowFromStatementTests.swift; sourceTree = "<group>"; };
 		56FEB8F6248402E10081AF83 /* DatabaseTraceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseTraceTests.swift; sourceTree = "<group>"; };
@@ -1796,6 +1802,8 @@
 				569531361C919DF700CF1A2B /* DatabasePoolFunctionTests.swift */,
 				56EA869D1C932597002BB4DF /* DatabasePoolReadOnlyTests.swift */,
 				563C67B224628BEA00E94EDC /* DatabasePoolTests.swift */,
+				56F61DD3283D344E00AF9884 /* getThreadsCount.h */,
+				56F61DD4283D344E00AF9884 /* getThreadsCount.c */,
 			);
 			name = DatabasePool;
 			sourceTree = "<group>";
@@ -2502,6 +2510,7 @@
 		DC37740319C8CBB3004FCF85 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				56F61DD0283D344D00AF9884 /* GRDBTests-Bridging-Header.h */,
 				DC37740419C8CBB3004FCF85 /* Info.plist */,
 			);
 			name = "Supporting Files";
@@ -2752,17 +2761,18 @@
 					};
 					56E5D7D21B4D3FEE00430942 = {
 						CreatedOnToolsVersion = 7.0;
-						LastSwiftMigration = 1130;
+						LastSwiftMigration = 1340;
 						ProvisioningStyle = Manual;
 					};
 					56E5D7F81B4D422D00430942 = {
 						CreatedOnToolsVersion = 7.0;
-						LastSwiftMigration = 1020;
+						LastSwiftMigration = 1340;
 					};
 					AAA4DC75230F1E0600C74B15 = {
 						ProvisioningStyle = Manual;
 					};
 					AAA4DD07230F262000C74B15 = {
+						LastSwiftMigration = 1340;
 						ProvisioningStyle = Manual;
 					};
 					DC3773F219C8CBB3004FCF85 = {
@@ -3432,6 +3442,7 @@
 				56A2383A1B9C74A90082EB20 /* DatabaseQueueInMemoryTests.swift in Sources */,
 				56A5E40A1BA2BCF900707640 /* RecordWithColumnNameManglingTests.swift in Sources */,
 				56677C1A241D217F0050755D /* ValueObservationRecorderTests.swift in Sources */,
+				56F61DD6283D344E00AF9884 /* getThreadsCount.c in Sources */,
 				5653EAF520944B4F00F46237 /* AssociationParallelSQLTests.swift in Sources */,
 				563B06BE2185CCD300B38F35 /* ValueObservationTests.swift in Sources */,
 				56FF455A1D2CDA5200F21EF9 /* RecordUniqueIndexTests.swift in Sources */,
@@ -3667,6 +3678,7 @@
 				56DF001D228DDBA300D611F3 /* AssociationPrefetchingCodableRecordTests.swift in Sources */,
 				5653EAD820944B4F00F46237 /* AssociationBelongsToRowScopeTests.swift in Sources */,
 				562205F11E420E47005860AC /* DatabasePoolReleaseMemoryTests.swift in Sources */,
+				56F61DD5283D344E00AF9884 /* getThreadsCount.c in Sources */,
 				56677C19241D217F0050755D /* ValueObservationRecorderTests.swift in Sources */,
 				5653EAF420944B4F00F46237 /* AssociationParallelSQLTests.swift in Sources */,
 				563B06BD2185CCD300B38F35 /* ValueObservationTests.swift in Sources */,
@@ -4038,6 +4050,7 @@
 				AAA4DDC0230F262000C74B15 /* DatabaseQueueInMemoryTests.swift in Sources */,
 				AAA4DDC1230F262000C74B15 /* RecordWithColumnNameManglingTests.swift in Sources */,
 				56677C1B241D217F0050755D /* ValueObservationRecorderTests.swift in Sources */,
+				56F61DD7283D344E00AF9884 /* getThreadsCount.c in Sources */,
 				AAA4DDC2230F262000C74B15 /* AssociationParallelSQLTests.swift in Sources */,
 				AAA4DDC3230F262000C74B15 /* ValueObservationTests.swift in Sources */,
 				AAA4DDC4230F262000C74B15 /* RecordUniqueIndexTests.swift in Sources */,
@@ -4382,6 +4395,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -4400,6 +4414,9 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBTests/GRDBTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -4407,6 +4424,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Manual;
@@ -4427,7 +4445,9 @@
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=macosx*]" = "";
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBTests/GRDBTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -4435,6 +4455,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
@@ -4449,6 +4470,9 @@
 				PRODUCT_BUNDLE_IDENTIFIER = com.github.groue.GRDBOSXTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBTests/GRDBTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -4456,6 +4480,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -4472,7 +4497,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBTests/GRDBTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -4544,6 +4571,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -4562,6 +4590,9 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBTests/GRDBTests-Bridging-Header.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -4569,6 +4600,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 56C494401ED7255500CC72AF /* GRDBDeploymentTarget.xcconfig */;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
@@ -4589,7 +4621,9 @@
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = appletvos;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "Tests/GRDBTests/GRDBTests-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};

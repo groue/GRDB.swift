@@ -76,6 +76,90 @@ class DatabasePoolTests: GRDBTestCase {
         try migrator.migrate(dbQueue)
     }
     
+    func testNumberOfThreads_asyncUnsafeRead() throws {
+#if SWIFT_PACKAGE
+        // Can't access getThreadsCount() C function
+        throw XCTSkip("Thread count is not available")
+#else
+        if getThreadsCount() < 0 {
+            throw XCTSkip("Thread count is not available")
+        }
+        
+        let pool = try makeDatabasePool()
+        
+        // Keep this number big, so that we have a good chance to detect
+        // thread explosion.
+        let numberOfConcurrentReads = 10000
+        
+        // Wait for all concurrent reads to end
+        let group = DispatchGroup()
+        
+        // The maximum number of threads we could witness
+        var maxThreadCount: CInt = 0
+        let lock = NSLock()
+        
+        for _ in (0..<numberOfConcurrentReads) {
+            group.enter()
+            pool.asyncUnsafeRead { result in
+                if case let .failure(error) = result {
+                    XCTFail("Unexpected error \(error)")
+                }
+                
+                let threadsCount = getThreadsCount()
+                lock.lock()
+                maxThreadCount = max(maxThreadCount, threadsCount)
+                lock.unlock()
+                
+                group.leave()
+            }
+        }
+        group.wait()
+        XCTAssert(maxThreadCount < 50)
+#endif
+    }
+    
+    func testNumberOfThreads_asyncRead() throws {
+#if SWIFT_PACKAGE
+        // Can't access getThreadsCount() C function
+        throw XCTSkip("Thread count is not available")
+#else
+        if getThreadsCount() < 0 {
+            throw XCTSkip("Thread count is not available")
+        }
+        
+        let pool = try makeDatabasePool()
+        
+        // Keep this number big, so that we have a good chance to detect
+        // thread explosion.
+        let numberOfConcurrentReads = 10000
+        
+        // Wait for all concurrent reads to end
+        let group = DispatchGroup()
+        
+        // The maximum number of threads we could witness
+        var maxThreadCount: CInt = 0
+        let lock = NSLock()
+        
+        for _ in (0..<numberOfConcurrentReads) {
+            group.enter()
+            pool.asyncRead { result in
+                if case let .failure(error) = result {
+                    XCTFail("Unexpected error \(error)")
+                }
+                
+                let threadsCount = getThreadsCount()
+                lock.lock()
+                maxThreadCount = max(maxThreadCount, threadsCount)
+                lock.unlock()
+                
+                group.leave()
+            }
+        }
+        group.wait()
+        XCTAssert(maxThreadCount < 50)
+#endif
+    }
+    
     // MARK: - Closing
     
     func testClose() throws {
