@@ -24,7 +24,7 @@ jobs:
   macOS:
     name: macOS
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -60,7 +60,7 @@ jobs:
   iOS:
     name: iOS
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -80,7 +80,7 @@ jobs:
   SPM:
     name: SPM
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -132,7 +132,7 @@ jobs:
   CustomSQLite:
     name: CustomSQLite
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
@@ -152,7 +152,7 @@ jobs:
   XCFramework:
     name: XCFramework
     runs-on: ${{ matrix.runsOn }}
-    timeout-minutes: 40
+    timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
