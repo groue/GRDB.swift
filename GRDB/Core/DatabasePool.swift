@@ -333,34 +333,32 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        do {
-            guard let readerPool = self.readerPool else {
-                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
-            }
-            readerPool.async { result in
-                do {
-                    let (reader, releaseReader) = try result.get()
-                    // Second async jump because that's how `Pool.async` has to be used.
-                    reader.async { db in
-                        defer {
-                            try? db.commit() // Ignore commit error
-                            releaseReader()
-                        }
-                        do {
-                            // The block isolation comes from the DEFERRED transaction.
-                            try db.beginTransaction(.deferred)
-                            try db.clearSchemaCacheIfNeeded()
-                            value(.success(db))
-                        } catch {
-                            value(.failure(error))
-                        }
+        guard let readerPool = self.readerPool else {
+            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            return
+        }
+        
+        readerPool.asyncGet { result in
+            do {
+                let (reader, releaseReader) = try result.get()
+                // Second async jump because that's how `Pool.async` has to be used.
+                reader.async { db in
+                    defer {
+                        try? db.commit() // Ignore commit error
+                        releaseReader()
                     }
-                } catch {
-                    value(.failure(error))
+                    do {
+                        // The block isolation comes from the DEFERRED transaction.
+                        try db.beginTransaction(.deferred)
+                        try db.clearSchemaCacheIfNeeded()
+                        value(.success(db))
+                    } catch {
+                        value(.failure(error))
+                    }
                 }
+            } catch {
+                value(.failure(error))
             }
-        } catch {
-            value(.failure(error))
         }
     }
     
@@ -379,32 +377,30 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        do {
-            guard let readerPool = self.readerPool else {
-                throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
-            }
-            readerPool.async { result in
-                do {
-                    let (reader, releaseReader) = try result.get()
-                    // Second async jump because that's how `Pool.async` has to be used.
-                    reader.async { db in
-                        defer {
-                            releaseReader()
-                        }
-                        do {
-                            // The block isolation comes from the DEFERRED transaction.
-                            try db.clearSchemaCacheIfNeeded()
-                            value(.success(db))
-                        } catch {
-                            value(.failure(error))
-                        }
+        guard let readerPool = self.readerPool else {
+            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            return
+        }
+        
+        readerPool.asyncGet { result in
+            do {
+                let (reader, releaseReader) = try result.get()
+                // Second async jump because that's how `Pool.async` has to be used.
+                reader.async { db in
+                    defer {
+                        releaseReader()
                     }
-                } catch {
-                    value(.failure(error))
+                    do {
+                        // The block isolation comes from the DEFERRED transaction.
+                        try db.clearSchemaCacheIfNeeded()
+                        value(.success(db))
+                    } catch {
+                        value(.failure(error))
+                    }
                 }
+            } catch {
+                value(.failure(error))
             }
-        } catch {
-            value(.failure(error))
         }
     }
     
