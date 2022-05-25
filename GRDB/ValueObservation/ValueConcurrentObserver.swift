@@ -138,9 +138,11 @@ final class ValueConcurrentObserver<Reducer: ValueReducer> {
             fetch: reducer._fetch)
         self.notificationCallbacks = NotificationCallbacks(events: events, onChange: onChange)
         self.reducer = reducer
-        self.reduceQueue = dbPool.configuration.makeDispatchQueue(label: dbPool.configuration.identifier(
-            defaultLabel: "GRDB",
-            purpose: "ValueObservation"))
+        self.reduceQueue = DispatchQueue(
+            label: dbPool.configuration.identifier(
+                defaultLabel: "GRDB",
+                purpose: "ValueObservation"),
+            qos: dbPool.configuration.readQoS)
     }
 }
 
