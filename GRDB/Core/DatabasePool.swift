@@ -57,14 +57,17 @@ public final class DatabasePool: DatabaseWriter {
         readerConfiguration.allowsUnsafeTransactions = false
         
         var readerCount = 0
-        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: {
-            readerCount += 1 // protected by Pool (TODO: document this protection behavior)
-            return try SerializedDatabase(
-                path: path,
-                configuration: readerConfiguration,
-                defaultLabel: "GRDB.DatabasePool",
-                purpose: "reader.\(readerCount)")
-        })
+        readerPool = Pool(
+            maximumCount: configuration.maximumReaderCount,
+            qos: configuration.readQoS,
+            makeElement: {
+                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+                return try SerializedDatabase(
+                    path: path,
+                    configuration: readerConfiguration,
+                    defaultLabel: "GRDB.DatabasePool",
+                    purpose: "reader.\(readerCount)")
+            })
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {

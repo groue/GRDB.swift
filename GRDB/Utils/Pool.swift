@@ -53,13 +53,24 @@ final class Pool<T> {
     private let barrierQueue: DispatchQueue
     private let semaphoreWaitingQueue: DispatchQueue // Inspired by https://khanlou.com/2016/04/the-GCD-handbook/
     
-    init(maximumCount: Int, makeElement: @escaping () throws -> T) {
+    /// Creates a Pool.
+    ///
+    /// - parameters:
+    ///     - maximumCount: The maximum number of elements.
+    ///     - qos: The quality of service of asynchronous accesses.
+    ///     - makeElement: A function that creates an element. It is called
+    ///       on demand.
+    init(
+        maximumCount: Int,
+        qos: DispatchQoS = .unspecified,
+        makeElement: @escaping () throws -> T)
+    {
         GRDBPrecondition(maximumCount > 0, "Pool size must be at least 1")
         self.makeElement = makeElement
         self.itemsSemaphore = DispatchSemaphore(value: maximumCount)
         self.itemsGroup = DispatchGroup()
-        self.barrierQueue = DispatchQueue(label: "GRDB.Pool.barrier", attributes: [.concurrent])
-        self.semaphoreWaitingQueue = DispatchQueue(label: "GRDB.Pool.wait")
+        self.barrierQueue = DispatchQueue(label: "GRDB.Pool.barrier", qos: qos, attributes: [.concurrent])
+        self.semaphoreWaitingQueue = DispatchQueue(label: "GRDB.Pool.wait", qos: qos)
     }
     
     /// Returns a tuple (element, release)
