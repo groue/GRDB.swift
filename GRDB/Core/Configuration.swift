@@ -248,6 +248,11 @@ public struct Configuration {
     /// Default: .default
     public var qos: DispatchQoS = .default
     
+    /// The quality of service of read accesses
+    var readQoS: DispatchQoS {
+        targetQueue?.qos ?? self.qos
+    }
+    
     /// A target queue for database accesses.
     ///
     /// Database connections which are not read-only will prefer
@@ -312,19 +317,6 @@ public struct Configuration {
     func makeReaderDispatchQueue(label: String) -> DispatchQueue {
         if let targetQueue = targetQueue {
             return DispatchQueue(label: label, target: targetQueue)
-        } else {
-            return DispatchQueue(label: label, qos: qos)
-        }
-    }
-    
-    /// Creates a DispatchQueue which has the quality of service of
-    /// read accesses.
-    ///
-    /// The returned queue has no target queue, and won't create deadlocks when
-    /// used synchronously from a database access.
-    func makeDispatchQueue(label: String) -> DispatchQueue {
-        if let targetQueue = targetQueue {
-            return DispatchQueue(label: label, qos: targetQueue.qos)
         } else {
             return DispatchQueue(label: label, qos: qos)
         }

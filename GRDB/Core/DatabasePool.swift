@@ -57,14 +57,17 @@ public final class DatabasePool: DatabaseWriter {
         readerConfiguration.allowsUnsafeTransactions = false
         
         var readerCount = 0
-        readerPool = Pool(maximumCount: configuration.maximumReaderCount, makeElement: {
-            readerCount += 1 // protected by Pool (TODO: document this protection behavior)
-            return try SerializedDatabase(
-                path: path,
-                configuration: readerConfiguration,
-                defaultLabel: "GRDB.DatabasePool",
-                purpose: "reader.\(readerCount)")
-        })
+        readerPool = Pool(
+            maximumCount: configuration.maximumReaderCount,
+            qos: configuration.readQoS,
+            makeElement: {
+                readerCount += 1 // protected by Pool (TODO: document this protection behavior)
+                return try SerializedDatabase(
+                    path: path,
+                    configuration: readerConfiguration,
+                    defaultLabel: "GRDB.DatabasePool",
+                    purpose: "reader.\(readerCount)")
+            })
         
         // Activate WAL Mode unless readonly
         if !configuration.readonly {
@@ -330,40 +333,33 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        // First async jump in order to grab a reader connection.
-        // Honor configuration dispatching (qos/targetQueue).
-        let label = configuration.identifier(
-            defaultLabel: "GRDB.DatabasePool",
-            purpose: "asyncRead")
-        configuration
-            .makeReaderDispatchQueue(label: label)
-            .async {
-                do {
-                    guard let readerPool = self.readerPool else {
-                        throw DatabaseError.connectionIsClosed()
+        guard let readerPool = self.readerPool else {
+            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            return
+        }
+        
+        readerPool.asyncGet { result in
+            do {
+                let (reader, releaseReader) = try result.get()
+                // Second async jump because that's how `Pool.async` has to be used.
+                reader.async { db in
+                    defer {
+                        try? db.commit() // Ignore commit error
+                        releaseReader()
                     }
-                    let (reader, releaseReader) = try readerPool.get()
-                    
-                    // Second async jump because sync could deadlock if
-                    // configuration has a serial targetQueue.
-                    reader.async { db in
-                        defer {
-                            try? db.commit() // Ignore commit error
-                            releaseReader()
-                        }
-                        do {
-                            // The block isolation comes from the DEFERRED transaction.
-                            try db.beginTransaction(.deferred)
-                            try db.clearSchemaCacheIfNeeded()
-                            value(.success(db))
-                        } catch {
-                            value(.failure(error))
-                        }
+                    do {
+                        // The block isolation comes from the DEFERRED transaction.
+                        try db.beginTransaction(.deferred)
+                        try db.clearSchemaCacheIfNeeded()
+                        value(.success(db))
+                    } catch {
+                        value(.failure(error))
                     }
-                } catch {
-                    value(.failure(error))
                 }
+            } catch {
+                value(.failure(error))
             }
+        }
     }
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
@@ -381,38 +377,31 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        // First async jump in order to grab a reader connection.
-        // Honor configuration dispatching (qos/targetQueue).
-        let label = configuration.identifier(
-            defaultLabel: "GRDB.DatabasePool",
-            purpose: "asyncUnsafeRead")
-        configuration
-            .makeReaderDispatchQueue(label: label)
-            .async {
-                do {
-                    guard let readerPool = self.readerPool else {
-                        throw DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")
+        guard let readerPool = self.readerPool else {
+            value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
+            return
+        }
+        
+        readerPool.asyncGet { result in
+            do {
+                let (reader, releaseReader) = try result.get()
+                // Second async jump because that's how `Pool.async` has to be used.
+                reader.async { db in
+                    defer {
+                        releaseReader()
                     }
-                    let (reader, releaseReader) = try readerPool.get()
-                    
-                    // Second async jump because sync could deadlock if
-                    // configuration has a serial targetQueue.
-                    reader.async { db in
-                        defer {
-                            releaseReader()
-                        }
-                        do {
-                            // The block isolation comes from the DEFERRED transaction.
-                            try db.clearSchemaCacheIfNeeded()
-                            value(.success(db))
-                        } catch {
-                            value(.failure(error))
-                        }
+                    do {
+                        // The block isolation comes from the DEFERRED transaction.
+                        try db.clearSchemaCacheIfNeeded()
+                        value(.success(db))
+                    } catch {
+                        value(.failure(error))
                     }
-                } catch {
-                    value(.failure(error))
                 }
+            } catch {
+                value(.failure(error))
             }
+        }
     }
     
     public func unsafeReentrantRead<T>(_ value: (Database) throws -> T) throws -> T {

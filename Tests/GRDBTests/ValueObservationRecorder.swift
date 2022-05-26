@@ -422,13 +422,6 @@ extension GRDBTestCase {
         throws
         where Reducer.Value: Equatable
     {
-        #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
-        // debug SQLite builds can be *very* slow
-        let timeout: TimeInterval = 4
-        #else
-        let timeout: TimeInterval = 1
-        #endif
-        
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: ValueObservationScheduler,
@@ -455,7 +448,7 @@ extension GRDBTestCase {
                 try writer.writeWithoutTransaction(recordedUpdates)
                 
                 let expectation = recorder.next(expectedValues.count)
-                let values = try wait(for: expectation, timeout: timeout)
+                let values = try wait(for: expectation, timeout: 5)
                 XCTAssertEqual(
                     values, expectedValues,
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
@@ -485,7 +478,7 @@ extension GRDBTestCase {
                 }
                 
                 let expectation = recorder.next(expectedValues.count)
-                let values = try wait(for: expectation, timeout: timeout)
+                let values = try wait(for: expectation, timeout: 5)
                 XCTAssertEqual(
                     values, expectedValues,
                     "\(#function), \(writer), \(scheduler)", file: file, line: line)
@@ -516,14 +509,14 @@ extension GRDBTestCase {
                 if waitForLast {
                     // Optimization!
                     let expectation = recorder.prefix(until: { $0 == lastExpectedValue } )
-                    recordedValues = try wait(for: expectation, timeout: timeout)
+                    recordedValues = try wait(for: expectation, timeout: 5)
                 } else {
                     // Slow!
                     assertionFailure("Please rewrite your test, because it is too slow: make sure the last expected value is unique.")
                     let expectation = recorder
                         .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
                         .inverted
-                    recordedValues = try wait(for: expectation, timeout: timeout)
+                    recordedValues = try wait(for: expectation, timeout: 5)
                 }
                 
                 if scheduler.immediateInitialValue() {
@@ -565,14 +558,14 @@ extension GRDBTestCase {
                 if waitForLast {
                     // Optimization!
                     let expectation = recorder.prefix(until: { $0 == lastExpectedValue } )
-                    recordedValues = try wait(for: expectation, timeout: timeout)
+                    recordedValues = try wait(for: expectation, timeout: 5)
                 } else {
                     // Slow!
                     assertionFailure("Please rewrite your test, because it is too slow: make sure the last expected value is unique.")
                     let expectation = recorder
                         .prefix(expectedValues.count + 2 /* pool may perform double initial fetch */)
                         .inverted
-                    recordedValues = try wait(for: expectation, timeout: timeout)
+                    recordedValues = try wait(for: expectation, timeout: 5)
                 }
                 
                 XCTAssertEqual(recordedValues.first, expectedValues.first)
@@ -639,13 +632,6 @@ extension GRDBTestCase {
         line: UInt)
         throws
     {
-        #if SQLITE_HAS_CODEC || GRDBCUSTOMSQLITE
-        // debug SQLite builds can be *very* slow
-        let timeout: TimeInterval = 2
-        #else
-        let timeout: TimeInterval = 1
-        #endif
-        
         func test(
             observation: ValueObservation<Reducer>,
             scheduling scheduler: ValueObservationScheduler,
@@ -659,7 +645,7 @@ extension GRDBTestCase {
                     scheduling: scheduler,
                     onError: { _ in testErrorDispatching() })
                 
-                let (_, error) = try wait(for: recorder.failure(), timeout: timeout)
+                let (_, error) = try wait(for: recorder.failure(), timeout: 5)
                 if let error = error as? Failure {
                     try testFailure(error, writer)
                 } else {

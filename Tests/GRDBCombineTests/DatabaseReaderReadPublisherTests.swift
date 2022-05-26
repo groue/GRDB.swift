@@ -36,7 +36,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
                 try Player.fetchCount(db)
             })
             let recorder = publisher.record()
-            let value = try wait(for: recorder.single, timeout: 1)
+            let value = try wait(for: recorder.single, timeout: 5)
             XCTAssertEqual(value, 0)
         }
         
@@ -135,7 +135,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
                 try Row.fetchAll(db, sql: "THIS IS NOT SQL")
             })
             let recorder = publisher.record()
-            let recording = try wait(for: recorder.recording, timeout: 1)
+            let recording = try wait(for: recorder.recording, timeout: 5)
             XCTAssertTrue(recording.output.isEmpty)
             assertFailure(recording.completion) { (error: DatabaseError) in
                 XCTAssertEqual(error.resultCode, .SQLITE_ERROR)
@@ -177,7 +177,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
                 })
             
             semaphore.signal()
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
         }
         
@@ -215,7 +215,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
                         dispatchPrecondition(condition: .onQueue(.main))
                 })
             
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
         }
         
@@ -254,7 +254,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
                         dispatchPrecondition(condition: .onQueue(queue))
                 })
             
-            waitForExpectations(timeout: 1, handler: nil)
+            waitForExpectations(timeout: 5, handler: nil)
             cancellable.cancel()
         }
         
@@ -277,7 +277,7 @@ class DatabaseReaderReadPublisherTests : XCTestCase {
                 try Player.createTable(db)
             })
             let recorder = publisher.record()
-            let recording = try wait(for: recorder.recording, timeout: 1)
+            let recording = try wait(for: recorder.recording, timeout: 5)
             XCTAssertTrue(recording.output.isEmpty)
             assertFailure(recording.completion) { (error: DatabaseError) in
                 XCTAssertEqual(error.resultCode, .SQLITE_READONLY)
