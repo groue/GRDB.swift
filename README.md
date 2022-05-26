@@ -11,13 +11,13 @@
 
 ---
 
-**Latest release**: May 1, 2022 • [version 5.24.0](https://github.com/groue/GRDB.swift/tree/v5.24.0) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
+**Latest release**: May 26, 2022 • [version 5.24.1](https://github.com/groue/GRDB.swift/tree/v5.24.1) • [CHANGELOG](CHANGELOG.md) • [Migrating From GRDB 4 to GRDB 5](Documentation/GRDB5MigrationGuide.md)
 
 **Requirements**: iOS 11.0+ / macOS 10.10+ / tvOS 9.0+ / watchOS 2.0+ &bull; SQLite 3.8.5+ &bull; Swift 5.3+ / Xcode 12+
 
 | Swift version  | GRDB version                                                |
 | -------------- | ----------------------------------------------------------- |
-| **Swift 5.3+** | **v5.24.0**                                                 |
+| **Swift 5.3+** | **v5.24.1**                                                 |
 | Swift 5.2      | [v5.12.0](https://github.com/groue/GRDB.swift/tree/v5.12.0) |
 | Swift 5.1      | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |
 | Swift 5        | [v4.14.0](https://github.com/groue/GRDB.swift/tree/v4.14.0) |

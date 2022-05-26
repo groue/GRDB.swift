@@ -7,7 +7,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 #### 5.x Releases
 
-- `5.24.x` Releases - [5.24.0](#5240)
+- `5.24.x` Releases - [5.24.0](#5240) | [5.24.1](#5241)
 - `5.23.x` Releases - [5.23.0](#5230)
 - `5.22.x` Releases - [5.22.0](#5220) | [5.22.1](#5221) | [5.22.2](#5222)
 - `5.21.x` Releases - [5.21.0](#5210)
@@ -91,7 +91,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## Next Release
+## 5.24.1
+
+Released May 26, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.24.0...v5.24.1)
 
 - **Fixed**: [#1217](https://github.com/groue/GRDB.swift/pull/1217) by [@GetToSet](https://github.com/GetToSet): Fix doc issue on TableRequest.filter(keys:).
 - **Fixed**: [#1225](https://github.com/groue/GRDB.swift/pull/1225) by [@groue](https://github.com/groue): Prevent heavy DatabasePool concurrent reads from creating too many threads
