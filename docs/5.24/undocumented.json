@@ -1542,28 +1542,28 @@
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 375,
+      "line": 362,
       "symbol": "SelectStatement",
       "symbol_kind": "source.lang.swift.decl.typealias",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 378,
+      "line": 365,
       "symbol": "UpdateStatement",
       "symbol_kind": "source.lang.swift.decl.typealias",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 511,
+      "line": 497,
       "symbol": "StatementBinding",
       "symbol_kind": "source.lang.swift.decl.protocol",
       "warning": "undocumented"
     },
     {
       "file": "/Users/groue/Documents/git/groue/GRDB.swift/GRDB/Core/Statement.swift",
-      "line": 607,
+      "line": 593,
       "symbol": "StatementArguments.isEmpty",
       "symbol_kind": "source.lang.swift.decl.var.instance",
       "warning": "undocumented"
