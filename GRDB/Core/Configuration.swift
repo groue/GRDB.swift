@@ -245,8 +245,8 @@ public struct Configuration {
     ///
     /// The quality of service is ignored if you supply a target queue.
     ///
-    /// Default: .default
-    public var qos: DispatchQoS = .default
+    /// Default: .userInitiated
+    public var qos: DispatchQoS = .userInitiated
     
     /// The quality of service of read accesses
     var readQoS: DispatchQoS {
