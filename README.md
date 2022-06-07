@@ -491,6 +491,8 @@ let newPlaceCount = try dbQueue.write { db -> Int in
 }
 ```
 
+See the [Concurrency] guide for asynchronous database accesses.
+
 **A database queue serializes accesses to the database**, which means that there is never more than one thread that uses the database.
 
 - When you don't need to modify the database, prefer the `read` method. It prevents any modification to the database.
@@ -547,6 +549,8 @@ let newPlaceCount = try dbPool.write { db -> Int in
     return try Place.fetchCount(db)
 }
 ```
+
+See the [Concurrency] guide for asynchronous database accesses.
 
 **Database pools allow several threads to access the database at the same time:**
 
