@@ -314,19 +314,14 @@ extension ValueObservation {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public func combine<
-        R1: _ValueReducer,
-        Combined>(
+    public func combine<R1, Combined>(
         _ other: ValueObservation<R1>,
         _ transform: @escaping (Reducer.Value, R1.Value) -> Combined)
     -> ValueObservation<ValueReducers.Unavailable<Combined>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        Combined>(
+    public func combine<R1, R2, Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
         _ transform: @escaping (Reducer.Value, R1.Value, R2.Value) -> Combined)
@@ -334,11 +329,7 @@ extension ValueObservation {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer,
-        Combined>(
+    public func combine<R1, R2, R3, Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
         _ observation3: ValueObservation<R3>,
@@ -347,12 +338,7 @@ extension ValueObservation {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer,
-        R4: _ValueReducer,
-        Combined>(
+    public func combine<R1, R2, R3, R4, Combined>(
         _ observation1: ValueObservation<R1>,
         _ observation2: ValueObservation<R2>,
         _ observation3: ValueObservation<R3>,
@@ -374,19 +360,14 @@ extension ValueObservation {
 
 extension ValueObservation where Reducer == ValueReducers.Auto {
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public static func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer>(
+    public static func combine<R1, R2>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>)
     -> ValueObservation<ValueReducers.Unavailable<(R1.Value, R2.Value)>>
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public static func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer>(
+    public static func combine<R1, R2, R3>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>)
@@ -394,11 +375,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public static func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer,
-        R4: _ValueReducer>(
+    public static func combine<R1, R2, R3, R4>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -407,12 +384,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public static func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer,
-        R4: _ValueReducer,
-        R5: _ValueReducer>(
+    public static func combine<R1, R2, R3, R4, R5>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -422,13 +394,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public static func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer,
-        R4: _ValueReducer,
-        R5: _ValueReducer,
-        R6: _ValueReducer>(
+    public static func combine<R1, R2, R3, R4, R5, R6>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -439,14 +405,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public static func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer,
-        R4: _ValueReducer,
-        R5: _ValueReducer,
-        R6: _ValueReducer,
-        R7: _ValueReducer>(
+    public static func combine<R1, R2, R3, R4, R5, R6, R7>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
@@ -458,15 +417,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     { preconditionFailure() }
     
     @available(*, unavailable, message: "combine is no longer available. See the \"Migrating From GRDB 4 to GRDB 5\" guide.")
-    public static func combine<
-        R1: _ValueReducer,
-        R2: _ValueReducer,
-        R3: _ValueReducer,
-        R4: _ValueReducer,
-        R5: _ValueReducer,
-        R6: _ValueReducer,
-        R7: _ValueReducer,
-        R8: _ValueReducer>(
+    public static func combine<R1, R2, R3, R4, R5, R6, R7, R8>(
         _ o1: ValueObservation<R1>,
         _ o2: ValueObservation<R2>,
         _ o3: ValueObservation<R3>,
