@@ -91,6 +91,12 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Release
+
+- **New**: [#1226](https://github.com/groue/GRDB.swift/pull/1226) by [@naveensrinivasan](https://github.com/naveensrinivasan): Included githubactions in the dependabot config
+- **New**: [#1228](https://github.com/groue/GRDB.swift/pull/1228) by [@naveensrinivasan](https://github.com/naveensrinivasan): Set permissions for GitHub actions
+- **Fixed**: [#1233](https://github.com/groue/GRDB.swift/pull/1233) by [@GetToSet](https://github.com/GetToSet): Fix warnings of redundant conformance constraint on Xcode 14.
+
 ## 5.24.1
 
 Released May 26, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.24.0...v5.24.1)
