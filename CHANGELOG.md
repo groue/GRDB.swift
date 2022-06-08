@@ -95,6 +95,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 - **New**: [#1226](https://github.com/groue/GRDB.swift/pull/1226) by [@naveensrinivasan](https://github.com/naveensrinivasan): Included githubactions in the dependabot config
 - **New**: [#1228](https://github.com/groue/GRDB.swift/pull/1228) by [@naveensrinivasan](https://github.com/naveensrinivasan): Set permissions for GitHub actions
+- **New**: [#1235](https://github.com/groue/GRDB.swift/pull/1235) by [@groue](https://github.com/groue): Raise default Quality of Service to `.userInitiated`.
 - **Fixed**: [#1233](https://github.com/groue/GRDB.swift/pull/1233) by [@GetToSet](https://github.com/GetToSet): Fix warnings of redundant conformance constraint on Xcode 14.
 
 ## 5.24.1
