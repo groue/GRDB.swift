@@ -50,7 +50,16 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with
 # `xcrun xctrace list devices` (or the deprecated `instruments -s devices`).
-ifeq ($(XCODEVERSION),13.4)
+ifeq ($(XCODEVERSION),14.0)
+  MAX_SWIFT_VERSION = 5.7
+  MIN_SWIFT_VERSION = 5.3
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=16.0"
+  MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.4"
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=16.0"
+  #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4" TODO: restore
+  OTHER_SWIFT_FLAGS = '$$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks'
+  GCC_PREPROCESSOR_DEFINITIONS = '$$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1'
+else ifeq ($(XCODEVERSION),13.4)
   MAX_SWIFT_VERSION = 5.6
   MIN_SWIFT_VERSION = 5.3
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=15.5"
@@ -577,10 +586,10 @@ ifdef JAZZY
 	  --author 'Gwendal Roué' \
 	  --author_url https://github.com/groue \
 	  --github_url https://github.com/groue/GRDB.swift \
-	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.24.1 \
-	  --module-version 5.24.1 \
+	  --github-file-prefix https://github.com/groue/GRDB.swift/tree/v5.25.0 \
+	  --module-version 5.25.0 \
 	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/5.24/ \
+	  --root-url http://groue.github.io/GRDB.swift/docs/5.25/ \
 	  --output Documentation/Reference \
 	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDBiOS
 else

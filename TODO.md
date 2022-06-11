@@ -23,6 +23,11 @@
 - [ ] Property wrapper that decodes dictionaries (but how to tell the key column?)
 - [X] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation. Result: no, it does not look it returns values that are comparable between two distinct SQLite connections (from the initial reader, and from the writer thhat starts the observation)
 - [ ] Grab all FTS tokens in a string
+- [ ] GRDB 6: Swift 5.7
+- [ ] GRDB 6: any / some
+- [ ] GRDB 6: primary associated types (cursor, requests, ...)
+- [ ] GRDB 6: remove existential/generic duplicated methods
+- [ ] GRDB 6: remove useless AnyXXX Type erasers
 - [ ] GRDB 6: decoding errors
 - [ ] GRDB 6: conflict resolution in persistence methods
 - [ ] GRDB 6: UPSERT
