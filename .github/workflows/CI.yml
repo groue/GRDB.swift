@@ -57,7 +57,7 @@ jobs:
             name: "macOS 10.15, Xcode 12.4, Swift 5.3"
             shell: "/bin/zsh {0}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBOSX_maxSwift
   iOS:
@@ -77,7 +77,7 @@ jobs:
             name: "macOS 10.15, Xcode 12.4, Swift 5.3"
             shell: "/bin/zsh {0}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBiOS_maxTarget_maxSwift
   SPM:
@@ -93,7 +93,7 @@ jobs:
             name: "macOS 12, Xcode 13.3.1, Swift 5.6"
             shell: "/bin/zsh {0}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
         run: make test_SPM test_install_SPM
   SQLCipher3:
@@ -109,7 +109,7 @@ jobs:
             name: "macOS 12, Xcode 13.3.1, Swift 5.6"
             shell: "/bin/zsh {0}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
         run: make test_framework_SQLCipher3Encrypted
   SQLCipher4:
@@ -129,7 +129,7 @@ jobs:
             name: "macOS 10.15, Xcode 12.4, Swift 5.3"
             shell: "/bin/zsh {0}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
         run: make test_framework_SQLCipher4Encrypted
   CustomSQLite:
@@ -149,7 +149,7 @@ jobs:
             name: "macOS 10.15, Xcode 12.4, Swift 5.3"
             shell: "/bin/zsh {0}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
         run: make test_framework_GRDBCustomSQLiteOSX
   XCFramework:
@@ -165,7 +165,7 @@ jobs:
             name: "macOS 12, Xcode 13.3.1, Swift 5.6"
             shell: "/bin/zsh {0}"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: ${{ matrix.name }}
         run: make test_archive_GRDBOSX_xcframework
     
