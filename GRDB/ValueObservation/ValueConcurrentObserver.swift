@@ -250,6 +250,12 @@ extension ValueConcurrentObserver {
         // transaction to complete.
         //
         // Fetch value & tracked region in a synchronous way.
+        //
+        // TODO: we currently perform the initial read from a snapshot, because
+        // it is a handy way to keep a read transaction open until we grab a
+        // write access, and compare the database versions. The problem is that
+        // we do not control the number of created shapshots: we should instead
+        // use a reader from the pool.
         let initialSnapshot = try databaseAccess.dbPool.makeSnapshot()
         let (fetchedValue, initialRegion, initialWALSnapshot) = try initialSnapshot.read {
             db -> (Reducer.Fetched, DatabaseRegion, WALSnapshot?) in
@@ -299,6 +305,12 @@ extension ValueConcurrentObserver {
         // for observing the database is to be able to fetch the initial value
         // without having to wait for an eventual long-running write
         // transaction to complete.
+        //
+        // TODO: we currently perform the initial read from a snapshot, because
+        // it is a handy way to keep a read transaction open until we grab a
+        // write access, and compare the database versions. The problem is that
+        // we do not control the number of created shapshots: we should instead
+        // use a reader from the pool.
         do {
             let initialSnapshot = try databaseAccess.dbPool.makeSnapshot()
             initialSnapshot.asyncRead { dbResult in
