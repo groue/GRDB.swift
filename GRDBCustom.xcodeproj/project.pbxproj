@@ -214,6 +214,8 @@
 		5653EB8120961FB200F46237 /* AssociationBelongsToDecodableRecordTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB6420961FB200F46237 /* AssociationBelongsToDecodableRecordTests.swift */; };
 		5653EB8220961FB200F46237 /* AssociationBelongsToRowScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB6520961FB200F46237 /* AssociationBelongsToRowScopeTests.swift */; };
 		5653EB8320961FB200F46237 /* AssociationBelongsToRowScopeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5653EB6520961FB200F46237 /* AssociationBelongsToRowScopeTests.swift */; };
+		56564F3928637C9900A19E9F /* WALSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56564F3828637C9900A19E9F /* WALSnapshot.swift */; };
+		56564F3A28637C9900A19E9F /* WALSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56564F3828637C9900A19E9F /* WALSnapshot.swift */; };
 		5656A7F622946B1B001FF3FF /* ValueObservationQueryInterfaceRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A7F422946B1B001FF3FF /* ValueObservationQueryInterfaceRequestTests.swift */; };
 		5656A7F722946B1B001FF3FF /* ValueObservationQueryInterfaceRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A7F422946B1B001FF3FF /* ValueObservationQueryInterfaceRequestTests.swift */; };
 		5656A8512295BD56001FF3FF /* SQLInterpolation+QueryInterface.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5656A8262295BD56001FF3FF /* SQLInterpolation+QueryInterface.swift */; };
@@ -913,6 +915,7 @@
 		5653EB6320961FB200F46237 /* AssociationChainSQLTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationChainSQLTests.swift; sourceTree = "<group>"; };
 		5653EB6420961FB200F46237 /* AssociationBelongsToDecodableRecordTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationBelongsToDecodableRecordTests.swift; sourceTree = "<group>"; };
 		5653EB6520961FB200F46237 /* AssociationBelongsToRowScopeTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AssociationBelongsToRowScopeTests.swift; sourceTree = "<group>"; };
+		56564F3828637C9900A19E9F /* WALSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WALSnapshot.swift; sourceTree = "<group>"; };
 		5656A7F422946B1B001FF3FF /* ValueObservationQueryInterfaceRequestTests.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ValueObservationQueryInterfaceRequestTests.swift; sourceTree = "<group>"; };
 		5656A8262295BD56001FF3FF /* SQLInterpolation+QueryInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "SQLInterpolation+QueryInterface.swift"; sourceTree = "<group>"; };
 		5656A8282295BD56001FF3FF /* FTS5+QueryInterface.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "FTS5+QueryInterface.swift"; sourceTree = "<group>"; };
@@ -1830,8 +1833,9 @@
 				56A238781B9C75030082EB20 /* Statement.swift */,
 				566B912A1FA4D0CC0012D5B0 /* StatementAuthorizer.swift */,
 				560D923F1C672C3E00F4F92B /* StatementColumnConvertible.swift */,
-				5605F1471C672E4000235C62 /* Support */,
 				566B91321FA4D3810012D5B0 /* TransactionObserver.swift */,
+				56564F3828637C9900A19E9F /* WALSnapshot.swift */,
+				5605F1471C672E4000235C62 /* Support */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -1961,8 +1965,8 @@
 		DC37742D19C8CC90004FCF85 /* GRDB */ = {
 			isa = PBXGroup;
 			children = (
-				56A2386F1B9C75030082EB20 /* Core */,
 				56A2FA3724424F4200E97D23 /* Export.swift */,
+				56A2386F1B9C75030082EB20 /* Core */,
 				5614089D221596A100DAD589 /* Fixit */,
 				5698AC291D9E5A480056AF8C /* FTS */,
 				56A238911B9C750B0082EB20 /* Migration */,
@@ -2360,6 +2364,7 @@
 				56A6EB2526076F6A00C27594 /* SQL.swift in Sources */,
 				5656A8762295BD56001FF3FF /* RequestProtocols.swift in Sources */,
 				568ECB3625D91CEF00B71526 /* SQLSubquery.swift in Sources */,
+				56564F3A28637C9900A19E9F /* WALSnapshot.swift in Sources */,
 				561729552235340E0006E219 /* EncodableRecord.swift in Sources */,
 				5656A87E2295BD56001FF3FF /* SQLAssociation.swift in Sources */,
 				F3BA80131CFB2876003DC1BA /* DatabaseValue.swift in Sources */,
@@ -2731,6 +2736,7 @@
 				56A6EB2426076F6A00C27594 /* SQL.swift in Sources */,
 				5656A8752295BD56001FF3FF /* RequestProtocols.swift in Sources */,
 				568ECB3525D91CEF00B71526 /* SQLSubquery.swift in Sources */,
+				56564F3928637C9900A19E9F /* WALSnapshot.swift in Sources */,
 				561729562235340E0006E219 /* EncodableRecord.swift in Sources */,
 				5656A87D2295BD56001FF3FF /* SQLAssociation.swift in Sources */,
 				F3BA806F1CFB2E55003DC1BA /* DatabaseValue.swift in Sources */,
