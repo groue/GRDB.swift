@@ -1510,7 +1510,7 @@ let sortedAuthor = Book.author.order(Column("name"))
 let request = Book.including(required: sortedAuthor)
 ```
 
-When you sort both the base record on the associated record, the request is sorted on the base record first, and on the associated record next:
+When you sort both the base record and the associated record, the request is sorted on the base record first, and on the associated record next:
 
 ```swift
 // SELECT book.*, person.*
