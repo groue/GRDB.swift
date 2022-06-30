@@ -418,39 +418,38 @@ class ValueObservationTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
         }
         
-        #if SQLITE_ENABLE_SNAPSHOT
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .async(onQueue: .main),
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-            })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 1])
-        }
+        let expectedCounts: [Int]
+        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        // Optimization not available
+        expectedCounts = [0, 0, 1]
+        #elseif GRDBCUSTOMSQLITE
+        // Optimization available
+        expectedCounts = [0, 1]
         #else
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .async(onQueue: .main),
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-            })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0, 1])
+        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
+            // Optimization available
+            expectedCounts = [0, 1]
+        } else {
+            // Optimization not available
+            expectedCounts = [0, 0, 1]
         }
         #endif
+        
+        let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = expectedCounts.count
+        var observedCounts: [Int] = []
+        let cancellable = observation.start(
+            in: dbPool,
+            scheduling: .async(onQueue: .main),
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                observedCounts.append(count)
+                expectation.fulfill()
+            })
+        withExtendedLifetime(cancellable) {
+            waitForExpectations(timeout: 2, handler: nil)
+            XCTAssertEqual(observedCounts, expectedCounts)
+        }
     }
     
     func testAllowedSnapshotOptimizationWithImmediateScheduler() throws {
@@ -477,39 +476,38 @@ class ValueObservationTests: GRDBTestCase {
             return try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM t")!
         }
         
-        #if SQLITE_ENABLE_SNAPSHOT
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 2
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .immediate,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-            })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 1])
-        }
+        let expectedCounts: [Int]
+        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        // Optimization not available
+        expectedCounts = [0, 0, 1]
+        #elseif GRDBCUSTOMSQLITE
+        // Optimization available
+        expectedCounts = [0, 1]
         #else
-        let expectation = self.expectation(description: "")
-        expectation.expectedFulfillmentCount = 3
-        var observedCounts: [Int] = []
-        let cancellable = observation.start(
-            in: dbPool,
-            scheduling: .immediate,
-            onError: { error in XCTFail("Unexpected error: \(error)") },
-            onChange: { count in
-                observedCounts.append(count)
-                expectation.fulfill()
-            })
-        withExtendedLifetime(cancellable) {
-            waitForExpectations(timeout: 2, handler: nil)
-            XCTAssertEqual(observedCounts, [0, 0, 1])
+        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
+            // Optimization available
+            expectedCounts = [0, 1]
+        } else {
+            // Optimization not available
+            expectedCounts = [0, 0, 1]
         }
         #endif
+        
+        let expectation = self.expectation(description: "")
+        expectation.expectedFulfillmentCount = expectedCounts.count
+        var observedCounts: [Int] = []
+        let cancellable = observation.start(
+            in: dbPool,
+            scheduling: .immediate,
+            onError: { error in XCTFail("Unexpected error: \(error)") },
+            onChange: { count in
+                observedCounts.append(count)
+                expectation.fulfill()
+            })
+        withExtendedLifetime(cancellable) {
+            waitForExpectations(timeout: 2, handler: nil)
+            XCTAssertEqual(observedCounts, expectedCounts)
+        }
     }
     
     // MARK: - Cancellation

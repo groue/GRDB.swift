@@ -92,6 +92,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## Next Version
+
+- **New**: [#1248](https://github.com/groue/GRDB.swift/pull/1248) by [@groue](https://github.com/groue): Avoid double notification of the initial value for ValueObservation on DatabasePool
+
+
 ## 5.25.0
 
 Released June 11, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.24.1...v5.25.0)
