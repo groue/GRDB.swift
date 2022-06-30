@@ -47,10 +47,10 @@ final class WALSnapshot {
             }
 #endif
         }
-        guard code == SQLITE_OK, let snapshot = snapshot else {
+        guard code == SQLITE_OK, let s = snapshot else {
             return nil
         }
-        self.snapshot = snapshot
+        self.snapshot = s
     }
     
     deinit {
