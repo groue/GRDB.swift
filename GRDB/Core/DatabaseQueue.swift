@@ -43,7 +43,9 @@ public final class DatabaseQueue: DatabaseWriter {
         // Be a nice iOS citizen, and don't consume too much memory
         // See https://github.com/groue/GRDB.swift/#memory-management
         #if os(iOS)
-        setupMemoryManagement()
+        if configuration.automaticMemoryManagement {
+            setupMemoryManagement()
+        }
         #endif
     }
     

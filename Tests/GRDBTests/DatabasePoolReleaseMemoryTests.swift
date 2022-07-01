@@ -41,6 +41,60 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         XCTAssertEqual(openConnectionCount, 0)
     }
 
+#if os(iOS)
+    func testDatabasePoolReleasesMemoryOnPressureEvent() throws {
+        do {
+            // Create a database pool.
+            let dbPool = try makeDatabasePool()
+
+            // Write and read it to ensure readers exist.
+            try dbPool.write { db in
+                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+
+            // Precondition: there are readers.
+            try dbPool.read { _ in }
+            XCTAssertNotEqual(0, dbPool.numberOfReaders)
+
+            // Simulate memory warning.
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+                                            object: nil)
+            // Block until memory is released, which happens on a global queue.
+            dbPool.barrierWriteWithoutTransaction { _ in }
+
+            // Postcondition: readers removed.
+            XCTAssertEqual(0, dbPool.numberOfReaders)
+        }
+    }
+
+    func testDatabasePoolDoesNotReleaseMemoryOnPressureEventIfDisabled() throws {
+        do {
+            // Create a database pool without automatic memory management.
+            var configuration = dbConfiguration!
+            configuration.automaticMemoryManagement = false
+            let dbPool = try makeDatabasePool(configuration: configuration)
+
+            // Write and read it to ensure readers exist.
+            try dbPool.write { db in
+                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+            }
+
+            // Precondition: there are readers.
+            try dbPool.read { _ in }
+            XCTAssertNotEqual(0, dbPool.numberOfReaders)
+
+            // Simulate memory warning.
+            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+                                            object: nil)
+            // Block until memory would be released, which would happen on a global queue.
+            dbPool.barrierWriteWithoutTransaction { _ in }
+
+            // Postcondition: there are readers.
+            XCTAssertNotEqual(0, dbPool.numberOfReaders)
+        }
+    }
+#endif
+
     // TODO: fix flaky test
 //    func testDatabasePoolReleaseMemoryClosesReaderConnections() throws {
 //        let countQueue = DispatchQueue(label: "GRDB")

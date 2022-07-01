@@ -103,7 +103,9 @@ public final class DatabasePool: DatabaseWriter {
         // Be a nice iOS citizen, and don't consume too much memory
         // See https://github.com/groue/GRDB.swift/#memory-management
         #if os(iOS)
-        setupMemoryManagement()
+        if configuration.automaticMemoryManagement {
+            setupMemoryManagement()
+        }
         #endif
     }
     
@@ -160,6 +162,17 @@ public final class DatabasePool: DatabaseWriter {
     fileprivate func forEachConnection(_ body: (Database) -> Void) {
         writer.sync(body)
         readerPool?.forEach { $0.sync(body) }
+    }
+
+    var numberOfReaders: Int {
+        guard let readerPool = readerPool else {
+            return 0
+        }
+        var count = 0
+        readerPool.forEach { _ in
+            count += 1
+        }
+        return count
     }
 }
 
