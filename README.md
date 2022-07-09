@@ -7718,12 +7718,36 @@ dbPool.releaseMemory()
 
 This method blocks the current thread until all current database accesses are completed, and the memory collected.
 
+> :warning: **Warning**: If `DatabasePool.releaseMemory()` is called while a long read is performed concurrently, then no other read access will be possible until this long read has completed, and the memory has been released. If this does not suit your application needs, look for the asynchronous options below:
+
+You can release memory in an asynchronous way as well:
+
+```swift
+// On a DatabaseQueue
+dbQueue.asyncWriteWithoutTransaction { db in
+    db.releaseMemory()
+}
+
+// On a DatabasePool
+dbPool.releaseMemoryEventually()
+```
+
+`DatabasePool.releaseMemoryEventually()` does not block the current thread, and does not prevent concurrent database accesses. In exchange for this convenience, you don't know when memory has been freed.
+
 
 ### Memory Management on iOS
 
 **The iOS operating system likes applications that do not consume much memory.**
 
-[Database queues](#database-queues) and [pools](#database-pools) automatically call the `releaseMemory` method when the application receives a memory warning, and when the application enters background.
+[Database queues](#database-queues) and [pools](#database-pools) automatically free non-essential memory when the application receives a memory warning, and when the application enters background.
+
+You can opt out of this automatic memory management:
+
+```swift
+var config = Configuration()
+config.automaticMemoryManagement = false
+let dbQueue = try DatabaseQueue(path: dbPath, configuration: config) // or DatabasePool
+```
 
 
 ## Data Protection

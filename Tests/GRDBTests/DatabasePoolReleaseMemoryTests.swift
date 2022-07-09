@@ -41,6 +41,85 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         XCTAssertEqual(openConnectionCount, 0)
     }
 
+#if os(iOS)
+    func testDatabasePoolReleasesMemoryOnPressureEvent() throws {
+        // Create a database pool, and expect a reader connection to be closed
+        let expectation = self.expectation(description: "Reader connection closed")
+        
+        var configuration = Configuration()
+        configuration.SQLiteConnectionWillClose = { conn in
+            if sqlite3_db_readonly(conn, nil) != 0 {
+                expectation.fulfill()
+            }
+        }
+        let dbPool = try makeDatabasePool(configuration: configuration)
+        
+        // Precondition: there is one reader.
+        try dbPool.read { _ in }
+        
+        // Simulate memory warning.
+        NotificationCenter.default.post(
+            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            object: nil)
+        
+        // Postcondition: reader connection was closed
+        withExtendedLifetime(dbPool) { _ in
+            waitForExpectations(timeout: 0.5)
+        }
+    }
+
+    func testDatabasePoolDoesNotReleaseMemoryOnPressureEventIfDisabled() throws {
+        // Create a database pool, and do not expect any reader connection to be closed
+        let expectation = self.expectation(description: "Reader connection closed")
+        expectation.isInverted = true
+        
+        var configuration = Configuration()
+        configuration.automaticMemoryManagement = false
+        configuration.SQLiteConnectionWillClose = { conn in
+            if sqlite3_db_readonly(conn, nil) != 0 {
+                expectation.fulfill()
+            }
+        }
+        let dbPool = try makeDatabasePool(configuration: configuration)
+        
+        // Precondition: there is one reader.
+        try dbPool.read { _ in }
+        
+        // Simulate memory warning.
+        NotificationCenter.default.post(
+            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            object: nil)
+        
+        // Postcondition: no reader connection was closed
+        withExtendedLifetime(dbPool) { _ in
+            waitForExpectations(timeout: 0.5)
+        }
+    }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/pull/1253#issuecomment-1177166630>
+    func testDatabasePoolDoesNotPreventConcurrentReadsOnPressureEvent() throws {
+        let dbPool = try makeDatabasePool()
+        
+        // Start a read that blocks
+        let semaphore = DispatchSemaphore(value: 0)
+        dbPool.asyncRead { _ in
+            semaphore.wait()
+        }
+        
+        // Simulate memory warning.
+        NotificationCenter.default.post(
+            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            object: nil)
+        
+        // Make sure we can read
+        try dbPool.read { _ in }
+        
+        // Cleanup
+        semaphore.signal()
+    }
+
+#endif
+
     // TODO: fix flaky test
 //    func testDatabasePoolReleaseMemoryClosesReaderConnections() throws {
 //        let countQueue = DispatchQueue(label: "GRDB")
