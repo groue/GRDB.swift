@@ -185,16 +185,39 @@ extension DatabasePool {
     
     // MARK: - Memory management
     
-    /// Free as much memory as possible.
+    /// Frees as much memory as possible, by disposing non-essential memory from
+    /// the writer connection, and closing all reader connections.
     ///
-    /// This method blocks the current thread until all database accesses
-    /// are completed.
+    /// This method is synchronous, and blocks the current thread until all
+    /// database accesses are completed.
+    ///
+    /// - warning: This method can prevent concurrent reads from executing,
+    ///   until it returns. Prefer ``releaseMemoryEventually()`` if you intend
+    ///   to keep on using the database while releasing memory.
     public func releaseMemory() {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
+        
         // Release readers memory by closing all connections
         readerPool?.barrier {
             readerPool?.removeAll()
+        }
+    }
+    
+    /// Eventually frees as much memory as possible, by disposing non-essential
+    /// memory from the writer connection, and closing all reader connections.
+    ///
+    /// Unlike ``releaseMemory()``, this method does not prevent concurrent
+    /// database accesses when it is executing. But it does not notify when
+    /// non-essential memory has been freed.
+    public func releaseMemoryEventually() {
+        // Release readers memory by eventually closing all reader connections
+        // (they will close after their current jobs have completed).
+        readerPool?.removeAll()
+        
+        // Release writer memory eventually.
+        writer.async { db in
+            db.releaseMemory()
         }
     }
     
