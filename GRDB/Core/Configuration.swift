@@ -276,15 +276,11 @@ public struct Configuration {
     /// Default: nil
     public var writeTargetQueue: DispatchQueue? = nil
 
+#if os(iOS)
     /// Sets whether GRDB will release memory when entering the background or
     /// upon receiving a memory warning in iOS.
     ///
-    /// Enabling this setting may help keep iOS from terminating your app when
-    /// memory pressure becomes high. However, it can also cause database
-    /// readers to block longer than they normally would.
-    ///
     /// Default: true
-#if os(iOS)
     public var automaticMemoryManagement = true
 #endif
 

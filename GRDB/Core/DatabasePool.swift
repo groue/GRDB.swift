@@ -252,12 +252,20 @@ extension DatabasePool {
         
         let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
         if task == .invalid {
-            // Perform releaseMemory() synchronously.
+            // Release memory synchronously
             releaseMemory()
         } else {
-            // Perform releaseMemory() asynchronously.
-            DispatchQueue.global().async {
-                self.releaseMemory()
+            // Release memory eventually.
+            //
+            // We don't know when reader connections will be closed (because
+            // they may be currently in use), so we don't quite know when
+            // reader memory will be freed (which would be the ideal timing for
+            // ending our background task).
+            //
+            // So let's just end the background task after the writer connection
+            // has freed its memory. That's better than nothing.
+            releaseMemoryEventually()
+            writer.async { _ in
                 application.endBackgroundTask(task)
             }
         }
@@ -265,9 +273,7 @@ extension DatabasePool {
     
     @objc
     private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
-        DispatchQueue.global().async {
-            self.releaseMemory()
-        }
+        releaseMemoryEventually()
     }
     #endif
 }
