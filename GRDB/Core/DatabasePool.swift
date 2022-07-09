@@ -180,7 +180,14 @@ extension DatabasePool {
         // Release writer memory
         writer.sync { $0.releaseMemory() }
         
-        // Release readers memory by closing all connections
+        // Release readers memory by closing all connections.
+        //
+        // We must use a barrier in order to guarantee that memory has been
+        // freed (reader connections closed) when the method exits, as
+        // documented.
+        //
+        // Without the barrier, connections would only close _eventually_ (after
+        // their eventual concurrent jobs have completed).
         readerPool?.barrier {
             readerPool?.removeAll()
         }
