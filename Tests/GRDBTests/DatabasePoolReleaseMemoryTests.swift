@@ -93,6 +93,27 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
             XCTAssertNotEqual(0, dbPool.numberOfReaders)
         }
     }
+    
+    // Regression test for <https://github.com/groue/GRDB.swift/pull/1253#issuecomment-1177166630>
+    func testDatabasePoolDoesNotPreventConcurrentReadsOnPressureEvent() throws {
+        let dbPool = try makeDatabasePool()
+        
+        // Start a read that blocks
+        let semaphore = DispatchSemaphore(value: 0)
+        dbPool.asyncRead { _ in
+            semaphore.wait()
+        }
+        
+        // Simulate memory warning.
+        NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        
+        // Make sure we can read
+        try dbPool.read { _ in }
+        
+        // Cleanup
+        semaphore.signal()
+    }
+
 #endif
 
     // TODO: fix flaky test
