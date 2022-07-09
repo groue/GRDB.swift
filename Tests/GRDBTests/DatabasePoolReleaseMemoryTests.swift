@@ -58,7 +58,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         try dbPool.read { _ in }
         
         // Simulate memory warning.
-        NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        NotificationCenter.default.post(
+            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            object: nil)
         
         // Postcondition: reader connection was closed
         withExtendedLifetime(dbPool) { _ in
@@ -84,7 +86,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         try dbPool.read { _ in }
         
         // Simulate memory warning.
-        NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        NotificationCenter.default.post(
+            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            object: nil)
         
         // Postcondition: no reader connection was closed
         withExtendedLifetime(dbPool) { _ in
@@ -103,7 +107,9 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
         }
         
         // Simulate memory warning.
-        NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        NotificationCenter.default.post(
+            name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
+            object: nil)
         
         // Make sure we can read
         try dbPool.read { _ in }
