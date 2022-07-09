@@ -287,7 +287,7 @@ extension Row {
     /// The result is nil if the row does not contain the column.
     public subscript(_ columnName: String) -> DatabaseValueConvertible? {
         // IMPLEMENTATION NOTE
-        // This method has a single know use case: checking if the value is nil,
+        // This method has a single known use case: checking if the value is nil,
         // as in:
         //
         //     if row["foo"] != nil { ... }

@@ -275,7 +275,15 @@ public struct Configuration {
     ///
     /// Default: nil
     public var writeTargetQueue: DispatchQueue? = nil
-    
+
+#if os(iOS)
+    /// Sets whether GRDB will release memory when entering the background or
+    /// upon receiving a memory warning in iOS.
+    ///
+    /// Default: true
+    public var automaticMemoryManagement = true
+#endif
+
     // MARK: - Factory Configuration
     
     /// Creates a factory configuration

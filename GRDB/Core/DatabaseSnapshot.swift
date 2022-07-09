@@ -14,14 +14,6 @@ public final class DatabaseSnapshot: DatabaseReader {
         serializedDatabase.configuration
     }
     
-#if SQLITE_ENABLE_SNAPSHOT
-    typealias Version = UnsafeMutablePointer<sqlite3_snapshot>
-    // Support for ValueObservation in DatabasePool
-    let version: Version?
-#else
-    typealias Version = Void
-#endif
-    
     init(path: String, configuration: Configuration = Configuration(), defaultLabel: String, purpose: String) throws {
         var configuration = DatabasePool.readerConfiguration(configuration)
         configuration.allowsUnsafeTransactions = true // Snaphost keeps a long-lived transaction
@@ -31,8 +23,8 @@ public final class DatabaseSnapshot: DatabaseReader {
             configuration: configuration,
             defaultLabel: defaultLabel,
             purpose: purpose)
-
-        let version: Version? = try serializedDatabase.sync { db in
+        
+        try serializedDatabase.sync { db in
             // Assert WAL mode
             let journalMode = try String.fetchOne(db, sql: "PRAGMA journal_mode")
             guard journalMode == "wal" else {
@@ -44,29 +36,12 @@ public final class DatabaseSnapshot: DatabaseReader {
             
             // Acquire snapshot isolation
             try db.internalCachedStatement(sql: "SELECT rootpage FROM sqlite_master LIMIT 1").makeCursor().next()
-            
-            #if SQLITE_ENABLE_SNAPSHOT
-            // We must expect an error: https://www.sqlite.org/c3ref/snapshot_get.html
-            // > At least one transaction must be written to it first.
-            return try? db.takeVersionSnapshot()
-            #else
-            return nil
-            #endif
         }
-        
-        #if SQLITE_ENABLE_SNAPSHOT
-        self.version = version
-        #endif
     }
     
     deinit {
         // Leave snapshot isolation
         serializedDatabase.reentrantSync { db in
-            #if SQLITE_ENABLE_SNAPSHOT
-            if let version = version {
-                sqlite3_snapshot_free(version)
-            }
-            #endif
             try? db.commit()
         }
     }

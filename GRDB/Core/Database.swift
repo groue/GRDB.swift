@@ -553,38 +553,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         _readOnlyDepth > 0 || configuration.readonly
     }
     
-    // MARK: - Snapshots
-    
-    #if SQLITE_ENABLE_SNAPSHOT
-    /// Returns a snapshot that must be freed with `sqlite3_snapshot_free`.
-    ///
-    /// See <https://www.sqlite.org/c3ref/snapshot.html>
-    func takeVersionSnapshot() throws -> UnsafeMutablePointer<sqlite3_snapshot> {
-        var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
-        let code = withUnsafeMutablePointer(to: &snapshot) {
-            sqlite3_snapshot_get(sqliteConnection, "main", $0)
-        }
-        guard code == SQLITE_OK else {
-            throw DatabaseError(resultCode: code, message: lastErrorMessage)
-        }
-        if let snapshot = snapshot {
-            return snapshot
-        } else {
-            throw DatabaseError(resultCode: .SQLITE_INTERNAL) // WTF SQLite?
-        }
-    }
-    
-    func wasChanged(since initialSnapshot: UnsafeMutablePointer<sqlite3_snapshot>) throws -> Bool {
-        let secondSnapshot = try takeVersionSnapshot()
-        defer {
-            sqlite3_snapshot_free(secondSnapshot)
-        }
-        let cmp = sqlite3_snapshot_cmp(initialSnapshot, secondSnapshot)
-        assert(cmp <= 0, "Unexpected snapshot ordering")
-        return cmp < 0
-    }
-    #endif
-    
     // MARK: - Recording of the selected region
     
     func recordingSelection<T>(_ region: inout DatabaseRegion, _ block: () throws -> T) rethrows -> T {
@@ -1216,7 +1184,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Memory Management
     
-    func releaseMemory() {
+    public func releaseMemory() {
+        SchedulingWatchdog.preconditionValidQueue(self)
         sqlite3_db_release_memory(sqliteConnection)
         schemaCache.clear()
         internalStatementCache.clear()

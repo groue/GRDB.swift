@@ -43,7 +43,9 @@ public final class DatabaseQueue: DatabaseWriter {
         // Be a nice iOS citizen, and don't consume too much memory
         // See https://github.com/groue/GRDB.swift/#memory-management
         #if os(iOS)
-        setupMemoryManagement()
+        if configuration.automaticMemoryManagement {
+            setupMemoryManagement()
+        }
         #endif
     }
     
@@ -117,12 +119,12 @@ extension DatabaseQueue {
         
         let task: UIBackgroundTaskIdentifier = application.beginBackgroundTask(expirationHandler: nil)
         if task == .invalid {
-            // Perform releaseMemory() synchronously.
+            // Release memory synchronously
             releaseMemory()
         } else {
-            // Perform releaseMemory() asynchronously.
-            DispatchQueue.global().async {
-                self.releaseMemory()
+            // Release memory asynchronously
+            writer.async { db in
+                db.releaseMemory()
                 application.endBackgroundTask(task)
             }
         }
@@ -130,8 +132,8 @@ extension DatabaseQueue {
     
     @objc
     private func applicationDidReceiveMemoryWarning(_ notification: NSNotification) {
-        DispatchQueue.global().async {
-            self.releaseMemory()
+        writer.async { db in
+            db.releaseMemory()
         }
     }
     #endif
