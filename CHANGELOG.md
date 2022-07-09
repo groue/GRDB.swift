@@ -95,6 +95,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## Next Version
 
 - **New**: [#1248](https://github.com/groue/GRDB.swift/pull/1248) by [@groue](https://github.com/groue): Avoid double notification of the initial value for ValueObservation on DatabasePool
+- **New**: [#1253](https://github.com/groue/GRDB.swift/pull/1253) by [@george-signal](https://github.com/george-signal): Make memory management optional
+- **Fixed**: DatabasePool no longer prevents database reads when UIKit posts `UIApplication.didReceiveMemoryWarningNotification` (see [#1253](https://github.com/groue/GRDB.swift/pull/1253) for more information).
 
 
 ## 5.25.0
