@@ -156,24 +156,6 @@ public final class DatabasePool: DatabaseWriter {
         
         return configuration
     }
-    
-    /// Blocks the current thread until all database connections have
-    /// executed the *body* block.
-    fileprivate func forEachConnection(_ body: (Database) -> Void) {
-        writer.sync(body)
-        readerPool?.forEach { $0.sync(body) }
-    }
-
-    var numberOfReaders: Int {
-        guard let readerPool = readerPool else {
-            return 0
-        }
-        var count = 0
-        readerPool.forEach { _ in
-            count += 1
-        }
-        return count
-    }
 }
 
 #if swift(>=5.6) && canImport(_Concurrency)

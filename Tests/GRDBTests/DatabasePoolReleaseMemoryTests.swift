@@ -43,54 +43,52 @@ class DatabasePoolReleaseMemoryTests: GRDBTestCase {
 
 #if os(iOS)
     func testDatabasePoolReleasesMemoryOnPressureEvent() throws {
-        do {
-            // Create a database pool.
-            let dbPool = try makeDatabasePool()
-
-            // Write and read it to ensure readers exist.
-            try dbPool.write { db in
-                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+        // Create a database pool, and expect a reader connection to be closed
+        let expectation = self.expectation(description: "Reader connection closed")
+        
+        var configuration = Configuration()
+        configuration.SQLiteConnectionWillClose = { conn in
+            if sqlite3_db_readonly(conn, nil) != 0 {
+                expectation.fulfill()
             }
-
-            // Precondition: there are readers.
-            try dbPool.read { _ in }
-            XCTAssertNotEqual(0, dbPool.numberOfReaders)
-
-            // Simulate memory warning.
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
-                                            object: nil)
-            // Block until memory is released, which happens on a global queue.
-            dbPool.barrierWriteWithoutTransaction { _ in }
-
-            // Postcondition: readers removed.
-            XCTAssertEqual(0, dbPool.numberOfReaders)
+        }
+        let dbPool = try makeDatabasePool(configuration: configuration)
+        
+        // Precondition: there is one reader.
+        try dbPool.read { _ in }
+        
+        // Simulate memory warning.
+        NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        
+        // Postcondition: reader connection was closed
+        withExtendedLifetime(dbPool) { _ in
+            waitForExpectations(timeout: 0.5)
         }
     }
 
     func testDatabasePoolDoesNotReleaseMemoryOnPressureEventIfDisabled() throws {
-        do {
-            // Create a database pool without automatic memory management.
-            var configuration = dbConfiguration!
-            configuration.automaticMemoryManagement = false
-            let dbPool = try makeDatabasePool(configuration: configuration)
-
-            // Write and read it to ensure readers exist.
-            try dbPool.write { db in
-                try db.execute(sql: "CREATE TABLE items (id INTEGER PRIMARY KEY)")
+        // Create a database pool, and do not expect any reader connection to be closed
+        let expectation = self.expectation(description: "Reader connection closed")
+        expectation.isInverted = true
+        
+        var configuration = Configuration()
+        configuration.automaticMemoryManagement = false
+        configuration.SQLiteConnectionWillClose = { conn in
+            if sqlite3_db_readonly(conn, nil) != 0 {
+                expectation.fulfill()
             }
-
-            // Precondition: there are readers.
-            try dbPool.read { _ in }
-            XCTAssertNotEqual(0, dbPool.numberOfReaders)
-
-            // Simulate memory warning.
-            NotificationCenter.default.post(name: NSNotification.Name(rawValue: "UIApplicationDidReceiveMemoryWarningNotification"),
-                                            object: nil)
-            // Block until memory would be released, which would happen on a global queue.
-            dbPool.barrierWriteWithoutTransaction { _ in }
-
-            // Postcondition: there are readers.
-            XCTAssertNotEqual(0, dbPool.numberOfReaders)
+        }
+        let dbPool = try makeDatabasePool(configuration: configuration)
+        
+        // Precondition: there is one reader.
+        try dbPool.read { _ in }
+        
+        // Simulate memory warning.
+        NotificationCenter.default.post(name: UIApplication.didReceiveMemoryWarningNotification, object: nil)
+        
+        // Postcondition: no reader connection was closed
+        withExtendedLifetime(dbPool) { _ in
+            waitForExpectations(timeout: 0.5)
         }
     }
     
