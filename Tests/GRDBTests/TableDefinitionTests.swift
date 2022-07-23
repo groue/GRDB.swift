@@ -21,6 +21,28 @@ class TableDefinitionTests: GRDBTestCase {
         }
     }
     
+    func testCreateTableWithColumnExpression() throws {
+        enum TestTableColumns: String, ColumnExpression {
+            case id, name
+        }
+        
+        let dbQueue = try makeDatabaseQueue()
+        try dbQueue.inDatabase { db in
+            // Simple table creation
+            try db.create(table: "test") { t in
+                t.column(TestTableColumns.id, .integer).primaryKey()
+                t.column(TestTableColumns.name, .text)
+            }
+            
+            assertEqualSQL(lastSQLQuery!, """
+                CREATE TABLE "test" (\
+                "id" INTEGER PRIMARY KEY, \
+                "name" TEXT\
+                )
+                """)
+        }
+    }
+    
     func testTableCreationOptions() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

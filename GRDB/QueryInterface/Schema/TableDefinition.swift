@@ -362,6 +362,25 @@ public final class TableDefinition {
         return column
     }
     
+    /// Appends a table column.
+    ///
+    ///     try db.create(table: "player") { t in
+    ///         t.column(Player.Columns.name, .text)
+    ///     }
+    ///
+    /// See <https://www.sqlite.org/lang_createtable.html#tablecoldef>
+    ///
+    /// - parameter column: the column.
+    /// - parameter type: the eventual column type.
+    /// - returns: An ColumnDefinition that allows you to refine the
+    ///   column definition.
+    @discardableResult
+    public func column(_ column: ColumnExpression, _ type: Database.ColumnType? = nil) -> ColumnDefinition {
+        let column = ColumnDefinition(name: column.name, type: type)
+        columns.append(.definition(column))
+        return column
+    }
+    
     /// Appends a table column defined with raw SQL.
     ///
     ///     try db.create(table: "player") { t in

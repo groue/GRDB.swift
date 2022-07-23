@@ -4309,6 +4309,13 @@ For extra index options, see [Create Indexes](#create-indexes) below.
     t.column("score", .integer).check(sql: "score > 0")
 ```
 
+Strongly typed columns confirming `ColumnExpression` are also accepted for column creation:
+
+```swift
+    t.column(Player.Columns.name, .text)
+    t.column(Player.Columns.score .integer)
+```
+
 Columns can also be defined with a raw sql String, or an [SQL literal] in which you can safely embed raw values without any risk of syntax errors or SQL injection:
 
 ```swift
