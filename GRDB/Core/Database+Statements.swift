@@ -333,7 +333,7 @@ public class SQLStatementCursor: Cursor {
             }
             
             var statementEnd: UnsafePointer<Int8>? = nil
-            let compiledStatement = try Statement(
+            let statement = try Statement(
                 database: database,
                 statementStart: baseAddress + offset,
                 statementEnd: &statementEnd,
@@ -341,7 +341,7 @@ public class SQLStatementCursor: Cursor {
             
             offset = statementEnd! - baseAddress
             
-            guard let statement = compiledStatement else {
+            guard let statement else {
                 try checkArgumentsAreEmpty()
                 return nil
             }

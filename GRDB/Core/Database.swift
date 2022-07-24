@@ -373,7 +373,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     func close() throws {
         SchedulingWatchdog.preconditionValidQueue(self)
         
-        guard let sqliteConnection = sqliteConnection else {
+        guard let sqliteConnection else {
             // Already closed
             return
         }
@@ -413,7 +413,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     func close_v2() {
         SchedulingWatchdog.preconditionValidQueue(self)
         
-        guard let sqliteConnection = sqliteConnection else {
+        guard let sqliteConnection else {
             // Already closed
             return
         }
@@ -643,7 +643,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         _ x: UnsafeMutableRawPointer?,
         _ sqlite3_expanded_sql: @escaping @convention(c) (OpaquePointer?) -> UnsafeMutablePointer<Int8>?)
     {
-        guard let trace = trace else { return }
+        guard let trace else { return }
         
         switch mask {
         case SQLITE_TRACE_STMT:

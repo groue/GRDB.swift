@@ -348,7 +348,7 @@ extension DatabasePool: DatabaseReader {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func read<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
-        guard let readerPool = readerPool else {
+        guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
         return try readerPool.get { reader in
@@ -362,7 +362,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        guard let readerPool = self.readerPool else {
+        guard let readerPool else {
             value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
             return
         }
@@ -394,7 +394,7 @@ extension DatabasePool: DatabaseReader {
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func unsafeRead<T>(_ value: (Database) throws -> T) throws -> T {
         GRDBPrecondition(currentReader == nil, "Database methods are not reentrant.")
-        guard let readerPool = readerPool else {
+        guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
         return try readerPool.get { reader in
@@ -406,7 +406,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncUnsafeRead(_ value: @escaping (Result<Database, Error>) -> Void) {
-        guard let readerPool = self.readerPool else {
+        guard let readerPool else {
             value(.failure(DatabaseError(resultCode: .SQLITE_MISUSE, message: "Connection is closed")))
             return
         }
@@ -437,7 +437,7 @@ extension DatabasePool: DatabaseReader {
         if let reader = currentReader {
             return try reader.reentrantSync(value)
         } else {
-            guard let readerPool = readerPool else {
+            guard let readerPool else {
                 throw DatabaseError.connectionIsClosed()
             }
             return try readerPool.get { reader in
@@ -527,7 +527,7 @@ extension DatabasePool: DatabaseReader {
         let isolationSemaphore = DispatchSemaphore(value: 0)
         
         do {
-            guard let readerPool = readerPool else {
+            guard let readerPool else {
                 throw DatabaseError.connectionIsClosed()
             }
             let (reader, releaseReader) = try readerPool.get()
@@ -620,7 +620,7 @@ extension DatabasePool: DatabaseReader {
     /// Returns a reader that can be used from the current dispatch queue,
     /// if any.
     private var currentReader: SerializedDatabase? {
-        guard let readerPool = readerPool else {
+        guard let readerPool else {
             return nil
         }
         
@@ -652,7 +652,7 @@ extension DatabasePool: DatabaseReader {
     
     @_disfavoredOverload // SR-15150 Async overloading in protocol implementation fails
     public func barrierWriteWithoutTransaction<T>(_ updates: (Database) throws -> T) throws -> T {
-        guard let readerPool = readerPool else {
+        guard let readerPool else {
             throw DatabaseError.connectionIsClosed()
         }
         return try readerPool.barrier {
@@ -661,7 +661,7 @@ extension DatabasePool: DatabaseReader {
     }
     
     public func asyncBarrierWriteWithoutTransaction(_ updates: @escaping (Result<Database, Error>) -> Void) {
-        guard let readerPool = readerPool else {
+        guard let readerPool else {
             updates(.failure(DatabaseError.connectionIsClosed()))
             return
         }

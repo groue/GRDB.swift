@@ -68,7 +68,7 @@ extension Database {
         let constructor = FTS5TokenizerConstructor(
             db: self,
             constructor: { (db, arguments, tokenizerHandle) in
-                guard let tokenizerHandle = tokenizerHandle else {
+                guard let tokenizerHandle else {
                     return SQLITE_ERROR
                 }
                 do {
@@ -92,7 +92,7 @@ extension Database {
         let constructorPointer = Unmanaged.passRetained(constructor).toOpaque()
         
         func deleteConstructor(constructorPointer: UnsafeMutableRawPointer?) {
-            guard let constructorPointer = constructorPointer else { return }
+            guard let constructorPointer else { return }
             Unmanaged<AnyObject>.fromOpaque(constructorPointer).release()
         }
         
@@ -103,7 +103,7 @@ extension Database {
             tokenizerHandle: UnsafeMutablePointer<OpaquePointer?>?)
         -> Int32
         {
-            guard let constructorPointer = constructorPointer else {
+            guard let constructorPointer else {
                 return SQLITE_ERROR
             }
             let constructor = Unmanaged<FTS5TokenizerConstructor>.fromOpaque(constructorPointer).takeUnretainedValue()
@@ -119,7 +119,7 @@ extension Database {
         }
         
         func xDeleteTokenizer(tokenizerPointer: OpaquePointer?) {
-            guard let tokenizerPointer = tokenizerPointer else { return }
+            guard let tokenizerPointer else { return }
             Unmanaged<AnyObject>.fromOpaque(UnsafeMutableRawPointer(tokenizerPointer)).release()
         }
         
@@ -133,7 +133,7 @@ extension Database {
             tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafePointer<Int8>?, Int32, Int32, Int32) -> Int32)?)
         -> Int32
         {
-            guard let tokenizerPointer = tokenizerPointer else {
+            guard let tokenizerPointer else {
                 return SQLITE_ERROR
             }
             let object = Unmanaged<AnyObject>

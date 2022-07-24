@@ -458,7 +458,7 @@ extension Row {
     
     /// Returns self if adapter is nil
     func adapted(with adapter: RowAdapter?, layout: _RowLayout) throws -> Row {
-        guard let adapter = adapter else {
+        guard let adapter else {
             return self
         }
         return try Row(base: self, adapter: adapter._layoutedAdapter(from: layout))

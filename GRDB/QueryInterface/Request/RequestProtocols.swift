@@ -306,7 +306,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///
     /// - parameter key: A unique key
     public func filter(key: [String: DatabaseValueConvertible?]?) -> Self {
-        guard let key = key else {
+        guard let key else {
             return none()
         }
         return filter(keys: [key])

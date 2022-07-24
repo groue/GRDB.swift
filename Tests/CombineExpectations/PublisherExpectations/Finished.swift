@@ -62,7 +62,7 @@ extension PublisherExpectations {
         ///     }
         public func get() throws {
             try recorder.value { (_, completion, remainingElements, consume) in
-                guard let completion = completion else {
+                guard let completion else {
                     consume(remainingElements.count)
                     return
                 }

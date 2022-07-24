@@ -315,7 +315,7 @@ extension FetchableRecord where Self: TableRecord {
     /// - returns: An optional record.
     /// - throws: A DatabaseError is thrown whenever an SQLite error occurs.
     public static func fetchOne(_ db: Database, key: [String: DatabaseValueConvertible?]?) throws -> Self? {
-        guard let key = key else {
+        guard let key else {
             // Avoid hitting the database
             return nil
         }

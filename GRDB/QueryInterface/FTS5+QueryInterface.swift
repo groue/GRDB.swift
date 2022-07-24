@@ -17,7 +17,7 @@ extension TableRequest where Self: FilteredRequest {
     /// all requests by the `TableRecord.databaseSelection` property, or
     /// for individual requests with the `TableRecord.select` method.
     public func matching(_ pattern: FTS5Pattern?) -> Self {
-        guard let pattern = pattern else {
+        guard let pattern else {
             return none()
         }
         let alias = TableAlias()

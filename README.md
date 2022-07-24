@@ -6202,7 +6202,7 @@ class PlayersViewController: UIViewController {
             scheduling: .immediate, // <- immediate scheduler
             onError: { error in ... },
             onChange: { [weak self] (players: [Player]) in
-                guard let self = self else { return }
+                guard let self else { return }
                 self.updateView(players)
             })
         // <- Here the view has already been updated.

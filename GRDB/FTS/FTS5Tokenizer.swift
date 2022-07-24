@@ -128,7 +128,7 @@ extension FTS5Tokenizer {
                     pText: pText,
                     nText: nText,
                     tokenCallback: { (contextPointer, flags, pToken, nToken, _ /* iStart */, _ /* iEnd */) -> Int32 in
-                        guard let contextPointer = contextPointer else {
+                        guard let contextPointer else {
                             return SQLITE_ERROR
                         }
                         

@@ -144,7 +144,7 @@ class PlayerListViewController: UITableViewController {
                 scheduling: .immediate,
                 onError: { error in fatalError("Unexpected error: \(error)") },
                 onChange: { [weak self] players in
-                    guard let self = self else { return }
+                    guard let self else { return }
                     self.configureTitle(from: players)
                     self.configureDataSource(from: players)
                 })

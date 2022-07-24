@@ -38,7 +38,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     
     /// Returns whether the region is empty.
     public var isEmpty: Bool {
-        guard let tableRegions = tableRegions else {
+        guard let tableRegions else {
             // full database
             return false
         }
@@ -87,7 +87,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     /// this intersection. It is currently only used as support for
     /// the isModified(byEventsOfKind:) method.
     func intersection(_ other: DatabaseRegion) -> DatabaseRegion {
-        guard let tableRegions = tableRegions else { return other }
+        guard let tableRegions else { return other }
         guard let otherTableRegions = other.tableRegions else { return self }
         
         var tableRegionsIntersection: [CaseInsensitiveIdentifier: TableRegion] = [:]
@@ -105,7 +105,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     
     /// Only keeps those rowIds in the given table
     func tableIntersection(_ table: String, rowIds: Set<Int64>) -> DatabaseRegion {
-        guard var tableRegions = tableRegions else {
+        guard var tableRegions else {
             return DatabaseRegion(table: table, rowIds: rowIds)
         }
         
@@ -125,7 +125,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     
     /// Returns the union of this region and the given one.
     public func union(_ other: DatabaseRegion) -> DatabaseRegion {
-        guard let tableRegions = tableRegions else { return .fullDatabase }
+        guard let tableRegions else { return .fullDatabase }
         guard let otherTableRegions = other.tableRegions else { return .fullDatabase }
         
         var tableRegionsUnion: [CaseInsensitiveIdentifier: TableRegion] = [:]
@@ -170,7 +170,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     /// This method removes views (assuming no table exists with the same name
     /// as a view).
     private func canonicalTables(_ db: Database) throws -> DatabaseRegion {
-        guard let tableRegions = tableRegions else { return .fullDatabase }
+        guard let tableRegions else { return .fullDatabase }
         var region = DatabaseRegion()
         for (table, tableRegion) in tableRegions {
             if let canonicalTableName = try db.canonicalTableName(table.rawValue) {
@@ -183,7 +183,7 @@ public struct DatabaseRegion: CustomStringConvertible, Equatable {
     
     /// Returns a region which doesn't contain any SQLite internal table.
     private func ignoringInternalSQLiteTables() -> DatabaseRegion {
-        guard let tableRegions = tableRegions else { return .fullDatabase }
+        guard let tableRegions else { return .fullDatabase }
         let filteredRegions = tableRegions.filter {
             !Database.isSQLiteInternalTable($0.key.rawValue)
         }
@@ -207,7 +207,7 @@ extension DatabaseRegion {
     ///   in the TransactionObserver.observes(eventsOfKind:) method, by calling
     ///   region.isModified(byEventsOfKind:)
     public func isModified(by event: DatabaseEvent) -> Bool {
-        guard let tableRegions = tableRegions else {
+        guard let tableRegions else {
             // Full database: all changes are impactful
             return true
         }
@@ -253,7 +253,7 @@ extension DatabaseRegion {
 extension DatabaseRegion {
     /// :nodoc:
     public var description: String {
-        guard let tableRegions = tableRegions else {
+        guard let tableRegions else {
             return "full database"
         }
         if tableRegions.isEmpty {
@@ -328,7 +328,7 @@ private struct TableRegion: Equatable {
     }
     
     func contains(rowID: Int64) -> Bool {
-        guard let rowIds = rowIds else {
+        guard let rowIds else {
             return true
         }
         return rowIds.contains(rowID)

@@ -150,7 +150,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         // swiftlint:enable comma
         
         private func decodeColumn(forKey key: Key) throws -> String {
-            guard let _columnForKey = _columnForKey else {
+            guard let _columnForKey else {
                 return key.stringValue
             }
             

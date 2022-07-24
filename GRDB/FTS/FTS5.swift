@@ -259,10 +259,10 @@ public struct FTS5: VirtualTableModule {
             _ = sqlite3_bind_pointer(statement, 1, &api, typePointer, nil)
         }
         sqlite3_step(statement)
-        guard let result = api else {
+        guard let api else {
             fatalError("FTS5 is not available")
         }
-        return result
+        return api
     }
 }
 

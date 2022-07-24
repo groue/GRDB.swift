@@ -115,12 +115,12 @@ public final class Statement {
                 sql: String(cString: statementStart))
         }
         
-        guard let statement = sqliteStatement else {
+        guard let sqliteStatement else {
             return nil
         }
         
         self.database = database
-        self.sqliteStatement = statement
+        self.sqliteStatement = sqliteStatement
         self.databaseRegion = authorizer.selectedRegion
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
         self.transactionEffect = authorizer.transactionEffect
@@ -467,7 +467,7 @@ final class StatementCursor: DatabaseCursor {
 
 extension Statement {
     var releasesDatabaseLock: Bool {
-        guard let transactionEffect = transactionEffect else {
+        guard let transactionEffect else {
             return false
         }
         

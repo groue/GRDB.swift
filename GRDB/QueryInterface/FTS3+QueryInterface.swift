@@ -12,7 +12,7 @@ extension TableRequest where Self: FilteredRequest {
     /// If the search pattern is nil, the request does not match any
     /// database row.
     public func matching(_ pattern: FTS3Pattern?) -> Self {
-        guard let pattern = pattern else {
+        guard let pattern else {
             return none()
         }
         let alias = TableAlias()

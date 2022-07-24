@@ -3,7 +3,7 @@ import Foundation
 extension String {
     /// "player" -> "Player"
     var uppercasingFirstCharacter: String {
-        guard let first = first else {
+        guard let first else {
             return self
         }
         return String(first).uppercased() + dropFirst()

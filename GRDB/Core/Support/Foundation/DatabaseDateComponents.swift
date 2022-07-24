@@ -76,12 +76,12 @@ public struct DatabaseDateComponents: DatabaseValueConvertible, StatementColumnC
             return nil
         }
         let length = Int(sqlite3_column_bytes(sqliteStatement, index)) // avoid an strlen
-        let optionalComponents = cString.withMemoryRebound(
+        let components = cString.withMemoryRebound(
             to: Int8.self,
             capacity: length + 1 /* trailing \0 */) { cString in
             SQLiteDateParser().components(cString: cString, length: length)
         }
-        guard let components = optionalComponents else {
+        guard let components else {
             return nil
         }
         self.init(components.dateComponents, format: components.format)

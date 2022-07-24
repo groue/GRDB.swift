@@ -41,7 +41,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         line: UInt = #line) throws
     {
         func stringRepresentation(_ value: T?) -> String {
-            guard let value = value else { return "nil" }
+            guard let value else { return "nil" }
             return String(reflecting: value)
         }
         

@@ -38,10 +38,10 @@ final class WALSnapshot {
         let code: CInt = withUnsafeMutablePointer(to: &snapshot) {
             return sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
         }
-        guard code == SQLITE_OK, let s = snapshot else {
+        guard code == SQLITE_OK, let snapshot else {
             return nil
         }
-        self.snapshot = s
+        self.snapshot = snapshot
     }
     
     deinit {

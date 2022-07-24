@@ -15,7 +15,7 @@ struct DatabaseTimestamp: DatabaseValueConvertible {
     /// Creates a DatabaseTimestamp from an Date.
     /// The result is nil if and only if *date* is nil.
     init?(_ date: Date?) {
-        guard let date = date else {
+        guard let date else {
             return nil
         }
         self.date = date
