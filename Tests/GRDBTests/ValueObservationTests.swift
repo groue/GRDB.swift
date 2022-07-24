@@ -419,20 +419,12 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
         // Optimization not available
         expectedCounts = [0, 0, 1]
-        #elseif GRDBCUSTOMSQLITE
+        #else
         // Optimization available
         expectedCounts = [0, 1]
-        #else
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            // Optimization available
-            expectedCounts = [0, 1]
-        } else {
-            // Optimization not available
-            expectedCounts = [0, 0, 1]
-        }
         #endif
         
         let expectation = self.expectation(description: "")
@@ -477,20 +469,12 @@ class ValueObservationTests: GRDBTestCase {
         }
         
         let expectedCounts: [Int]
-        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+        #if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
         // Optimization not available
         expectedCounts = [0, 0, 1]
-        #elseif GRDBCUSTOMSQLITE
+        #else
         // Optimization available
         expectedCounts = [0, 1]
-        #else
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            // Optimization available
-            expectedCounts = [0, 1]
-        } else {
-            // Optimization not available
-            expectedCounts = [0, 0, 1]
-        }
         #endif
         
         let expectation = self.expectation(description: "")

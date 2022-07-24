@@ -26,7 +26,6 @@ private enum StrategyMillisecondsSince1970: StrategyProvider {
     static let strategy: DatabaseDateEncodingStrategy = .millisecondsSince1970
 }
 
-@available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
 private enum StrategyIso8601: StrategyProvider {
     static let strategy: DatabaseDateEncodingStrategy = .iso8601
 }
@@ -171,10 +170,6 @@ extension DatabaseDateEncodingStrategyTests {
 
 extension DatabaseDateEncodingStrategyTests {
     func testIso8601() throws {
-        guard #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) else {
-            throw XCTSkip("ISO8601DateFormatter is not available")
-        }
-        
         testNullEncoding(strategy: StrategyIso8601.self)
         
         for (date, value) in zip(testedDates, [

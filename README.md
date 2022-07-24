@@ -615,8 +615,6 @@ do {
 ```
 
 > :warning: **Warning**: It is your responsibility to prevent sensitive information from leaking in unexpected locations, so you should not set the `publicStatementArguments` flag in release builds (think about GDPR and other privacy-related rules).
->
-> :warning: **Warning**: The SQLite version that ships with old operating systems (prior to OSX 10.12, tvOS 10.0, and watchOS 3.0) outputs statement arguments in the [trace events](#how-do-i-print-a-request-as-sql), regardless of the `publicStatementArguments` flag.
 
 See [Configuration](http://groue.github.io/GRDB.swift/docs/5.26/Structs/Configuration.html) for more details and configuration options.
 

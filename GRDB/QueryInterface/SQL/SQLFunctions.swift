@@ -170,7 +170,6 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedCapitalized)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
     public var localizedCapitalized: SQLExpression {
         DatabaseFunction.localizedCapitalize(sqlExpression)
     }
@@ -181,7 +180,6 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedLowercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
     public var localizedLowercased: SQLExpression {
         DatabaseFunction.localizedLowercase(sqlExpression)
     }
@@ -192,7 +190,6 @@ extension SQLSpecificExpressible {
     ///     let nameColumn = Column("name")
     ///     let request = Player.select(nameColumn.localizedUppercased)
     ///     let names = try String.fetchAll(dbQueue, request)   // [String]
-    @available(OSX 10.11, watchOS 3.0, *)
     public var localizedUppercased: SQLExpression {
         DatabaseFunction.localizedUppercase(sqlExpression)
     }

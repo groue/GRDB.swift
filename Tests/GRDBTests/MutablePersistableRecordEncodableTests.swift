@@ -640,7 +640,6 @@ extension MutablePersistableRecordEncodableTests {
         }
     }
     
-    @available(OSX 10.13, iOS 11.0, tvOS 11.0, *)
     struct CustomizedRecord: Encodable, MutablePersistableRecord {
         var nestedKeyed: NestedKeyed
         var nestedSingle: NestedSingle
@@ -681,10 +680,6 @@ extension MutablePersistableRecordEncodableTests {
     
     // Used as a reference
     func testFoundationBehavior() throws {
-        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
-            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
-        }
-        
         do {
             let record = Record(
                 nestedKeyed: NestedKeyed(name: "foo"),
@@ -740,10 +735,6 @@ extension MutablePersistableRecordEncodableTests {
     }
     
     func testRecord() throws {
-        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
-            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "record") { t in
@@ -771,10 +762,6 @@ extension MutablePersistableRecordEncodableTests {
     }
     
     func testCustomizedRecord() throws {
-        guard #available(OSX 10.13, iOS 11.0, tvOS 11.0, *) else {
-            throw XCTSkip("JSONEncoder.OutputFormatting.sortedKeys is not available")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.write { db in
             try db.create(table: "customizedRecord") { t in

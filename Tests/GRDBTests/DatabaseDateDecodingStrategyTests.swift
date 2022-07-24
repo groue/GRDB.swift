@@ -22,7 +22,6 @@ private enum StrategyMillisecondsSince1970: StrategyProvider {
     static let strategy: DatabaseDateDecodingStrategy = .millisecondsSince1970
 }
 
-@available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
 private enum StrategyIso8601: StrategyProvider {
     static let strategy: DatabaseDateDecodingStrategy = .iso8601
 }
@@ -366,47 +365,45 @@ extension DatabaseDateDecodingStrategyTests {
 extension DatabaseDateDecodingStrategyTests {
     func testIso8601() throws {
         // check ISO8601DateFormatter availabiliity
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            try makeDatabaseQueue().read { db in
-                var calendar = Calendar(identifier: .gregorian)
-                calendar.timeZone = TimeZone(secondsFromGMT: 0)!
-                
-                // Null
-                try testNullDecoding(db, strategy: StrategyIso8601.self)
-                
-                // Date
-                try test(db, strategy: StrategyIso8601.self, databaseValue: "2018-08-19T17:18:07Z") { date in
-                    XCTAssertEqual(calendar.component(.year, from: date), 2018)
-                    XCTAssertEqual(calendar.component(.month, from: date), 8)
-                    XCTAssertEqual(calendar.component(.day, from: date), 19)
-                    XCTAssertEqual(calendar.component(.hour, from: date), 17)
-                    XCTAssertEqual(calendar.component(.minute, from: date), 18)
-                    XCTAssertEqual(calendar.component(.second, from: date), 7)
-                    XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
-                }
-                
-                // TODO GRDB6: uncomment test
-//                // error
-//                do {
-//                    try test(db, strategy: StrategyIso8601.self, databaseValue: "Yesterday") { date in
-//                        XCTFail("Unexpected Date")
-//                    }
-//                } catch let error as RowDecodingError {
-//                    switch error {
-//                    case .valueMismatch:
-//                        XCTAssertEqual(error.description, """
-//                            could not decode Date from database value "Yesterday" - \
-//                            column: "date", \
-//                            column index: 0, \
-//                            row: [date:"Yesterday"], \
-//                            sql: `SELECT ? AS date`, \
-//                            arguments: ["Yesterday"]
-//                            """)
-//                    default:
-//                        XCTFail("Unexpected Error")
-//                    }
-//                }
+        try makeDatabaseQueue().read { db in
+            var calendar = Calendar(identifier: .gregorian)
+            calendar.timeZone = TimeZone(secondsFromGMT: 0)!
+            
+            // Null
+            try testNullDecoding(db, strategy: StrategyIso8601.self)
+            
+            // Date
+            try test(db, strategy: StrategyIso8601.self, databaseValue: "2018-08-19T17:18:07Z") { date in
+                XCTAssertEqual(calendar.component(.year, from: date), 2018)
+                XCTAssertEqual(calendar.component(.month, from: date), 8)
+                XCTAssertEqual(calendar.component(.day, from: date), 19)
+                XCTAssertEqual(calendar.component(.hour, from: date), 17)
+                XCTAssertEqual(calendar.component(.minute, from: date), 18)
+                XCTAssertEqual(calendar.component(.second, from: date), 7)
+                XCTAssertEqual(calendar.component(.nanosecond, from: date), 0)
             }
+            
+// TODO GRDB6: uncomment test
+//            // error
+//            do {
+//                try test(db, strategy: StrategyIso8601.self, databaseValue: "Yesterday") { date in
+//                    XCTFail("Unexpected Date")
+//                }
+//            } catch let error as RowDecodingError {
+//                switch error {
+//                case .valueMismatch:
+//                    XCTAssertEqual(error.description, """
+//            could not decode Date from database value "Yesterday" - \
+//            column: "date", \
+//            column index: 0, \
+//            row: [date:"Yesterday"], \
+//            sql: `SELECT ? AS date`, \
+//            arguments: ["Yesterday"]
+//            """)
+//                default:
+//                    XCTFail("Unexpected Error")
+//                }
+//            }
         }
     }
 }

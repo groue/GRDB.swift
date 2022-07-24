@@ -296,12 +296,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         add(function: .capitalize)
         add(function: .lowercase)
         add(function: .uppercase)
-        
-        if #available(OSX 10.11, watchOS 3.0, *) {
-            add(function: .localizedCapitalize)
-            add(function: .localizedLowercase)
-            add(function: .localizedUppercase)
-        }
+        add(function: .localizedCapitalize)
+        add(function: .localizedLowercase)
+        add(function: .localizedUppercase)
     }
     
     private func setupDefaultCollations() {
@@ -608,16 +605,10 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.trace = trace
         
         if options.isEmpty || trace == nil {
-            #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
-            sqlite3_trace_v2(sqliteConnection, 0, nil, nil)
-            #elseif os(Linux)
+            #if os(Linux)
             sqlite3_trace(sqliteConnection, nil)
             #else
-            if #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
-                sqlite3_trace_v2(sqliteConnection, 0, nil, nil)
-            } else {
-                sqlite3_trace(sqliteConnection, nil, nil)
-            }
+            sqlite3_trace_v2(sqliteConnection, 0, nil, nil)
             #endif
             return
         }
@@ -626,39 +617,22 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         // http://www.sqlite.org/changes.html#version_3_14
         // It is available from macOS 10.12, tvOS 10.0, watchOS 3.0
         // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
-        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-        sqlite3_trace_v2(sqliteConnection, UInt32(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
-            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-            db.trace_v2(CInt(bitPattern: mask), p, x, sqlite3_expanded_sql)
-            return SQLITE_OK
-        }, dbPointer)
-        #elseif os(Linux)
-        setupTrace_v1()
-        #else
-        if #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
-            let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-            sqlite3_trace_v2(sqliteConnection, UInt32(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
-                let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
-                db.trace_v2(CInt(bitPattern: mask), p, x, sqlite3_expanded_sql)
-                return SQLITE_OK
-            }, dbPointer)
-        } else {
-            setupTrace_v1()
-        }
-        #endif
-    }
-    
-    #if !(GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS))
-    private func setupTrace_v1() {
+        #if os(Linux)
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
             guard let sql = sql.map(String.init(cString:)) else { return }
             let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
             db.trace?(Database.TraceEvent.statement(TraceEvent.Statement(impl: .trace_v1(sql))))
         }, dbPointer)
+        #else
+        let dbPointer = Unmanaged.passUnretained(self).toOpaque()
+        sqlite3_trace_v2(sqliteConnection, UInt32(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
+            let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
+            db.trace_v2(CInt(bitPattern: mask), p, x, sqlite3_expanded_sql)
+            return SQLITE_OK
+        }, dbPointer)
+        #endif
     }
-    #endif
     
     // Precondition: configuration.trace != nil
     private func trace_v2(
@@ -690,13 +664,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
                         publicStatementArguments: configuration.publicStatementArguments))
                 let duration = TimeInterval(durationP.pointee) / 1.0e9
                 
-                #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+                #if !os(Linux)
                 trace(TraceEvent.profile(statement: statement, duration: duration))
-                #elseif os(Linux)
-                #else
-                if #available(OSX 10.12, tvOS 10.0, watchOS 3.0, *) {
-                    trace(TraceEvent.profile(statement: statement, duration: duration))
-                }
                 #endif
             }
         default:
@@ -1611,19 +1580,11 @@ extension Database {
         /// See `Database.trace(options:_:)`
         public static let statement = TracingOptions(rawValue: SQLITE_TRACE_STMT)
         
-        #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+        #if !os(Linux)
         /// Reports executed statements and the estimated duration that the
         /// statement took to run.
         ///
         /// See `Database.trace(options:_:)`
-        public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
-        #elseif os(Linux)
-        #else
-        /// Reports executed statements and the estimated duration that the
-        /// statement took to run.
-        ///
-        /// See `Database.trace(options:_:)`
-        @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
         public static let profile = TracingOptions(rawValue: SQLITE_TRACE_PROFILE)
         #endif
     }
@@ -1643,21 +1604,12 @@ extension Database {
             }
             var impl: Impl
             
-            #if GRDBCUSTOMSQLITE || GRDBCIPHER || os(iOS)
+            #if !os(Linux)
             /// The executed SQL, where bound parameters are not expanded.
             ///
             /// For example:
             ///
             ///     SELECT * FROM player WHERE email = ?
-            public var sql: String { _sql }
-            #elseif os(Linux)
-            #else
-            /// The executed SQL, where bound parameters are not expanded.
-            ///
-            /// For example:
-            ///
-            ///     SELECT * FROM player WHERE email = ?
-            @available(OSX 10.12, tvOS 10.0, watchOS 3.0, *)
             public var sql: String { _sql }
             #endif
             

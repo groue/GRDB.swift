@@ -144,10 +144,8 @@ extension EncodableRecord {
         encoder.dataEncodingStrategy = .base64
         encoder.dateEncodingStrategy = .millisecondsSince1970
         encoder.nonConformingFloatEncodingStrategy = .throw
-        if #available(watchOS 4.0, OSX 10.13, iOS 11.0, tvOS 11.0, *) {
-            // guarantee some stability in order to ease record comparison
-            encoder.outputFormatting = .sortedKeys
-        }
+        // guarantee some stability in order to ease record comparison
+        encoder.outputFormatting = .sortedKeys
         encoder.userInfo = databaseEncodingUserInfo
         return encoder
     }
@@ -366,7 +364,6 @@ public enum DatabaseDateEncodingStrategy {
     case millisecondsSince1970
     
     /// Encodes dates according to the ISO 8601 and RFC 3339 standards
-    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     case iso8601
     
     /// Encodes a String, according to the provided formatter
@@ -375,7 +372,6 @@ public enum DatabaseDateEncodingStrategy {
     /// Encodes the result of the user-provided function
     case custom((Date) -> DatabaseValueConvertible?)
     
-    @available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
     private static let iso8601Formatter: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = .withInternetDateTime
@@ -395,11 +391,7 @@ public enum DatabaseDateEncodingStrategy {
         case .secondsSince1970:
             return Int64(floor(date.timeIntervalSince1970))
         case .iso8601:
-            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-                return Self.iso8601Formatter.string(from: date)
-            } else {
-                fatalError("ISO8601DateFormatter is unavailable on this platform.")
-            }
+            return Self.iso8601Formatter.string(from: date)
         case .formatted(let formatter):
             return formatter.string(from: date)
         case .custom(let format):

@@ -500,7 +500,6 @@ extension ColumnDecoder: SingleValueDecodingContainer {
     }
 }
 
-@available(macOS 10.12, watchOS 3.0, tvOS 10.0, *)
 private let iso8601Formatter: ISO8601DateFormatter = {
     let formatter = ISO8601DateFormatter()
     formatter.formatOptions = .withInternetDateTime
@@ -559,18 +558,14 @@ extension DatabaseDateDecodingStrategy {
             let timeInterval = TimeInterval(sqliteStatement: sqliteStatement, index: index)
             return Date(timeIntervalSince1970: timeInterval / 1000.0)
         case .iso8601:
-            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-                let string = String(sqliteStatement: sqliteStatement, index: index)
-                guard let date = iso8601Formatter.date(from: string) else {
-                    throw RowDecodingError.valueMismatch(
-                        Date.self,
-                        context: context(),
-                        databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
-                }
-                return date
-            } else {
-                fatalError("ISO8601DateFormatter is unavailable on this platform.")
+            let string = String(sqliteStatement: sqliteStatement, index: index)
+            guard let date = iso8601Formatter.date(from: string) else {
+                throw RowDecodingError.valueMismatch(
+                    Date.self,
+                    context: context(),
+                    databaseValue: DatabaseValue(sqliteStatement: sqliteStatement, index: index))
             }
+            return date
         case .formatted(let formatter):
             let string = String(sqliteStatement: sqliteStatement, index: index)
             guard let date = formatter.date(from: string) else {
@@ -648,13 +643,9 @@ extension DatabaseDateDecodingStrategy {
                 .fromDatabaseValue(dbValue)
                 .map { Date(timeIntervalSince1970: $0 / 1000.0) }
         case .iso8601:
-            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-                return String
-                    .fromDatabaseValue(dbValue)
-                    .flatMap { iso8601Formatter.date(from: $0) }
-            } else {
-                fatalError("ISO8601DateFormatter is unavailable on this platform.")
-            }
+            return String
+                .fromDatabaseValue(dbValue)
+                .flatMap { iso8601Formatter.date(from: $0) }
         case .formatted(let formatter):
             return String
                 .fromDatabaseValue(dbValue)

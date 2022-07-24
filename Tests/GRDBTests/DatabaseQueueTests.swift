@@ -125,10 +125,6 @@ class DatabaseQueueTests: GRDBTestCase {
     }
     
     func testTargetQueue() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         func test(targetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue
             let dbQueue = try makeDatabaseQueue()
@@ -153,10 +149,6 @@ class DatabaseQueueTests: GRDBTestCase {
     }
     
     func testWriteTargetQueue() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         func test(targetQueue: DispatchQueue, writeTargetQueue: DispatchQueue) throws {
             dbConfiguration.targetQueue = targetQueue // unused
             dbConfiguration.writeTargetQueue = writeTargetQueue
@@ -182,10 +174,6 @@ class DatabaseQueueTests: GRDBTestCase {
     }
     
     func testWriteTargetQueueReadOnly() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         // Create a database before we perform read-only accesses
         _ = try makeDatabaseQueue(filename: "test")
         
@@ -206,10 +194,6 @@ class DatabaseQueueTests: GRDBTestCase {
     }
 
     func testQoS() throws {
-        guard #available(OSX 10.12, tvOS 10.0, *) else {
-            throw XCTSkip("dispatchPrecondition(condition:) is not available")
-        }
-        
         func test(qos: DispatchQoS) throws {
             // https://forums.swift.org/t/what-is-the-default-target-queue-for-a-serial-queue/18094/5
             //

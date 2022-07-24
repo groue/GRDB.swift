@@ -31,18 +31,16 @@ class DatabaseFunctionTests: GRDBTestCase {
             let uppercase = DatabaseFunction.uppercase
             XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(uppercase.name)('jérÔME')"), "JÉRÔME")
             
-            if #available(OSX 10.11, *) {
-                // Locale-dependent tests. Are they fragile?
-                
-                let localizedCapitalize = DatabaseFunction.localizedCapitalize
-                XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(localizedCapitalize.name)('jérÔME')"), "Jérôme")
-                
-                let localizedLowercase = DatabaseFunction.localizedLowercase
-                XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(localizedLowercase.name)('jérÔME')"), "jérôme")
-                
-                let localizedUppercase = DatabaseFunction.localizedUppercase
-                XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(localizedUppercase.name)('jérÔME')"), "JÉRÔME")
-            }
+            // Locale-dependent tests. Are they fragile?
+            
+            let localizedCapitalize = DatabaseFunction.localizedCapitalize
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(localizedCapitalize.name)('jérÔME')"), "Jérôme")
+            
+            let localizedLowercase = DatabaseFunction.localizedLowercase
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(localizedLowercase.name)('jérÔME')"), "jérôme")
+            
+            let localizedUppercase = DatabaseFunction.localizedUppercase
+            XCTAssertEqual(try String.fetchOne(db, sql: "SELECT \(localizedUppercase.name)('jérÔME')"), "JÉRÔME")
         }
     }
 

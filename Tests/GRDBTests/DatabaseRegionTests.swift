@@ -251,14 +251,6 @@ class DatabaseRegionTests : GRDBTestCase {
     }
     
     func testSelectStatement_rowid() throws {
-        guard #available(iOS 11, *, tvOS 11) else {
-            // iOS 10.3.1 is not testable on Big Sur :-(
-            // This test breaks on iOS 10.3.1, with no known bad consequence.
-            // However this test is useful as a reminder of the behavior of
-            // the SQLite authorizer (rowid is not *precisely* observable).
-            throw XCTSkip("Skip test for rowid region with old SQLite version")
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(sql: "CREATE TABLE foo (id INTEGER PRIMARY KEY, name TEXT)")

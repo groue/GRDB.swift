@@ -1129,17 +1129,15 @@ class QueryInterfaceExpressionsTests: GRDBTestCase {
             sql(dbQueue, tableRequest.select(Col.name.uppercased)),
             "SELECT swiftUppercaseString(\"name\") FROM \"readers\"")
         
-        if #available(OSX 10.11, *) {
-            XCTAssertEqual(
-                sql(dbQueue, tableRequest.select(Col.name.localizedCapitalized)),
-                "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
-            XCTAssertEqual(
-                sql(dbQueue, tableRequest.select(Col.name.localizedLowercased)),
-                "SELECT swiftLocalizedLowercaseString(\"name\") FROM \"readers\"")
-            XCTAssertEqual(
-                sql(dbQueue, tableRequest.select(Col.name.localizedUppercased)),
-                "SELECT swiftLocalizedUppercaseString(\"name\") FROM \"readers\"")
-        }
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(Col.name.localizedCapitalized)),
+            "SELECT swiftLocalizedCapitalizedString(\"name\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(Col.name.localizedLowercased)),
+            "SELECT swiftLocalizedLowercaseString(\"name\") FROM \"readers\"")
+        XCTAssertEqual(
+            sql(dbQueue, tableRequest.select(Col.name.localizedUppercased)),
+            "SELECT swiftLocalizedUppercaseString(\"name\") FROM \"readers\"")
     }
     
     

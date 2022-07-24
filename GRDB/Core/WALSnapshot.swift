@@ -20,7 +20,7 @@
 ///
 /// See <https://www.sqlite.org/c3ref/snapshot.html>.
 final class WALSnapshot {
-#if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+#if GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
     init?(_ db: Database) {
         return nil
     }
@@ -36,16 +36,7 @@ final class WALSnapshot {
     init?(_ db: Database) {
         var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
         let code: CInt = withUnsafeMutablePointer(to: &snapshot) {
-#if GRDBCUSTOMSQLITE
             return sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
-#else
-            // iOS 10.0 is always true because our minimum requirement is iOS 11.
-            if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-                return sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
-            } else {
-                return SQLITE_ERROR
-            }
-#endif
         }
         guard code == SQLITE_OK, let s = snapshot else {
             return nil
@@ -54,14 +45,7 @@ final class WALSnapshot {
     }
     
     deinit {
-#if GRDBCUSTOMSQLITE
         sqlite3_snapshot_free(snapshot)
-#else
-        // iOS 10.0 is always true because our minimum requirement is iOS 11.
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            sqlite3_snapshot_free(snapshot)
-        }
-#endif
     }
     
     /// Compares two WAL snapshots.
@@ -70,16 +54,7 @@ final class WALSnapshot {
     ///
     /// See <https://www.sqlite.org/c3ref/snapshot_cmp.html>.
     func compare(_ other: WALSnapshot) -> CInt {
-#if GRDBCUSTOMSQLITE
         return sqlite3_snapshot_cmp(snapshot, other.snapshot)
-#else
-        // iOS 10.0 is always true because our minimum requirement is iOS 11.
-        if #available(macOS 10.12, watchOS 3.0, tvOS 10.0, *) {
-            return sqlite3_snapshot_cmp(snapshot, other.snapshot)
-        } else {
-            preconditionFailure("snapshots are not available")
-        }
-#endif
     }
-#endif // GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT) || compiler(<5.7)
+#endif // GRDBCIPHER || (GRDBCUSTOMSQLITE && !SQLITE_ENABLE_SNAPSHOT)
 }

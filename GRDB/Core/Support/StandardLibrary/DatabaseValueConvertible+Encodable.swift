@@ -119,10 +119,8 @@ private class DatabaseValueEncoder: Encoder {
             encoder.dataEncodingStrategy = .base64
             encoder.dateEncodingStrategy = .millisecondsSince1970
             encoder.nonConformingFloatEncodingStrategy = .throw
-            if #available(watchOS 4.0, OSX 10.13, iOS 11.0, tvOS 11.0, *) {
-                // guarantee some stability in order to ease value comparison
-                encoder.outputFormatting = .sortedKeys
-            }
+            // guarantee some stability in order to ease value comparison
+            encoder.outputFormatting = .sortedKeys
             let jsonData = try encoder.encode(value)
             
             // Store JSON String in the database for easier debugging and
