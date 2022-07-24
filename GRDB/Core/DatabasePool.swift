@@ -158,10 +158,8 @@ public final class DatabasePool: DatabaseWriter {
     }
 }
 
-#if swift(>=5.6) && canImport(_Concurrency)
 // @unchecked because of databaseSnapshotCount and readerPool
 extension DatabasePool: @unchecked Sendable { }
-#endif
 
 extension DatabasePool {
     

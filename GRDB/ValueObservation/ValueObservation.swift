@@ -252,7 +252,6 @@ extension ValueObservation: Refinable {
     }
 }
 
-#if compiler(>=5.6) && canImport(_Concurrency)
 extension ValueObservation {
     // MARK: - Asynchronous Observation
     /// The database observation, as an asynchronous sequence of
@@ -350,7 +349,6 @@ public struct AsyncValueObservation<Element>: AsyncSequence {
         }
     }
 }
-#endif
 
 #if canImport(Combine)
 extension ValueObservation {

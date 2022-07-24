@@ -459,11 +459,7 @@ extension TableRequest where Self: AggregatingRequest {
                 return [Column(rowIDColumn)]
             } else if primaryKey.tableHasRowID {
                 // Prefer the rowid
-                #if compiler(>=5.5)
                 return [.rowID]
-                #else
-                return [Column.rowID]
-                #endif
             } else {
                 // WITHOUT ROWID table: group by primary key columns
                 return primaryKey.columns.map { Column($0) }

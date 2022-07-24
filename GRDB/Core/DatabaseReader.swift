@@ -371,7 +371,6 @@ extension DatabaseReader {
     }
 }
 
-#if compiler(>=5.6) && canImport(_Concurrency)
 extension DatabaseReader {
     // MARK: - Asynchronous Database Access
     
@@ -465,7 +464,6 @@ extension DatabaseReader {
         }
     }
 }
-#endif
 
 #if canImport(Combine)
 extension DatabaseReader {

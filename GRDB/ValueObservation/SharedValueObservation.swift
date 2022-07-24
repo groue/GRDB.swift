@@ -299,7 +299,6 @@ public final class SharedValueObservation<Element> {
     }
 }
 
-#if compiler(>=5.6) && canImport(_Concurrency)
 extension SharedValueObservation {
     // MARK: - Asynchronous Observation
     /// The database observation, as an asynchronous sequence of
@@ -315,4 +314,3 @@ extension SharedValueObservation {
         }
     }
 }
-#endif

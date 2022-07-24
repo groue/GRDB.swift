@@ -36,11 +36,7 @@ private class Person : Record, Hashable {
     }
     
     required init(row: Row) {
-        #if compiler(>=5.5)
         id = row[.rowID]
-        #else
-        id = row[Column.rowID]
-        #endif
         age = row["age"]
         name = row["name"]
         creationDate = row["creationDate"]
@@ -48,11 +44,7 @@ private class Person : Record, Hashable {
     }
     
     override func encode(to container: inout PersistenceContainer) {
-        #if compiler(>=5.5)
         container[.rowID] = id
-        #else
-        container[Column.rowID] = id
-        #endif
         container["name"] = name
         container["age"] = age
         container["creationDate"] = creationDate

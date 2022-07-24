@@ -159,11 +159,9 @@ extension DatabaseValue: StatementBinding {
 
 extension DatabaseValue: Sendable { }
 
-#if swift(>=5.6) && canImport(_Concurrency)
 // @unchecked due to Foundation.Data not conforming to Sendable
 // TODO: Remove @unchecked when Foundation has been upgraded
 extension DatabaseValue.Storage: @unchecked Sendable { }
-#endif
 
 // MARK: - Hashable & Equatable
 

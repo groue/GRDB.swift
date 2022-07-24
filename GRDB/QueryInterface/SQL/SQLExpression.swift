@@ -1667,12 +1667,10 @@ public protocol SQLExpressible {
     var sqlExpression: SQLExpression { get }
 }
 
-#if compiler(>=5.5)
 extension SQLExpressible where Self == Column {
     /// The hidden rowID column
     public static var rowID: Self { Column.rowID }
 }
-#endif
 
 /// `SQLSpecificExpressible` is a protocol for all database-specific types that
 /// can be turned into an SQL expression. Types whose existence is not purely

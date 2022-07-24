@@ -741,7 +741,6 @@ class ValueObservationTests: GRDBTestCase {
         try test(makeDatabasePool())
     }
     
-#if compiler(>=5.6) && canImport(_Concurrency)
     // MARK: - Async Await
     
     @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -936,5 +935,4 @@ class ValueObservationTests: GRDBTestCase {
             .runAtTemporaryDatabasePath { try DatabaseQueue(path: $0) }
             .runAtTemporaryDatabasePath { try DatabasePool(path: $0) }
     }
-#endif
 }
