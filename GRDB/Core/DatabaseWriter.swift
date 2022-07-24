@@ -384,7 +384,6 @@ extension DatabaseWriter {
 extension DatabaseWriter {
     // MARK: - Asynchronous Database Access
     
-    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes database updates, wrapped inside a transaction,
     /// and returns the result.
     ///
@@ -408,7 +407,6 @@ extension DatabaseWriter {
         }
     }
     
-    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes database updates, outside of any transaction,
     /// and returns the result.
     ///
@@ -432,7 +430,6 @@ extension DatabaseWriter {
         }
     }
     
-    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes database updates, outside of any transaction,
     /// and returns the result.
     ///
