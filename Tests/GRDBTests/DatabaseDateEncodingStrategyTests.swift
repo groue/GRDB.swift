@@ -50,14 +50,19 @@ private struct RecordWithDate<Strategy: StrategyProvider>: EncodableRecord, Enco
     var date: Date
 }
 
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension RecordWithDate: Identifiable {
+    var id: Date { date }
+}
+
 private struct RecordWithOptionalDate<Strategy: StrategyProvider>: EncodableRecord, Encodable {
     static var databaseDateEncodingStrategy: DatabaseDateEncodingStrategy { Strategy.strategy }
     var date: Date?
 }
 
 @available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension RecordWithDate: Identifiable {
-    var id: Date { date }
+extension RecordWithOptionalDate: Identifiable {
+    var id: Date? { date }
 }
 
 class DatabaseDateEncodingStrategyTests: GRDBTestCase {
@@ -283,6 +288,48 @@ extension DatabaseDateEncodingStrategyTests {
                     SELECT * FROM "t" WHERE "id" IN (-979294854.321, -978183743.211, 0.0, 123456.789)
                     """)
             }
+            
+            do {
+                let request = Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").filter(id: nil)
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE 0
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").filter(id: testedDates[0])
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" = '1969-12-20 13:39:05.679'
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").filter(ids: testedDates)
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" IN ('1969-12-20 13:39:05.679', '1970-01-02 10:17:36.789', '2001-01-01 00:00:00.000', '2001-01-02 10:17:36.789')
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").filter(id: nil)
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE 0
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").filter(id: testedDates[0])
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" = -979294854.321
+                    """)
+            }
+            
+            do {
+                let request = Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").filter(ids: testedDates)
+                try assertEqualSQL(db, request, """
+                    SELECT * FROM "t" WHERE "id" IN (-979294854.321, -978183743.211, 0.0, 123456.789)
+                    """)
+            }
         }
     }
     
@@ -317,6 +364,46 @@ extension DatabaseDateEncodingStrategyTests {
             
             do {
                 try Table<RecordWithDate<StrategyTimeIntervalSinceReferenceDate>>("t").deleteAll(db, ids: testedDates)
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "t" WHERE "id" IN (-979294854.321, -978183743.211, 0.0, 123456.789)
+                    """)
+            }
+            
+            do {
+                sqlQueries.removeAll()
+                try Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").deleteOne(db, id: nil)
+                XCTAssertNil(lastSQLQuery) // Database not hit
+            }
+            
+            do {
+                try Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").deleteOne(db, id: testedDates[0])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "t" WHERE "id" = '1969-12-20 13:39:05.679'
+                    """)
+            }
+            
+            do {
+                try Table<RecordWithOptionalDate<StrategyDeferredToDate>>("t").deleteAll(db, ids: testedDates)
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "t" WHERE "id" IN ('1969-12-20 13:39:05.679', '1970-01-02 10:17:36.789', '2001-01-01 00:00:00.000', '2001-01-02 10:17:36.789')
+                    """)
+            }
+            
+            do {
+                sqlQueries.removeAll()
+                try Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").deleteOne(db, id: nil)
+                XCTAssertNil(lastSQLQuery) // Database not hit
+            }
+            
+            do {
+                try Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").deleteOne(db, id: testedDates[0])
+                XCTAssertEqual(lastSQLQuery, """
+                    DELETE FROM "t" WHERE "id" = -979294854.321
+                    """)
+            }
+            
+            do {
+                try Table<RecordWithOptionalDate<StrategyTimeIntervalSinceReferenceDate>>("t").deleteAll(db, ids: testedDates)
                 XCTAssertEqual(lastSQLQuery, """
                     DELETE FROM "t" WHERE "id" IN (-979294854.321, -978183743.211, 0.0, 123456.789)
                     """)

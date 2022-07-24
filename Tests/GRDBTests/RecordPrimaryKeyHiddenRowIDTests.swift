@@ -696,6 +696,9 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                     XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
                     XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
                 }
+                do {
+                    try XCTAssertNil(Person.fetchOne(db, id: nil))
+                }
             }
         }
     }
@@ -848,6 +851,9 @@ class RecordPrimaryKeyHiddenRowIDTests : GRDBTestCase {
                     XCTAssertTrue(fetchedRecord.age == record.age)
                     XCTAssertTrue(abs(fetchedRecord.creationDate.timeIntervalSince(record.creationDate)) < 1e-3)    // ISO-8601 is precise to the millisecond.
                     XCTAssertEqual(lastSQLQuery, "SELECT *, \"rowid\" FROM \"persons\" WHERE \"rowid\" = \(record.id!)")
+                }
+                do {
+                    try XCTAssertNil(Person.filter(id: nil).fetchOne(db))
                 }
             }
         }

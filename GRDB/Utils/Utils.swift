@@ -20,18 +20,6 @@ public func databaseQuestionMarks(count: Int) -> String {
     repeatElement("?", count: count).joined(separator: ",")
 }
 
-/// This protocol is an implementation detail of GRDB. Don't use it.
-///
-/// :nodoc:
-public protocol _OptionalProtocol {
-    associatedtype Wrapped
-}
-
-/// This conformance is an implementation detail of GRDB. Don't rely on it.
-///
-/// :nodoc:
-extension Optional: _OptionalProtocol { }
-
 // MARK: - Internal
 
 /// Reserved for GRDB: do not use.

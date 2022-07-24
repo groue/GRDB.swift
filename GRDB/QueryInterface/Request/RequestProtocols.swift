@@ -233,8 +233,8 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///     let request = try Player...filter(key: 1)
     ///
     /// - parameter key: A primary key
-    public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType?) -> Self {
-        guard let key = key else {
+    public func filter<PrimaryKeyType: DatabaseValueConvertible>(key: PrimaryKeyType) -> Self {
+        if key.databaseValue.isNull {
             return none()
         }
         return filter(keys: [key])
@@ -257,13 +257,13 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
         // make it impractical to define `filter(id:)`, `fetchOne(_:key:)`,
         // `deleteAll(_:ids:)` etc.
         if let recordType = RowDecoder.self as? EncodableRecord.Type {
-            if Sequence.Element.self == Date.self {
+            if Sequence.Element.self == Date.self || Sequence.Element.self == Optional<Date>.self {
                 let strategy = recordType.databaseDateEncodingStrategy
-                let keys = keys.compactMap { strategy.encode($0 as! Date)?.databaseValue }
+                let keys = keys.compactMap { ($0 as! Date?).flatMap(strategy.encode)?.databaseValue }
                 return filter(rawKeys: keys)
-            } else if Sequence.Element.self == UUID.self {
+            } else if Sequence.Element.self == UUID.self || Sequence.Element.self == Optional<UUID>.self {
                 let strategy = recordType.databaseUUIDEncodingStrategy
-                let keys = keys.map { strategy.encode($0 as! UUID).databaseValue }
+                let keys = keys.map { ($0 as! UUID?).map(strategy.encode)?.databaseValue }
                 return filter(rawKeys: keys)
             }
         }
@@ -390,38 +390,6 @@ where Self: FilteredRequest,
     public func filter<Collection: Swift.Collection>(ids: Collection)
     -> Self
     where Collection.Element == RowDecoder.ID
-    {
-        filter(keys: ids)
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRequest
-where Self: FilteredRequest,
-      Self: TypedRequest,
-      RowDecoder: Identifiable,
-      RowDecoder.ID: _OptionalProtocol,
-      RowDecoder.ID.Wrapped: DatabaseValueConvertible
-{
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE ... id = 1
-    ///     let request = try Player...filter(id: 1)
-    ///
-    /// - parameter id: A primary key
-    public func filter(id: RowDecoder.ID.Wrapped) -> Self {
-        filter(key: id)
-    }
-    
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
-    ///     let request = try Player...filter(ids: [1, 2, 3])
-    ///
-    /// - parameter ids: A collection of primary keys
-    public func filter<Collection: Swift.Collection>(ids: Collection)
-    -> Self
-    where Collection.Element == RowDecoder.ID.Wrapped
     {
         filter(keys: ids)
     }

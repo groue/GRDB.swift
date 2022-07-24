@@ -180,7 +180,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 }
                 try db.execute(sql: "DELETE FROM t WHERE id = 1")
         })
-}
+    }
     
     func testOneOptional() throws {
         let request = SQLRequest<Name?>(sql: "SELECT name FROM t ORDER BY id DESC")
@@ -188,15 +188,16 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
         try assertValueObservation(
             ValueObservation.trackingConstantRegion(request.fetchOne),
             records: [
-                nil,
+                .none,
                 Name(rawValue: "foo"),
                 Name(rawValue: "foo"),
                 Name(rawValue: "bar"),
-                nil,
+                .none,
                 Name(rawValue: "baz"),
+                .some(nil),
                 nil,
-                nil,
-                nil,
+                .some(nil),
+                .some(nil),
                 Name(rawValue: "qux")],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
@@ -215,18 +216,21 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 try db.execute(sql: "UPDATE t SET name = NULL")
                 try db.execute(sql: "DELETE FROM t")
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, NULL)")
+                try db.execute(sql: "UPDATE t SET name = NULL")
                 try db.execute(sql: "UPDATE t SET name = 'qux'")
         })
         
         try assertValueObservation(
             ValueObservation.trackingConstantRegion(request.fetchOne).removeDuplicates(),
             records: [
-                nil,
+                .none,
                 Name(rawValue: "foo"),
                 Name(rawValue: "bar"),
-                nil,
+                .none,
                 Name(rawValue: "baz"),
+                .some(nil),
                 nil,
+                .some(nil),
                 Name(rawValue: "qux")],
             setup: { db in
                 try db.execute(sql: "CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT)")
@@ -245,6 +249,7 @@ class ValueObservationDatabaseValueConvertibleTests: GRDBTestCase {
                 try db.execute(sql: "UPDATE t SET name = NULL")
                 try db.execute(sql: "DELETE FROM t")
                 try db.execute(sql: "INSERT INTO t (id, name) VALUES (1, NULL)")
+                try db.execute(sql: "UPDATE t SET name = NULL")
                 try db.execute(sql: "UPDATE t SET name = 'qux'")
         })
     }

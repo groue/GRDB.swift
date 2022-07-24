@@ -46,6 +46,12 @@ extension DatabaseUUIDEncodingStrategy {
     public static var string: Self { preconditionFailure() }
 }
 
+@available(*, unavailable, message: "FastNullableDatabaseValueCursor<T> has been replaced with FastDatabaseValueCursor<T?>")
+typealias FastNullableDatabaseValueCursor<T: DatabaseValueConvertible & StatementColumnConvertible> = FastDatabaseValueCursor<T?>
+
+@available(*, unavailable, message: "NullableDatabaseValueCursor<T> has been replaced with DatabaseValueCursor<T?>")
+typealias NullableDatabaseValueCursor<T: DatabaseValueConvertible> = DatabaseValueCursor<T?>
+
 @available(*, unavailable, renamed: "Statement")
 public typealias SelectStatement = Statement
 

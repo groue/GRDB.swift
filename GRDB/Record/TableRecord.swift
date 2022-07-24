@@ -197,32 +197,11 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     - id: A primary key value.
     /// - returns: Whether a row exists for this primary key.
     public static func exists(_ db: Database, id: ID) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRecord
-where Self: Identifiable,
-      ID: _OptionalProtocol,
-      ID.Wrapped: DatabaseValueConvertible
-{
-    /// Returns whether a row exists for this primary key.
-    ///
-    ///     try Player.deleteOne(db, id: 123)
-    ///     try Country.deleteOne(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     try Document.deleteOne(db, id: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a row exists for this primary key.
-    public static func exists(_ db: Database, id: ID.Wrapped) throws -> Bool {
-        try !filter(id: id).isEmpty(db)
+        if id.databaseValue.isNull {
+            // Don't hit the database
+            return false
+        }
+        return try !filter(id: id).isEmpty(db)
     }
 }
 
@@ -299,12 +278,12 @@ extension TableRecord {
     ///     - key: A primary key value.
     /// - returns: Whether a database row was deleted.
     @discardableResult
-    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType?)
+    public static func deleteOne<PrimaryKeyType>(_ db: Database, key: PrimaryKeyType)
     throws -> Bool
     where PrimaryKeyType: DatabaseValueConvertible
     {
-        guard let key = key else {
-            // Avoid hitting the database
+        if key.databaseValue.isNull {
+            // Don't hit the database
             return false
         }
         return try deleteAll(db, keys: [key]) > 0
@@ -365,68 +344,6 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// - returns: Whether a database row was deleted.
     @discardableResult
     public static func deleteOne(_ db: Database, id: ID) throws -> Bool {
-        try deleteAll(db, ids: [id]) > 0
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRecord
-where Self: Identifiable,
-      ID: _OptionalProtocol,
-      ID.Wrapped: DatabaseValueConvertible
-{
-    /// Delete records identified by their primary keys; returns the number of
-    /// deleted rows.
-    ///
-    ///     // DELETE FROM player WHERE id IN (1, 2, 3)
-    ///     try Player.deleteAll(db, ids: [1, 2, 3])
-    ///
-    ///     // DELETE FROM country WHERE code IN ('FR', 'US', 'DE')
-    ///     try Country.deleteAll(db, ids: ["FR", "US", "DE"])
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid IN (1, 2, 3)
-    ///     try Document.deleteAll(db, ids: [1, 2, 3])
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - ids: A collection of primary keys.
-    /// - returns: The number of deleted rows
-    @discardableResult
-    public static func deleteAll<Collection>(_ db: Database, ids: Collection)
-    throws -> Int
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
-    {
-        if ids.isEmpty {
-            // Avoid hitting the database
-            return 0
-        }
-        return try filter(ids: ids).deleteAll(db)
-    }
-    
-    /// Delete a record, identified by its primary key; returns whether a
-    /// database row was deleted.
-    ///
-    ///     // DELETE FROM player WHERE id = 123
-    ///     try Player.deleteOne(db, id: 123)
-    ///
-    ///     // DELETE FROM country WHERE code = 'FR'
-    ///     try Country.deleteOne(db, id: "FR")
-    ///
-    /// When the table has no explicit primary key, GRDB uses the hidden
-    /// "rowid" column:
-    ///
-    ///     // DELETE FROM document WHERE rowid = 1
-    ///     try Document.deleteOne(db, id: 1)
-    ///
-    /// - parameters:
-    ///     - db: A database connection.
-    ///     - id: A primary key value.
-    /// - returns: Whether a database row was deleted.
-    @discardableResult
-    public static func deleteOne(_ db: Database, id: ID.Wrapped) throws -> Bool {
         try deleteAll(db, ids: [id]) > 0
     }
 }

@@ -165,7 +165,7 @@ extension TableRecord {
     ///
     ///     // SELECT * FROM player WHERE id = 1
     ///     let request = Player.filter(key: 1)
-    public static func filter<PrimaryKeyType>(key: PrimaryKeyType?)
+    public static func filter<PrimaryKeyType>(key: PrimaryKeyType)
     -> QueryInterfaceRequest<Self>
     where PrimaryKeyType: DatabaseValueConvertible
     {
@@ -377,40 +377,6 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     ///     // SELECT id FROM player
     ///     let request = try Player.selectID()
     public static func selectID() -> QueryInterfaceRequest<ID> {
-        all().selectID()
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension TableRecord where Self: Identifiable, ID: _OptionalProtocol, ID.Wrapped: DatabaseValueConvertible {
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE id = 1
-    ///     let request = Player.filter(id: 1)
-    ///
-    /// - parameter id: A primary key
-    public static func filter(id: ID.Wrapped) -> QueryInterfaceRequest<Self> {
-        all().filter(id: id)
-    }
-    
-    /// Creates a request filtered by primary key.
-    ///
-    ///     // SELECT * FROM player WHERE id IN (1, 2, 3)
-    ///     let request = Player.filter(ids: [1, 2, 3])
-    ///
-    /// - parameter ids: A collection of primary keys
-    public static func filter<Collection>(ids: Collection)
-    -> QueryInterfaceRequest<Self>
-    where Collection: Swift.Collection, Collection.Element == ID.Wrapped
-    {
-        all().filter(ids: ids)
-    }
-    
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player
-    ///     let request = try Player.selectID()
-    public static func selectID() -> QueryInterfaceRequest<ID.Wrapped> {
         all().selectID()
     }
 }

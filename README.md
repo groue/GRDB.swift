@@ -1249,7 +1249,9 @@ See the documentation of [`Dictionary.init(_:uniquingKeysWith:)`](https://develo
 
 ### Value Queries
 
-Instead of rows, you can directly fetch **[values](#values)**. Like rows, fetch them as **cursors**, **arrays**, **sets**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
+**Instead of rows, you can directly fetch values.** There are many supported [value types](#values) (Bool, Int, String, Date, Swift enums, etc.).
+
+Like rows, fetch values as **cursors**, **arrays**, **sets**, or **single** values (see [fetching methods](#fetching-methods)). Values are extracted from the leftmost column of the SQL queries:
 
 ```swift
 try dbQueue.read { db in
@@ -1258,25 +1260,46 @@ try dbQueue.read { db in
     try Int.fetchSet(db, sql: "SELECT ...", arguments: ...)    // Set<Int>
     try Int.fetchOne(db, sql: "SELECT ...", arguments: ...)    // Int?
     
-    // When database may contain NULL:
+    let maxScore = try Int.fetchOne(db, sql: "SELECT MAX(score) FROM player") // Int?
+    let names = try String.fetchAll(db, sql: "SELECT name FROM player")       // [String]
+}
+```
+
+`Int.fetchOne` returns nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value:
+
+```swift
+// No row:
+try Int.fetchOne(db, sql: "SELECT 42 WHERE FALSE") // nil
+
+// One row with a NULL value:
+try Int.fetchOne(db, sql: "SELECT NULL")           // nil
+
+// One row with a non-NULL value:
+try Int.fetchOne(db, sql: "SELECT 42")             // 42
+```
+
+For requests which may contain NULL, fetch optionals:
+
+```swift
+try dbQueue.read { db in
     try Optional<Int>.fetchCursor(db, sql: "SELECT ...", arguments: ...) // A Cursor of Int?
     try Optional<Int>.fetchAll(db, sql: "SELECT ...", arguments: ...)    // [Int?]
     try Optional<Int>.fetchSet(db, sql: "SELECT ...", arguments: ...)    // Set<Int?>
 }
-
-let playerCount = try dbQueue.read { db in
-    try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")!
-}
 ```
 
-`fetchOne` returns an optional value which is nil in two cases: either the SELECT statement yielded no row, or one row with a NULL value.
+> :bulb: **Tip**: One advanced use case, when you fetch one value, is to distinguish the cases of a statement that yields no row, or one row with a NULL value. To do so, use `Optional<Int>.fetchOne`, which returns a double optional `Int??`:
+> 
+> ```swift
+> // No row:
+> try Optional<Int>.fetchOne(db, sql: "SELECT 42 WHERE FALSE") // .none
+> // One row with a NULL value:
+> try Optional<Int>.fetchOne(db, sql: "SELECT NULL")           // .some(.none)
+> // One row with a non-NULL value:
+> try Optional<Int>.fetchOne(db, sql: "SELECT 42")             // .some(.some(42))
+> ```
 
-There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information:
-
-```swift
-let count = try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM player")! // Int
-let urls = try URL.fetchAll(db, sql: "SELECT url FROM link")          // [URL]
-```
+There are many supported value types (Bool, Int, String, Date, Swift enums, etc.). See [Values](#values) for more information.
 
 
 ## Values

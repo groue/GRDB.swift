@@ -46,6 +46,7 @@ class TableRecordDeleteTests: GRDBTestCase {
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
                 try db.execute(sql: "INSERT INTO hackers (rowid, name) VALUES (?, ?)", arguments: [1, "Arthur"])
+                try XCTAssertFalse(Hacker.deleteOne(db, id: nil))
                 deleted = try Hacker.deleteOne(db, id: 1)
                 XCTAssertTrue(deleted)
                 XCTAssertEqual(try Hacker.fetchCount(db), 0)

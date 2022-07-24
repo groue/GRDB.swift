@@ -386,6 +386,10 @@ class TableRecordQueryInterfaceRequestTests: GRDBTestCase {
             try XCTAssertFalse(Player.exists(db, id: 1))
             XCTAssertEqual(lastSQLQuery, "SELECT EXISTS (SELECT * FROM \"player\" WHERE \"id\" = 1)")
             
+            sqlQueries.removeAll()
+            try XCTAssertFalse(Player.exists(db, id: nil))
+            XCTAssertNil(lastSQLQuery) // Database not hit
+            
             return .rollback
         }
         try dbQueue.inTransaction { db in
