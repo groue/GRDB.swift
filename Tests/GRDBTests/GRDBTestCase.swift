@@ -167,6 +167,12 @@ class GRDBTestCase: XCTestCase {
     }
 }
 
+#if SWIFT_PACKAGE
+let testBundle = Bundle.module
+#else
+let testBundle = Bundle(for: GRDBTestCase.self)
+#endif
+
 extension FetchRequest {
     /// Turn request into a statement
     func makeStatement(_ db: Database) throws -> Statement {

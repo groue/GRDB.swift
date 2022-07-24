@@ -27,10 +27,7 @@ private let emojiString = "'fooéı👨👨🏿🇫🇷🇨🇮'"
 private let emojiData = emojiString.data(using: .utf8)
 private let nonUTF8Data = Data([0x80])
 private let invalidString = "\u{FFFD}" // decoded from nonUTF8Data
-// Until SPM tests can load resources, disable this test for SPM.
-#if !SWIFT_PACKAGE
-private let jpegData = try! Data(contentsOf: Bundle(for: DatabaseValueConversionTests.self).url(forResource: "Betty", withExtension: "jpeg")!)
-#endif
+private let jpegData = try! Data(contentsOf: testBundle.url(forResource: "Betty", withExtension: "jpeg")!)
 
 class DatabaseValueConversionTests : GRDBTestCase {
     
@@ -288,7 +285,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -305,7 +301,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
 
     func testNumericAffinity() throws {
@@ -549,7 +544,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -566,7 +560,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
     
     func testNoneAffinity() throws {
@@ -738,7 +731,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -755,7 +747,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
     
     func testNumericAffinity(_ columnName: String) throws {
@@ -973,7 +964,6 @@ class DatabaseValueConversionTests : GRDBTestCase {
             return .rollback
         }
         
-        #if !SWIFT_PACKAGE
         // jpegData is turned to Blob
         
         try dbQueue.inTransaction { db in
@@ -990,6 +980,5 @@ class DatabaseValueConversionTests : GRDBTestCase {
             try assertDecoding(db, sql, Data.self, expectedSQLiteConversion: jpegData, expectedDatabaseValueConversion: jpegData)
             return .rollback
         }
-        #endif
     }
 }
