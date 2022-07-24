@@ -5,6 +5,7 @@ Migrating From GRDB 5 to GRDB 6
 
 - [Preparing the Migration to GRDB 6](#preparing-the-migration-to-grdb-6)
 - [New requirements](#new-requirements)
+- [Primary Associated Types](#primary-associated-types)
 - [Other Changes](#other-changes)
 
 
@@ -24,6 +25,22 @@ GRDB requirements have been bumped:
 - **macOS 10.13+** (was macOS 10.10+)
 - **tvOS 11.0+** (was tvOS 11.0+)
 - **watchOS 4.0+** (was watchOS 2.0+)
+
+## Primary Associated Types
+
+Request protocols now come with a primary associated type, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md). This is a great opportunity to simplify your extensions:
+
+```diff
+-extension DerivableRequest where RowDecoder == Book {
++extension DerivableRequest<Book> {
+     /// Order books by title, in a localized case-insensitive fashion
+     func orderByTitle() -> Self {
+         order(Column("title").collating(.localizedCaseInsensitiveCompare))
+     }
+ }
+```
+
+The `Cursor` protocol has also gained a primary associated type (the type of its elements).
 
 ## Other Changes
 

@@ -74,7 +74,7 @@ private var libraryMigrator: DatabaseMigrator = {
 }()
 
 // Define DerivableRequest extensions
-extension DerivableRequest where RowDecoder == Author {
+extension DerivableRequest<Author> {
     // SelectionRequest
     func selectCountry() -> Self {
         select(Column("country"))
@@ -93,7 +93,7 @@ extension DerivableRequest where RowDecoder == Author {
     }
 }
 
-extension DerivableRequest where RowDecoder == Book {
+extension DerivableRequest<Book> {
     // OrderedRequest
     func orderByTitle() -> Self {
         order(Column("title").collating(.localizedCaseInsensitiveCompare))

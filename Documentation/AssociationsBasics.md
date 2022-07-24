@@ -1899,7 +1899,7 @@ For example, we can start by defining base requests as extensions to the [Deriva
 
 ```swift
 // Author requests
-extension DerivableRequest where RowDecoder == Author {
+extension DerivableRequest<Author> {
     /// Filters authors by country
     func filter(country: String) -> Self {
         filter(Column("country") == country)
@@ -1907,7 +1907,7 @@ extension DerivableRequest where RowDecoder == Author {
 }
 
 // Book requests
-extension DerivableRequest where RowDecoder == Book {
+extension DerivableRequest<Book> {
     /// Filters books by author country
     func filter(authorCountry: String) -> Self {
         joining(required: Book.author.filter(country: country))
@@ -2843,7 +2843,7 @@ let request = Book.all().filter(country: "ES")
 Those methods are defined on extensions to the `DerivableRequest` protocol:
 
 ```swift
-extension DerivableRequest where RowDecoder == Author {
+extension DerivableRequest<Author> {
     func filter(country: String) -> Self {
         filter(Column("country") == country)
     }
@@ -2853,7 +2853,7 @@ extension DerivableRequest where RowDecoder == Author {
     }
 }
 
-extension DerivableRequest where RowDecoder == Book {
+extension DerivableRequest<Book> {
     func filter(country: String) -> Self {
         joining(required: Book.author.filter(country: country))
     }

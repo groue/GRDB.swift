@@ -99,6 +99,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ are required.
 - **Breaking**: Removed deprecated methods
 - **Breaking**: The in-memory `DatabaseQueue()` initializer can now throw errors.
+- **New**: Request protocols and cursors now define primary associated types, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md).
 
 ## 5.26.0
 

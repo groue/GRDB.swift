@@ -4,7 +4,7 @@ import Foundation
 
 /// The protocol for all requests that know how database rows should
 /// be interpreted.
-public protocol TypedRequest {
+public protocol TypedRequest<RowDecoder> {
     /// The type that can decode database rows.
     ///
     /// In the request below, it is Player:
@@ -619,7 +619,7 @@ public protocol _JoinableRequest {
 }
 
 /// The protocol for all requests that can be associated.
-public protocol JoinableRequest: TypedRequest, _JoinableRequest { }
+public protocol JoinableRequest<RowDecoder>: TypedRequest, _JoinableRequest { }
 
 extension JoinableRequest {
     /// Creates a request that prefetches an association.
@@ -747,9 +747,9 @@ extension JoinableRequest where Self: SelectionRequest {
 // MARK: - DerivableRequest
 
 /// The base protocol for all requests that can be refined.
-public protocol DerivableRequest: AggregatingRequest, FilteredRequest,
-                                  JoinableRequest, OrderedRequest,
-                                  SelectionRequest, TableRequest
+public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredRequest,
+                                              JoinableRequest, OrderedRequest,
+                                              SelectionRequest, TableRequest
 {
     /// Creates a request which returns distinct rows.
     ///

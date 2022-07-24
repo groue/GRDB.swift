@@ -234,7 +234,7 @@ extension Sequence {
 /// `forEach`, `joined`, `joined(separator:)`, `max`, `max(by:)`, `min`,
 /// `min(by:)`, `map`, `prefix`, `prefix(while:)`, `reduce`, `reduce(into:)`,
 /// `suffix`.
-public protocol Cursor: AnyObject {
+public protocol Cursor<Element>: AnyObject {
     /// The type of element traversed by the cursor.
     associatedtype Element
     

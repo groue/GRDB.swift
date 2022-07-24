@@ -299,8 +299,8 @@ When you find yourself build similar requests over and over in your application,
 To do so, extend the `DerivableRequest` protocol. It generally lets you filter, sort, leverage associations (we'll talk about associations in the [Compose Records] chapter below), etc:
 
 ```swift
-// Author requests         ~~~~~~~~~~~~~~~~~~~~~~~~~~
-extension DerivableRequest where RowDecoder == Author {
+// Author requests
+extension DerivableRequest<Author> {
     /// Order authors by name, in a localized case-insensitive fashion
     func orderByName() -> Self {
         let name = Author.Columns.name
@@ -342,8 +342,8 @@ try dbQueue.read { db in
 Because they are defined in an extension of the `DerivableRequest` protocol, our customized methods can decorate both requests and associations. See how the implementation of `filter(authorCountry:)` for books, below, uses the `filter(country:)` for authors:
 
 ```swift
-// Book requests           ~~~~~~~~~~~~~~~~~~~~~~~~
-extension DerivableRequest where RowDecoder == Book {
+// Book requests
+extension DerivableRequest<Book> {
     /// Filters books by kind
     func filter(kind: Book.Kind) -> Self {
         filter(Book.Columns.kind == kind)

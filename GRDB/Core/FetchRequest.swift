@@ -10,7 +10,7 @@
 ///     try request.fetchSet(db)    // Set<Player>
 ///     try request.fetchOne(db)    // Player?
 ///     try request.fetchCount(db)  // Int
-public protocol FetchRequest: SQLSubqueryable, DatabaseRegionConvertible {
+public protocol FetchRequest<RowDecoder>: SQLSubqueryable, DatabaseRegionConvertible {
     /// The type that tells how fetched database rows should be interpreted.
     associatedtype RowDecoder
     
