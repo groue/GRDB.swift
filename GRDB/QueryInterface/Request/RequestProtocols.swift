@@ -278,8 +278,14 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     ///
     /// - parameter keys: A collection of primary keys
     func filter(rawKeys: some Sequence<some DatabaseValueConvertible>) -> Self {
-        let keys = Array(rawKeys)
-        if keys.isEmpty {
+        // Don't bother removing NULLs. We'd lose CPU cycles, and this does not
+        // change the SQLite results anyway.
+        let expressions = rawKeys.map {
+            $0.databaseValue.sqlExpression
+        }
+        
+        if expressions.isEmpty {
+            // Don't hit the database
             return none()
         }
         
@@ -289,7 +295,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
             GRDBPrecondition(
                 primaryKey.columns.count == 1,
                 "Requesting by key requires a single-column primary key in the table \(databaseTableName)")
-            return keys.contains(Column(primaryKey.columns[0]))
+            return SQLCollection.array(expressions).contains(Column(primaryKey.columns[0]).sqlExpression)
         }
     }
     
