@@ -393,14 +393,28 @@ extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConv
     public func filter(ids: some Collection<RowDecoder.ID>) -> QueryInterfaceRequest<RowDecoder> {
         all().filter(ids: ids)
     }
-    
+}
+
+extension Table {
     /// Creates a request which selects the primary key.
+    ///
+    /// All primary keys are supported:
     ///
     ///     // SELECT id FROM player
     ///     let table = Table("player")
-    ///     let request = try table.selectID()
-    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> {
-        all().selectID()
+    ///     let request = try table.selectPrimaryKey(as: Int64.self)
+    ///
+    ///     // SELECT code FROM country
+    ///     let table = Table("country")
+    ///     let request = try table.selectPrimaryKey(as: String.self)
+    ///
+    ///     // SELECT citizenId, countryCode FROM citizenship
+    ///     let table = Table("citizenship")
+    ///     let request = try table.selectPrimaryKey(as: Row.self)
+    public func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
+    -> QueryInterfaceRequest<PrimaryKey>
+    {
+        all().selectPrimaryKey(as: type)
     }
 }
 

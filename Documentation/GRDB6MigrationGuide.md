@@ -50,3 +50,13 @@ The `Cursor` protocol has also gained a primary associated type (the type of its
     -let dbQueue = DatabaseQueue()
     +let dbQueue = try DatabaseQueue()
     ```
+
+- The `selectID()` method is removed. You can provide your own implementation, based on the new `selectPrimaryKey(as:)` method:
+
+    ```swift
+    extension QueryInterfaceRequest<Player> {
+        func selectID() -> QueryInterfaceRequest<Int64> {
+            selectPrimaryKey()
+        }
+    }
+    ```

@@ -3016,9 +3016,6 @@ let players = try Player.fetchSet(db, ids: [1, 2, 3])
 let request = Player.filter(id: 1)
 let request = Player.filter(ids: [1, 2, 3])
 
-let ids = try Player.selectID().fetchAll(db)
-let ids = try Player.filter(...).selectID().fetchSet(db)
-
 try Player.deleteOne(db, id: 1)
 try Player.deleteAll(db, ids: [1, 2, 3])
 ```
@@ -4076,7 +4073,7 @@ This is the list of record methods, along with their required protocols. The [Re
 | `Type.none()` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.select(..., as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
-| `Type.selectID()` | [TableRecord] & Identifiable | [*](#identifiable-records) |
+| `Type.selectPrimaryKey(as:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.annotated(with:...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(...)` | [TableRecord] | <a href="#list-of-record-methods-2">²</a> |
 | `Type.filter(id:)` | [TableRecord] & Identifiable | [*](#identifiable-records) |
@@ -4491,16 +4488,6 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
     Player.select(nameColumn, as: String.self)
     ```
 
-- `selectID()` is available on [Identifiable Records]. It supports all tables that have a single-column primary key:
-
-    ```swift
-    // SELECT id FROM player
-    Player.selectID()
-    
-    // SELECT id FROM player WHERE name IS NOT NULL
-    Player.filter(nameColumn != nil).selectID()
-    ```
-
 - `annotated(with: expression...)` extends the selection.
 
     ```swift
@@ -4677,6 +4664,19 @@ You can now build requests with the following methods: `all`, `none`, `select`, 
 
 - Other requests that involve the primary key:
     
+    - `selectPrimaryKey(as:)` selects the primary key.
+    
+        ```swift
+        // SELECT id FROM player
+        Player.selectPrimaryKey(as: Int64.self)    // QueryInterfaceRequest<Int64>
+        
+        // SELECT code FROM country
+        Country.selectPrimaryKey(as: String.self)  // QueryInterfaceRequest<String>
+        
+        // SELECT citizenId, countryCode FROM citizenship
+        Citizenship.selectPrimaryKey(as: Row.self) // QueryInterfaceRequest<Row>
+        ```
+        
     - `orderByPrimaryKey()` sorts by primary key.
         
         ```swift

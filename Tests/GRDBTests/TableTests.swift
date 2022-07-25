@@ -52,6 +52,9 @@ class TableTests: GRDBTestCase {
                     """)
                 try XCTAssertEqual(t.select(Column("id"), as: Int64.self).fetchOne(db), 1)
                 try XCTAssertEqual(t.select(Column("id")).fetchOne(db), 1)
+                try XCTAssertEqual(t.selectPrimaryKey().fetchOne(db), 1)
+                try XCTAssertEqual(t.selectPrimaryKey(as: Int64.self).fetchOne(db), 1)
+                try XCTAssertEqual(t.selectPrimaryKey(as: Row.self).fetchOne(db), ["id": 1])
                 try XCTAssertEqual(t.select([Column("name")], as: String.self).fetchOne(db), "Alice")
                 try XCTAssertEqual(t.select([Column("name")]).fetchOne(db), "Alice")
                 try XCTAssertEqual(t.select(sql: "id", as: Int64.self).fetchOne(db), 1)
@@ -124,7 +127,6 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.filter(ids: [1, 2, 3]), """
                     SELECT * FROM "player" WHERE "id" IN (1, 2, 3)
                     """)
-                try XCTAssertEqual(t.selectID().fetchOne(db), 1)
             }
             
             if #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) {
@@ -140,7 +142,6 @@ class TableTests: GRDBTestCase {
                 try assertEqualSQL(db, t.filter(ids: [1, 2, 3]), """
                     SELECT * FROM "player" WHERE "id" IN (1, 2, 3)
                     """)
-                try XCTAssertEqual(t.selectID().fetchOne(db), 1)
             }
         }
     }

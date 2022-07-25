@@ -130,6 +130,24 @@ extension TableRecord {
         all().select(sqlLiteral, as: type)
     }
     
+    /// Creates a request which selects the primary key.
+    ///
+    /// All primary keys are supported:
+    ///
+    ///     // SELECT id FROM player
+    ///     let request = try Player.selectPrimaryKey(as: Int64.self)
+    ///
+    ///     // SELECT code FROM country
+    ///     let request = try Country.selectPrimaryKey(as: String.self)
+    ///
+    ///     // SELECT citizenId, countryCode FROM citizenship
+    ///     let request = try Citizenship.selectPrimaryKey(as: Row.self)
+    public static func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
+    -> QueryInterfaceRequest<PrimaryKey>
+    {
+        all().selectPrimaryKey(as: type)
+    }
+    
     /// Creates a request which appends *selection*.
     ///
     ///     // SELECT id, email, name FROM player
@@ -363,13 +381,5 @@ extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
     /// - parameter ids: A collection of primary keys
     public static func filter(ids: some Collection<ID>) -> QueryInterfaceRequest<Self> {
         all().filter(ids: ids)
-    }
-    
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player
-    ///     let request = try Player.selectID()
-    public static func selectID() -> QueryInterfaceRequest<ID> {
-        all().selectID()
     }
 }

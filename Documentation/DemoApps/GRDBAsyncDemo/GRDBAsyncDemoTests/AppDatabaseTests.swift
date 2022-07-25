@@ -61,7 +61,7 @@ class AppDatabaseTests: XCTestCase {
             _ = try Player(id: nil, name: "Barbara", score: 200).inserted(db)
             _ = try Player(id: nil, name: "Craig", score: 150).inserted(db)
             _ = try Player(id: nil, name: "David", score: 120).inserted(db)
-            return try Player.selectID().fetchAll(db)
+            return try Player.selectPrimaryKey().fetchAll(db)
         }
         
         // When we delete two players

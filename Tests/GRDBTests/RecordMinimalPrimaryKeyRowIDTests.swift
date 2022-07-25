@@ -787,33 +787,29 @@ class RecordMinimalPrimaryKeyRowIDTests : GRDBTestCase {
         }
     }
     
-    // MARK: Select ID
+    // MARK: Select PrimaryKey
     
-    func test_static_selectID() throws {
-        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
+    func test_static_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let record = MinimalRowID()
             try record.insert(db)
-            let ids = try MinimalRowID.selectID().fetchAll(db)
+            let ids: [Int64] = try MinimalRowID.selectPrimaryKey().fetchAll(db)
             XCTAssertEqual(ids, [1])
+            let rows = try MinimalRowID.selectPrimaryKey(as: Row.self).fetchAll(db)
+            XCTAssertEqual(rows, [["id": 1]])
         }
     }
     
-    func test_request_selectID() throws {
-        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
+    func test_request_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let record = MinimalRowID()
             try record.insert(db)
-            let ids = try MinimalRowID.all().selectID().fetchAll(db)
+            let ids: [Int64] = try MinimalRowID.all().selectPrimaryKey().fetchAll(db)
             XCTAssertEqual(ids, [1])
+            let rows = try MinimalRowID.all().selectPrimaryKey(as: Row.self).fetchAll(db)
+            XCTAssertEqual(rows, [["id": 1]])
         }
     }
 }

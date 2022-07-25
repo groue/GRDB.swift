@@ -371,13 +371,13 @@ Extensions to the `DerivableRequest` protocol can not change the type of request
 // Author requests              ~~~~~~~~~~~~~~~~~~~~~~~~~~
 extension QueryInterfaceRequest where RowDecoder == Author {
     // Selects author ids
-    func id() -> QueryInterfaceRequest<Int64> {
-        select(Author.Columns.id)
+    func selectId() -> QueryInterfaceRequest<Int64> {
+        selectPrimaryKey(as: Int64.self)
     }
 }
 
 // IDs of French authors
-let ids: [Int64] = try Author.all().filter(country: "France").id().fetchAll(db)
+let ids: [Int64] = try Author.all().filter(country: "France").selectId().fetchAll(db)
 ```
 
 ## Compose Records

@@ -52,11 +52,29 @@ typealias FastNullableDatabaseValueCursor<T: DatabaseValueConvertible & Statemen
 @available(*, unavailable, message: "NullableDatabaseValueCursor<T> has been replaced with DatabaseValueCursor<T?>")
 typealias NullableDatabaseValueCursor<T: DatabaseValueConvertible> = DatabaseValueCursor<T?>
 
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension QueryInterfaceRequest where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
+    @available(*, unavailable, message: "selectID() has been removed. You may use selectPrimaryKey(as:) instead.")
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> { preconditionFailure() }
+}
+
 @available(*, unavailable, renamed: "Statement")
 public typealias SelectStatement = Statement
 
 @available(*, unavailable, renamed: "SQLExpression.AssociativeBinaryOperator")
 public typealias SQLAssociativeBinaryOperator = SQLExpression.AssociativeBinaryOperator
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension Table where RowDecoder: Identifiable, RowDecoder.ID: DatabaseValueConvertible {
+    @available(*, unavailable, message: "selectID() has been removed. You may use selectPrimaryKey(as:) instead.")
+    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> { preconditionFailure() }
+}
+
+@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
+extension TableRecord where Self: Identifiable, ID: DatabaseValueConvertible {
+    @available(*, unavailable, message: "selectID() has been removed. You may use selectPrimaryKey(as:) instead.")
+    public static func selectID() -> QueryInterfaceRequest<ID> { preconditionFailure() }
+}
 
 @available(*, unavailable, renamed: "Statement")
 public typealias UpdateStatement = Statement

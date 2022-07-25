@@ -149,6 +149,30 @@ extension QueryInterfaceRequest: SelectionRequest {
         select(sqlLiteral, as: type)
     }
     
+    /// Creates a request which selects the primary key.
+    ///
+    /// All primary keys are supported:
+    ///
+    ///     // SELECT id FROM player WHERE ...
+    ///     let request = try Player.filter(...).selectPrimaryKey(as: Int64.self)
+    ///
+    ///     // SELECT code FROM country WHERE ...
+    ///     let request = try Country.filter(...).selectPrimaryKey(as: String.self)
+    ///
+    ///     // SELECT citizenId, countryCode FROM citizenship WHERE ...
+    ///     let request = try Citizenship.filter(...).selectPrimaryKey(as: Row.self)
+    public func selectPrimaryKey<PrimaryKey>(as type: PrimaryKey.Type = PrimaryKey.self)
+    -> QueryInterfaceRequest<PrimaryKey>
+    {
+        with { request in
+            let tableName = request.relation.source.tableName
+            request.relation = request.relation.select { db in
+                try db.primaryKey(tableName).columns.map { Column($0).sqlSelection }
+            }
+        }
+        .asRequest(of: PrimaryKey.self)
+    }
+    
     /// Creates a request which appends *selection promise*.
     ///
     ///     // SELECT id, email, name FROM player
@@ -162,26 +186,6 @@ extension QueryInterfaceRequest: SelectionRequest {
                 try selection(db).map(\.sqlSelection)
             }
         }
-    }
-}
-
-@available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *)
-extension QueryInterfaceRequest
-where RowDecoder: Identifiable,
-      RowDecoder.ID: DatabaseValueConvertible
-{
-    /// Creates a request which selects the primary key.
-    ///
-    ///     // SELECT id FROM player WHERE ...
-    ///     let request = try Player.filter(...).selectID()
-    public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> {
-        select { db in
-            let primaryKey = try db.primaryKey(self.databaseTableName)
-            GRDBPrecondition(
-                primaryKey.columns.count == 1,
-                "selectID requires a single-column primary key in the table \(self.databaseTableName)")
-            return [Column(primaryKey.columns[0])]
-        }.asRequest(of: RowDecoder.ID.self)
     }
 }
 

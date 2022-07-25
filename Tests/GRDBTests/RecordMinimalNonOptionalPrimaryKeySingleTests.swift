@@ -747,33 +747,29 @@ class RecordMinimalNonOptionalPrimaryKeySingleTests: GRDBTestCase {
         }
     }
     
-    // MARK: Select ID
+    // MARK: Select PrimaryKey
     
-    func test_static_selectID() throws {
-        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
+    func test_static_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let record = MinimalNonOptionalPrimaryKeySingle(id: "theUUID")
             try record.insert(db)
-            let ids = try MinimalSingle.selectID().fetchAll(db)
+            let ids: [String] = try MinimalSingle.selectPrimaryKey().fetchAll(db)
             XCTAssertEqual(ids, ["theUUID"])
+            let rows = try MinimalSingle.selectPrimaryKey(as: Row.self).fetchAll(db)
+            XCTAssertEqual(rows, [["id": "theUUID"]])
         }
     }
     
-    func test_request_selectID() throws {
-        guard #available(OSX 10.15, iOS 13.0, tvOS 13.0, watchOS 6, *) else {
-            throw XCTSkip("Identifiable not available")
-        }
-        
+    func test_request_selectPrimaryKey() throws {
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             let record = MinimalNonOptionalPrimaryKeySingle(id: "theUUID")
             try record.insert(db)
-            let ids = try MinimalSingle.all().selectID().fetchAll(db)
+            let ids: [String] = try MinimalSingle.all().selectPrimaryKey().fetchAll(db)
             XCTAssertEqual(ids, ["theUUID"])
+            let rows = try MinimalSingle.all().selectPrimaryKey(as: Row.self).fetchAll(db)
+            XCTAssertEqual(rows, [["id": "theUUID"]])
         }
     }
 }
