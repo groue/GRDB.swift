@@ -893,7 +893,7 @@ extension JoinMapping {
             fatalError("Provide at least one left row, or this method can't generate SQL that can be observed.")
         }
         
-        let mappings: [(leftIndex: Rows.Element.ColumnIndex, rightColumn: Column)] = map { mapping in
+        let mappings = map { mapping in
             guard let leftIndex = firstLeftRow.index(forColumn: mapping.left) else {
                 fatalError("Missing column: \(mapping.left)")
             }

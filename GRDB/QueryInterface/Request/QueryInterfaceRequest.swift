@@ -830,7 +830,7 @@ extension Array where Element == Row {
 extension Row {
     /// - precondition: Columns all exist in the row.
     fileprivate func indexes(forColumns columns: [String]) -> [Int] {
-        columns.map { column -> Int in
+        columns.map { column in
             guard let index = index(forColumn: column) else {
                 fatalError("Column \(column) is not selected")
             }

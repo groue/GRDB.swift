@@ -35,7 +35,7 @@ final class WALSnapshot {
     /// error occurs.
     init?(_ db: Database) {
         var snapshot: UnsafeMutablePointer<sqlite3_snapshot>?
-        let code: CInt = withUnsafeMutablePointer(to: &snapshot) {
+        let code = withUnsafeMutablePointer(to: &snapshot) {
             return sqlite3_snapshot_get(db.sqliteConnection, "main", $0)
         }
         guard code == SQLITE_OK, let snapshot else {

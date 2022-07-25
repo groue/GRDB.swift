@@ -925,7 +925,7 @@ extension StatementArguments {
     /// :nodoc:
     public var description: String {
         let valuesDescriptions = values.map(\.description)
-        let namedValuesDescriptions = namedValues.map { (key, value) -> String in
+        let namedValuesDescriptions = namedValues.map { (key, value) in
             "\(String(reflecting: key)): \(value)"
         }
         return "[" + (namedValuesDescriptions + valuesDescriptions).joined(separator: ", ") + "]"

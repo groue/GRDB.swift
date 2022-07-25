@@ -322,7 +322,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         let authorizerP = Unmanaged.passUnretained(authorizer).toOpaque()
         sqlite3_set_authorizer(
             sqliteConnection,
-            { (authorizerP, actionCode, cString1, cString2, cString3, cString4) -> Int32 in
+            { (authorizerP, actionCode, cString1, cString2, cString3, cString4) in
                 Unmanaged<StatementAuthorizer>
                     .fromOpaque(authorizerP.unsafelyUnwrapped)
                     .takeUnretainedValue()
@@ -503,9 +503,9 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             collation.name,
             SQLITE_UTF8,
             collationPointer,
-            { (collationPointer, length1, buffer1, length2, buffer2) -> Int32 in
+            { (collationPointer, length1, buffer1, length2, buffer2) in
                 let collation = Unmanaged<DatabaseCollation>.fromOpaque(collationPointer!).takeUnretainedValue()
-                return Int32(collation.function(length1, buffer1, length2, buffer2).rawValue)
+                return CInt(collation.function(length1, buffer1, length2, buffer2).rawValue)
             }, nil)
         guard code == SQLITE_OK else {
             // Assume a GRDB bug: there is no point throwing any error.

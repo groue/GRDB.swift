@@ -389,7 +389,7 @@ public struct DatabaseMigrator {
                     // Let's migrate a temporary database up to the same
                     // level, and compare the database schemas. If they
                     // differ, we'll erase the database.
-                    let tmpSchema: SchemaInfo = try {
+                    let tmpSchema = try {
                         // Make sure the temporary database is configured
                         // just as the migrated database
                         var tmpConfig = db.configuration

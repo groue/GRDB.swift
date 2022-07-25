@@ -413,7 +413,7 @@ extension ValueWriteOnlyObserver: TransactionObserver {
 extension ValueWriteOnlyObserver: DatabaseCancellable {
     func cancel() {
         // Notify cancellation
-        let (events, writer): (ValueObservationEvents?, Writer?) = lock.synchronized {
+        let (events, writer) = lock.synchronized {
             let events = notificationCallbacks?.events
             notificationCallbacks = nil
             return (events, databaseAccess?.writer)
@@ -433,7 +433,7 @@ extension ValueWriteOnlyObserver: DatabaseCancellable {
     
     func notifyError(_ error: Error) {
         scheduler.schedule {
-            let events: ValueObservationEvents? = self.lock.synchronized {
+            let events = self.lock.synchronized {
                 let events = self.notificationCallbacks?.events
                 self.notificationCallbacks = nil
                 return events

@@ -279,7 +279,7 @@ extension ValueConcurrentObserver {
         }
         
         // Reduce
-        let initialValue: Reducer.Value = reduceQueue.sync {
+        let initialValue = reduceQueue.sync {
             guard let initialValue = reducer._value(fetchedValue) else {
                 fatalError("Broken contract: reducer has no initial value")
             }
@@ -390,7 +390,7 @@ extension ValueConcurrentObserver {
                     // database versions. It prevents database checkpointing,
                     // and keeps WAL snapshots (`sqlite3_snapshot`) valid
                     // and comparable.
-                    let isModified: Bool = withExtendedLifetime(initialSnapshot) {
+                    let isModified = withExtendedLifetime(initialSnapshot) {
                         guard let initialWALSnapshot,
                               let currentWALSnapshot = WALSnapshot(writerDB)
                         else {
@@ -608,7 +608,7 @@ extension ValueConcurrentObserver: DatabaseCancellable {
     
     func notifyError(_ error: Error) {
         scheduler.schedule {
-            let events: ValueObservationEvents? = self.lock.synchronized {
+            let events = self.lock.synchronized {
                 let events = self.notificationCallbacks?.events
                 self.notificationCallbacks = nil
                 return events

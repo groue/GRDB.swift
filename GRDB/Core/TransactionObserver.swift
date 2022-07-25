@@ -1234,7 +1234,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
         return getValue(
             connection,
             column: CInt(index),
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_old(connection, column, &value)
             })
     }
@@ -1244,7 +1244,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
         return getValue(
             connection,
             column: CInt(index),
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_new(connection, column, &value)
             })
     }
@@ -1298,7 +1298,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     private func preupdate_getValues_old(_ connection: SQLiteConnection) -> [DatabaseValue]? {
         preupdate_getValues(
             connection,
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_old(connection, column, &value)
             })
     }
@@ -1306,7 +1306,7 @@ private struct MetalDatabasePreUpdateEventImpl: DatabasePreUpdateEventImpl {
     private func preupdate_getValues_new(_ connection: SQLiteConnection) -> [DatabaseValue]? {
         preupdate_getValues(
             connection,
-            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) -> CInt in
+            sqlite_func: { (connection: SQLiteConnection, column: CInt, value: inout SQLiteValue? ) in
                 sqlite3_preupdate_new(connection, column, &value)
             })
     }
