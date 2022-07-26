@@ -349,7 +349,7 @@ class FoundationDateComponentsTests : GRDBTestCase {
     }
 
     func testDatabaseDateComponentsParsing() {
-        func assertParse(_ string: String, _ dateComponent: DatabaseDateComponents, file: StaticString = #filePath, line: UInt = #line) {
+        func assertParse(_ string: String, _ dateComponent: DatabaseDateComponents, file: StaticString = #file, line: UInt = #line) {
             do {
                 // Test DatabaseValueConvertible adoption
                 guard let parsed = DatabaseDateComponents.fromDatabaseValue(string.databaseValue) else {

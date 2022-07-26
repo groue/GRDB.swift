@@ -13,7 +13,7 @@ class AssociationPrefetchingObservationTests: GRDBTestCase {
         _ db: Database,
         _ request: QueryInterfaceRequest<T>,
         _ expectedDescriptions: String...,
-        file: StaticString = #filePath, line: UInt = #line) throws
+        file: StaticString = #file, line: UInt = #line) throws
     {
         // Test DatabaseRegionConvertible
         do {

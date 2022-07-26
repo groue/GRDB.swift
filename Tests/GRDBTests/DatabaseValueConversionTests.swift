@@ -37,7 +37,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         _ type: T.Type,
         expectedSQLiteConversion: T?,
         expectedDatabaseValueConversion: T?,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line) throws
     {
         func stringRepresentation(_ value: T?) -> String {
@@ -87,7 +87,7 @@ class DatabaseValueConversionTests : GRDBTestCase {
         _ db: Database,
         _ sql: String,
         _ type: T.Type,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line) throws
     {
         // We can only test failed decoding from database value, since

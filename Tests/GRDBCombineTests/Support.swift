@@ -103,7 +103,7 @@ final class AsyncTest<Context> {
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public func assertNoFailure<Failure>(
     _ completion: Subscribers.Completion<Failure>,
-    file: StaticString = #filePath,
+    file: StaticString = #file,
     line: UInt = #line)
 {
     if case let .failure(error) = completion {
@@ -114,7 +114,7 @@ public func assertNoFailure<Failure>(
 @available(OSX 10.15, iOS 13, tvOS 13, watchOS 6, *)
 public func assertFailure<Failure, ExpectedFailure>(
     _ completion: Subscribers.Completion<Failure>,
-    file: StaticString = #filePath,
+    file: StaticString = #file,
     line: UInt = #line,
     test: (ExpectedFailure) -> Void)
 {

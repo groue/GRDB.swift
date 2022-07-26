@@ -313,7 +313,7 @@ extension XCTestCase {
         expected expectedValues: E,
         allowMissingLastValue: Bool = false,
         _ message: @autoclosure () -> String = "",
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line)
         where
         R: BidirectionalCollection,
@@ -357,7 +357,7 @@ extension GRDBTestCase {
         records expectedValues: [Reducer.Value],
         setup: (Database) throws -> Void,
         recordedUpdates: @escaping (Database) throws -> Void,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line)
         throws
         where Reducer.Value: Equatable
@@ -568,7 +568,7 @@ extension GRDBTestCase {
         _ observation: ValueObservation<Reducer>,
         fails testFailure: (Failure, DatabaseWriter) throws -> Void,
         setup: (Database) throws -> Void,
-        file: StaticString = #filePath,
+        file: StaticString = #file,
         line: UInt = #line)
         throws
     {

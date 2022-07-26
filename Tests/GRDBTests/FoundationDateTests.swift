@@ -326,7 +326,7 @@ class FoundationDateTests : GRDBTestCase {
             _ db: Database,
             _ expression: SQLExpression,
             equal expectedDate: Date,
-            file: StaticString = #filePath,
+            file: StaticString = #file,
             line: UInt = #line) throws
         {
             let request: SQLRequest<Double> = "SELECT \(expression)"
@@ -375,7 +375,7 @@ class FoundationDateTests : GRDBTestCase {
             _ db: Database,
             _ expression: SQLExpression,
             equal expectedDate: String,
-            file: StaticString = #filePath,
+            file: StaticString = #file,
             line: UInt = #line) throws
         {
             let request: SQLRequest<String> = "SELECT \(expression)"

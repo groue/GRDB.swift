@@ -3,7 +3,7 @@ import XCTest
 
 class ForeignKeyInfoTests: GRDBTestCase {
     
-    private func assertEqual(_ lhs: ForeignKeyInfo, _ rhs: ForeignKeyInfo, file: StaticString = #filePath, line: UInt = #line) {
+    private func assertEqual(_ lhs: ForeignKeyInfo, _ rhs: ForeignKeyInfo, file: StaticString = #file, line: UInt = #line) {
         XCTAssertEqual(lhs.destinationTable, rhs.destinationTable, file: file, line: line)
         XCTAssertEqual(lhs.mapping.count, rhs.mapping.count, file: file, line: line)
         for (larrow, rarrow) in zip(lhs.mapping, rhs.mapping) {

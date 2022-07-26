@@ -121,7 +121,7 @@ class GRDBTestCase: XCTestCase {
         do { try FileManager.default.removeItem(atPath: dbDirectoryPath) } catch { }
     }
     
-    func assertNoError(file: StaticString = #filePath, line: UInt = #line, _ test: () throws -> Void) {
+    func assertNoError(file: StaticString = #file, line: UInt = #line, _ test: () throws -> Void) {
         do {
             try test()
         } catch {
@@ -129,31 +129,31 @@ class GRDBTestCase: XCTestCase {
         }
     }
     
-    func assertDidExecute(sql: String, file: StaticString = #filePath, line: UInt = #line) {
+    func assertDidExecute(sql: String, file: StaticString = #file, line: UInt = #line) {
         XCTAssertTrue(sqlQueries.contains(sql), "Did not execute \(sql)", file: file, line: line)
     }
     
-    func assert(_ record: some EncodableRecord, isEncodedIn row: Row, file: StaticString = #filePath, line: UInt = #line) {
+    func assert(_ record: some EncodableRecord, isEncodedIn row: Row, file: StaticString = #file, line: UInt = #line) {
         let recordDict = record.databaseDictionary
         let rowDict = Dictionary(row, uniquingKeysWith: { (left, _) in left })
         XCTAssertEqual(recordDict, rowDict, file: file, line: line)
     }
     
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
-    func assertEqualSQL(_ lhs: String, _ rhs: String, file: StaticString = #filePath, line: UInt = #line) {
+    func assertEqualSQL(_ lhs: String, _ rhs: String, file: StaticString = #file, line: UInt = #line) {
         // Trim white space and ";"
         let cs = CharacterSet.whitespacesAndNewlines.union(CharacterSet(charactersIn: ";"))
         XCTAssertEqual(lhs.trimmingCharacters(in: cs), rhs.trimmingCharacters(in: cs), file: file, line: line)
     }
     
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
-    func assertEqualSQL<Request: FetchRequest>(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #filePath, line: UInt = #line) throws {
+    func assertEqualSQL<Request: FetchRequest>(_ db: Database, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
         try request.makeStatement(db).makeCursor().next()
         assertEqualSQL(lastSQLQuery!, sql, file: file, line: line)
     }
     
     // Compare SQL strings (ignoring leading and trailing white space and semicolons.
-    func assertEqualSQL<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request, _ sql: String, file: StaticString = #filePath, line: UInt = #line) throws {
+    func assertEqualSQL<Request: FetchRequest>(_ databaseReader: DatabaseReader, _ request: Request, _ sql: String, file: StaticString = #file, line: UInt = #line) throws {
         try databaseReader.unsafeRead { db in
             try assertEqualSQL(db, request, sql, file: file, line: line)
         }
