@@ -243,10 +243,12 @@ public protocol Cursor<Element>: AnyObject {
 }
 
 extension Cursor {
-    /// Returns a Boolean value indicating whether the cursor contains
-    /// an element.
-    public func isEmpty() throws -> Bool {
-        try next() == nil
+    /// Returns a Boolean value indicating whether the cursor does not contain
+    /// any element.
+    ///
+    /// - important: This property may consume elements.
+    public var isEmpty: Bool {
+        get throws { try next() == nil }
     }
     
     /// Returns a Boolean value indicating whether the cursor contains an

@@ -5,13 +5,20 @@ private struct TestError : Error { }
 
 class CursorTests: GRDBTestCase {
     
+    func testIsEmpty() {
+        XCTAssertTrue(try AnyCursor([Int]()).isEmpty)
+        XCTAssertFalse(try AnyCursor([1]).isEmpty)
+    }
+    
     func testContainsEquatable() {
         XCTAssertTrue(try AnyCursor([1, 2]).contains(1))
+        XCTAssertTrue(try AnyCursor([1, 2]).contains(2))
         XCTAssertFalse(try AnyCursor([1, 2]).contains(3))
     }
     
     func testContainsClosure() {
         XCTAssertTrue(try AnyCursor([1, 2]).contains { $0 == 1 })
+        XCTAssertTrue(try AnyCursor([1, 2]).contains { $0 == 2 })
         XCTAssertFalse(try AnyCursor([1, 2]).contains { $0 == 3 })
         do {
             _ = try AnyCursor([1, 2]).contains { _ -> Bool in throw TestError() }

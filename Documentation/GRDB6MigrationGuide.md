@@ -60,3 +60,10 @@ The `Cursor` protocol has also gained a primary associated type (the type of its
         }
     }
     ```
+
+- `Cursor.isEmpty` is now a throwing property, instead of a method:
+    
+    ```diff
+    -if try cursor.isEmpty() { ... }
+    +if try cursor.isEmpty { ... }
+    ```

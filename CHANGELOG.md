@@ -100,6 +100,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking**: Removed deprecated methods
 - **Breaking**: The in-memory `DatabaseQueue()` initializer can now throw errors.
 - **Breaking**: The `selectID()` method is replaced with `selectPrimaryKey(as:)`.
+- **Breaking**: `Cursor.isEmpty` is now a throwing property, instead of a method.
 - **New**: Request protocols and cursors now define primary associated types, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md).
 
 ## 5.26.0
