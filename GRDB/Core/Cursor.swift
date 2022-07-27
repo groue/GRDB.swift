@@ -21,10 +21,7 @@ extension RangeReplaceableCollection {
     /// - parameter cursor: The cursor whose elements feed the collection.
     public init(_ cursor: some Cursor<Element>) throws {
         self.init()
-        // Prefer `forEach` over `next()` looping, as a slight performance
-        // improvement due to the single `sqlite3_stmt_busy` check for
-        // database cursors.
-        try cursor.forEach { append($0) }
+        try append(contentsOf: cursor)
     }
     
     /// Creates a collection containing the elements of a cursor.
@@ -39,10 +36,20 @@ extension RangeReplaceableCollection {
     public init(_ cursor: some Cursor<Element>, minimumCapacity: Int) throws {
         self.init()
         reserveCapacity(minimumCapacity)
+        try append(contentsOf: cursor)
+    }
+    
+    /// Adds the elements of a cursor to the end of this collection.
+    ///
+    /// In case of error, an unspecified amount of elements have been added to
+    /// the collection.
+    ///
+    /// - parameter newElements: The elements to append to the collection.
+    public mutating func append(contentsOf newElements: some Cursor<Element>) throws {
         // Prefer `forEach` over `next()` looping, as a slight performance
         // improvement due to the single `sqlite3_stmt_busy` check for
         // database cursors.
-        try cursor.forEach { append($0) }
+        try newElements.forEach { append($0) }
     }
 }
 

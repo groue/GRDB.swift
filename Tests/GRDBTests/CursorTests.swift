@@ -202,6 +202,13 @@ class CursorTests: GRDBTestCase {
             let collection: [Int] = try collect(cursor, minimumCapacity: 100)
             XCTAssertEqual(collection, [1, 2, 1, 3])
         }
+        
+        do {
+            let cursor = AnyCursor([1, 2, 1, 3])
+            var collection = [0, 4]
+            try collection.append(contentsOf: cursor)
+            XCTAssertEqual(collection, [0, 4, 1, 2, 1, 3])
+        }
     }
     
     func testSet() throws {

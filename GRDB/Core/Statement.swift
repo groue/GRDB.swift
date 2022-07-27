@@ -425,7 +425,9 @@ extension DatabaseCursor {
     @inlinable
     public func forEach(_ body: (Element) throws -> Void) throws {
         if _isDone { return }
-        try statement.forEachStep { try body(_element(sqliteStatement: $0)) }
+        try statement.forEachStep {
+            try body(_element(sqliteStatement: $0))
+        }
         _isDone = true
     }
 }
