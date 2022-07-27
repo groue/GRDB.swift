@@ -23,19 +23,25 @@
 - [ ] Property wrapper that decodes dictionaries (but how to tell the key column?)
 - [X] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation. Result: no, it does not look it returns values that are comparable between two distinct SQLite connections (from the initial reader, and from the writer thhat starts the observation)
 - [ ] Grab all FTS tokens in a string
+- [ ] Can we generate EXISTS with association? `Team.annotated(with: Team.players.exists)`
 - [ ] GRDB 6: databaseregionconvertible should return a cancellable
 - [ ] RangeReplaceableCollection should have append(contentsOf: cursor)
+- [ ] GRDB 6: choose persistence table
+- [ ] GRDB 6: decoding errors
+- [ ] GRDB 6: encoding errors for record (`EncodableRecord.encode(to:)`)
+- [?] GRDB 6: protocol-based record container? This could avoid computing & encoding values we do not need. 
+- [ ] GRDB 6: encoding & statement binding errors for database values (conversion to DatabaseValue, statement binding, etc)
 - [ ] GRDB 6: Swift 5.7
 - [ ] GRDB 6: any / some
 - [ ] GRDB 6: primary associated types (cursor, requests, ...)
 - [ ] GRDB 6: remove existential/generic duplicated methods
 - [ ] GRDB 6: remove useless AnyXXX Type erasers
-- [ ] GRDB 6: decoding errors
 - [ ] GRDB 6: conflict resolution in persistence methods
 - [ ] GRDB 6: UPSERT
 - [ ] GRDB 6: support for RETURNING
 - [ ] GRDB 6: allow mutating `update` (for timestamps)
-- [ ] GRDB 6: choose persistence table
+- [?] GRDB 6: let record choose persistence table (insert(into:) ?)
+- [?] GRDB 6: Support opaque return types (macOS Catalina, iOS 13, tvOS 13, watchOS 6 and later: https://stackoverflow.com/questions/56518406)
 - [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commit and the end of the editing session.
     * Create an edition SQLite connection with an open transaction (a new kind of DatabaseWriter with a save() method)
     * All other writes will fail with SQLITE_BUSY. Unless they are schedules in a target dispatch queue which is paused during the edition.
