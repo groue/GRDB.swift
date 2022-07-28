@@ -374,7 +374,6 @@ extension DatabaseReader {
 extension DatabaseReader {
     // MARK: - Asynchronous Database Access
     
-    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes a read-only function that accepts a database
     /// connection, and returns its result.
     ///
@@ -421,7 +420,6 @@ extension DatabaseReader {
         }
     }
     
-    // TODO: remove @escaping as soon as it is possible
     /// Asynchronously executes a function that accepts a database connection.
     ///
     /// [**Experimental**](http://github.com/groue/GRDB.swift#what-are-experimental-features)
