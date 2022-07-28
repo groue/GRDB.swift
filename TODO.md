@@ -17,29 +17,34 @@
 
 ## Features
 
-- [ ] Breaking: have DatabaseRegionObservation produce DatabaseCancellable just as ValueObservation.
 - [ ] Can Swift 5.5 help us with `select(.all)` (request of RowDecoder), `select(.id)` (request of RowDecoder.ID), `select(.rowid)` (request of Int64)?
 - [ ] Direct access to statement for bindings
 - [ ] Property wrapper that decodes dictionaries (but how to tell the key column?)
 - [X] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation. Result: no, it does not look it returns values that are comparable between two distinct SQLite connections (from the initial reader, and from the writer thhat starts the observation)
 - [ ] Grab all FTS tokens in a string
 - [ ] Can we generate EXISTS with association? `Team.annotated(with: Team.players.exists)`
-- [ ] GRDB 6: databaseregionconvertible should return a cancellable
-- [ ] RangeReplaceableCollection should have append(contentsOf: cursor)
+- [ ] GRDB 6: have DatabaseRegionObservation produce DatabaseCancellable just as ValueObservation.
+- [X] RangeReplaceableCollection should have append(contentsOf: cursor)
 - [ ] GRDB 6: choose persistence table
 - [ ] GRDB 6: decoding errors
+    - [ ] throwing FetchableRecord initializer FIRST
+    - [ ] throwing Decodable FetchableRecord initializer SECOND
+    - [ ] deal with as much value decoding error as possible
 - [ ] GRDB 6: encoding errors for record (`EncodableRecord.encode(to:)`)
+    - [ ] throwing EncodableRecord.encode FIRST
 - [?] GRDB 6: protocol-based record container? This could avoid computing & encoding values we do not need. 
 - [ ] GRDB 6: encoding & statement binding errors for database values (conversion to DatabaseValue, statement binding, etc)
-- [ ] GRDB 6: Swift 5.7
-- [ ] GRDB 6: any / some
-- [ ] GRDB 6: primary associated types (cursor, requests, ...)
-- [ ] GRDB 6: remove existential/generic duplicated methods
+    - [ ] Prevent Date > 9999 from being encoded
+- [X] GRDB 6: Swift 5.7
+- [X] GRDB 6: any / some
+- [X] GRDB 6: primary associated types (cursor, requests, ...)
+- [X] GRDB 6: remove existential/generic duplicated methods
 - [ ] GRDB 6: remove useless AnyXXX Type erasers
 - [ ] GRDB 6: conflict resolution in persistence methods
 - [ ] GRDB 6: UPSERT
 - [ ] GRDB 6: support for RETURNING
-- [ ] GRDB 6: allow mutating `update` (for timestamps)
+    - [ ] Support for default values: `Player.insert(db, returning: FullPlayer.self)` ?
+- [?] GRDB 6: allow mutating `update` (for timestamps)
 - [?] GRDB 6: let record choose persistence table (insert(into:) ?)
 - [?] GRDB 6: Support opaque return types (macOS Catalina, iOS 13, tvOS 13, watchOS 6 and later: https://stackoverflow.com/questions/56518406)
 - [ ] Long run edition. Use case: user edits the database (CRUD) but the application wants to commit and the end of the editing session.
@@ -48,7 +53,6 @@
 - [ ] Can we use generated columns to makes it convenient to index on inserted JSON objects? https://github.com/apple/swift-package-manager/pull/3090#issuecomment-740091760
 - [ ] Look at [@FetchRequest](https://developer.apple.com/documentation/swiftui/fetchrequest): managed object context is stored in the environment, and error processing happens somewhere else (where?).
 - [ ] Handle SQLITE_LIMIT_VARIABLE_NUMBER in deleteAll(_:keys:) and similar APIs. https://www.sqlite.org/limits.html
-- [ ] Concurrent migrator / or not
 - [ ] Subqueries: request.isEmpty / request.exists
 - [ ] Subqueries: request.count
 - [ ] Extract one row from a hasMany association (the one with the maximum date, the one with a flag set, etc.) https://stackoverflow.com/questions/43188771/sqlite-join-query-most-recent-posts-by-each-user (failed PR: https://github.com/groue/GRDB.swift/pull/767)
