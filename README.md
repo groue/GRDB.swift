@@ -3119,7 +3119,7 @@ struct Player: Codable, FetchableRecord, PersistableRecord {
     var achievements: [Achievement] // stored in a JSON column
 }
 
-try! dbQueue.write { db in
+try dbQueue.write { db in
     // INSERT INTO player (name, score, achievements)
     // VALUES (
     //   'Arthur',
