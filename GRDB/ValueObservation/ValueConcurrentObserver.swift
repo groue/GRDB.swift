@@ -279,8 +279,8 @@ extension ValueConcurrentObserver {
         }
         
         // Reduce
-        let initialValue = reduceQueue.sync {
-            guard let initialValue = reducer._value(fetchedValue) else {
+        let initialValue = try reduceQueue.sync {
+            guard let initialValue = try reducer._value(fetchedValue) else {
                 fatalError("Broken contract: reducer has no initial value")
             }
             return initialValue
@@ -344,15 +344,19 @@ extension ValueConcurrentObserver {
                         let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                         guard isNotifying else { return /* Cancelled */ }
                         
-                        guard let initialValue = self.reducer._value(fetchedValue) else {
-                            fatalError("Broken contract: reducer has no initial value")
-                        }
-                        
-                        // Notify
-                        self.scheduler.schedule {
-                            let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                            guard let onChange else { return /* Cancelled */ }
-                            onChange(initialValue)
+                        do {
+                            guard let initialValue = try self.reducer._value(fetchedValue) else {
+                                fatalError("Broken contract: reducer has no initial value")
+                            }
+                            
+                            // Notify
+                            self.scheduler.schedule {
+                                let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                                guard let onChange else { return /* Cancelled */ }
+                                onChange(initialValue)
+                            }
+                        } catch {
+                            self.notifyError(error)
                         }
                     }
                     
@@ -435,15 +439,23 @@ extension ValueConcurrentObserver {
                             let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                             guard isNotifying else { return /* Cancelled */ }
                             
-                            let value = self.reducer._value(fetchedValue)
-                            
-                            // Notify
-                            if let value = value {
-                                self.scheduler.schedule {
-                                    let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                                    guard let onChange else { return /* Cancelled */ }
-                                    onChange(value)
+                            do {
+                                let value = try self.reducer._value(fetchedValue)
+                                
+                                // Notify
+                                if let value = value {
+                                    self.scheduler.schedule {
+                                        let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                                        guard let onChange else { return /* Cancelled */ }
+                                        onChange(value)
+                                    }
                                 }
+                            } catch {
+                                let dbPool = self.lock.synchronized { self.databaseAccess?.dbPool }
+                                dbPool?.asyncWriteWithoutTransaction { writerDB in
+                                    self.stopDatabaseObservation(writerDB)
+                                }
+                                self.notifyError(error)
                             }
                         }
                     } else {
@@ -557,7 +569,7 @@ extension ValueConcurrentObserver: TransactionObserver {
                 let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                 guard isNotifying else { return /* Cancelled */ }
                 
-                let value = self.reducer._value(fetchedValue)
+                let value = try self.reducer._value(fetchedValue)
                 
                 // Notify value
                 if let value = value {

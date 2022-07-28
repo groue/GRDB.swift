@@ -207,8 +207,8 @@ extension ValueWriteOnlyObserver {
             }
             
             // Reduce
-            return reduceQueue.sync {
-                guard let initialValue = reducer._value(fetchedValue) else {
+            return try reduceQueue.sync {
+                guard let initialValue = try reducer._value(fetchedValue) else {
                     fatalError("Broken contract: reducer has no initial value")
                 }
                 
@@ -241,15 +241,23 @@ extension ValueWriteOnlyObserver {
                     let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                     guard isNotifying else { return /* Cancelled */ }
                     
-                    guard let initialValue = self.reducer._value(fetchedValue) else {
-                        fatalError("Broken contract: reducer has no initial value")
-                    }
-                    
-                    // Notify
-                    self.scheduler.schedule {
-                        let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                        guard let onChange else { return /* Cancelled */ }
-                        onChange(initialValue)
+                    do {
+                        guard let initialValue = try self.reducer._value(fetchedValue) else {
+                            fatalError("Broken contract: reducer has no initial value")
+                        }
+                        
+                        // Notify
+                        self.scheduler.schedule {
+                            let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                            guard let onChange else { return /* Cancelled */ }
+                            onChange(initialValue)
+                        }
+                    } catch {
+                        let writer = self.lock.synchronized { self.databaseAccess?.writer }
+                        writer?.asyncWriteWithoutTransaction { db in
+                            self.stopDatabaseObservation(db)
+                        }
+                        self.notifyError(error)
                     }
                 }
             } catch {
@@ -385,15 +393,23 @@ extension ValueWriteOnlyObserver: TransactionObserver {
                 let isNotifying = self.lock.synchronized { self.notificationCallbacks != nil }
                 guard isNotifying else { return /* Cancelled */ }
                 
-                let value = self.reducer._value(fetchedValue)
-                
-                // Notify value
-                if let value = value {
-                    self.scheduler.schedule {
-                        let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
-                        guard let onChange else { return /* Cancelled */ }
-                        onChange(value)
+                do {
+                    let value = try self.reducer._value(fetchedValue)
+                    
+                    // Notify value
+                    if let value = value {
+                        self.scheduler.schedule {
+                            let onChange = self.lock.synchronized { self.notificationCallbacks?.onChange }
+                            guard let onChange else { return /* Cancelled */ }
+                            onChange(value)
+                        }
                     }
+                } catch {
+                    let writer = self.lock.synchronized { self.databaseAccess?.writer }
+                    writer?.asyncWriteWithoutTransaction { db in
+                        self.stopDatabaseObservation(db)
+                    }
+                    self.notifyError(error)
                 }
             }
         } catch {
