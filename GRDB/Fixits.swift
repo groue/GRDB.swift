@@ -58,6 +58,11 @@ extension QueryInterfaceRequest where RowDecoder: Identifiable, RowDecoder.ID: D
     public func selectID() -> QueryInterfaceRequest<RowDecoder.ID> { preconditionFailure() }
 }
 
+extension Record {
+    @available(*, unavailable, message: "Record.copy() was removed without any replacement.")
+    final func copy() -> Self { preconditionFailure() }
+}
+
 @available(*, unavailable, renamed: "Statement")
 public typealias SelectStatement = Statement
 
@@ -86,4 +91,3 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     -> ValueObservation<ValueReducers.Fetch<Value>>
     { preconditionFailure() }
 }
-

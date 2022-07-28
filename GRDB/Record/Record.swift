@@ -139,23 +139,6 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     open func didInsert(with rowID: Int64, for column: String?) {
     }
     
-    
-    // MARK: - Copy
-    
-    /// Returns a copy of `self`, initialized from all values encoded in the
-    /// `encode(to:)` method.
-    ///
-    /// The eventual primary key is copied, as well as the
-    /// `hasDatabaseChanges` flag.
-    ///
-    /// - returns: A copy of self.
-    open func copy() -> Self {
-        let copy = type(of: self).init(row: Row(self))
-        copy.referenceRow = referenceRow
-        return copy
-    }
-    
-    
     // MARK: - Compare with Previous Versions
     
     /// A boolean that indicates whether the record has changes that have not

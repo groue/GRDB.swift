@@ -377,49 +377,7 @@ class RecordEditedTests: GRDBTestCase {
             XCTAssertTrue(person.hasDatabaseChanges)
         }
     }
-
-    func testCopyTransfersEditedFlag() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let person = Person(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-        }
-        try dbQueue.inDatabase { db in
-            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertFalse(person.hasDatabaseChanges)
-            XCTAssertFalse(person.copy().hasDatabaseChanges)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.hasDatabaseChanges)
-            XCTAssertTrue(person.copy().hasDatabaseChanges)
-        }
-    }
-
+    
     func testChangesAfterInit() {
         let person = Person(name: "Arthur", age: 41)
         let changes = person.databaseChanges
@@ -702,48 +660,6 @@ class RecordEditedTests: GRDBTestCase {
                     XCTFail("Unexpected column: \(column)")
                 }
             }
-        }
-    }
-
-    func testCopyTransfersChanges() throws {
-        let dbQueue = try makeDatabaseQueue()
-        try dbQueue.inDatabase { db in
-            let person = Person(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
-        }
-        try dbQueue.inDatabase { db in
-            let person = PersonWithModifiedCaseColumns(name: "Arthur", age: 41)
-            
-            try person.insert(db)
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.name = "Barbara"
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
-            
-            person.hasDatabaseChanges = false
-            XCTAssertEqual(person.databaseChanges.count, 0)
-            XCTAssertEqual(person.copy().databaseChanges.count, 0)
-            
-            person.hasDatabaseChanges = true
-            XCTAssertTrue(person.databaseChanges.count > 0)            // TODO: compare actual changes
-            XCTAssertEqual(person.databaseChanges.count, person.copy().databaseChanges.count)
         }
     }
     

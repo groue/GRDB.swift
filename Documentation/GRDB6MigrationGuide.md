@@ -67,3 +67,5 @@ The `Cursor` protocol has also gained a primary associated type (the type of its
     -if try cursor.isEmpty() { ... }
     +if try cursor.isEmpty { ... }
     ```
+
+- The `Record.copy()` method was removed, without replacement.
