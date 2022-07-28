@@ -2663,7 +2663,7 @@ Details follow:
 ```swift
 protocol FetchableRecord {
     /// Row initializer
-    init(row: Row)
+    init(row: Row) throws
 }
 ```
 
@@ -3334,14 +3334,14 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row[Columns.id]
         title = row[Columns.title]
         isFavorite = row[Columns.favorite]
         coordinate = CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     /// The values persisted in the database
@@ -3717,11 +3717,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
 
 - Your application needs to decode rows with a context: each decoded value should be initialized with some extra value that does not come from the database.
 
-- Your application needs a record type that supports untrusted databases, and may fail at decoding database rows (throw an error when a row contains invalid values).
-
 Since those use cases are not well handled by FetchableRecord, don't try to implement them on top of this protocol: you'll just fight the framework.
-
-Instead, please have a look at the [CustomizedDecodingOfDatabaseRows](Documentation/Playgrounds/CustomizedDecodingOfDatabaseRows.playground/Contents.swift) playground. You'll run some sample code, and learn how to escape FetchableRecord when you need. And remember that leaving FetchableRecord will not deprive you of [query interface requests](#requests) and generally all SQL generation features of the [TableRecord] and [PersistableRecord] protocols.
 
 
 ## Examples of Record Definitions
@@ -3953,14 +3949,14 @@ class Place: Record {
     }
     
     /// Creates a record from a database row
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row[Columns.id]
         title = row[Columns.title]
         isFavorite = row[Columns.isFavorite]
         coordinate = CLLocationCoordinate2D(
             latitude: row[Columns.latitude],
             longitude: row[Columns.longitude])
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     /// The values persisted in the database
@@ -6284,7 +6280,7 @@ let request = Player.filter(id: 42)
 let observation = ValueObservation
     .tracking { db in try Row.fetchOne(db, request) }
     .removeDuplicates() // Row adopts Equatable
-    .map { row in row.map(Player.init(row:) }
+    .map { row in try row.map(Player.init(row:) }
 ```
 
 This technique is also available for requests that involve [Associations]:
@@ -6300,7 +6296,7 @@ let request = Team.including(all: Team.players)
 let observation = ValueObservation
     .tracking { db in try Row.fetchAll(db, request) }
     .removeDuplicates() // Row adopts Equatable
-    .map { rows in rows.map(TeamInfo.init(row:) }
+    .map { rows in try rows.map(TeamInfo.init(row:) }
 ```
 
 

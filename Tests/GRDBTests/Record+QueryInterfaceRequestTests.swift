@@ -13,11 +13,11 @@ private class Reader : Record {
         super.init()
     }
     
-    required init(row: Row){
+    required init(row: Row) throws {
         self.id = row["id"]
         self.name = row["name"]
         self.age = row["age"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     override class var databaseTableName: String {

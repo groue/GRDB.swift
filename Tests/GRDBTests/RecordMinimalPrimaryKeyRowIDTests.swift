@@ -22,9 +22,9 @@ class MinimalRowID : Record, Hashable {
         "minimalRowIDs"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row["id"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

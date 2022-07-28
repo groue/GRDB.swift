@@ -6,6 +6,7 @@ Migrating From GRDB 5 to GRDB 6
 - [Preparing the Migration to GRDB 6](#preparing-the-migration-to-grdb-6)
 - [New requirements](#new-requirements)
 - [Primary Associated Types](#primary-associated-types)
+- [Record Changes](#record-changes)
 - [Other Changes](#other-changes)
 
 
@@ -41,6 +42,62 @@ Request protocols now come with a primary associated type, enabled by [SE-0346](
 ```
 
 The `Cursor` protocol has also gained a primary associated type (the type of its elements).
+
+## Record Changes
+
+The record protocols have been refactored. We tried to keep the amount of modifications to your existing code as small as possible, but some changes could not be avoided.
+
+- **The `FetchableRecord.init(row:)` initializer can now throw errors.**
+    
+    ```diff
+    -let player = Player(row: row)
+    +let player = try Player(row: row)
+    ```
+
+    Decodable records that derive their `FetchableRecord` implementation from the standard `Decodable` protocol now throw errors when they find unexpected database values (they used to crash in GRDB 5).
+    
+    If you subclass the `Record` type, you have to update your override of `init(row:)`:
+    
+    ```diff
+     class Player: Record {
+    -    required init(row: Row) {
+    +    required init(row: Row) throws {
+             self.id = row["id"]
+             self.name = row["name"]
+    -        super.init(row: row)
+    +        try super.init(row: row)
+         }
+     }
+    ```
+    
+    In record types that do not derive their `FetchableRecord.init(row:)` implementation from the standard `Decodable` protocol, you are responsible for throwing decoding errors, as in the sample code below:
+    
+    <details>
+        <summary>Handling untrusted input</summary>
+    
+    For example:
+    
+    ```swift
+    struct LogEntry: FetchableRecord {
+        var date: Date
+        
+        init(row: Row) throws {
+            let dbValue: DatabaseValue = row["date"]
+            if dbValue.isNull {
+                // Handle NULL
+                throw ...
+            } else if let date = Date.fromDatabaseValue(dbValue) {
+                self.date = date
+            } else {
+                // Handle invalid date
+                throw ...
+            }
+        }
+    }
+    ```
+    
+    </details>
+
 
 ## Other Changes
 

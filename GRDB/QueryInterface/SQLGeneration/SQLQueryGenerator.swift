@@ -458,7 +458,7 @@ struct SQLQueryGenerator: Refinable {
     ///     let request = Book.all()
     ///     for row in try Row.fetchAll(db, request) {
     ///         row // [id:1, title:"Moby-Dick"]
-    ///         let book = Book(row: row)
+    ///         let book = try Book(row: row)
     ///     }
     ///
     /// But as soon as the selection includes columns of a included relation,
@@ -468,7 +468,7 @@ struct SQLQueryGenerator: Refinable {
     ///     let request = Book.including(required: Book.author)
     ///     for row in try Row.fetchAll(db, request) {
     ///         row // [id:1, title:"Moby-Dick"]
-    ///         let book = Book(row: row)
+    ///         let book = try Book(row: row)
     ///
     ///         row.scopes["author"] // [id:12, name:"Herman Melville"]
     ///         let author: Author = row["author"]
@@ -644,7 +644,7 @@ private struct SQLQualifiedRelation {
         // The RangeRowAdapter hides the columns appended by joined relations:
         //
         //          row // [id:1, title:"Moby-Dick"]
-        //          let book = Book(row: row)
+        //          let book = try Book(row: row)
         //
         // Scopes give access to those joined relations:
         //

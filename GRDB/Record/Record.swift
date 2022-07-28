@@ -11,7 +11,7 @@ open class Record: FetchableRecord, TableRecord, PersistableRecord {
     }
     
     /// Creates a Record from a row.
-    public required init(row: Row) {
+    public required init(row: Row) throws {
         if row.isFetched {
             // Take care of the hasDatabaseChanges flag.
             //

@@ -25,10 +25,10 @@ class Email : Record, Hashable {
         "emails"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         email = row["email"]
         label = row["label"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {

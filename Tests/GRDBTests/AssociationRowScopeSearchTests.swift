@@ -97,8 +97,8 @@ class AssociationRowScopeSearchTests: GRDBTestCase {
             var b: B
             var c: C
             var d: D
-            init(row: Row) {
-                a = A(row: row)
+            init(row: Row) throws {
+                a = try A(row: row)
                 b = row["b"]
                 c = row["c"]
                 d = row["d"]

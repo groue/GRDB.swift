@@ -111,6 +111,10 @@ private class UserFetchableRecord2 : FetchableRecord {
     required init(row: Row) { }
 }
 
+private struct UserFetchableRecord3 : FetchableRecord {
+    init(row: Row) throws { }
+}
+
 // MARK: - StatementColumnConvertible
 
 private struct UserStatementColumnConvertible1 : StatementColumnConvertible {

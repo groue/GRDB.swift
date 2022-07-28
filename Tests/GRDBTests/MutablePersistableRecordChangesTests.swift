@@ -289,11 +289,11 @@ class MutablePersistableRecordChangesTests: GRDBTestCase {
                 case id, firstName, lastName
             }
             
-            required init(row: Row) {
+            required init(row: Row) throws {
                 id = row[Columns.id]
                 firstName = row[Columns.firstName]
                 lastName = row[Columns.lastName]
-                super.init(row: row)
+                try super.init(row: row)
             }
             
             override func encode(to container: inout PersistenceContainer) {

@@ -31,12 +31,12 @@ private class Person : Record {
         "persons"
     }
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         id = row["id"]
         age = row["age"]
         name = row["name"]
         creationDate = row["creationDate"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     override func encode(to container: inout PersistenceContainer) {
@@ -65,9 +65,9 @@ private class MinimalPersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         extra = row["extra"]
-        super.init(row: row)
+        try super.init(row: row)
     }
 }
 
@@ -86,9 +86,9 @@ private class PersonWithOverrides : Person {
     
     // Record
     
-    required init(row: Row) {
+    required init(row: Row) throws {
         extra = row["extra"]
-        super.init(row: row)
+        try super.init(row: row)
     }
     
     override func insert(_ db: Database) throws {

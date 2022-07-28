@@ -102,6 +102,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking**: The `selectID()` method is replaced with `selectPrimaryKey(as:)`.
 - **Breaking**: `Cursor.isEmpty` is now a throwing property, instead of a method.
 - **Breaking**: The `Record.copy()` method was removed, without replacement.
+- **Breaking**: The `FetchableRecord.init(row:)` initializer can now throw errors.
 - **New**: Request protocols and cursors now define primary associated types, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md).
 - **New**: You can append the contents of a cursor to a collection with `RangeReplaceableCollection.append(contentsOf:)`.
 - **New**: `ValueObservation.map` now accepts a throwing closure argument.

@@ -1,10 +1,8 @@
 import Foundation
 
 extension FetchableRecord where Self: Decodable {
-    public init(row: Row) {
-        // Intended force-try. FetchableRecord is designed for records that
-        // reliably decode from rows.
-        self = try! RowDecoder().decode(from: row)
+    public init(row: Row) throws {
+        self = try RowDecoder().decode(from: row)
     }
 }
 
@@ -342,7 +340,7 @@ private struct _RowDecoder<R: FetchableRecord>: Decoder {
         {
             if let type = T.self as? any FetchableRecord.Type {
                 // Prefer FetchableRecord decoding over Decodable.
-                return type.init(row: row) as! T
+                return try type.init(row: row) as! T
             } else {
                 let decoder = _RowDecoder(row: row, codingPath: codingPath, columnDecodingStrategy: .useDefaultKeys)
                 return try T(from: decoder)

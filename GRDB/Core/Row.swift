@@ -487,7 +487,7 @@ extension Row {
     ///     let request = Book.including(required: Book.author)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let author: Author = row["author"]
@@ -499,7 +499,7 @@ extension Row {
     ///     let request = Book.including(required: Book.author.including(required: Author.country))
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let country: Country = row["country"]
@@ -522,7 +522,7 @@ extension Row {
     ///     let request = Book.including(optional: Book.author)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let author: Author? = row["author"]
@@ -534,7 +534,7 @@ extension Row {
     ///     let request = Book.including(optional: Book.author.including(optional: Author.country))
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let country: Country? = row["country"]
@@ -557,7 +557,7 @@ extension Row {
     ///     let request = Author.including(all: Author.books)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Author(row: row).name)
+    ///     try print(Author(row: row).name)
     ///     // Prints "Herman Melville"
     ///
     ///     let books: [Book] = row["books"]
@@ -579,7 +579,7 @@ extension Row {
     ///     let request = Author.including(all: Author.books)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Author(row: row).name)
+    ///     try print(Author(row: row).name)
     ///     // Prints "Herman Melville"
     ///
     ///     let books: Set<Book> = row["books"]
@@ -872,7 +872,7 @@ extension Row {
     ///     let request = Book.including(optional: Book.author)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let author: Author? = row["author"]
@@ -884,7 +884,7 @@ extension Row {
     ///     let request = Book.including(optional: Book.author.including(optional: Author.country))
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let country: Country? = row["country"]
@@ -904,7 +904,7 @@ extension Row {
         guard let scopedRow = scopesTree[scope], scopedRow.containsNonNullValue else {
             return nil
         }
-        return Record(row: scopedRow)
+        return try Record(row: scopedRow)
     }
     
     /// Returns the record associated with the given scope.
@@ -914,7 +914,7 @@ extension Row {
     ///     let request = Book.including(required: Book.author)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let author: Author = row["author"]
@@ -926,7 +926,7 @@ extension Row {
     ///     let request = Book.including(required: Book.author.including(required: Author.country))
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Book(row: row).title)
+    ///     try print(Book(row: row).title)
     ///     // Prints "Moby-Dick"
     ///
     ///     let country: Country = row["country"]
@@ -973,7 +973,7 @@ extension Row {
                         scope \(String(reflecting: scope)) only contains null values
                         """))
         }
-        return Record(row: scopedRow)
+        return try Record(row: scopedRow)
     }
 }
 
@@ -987,7 +987,7 @@ extension Row {
     ///     let request = Author.including(all: Author.books)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Author(row: row).name)
+    ///     try print(Author(row: row).name)
     ///     // Prints "Herman Melville"
     ///
     ///     let books: [Book] = row["books"]
@@ -1026,7 +1026,7 @@ extension Row {
         var collection = Collection()
         collection.reserveCapacity(rows.count)
         for row in rows {
-            collection.append(Collection.Element(row: row))
+            try collection.append(Collection.Element(row: row))
         }
         return collection
     }
@@ -1038,7 +1038,7 @@ extension Row {
     ///     let request = Author.including(all: Author.books)
     ///     let row = try Row.fetchOne(db, request)!
     ///
-    ///     print(Author(row: row).name)
+    ///     try print(Author(row: row).name)
     ///     // Prints "Herman Melville"
     ///
     ///     let books: Set<Book> = row["books"]
@@ -1072,7 +1072,7 @@ extension Row {
         }
         var set = Set<Record>(minimumCapacity: rows.count)
         for row in rows {
-            set.insert(Record(row: row))
+            try set.insert(Record(row: row))
         }
         return set
     }
