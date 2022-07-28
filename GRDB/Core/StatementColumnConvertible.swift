@@ -170,9 +170,8 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
     
     /// :nodoc:
     @inlinable
-    public func _element(sqliteStatement: SQLiteStatement) -> Value {
-        // TODO GRDB6: don't crash on decoding errors
-        try! Value.fastDecode(
+    public func _element(sqliteStatement: SQLiteStatement) throws -> Value {
+        try Value.fastDecode(
             fromStatement: sqliteStatement,
             atUncheckedIndex: columnIndex,
             context: RowDecodingContext(statement: statement, index: Int(columnIndex)))

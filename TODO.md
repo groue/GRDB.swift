@@ -27,9 +27,10 @@
 - [X] RangeReplaceableCollection should have append(contentsOf: cursor)
 - [ ] GRDB 6: choose persistence table
 - [ ] GRDB 6: decoding errors
-    - [ ] throwing FetchableRecord initializer FIRST
-    - [ ] throwing Decodable FetchableRecord initializer SECOND
-    - [ ] deal with as much value decoding error as possible
+    - [X] throwing FetchableRecord initializer FIRST
+    - [X] throwing Decodable FetchableRecord initializer SECOND
+    - [X] deal with as much value decoding error as possible
+    - [?] expose throwing row accessors
 - [ ] GRDB 6: encoding errors for record (`EncodableRecord.encode(to:)`)
     - [ ] throwing EncodableRecord.encode FIRST
 - [?] GRDB 6: protocol-based record container? This could avoid computing & encoding values we do not need. 
