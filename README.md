@@ -5794,7 +5794,7 @@ Now we write a method that returns a [custom request](#custom-requests), and the
 ```swift
 extension PlayerInfo {
     /// The request for all player infos
-    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
+    static func all() -> some FetchRequest<PlayerInfo> {
 ```
 
 To acknowledge that both Player and Team records may customize their selection of the "player" and "team" columns, we'll write our SQL in a slightly different way:
@@ -5887,7 +5887,7 @@ struct PlayerInfo: Decodable, FetchableRecord {
 
 extension PlayerInfo {
     /// The request for all player infos
-    static func all() -> AdaptedFetchRequest<SQLRequest<PlayerInfo>> {
+    static func all() -> some FetchRequest<PlayerInfo> {
         let request: SQLRequest<PlayerInfo> = """
             SELECT
                 \(columnsOf: Player.self),
