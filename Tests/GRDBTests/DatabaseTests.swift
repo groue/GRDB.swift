@@ -522,11 +522,6 @@ class DatabaseTests : GRDBTestCase {
     
     // Test an internal API
     func testReadOnly() throws {
-        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        guard sqlite3_libversion_number() >= 3008000 else {
-            return
-        }
-        
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in
             try db.execute(sql: "CREATE TABLE t (id INTEGER PRIMARY KEY)")
@@ -567,11 +562,6 @@ class DatabaseTests : GRDBTestCase {
     }
     
     func testReadOnlyTransaction() throws {
-        // query_only pragma was added in SQLite 3.8.0 http://www.sqlite.org/changes.html#version_3_8_0
-        guard sqlite3_libversion_number() >= 3008000 else {
-            return
-        }
-        
         dbConfiguration.defaultTransactionKind = .immediate
         let dbQueue = try makeDatabaseQueue()
         try dbQueue.inDatabase { db in

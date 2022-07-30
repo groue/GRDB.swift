@@ -96,7 +96,7 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 ## 6.0.0
 
 - **Breaking**: Swift 5.7+ and Xcode 14+ are required.
-- **Breaking**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ are required.
+- **Breaking**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ / SQLite 3.19.3+ are required.
 - **Breaking**: Removed deprecated methods
 - **Breaking**: The in-memory `DatabaseQueue()` initializer can now throw errors.
 - **Breaking**: The `selectID()` method is replaced with `selectPrimaryKey(as:)`.

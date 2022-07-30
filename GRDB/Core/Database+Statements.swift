@@ -455,10 +455,8 @@ struct StatementCache {
         #else
         let statement: Statement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
-            // SQLite 3.24.0 or more
             statement = try db.makeStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
         } else {
-            // SQLite 3.19.3 or less
             statement = try db.makeStatement(sql: sql)
         }
         #endif

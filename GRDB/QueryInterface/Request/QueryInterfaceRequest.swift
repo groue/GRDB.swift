@@ -639,15 +639,7 @@ private func prefetch(
             //      WITH grdb_base AS (SELECT a, b FROM parent)
             //      SELECT * FROM child
             //      WHERE (a, b) IN grdb_base
-            //
-            // This technique works well, but there is one precondition: row
-            // values must be available (https://www.sqlite.org/rowvalue.html).
-            // This is the case of almost all our target platforms.
-            //
-            // Otherwise, we fallback to the `(a = ? AND b = ?) OR ...`
-            // condition (the one that may fail if there are too many
-            // base rows).
-            let usesCommonTableExpression = pivotMapping.count > 1 && SQLExpression.rowValuesAreAvailable
+            let usesCommonTableExpression = pivotMapping.count > 1
             
             let prefetchRequest: QueryInterfaceRequest<Row>
             if usesCommonTableExpression {

@@ -305,27 +305,15 @@ class DatabaseRegionTests : GRDBTestCase {
             }
             do {
                 let statement = try db.makeStatement(sql: "SELECT COUNT(*) FROM foo")
-                if sqlite3_libversion_number() < 3019000 {
-                    let expectedRegion = DatabaseRegion.fullDatabase
-                    XCTAssertEqual(statement.databaseRegion, expectedRegion)
-                    XCTAssertEqual(statement.databaseRegion.description, "full database")
-                } else {
-                    let expectedRegion = DatabaseRegion(table: "foo")
-                    XCTAssertEqual(statement.databaseRegion, expectedRegion)
-                    XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
-                }
+                let expectedRegion = DatabaseRegion(table: "foo")
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                XCTAssertEqual(statement.databaseRegion.description, "foo(*)")
             }
             do {
                 let statement = try db.makeStatement(sql: "SELECT COUNT(*) FROM FOO")
-                if sqlite3_libversion_number() < 3019000 {
-                    let expectedRegion = DatabaseRegion.fullDatabase
-                    XCTAssertEqual(statement.databaseRegion, expectedRegion)
-                    XCTAssertEqual(statement.databaseRegion.description, "full database")
-                } else {
-                    let expectedRegion = DatabaseRegion(table: "foo")
-                    XCTAssertEqual(statement.databaseRegion, expectedRegion)
-                    XCTAssertEqual(statement.databaseRegion.description, "FOO(*)")
-                }
+                let expectedRegion = DatabaseRegion(table: "foo")
+                XCTAssertEqual(statement.databaseRegion, expectedRegion)
+                XCTAssertEqual(statement.databaseRegion.description, "FOO(*)")
             }
         }
     }

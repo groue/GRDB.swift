@@ -96,10 +96,8 @@ class DatabaseConfigurationTests: GRDBTestCase {
         XCTAssertEqual(foo, "foo")
         
         // Test SQLITE_DBCONFIG_DQS_DDL
-        if sqlite3_libversion_number() > 3008010 {
-            try dbQueue.inDatabase { db in
-                try db.execute(sql: "CREATE INDEX i ON player(\"foo\")")
-            }
+        try dbQueue.inDatabase { db in
+            try db.execute(sql: "CREATE INDEX i ON player(\"foo\")")
         }
     }
     

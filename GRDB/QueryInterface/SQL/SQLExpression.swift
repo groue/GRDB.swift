@@ -372,12 +372,7 @@ public struct SQLExpression {
 
 // MARK: - Creating Expressions
 
-extension SQLExpression {
-    
-    /// SQLite row values were shipped in SQLite 3.15:
-    /// <https://www.sqlite.org/releaselog/3_15_0.html>
-    static let rowValuesAreAvailable = (sqlite3_libversion_number() >= 3015000)
-    
+extension SQLExpression {    
     // MARK: Basic Expressions
     
     /// A column.

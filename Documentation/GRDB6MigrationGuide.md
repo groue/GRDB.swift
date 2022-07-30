@@ -26,6 +26,7 @@ GRDB requirements have been bumped:
 - **macOS 10.13+** (was macOS 10.10+)
 - **tvOS 11.0+** (was tvOS 11.0+)
 - **watchOS 4.0+** (was watchOS 2.0+)
+- **SQLite 3.19.3+** (was SQLite 3.8.5+)
 
 ## Primary Associated Types
 

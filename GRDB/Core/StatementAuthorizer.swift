@@ -152,19 +152,6 @@ final class StatementAuthorizer {
             if strcmp(cString2, "sqlite_drop_column") == 0 {
                 invalidatesDatabaseSchemaCache = true
             }
-            
-            // Starting SQLite 3.19.0, `SELECT COUNT(*) FROM table` triggers
-            // an authorization callback for SQLITE_READ with an empty
-            // column: http://www.sqlite.org/changes.html#version_3_19_0
-            //
-            // Before SQLite 3.19.0, `SELECT COUNT(*) FROM table` does not
-            // trigger any authorization callback that tells about the
-            // counted table: any use of the COUNT function makes the
-            // region undetermined (the full database).
-            guard sqlite3_libversion_number() < 3019000 else { return SQLITE_OK }
-            if sqlite3_stricmp(cString2, "COUNT") == 0 {
-                selectedRegion = .fullDatabase
-            }
             return SQLITE_OK
             
         default:

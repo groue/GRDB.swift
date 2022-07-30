@@ -572,14 +572,6 @@ extension Database {
         // 2   | lastName  | TEXT    | 0       | NULL       | 0  | 0
         let columnInfoQuery: String
         if sqlite3_libversion_number() < 3026000 {
-            if sqlite3_libversion_number() < 3008005 {
-                // Work around a bug in SQLite where PRAGMA table_info would
-                // return a result even after the table was deleted.
-                if try !tableExists(table) {
-                    schemaCache[table.schemaID].set(columns: .missing, forTable: table.name)
-                    return nil
-                }
-            }
             columnInfoQuery = "PRAGMA \(table.schemaID.sql).table_info(\(table.name.quotedDatabaseIdentifier))"
         } else {
             // Use PRAGMA table_xinfo so that we can load generated columns
@@ -731,17 +723,8 @@ public struct ColumnInfo: FetchableRecord {
     ///     columnInfos[3].defaultValueSQL // "CURRENT_TIMESTAMP"
     public let defaultValueSQL: String?
     
-    /// Zero for columns that are not part of the primary key.
-    ///
-    /// Before SQLite 3.7.16, it is 1 for columns that are part of the
-    /// primary key.
-    ///
-    /// Starting from SQLite 3.7.16, it is the one-based index of the column in
-    /// the primary key for columns that are part of the primary key.
-    ///
-    /// References:
-    /// - <https://sqlite.org/releaselog/3_7_16.html>
-    /// - <http://mailinglists.sqlite.org/cgi-bin/mailman/private/sqlite-users/2013-April/046034.html>
+    /// For columns that are part of the primary key, this is the one-based
+    /// index of the column in the primary key. For other columns, it is zero.
     public let primaryKeyIndex: Int
     
     /// :nodoc:

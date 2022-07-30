@@ -617,8 +617,6 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         
         // sqlite3_trace_v2 and sqlite3_expanded_sql were introduced in SQLite 3.14.0
         // http://www.sqlite.org/changes.html#version_3_14
-        // It is available from macOS 10.12, tvOS 10.0, watchOS 3.0
-        // https://github.com/yapstudios/YapDatabase/wiki/SQLite-version-(bundled-with-OS)
         #if os(Linux)
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
         sqlite3_trace(sqliteConnection, { (dbPointer, sql) in
