@@ -481,9 +481,7 @@ extension DatabaseMigrator {
                     promise(dbResult.map { _ in })
                 }
             }
-            .eraseToAnyPublisher()
             .receiveValues(on: scheduler)
-            .eraseToAnyPublisher()
         )
     }
 }
@@ -498,7 +496,7 @@ extension DatabasePublishers {
         public typealias Output = Void
         public typealias Failure = Error
         
-        fileprivate let upstream: AnyPublisher<Void, Error>
+        fileprivate let upstream: any Publisher<Void, Error>
         
         public func receive<S>(subscriber: S) where S: Subscriber, Self.Failure == S.Failure, Self.Output == S.Input {
             upstream.receive(subscriber: subscriber)
