@@ -451,7 +451,7 @@ public class TableAlias: Hashable {
     }
 }
 
-extension Array where Element == TableAlias {
+extension [TableAlias] {
     /// Resolve ambiguities in aliases' names.
     fileprivate var resolvedNames: [TableAlias: String] {
         // It is a programmer error to reuse the same TableAlias for

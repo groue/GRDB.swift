@@ -32,7 +32,7 @@ private struct PlayerWithTeamName: Decodable, FetchableRecord {
     var teamName: String?
 }
 
-extension QueryInterfaceRequest where RowDecoder == Player {
+private extension QueryInterfaceRequest<Player> {
     func filter(teamName: String) -> QueryInterfaceRequest<Player> {
         joining(required: PlayerWithOptionalTeam.team.filter(Column("name") == teamName))
     }

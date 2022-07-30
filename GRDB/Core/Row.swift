@@ -1433,7 +1433,7 @@ extension Row {
     }
 }
 
-extension FetchRequest where RowDecoder == Row {
+extension FetchRequest<Row> {
     
     // MARK: Fetching Rows
     
@@ -1925,7 +1925,7 @@ extension Row {
     }
 }
 
-extension OrderedDictionary where Key == String, Value == Row.Prefetch {
+extension OrderedDictionary<String, Row.Prefetch> {
     fileprivate mutating func setRows(_ rows: [Row], forKeyPath keyPath: [String]) {
         var keyPath = keyPath
         let key = keyPath.removeFirst()

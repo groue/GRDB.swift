@@ -1734,7 +1734,7 @@ extension Sequence where Element: SQLSpecificExpressible {
     }
 }
 
-extension Sequence where Element == any SQLSpecificExpressible {
+extension Sequence<any SQLSpecificExpressible> {
     /// Returns an expression by joining all elements with an associative SQL
     /// binary operator.
     ///

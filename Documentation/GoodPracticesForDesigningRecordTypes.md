@@ -368,8 +368,8 @@ try dbQueue.read { db in
 Extensions to the `DerivableRequest` protocol can not change the type of requests. This has to be expressed in an extension to `QueryInterfaceRequest`. For example:
 
 ```swift
-// Author requests              ~~~~~~~~~~~~~~~~~~~~~~~~~~
-extension QueryInterfaceRequest where RowDecoder == Author {
+// Author requests
+extension QueryInterfaceRequest<Author> {
     // Selects author ids
     func selectId() -> QueryInterfaceRequest<Int64> {
         selectPrimaryKey(as: Int64.self)

@@ -151,7 +151,7 @@ extension CommonTableExpression {
     }
 }
 
-extension CommonTableExpression where RowDecoder == Row {
+extension CommonTableExpression<Row> {
     /// Creates a common table expression from a request.
     ///
     /// For example:

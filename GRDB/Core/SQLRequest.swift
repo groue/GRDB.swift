@@ -86,7 +86,7 @@ extension SQLRequest {
     }
 }
 
-extension SQLRequest where RowDecoder == Row {
+extension SQLRequest<Row> {
     /// Creates a request from an SQL string, optional arguments, and
     /// optional row adapter.
     ///

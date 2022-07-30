@@ -42,6 +42,17 @@ Request protocols now come with a primary associated type, enabled by [SE-0346](
  }
 ```
 
+Your extensions to `QueryInterfaceRequest` can be streamlined as well, thanks to [SE-0361](https://github.com/apple/swift-evolution/blob/main/proposals/0361-bound-generic-extensions.md):
+
+```diff
+-extension QueryInterfaceRequest where RowDecoder == Player {
++extension QueryInterfaceRequest<Player> {
+     func selectID() -> QueryInterfaceRequest<Int64> {
+         selectPrimaryKey()
+     }
+ }
+```
+
 The `Cursor` protocol has also gained a primary associated type (the type of its elements).
 
 ## Record Changes

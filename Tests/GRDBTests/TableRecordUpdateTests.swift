@@ -24,7 +24,7 @@ private enum Columns: String, ColumnExpression {
     case id, name, score, bonus
 }
 
-private extension QueryInterfaceRequest where RowDecoder == Player {
+private extension QueryInterfaceRequest<Player> {
     func incrementScore(_ db: Database) throws {
         try updateAll(db, Columns.score += 1)
     }

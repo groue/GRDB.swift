@@ -326,7 +326,7 @@ extension CountableClosedRange where Bound: SQLExpressible {
     }
 }
 
-extension Sequence where Self.Iterator.Element: SQLExpressible {
+extension Sequence where Element: SQLExpressible {
     /// An SQL expression that checks the inclusion of an expression in
     /// a sequence.
     ///
@@ -337,7 +337,7 @@ extension Sequence where Self.Iterator.Element: SQLExpressible {
     }
 }
 
-extension Sequence where Self.Iterator.Element == SQLExpressible {
+extension Sequence<any SQLExpressible> {
     /// An SQL expression that checks the inclusion of an expression in
     /// a sequence.
     ///

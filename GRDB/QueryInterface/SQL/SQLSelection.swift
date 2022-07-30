@@ -231,7 +231,7 @@ extension SQLSelection {
     }
 }
 
-extension Array where Element == SQLSelection {
+extension [SQLSelection] {
     /// Returns the number of columns in the selection.
     ///
     /// This method raises a fatal error if the selection contains a literal,

@@ -805,7 +805,7 @@ throws -> DatabaseRegion
         .databaseRegion // contains region of nested associations
 }
 
-extension Array where Element == Row {
+extension [Row] {
     /// - precondition: Columns all exist in all rows. All rows have the same
     ///   columnns, in the same order.
     fileprivate func grouped(byDatabaseValuesOnColumns columns: [String]) -> [[DatabaseValue]: [Row]] {

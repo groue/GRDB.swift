@@ -196,7 +196,7 @@ extension SQL: SQLOrderingTerm {
     }
 }
 
-extension Sequence where Element == SQL {
+extension Sequence<SQL> {
     /// Returns the concatenated `SQL` literal of this sequence of literals,
     /// inserting the given separator between each element.
     ///
@@ -215,7 +215,7 @@ extension Sequence where Element == SQL {
     }
 }
 
-extension Collection where Element == SQL {
+extension Collection<SQL> {
     /// Returns the concatenated `SQL` literal of this collection of literals,
     /// inserting the given SQL separator between each element.
     ///
