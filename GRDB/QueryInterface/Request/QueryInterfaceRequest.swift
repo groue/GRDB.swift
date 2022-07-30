@@ -361,7 +361,7 @@ extension QueryInterfaceRequest: DerivableRequest {
     ///     request = request.limit(10, offset: 20)
     ///
     /// Any previous limit is replaced.
-    public func limit(_ limit: Int, offset: Int?) -> QueryInterfaceRequest {
+    public func limit(_ limit: Int, offset: Int? = nil) -> QueryInterfaceRequest {
         with {
             $0.relation.limit = SQLLimit(limit: limit, offset: offset)
         }

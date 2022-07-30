@@ -377,20 +377,6 @@ extension Association {
         }
     }
     
-    /// Creates an association that fetches *limit* rows, starting at *offset*.
-    ///
-    /// Any previous limit is replaced.
-    ///
-    /// - warning: Avoid this method: it is unlikely it does what you expect it
-    ///   to do. It will be removed in a future GRDB version.
-    ///
-    /// :nodoc:
-    public func limit(_ limit: Int, offset: Int? = nil) -> Self {
-        withDestinationRelation { relation in
-            relation.limit = SQLLimit(limit: limit, offset: offset)
-        }
-    }
-    
     /// Returns an association that embeds the common table expression.
     ///
     /// See `QueryInterfaceRequest.with(_:)` for more information.

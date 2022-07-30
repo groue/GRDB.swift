@@ -1,6 +1,11 @@
 // Fixits for changes introduced by GRDB 6.0.0
 // swiftlint:disable all
 
+extension Association {
+    @available(*, unavailable, message: "limit(_:offset:) was not working properly, and was removed.")
+    public func limit(_ limit: Int, offset: Int? = nil) -> Self { preconditionFailure() }
+}
+
 extension Database {
     @available(*, unavailable, renamed: "cachedStatement(sql:)")
     public func cachedSelectStatement(sql: String) throws -> Statement { preconditionFailure() }

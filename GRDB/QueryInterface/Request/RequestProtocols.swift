@@ -762,20 +762,6 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     ///     request = request.distinct()
     func distinct() -> Self
     
-    /// Creates a request which fetches *limit* rows, starting at *offset*.
-    ///
-    ///     // SELECT * FROM player LIMIT 10 OFFSET 20
-    ///     var request = Player.all()
-    ///     request = request.limit(10, offset: 20)
-    ///
-    /// Any previous limit is replaced.
-    ///
-    /// - warning: Avoid to call this method on associations: it is unlikely it
-    ///   does what you expect it to do. Only call it on requests.
-    ///
-    /// :nodoc:
-    func limit(_ limit: Int, offset: Int?) -> Self
-    
     /// Returns a request which embeds the common table expression.
     ///
     /// If a common table expression with the same table name had already been
@@ -810,22 +796,6 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
 }
 
 extension DerivableRequest {
-    /// Creates a request which fetches *limit* rows.
-    ///
-    ///     // SELECT * FROM player LIMIT 1
-    ///     var request = Player.all()
-    ///     request = request.limit(1)
-    ///
-    /// Any previous limit is replaced.
-    ///
-    /// - warning: Avoid to call this method on associations: it is unlikely it
-    ///   does what you expect it to do. Only call it on requests.
-    ///
-    /// :nodoc:
-    public func limit(_ limit: Int) -> Self {
-        self.limit(limit, offset: nil)
-    }
-    
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> Self {
         var request = self
         let expression = aggregate.prepare(&request)

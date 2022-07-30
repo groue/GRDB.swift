@@ -126,3 +126,18 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     ```
 
 - The `Record.copy()` method was removed, without replacement.
+
+- The `DerivableRequest.limit(_:offset_:)` method was removed, without replacement.
+    
+    You can still limit `QueryInterfaceRequest`, but associations can no longer be limited:
+    
+    ```swift
+    // Still OK: a limited request of authors
+    let request = Author.limit(10)
+
+    // Still OK: a limited request of books
+    let request = author.request(for: Author.books).limit(10)
+    
+    // No longer possible: including a limited association
+    let request = Author.including(all: Author.books.limit(10))
+    ```
