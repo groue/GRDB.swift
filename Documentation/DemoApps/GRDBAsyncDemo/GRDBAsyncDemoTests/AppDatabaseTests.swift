@@ -29,7 +29,8 @@ class AppDatabaseTests: XCTestCase {
         try await appDatabase.savePlayer(&player)
         
         // Then the player exists in the database
-        try XCTAssertTrue(dbQueue.read(player.exists))
+        let playerExists = try await dbQueue.read { [player] in try player.exists($0) }
+        XCTAssertTrue(playerExists)
     }
     
     func test_savePlayer_updates() async throws {
@@ -76,7 +77,8 @@ class AppDatabaseTests: XCTestCase {
         }
         
         // Then the database still contains two players
-        try XCTAssertEqual(dbQueue.read(Player.fetchCount), 2)
+        let count = try await dbQueue.read { try Player.fetchCount($0) }
+        XCTAssertEqual(count, 2)
     }
     
     func test_deleteAllPlayers() async throws {
@@ -94,7 +96,8 @@ class AppDatabaseTests: XCTestCase {
         try await appDatabase.deleteAllPlayers()
         
         // Then the database does not contain any player
-        try XCTAssertEqual(dbQueue.read(Player.fetchCount), 0)
+        let count = try await dbQueue.read { try Player.fetchCount($0) }
+        XCTAssertEqual(count, 0)
     }
     
     func test_refreshPlayers_populates_an_empty_database() async throws {
@@ -106,7 +109,8 @@ class AppDatabaseTests: XCTestCase {
         try await appDatabase.refreshPlayers()
         
         // Then the database is not empty
-        try XCTAssert(dbQueue.read(Player.fetchCount) > 0)
+        let count = try await dbQueue.read { try Player.fetchCount($0) }
+        XCTAssert(count > 0)
     }
     
     func test_createRandomPlayersIfEmpty_populates_an_empty_database() throws {
