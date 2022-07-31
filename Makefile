@@ -57,7 +57,7 @@ ifeq ($(XCODEVERSION),14.0)
   MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.4"
   MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=16.0"
   #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4" TODO: restore
-  OTHER_SWIFT_FLAGS = '$$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks'
+  OTHER_SWIFT_FLAGS = '$$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' # -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks'
   GCC_PREPROCESSOR_DEFINITIONS = '$$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1'
 else
   # Swift 5.3 required: Xcode < 12.0 is not supported
