@@ -38,16 +38,6 @@
                ReferencedContainer = "container:GRDBAsyncDemo.xcodeproj">
             </BuildableReference>
          </TestableReference>
-         <TestableReference
-            skipped = "NO">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "78E2F9E2261EEC22005D1F7F"
-               BuildableName = "GRDBAsyncDemoUITests.xctest"
-               BlueprintName = "GRDBAsyncDemoUITests"
-               ReferencedContainer = "container:GRDBAsyncDemo.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction
