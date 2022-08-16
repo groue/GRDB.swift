@@ -5,6 +5,8 @@ extension Database {
     /// Add a transaction observer, so that it gets notified of
     /// database changes.
     ///
+    /// This method has no effect on read-only database connections.
+    ///
     /// - parameter transactionObserver: A transaction observer.
     /// - parameter extent: The duration of the observation. The default is
     ///   the observer lifetime (observation lasts until observer
@@ -14,6 +16,7 @@ extension Database {
         extent: TransactionObservationExtent = .observerLifetime)
     {
         SchedulingWatchdog.preconditionValidQueue(self)
+        guard let observationBroker else { return }
         
         // Drop cached statements that delete, because the addition of an
         // observer may change the need for truncate optimization prevention.
@@ -26,6 +29,7 @@ extension Database {
     /// Remove a transaction observer.
     public func remove(transactionObserver: some TransactionObserver) {
         SchedulingWatchdog.preconditionValidQueue(self)
+        guard let observationBroker else { return }
         
         // Drop cached statements that delete, because the removal of an
         // observer may change the need for truncate optimization prevention.

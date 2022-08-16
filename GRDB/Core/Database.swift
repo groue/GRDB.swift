@@ -154,7 +154,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // Database observation
     lazy var authorizer = StatementAuthorizer(self)
-    lazy var observationBroker = DatabaseObservationBroker(self)
+    private(set) var observationBroker: DatabaseObservationBroker?
     
     /// The list of compile options used when building SQLite
     static func sqliteCompileOptions() throws -> Set<String> {
@@ -196,6 +196,12 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         self.sqliteConnection = try Database.openConnection(path: path, flags: configuration.SQLiteOpenFlags)
         self.description = description
         self.configuration = configuration
+        
+        // We do not report read-only transactions to transaction observers, so
+        // don't bother installing the observation broker for read-only connections.
+        if !configuration.readonly {
+            observationBroker = DatabaseObservationBroker(self)
+        }
     }
     
     deinit {
@@ -237,9 +243,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         setupDefaultFunctions()
         setupDefaultCollations()
         setupAuthorizer()
-        if !configuration.readonly {
-            observationBroker.installCommitAndRollbackHooks()
-        }
+        observationBroker?.installCommitAndRollbackHooks()
         try activateExtendedCodes()
         
         #if SQLITE_HAS_CODEC

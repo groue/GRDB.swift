@@ -106,18 +106,21 @@ final class StatementAuthorizer {
             guard let cString1 = cString1 else { return SQLITE_OK }
             
             // Deletions from sqlite_master and sqlite_temp_master are not like
-            // other deletions: the update hook does not notify them, and they
-            // are prevented when the truncate optimization is disabled.
-            // Let's authorize such deletions by returning SQLITE_OK:
+            // other deletions: `sqlite3_update_hook` does not notify them, and
+            // they are prevented when the truncate optimization is disabled.
+            // Let's always authorize such deletions by returning SQLITE_OK:
             guard strcmp(cString1, "sqlite_master") != 0 else { return SQLITE_OK }
             guard strcmp(cString1, "sqlite_temp_master") != 0 else { return SQLITE_OK }
             
             let tableName = String(cString: cString1)
             databaseEventKinds.append(.delete(tableName: tableName))
             
-            // Now we prevent the truncate optimization so that transaction
-            // observers are notified of individual row deletions.
-            if database.observationBroker.observesDeletions(on: tableName) {
+            if let observationBroker = database.observationBroker,
+               observationBroker.observesDeletions(on: tableName)
+            {
+                // Prevent the truncate optimization so that
+                // `sqlite3_update_hook` notifies individual row deletions to
+                // transaction observers.
                 return SQLITE_IGNORE
             } else {
                 return SQLITE_OK

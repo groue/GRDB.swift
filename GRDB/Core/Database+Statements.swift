@@ -389,7 +389,7 @@ extension Database {
         }
         
         // Database observation: prepare transaction observers.
-        observationBroker.statementWillExecute(statement)
+        observationBroker?.statementWillExecute(statement)
     }
     
     /// May throw a cancelled commit error, if a transaction observer cancels
@@ -400,7 +400,7 @@ extension Database {
             clearSchemaCache()
         }
         
-        try observationBroker.statementDidExecute(statement)
+        try observationBroker?.statementDidExecute(statement)
     }
     
     /// Always throws an error
@@ -416,7 +416,7 @@ extension Database {
         
         /// Exposes the user-provided cancelled commit error, if a transaction
         /// observer has cancelled a transaction.
-        try observationBroker.statementDidFail(statement)
+        try observationBroker?.statementDidFail(statement)
         
         throw DatabaseError(
             resultCode: resultCode,
