@@ -24,7 +24,7 @@ extension Database {
         }
     }
     
-    /// A SQLite schema. See <https://sqlite.org/lang_naming.html>
+    /// An SQLite schema. See <https://sqlite.org/lang_naming.html>
     enum SchemaIdentifier: Hashable {
         /// The main database
         case main
@@ -35,7 +35,12 @@ extension Database {
         /// An attached database: <https://sqlite.org/lang_attach.html>
         case attached(String)
         
-        /// The name of the schema in SQL queries
+        /// The name of the schema in SQL queries.
+        ///
+        /// For example:
+        ///
+        ///     SELECT * FROM main.player;
+        ///     --            ~~~~
         var sql: String {
             switch self {
             case .main: return "main"
@@ -59,7 +64,7 @@ extension Database {
         /// The SQLite schema
         var schemaID: SchemaIdentifier
         
-        /// The table name
+        /// The table or view name
         var name: String
         
         /// Returns the receiver, quoted for safe insertion as an identifier in
@@ -85,7 +90,7 @@ extension Database {
         // We also clear statement cache despite the automatic statement
         // recompilation (see https://www.sqlite.org/c3ref/prepare.html)
         // because the automatic statement recompilation only happens a
-        // limited number of times.
+        // limited number of times (`SQLITE_MAX_SCHEMA_RETRY`).
         internalStatementCache.clear()
         publicStatementCache.clear()
     }
@@ -107,17 +112,17 @@ extension Database {
             return schemaIdentifiers
         }
         
-        var schemaIdentifiers = try Row
-            .fetchAll(self, sql: "PRAGMA database_list")
+        var schemaIdentifiers = try Array(Row
+            .fetchCursor(self, sql: "PRAGMA database_list")
             .map { row -> SchemaIdentifier in
                 switch row[1] as String {
                 case "main": return .main
                 case "temp": return .temp
                 case let other: return .attached(other)
                 }
-            }
+            })
         
-        // Temp schema shadows other schema: put it first
+        // Temp schema shadows all other schemas: put it first
         if let tempIdx = schemaIdentifiers.firstIndex(of: .temp) {
             schemaIdentifiers.swapAt(tempIdx, 0)
         }
@@ -126,7 +131,8 @@ extension Database {
         return schemaIdentifiers
     }
     
-    /// Returns whether a table exists in the main or temp schema.
+    /// Returns whether a table exists, in the main or temp schema, or in an
+    /// attached database.
     public func tableExists(_ name: String) throws -> Bool {
         try schemaIdentifiers().contains {
             try exists(type: .table, name: name, in: $0)
@@ -159,14 +165,16 @@ extension Database {
         tableName.starts(with: "grdb_")
     }
     
-    /// Returns whether a view exists in the main or temp schema.
+    /// Returns whether a view exists, in the main or temp schema, or in an
+    /// attached database.
     public func viewExists(_ name: String) throws -> Bool {
         try schemaIdentifiers().contains {
             try exists(type: .view, name: name, in: $0)
         }
     }
     
-    /// Returns whether a trigger exists in the main or temp schema.
+    /// Returns whether a trigger exists, in the main or temp schema, or in an
+    /// attached database.
     public func triggerExists(_ name: String) throws -> Bool {
         try schemaIdentifiers().contains {
             try exists(type: .trigger, name: name, in: $0)
@@ -250,7 +258,7 @@ extension Database {
             primaryKey = .hiddenRowID
         case 1:
             // Single column
-            let pkColumn = pkColumns.first!
+            let pkColumn = pkColumns[0]
             
             // https://www.sqlite.org/lang_createtable.html:
             //
@@ -296,12 +304,21 @@ extension Database {
     ///
     /// - precondition: table exists.
     private func tableHasRowID(_ table: TableIdentifier) throws -> Bool {
-        // Not need to cache the result, because this information feeds
+        // No need to cache the result, because this information feeds
         // `PrimaryKeyInfo`, which is cached.
         //
-        // Use a distinctive alias so that we better understand in the
-        // future why this query appears in the error log.
-        // https://github.com/groue/GRDB.swift/issues/945#issuecomment-804896196
+        // To check if the table has a rowid, we compile a statement that
+        // selects the `rowid` column. If compilation fails, we assume that the
+        // table is WITHOUT ROWID. This is not a very robust test (users may
+        // create WITHOUT ROWID tables with a `rowid` column), but nobody has
+        // reported any problem yet.
+        //
+        // Since compilation may fail, we may feed the SQLite error log, and
+        // users may wonder what are those errors. That's why we use a
+        // distinctive alias (`checkWithoutRowidOptimization`), so that anyone
+        // can search the GRDB code, find this documentation, and understand why
+        // this query appears in the error log:
+        // <https://github.com/groue/GRDB.swift/issues/945#issuecomment-804896196>
         //
         // We don't use `try makeStatement(sql:)` in order to avoid throwing an
         // error (this annoys users who set a breakpoint on Swift errors).
@@ -320,8 +337,9 @@ extension Database {
     /// SQLite does not define any index for INTEGER PRIMARY KEY columns: this
     /// method does not return any index that represents the primary key.
     ///
-    /// If you want to know if a set of columns uniquely identify a row, prefer
-    /// `table(_:hasUniqueKey:)` instead.
+    /// If you want to know if a set of columns uniquely identifies a row, because
+    /// the columns contain the primary key or a unique index, use
+    /// ``table(_:hasUniqueKey:)``.
     ///
     /// - throws: A DatabaseError if table does not exist.
     public func indexes(on tableName: String) throws -> [IndexInfo] {
@@ -384,7 +402,17 @@ extension Database {
     }
     
     /// True if a sequence of columns uniquely identifies a row, that is to say
-    /// if the columns are the primary key, or if there is a unique index on them.
+    /// if the columns contain the primary key, or a unique index.
+    ///
+    /// For example:
+    ///
+    ///     // CREATE TABLE t(id INTEGER PRIMARY KEY, a, b, c);
+    ///     // CREATE UNIQUE INDEX i ON t(a, b);
+    ///     try db.table("t", hasUniqueKey: ["id"])                // true
+    ///     try db.table("t", hasUniqueKey: ["a", "b"])            // true
+    ///     try db.table("t", hasUniqueKey: ["c"])                 // false
+    ///     try db.table("t", hasUniqueKey: ["id", "a"])           // true
+    ///     try db.table("t", hasUniqueKey: ["id", "a", "b", "c"]) // true
     public func table(
         _ tableName: String,
         hasUniqueKey columns: some Sequence<String>)
@@ -485,6 +513,12 @@ extension Database {
         throw DatabaseError.noSuchTable(tableName)
     }
     
+    private func foreignKeyViolations(in table: TableIdentifier) throws -> RecordCursor<ForeignKeyViolation> {
+        try ForeignKeyViolation.fetchCursor(self, sql: """
+            PRAGMA \(table.schemaID.sql).foreign_key_check(\(table.name.quotedDatabaseIdentifier))
+            """)
+    }
+    
     /// Throws a DatabaseError of extended code `SQLITE_CONSTRAINT_FOREIGNKEY`
     /// if there exists a foreign key violation in the database.
     public func checkForeignKeys() throws {
@@ -497,20 +531,14 @@ extension Database {
         try checkForeignKeys(from: foreignKeyViolations(in: tableName))
     }
     
-    private func foreignKeyViolations(in table: TableIdentifier) throws -> RecordCursor<ForeignKeyViolation> {
-        try ForeignKeyViolation.fetchCursor(self, sql: """
-            PRAGMA \(table.schemaID.sql).foreign_key_check(\(table.name.quotedDatabaseIdentifier))
-            """)
-    }
-    
     private func checkForeignKeys(from violations: RecordCursor<ForeignKeyViolation>) throws {
         if let violation = try violations.next() {
             throw violation.databaseError(self)
         }
     }
     
-    /// Returns the actual name of the database table, in the main or temp
-    /// schema, or nil if the table does not exist.
+    /// Returns the actual name of the database table, or nil if the table does
+    /// not exist.
     ///
     /// - throws: A DatabaseError if table does not exist.
     func canonicalTableName(_ tableName: String) throws -> String? {
@@ -621,9 +649,10 @@ extension Database {
         return columns
     }
     
-    /// If there exists a unique key on columns, return the columns
-    /// ordered as the matching index (or primary key). Case of returned columns
-    /// is not guaranteed.
+    /// If there exists a unique key that contains those columns, this method
+    /// returns the columns of the unique key, ordered as the matching index (or
+    /// primary key). The case of returned columns is not guaranteed to match
+    /// the case of input columns.
     func columnsForUniqueKey(
         _ columns: some Sequence<String>,
         in tableName: String)
@@ -635,25 +664,26 @@ extension Database {
             return nil
         }
         
-        // Assume "rowid" is a primary key
-        if lowercasedColumns == ["rowid"] {
+        // Check rowid
+        let primaryKey = try self.primaryKey(tableName)
+        if primaryKey.tableHasRowID && lowercasedColumns == ["rowid"] {
             return ["rowid"]
         }
         
-        // Check primaryKey.
-        let primaryKey = try self.primaryKey(tableName)
+        // Check primaryKey
         if Set(primaryKey.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns) {
             return primaryKey.columns
         }
         
-        // Is there is an explicit unique index on the columns?
-        let indexes = try self.indexes(on: tableName)
-        let matchingIndex = indexes.first { index in
+        // Check unique indexes
+        let matchingIndex = try indexes(on: tableName).first { index in
             index.isUnique && Set(index.columns.map { $0.lowercased() }).isSubset(of: lowercasedColumns)
         }
-        if let index = matchingIndex {
-            return index.columns
+        if let matchingIndex {
+            return matchingIndex.columns
         }
+        
+        // No matching unique key found
         return nil
     }
     
@@ -727,6 +757,9 @@ public struct ColumnInfo: FetchableRecord {
     /// When not nil, it contains an SQL string that defines an expression. That
     /// expression may be a literal, as `1`, or `'foo'`. It may also contain a
     /// non-constant expression such as `CURRENT_TIMESTAMP`.
+    ///
+    /// For more information, see
+    /// <https://www.sqlite.org/lang_createtable.html#the_default_clause>.
     ///
     /// For example:
     ///
@@ -1044,6 +1077,7 @@ enum SchemaObjectType: String {
     case view
 }
 
+/// All objects in a database schema (tables, views, indexes, triggers).
 struct SchemaInfo: Equatable {
     private var objects: Set<SchemaObject>
     

@@ -334,11 +334,11 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
             try keys
                 .map { key in
                     // Prevent filter(keys: [["foo": 1, "bar": 2]]) where
-                    // ("foo", "bar") is not a unique key (primary key or columns of a
-                    // unique index)
+                    // ("foo", "bar") do not contain a unique key (primary key
+                    // or unique index).
                     guard let columns = try db.columnsForUniqueKey(key.keys, in: databaseTableName) else {
                         fatalError("""
-                            table \(databaseTableName) has no unique index on column(s) \
+                            table \(databaseTableName) has no unique key on column(s) \
                             \(key.keys.sorted().joined(separator: ", "))
                             """)
                     }
