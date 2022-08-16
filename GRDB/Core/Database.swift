@@ -137,7 +137,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// external connection modifies the schema.
     /// 
     /// See `clearSchemaCacheIfNeeded()`.
-    var lastSchemaVersion: CInt?
+    var lastSchemaVersion: Int32?
     
     /// The cache for the available database schemas (main, temp, attached databases).
     var schemaCache = SchemaCache()
@@ -230,7 +230,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     // MARK: - Database Opening
     
-    private static func openConnection(path: String, flags: Int32) throws -> SQLiteConnection {
+    private static func openConnection(path: String, flags: CInt) throws -> SQLiteConnection {
         // See <https://www.sqlite.org/c3ref/open.html>
         var sqliteConnection: SQLiteConnection? = nil
         let code = sqlite3_open_v2(path, &sqliteConnection, flags, nil)
@@ -301,7 +301,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
             break
             
         case .timeout(let duration):
-            let milliseconds = Int32(duration * 1000)
+            let milliseconds = CInt(duration * 1000)
             sqlite3_busy_timeout(sqliteConnection, milliseconds)
             
         case .callback(let callback):
@@ -670,7 +670,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         }, dbPointer)
         #else
         let dbPointer = Unmanaged.passUnretained(self).toOpaque()
-        sqlite3_trace_v2(sqliteConnection, UInt32(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
+        sqlite3_trace_v2(sqliteConnection, CUnsignedInt(bitPattern: options.rawValue), { (mask, dbPointer, p, x) in
             let db = Unmanaged<Database>.fromOpaque(dbPointer!).takeUnretainedValue()
             db.trace_v2(CInt(bitPattern: mask), p, x, sqlite3_expanded_sql)
             return SQLITE_OK
@@ -1311,7 +1311,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
         to destDb: Database,
-        pagesPerStep: Int32 = -1,
+        pagesPerStep: CInt = -1,
         progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
@@ -1323,7 +1323,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     
     func backupInternal(
         to destDb: Database,
-        pagesPerStep: Int32 = -1,
+        pagesPerStep: CInt = -1,
         afterBackupInit: (() -> Void)? = nil,
         afterBackupStep: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
@@ -1408,7 +1408,7 @@ extension Database {
     ///     }
     public func usePassphrase(_ passphrase: Data) throws {
         let code = passphrase.withUnsafeBytes {
-            sqlite3_key(sqliteConnection, $0.baseAddress, Int32($0.count))
+            sqlite3_key(sqliteConnection, $0.baseAddress, CInt($0.count))
         }
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: String(cString: sqlite3_errmsg(sqliteConnection)))
@@ -1438,7 +1438,7 @@ extension Database {
         // > schema of the original db into the new one:
         // > https://discuss.zetetic.net/t/how-to-encrypt-a-plaintext-sqlite-database-to-use-sqlcipher-and-avoid-file-is-encrypted-or-is-not-a-database-errors/
         let code = passphrase.withUnsafeBytes {
-            sqlite3_rekey(sqliteConnection, $0.baseAddress, Int32($0.count))
+            sqlite3_rekey(sqliteConnection, $0.baseAddress, CInt($0.count))
         }
         guard code == SQLITE_OK else {
             throw DatabaseError(resultCode: code, message: lastErrorMessage)
@@ -1495,7 +1495,7 @@ extension Database {
     }
     
     /// The available [checkpoint modes](https://www.sqlite.org/c3ref/wal_checkpoint_v2.html).
-    public enum CheckpointMode: Int32 {
+    public enum CheckpointMode: CInt {
         /// The `SQLITE_CHECKPOINT_PASSIVE` mode
         case passive = 0
         
@@ -1806,7 +1806,7 @@ extension Database {
         case multiThread
         case serialized
         
-        var SQLiteOpenFlags: Int32 {
+        var SQLiteOpenFlags: CInt {
             switch self {
             case .`default`:
                 return 0

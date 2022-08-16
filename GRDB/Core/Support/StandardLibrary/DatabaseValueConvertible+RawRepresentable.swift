@@ -41,7 +41,7 @@ extension StatementBinding where Self: RawRepresentable, Self.RawValue: Statemen
 extension StatementColumnConvertible where Self: RawRepresentable, Self.RawValue: StatementColumnConvertible {
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         guard let rawValue = RawValue(sqliteStatement: sqliteStatement, index: index) else {
             return nil
         }

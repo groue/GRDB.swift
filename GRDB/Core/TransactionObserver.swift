@@ -984,7 +984,7 @@ protocol DatabaseEventProtocol {
 public struct DatabaseEvent {
     
     /// An event kind
-    public enum Kind: Int32 {
+    public enum Kind: CInt {
         /// SQLITE_INSERT
         case insert = 18
         
@@ -1091,7 +1091,7 @@ private struct CopiedDatabaseEventImpl: DatabaseEventImpl {
 public struct DatabasePreUpdateEvent {
     
     /// An event kind
-    public enum Kind: Int32 {
+    public enum Kind: CInt {
         /// SQLITE_INSERT
         case insert = 18
         

@@ -42,11 +42,11 @@ extension Database {
     
     private class FTS5TokenizerConstructor {
         let db: Database
-        let constructor: (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> Int32
+        let constructor: (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> CInt
         
         init(
             db: Database,
-            constructor: @escaping (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> Int32)
+            constructor: @escaping (Database, [String], UnsafeMutablePointer<OpaquePointer?>?) -> CInt)
         {
             self.db = db
             self.constructor = constructor
@@ -99,9 +99,9 @@ extension Database {
         func xCreateTokenizer(
             constructorPointer: UnsafeMutableRawPointer?,
             azArg: UnsafeMutablePointer<UnsafePointer<Int8>?>?,
-            nArg: Int32,
+            nArg: CInt,
             tokenizerHandle: UnsafeMutablePointer<OpaquePointer?>?)
-        -> Int32
+        -> CInt
         {
             guard let constructorPointer else {
                 return SQLITE_ERROR
@@ -126,12 +126,12 @@ extension Database {
         func xTokenize(
             tokenizerPointer: OpaquePointer?,
             context: UnsafeMutableRawPointer?,
-            flags: Int32,
+            flags: CInt,
             pText: UnsafePointer<Int8>?,
-            nText: Int32,
+            nText: CInt,
             // swiftlint:disable:next line_length
-            tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, Int32, UnsafePointer<Int8>?, Int32, Int32, Int32) -> Int32)?)
-        -> Int32
+            tokenCallback: (@convention(c) (UnsafeMutableRawPointer?, CInt, UnsafePointer<Int8>?, CInt, CInt, CInt) -> CInt)?)
+        -> CInt
         {
             guard let tokenizerPointer else {
                 return SQLITE_ERROR

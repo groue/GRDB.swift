@@ -65,7 +65,7 @@ extension DatabaseValueConvertible {
     
     static func decode(
         fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
+        atUncheckedIndex index: CInt,
         context: @autoclosure () -> RowDecodingContext)
     throws -> Self
     {
@@ -78,7 +78,7 @@ extension DatabaseValueConvertible {
         if let sqliteStatement = row.sqliteStatement {
             return try decode(
                 fromStatement: sqliteStatement,
-                atUncheckedIndex: Int32(index),
+                atUncheckedIndex: CInt(index),
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
         }
         return try decode(
@@ -108,13 +108,13 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
     public let statement: Statement
     /// :nodoc:
     public var _isDone = false
-    private let columnIndex: Int32
+    private let columnIndex: CInt
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self.statement = statement
         if let adapter = adapter {
             // adapter may redefine the index of the leftmost column
-            columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
+            columnIndex = try CInt(adapter.baseColumnIndex(atIndex: 0, layout: statement))
         } else {
             columnIndex = 0
         }

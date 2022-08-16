@@ -116,7 +116,7 @@ public struct DatabaseValue: Hashable, CustomStringConvertible, DatabaseValueCon
     }
     
     /// Returns a DatabaseValue initialized from a raw SQLite statement pointer.
-    init(sqliteStatement: SQLiteStatement, index: Int32) {
+    init(sqliteStatement: SQLiteStatement, index: CInt) {
         switch sqlite3_column_type(sqliteStatement, index) {
         case SQLITE_NULL:
             storage = .null

@@ -75,7 +75,7 @@ extension Optional: DatabaseValueConvertible where Wrapped: DatabaseValueConvert
 extension Optional: StatementColumnConvertible where Wrapped: StatementColumnConvertible {
     @inline(__always)
     @inlinable
-    public static func fromStatement(_ sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
+    public static func fromStatement(_ sqliteStatement: SQLiteStatement, atUncheckedIndex index: CInt) -> Self? {
         if let value = Wrapped.fromStatement(sqliteStatement, atUncheckedIndex: index) {
             // Valid value
             return value
@@ -88,7 +88,7 @@ extension Optional: StatementColumnConvertible where Wrapped: StatementColumnCon
         }
     }
     
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         guard let value = Wrapped(sqliteStatement: sqliteStatement, index: index) else {
             return nil
         }

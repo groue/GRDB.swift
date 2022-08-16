@@ -34,7 +34,7 @@ public final class Statement {
     /// The column names, ordered from left to right.
     public lazy var columnNames: [String] = {
         let sqliteStatement = self.sqliteStatement
-        return (0..<Int32(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
+        return (0..<CInt(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
     }()
     
     // The database region is reported by `sqlite3_set_authorizer`, and maybe
@@ -91,7 +91,7 @@ public final class Statement {
         database: Database,
         statementStart: UnsafePointer<Int8>,
         statementEnd: UnsafeMutablePointer<UnsafePointer<Int8>?>,
-        prepFlags: Int32) throws
+        prepFlags: CUnsignedInt) throws
     {
         SchedulingWatchdog.preconditionValidQueue(database)
         
@@ -100,16 +100,16 @@ public final class Statement {
         authorizer.reset()
         
         var sqliteStatement: SQLiteStatement? = nil
-        let code: Int32
+        let code: CInt
         // sqlite3_prepare_v3 was introduced in SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
 #if GRDBCUSTOMSQLITE || GRDBCIPHER
         code = sqlite3_prepare_v3(
-            database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
+            database.sqliteConnection, statementStart, -1, prepFlags,
             &sqliteStatement, statementEnd)
 #else
         if #available(iOS 12.0, OSX 10.14, tvOS 12.0, watchOS 5.0, *) {
             code = sqlite3_prepare_v3(
-                database.sqliteConnection, statementStart, -1, UInt32(bitPattern: prepFlags),
+                database.sqliteConnection, statementStart, -1, prepFlags,
                 &sqliteStatement, statementEnd)
         } else {
             code = sqlite3_prepare_v2(database.sqliteConnection, statementStart, -1, &sqliteStatement, statementEnd)
@@ -151,7 +151,7 @@ public final class Statement {
     
     // Returns ["id", nil", "name"] for "INSERT INTO table VALUES (:id, ?, :name)"
     fileprivate lazy var sqliteArgumentNames: [String?] = {
-        (0..<Int32(self.sqliteArgumentCount)).map {
+        (0..<CInt(self.sqliteArgumentCount)).map {
             guard let cString = sqlite3_bind_parameter_name(self.sqliteStatement, $0 + 1) else {
                 return nil
             }
@@ -219,7 +219,7 @@ public final class Statement {
         clearBindings()
         
         var valuesIterator = arguments.values.makeIterator()
-        for (index, argumentName) in zip(Int32(1)..., sqliteArgumentNames) {
+        for (index, argumentName) in zip(CInt(1)..., sqliteArgumentNames) {
             if let argumentName = argumentName, let value = arguments.namedValues[argumentName] {
                 bind(value, at: index)
             } else if let value = valuesIterator.next() {
@@ -252,7 +252,7 @@ public final class Statement {
         argumentsNeedValidation = false
         try reset()
         clearBindings()
-        for (index, dbValue) in zip(Int32(1)..., bindings) {
+        for (index, dbValue) in zip(CInt(1)..., bindings) {
             bind(dbValue, at: index)
         }
     }

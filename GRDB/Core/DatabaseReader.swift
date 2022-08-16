@@ -342,7 +342,7 @@ extension DatabaseReader {
     ///   any `DatabaseError` that would happen while performing the backup.
     public func backup(
         to writer: some DatabaseWriter,
-        pagesPerStep: Int32 = -1,
+        pagesPerStep: CInt = -1,
         progress: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws
     {
@@ -356,7 +356,7 @@ extension DatabaseReader {
     
     func backup(
         to destDb: Database,
-        pagesPerStep: Int32 = -1,
+        pagesPerStep: CInt = -1,
         afterBackupInit: (() -> Void)? = nil,
         afterBackupStep: ((DatabaseBackupProgress) throws -> Void)? = nil)
     throws

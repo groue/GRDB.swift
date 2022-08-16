@@ -288,7 +288,7 @@ public final class FTS4ColumnDefinition {
         return self
     }
     
-    /// Uses the column as the Int32 language id hidden column.
+    /// Uses the column as the language id hidden column.
     ///
     ///     try db.create(virtualTable: "document", using: FTS4()) { t in
     ///         t.column("a")

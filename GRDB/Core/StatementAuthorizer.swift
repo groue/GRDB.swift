@@ -56,12 +56,12 @@ final class StatementAuthorizer {
     }
     
     private func authorize(
-        _ actionCode: Int32,
+        _ actionCode: CInt,
         _ cString1: UnsafePointer<Int8>?,
         _ cString2: UnsafePointer<Int8>?,
         _ cString3: UnsafePointer<Int8>?,
         _ cString4: UnsafePointer<Int8>?)
-    -> Int32
+    -> CInt
     {
         // Uncomment when debugging
         // print("""
@@ -195,7 +195,7 @@ final class StatementAuthorizer {
 }
 
 private struct AuthorizerActionCode: RawRepresentable, CustomStringConvertible {
-    let rawValue: Int32
+    let rawValue: CInt
     
     var description: String {
         switch rawValue {

@@ -78,7 +78,7 @@ enum RowDecodingError: Error {
     static func valueMismatch(
         _ type: Any.Type,
         sqliteStatement: SQLiteStatement,
-        index: Int32,
+        index: CInt,
         context: RowDecodingContext)
     -> Self
     {
@@ -99,7 +99,7 @@ enum RowDecodingError: Error {
         valueMismatch(
             type,
             context: RowDecodingContext(statement: statement, index: index),
-            databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: Int32(index)))
+            databaseValue: DatabaseValue(sqliteStatement: statement.sqliteStatement, index: CInt(index)))
     }
     
     /// Convenience method that builds the `column not found: <column>`

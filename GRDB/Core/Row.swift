@@ -2103,7 +2103,7 @@ private struct StatementRowImpl: RowImpl {
         self.sqliteStatement = sqliteStatement
         // Optimize row[columnName]
         let lowercaseColumnNames = (0..<sqlite3_column_count(sqliteStatement))
-            .map { String(cString: sqlite3_column_name(sqliteStatement, Int32($0))).lowercased() }
+            .map { String(cString: sqlite3_column_name(sqliteStatement, CInt($0))).lowercased() }
         self.lowercaseColumnIndexes = Dictionary(
             lowercaseColumnNames
                 .enumerated()
@@ -2119,11 +2119,11 @@ private struct StatementRowImpl: RowImpl {
     
     func hasNull(atUncheckedIndex index: Int) -> Bool {
         // Avoid extracting values, because this modifies the SQLite statement.
-        sqlite3_column_type(sqliteStatement, Int32(index)) == SQLITE_NULL
+        sqlite3_column_type(sqliteStatement, CInt(index)) == SQLITE_NULL
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
+        DatabaseValue(sqliteStatement: sqliteStatement, index: CInt(index))
     }
     
     func fastDecode<Value: DatabaseValueConvertible & StatementColumnConvertible>(
@@ -2133,29 +2133,29 @@ private struct StatementRowImpl: RowImpl {
     {
         try Value.fastDecode(
             fromStatement: sqliteStatement,
-            atUncheckedIndex: Int32(index),
+            atUncheckedIndex: CInt(index),
             context: RowDecodingContext(statement: statement, index: index))
     }
     
     func fastDecodeDataNoCopy(atUncheckedIndex index: Int) throws -> Data {
-        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+        guard sqlite3_column_type(sqliteStatement, CInt(index)) != SQLITE_NULL else {
             throw RowDecodingError.valueMismatch(Data.self, statement: statement, index: index)
         }
-        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+        guard let bytes = sqlite3_column_blob(sqliteStatement, CInt(index)) else {
             return Data()
         }
-        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        let count = Int(sqlite3_column_bytes(sqliteStatement, CInt(index)))
         return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
     }
     
     func fastDecodeDataNoCopyIfPresent(atUncheckedIndex index: Int) throws -> Data? {
-        guard sqlite3_column_type(sqliteStatement, Int32(index)) != SQLITE_NULL else {
+        guard sqlite3_column_type(sqliteStatement, CInt(index)) != SQLITE_NULL else {
             return nil
         }
-        guard let bytes = sqlite3_column_blob(sqliteStatement, Int32(index)) else {
+        guard let bytes = sqlite3_column_blob(sqliteStatement, CInt(index)) else {
             return Data()
         }
-        let count = Int(sqlite3_column_bytes(sqliteStatement, Int32(index)))
+        let count = Int(sqlite3_column_bytes(sqliteStatement, CInt(index)))
         return Data(bytesNoCopy: UnsafeMutableRawPointer(mutating: bytes), count: count, deallocator: .none)
     }
     
@@ -2182,11 +2182,11 @@ private struct SQLiteStatementRowImpl: RowImpl {
     var isFetched: Bool { true }
     
     func columnName(atUncheckedIndex index: Int) -> String {
-        String(cString: sqlite3_column_name(sqliteStatement, Int32(index)))
+        String(cString: sqlite3_column_name(sqliteStatement, CInt(index)))
     }
     
     func databaseValue(atUncheckedIndex index: Int) -> DatabaseValue {
-        DatabaseValue(sqliteStatement: sqliteStatement, index: Int32(index))
+        DatabaseValue(sqliteStatement: sqliteStatement, index: CInt(index))
     }
     
     func index(forColumn name: String) -> Int? {

@@ -11,7 +11,7 @@ private struct Fetched: DatabaseValueConvertible, StatementColumnConvertible, Ha
         self.fast = fast
     }
     
-    init(sqliteStatement: SQLiteStatement, index: Int32) {
+    init(sqliteStatement: SQLiteStatement, index: CInt) {
         self.init(int: Int(sqlite3_column_int64(sqliteStatement, index)), fast: true)
     }
     

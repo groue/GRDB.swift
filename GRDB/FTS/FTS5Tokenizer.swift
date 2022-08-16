@@ -6,20 +6,20 @@ import Foundation
 /// See FTS5Tokenizer.tokenize(context:flags:pText:nText:tokenCallback:)
 public typealias FTS5TokenCallback = @convention(c) (
     _ context: UnsafeMutableRawPointer?,
-    _ flags: Int32,
+    _ flags: CInt,
     _ pToken: UnsafePointer<Int8>?,
-    _ nToken: Int32,
-    _ iStart: Int32,
-    _ iEnd: Int32)
-    -> Int32
+    _ nToken: CInt,
+    _ iStart: CInt,
+    _ iEnd: CInt)
+    -> CInt
 
 /// The reason why FTS5 is requesting tokenization.
 ///
 /// See <https://www.sqlite.org/fts5.html#custom_tokenizers>
 public struct FTS5Tokenization: OptionSet {
-    public let rawValue: Int32
+    public let rawValue: CInt
     
-    public init(rawValue: Int32) {
+    public init(rawValue: CInt) {
         self.rawValue = rawValue
     }
     
@@ -56,9 +56,9 @@ public protocol FTS5Tokenizer: AnyObject {
         context: UnsafeMutableRawPointer?,
         tokenization: FTS5Tokenization,
         pText: UnsafePointer<Int8>?,
-        nText: Int32,
+        nText: CInt,
         tokenCallback: @escaping FTS5TokenCallback)
-    -> Int32
+    -> CInt
 }
 
 private class TokenizeContext {
@@ -118,7 +118,7 @@ extension FTS5Tokenizer {
                 return []
             }
             let pText = UnsafeMutableRawPointer(mutating: addr).assumingMemoryBound(to: Int8.self)
-            let nText = Int32(buffer.count)
+            let nText = CInt(buffer.count)
             
             var context = TokenizeContext()
             try withUnsafeMutablePointer(to: &context) { contextPointer in
@@ -174,7 +174,7 @@ extension Database {
             self.xTokenizer = xTokenizer
             
             var tokenizerPointer: OpaquePointer? = nil
-            let code: Int32
+            let code: CInt
             if arguments.isEmpty {
                 code = xCreate(contextPointer, nil, 0, &tokenizerPointer)
             } else {
@@ -200,7 +200,7 @@ extension Database {
                         xCreate(
                             contextPointer,
                             UnsafeMutablePointer(OpaquePointer(azArg.baseAddress!)),
-                            Int32(cStrings.count),
+                            CInt(cStrings.count),
                             &tokenizerPointer)
                     }
                 }
@@ -227,9 +227,9 @@ extension Database {
             context: UnsafeMutableRawPointer?,
             tokenization: FTS5Tokenization,
             pText: UnsafePointer<Int8>?,
-            nText: Int32,
+            nText: CInt,
             tokenCallback: @escaping FTS5TokenCallback)
-        -> Int32
+        -> CInt
         {
             guard let xTokenize = xTokenizer.xTokenize else {
                 return SQLITE_ERROR

@@ -98,6 +98,10 @@ extension Database {
     /// Clears the database schema cache if the database schema has changed
     /// since this method was last called.
     func clearSchemaCacheIfNeeded() throws {
+        // `PRAGMA schema_version` fetches a 4-bytes integer (Int32), stored
+        // at offset 40 of the database header:
+        // <https://sqlite.org/pragma.html#pragma_schema_version>
+        // <https://sqlite.org/fileformat2.html#database_header>
         let schemaVersion = try Int32.fetchOne(internalCachedStatement(sql: "PRAGMA schema_version"))
         if lastSchemaVersion != schemaVersion {
             lastSchemaVersion = schemaVersion

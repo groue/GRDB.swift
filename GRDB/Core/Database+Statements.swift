@@ -77,7 +77,7 @@ extension Database {
     ///   SQLite 3.20.0, see <http://www.sqlite.org/c3ref/prepare.html>)
     /// - returns: A Statement.
     /// - throws: A DatabaseError whenever SQLite could not parse the sql query.
-    func makeStatement(sql: String, prepFlags: Int32) throws -> Statement {
+    func makeStatement(sql: String, prepFlags: CUnsignedInt) throws -> Statement {
         let statements = SQLStatementCursor(database: self, sql: sql, arguments: nil, prepFlags: prepFlags)
         guard let statement = try statements.next() else {
             throw DatabaseError(
@@ -314,14 +314,14 @@ extension Database {
 public class SQLStatementCursor: Cursor {
     private let database: Database
     private let cString: ContiguousArray<CChar>
-    private let prepFlags: CInt
+    private let prepFlags: CUnsignedInt
     private let initialArgumentCount: Int?
     
     // Mutated by iteration
     private var offset: Int // offset in the C string
     private var arguments: StatementArguments? // Nil when arguments are set later
     
-    init(database: Database, sql: String, arguments: StatementArguments?, prepFlags: CInt = 0) {
+    init(database: Database, sql: String, arguments: StatementArguments?, prepFlags: CUnsignedInt = 0) {
         self.database = database
         self.cString = sql.utf8CString
         self.prepFlags = prepFlags
@@ -421,7 +421,7 @@ extension Database {
     
     /// Always throws an error
     @usableFromInline
-    func statementDidFail(_ statement: Statement, withResultCode resultCode: Int32) throws -> Never {
+    func statementDidFail(_ statement: Statement, withResultCode resultCode: CInt) throws -> Never {
         // Failed statements can not be reused, because `sqlite3_reset` won't
         // be able to restore the statement to its initial state:
         // https://www.sqlite.org/c3ref/reset.html
@@ -477,11 +477,11 @@ struct StatementCache {
         // However SQLITE_PREPARE_PERSISTENT was only introduced in
         // SQLite 3.20.0 http://www.sqlite.org/changes.html#version_3_20
         #if GRDBCUSTOMSQLITE || GRDBCIPHER
-        let statement = try db.makeStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+        let statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
         #else
         let statement: Statement
         if #available(iOS 12.0, OSX 10.14, watchOS 5.0, *) {
-            statement = try db.makeStatement(sql: sql, prepFlags: SQLITE_PREPARE_PERSISTENT)
+            statement = try db.makeStatement(sql: sql, prepFlags: CUnsignedInt(SQLITE_PREPARE_PERSISTENT))
         } else {
             statement = try db.makeStatement(sql: sql)
         }

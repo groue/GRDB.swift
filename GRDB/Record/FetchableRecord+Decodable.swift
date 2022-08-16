@@ -509,7 +509,7 @@ extension DatabaseDateDecodingStrategy {
         if let sqliteStatement = row.sqliteStatement {
             return try decodeIfPresent(
                 fromStatement: sqliteStatement,
-                atUncheckedIndex: Int32(index),
+                atUncheckedIndex: CInt(index),
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
         } else {
             return try decodeIfPresent(
@@ -522,7 +522,7 @@ extension DatabaseDateDecodingStrategy {
         if let sqliteStatement = row.sqliteStatement {
             return try decode(
                 fromStatement: sqliteStatement,
-                atUncheckedIndex: Int32(index),
+                atUncheckedIndex: CInt(index),
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
         } else {
             return try decode(
@@ -534,7 +534,7 @@ extension DatabaseDateDecodingStrategy {
     /// - precondition: value is not NULL
     fileprivate func decode(
         fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
+        atUncheckedIndex index: CInt,
         context: @autoclosure () -> RowDecodingContext)
     throws -> Date
     {
@@ -589,7 +589,7 @@ extension DatabaseDateDecodingStrategy {
     
     fileprivate func decodeIfPresent(
         fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
+        atUncheckedIndex index: CInt,
         context: @autoclosure () -> RowDecodingContext)
     throws -> Date?
     {

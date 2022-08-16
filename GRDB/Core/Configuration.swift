@@ -295,7 +295,7 @@ public struct Configuration {
     var SQLiteConnectionDidOpen: (() -> Void)?
     var SQLiteConnectionWillClose: ((SQLiteConnection) -> Void)?
     var SQLiteConnectionDidClose: (() -> Void)?
-    var SQLiteOpenFlags: Int32 {
+    var SQLiteOpenFlags: CInt {
         let readWriteFlags = readonly ? SQLITE_OPEN_READONLY : (SQLITE_OPEN_CREATE | SQLITE_OPEN_READWRITE)
         return threadingMode.SQLiteOpenFlags | readWriteFlags
     }

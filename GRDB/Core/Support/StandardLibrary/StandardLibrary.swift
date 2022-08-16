@@ -8,7 +8,7 @@ extension Bool: DatabaseValueConvertible, StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init(sqliteStatement: SQLiteStatement, index: CInt) {
         self = sqlite3_column_int64(sqliteStatement, index) != 0
     }
     
@@ -100,7 +100,7 @@ extension Int: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int(exactly: int64) else { return nil }
         self = v
@@ -131,7 +131,7 @@ extension Int8: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int8(exactly: int64) else { return nil }
         self = v
@@ -162,7 +162,7 @@ extension Int16: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int16(exactly: int64) else { return nil }
         self = v
@@ -193,7 +193,7 @@ extension Int32: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = Int32(exactly: int64) else { return nil }
         self = v
@@ -222,7 +222,7 @@ extension Int64: DatabaseValueConvertible, StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init(sqliteStatement: SQLiteStatement, index: CInt) {
         self = sqlite3_column_int64(sqliteStatement, index)
     }
     
@@ -260,7 +260,7 @@ extension UInt: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt(exactly: int64) else { return nil }
         self = v
@@ -291,7 +291,7 @@ extension UInt8: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt8(exactly: int64) else { return nil }
         self = v
@@ -322,7 +322,7 @@ extension UInt16: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt16(exactly: int64) else { return nil }
         self = v
@@ -353,7 +353,7 @@ extension UInt32: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt32(exactly: int64) else { return nil }
         self = v
@@ -384,7 +384,7 @@ extension UInt64: DatabaseValueConvertible, StatementColumnConvertible {
     ///     - index: The column index.
     @inline(__always)
     @inlinable
-    public init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init?(sqliteStatement: SQLiteStatement, index: CInt) {
         let int64 = sqlite3_column_int64(sqliteStatement, index)
         guard let v = UInt64(exactly: int64) else { return nil }
         self = v
@@ -413,7 +413,7 @@ extension Double: DatabaseValueConvertible, StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init(sqliteStatement: SQLiteStatement, index: CInt) {
         self = sqlite3_column_double(sqliteStatement, index)
     }
     
@@ -447,7 +447,7 @@ extension Float: DatabaseValueConvertible, StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init(sqliteStatement: SQLiteStatement, index: CInt) {
         self = Float(sqlite3_column_double(sqliteStatement, index))
     }
     
@@ -481,7 +481,7 @@ extension String: DatabaseValueConvertible, StatementColumnConvertible {
     /// - parameters:
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
-    public init(sqliteStatement: SQLiteStatement, index: Int32) {
+    public init(sqliteStatement: SQLiteStatement, index: CInt) {
         self = String(cString: sqlite3_column_text(sqliteStatement, index)!)
     }
     

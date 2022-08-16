@@ -31,7 +31,7 @@ public protocol StatementColumnConvertible {
     /// - returns: A decoded value, or, if decoding is impossible, nil.
     static func fromStatement(
         _ sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32)
+        atUncheckedIndex index: CInt)
     -> Self?
     
     /// Creates a value from a raw SQLite statement pointer, if possible.
@@ -39,7 +39,7 @@ public protocol StatementColumnConvertible {
     /// For example, here is the how Int64 adopts StatementColumnConvertible:
     ///
     ///     extension Int64: StatementColumnConvertible {
-    ///         init?(sqliteStatement: SQLiteStatement, index: Int32) {
+    ///         init?(sqliteStatement: SQLiteStatement, index: CInt) {
     ///             self = sqlite3_column_int64(sqliteStatement, index)
     ///         }
     ///     }
@@ -52,7 +52,7 @@ public protocol StatementColumnConvertible {
     ///     - sqliteStatement: A pointer to an SQLite statement.
     ///     - index: The column index.
     /// - returns: A decoded value, or, if decoding is impossible, nil.
-    init?(sqliteStatement: SQLiteStatement, index: Int32)
+    init?(sqliteStatement: SQLiteStatement, index: CInt)
 }
 
 extension StatementColumnConvertible {
@@ -60,7 +60,7 @@ extension StatementColumnConvertible {
     /// Default implementation fails on decoding NULL.
     @inline(__always)
     @inlinable
-    public static func fromStatement(_ sqliteStatement: SQLiteStatement, atUncheckedIndex index: Int32) -> Self? {
+    public static func fromStatement(_ sqliteStatement: SQLiteStatement, atUncheckedIndex index: CInt) -> Self? {
         if sqlite3_column_type(sqliteStatement, index) == SQLITE_NULL {
             return nil
         }
@@ -74,7 +74,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     @usableFromInline
     /* private */ static func _valueMismatch(
         fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
+        atUncheckedIndex index: CInt,
         context: @autoclosure () -> RowDecodingContext)
     throws -> Never
     {
@@ -95,7 +95,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
         if let sqliteStatement = row.sqliteStatement {
             return try fastDecode(
                 fromStatement: sqliteStatement,
-                atUncheckedIndex: Int32(index),
+                atUncheckedIndex: CInt(index),
                 context: RowDecodingContext(row: row, key: .columnIndex(index)))
         }
         // Support for fast decoding from adapted rows
@@ -106,7 +106,7 @@ extension DatabaseValueConvertible where Self: StatementColumnConvertible {
     @inlinable
     static func fastDecode(
         fromStatement sqliteStatement: SQLiteStatement,
-        atUncheckedIndex index: Int32,
+        atUncheckedIndex index: CInt,
         context: @autoclosure () -> RowDecodingContext)
     throws -> Self
     {
@@ -147,13 +147,13 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
     public let statement: Statement
     /// :nodoc:
     public var _isDone = false
-    @usableFromInline let columnIndex: Int32
+    @usableFromInline let columnIndex: CInt
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self.statement = statement
         if let adapter = adapter {
             // adapter may redefine the index of the leftmost column
-            columnIndex = try Int32(adapter.baseColumnIndex(atIndex: 0, layout: statement))
+            columnIndex = try CInt(adapter.baseColumnIndex(atIndex: 0, layout: statement))
         } else {
             columnIndex = 0
         }
