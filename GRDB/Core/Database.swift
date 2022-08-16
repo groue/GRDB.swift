@@ -592,6 +592,14 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     ///         let team = try Team.fetchOne(db, id: 42)
     ///     }
     ///     print(region) // player(*),team(*)[42]
+    ///
+    /// This method is used by ``ValueObservation``:
+    ///
+    ///     let playersObservation = ValueObservation.tracking { db in
+    ///         // Here all fetches are recorded, so that we know what is the
+    ///         // database region that must be observed.
+    ///         try Player.fetchAll(db)
+    ///     }
     func recordingSelection<T>(_ region: inout DatabaseRegion, _ block: () throws -> T) rethrows -> T {
         if region.isFullDatabase {
             return try block()
@@ -774,7 +782,7 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
     /// DatabaseError of code `SQLITE_INTERRUPT`, or `SQLITE_ABORT`, except
     /// reads in WAL mode.
     ///
-    /// Suspension ends with resume().
+    /// Suspension ends with `resume()`.
     func suspend() {
         $isSuspended.update { isSuspended in
             if isSuspended {
@@ -827,9 +835,11 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         return journalMode
     }
     
-    /// Throws `SQLITE_ABORT` for suspended databases, if statement would lock
-    /// the database, in order to avoid the [`0xdead10cc`
-    /// exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report).
+    /// If the database is suspended, and executing the statement would lock the
+    /// database in a way that may trigger the [`0xdead10cc` exception](https://developer.apple.com/documentation/xcode/understanding-the-exception-types-in-a-crash-report),
+    /// this method rollbacks the current transaction and throws `SQLITE_ABORT`.
+    ///
+    /// See `suspend()` and ``Configuration/observesSuspensionNotifications``.
     func checkForSuspensionViolation(from statement: Statement) throws {
         try $isSuspended.read { isSuspended in
             guard isSuspended else {

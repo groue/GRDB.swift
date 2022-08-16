@@ -6,6 +6,8 @@ extension Database {
     
     /// Returns a new prepared statement that can be reused.
     ///
+    /// For example:
+    ///
     ///     let statement = try db.makeStatement(sql: "SELECT * FROM player WHERE id = ?")
     ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
     ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
@@ -22,6 +24,8 @@ extension Database {
     }
     
     /// Returns a new prepared statement that can be reused.
+    ///
+    /// For example:
     ///
     ///     let statement = try db.makeStatement(literal: "SELECT * FROM player WHERE id = ?")
     ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
@@ -61,6 +65,8 @@ extension Database {
     }
     
     /// Returns a new prepared statement that can be reused.
+    ///
+    /// For example:
     ///
     ///     let statement = try db.makeStatement(sql: "SELECT COUNT(*) FROM player WHERE score > ?", prepFlags: 0)
     ///     let moreThanTwentyCount = try Int.fetchOne(statement, arguments: [20])!
@@ -105,6 +111,8 @@ extension Database {
     
     /// Returns a prepared statement that can be reused.
     ///
+    /// For example:
+    ///
     ///     let statement = try db.cachedStatement(sql: "SELECT * FROM player WHERE id = ?")
     ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
     ///     let player2 = try Player.fetchOne(statement, arguments: [2])!
@@ -124,6 +132,8 @@ extension Database {
     }
     
     /// Returns a prepared statement that can be reused.
+    ///
+    /// For example:
     ///
     ///     let statement = try db.cachedStatement(literal: "SELECT * FROM player WHERE id = ?")
     ///     let player1 = try Player.fetchOne(statement, arguments: [1])!
@@ -168,6 +178,8 @@ extension Database {
     }
     
     /// Returns a cursor of all SQL statements separated by semi-colons.
+    ///
+    /// For example:
     ///
     ///     let statements = try db.allStatements(sql: """
     ///         INSERT INTO player (name) VALUES (?);
@@ -253,6 +265,8 @@ extension Database {
     
     /// Executes one or several SQL statements, separated by semi-colons.
     ///
+    /// For example:
+    ///
     ///     try db.execute(
     ///         sql: "INSERT INTO player (name) VALUES (:name)",
     ///         arguments: ["name": "Arthur"])
@@ -262,8 +276,6 @@ extension Database {
     ///         INSERT INTO player (name) VALUES (?);
     ///         INSERT INTO player (name) VALUES (?);
     ///         """, arguments: ["Arthur", "Barbara", "O'Brien"])
-    ///
-    /// This method may throw a DatabaseError.
     ///
     /// - parameters:
     ///     - sql: An SQL query.
@@ -288,8 +300,6 @@ extension Database {
     ///         INSERT INTO player (name) VALUES (\("O'Brien"));
     ///         """)
     ///
-    /// This method may throw a DatabaseError.
-    ///
     /// - parameter sqlLiteral: An `SQL` literal.
     /// - throws: A DatabaseError whenever an SQLite error occurs.
     public func execute(literal sqlLiteral: SQL) throws {
@@ -300,6 +310,7 @@ extension Database {
     }
 }
 
+/// A cursor over all statements in a SQL string.
 public class SQLStatementCursor: Cursor {
     private let database: Database
     private let cString: ContiguousArray<CChar>
@@ -321,17 +332,15 @@ public class SQLStatementCursor: Cursor {
     
     public func next() throws -> Statement? {
         guard offset < cString.count - 1 /* trailing \0 */ else {
+            // End of C string -> end of cursor.
             try checkArgumentsAreEmpty()
             return nil
         }
         
         return try cString.withUnsafeBufferPointer { buffer in
-            guard let baseAddress = buffer.baseAddress else {
-                // Should never happen since buffer contains at least
-                // the trailing \0
-                return nil
-            }
+            let baseAddress = buffer.baseAddress! // never nil because the buffer contains the trailing \0.
             
+            // Compile next statement
             var statementEnd: UnsafePointer<Int8>? = nil
             let statement = try Statement(
                 database: database,
@@ -339,9 +348,11 @@ public class SQLStatementCursor: Cursor {
                 statementEnd: &statementEnd,
                 prepFlags: prepFlags)
             
-            offset = statementEnd! - baseAddress
+            // Advance to next statement
+            offset = statementEnd! - baseAddress // never nil because statement compilation did not fail.
             
             guard let statement else {
+                // No statement found -> end of cursor.
                 try checkArgumentsAreEmpty()
                 return nil
             }
@@ -378,12 +389,16 @@ extension Database {
     /// Makes sure statement can be executed, and prepares database observation.
     @usableFromInline
     func statementWillExecute(_ statement: Statement) throws {
-        // Two things must prevent the statement from executing: aborted
-        // transactions, and database suspension.
+        // Aborted transactions prevent statement execution (see the
+        // documentation of this method for more information).
         try checkForAbortedTransaction(sql: statement.sql, arguments: statement.arguments)
+        
+        // Suspended databases must not execute statements that create the risk
+        // of `0xdead10cc` exception (see the documentation of this method for
+        // more information).
         try checkForSuspensionViolation(from: statement)
         
-        // Database observation: record what the statement is looking at.
+        // Record the database region selected by the statement execution.
         if isRecordingSelectedRegion {
             selectedRegion.formUnion(statement.databaseRegion)
         }
@@ -400,13 +415,14 @@ extension Database {
             clearSchemaCache()
         }
         
+        // Database observation: cleanup
         try observationBroker?.statementDidExecute(statement)
     }
     
     /// Always throws an error
     @usableFromInline
     func statementDidFail(_ statement: Statement, withResultCode resultCode: Int32) throws -> Never {
-        // Failed statements can not be reused, because sqlite3_reset won't
+        // Failed statements can not be reused, because `sqlite3_reset` won't
         // be able to restore the statement to its initial state:
         // https://www.sqlite.org/c3ref/reset.html
         //
@@ -414,15 +430,25 @@ extension Database {
         internalStatementCache.remove(statement)
         publicStatementCache.remove(statement)
         
-        /// Exposes the user-provided cancelled commit error, if a transaction
-        /// observer has cancelled a transaction.
+        // Extract values that may be modified by the user in their
+        // `TransactionObserver.databaseDidRollback(_:)` implementation
+        // (see below).
+        let message = lastErrorMessage
+        let arguments = statement.arguments
+        
+        // Database observation: cleanup.
+        //
+        // If the statement failure is due to a transaction observer that has
+        // cancelled a transaction, this calls `TransactionObserver.databaseDidRollback(_:)`,
+        // and throws the user-provided cancelled commit error.
         try observationBroker?.statementDidFail(statement)
         
+        // Throw statement failure
         throw DatabaseError(
             resultCode: resultCode,
-            message: lastErrorMessage,
+            message: message,
             sql: statement.sql,
-            arguments: statement.arguments,
+            arguments: arguments,
             publicStatementArguments: configuration.publicStatementArguments)
     }
 }
