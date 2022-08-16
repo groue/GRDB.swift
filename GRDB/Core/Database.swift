@@ -319,18 +319,8 @@ public final class Database: CustomStringConvertible, CustomDebugStringConvertib
         //
         // - DatabaseCursorTests.testIssue583()
         // - http://sqlite.1065341.n5.nabble.com/Issue-report-sqlite3-set-authorizer-triggers-error-4-516-SQLITE-ABORT-ROLLBACK-during-statement-itern-td107972.html
-        let authorizerP = Unmanaged.passUnretained(authorizer).toOpaque()
-        sqlite3_set_authorizer(
-            sqliteConnection,
-            { (authorizerP, actionCode, cString1, cString2, cString3, cString4) in
-                Unmanaged<StatementAuthorizer>
-                    .fromOpaque(authorizerP.unsafelyUnwrapped)
-                    .takeUnretainedValue()
-                    .authorize(actionCode, cString1, cString2, cString3, cString4)
-            },
-            authorizerP)
+        authorizer.register()
     }
-    
     
     private func activateExtendedCodes() throws {
         let code = sqlite3_extended_result_codes(sqliteConnection, 1)

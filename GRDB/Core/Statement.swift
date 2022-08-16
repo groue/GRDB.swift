@@ -37,18 +37,21 @@ public final class Statement {
         return (0..<Int32(self.columnCount)).map { String(cString: sqlite3_column_name(sqliteStatement, $0)) }
     }()
     
-    // Database region is computed during statement compilation, and maybe
-    // extended for select statements compiled by QueryInterfaceRequest, in
-    // order to perform focused database observation. See
-    // SQLQueryGenerator.makeStatement(_:)
+    // The database region is reported by `sqlite3_set_authorizer`, and maybe
+    // refined in `SQLQueryGenerator.makeStatement(_:)` when we have enough
+    // information about the statement.
     /// The database region that the statement looks into.
     public internal(set) var databaseRegion = DatabaseRegion()
     
     /// If true, the database schema cache gets invalidated after this statement
-    /// is executed.
+    /// is executed (reported by `sqlite3_set_authorizer`).
     private(set) var invalidatesDatabaseSchemaCache = false
+    
+    /// The eventual effect of transactions, as reported by `sqlite3_set_authorizer`.
     private(set) var transactionEffect: TransactionEffect?
-    private(set) var databaseEventKinds: [DatabaseEventKind] = []
+    
+    /// The effects on the database (reported by `sqlite3_set_authorizer`).
+    private(set) var authorizerEventKinds: [DatabaseEventKind] = []
     
     /// Returns true if and only if the prepared statement makes no direct
     /// changes to the content of the database file.
@@ -56,6 +59,11 @@ public final class Statement {
     /// See <https://www.sqlite.org/c3ref/stmt_readonly.html>.
     public var isReadonly: Bool {
         sqlite3_stmt_readonly(sqliteStatement) != 0
+    }
+    
+    /// Returns whether the statement deletes some rows
+    var isDeleteStatement: Bool {
+        authorizerEventKinds.contains(where: \.isDelete)
     }
     
     @usableFromInline
@@ -124,7 +132,7 @@ public final class Statement {
         self.databaseRegion = authorizer.selectedRegion
         self.invalidatesDatabaseSchemaCache = authorizer.invalidatesDatabaseSchemaCache
         self.transactionEffect = authorizer.transactionEffect
-        self.databaseEventKinds = authorizer.databaseEventKinds
+        self.authorizerEventKinds = authorizer.databaseEventKinds
     }
     
     deinit {

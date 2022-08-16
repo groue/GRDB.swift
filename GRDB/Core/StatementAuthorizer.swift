@@ -2,14 +2,15 @@
 import Glibc
 #endif
 
-/// A class that gathers information about one statement during its compilation.
+/// A class that gathers information about one statement during its compilation,
+/// with `sqlite3_set_authorizer`.
 final class StatementAuthorizer {
     private unowned var database: Database
     
-    /// What this statements reads
+    /// What a statement reads.
     var selectedRegion = DatabaseRegion()
     
-    /// What this statements writes
+    /// What a statement writes.
     var databaseEventKinds: [DatabaseEventKind] = []
     
     /// True if a statement alters the schema in a way that requires
@@ -27,6 +28,20 @@ final class StatementAuthorizer {
         self.database = database
     }
     
+    /// Registers the authorizer with `sqlite3_set_authorizer`.
+    func register() {
+        let authorizerP = Unmanaged.passUnretained(self).toOpaque()
+        sqlite3_set_authorizer(
+            database.sqliteConnection,
+            { (authorizerP, actionCode, cString1, cString2, cString3, cString4) in
+                Unmanaged<StatementAuthorizer>
+                    .fromOpaque(authorizerP.unsafelyUnwrapped)
+                    .takeUnretainedValue()
+                    .authorize(actionCode, cString1, cString2, cString3, cString4)
+            },
+            authorizerP)
+    }
+    
     /// Reset before compiling a new statement
     func reset() {
         selectedRegion = DatabaseRegion()
@@ -36,7 +51,7 @@ final class StatementAuthorizer {
         isDropStatement = false
     }
     
-    func authorize(
+    private func authorize(
         _ actionCode: Int32,
         _ cString1: UnsafePointer<Int8>?,
         _ cString2: UnsafePointer<Int8>?,
@@ -159,7 +174,7 @@ final class StatementAuthorizer {
         }
     }
     
-    func insertUpdateEventKind(tableName: String, columnName: String) {
+    private func insertUpdateEventKind(tableName: String, columnName: String) {
         for (index, eventKind) in databaseEventKinds.enumerated() {
             if case .update(let t, let columnNames) = eventKind, t == tableName {
                 var columnNames = columnNames

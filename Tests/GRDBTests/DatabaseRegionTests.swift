@@ -524,8 +524,8 @@ class DatabaseRegionTests : GRDBTestCase {
             do {
                 let statement = try db.makeStatement(sql: "UPDATE foo SET bar = 'bar', baz = 'baz' WHERE id = 1")
                 XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
-                XCTAssertEqual(statement.databaseEventKinds.count, 1)
-                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                XCTAssertEqual(statement.authorizerEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.authorizerEventKinds[0] else {
                     XCTFail()
                     return
                 }
@@ -535,8 +535,8 @@ class DatabaseRegionTests : GRDBTestCase {
             do {
                 let statement = try db.makeStatement(sql: "UPDATE FOO SET BAR = 'bar', BAZ = 'baz' WHERE ID = 1")
                 XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
-                XCTAssertEqual(statement.databaseEventKinds.count, 1)
-                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                XCTAssertEqual(statement.authorizerEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.authorizerEventKinds[0] else {
                     XCTFail()
                     return
                 }
@@ -592,8 +592,8 @@ class DatabaseRegionTests : GRDBTestCase {
             try db.execute(sql: "CREATE TABLE foo (name TEXT)")
             do {
                 let statement = try db.makeStatement(sql: "UPDATE foo SET rowid = 1")
-                XCTAssertEqual(statement.databaseEventKinds.count, 1)
-                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                XCTAssertEqual(statement.authorizerEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.authorizerEventKinds[0] else {
                     XCTFail()
                     return
                 }
@@ -602,8 +602,8 @@ class DatabaseRegionTests : GRDBTestCase {
             }
             do {
                 let statement = try db.makeStatement(sql: "UPDATE foo SET _ROWID_ = 1")
-                XCTAssertEqual(statement.databaseEventKinds.count, 1)
-                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                XCTAssertEqual(statement.authorizerEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.authorizerEventKinds[0] else {
                     XCTFail()
                     return
                 }
@@ -612,8 +612,8 @@ class DatabaseRegionTests : GRDBTestCase {
             }
             do {
                 let statement = try db.makeStatement(sql: "UPDATE foo SET oID = 1")
-                XCTAssertEqual(statement.databaseEventKinds.count, 1)
-                guard case .update(let tableName, let columnNames) = statement.databaseEventKinds[0] else {
+                XCTAssertEqual(statement.authorizerEventKinds.count, 1)
+                guard case .update(let tableName, let columnNames) = statement.authorizerEventKinds[0] else {
                     XCTFail()
                     return
                 }
@@ -629,8 +629,8 @@ class DatabaseRegionTests : GRDBTestCase {
             try db.execute(sql: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
             let statement = try db.makeStatement(sql: "INSERT INTO foo (id, bar) VALUES (1, 'bar')")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
-            XCTAssertEqual(statement.databaseEventKinds.count, 1)
-            guard case .insert(let tableName) = statement.databaseEventKinds[0] else {
+            XCTAssertEqual(statement.authorizerEventKinds.count, 1)
+            guard case .insert(let tableName) = statement.authorizerEventKinds[0] else {
                 XCTFail()
                 return
             }
@@ -644,8 +644,8 @@ class DatabaseRegionTests : GRDBTestCase {
             try db.execute(sql: "CREATE TABLE foo (id INTEGER, bar TEXT, baz TEXT, qux TEXT)")
             let statement = try db.makeStatement(sql: "DELETE FROM foo")
             XCTAssertFalse(statement.invalidatesDatabaseSchemaCache)
-            XCTAssertEqual(statement.databaseEventKinds.count, 1)
-            guard case .delete(let tableName) = statement.databaseEventKinds[0] else {
+            XCTAssertEqual(statement.authorizerEventKinds.count, 1)
+            guard case .delete(let tableName) = statement.authorizerEventKinds[0] else {
                 XCTFail()
                 return
             }
