@@ -2,8 +2,12 @@
 import Glibc
 #endif
 
-/// A class that gathers information about one statement during its compilation,
-/// with `sqlite3_set_authorizer`.
+/// `StatementAuthorizer` provides information about compiled database
+/// statements, and prevents the truncate optimization when row deletions are
+/// observed by transaction observers.
+///
+/// <https://www.sqlite.org/c3ref/set_authorizer.html>
+/// <https://www.sqlite.org/lang_delete.html#the_truncate_optimization>
 final class StatementAuthorizer {
     private unowned var database: Database
     

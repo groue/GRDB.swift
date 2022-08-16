@@ -1,4 +1,29 @@
 extension Database {
+    /// A cache for the available database schemas.
+    struct SchemaCache {
+        /// The available schema identifiers, in the order of SQLite resolution:
+        /// temp, main, then attached databases.
+        var schemaIdentifiers: [SchemaIdentifier]?
+        
+        /// The schema cache for each identifier.
+        fileprivate var schemas: [SchemaIdentifier: DatabaseSchemaCache] = [:]
+        
+        /// The schema cache for a given identifier
+        subscript(schemaID: SchemaIdentifier) -> DatabaseSchemaCache { // internal so that it can be tested
+            get {
+                schemas[schemaID] ?? DatabaseSchemaCache()
+            }
+            set {
+                schemas[schemaID] = newValue
+            }
+        }
+        
+        mutating func clear() {
+            schemaIdentifiers = nil
+            schemas.removeAll()
+        }
+    }
+    
     /// A SQLite schema. See <https://sqlite.org/lang_naming.html>
     enum SchemaIdentifier: Hashable {
         /// The main database
@@ -29,7 +54,7 @@ extension Database {
         }
     }
     
-    /// A table identifier
+    /// The identifier of a database table or view.
     struct TableIdentifier {
         /// The SQLite schema
         var schemaID: SchemaIdentifier
@@ -69,8 +94,8 @@ extension Database {
     /// since this method was last called.
     func clearSchemaCacheIfNeeded() throws {
         let schemaVersion = try Int32.fetchOne(internalCachedStatement(sql: "PRAGMA schema_version"))
-        if _lastSchemaVersion != schemaVersion {
-            _lastSchemaVersion = schemaVersion
+        if lastSchemaVersion != schemaVersion {
+            lastSchemaVersion = schemaVersion
             clearSchemaCache()
         }
     }
@@ -151,10 +176,7 @@ extension Database {
     private func exists(type: SchemaObjectType, name: String, in schemaID: SchemaIdentifier) throws -> Bool {
         // SQlite identifiers are case-insensitive, case-preserving:
         // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
-        let name = name.lowercased()
-        return try schema(schemaID)
-            .names(ofType: type)
-            .contains { $0.lowercased() == name }
+        try schema(schemaID).containsObjectNamed(name, ofType: type)
     }
     
     /// The primary key for table named `tableName`.
@@ -1032,12 +1054,13 @@ struct SchemaInfo: Equatable {
             """)
     }
     
-    /// All names for a given type
-    func names(ofType type: SchemaObjectType) -> Set<String> {
-        objects.reduce(into: []) { (set, key) in
-            if key.type == type.rawValue {
-                set.insert(key.name)
-            }
+    /// Returns whether there exists a object of given type with this name
+    /// (case-insensitive).
+    func containsObjectNamed(_ name: String, ofType type: SchemaObjectType) -> Bool {
+        let name = name.lowercased()
+        let type = type.rawValue
+        return objects.contains {
+            $0.type == type && $0.name.lowercased() == name
         }
     }
     
