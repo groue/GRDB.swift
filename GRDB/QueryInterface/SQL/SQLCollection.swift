@@ -101,6 +101,7 @@ extension SQLCollection {
             
         case let .array(expressions):
             guard let expression = expressions.first else {
+                // [].contains(...) -> false
                 return false.sqlExpression
             }
                         

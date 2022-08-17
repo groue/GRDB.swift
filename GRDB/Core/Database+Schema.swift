@@ -700,12 +700,21 @@ extension Database {
             let primaryKey = try self.primaryKey(tableName)
             if let rowIDColumn = primaryKey.rowIDColumn {
                 // Prefer the user-provided name of the rowid
+                //
+                //  // CREATE TABLE player (id INTEGER PRIMARY KEY, ...)
+                //  try db.existenceCheckColumns(in: "player") // ["id"]
                 return [rowIDColumn]
             } else if primaryKey.tableHasRowID {
                 // Prefer the rowid
+                //
+                //  // CREATE TABLE player (uuid TEXT NOT NULL PRIMARY KEY, ...)
+                //  try db.existenceCheckColumns(in: "player") // ["rowid"]
                 return [Column.rowID.name]
             } else {
                 // WITHOUT ROWID table: use primary key columns
+                //
+                //  // CREATE TABLE player (uuid TEXT NOT NULL PRIMARY KEY, ...) WITHOUT ROWID
+                //  try db.existenceCheckColumns(in: "player") // ["uuid"]
                 return primaryKey.columns
             }
         } else {
@@ -1038,14 +1047,24 @@ public struct PrimaryKeyInfo {
     var fastPrimaryKeyColumn: String? {
         if let rowIDColumn = rowIDColumn {
             // Prefer the user-provided name of the rowid
+            //
+            //  // CREATE TABLE player (id INTEGER PRIMARY KEY, ...)
+            //  try db.primaryKey("player").fastPrimaryKeyColumn // "id"
             return rowIDColumn
         } else if tableHasRowID {
             // Prefer the rowid
+            //
+            //  // CREATE TABLE player (uuid TEXT NOT NULL PRIMARY KEY, ...)
+            //  try db.primaryKey("player").fastPrimaryKeyColumn // "rowid"
             return Column.rowID.name
         } else if columns.count == 1 {
             // WITHOUT ROWID table: use primary key column
+            //
+            //  // CREATE TABLE player (uuid TEXT NOT NULL PRIMARY KEY, ...) WITHOUT ROWID
+            //  try db.primaryKey("player").fastPrimaryKeyColumn // "uuid"
             return columns[0]
         } else {
+            // WITHOUT ROWID table with a multi-columns primary key
             return nil
         }
     }

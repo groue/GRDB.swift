@@ -274,7 +274,7 @@ extension TableRequest where Self: FilteredRequest, Self: TypedRequest {
     /// Creates a request filtered by primary key.
     ///
     ///     // SELECT * FROM player WHERE ... id IN (1, 2, 3)
-    ///     let request = try Player...filter(encodedKeys: [1, 2, 3])
+    ///     let request = try Player...filter(rawKeys: [1, 2, 3])
     ///
     /// - parameter keys: A collection of primary keys
     func filter(rawKeys: some Sequence<some DatabaseValueConvertible>) -> Self {
@@ -412,13 +412,25 @@ extension TableRequest where Self: AggregatingRequest {
         return group { db in
             let primaryKey = try db.primaryKey(tableName)
             if let rowIDColumn = primaryKey.rowIDColumn {
-                // Prefer the user-provided name of the rowid
+                // Prefer the user-provided name of the rowid:
+                //
+                //  // CREATE TABLE player (id INTEGER PRIMARY KEY, ...)
+                //  // SELECT * FROM player GROUP BY id
+                //  Player.all().groupByPrimaryKey()
                 return [Column(rowIDColumn)]
             } else if primaryKey.tableHasRowID {
                 // Prefer the rowid
+                //
+                //  // CREATE TABLE player (uuid TEXT NOT NULL PRIMARY KEY, ...)
+                //  // SELECT * FROM player GROUP BY rowid
+                //  Player.all().groupByPrimaryKey()
                 return [.rowID]
             } else {
                 // WITHOUT ROWID table: group by primary key columns
+                //
+                //  // CREATE TABLE player (uuid TEXT NOT NULL PRIMARY KEY, ...) WITHOUT ROWID
+                //  // SELECT * FROM player GROUP BY uuid
+                //  Player.all().groupByPrimaryKey()
                 return primaryKey.columns.map { Column($0) }
             }
         }
@@ -795,6 +807,17 @@ public protocol DerivableRequest<RowDecoder>: AggregatingRequest, FilteredReques
     func with<RowDecoder>(_ cte: CommonTableExpression<RowDecoder>) -> Self
 }
 
+// Association aggregates don't require all DerivableRequest abilities. The
+// minimum set of requirements is:
+//
+// - AggregatingRequest, for the GROUP BY and HAVING clauses
+// - TableRequest, for grouping by primary key
+// - JoinableRequest, for joining associations
+// - SelectionRequest, for annotating the selection
+//
+// It is just that extending DerivableRequest is simpler. We want the user to
+// use aggregates on QueryInterfaceRequest and associations: both conform to
+// DerivableRequest already.
 extension DerivableRequest {
     private func annotated(with aggregate: AssociationAggregate<RowDecoder>) -> Self {
         var request = self
