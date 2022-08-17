@@ -137,7 +137,7 @@ struct RowDecodingContext {
         } else if let sqliteStatement = row.sqliteStatement {
             self.key = key
             self.row = row.copy()
-            self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmingCharacters(in: .sqlStatementSeparators)
+            self.sql = String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
             self.statementArguments = nil // Can't rebuild them
         } else {
             self.key = key

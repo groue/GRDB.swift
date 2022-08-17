@@ -1681,11 +1681,9 @@ extension Database {
                     
                 case let .trace_v2(sqliteStatement, unexpandedSQL, _, _):
                     if let unexpandedSQL = unexpandedSQL {
-                        return String(cString: unexpandedSQL)
-                            .trimmingCharacters(in: .sqlStatementSeparators)
+                        return String(cString: unexpandedSQL).trimmedSQLStatement
                     } else {
-                        return String(cString: sqlite3_sql(sqliteStatement))
-                            .trimmingCharacters(in: .sqlStatementSeparators)
+                        return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
                     }
                 }
             }
@@ -1709,8 +1707,7 @@ extension Database {
                         return ""
                     }
                     defer { sqlite3_free(cString) }
-                    return String(cString: cString)
-                        .trimmingCharacters(in: .sqlStatementSeparators)
+                    return String(cString: cString).trimmedSQLStatement
                 }
             }
             

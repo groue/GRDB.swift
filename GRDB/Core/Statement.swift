@@ -3,9 +3,26 @@ import Foundation
 /// A raw SQLite statement, suitable for the SQLite C API.
 public typealias SQLiteStatement = OpaquePointer
 
-extension CharacterSet {
-    /// Statements are separated by semicolons and white spaces
-    static let sqlStatementSeparators = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
+extension String {
+    /// SQL statements are separated by semicolons and white spaces.
+    ///
+    /// This character set is not an accurate representation of actual SQLite
+    /// separators (which do not include non-ASCII white spaces for example),
+    /// and must not be used for parsing. Its only purpose is to trim compiled
+    /// SQL statements with `String.trimmedSQLStatement`.
+    private static let sqlStatementSeparators = CharacterSet(charactersIn: ";").union(.whitespacesAndNewlines)
+    
+    /// Returns a string trimmed from SQL statement separators.
+    ///
+    /// For example:
+    ///
+    ///     // "SELECT * FROM player"
+    ///     " SELECT * FROM player;".trimmedSQLStatement
+    ///
+    /// - precondition: the input string is a successfully compiled SQL statement.
+    var trimmedSQLStatement: String {
+        trimmingCharacters(in: String.sqlStatementSeparators)
+    }
 }
 
 /// A statement represents an SQL query.
@@ -27,8 +44,7 @@ public final class Statement {
         SchedulingWatchdog.preconditionValidQueue(database)
         
         // trim white space and semicolumn for homogeneous output
-        return String(cString: sqlite3_sql(sqliteStatement))
-            .trimmingCharacters(in: .sqlStatementSeparators)
+        return String(cString: sqlite3_sql(sqliteStatement)).trimmedSQLStatement
     }
     
     /// The column names, ordered from left to right.
