@@ -145,23 +145,31 @@ struct SQLQueryGenerator: Refinable {
         return statement
     }
     
+    /// Returns an optimized database region, when possible.
+    ///
+    /// The optimized region allows us to track individual rowids, and also
+    /// discard some provably empty requests such as `Player.none()`.
     private func optimizedSelectedRegion(_ db: Database, _ selectedRegion: DatabaseRegion) throws -> DatabaseRegion {
-        // Can we intersect the region with rowIds?
-        //
-        // Give up unless request feeds from a single database table
+        var optimizedRegion = selectedRegion
+        
+        // Give up unless request feeds from a database table
         let tableName = relation.source.tableName
         guard try db.tableExists(tableName) else { // skip views
-            return selectedRegion
+            return optimizedRegion
         }
         
-        // The filter knows better
-        guard let filter = try relation.filterPromise?.resolve(db),
-              let rowIDs = try filter.identifyingRowIDs(db, for: relation.source.alias)
-        else {
-            return selectedRegion
+        // If the request is filtered on rowIds, we can optimize the region:
+        //
+        // - Player.filter(Column("id") == 1) // region "player(*)[1]"
+        // - Player.filter(ids: [1, 2, 3])    // region "player(*)[1, 2, 3]"
+        // - Player.none()                    // region "empty"
+        if let filter = try relation.filterPromise?.resolve(db),
+           let rowIDs = try filter.identifyingRowIDs(db, for: relation.source.alias)
+        {
+            optimizedRegion = optimizedRegion.tableIntersection(tableName, rowIds: rowIDs)
         }
         
-        return selectedRegion.tableIntersection(tableName, rowIds: rowIDs)
+        return optimizedRegion
     }
     
     /// If true, executing this query yields at most one row.
