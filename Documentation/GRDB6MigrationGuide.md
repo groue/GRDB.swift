@@ -153,3 +153,28 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     // No longer possible: including a limited association
     let request = Author.including(all: Author.books.limit(10))
     ```
+
+- `DatabaseRegionObservation.start(in:onError:onChange:)` now returns a cancellable.
+    
+    ```swift
+    let observation = DatabaseRegionObservation.tracking(Player.all())
+    
+    // GRDB 5
+    do {
+        let observer = try observation.start(in: dbQueue) { db in
+            print("Players were modified")
+        }
+    } catch {
+        // handle error
+    }
+    
+    // GRDB 6
+    let cancellable = observation.start(
+        in: dbQueue,
+        onError: { error in /* handle error */ },
+        onChange: { db in
+            print("Players were modified")
+        })
+    ```
+    
+    The `DatabaseRegionObservation.extent` property was removed. You now control the duration of the observation with the cancellable returned from the `start` method.

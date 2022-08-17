@@ -10,16 +10,13 @@ import Foundation
 /// For example:
 ///
 ///     let observation = DatabaseRegionObservation(tracking: Player.all)
-///     let observer = try observation.start(in: dbQueue) { db: Database in
-///         print("Players have changed.")
-///     }
+///     let cancellable = try observation.start(
+///         in: dbQueue,
+///         onError: { error in ... },
+///         onChange: { (db: Database) in
+///             print("A modification of the player table has just been committed.")
+///         })
 public struct DatabaseRegionObservation {
-    /// The extent of the database observation. The default is
-    /// `.observerLifetime`: the observation lasts until the
-    /// observer returned by the `start(in:onChange:)` method
-    /// is deallocated.
-    public var extent: Database.TransactionObservationExtent
-    
     /// A closure that is evaluated when the observation starts, and returns
     /// the observed database region.
     var observedRegion: (Database) throws -> DatabaseRegion
@@ -36,13 +33,16 @@ extension DatabaseRegionObservation {
     ///     let observation = DatabaseRegionObservation(tracking: Player.all())
     ///
     ///     var count = 0
-    ///     let observer = observation.start(in: dbQueue) { _ in
-    ///         count += 1
-    ///         print("Players have been modified \(count) times.")
-    ///     }
+    ///     let cancellable = observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { _ in
+    ///             count += 1
+    ///             print("Players have been modified \(count) times.")
+    ///         }à
     ///
-    /// The observation lasts until the observer returned by `start` is
-    /// deallocated. See the `extent` property for more information.
+    /// The observation lasts until the cancellable returned by `start` is
+    /// cancelled or deallocated.
     ///
     /// - parameter regions: A list of observed regions.
     public init(tracking regions: any DatabaseRegionConvertible...) {
@@ -59,42 +59,91 @@ extension DatabaseRegionObservation {
     ///     let observation = DatabaseRegionObservation(tracking: [Player.all()])
     ///
     ///     var count = 0
-    ///     let observer = observation.start(in: dbQueue) { _ in
+    ///     let cancellable = observation.start(in: dbQueue) { _ in
     ///         count += 1
     ///         print("Players have been modified \(count) times.")
     ///     }
     ///
-    /// The observation lasts until the observer returned by `start` is
-    /// deallocated. See the `extent` property for more information.
+    /// The observation lasts until the cancellable returned by `start` is
+    /// cancelled or deallocated.
     ///
     /// - parameter regions: A list of observed regions.
     public init(tracking regions: [any DatabaseRegionConvertible]) {
-        self.init(
-            extent: .observerLifetime,
-            observedRegion: DatabaseRegion.union(regions))
+        self.init(observedRegion: DatabaseRegion.union(regions))
     }
 }
 
 extension DatabaseRegionObservation {
+    /// The state of a started DatabaseRegionObservation
+    private enum ObservationState {
+        case cancelled
+        case pending
+        case started(DatabaseRegionObserver)
+    }
+    
     /// Starts the observation in the provided database writer (such as
     /// a database queue or database pool), and returns a transaction observer.
     ///
+    /// For example:
+    ///
+    ///     let observation = DatabaseRegionObservation.tracking(Player.all())
+    ///     let cancellable = observation.start(
+    ///         in: dbQueue,
+    ///         onError: { error in ... },
+    ///         onChange: { (db: Database) in
+    ///             print("A modification of the player table has just been committed.")
+    ///         })
+    ///
+    /// If the `start` method is called from a writing database access method,
+    /// the observation of impactful transactions starts immediately. Otherwise,
+    /// it blocks the current thread until a write access can be established.
+    ///
     /// - parameter writer: A DatabaseWriter.
+    /// - parameter onError: A closure that is provided eventual errors that
+    ///   happen during observation
     /// - parameter onChange: A closure that is provided a database connection
     ///   with write access each time the observed region has been modified.
-    /// - returns: a TransactionObserver
+    /// - returns: a cancellable.
     public func start(
         in writer: some DatabaseWriter,
+        onError: @escaping (Error) -> Void,
         onChange: @escaping (Database) -> Void)
-    throws -> any TransactionObserver
+    -> AnyDatabaseCancellable
     {
+        @LockedBox var state = ObservationState.pending
+        
         // Use unsafeReentrantWrite so that observation can start from any
         // dispatch queue.
-        try writer.unsafeReentrantWrite { db in
-            let region = try observedRegion(db).observableRegion(db)
-            let observer = DatabaseRegionObserver(region: region, onChange: onChange)
-            db.add(transactionObserver: observer, extent: extent)
-            return observer
+        writer.unsafeReentrantWrite { db in
+            do {
+                let region = try observedRegion(db).observableRegion(db)
+                $state.update {
+                    let observer = DatabaseRegionObserver(region: region, onChange: {
+                        if case .cancelled = state {
+                            return
+                        }
+                        onChange($0)
+                    })
+                    
+                    // Use the `.observerLifetime` extent so that we can cancel
+                    // the observation by deallocating the observer. This is
+                    // a simpler way to cancel the observation than waiting for
+                    // *another* write access in order to explicitly remove
+                    // the observer.
+                    db.add(transactionObserver: observer, extent: .observerLifetime)
+                    
+                    $0 = .started(observer)
+                }
+            } catch {
+                onError(error)
+            }
+        }
+        
+        return AnyDatabaseCancellable {
+            // Deallocates the transaction observer. This makes sure that the
+            // `onChange` callback will never be called again, because the
+            // observation was started with the `.observerLifetime` extent.
+            state = .cancelled
         }
     }
 }
@@ -204,9 +253,9 @@ extension DatabasePublishers {
             case finished
         }
         
-        // Observer is not stored in self.state because we must enter the
+        // cancellable is not stored in self.state because we must enter the
         // .observing state *before* the observation starts.
-        private var observer: TransactionObserver?
+        private var cancellable: AnyDatabaseCancellable?
         private var state: State
         private var lock = NSRecursiveLock() // Allow re-entrancy
         
@@ -228,18 +277,14 @@ extension DatabasePublishers {
                     guard demand > 0 else {
                         return
                     }
-                    do {
-                        state = .observing(Observing(
-                                            downstream: info.downstream,
-                                            writer: info.writer,
-                                            remainingDemand: demand))
-                        observer = try info.observation.start(
-                            in: info.writer,
-                            onChange: { [weak self] in self?.receive($0) })
-                    } catch {
-                        state = .finished
-                        info.downstream.receive(completion: .failure(error))
-                    }
+                    state = .observing(Observing(
+                        downstream: info.downstream,
+                        writer: info.writer,
+                        remainingDemand: demand))
+                    cancellable = info.observation.start(
+                        in: info.writer,
+                        onError: { [weak self] in self?.receive(failure: $0) },
+                        onChange: { [weak self] in self?.receive($0) })
                     
                 case var .observing(info):
                     info.remainingDemand += demand
@@ -253,7 +298,7 @@ extension DatabasePublishers {
         
         func cancel() {
             lock.synchronized {
-                observer = nil
+                cancellable = nil
                 state = .finished
             }
         }
@@ -269,6 +314,15 @@ extension DatabasePublishers {
                         info.remainingDemand -= 1
                         state = .observing(info)
                     }
+                }
+            }
+        }
+        
+        private func receive(failure error: Error) {
+            lock.synchronized {
+                if case let .observing(info) = state {
+                    state = .finished
+                    info.downstream.receive(completion: .failure(error))
                 }
             }
         }

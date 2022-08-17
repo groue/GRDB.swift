@@ -104,6 +104,8 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 - **Breaking**: The `Record.copy()` method was removed, without replacement.
 - **Breaking**: The `FetchableRecord.init(row:)` initializer can now throw errors.
 - **Breaking**: The `DerivableRequest.limit(_:offset_:)` method was removed, without replacement.
+- **Breaking**: `DatabaseRegionObservation.start(in:onError:onChange:)` now returns a cancellable.
+- **Breaking**: The `DatabaseRegionObservation.extent` property was removed.
 - **New**: Request protocols and cursors now define primary associated types, enabled by [SE-0346](https://github.com/apple/swift-evolution/blob/main/proposals/0346-light-weight-same-type-syntax.md).
 - **New**: You can append the contents of a cursor to a collection with `RangeReplaceableCollection.append(contentsOf:)`.
 - **New**: `ValueObservation.map` now accepts a throwing closure argument.

@@ -6580,7 +6580,7 @@ When needed, you can help GRDB optimize observations and reduce database content
 
 ## DatabaseRegionObservation
 
-**DatabaseRegionObservation tracks changes in database [requests](#requests), and notifies each impactful [transaction](#transactions-and-savepoints).**
+**DatabaseRegionObservation notifies all [transactions](#transactions-and-savepoints) that impact the tracked [requests](#requests).**
 
 Tracked changes are insertions, updates, and deletions that impact the tracked requests, performed with the [query interface](#the-query-interface), or [raw SQL](#sqlite-api). This includes indirect changes triggered by [foreign keys actions](https://www.sqlite.org/foreignkeys.html#fk_actions) or [SQL triggers](https://www.sqlite.org/lang_createtrigger.html).
 
@@ -6594,19 +6594,23 @@ DatabaseRegionObservation calls your application right after changes have been c
 Define an observation by providing one or several requests to track:
 
 ```swift
-// Track all players
+// Track the full player table
 let observation = DatabaseRegionObservation(tracking: Player.all())
 ```
 
 Then start the observation from a [database queue](#database-queues) or [pool](#database-pools):
 
 ```swift
-let observer = try observation.start(in: dbQueue) { (db: Database) in
-    print("Players were changed")
+let cancellable = try observation.start(
+    in: dbQueue,
+    onError: { error in ... },
+    onChange: { (db: Database) in
+        print("Players were changed")
+    })
 }
 ```
 
-And enjoy the changes notifications:
+Enjoy the changes notifications:
 
 ```swift
 try dbQueue.write { db in
@@ -6615,41 +6619,72 @@ try dbQueue.write { db in
 // Prints "Players were changed"
 ```
 
-By default, the observation lasts until the observer returned by the `start` method is deinitialized. See [DatabaseRegionObservation.extent](#databaseregionobservationextent) for more details.
+If the `start` method is called from a writing database access method, the observation of impactful transactions starts immediately. Otherwise, it blocks the current thread until a write access can be established.
 
-You can also feed DatabaseRegionObservation with [DatabaseRegion], or any type which conforms to the [DatabaseRegionConvertible] protocol. For example:
+**You stop the observation** by calling the `cancel()` method on the object returned by the `start` method. Cancellation is automatic when the cancellable is deinitialized:
+    
+```swift
+cancellable.cancel()
+```
+
+**You can feed DatabaseRegionObservation** with any type that conforms to the [DatabaseRegionConvertible] protocol: requests, [DatabaseRegion], `Table`, etc. For example:
 
 ```swift
+// Observe the score column of the player table
+let observation = DatabaseRegionObservation(tracking: Player.select(Column("score")))
+
+// Observe the score column of the player table
+let observation = DatabaseRegionObservation(tracking: SQLRequest("SELECT score FROM player"))
+
+// Observe both the player and team tables
+let observation = DatabaseRegionObservation(tracking: Table("player"), Table("team"))
+
 // Observe the full database
-let observation = DatabaseRegionObservation(tracking: DatabaseRegion.fullDatabase)
-let observer = try observation.start(in: dbQueue) { (db: Database) in
-    print("Database was changed")
-}
+let observation = DatabaseRegionObservation(tracking: .fullDatabase)
 ```
 
+**As a convenience**, DatabaseRegionObservation can be turned into a Combine publisher, or an RxSwift observable:
 
-### DatabaseRegionObservation.extent
-
-The `extent` property lets you specify the duration of the observation. See [Observation Extent](#observation-extent) for more details:
-
+<details open>
+    <summary>Combine example</summary>
+    
 ```swift
-// This observation lasts until the database connection is closed
-var observation = DatabaseRegionObservation...
-observation.extent = .databaseLifetime
-_ = try observation.start(in: dbQueue) { db in ... }
+import Combine
+import GRDB
+
+let observation = DatabaseRegionObservation.tracking(Player.all())
+
+let cancellable = observation.publisher(in: dbQueue).sink(
+    receiveCompletion: { completion in ... },
+    receiveValue: { (db: Database) in
+        print("Players were changed")
+    })
 ```
 
-The default extent is `.observerLifetime`: the observation stops when the observer returned by `start` is deinitialized.
+See [Combine Support] for more information.
 
-Regardless of the extent of an observation, you can always stop observation with the `remove(transactionObserver:)` method:
+</details>
 
+<details>
+    <summary>RxSwift example</summary>
+    
 ```swift
-// Start
-let observer = try observation.start(in: dbQueue) { db in ... }
+import GRDB
+import RxGRDB
+import RxSwift
 
-// Stop
-dbQueue.remove(transactionObserver: observer)
+let observation = DatabaseRegionObservation.tracking(Player.all())
+
+let disposable = observation.rx.changes(in: dbQueue).subscribe(
+    onNext: { (db: Database) in
+        print("Players were changed")
+    },
+    onError: { error in ... })
 ```
+
+See the companion library [RxGRDB] for more information.
+
+</details>
 
 
 ## TransactionObserver Protocol

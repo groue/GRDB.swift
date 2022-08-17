@@ -46,6 +46,14 @@ extension DatabaseMigrator {
     { preconditionFailure() }
 }
 
+extension DatabaseRegionObservation {
+    @available(*, unavailable, message: "The extent of the observation is now controlled by the cancellable returned by DatabaseRegionObservation.start().")
+    public var extent: Database.TransactionObservationExtent {
+        get { preconditionFailure() }
+        set { preconditionFailure() }
+    }
+}
+
 extension DatabaseUUIDEncodingStrategy {
     @available(*, unavailable, renamed: "uppercaseString")
     public static var string: Self { preconditionFailure() }

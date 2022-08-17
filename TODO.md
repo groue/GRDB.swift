@@ -23,7 +23,7 @@
 - [X] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation. Result: no, it does not look it returns values that are comparable between two distinct SQLite connections (from the initial reader, and from the writer thhat starts the observation)
 - [ ] Grab all FTS tokens in a string
 - [ ] Can we generate EXISTS with association? `Team.annotated(with: Team.players.exists)`
-- [ ] GRDB 6: have DatabaseRegionObservation produce DatabaseCancellable just as ValueObservation.
+- [X] GRDB 6: have DatabaseRegionObservation produce DatabaseCancellable just as ValueObservation.
 - [X] RangeReplaceableCollection should have append(contentsOf: cursor)
 - [ ] GRDB 6: choose persistence table
 - [ ] GRDB 6: decoding errors
