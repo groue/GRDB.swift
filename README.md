@@ -3641,7 +3641,7 @@ When SQLite won't let you provide an explicit primary key (as in [full-text](Doc
     // When you subclass Record, you need an override:
     class Book : Record {
         override class var databaseSelection: [any SQLSelectable] {
-            [AllColums(), Column.rowID]
+            [AllColumns(), Column.rowID]
         }
     }
     ```

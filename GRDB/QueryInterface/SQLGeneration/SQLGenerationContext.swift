@@ -435,7 +435,7 @@ public class TableAlias: Hashable {
         ordering.sqlOrdering.qualified(with: self)
     }
     
-    /// Returns a qualified columnn that is able to resolve ambiguities in
+    /// Returns a qualified column that is able to resolve ambiguities in
     /// joined queries.
     public subscript(_ column: String) -> SQLExpression {
         .qualifiedColumn(column, self)

@@ -520,7 +520,7 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     public let statement: Statement
     /// :nodoc:
     public var _isDone = false
-    private let row: Row // Instanciated once, reused for performance
+    private let row: Row // Instantiated once, reused for performance
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
         self.statement = statement

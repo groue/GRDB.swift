@@ -316,7 +316,7 @@ extension Cursor {
     /// Returns a cursor that skips any initial elements that satisfy
     /// `predicate`.
     ///
-    /// - Parameter predicate: A closure that takes an element of the cursir as
+    /// - Parameter predicate: A closure that takes an element of the cursor as
     ///   its argument and returns `true` if the element should be skipped or
     ///   `false` otherwise. Once `predicate` returns `false` it will not be
     ///   called again.

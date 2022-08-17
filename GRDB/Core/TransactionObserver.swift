@@ -164,7 +164,7 @@ extension Database {
 ///
 ///         try db.execute(sql: "COMMIT")
 ///
-/// During the statement *execution*, SQlite tells the broker that the
+/// During the statement *execution*, SQLite tells the broker that the
 /// transaction is about to be committed through sqlite3_commit_hook. The broker
 /// invokes observer.databaseWillCommit(). If the observer throws an error, the
 /// broker asks SQLite to rollback the transaction. Otherwise, the broker lets

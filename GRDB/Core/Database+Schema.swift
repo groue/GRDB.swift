@@ -186,7 +186,7 @@ extension Database {
     }
     
     private func exists(type: SchemaObjectType, name: String, in schemaID: SchemaIdentifier) throws -> Bool {
-        // SQlite identifiers are case-insensitive, case-preserving:
+        // SQLite identifiers are case-insensitive, case-preserving:
         // http://www.alberton.info/dbms_identifiers_and_case_sensitivity.html
         try schema(schemaID).containsObjectNamed(name, ofType: type)
     }
@@ -786,7 +786,7 @@ public struct ColumnInfo: FetchableRecord {
     ///         """)
     ///     let columnInfos = try db.columns(in: "player")
     ///     columnInfos[0].defaultValueSQL // nil
-    ///     columnInfos[1].defaultValueSQL // "'Anoynymous'"
+    ///     columnInfos[1].defaultValueSQL // "'Anonymous'"
     ///     columnInfos[2].defaultValueSQL // "0"
     ///     columnInfos[3].defaultValueSQL // "CURRENT_TIMESTAMP"
     public let defaultValueSQL: String?
