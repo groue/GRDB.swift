@@ -60,7 +60,7 @@ extension ValueObservation {
     ///
     ///     let cancellable = try sharedObservation.start(
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///     // <- here "fresh players" is already printed.
@@ -103,7 +103,7 @@ extension ValueObservation {
 ///
 ///     let cancellable = try sharedObservation.start(
 ///         onError: { error in ... },
-///         onChange: { players: [Player] in
+///         onChange: { (players: [Player]) in
 ///             print("Players have changed.")
 ///         })
 ///
@@ -164,7 +164,7 @@ public final class SharedValueObservation<Element> {
     ///
     ///     let cancellable = try sharedObservation.start(
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///
@@ -234,7 +234,7 @@ public final class SharedValueObservation<Element> {
     ///
     ///     let cancellable = publisher.sink(
     ///         receiveCompletion: { completion in ... },
-    ///         receiveValue: { players: [Player] in
+    ///         receiveValue: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///

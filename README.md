@@ -286,7 +286,7 @@ let observation = ValueObservation.tracking { db in
 // Start observation
 let cancellable = observation.start(
     in: dbQueue,
-    onError: { error in ... }
+    onError: { error in ... },
     onChange: { (places: [Place]) in print("Fresh places: \(places)") })
 ```
 

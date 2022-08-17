@@ -34,7 +34,7 @@ public class ValueObservationScheduler {
     ///         in: dbQueue,
     ///         scheduling: .async(onQueue: .main),
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     public static func async(onQueue queue: DispatchQueue) -> ValueObservationScheduler {
@@ -54,7 +54,7 @@ public class ValueObservationScheduler {
     ///         in: dbQueue,
     ///         scheduling: .immediate,
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///     // <- here "fresh players" is already printed.

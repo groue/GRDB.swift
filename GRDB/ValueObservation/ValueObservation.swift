@@ -16,7 +16,7 @@ import Foundation
 ///     let cancellable = try observation.start(
 ///         in: dbQueue,
 ///         onError: { error in ... },
-///         onChange: { players: [Player] in
+///         onChange: { (players: [Player]) in
 ///             print("Players have changed.")
 ///         })
 public struct ValueObservation<Reducer: ValueReducer> {
@@ -109,7 +109,7 @@ extension ValueObservation: Refinable {
     ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///
@@ -123,7 +123,7 @@ extension ValueObservation: Refinable {
     ///         in: dbQueue,
     ///         scheduling: .immediate, // <-
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("fresh players: \(players)")
     ///         })
     ///     // <- here "fresh players" is already printed.
@@ -366,7 +366,7 @@ extension ValueObservation {
     ///         .publisher(in: dbQueue)
     ///         .sink(
     ///             receiveCompletion: { completion in ... },
-    ///             receiveValue: { players: [Player] in
+    ///             receiveValue: { (players: [Player]) in
     ///                 print("fresh players: \(players)")
     ///             })
     ///
@@ -383,7 +383,7 @@ extension ValueObservation {
     ///             scheduling: .immediate) // <-
     ///         .sink(
     ///             receiveCompletion: { completion in ... },
-    ///             receiveValue: { players: [Player] in
+    ///             receiveValue: { (players: [Player]) in
     ///                 print("fresh players: \(players)")
     ///             })
     ///     // <- here "fresh players" is already printed.
@@ -734,7 +734,7 @@ extension ValueObservation where Reducer == ValueReducers.Auto {
     ///     let cancellable = try observation.start(
     ///         in: dbQueue,
     ///         onError: { error in ... },
-    ///         onChange: { players: [Player] in
+    ///         onChange: { (players: [Player]) in
     ///             print("Players have changed")
     ///         })
     ///

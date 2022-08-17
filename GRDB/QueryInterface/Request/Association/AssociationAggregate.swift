@@ -34,12 +34,12 @@ extension AssociationToMany {
     ///         var team: Team
     ///         var hasNoPlayer: Bool
     ///     }
-    ///     let request = Team.annotated(with: Team.players.isEmpty())
+    ///     let request = Team.annotated(with: Team.players.isEmpty)
     ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
     ///
-    ///     let teams: [Team] = try Team.having(Team.players.isEmpty()).fetchAll(db)
-    ///     let teams: [Team] = try Team.having(!Team.players.isEmpty())
-    ///     let teams: [Team] = try Team.having(Team.players.isEmpty() == false)
+    ///     let teams: [Team] = try Team.having(Team.players.isEmpty).fetchAll(db)
+    ///     let teams: [Team] = try Team.having(!Team.players.isEmpty)
+    ///     let teams: [Team] = try Team.having(Team.players.isEmpty == false)
     public var isEmpty: AssociationAggregate<OriginRowDecoder> {
         makeAggregate(.isEmpty(.countDistinct(.fastPrimaryKey)))
             .forKey("hasNo\(key.singularizedName.uppercasingFirstCharacter)")
