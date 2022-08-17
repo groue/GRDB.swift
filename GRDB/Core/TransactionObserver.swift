@@ -954,7 +954,7 @@ public enum DatabaseEventKind {
         }
     }
     
-    /// Returns true iff this is a delete event.
+    /// Returns whether this is a delete event.
     var isDelete: Bool {
         if case .delete = self {
             return true

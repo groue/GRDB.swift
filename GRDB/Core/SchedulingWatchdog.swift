@@ -52,7 +52,7 @@ final class SchedulingWatchdog {
         GRDBPrecondition(allows(db), message(), file: file, line: line)
     }
     
-    /// Returns true iff the database argument can be used in the current
+    /// Returns whether the database argument can be used in the current
     /// dispatch queue.
     static func allows(_ db: Database) -> Bool {
         current?.allows(db) ?? false
