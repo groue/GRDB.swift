@@ -21,8 +21,12 @@
 - [ ] Direct access to statement for bindings
 - [ ] Property wrapper that decodes dictionaries (but how to tell the key column?)
 - [X] See if SQLITE_FCNTL_DATA_VERSION could help working around the lack of snapshots in order to avoid double initial fetch of ValueObservation. Result: no, it does not look it returns values that are comparable between two distinct SQLite connections (from the initial reader, and from the writer thhat starts the observation)
-- [ ] Grab all FTS tokens in a string
-- [ ] Can we generate EXISTS with association? `Team.annotated(with: Team.players.exists)`
+- [X] Grab all FTS tokens in a string
+- [NO] Can we generate EXISTS with association? `Team.annotated(with: Team.players.exists)`
+    No. We already have `Team.annotated(with: Team.players.isEmpty == false)`.
+    It does not use an EXISTS expression, but a JOIN, and this is better for
+    the internal consistency of the query interface, and the rules that deal
+    with association keys.
 - [X] GRDB 6: have DatabaseRegionObservation produce DatabaseCancellable just as ValueObservation.
 - [X] RangeReplaceableCollection should have append(contentsOf: cursor)
 - [ ] GRDB 6: choose persistence table
@@ -54,7 +58,7 @@
 - [ ] Can we use generated columns to makes it convenient to index on inserted JSON objects? https://github.com/apple/swift-package-manager/pull/3090#issuecomment-740091760
 - [ ] Look at [@FetchRequest](https://developer.apple.com/documentation/swiftui/fetchrequest): managed object context is stored in the environment, and error processing happens somewhere else (where?).
 - [ ] Handle SQLITE_LIMIT_VARIABLE_NUMBER in deleteAll(_:keys:) and similar APIs. https://www.sqlite.org/limits.html
-- [ ] Subqueries: request.isEmpty / request.exists
+- [X] Subqueries: ~request.isEmpty~ / [X] request.exists()
 - [ ] Subqueries: request.count
 - [ ] Extract one row from a hasMany association (the one with the maximum date, the one with a flag set, etc.) https://stackoverflow.com/questions/43188771/sqlite-join-query-most-recent-posts-by-each-user (failed PR: https://github.com/groue/GRDB.swift/pull/767)
 - [ ] Turn a hasMany to hasOne without first/last : hasMany(Book.self).filter(Column("isBest") /* assume a single book is flagged best */).asOne()
