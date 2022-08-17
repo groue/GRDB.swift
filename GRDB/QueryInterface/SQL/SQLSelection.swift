@@ -1,5 +1,8 @@
 /// The type that can be selected, as described at
 /// <https://www.sqlite.org/syntax/result-column.html>
+///
+/// It is legal for `SQLSelection` to represent several columns. The most basic
+/// example of such a multi-column selection is the SQL `*`.
 public struct SQLSelection {
     private var impl: Impl
     

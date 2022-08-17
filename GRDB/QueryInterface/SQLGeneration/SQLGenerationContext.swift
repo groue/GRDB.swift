@@ -88,7 +88,27 @@ final class SQLGenerationContext {
     /// Returns whether arguments could be appended.
     ///
     /// A false result means that the generation context does not support
-    /// SQL arguments.
+    /// SQL arguments, and `?` placeholders are not supported.
+    /// This happens, for example, when we are creating tables:
+    ///
+    ///     // CREATE TABLE player (
+    ///     //   name TEXT DEFAULT 'Anonymous' -- String literal instead of ?
+    ///     // )
+    ///     let defaultName = "Anonymous"
+    ///     try db.create(table: "player") { t in
+    ///         t.column(literal: "name TEXT DEFAULT \(defaultName)")
+    ///     }
+    ///
+    /// A false result is turned into a fatal error when the user uses
+    /// SQL arguments at unsupported locations:
+    ///
+    ///     // Fatal error:
+    ///     // Not implemented: turning an SQL parameter into an SQL literal value
+    ///     let defaultName = "Anonymous"
+    ///     let literal = SQL(sql: "name TEXT DEFAULT ?", arguments: [defaultName])
+    ///     try db.create(table: "player") { t in
+    ///         t.column(literal: literal)
+    ///     }
     func append(arguments: StatementArguments) -> Bool {
         argumentsSink.append(arguments: arguments)
     }
