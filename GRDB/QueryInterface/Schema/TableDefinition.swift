@@ -789,7 +789,7 @@ public final class TableAlteration {
     /// See <https://www.sqlite.org/lang_altertable.html>
     ///
     /// - Parameter name: the column name to drop.
-    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *)
+    @available(iOS 15.0, tvOS 15.0, watchOS 8.0, macOS 12.0, *) // SQLite 3.35.0+
     public func drop(column name: String) {
         _drop(column: name)
     }
