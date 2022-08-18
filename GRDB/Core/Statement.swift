@@ -604,7 +604,7 @@ public protocol StatementBinding {
 ///         .filter(sql: "team = :team", arguments: ["team": "Blue"])
 ///         .filter(sql: "score > ?", arguments: [1000])
 ///         .fetchAll(db)
-public struct StatementArguments: CustomStringConvertible, Equatable,
+public struct StatementArguments: CustomStringConvertible, Hashable,
                                   ExpressibleByArrayLiteral, ExpressibleByDictionaryLiteral
 {
     private(set) var values: [DatabaseValue]
