@@ -420,15 +420,34 @@ public protocol _DatabaseCursor: Cursor {
     /// Must be initialized to false.
     var _isDone: Bool { get set }
     
+    /// The statement iterated by the cursor
+    var _statement: Statement { get }
+    
     /// Called after one successful call to `sqlite3_step()`. Returns the
     /// element for the current statement step.
     func _element(sqliteStatement: SQLiteStatement) throws -> Element
 }
 
 /// A protocol for cursors that iterate a database statement.
-public protocol DatabaseCursor: _DatabaseCursor {
-    /// The statement iterated by the cursor
-    var statement: Statement { get }
+public protocol DatabaseCursor: _DatabaseCursor { }
+
+// Read-only access to statement information. We don't want the user to modify
+// a statement through a cursor, in case this would mess with the cursor state.
+extension DatabaseCursor {
+    /// The SQL query
+    public var sql: String { _statement.sql }
+    
+    /// The SQL statement arguments.
+    public var arguments: StatementArguments { _statement.arguments }
+    
+    /// The column names, ordered from left to right.
+    public var columnNames: [String] { _statement.columnNames }
+    
+    /// The number of columns in the resulting rows.
+    public var columnCount: Int { _statement.columnCount }
+    
+    /// The database region that the cursor looks into.
+    public var databaseRegion: DatabaseRegion { _statement.databaseRegion }
 }
 
 extension DatabaseCursor {
@@ -437,7 +456,7 @@ extension DatabaseCursor {
         if _isDone {
             return nil
         }
-        if let element = try statement.step(_element) {
+        if let element = try _statement.step(_element) {
             return element
         }
         _isDone = true
@@ -449,7 +468,7 @@ extension DatabaseCursor {
     @inlinable
     public func forEach(_ body: (Element) throws -> Void) throws {
         if _isDone { return }
-        try statement.forEachStep {
+        try _statement.forEachStep {
             try body(_element(sqliteStatement: $0))
         }
         _isDone = true
@@ -468,12 +487,12 @@ extension DatabaseCursor {
 ///     }
 final class StatementCursor: DatabaseCursor {
     typealias Element = Void
-    let statement: Statement
+    let _statement: Statement
     var _isDone = false
     
     // Use Statement.makeCursor() instead
     init(statement: Statement, arguments: StatementArguments? = nil) throws {
-        self.statement = statement
+        self._statement = statement
         
         // Assume cursor is created for immediate iteration: reset and set arguments
         try statement.reset(withArguments: arguments)
@@ -482,7 +501,7 @@ final class StatementCursor: DatabaseCursor {
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     @usableFromInline

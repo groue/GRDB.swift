@@ -1087,13 +1087,14 @@ extension Row {
 ///     }
 public final class RowCursor: DatabaseCursor {
     public typealias Element = Row
-    public let statement: Statement
+    /// :nodoc:
+    public let _statement: Statement
     /// :nodoc:
     public var _isDone = false
     @usableFromInline let _row: Row // Reused for performance
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
-        self.statement = statement
+        self._statement = statement
         self._row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         
         // Assume cursor is created for immediate iteration: reset and set arguments
@@ -1103,7 +1104,7 @@ public final class RowCursor: DatabaseCursor {
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     /// :nodoc:

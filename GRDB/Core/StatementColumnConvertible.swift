@@ -144,13 +144,14 @@ public final class FastDatabaseValueCursor<Value>: DatabaseCursor
 where Value: DatabaseValueConvertible & StatementColumnConvertible
 {
     public typealias Element = Value
-    public let statement: Statement
+    /// :nodoc:
+    public let _statement: Statement
     /// :nodoc:
     public var _isDone = false
     @usableFromInline let columnIndex: CInt
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
-        self.statement = statement
+        self._statement = statement
         if let adapter = adapter {
             // adapter may redefine the index of the leftmost column
             columnIndex = try CInt(adapter.baseColumnIndex(atIndex: 0, layout: statement))
@@ -165,7 +166,7 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     /// :nodoc:
@@ -174,7 +175,7 @@ where Value: DatabaseValueConvertible & StatementColumnConvertible
         try Value.fastDecode(
             fromStatement: sqliteStatement,
             atUncheckedIndex: columnIndex,
-            context: RowDecodingContext(statement: statement, index: Int(columnIndex)))
+            context: RowDecodingContext(statement: _statement, index: Int(columnIndex)))
     }
 }
 

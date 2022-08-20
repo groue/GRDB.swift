@@ -105,13 +105,14 @@ extension DatabaseValueConvertible {
 ///     }
 public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: DatabaseCursor {
     public typealias Element = Value
-    public let statement: Statement
+    /// :nodoc:
+    public let _statement: Statement
     /// :nodoc:
     public var _isDone = false
     private let columnIndex: CInt
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
-        self.statement = statement
+        self._statement = statement
         if let adapter = adapter {
             // adapter may redefine the index of the leftmost column
             columnIndex = try CInt(adapter.baseColumnIndex(atIndex: 0, layout: statement))
@@ -126,7 +127,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     /// :nodoc:
@@ -134,7 +135,7 @@ public final class DatabaseValueCursor<Value: DatabaseValueConvertible>: Databas
         try Value.decode(
             fromStatement: sqliteStatement,
             atUncheckedIndex: columnIndex,
-            context: RowDecodingContext(statement: statement, index: Int(columnIndex)))
+            context: RowDecodingContext(statement: _statement, index: Int(columnIndex)))
     }
 }
 

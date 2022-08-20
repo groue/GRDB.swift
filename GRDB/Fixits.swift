@@ -38,6 +38,11 @@ extension Database {
     public func makeUpdateStatement(literal sqlLiteral: SQL) throws -> Statement { preconditionFailure() }
 }
 
+extension DatabaseCursor {
+    @available(*, unavailable, message: "statement has been removed. You may use other cursor properties instead.")
+    public var statement: Statement { preconditionFailure() }
+}
+
 extension DatabaseMigrator {
     @available(*, unavailable, message: "The completion function now accepts one Result<Database, Error> argument")
     public func asyncMigrate(

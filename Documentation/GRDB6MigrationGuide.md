@@ -178,3 +178,12 @@ The record protocols have been refactored. We tried to keep the amount of modifi
     ```
     
     The `DatabaseRegionObservation.extent` property was removed. You now control the duration of the observation with the cancellable returned from the `start` method.
+
+- Database cursors no longer have a `statement` property. When you want information about the database statement used by a cursor, use dedicated cursor properties. For example:
+
+    ```diff
+    -let sql = cursor.statement.sql
+    -let columns = cursor.statement.columnNames
+    +let sql = cursor.sql
+    +let columns = cursor.columnNames
+    ```

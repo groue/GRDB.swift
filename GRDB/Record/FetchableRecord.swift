@@ -517,13 +517,14 @@ extension FetchRequest where RowDecoder: FetchableRecord & Hashable {
 ///     }
 public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     public typealias Element = Record
-    public let statement: Statement
+    /// :nodoc:
+    public let _statement: Statement
     /// :nodoc:
     public var _isDone = false
     private let row: Row // Instantiated once, reused for performance
     
     init(statement: Statement, arguments: StatementArguments? = nil, adapter: (any RowAdapter)? = nil) throws {
-        self.statement = statement
+        self._statement = statement
         row = try Row(statement: statement).adapted(with: adapter, layout: statement)
         try statement.reset(withArguments: arguments)
     }
@@ -531,7 +532,7 @@ public final class RecordCursor<Record: FetchableRecord>: DatabaseCursor {
     deinit {
         // Statement reset fails when sqlite3_step has previously failed.
         // Just ignore reset error.
-        try? statement.reset()
+        try? _statement.reset()
     }
     
     /// :nodoc:
