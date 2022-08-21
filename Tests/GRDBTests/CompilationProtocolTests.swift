@@ -153,7 +153,7 @@ private class UserTransactionObserver : TransactionObserver {
 private struct UserVirtualTableModule1 : VirtualTableModule {
     struct CustomTableDefinition { }
     let moduleName = "UserVirtualTableModule1"
-    func makeTableDefinition() -> CustomTableDefinition { preconditionFailure() }
+    func makeTableDefinition(configuration: VirtualTableConfiguration) -> CustomTableDefinition { preconditionFailure() }
     func moduleArguments(for definition: CustomTableDefinition, in db: Database) throws -> [String] { preconditionFailure() }
     func database(_ db: Database, didCreate tableName: String, using definition: CustomTableDefinition) throws { }
 }
@@ -161,7 +161,7 @@ private struct UserVirtualTableModule1 : VirtualTableModule {
 private class UserVirtualTableModule2 : VirtualTableModule {
     struct CustomTableDefinition { }
     let moduleName = "UserVirtualTableModule2"
-    func makeTableDefinition() -> CustomTableDefinition { preconditionFailure() }
+    func makeTableDefinition(configuration: VirtualTableConfiguration) -> CustomTableDefinition { preconditionFailure() }
     func moduleArguments(for definition: CustomTableDefinition, in db: Database) throws -> [String] { preconditionFailure() }
     func database(_ db: Database, didCreate tableName: String, using definition: CustomTableDefinition) throws { }
 }

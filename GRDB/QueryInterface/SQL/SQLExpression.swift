@@ -370,9 +370,6 @@ public struct SQLExpression {
     }
 }
 
-@available(*, deprecated, renamed: "SQLExpression.AssociativeBinaryOperator")
-public typealias SQLAssociativeBinaryOperator = SQLExpression.AssociativeBinaryOperator
-
 // MARK: - Creating Expressions
 
 extension SQLExpression {

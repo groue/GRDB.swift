@@ -25,14 +25,6 @@ public struct FTS4: VirtualTableModule {
     /// The virtual table module name
     public let moduleName = "fts4"
     
-    // TODO: remove when `makeTableDefinition()` is no longer a requirement
-    /// Reserved; part of the VirtualTableModule protocol.
-    ///
-    /// See Database.create(virtualTable:using:)
-    public func makeTableDefinition() -> FTS4TableDefinition {
-        preconditionFailure()
-    }
-    
     /// Reserved; part of the VirtualTableModule protocol.
     ///
     /// See Database.create(virtualTable:using:)

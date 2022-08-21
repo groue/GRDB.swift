@@ -62,67 +62,11 @@ extension AssociationToMany {
     ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
     ///
     ///     let teams: [Team] = try Team.having(Team.players.average(Column("score")) > 100).fetchAll(db)
-    @available(*, deprecated, message: "Did you mean average(Column(...))? If not, prefer average(value.databaseValue) instead.") // swiftlint:disable:this line_length
-    public func average(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("AVG", [expression.sqlExpression]))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// Creates an aggregate which evaluate to the average value of the given
-    /// expression in associated records.
-    ///
-    /// When the averaged expression is a column, the aggregate has a default
-    /// name which is "average[Key][Column]", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var averagePlayerScore: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.average(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.average(Column("score")) > 100).fetchAll(db)
     public func average(_ expression: SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(.aggregate("AVG", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("average\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// Creates an aggregate which evaluate to the maximum value of the given
-    /// expression in associated records.
-    ///
-    /// When the maximized expression is a column, the aggregate has a default
-    /// name which is "maximum[Key][Column]", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var maxPlayerScore: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.max(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.max(Column("score")) < 100).fetchAll(db)
-    @available(*, deprecated, message: "Did you mean max(Column(...))? If not, prefer max(value.databaseValue) instead.") // swiftlint:disable:this line_length
-    public func max(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("MAX", [expression.sqlExpression]))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("max\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
         } else {
             return aggregate
         }
@@ -172,70 +116,11 @@ extension AssociationToMany {
     ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
     ///
     ///     let teams: [Team] = try Team.having(Team.players.min(Column("score")) > 100).fetchAll(db)
-    @available(*, deprecated, message: "Did you mean min(Column(...))? If not, prefer min(value.databaseValue) instead.") // swiftlint:disable:this line_length
-    public func min(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("MIN", [expression.sqlExpression]))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// Creates an aggregate which evaluate to the minimum value of the given
-    /// expression in associated records.
-    ///
-    /// When the minimized expression is a column, the aggregate has a default
-    /// name which is "minimum[Key][Column]", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var minPlayerScore: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.min(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.min(Column("score")) > 100).fetchAll(db)
     public func min(_ expression: SQLSpecificExpressible) -> AssociationAggregate<OriginRowDecoder> {
         let aggregate = makeAggregate(.aggregate("MIN", [expression.sqlExpression]))
         if let column = expression as? ColumnExpression {
             let name = key.singularizedName
             return aggregate.forKey("min\(name.uppercasingFirstCharacter)\(column.name.uppercasingFirstCharacter)")
-        } else {
-            return aggregate
-        }
-    }
-    
-    /// Creates an aggregate which evaluate to the sum of the given expression
-    /// in associated records.
-    ///
-    /// When the summed expression is a column, the aggregate has a default
-    /// name which is "[key][Column]Sum", where key is the key of the
-    /// association. For example:
-    ///
-    /// For example:
-    ///
-    ///     struct TeamInfo: FetchableRecord, Decodable {
-    ///         var team: Team
-    ///         var playerScoreSum: Double
-    ///     }
-    ///     let request = Team.annotated(with: Team.players.sum(Column("score")))
-    ///     let infos: [TeamInfo] = try TeamInfo.fetchAll(db, request)
-    ///
-    ///     let teams: [Team] = try Team.having(Team.players.sum(Column("score")) > 100).fetchAll(db)
-    ///
-    /// This aggregate invokes the `SUM` SQL function. See also `total(_:)`, and
-    /// <https://www.sqlite.org/lang_aggfunc.html#sumunc>.
-    @available(*, deprecated, message: "Did you mean sum(Column(...))? If not, prefer sum(value.databaseValue) instead.") // swiftlint:disable:this line_length
-    public func sum(_ expression: SQLExpressible) -> AssociationAggregate<OriginRowDecoder> {
-        let aggregate = makeAggregate(.aggregate("SUM", [expression.sqlExpression]))
-        if let column = expression as? ColumnExpression {
-            let name = key.singularizedName
-            return aggregate.forKey("\(name)\(column.name.uppercasingFirstCharacter)Sum")
         } else {
             return aggregate
         }
