@@ -67,7 +67,7 @@ public protocol EncodableRecord {
     /// - dataEncodingStrategy: .base64
     /// - dateEncodingStrategy: .millisecondsSince1970
     /// - nonConformingFloatEncodingStrategy: .throw
-    /// - outputFormatting: .sortedKeys (iOS 11.0+, macOS 10.13+, tvOS 11.0+, watchOS 4.0+)
+    /// - outputFormatting: .sortedKeys
     ///
     /// You can override those defaults:
     ///

@@ -7,9 +7,9 @@ let package = Package(
     name: "GRDB",
     platforms: [
         .iOS(.v11),
-        .macOS(.v10_10),
-        .tvOS(.v9),
-        .watchOS(.v2),
+        .macOS(.v10_13),
+        .tvOS(.v11),
+        .watchOS(.v4),
     ],
     products: [
         .library(name: "GRDB", targets: ["GRDB"]),

@@ -93,6 +93,11 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
+## 6.0.0
+
+- **Breaking**: Swift 5.7+ and Xcode 14+ are required.
+- **Breaking**: iOS 11.0+ / macOS 10.13+ / tvOS 11.0+ / watchOS 4.0+ are required.
+
 ## 5.26.0
 
 Released July 9, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.25.0...v5.26.0)
