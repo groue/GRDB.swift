@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 
 GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: APIs flagged [**:fire: EXPERIMENTAL**](README.md#what-are-experimental-features). Those are unstable, and may break between any two minor releases of the library.
 
+#### 6.x Releases
+
+- `6.0.0` Betas - [6.0.0-beta](#600-beta)
+
 #### 5.x Releases
 
 - `5.26.x` Releases - [5.26.0](#5260)
@@ -93,7 +97,9 @@ GRDB adheres to [Semantic Versioning](https://semver.org/), with one exception: 
 
 ---
 
-## 6.0.0
+## 6.0.0-beta
+
+Released August 21, 2022 &bull; [diff](https://github.com/groue/GRDB.swift/compare/v5.26.0...v6.0.0-beta)
 
 ### New
 
